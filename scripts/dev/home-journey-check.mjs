@@ -57,12 +57,7 @@ for (const [name, width, height] of [
         const el = n.parentElement;
         if (!n.textContent.trim() || !el.offsetParent) continue;
         /* text on its own solid surface is checked by colour pair below, not by the painting */
-        if (
-          el.closest(
-            ".btn, .claim-pill, .chat-q, .chat-kinds, .chat-bands b, .chat-topics [aria-selected=true], .sr, [hidden]"
-          )
-        )
-          continue;
+        if (el.closest(".btn, .claim-pill, .chat-q, .sr, [hidden]")) continue;
         const range = document.createRange();
         range.selectNodeContents(n);
         const cs = getComputedStyle(el);
@@ -137,14 +132,11 @@ for (const [name, width, height] of [
   say(gua.sig > 150, `${name}: the signature is drawn (${Math.round(gua.sig)} px wide)`);
   /* a doubt opens into its answer */
   await page.evaluate(() => document.querySelector("#ask").scrollIntoView({ block: "center" }));
-  await page
-    .locator(".chat-topics button", { hasText: "Getting started" })
-    .evaluate((el) => el.click());
-  await page.locator(".chat-asks button", { hasText: "try it first" }).evaluate((el) => el.click());
-  await page.waitForTimeout(3600);
+  await page.locator(".cloud", { hasText: "try it first" }).evaluate((el) => el.click());
+  await page.waitForTimeout(6500);
   say(
     (await page.locator(".chat-view").innerText()).includes("Start free"),
-    `${name}: tapping a question sends it and Karman answers`
+    `${name}: picking a cloud sends its question and Karman answers`
   );
   await page.evaluate(() => scrollTo(0, 0));
   await page.reload({ waitUntil: "domcontentloaded" });

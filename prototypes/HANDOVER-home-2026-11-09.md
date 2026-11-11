@@ -123,8 +123,8 @@ real students and the words they sent; nothing may be written for them.
 
 ## Questions section (10 Nov 2026)
 
-"Go on. Ask us the hard ones." is a text conversation (`Doubts.tsx`): five topics, 24 questions, all in
-`site-copy.ts` section 13 and built from `offer.ts`. A tapped question is sent as the parent's message,
-Karman types, and the answer lands as two messages; six answers bring a drawing with them (stamp, target
-bars, tutor kinds, a ten-minute clock, the price list, a Start free button). The message box types the next
-unasked question. The founder will add more questions and answers of his own.
+"Go on. Ask us the hard ones." (`Doubts.tsx`): nine questions drift up the left as clouds, about six in
+view, and come round again from the bottom. A picked cloud bursts into puffs, its words fly to the message
+box, are typed in and sent, and Karman's answer is typed back in a text conversation on the right. The
+founder rejected topic tabs and answers with drawings attached. The nine are in `site-copy.ts` section 13,
+built from `offer.ts`; he will supply more questions and answers of his own.

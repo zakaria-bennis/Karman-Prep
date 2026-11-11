@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Fireflies from "@/components/site/home/Fireflies";
@@ -16,24 +15,12 @@ import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import {
-  CONTACT,
-  formatPrice,
-  FREE_PLAN,
-  GUARANTEE,
-  guaranteeBandLabel,
-  guaranteeMax,
-  MARCH_PROGRAM,
-  PRACTICE_PLAN,
-  PRIVATE_PACKAGES,
-  PRO_PLAN,
-  TRACK_RECORD,
-} from "@/lib/marketing/offer";
+import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
 import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
-import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
@@ -53,9 +40,6 @@ const ORG = {
 /* The opening plays once per visit: hide the words before they are drawn, then let them arrive when the
    typefaces are in (painted.css, claim-wait and claim-go). Three seconds is the longest it will wait. */
 const CLAIM_BOOT = `try{var d=document.documentElement,k="karman:claim-seen";if(sessionStorage.getItem(k)!=="1"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){d.classList.add("claim-wait");var go=function(){if(d.classList.contains("claim-wait")){d.classList.replace("claim-wait","claim-go");try{sessionStorage.setItem(k,"1")}catch(e){}}};document.fonts.ready.then(function(){setTimeout(go,150)});setTimeout(go,3000)}}catch(e){}`;
-
-/** The topics of the questions section, in the order site-copy.ts lists their names ("asks guarantee", ...). */
-const DOUBT_KEYS = ["guarantee", "tutors", "work", "price", "start"];
 
 /** The headline in three pieces: the words before the number, the number's phrase, the words after. */
 function splitClaim(headline: string): [string, string, string] {
@@ -83,61 +67,6 @@ export default function HomePage() {
   }));
   const how = section(6);
   const doubts = section(13);
-  const doubtTopics = list(doubts.topics).map((name, i) => ({
-    name,
-    asks: pairs(doubts[`asks ${DOUBT_KEYS[i]}`]),
-  }));
-  /* what some answers bring with them: drawn from the same numbers the rest of the site uses */
-  const doubtExtras = {
-    stamp: (
-      <span className="chat-stamp">
-        <b className="num">+{guaranteeMax("private")}</b>
-        {offer["stamp unit"]}
-        <i>{offer["stamp ring"]}</i>
-      </span>
-    ),
-    bands: (
-      <ul className="chat-bands">
-        {GUARANTEE.bands.map((b, i) => (
-          <li key={b.upTo} style={{ "--h": b.private / guaranteeMax("private") } as CSSProperties}>
-            <b className="num">+{b.private}</b>
-            <span>{guaranteeBandLabel(i)}</span>
-          </li>
-        ))}
-      </ul>
-    ),
-    kinds: (
-      <ul className="chat-kinds">
-        {tutorKinds.map(([name], i) => (
-          <li key={name} style={{ "--i": i } as CSSProperties}>
-            {name}
-          </li>
-        ))}
-      </ul>
-    ),
-    clock: (
-      <span className="chat-clock">
-        <b className="num">10</b>min
-      </span>
-    ),
-    prices: (
-      <ul className="chat-prices">
-        {[
-          [FREE_PLAN.name, formatPrice(FREE_PLAN.price)],
-          [PRACTICE_PLAN.name, `${formatPrice(PRACTICE_PLAN.monthly)}/mo`],
-          [PRO_PLAN.name, `${formatPrice(PRO_PLAN.monthly)}/mo`],
-          [MARCH_PROGRAM.planName, formatPrice(MARCH_PROGRAM.price)],
-          [PRIVATE_PACKAGES[0].name, formatPrice(PRIVATE_PACKAGES[0].price)],
-        ].map(([name, cost], i) => (
-          <li key={name} style={{ "--i": i } as CSSProperties}>
-            <span>{name}</span>
-            <b className="num">{cost}</b>
-          </li>
-        ))}
-      </ul>
-    ),
-    start: <Btn label={claim.button} href={ROUTES.signUp} />,
-  };
   /* sample rows are for designing with: they never reach a production build (receipts.ts) */
   const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
   const price = section(7);
@@ -255,12 +184,10 @@ export default function HomePage() {
             {doubts.headline}
           </h2>
           <Doubts
-            topics={doubtTopics}
-            shows={Object.fromEntries(pairs(doubts.shows))}
-            extras={doubtExtras}
+            items={pairs(doubts.asks)}
             words={{
               label: doubts.label,
-              send: doubts.send,
+              box: doubts.box,
               typing: doubts.typing,
               delivered: doubts.delivered,
               read: doubts.read,

@@ -271,30 +271,40 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes way-talk { 50% { transform: scaleX(.4); } }
 .ks.still-motion .ways * { animation-play-state: paused !important; }
 
-/* ---------- 6. their doubts: a text conversation with Karman (Doubts.tsx). Topics and questions on the
-   left, the chat on the right with a message box that types the next question. ---------- */
-.ks .chat { width: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
-.ks .chat-menu { display: grid; gap: 22px; }
-.ks .chat-topics { display: flex; flex-wrap: wrap; gap: 8px; }
-.ks .chat-topics button { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid var(--ink); font-weight: 700; font-size: 16px; transition: background-color .35s var(--out), color .35s var(--out), transform .45s var(--spring); }
-.ks .chat-topics button[aria-selected="true"] { background: var(--ink); color: var(--cream); transform: scale(1.05); }
-.ks .chat-asks { display: grid; gap: 10px; justify-items: start; }
-.ks .chat-asks li { animation: chat-ask .55s var(--spring) both; animation-delay: calc(var(--i) * 60ms); }
-@keyframes chat-ask { from { opacity: 0; transform: translateX(-22px) scale(.92); } }
-.ks .chat-asks button { min-height: 50px; padding: 10px 22px; border-radius: 26px 26px 26px 8px; background: var(--soft-card); box-shadow: var(--lift); font-weight: 700; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.25; text-align: left; transition: transform .45s var(--spring), background-color .3s var(--out), color .3s var(--out), opacity .3s; }
-@media (hover: hover) and (pointer: fine) { .ks .chat-asks button:not(:disabled):hover { background: var(--ink); color: var(--cream); transform: translateX(8px) scale(1.03); } }
-.ks .chat-asks button:active { transform: scale(.95); transition-duration: .08s; }
-.ks .chat-asks button[data-asked] { opacity: .5; box-shadow: none; }
+/* ---------- 6. their doubts: questions as clouds drifting up the left, and a text conversation with
+   Karman in the sky on the right (Doubts.tsx). A picked cloud bursts and its words fly to the message box. ---------- */
+.ks .chat { --skyh: clamp(440px, 64vh, 640px); --lane: 104px; --dur: 62s; position: relative; width: 100%; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+/* the sky: every cloud makes the same slow climb, one lane apart, so about six are in view and none touch */
+.ks .sky { position: relative; height: calc(var(--skyh) + 78px); margin: 0 -22px; padding: 0; list-style: none; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+.ks .sky li { position: absolute; top: 0; left: 22px; width: calc(100% - 44px); display: flex; animation: sky-rise var(--dur) linear infinite; animation-delay: calc(var(--i) * var(--dur) / var(--n) * -1); }
+.ks .sky li:nth-child(even) { justify-content: flex-end; }
+.ks .sky li:nth-child(3n) { padding-inline: 7%; }
+@keyframes sky-rise { from { transform: translateY(calc(var(--skyh) + 78px)); } to { transform: translateY(calc(var(--skyh) + 78px - var(--n) * var(--lane))); } }
+.ks .sky:hover li, .ks .sky:focus-within li { animation-play-state: paused; }
+.ks .cloud { position: relative; max-width: 78%; min-height: 62px; padding: 14px 28px 16px; border-radius: 999px; background: #fffdf9; color: var(--ink); font-weight: 700; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.22; text-align: left; filter: drop-shadow(0 16px 16px rgba(29, 26, 34, .22)); animation: cloud-sway 7s ease-in-out infinite; animation-delay: calc(var(--i) * -1.7s); transition: scale .45s var(--spring), opacity .3s, filter .3s; }
+/* the puffs along the cloud's top */
+.ks .cloud::before, .ks .cloud::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; background: inherit; }
+.ks .cloud::before { left: 16%; top: -15px; width: 58px; height: 58px; box-shadow: 44px -9px 0 9px #fffdf9; }
+.ks .cloud::after { right: 14%; top: -9px; width: 44px; height: 44px; }
+@keyframes cloud-sway { 50% { transform: translateX(14px) rotate(.6deg); } }
+@media (hover: hover) and (pointer: fine) { .ks .cloud:not(:disabled):hover { scale: 1.07; } }
+.ks .cloud:not(:disabled):active { scale: .94; transition-duration: .08s; }
+.ks .cloud[data-burst] { scale: 1.35; opacity: 0; filter: blur(10px); transition: scale .35s var(--out), opacity .3s, filter .3s; pointer-events: none; }
+/* the burst: puffs thrown out of the cloud, and its words on their way to the message box */
+.ks .sky-fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.ks .sky-fx i { position: absolute; border-radius: 50%; background: #fffdf9; filter: blur(2px); }
+.ks .sky-fx b { position: absolute; font-weight: 700; font-size: clamp(16px, 1.35vw, 19px); white-space: nowrap; transform-origin: 0 50%; }
+/* the conversation */
 .ks .chat-win { display: grid; gap: 14px; min-width: 0; }
-.ks .chat-view { height: clamp(430px, 62vh, 620px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; gap: 10px; padding: 26px 20px 14px; margin: 0 -20px; -webkit-mask-image: linear-gradient(transparent, #000 46px); mask-image: linear-gradient(transparent, #000 46px); }
+.ks .chat-view { height: var(--skyh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; gap: 10px; padding: 26px 20px 14px; margin: 0 -20px; -webkit-mask-image: linear-gradient(transparent, #000 46px); mask-image: linear-gradient(transparent, #000 46px); }
 .ks .chat-view::-webkit-scrollbar { display: none; }
 .ks .chat-view > :first-child { margin-top: auto; }
 .ks .chat-view > * { flex: none; margin: 0; }
-.ks .chat-q { align-self: flex-end; display: grid; justify-items: end; max-width: 80%; padding: 14px 24px; border-radius: 28px 28px 8px 28px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.25; transform-origin: 100% 100%; animation: chat-in-r .55s var(--spring) both; margin-top: 12px; }
+.ks .chat-q { position: relative; align-self: flex-end; max-width: 80%; margin: 12px 0 18px; padding: 14px 24px; border-radius: 28px 28px 8px 28px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.25; transform-origin: 100% 100%; animation: chat-in-r .55s var(--spring) both; }
 .ks .chat-q small { position: absolute; right: 6px; top: calc(100% + 4px); color: var(--ink); font-size: 12.5px; font-weight: 700; opacity: .7; white-space: nowrap; animation: chat-fade .4s both; }
-.ks .chat-q { position: relative; margin-bottom: 18px; }
 .ks .chat-a { align-self: flex-start; max-width: 84%; padding: 14px 22px; border-radius: 26px 26px 26px 8px; background: var(--soft-card); box-shadow: var(--lift); color: var(--ink2); font-size: clamp(16px, 1.3vw, 19px); line-height: 1.35; transform-origin: 0 100%; animation: chat-in-l .55s var(--spring) both; }
 .ks .chat-lead { color: var(--ink); font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.12; padding: 16px 26px; }
+.ks .chat-untyped { visibility: hidden; }
 .ks .chat-dots { display: flex; gap: 6px; padding: 20px 22px; }
 .ks .chat-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); animation: chat-dot 1.1s infinite; }
 .ks .chat-dots i:nth-child(2) { animation-delay: .15s; }
@@ -303,53 +313,30 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes chat-in-l { from { opacity: 0; transform: translate(-24px, 20px) scale(.7); } }
 @keyframes chat-dot { 0%, 60%, 100% { transform: none; opacity: .35; } 30% { transform: translateY(-5px); opacity: 1; } }
 @keyframes chat-fade { from { opacity: 0; } }
-@keyframes chat-pop { from { opacity: 0; transform: scale(0); } }
-/* what an answer brings with it */
-.ks .chat-show { align-self: flex-start; max-width: 100%; padding: 4px 0 6px 4px; transform-origin: 0 0; animation: chat-in-l .6s var(--spring) both; }
-.ks .chat-show ul { list-style: none; margin: 0; padding: 0; }
-.ks .chat-show:has(.btn) { padding: 12px 0 14px 6px; }
-.ks .chat-stamp { display: grid; place-items: center; align-content: center; width: 168px; aspect-ratio: 1; border-radius: 50%; border: 4px solid var(--ink); outline: 2px solid var(--ink); outline-offset: 5px; margin: 8px; transform: rotate(-9deg); font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; text-align: center; animation: chat-stamp .5s cubic-bezier(.2, 1.6, .4, 1) .15s both; }
-.ks .chat-stamp b { font-size: 52px; letter-spacing: -.03em; line-height: .95; }
-.ks .chat-stamp i { font-style: normal; font-size: 10.5px; max-width: 11ch; line-height: 1.2; margin-top: 4px; }
-@keyframes chat-stamp { from { opacity: 0; transform: rotate(-24deg) scale(2.1); } }
-.ks .chat-bands { display: flex; align-items: flex-end; gap: 10px; height: 170px; }
-.ks .chat-bands li { display: grid; align-content: end; justify-items: center; gap: 6px; width: clamp(64px, 7vw, 92px); height: 100%; }
-.ks .chat-bands b { display: grid; align-items: start; justify-items: center; width: 100%; height: calc(var(--h) * 120px + 20px); padding-top: 8px; border-radius: 16px 16px 6px 6px; background: var(--ink); color: var(--cream); font-size: 19px; transform-origin: bottom; animation: chat-grow .7s var(--spring) both; }
-.ks .chat-bands li:nth-child(2) b { animation-delay: .1s; }
-.ks .chat-bands li:nth-child(3) b { animation-delay: .2s; }
-.ks .chat-bands li:nth-child(4) b { animation-delay: .3s; }
-.ks .chat-bands span { font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.15; }
-@keyframes chat-grow { from { transform: scaleY(0); } }
-.ks .chat-kinds { display: flex; flex-wrap: wrap; gap: 8px; max-width: 560px; }
-.ks .chat-kinds li { padding: 9px 17px; border-radius: 999px; background: var(--ink); color: var(--cream); font-weight: 700; font-size: 15.5px; animation: chat-pop .5s var(--spring) both; animation-delay: calc(var(--i) * 80ms); }
-.ks .chat-clock { position: relative; display: grid; place-items: center; align-content: center; width: 132px; aspect-ratio: 1; border-radius: 50%; background: var(--soft-card); box-shadow: var(--lift); font-weight: 800; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
-.ks .chat-clock::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--ink) 0 16.7%, transparent 0); -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 80%); mask: radial-gradient(closest-side, transparent 78%, #000 80%); animation: chat-fade .9s .2s both; }
-.ks .chat-clock b { font-size: 46px; letter-spacing: -.03em; line-height: .9; }
-.ks .chat-prices { display: grid; gap: 6px; width: min(100%, 340px); }
-.ks .chat-prices li { display: flex; justify-content: space-between; gap: 18px; padding: 10px 18px; border-radius: 16px; background: var(--soft-card); box-shadow: var(--lift); font-size: 16px; animation: chat-in-l .5s var(--spring) both; animation-delay: calc(var(--i) * 70ms); }
-/* the message box */
-.ks .chat-box { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 8px 8px 26px; border-radius: 999px; background: var(--cream); box-shadow: var(--lift); }
+/* the message box: a picked question is typed here before it is sent */
+.ks .chat-box { display: flex; align-items: center; gap: 12px; min-height: 64px; margin: 0; padding: 8px 8px 8px 26px; border-radius: 999px; background: var(--cream); box-shadow: var(--lift); }
 .ks .chat-box span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600; font-size: clamp(16px, 1.4vw, 20px); }
-.ks .chat-box span::after { content: ""; display: inline-block; width: 2px; height: 1.15em; margin-left: 2px; vertical-align: -3px; background: var(--ink); animation: chat-caret 1s steps(2) infinite; }
+.ks .chat-box[data-empty] span { color: #6a6472; }
+.ks .chat-box:not([data-empty]) span::after { content: ""; display: inline-block; width: 2px; height: 1.15em; margin-left: 2px; vertical-align: -3px; background: var(--ink); animation: chat-caret 1s steps(2) infinite; }
 @keyframes chat-caret { 50% { opacity: 0; } }
-.ks .chat-box button { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink); color: var(--cream); transition: transform .4s var(--spring), opacity .3s; }
-.ks .chat-box button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.ks .chat-box button:disabled { opacity: .35; }
-@media (hover: hover) and (pointer: fine) { .ks .chat-box button:not(:disabled):hover { transform: scale(1.12) translateY(-2px); } }
-.ks .chat-box button:active { transform: scale(.9); transition-duration: .08s; }
+.ks .chat-box i { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ink); color: var(--cream); transition: scale .4s var(--spring), opacity .3s; }
+.ks .chat-box[data-empty] i { opacity: .35; }
+.ks .chat-box:not([data-empty]) i { scale: 1.1; }
+.ks .chat-box svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 860px) {
-  .ks .chat { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .ks .chat-win { order: -1; }
-  .ks .chat-view { height: min(58vh, 520px); }
+  .ks .chat { --skyh: min(54vh, 480px); --lane: 92px; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ks .sky { height: 330px; }
+  .ks .sky li, .ks .sky li:nth-child(3n) { padding-inline: 0; }
+  @keyframes sky-rise { from { transform: translateY(330px); } to { transform: translateY(calc(330px - var(--n) * var(--lane))); } }
+  .ks .cloud { max-width: 88%; }
   .ks .chat-q, .ks .chat-a { max-width: 90%; }
-  .ks .chat-menu { gap: 12px; min-width: 0; }
-  /* one row of topics and one row of questions, each scrolling on its own like the suggestions over a keyboard */
-  .ks .chat-topics, .ks .chat-asks { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(var(--gutter) * -1); padding: 4px var(--gutter) 12px; }
-  .ks .chat-topics::-webkit-scrollbar, .ks .chat-asks::-webkit-scrollbar { display: none; }
-  .ks .chat-topics button, .ks .chat-asks li { flex: none; }
-  .ks .chat-asks button { white-space: nowrap; border-radius: 999px; }
 }
+/* held still: the clouds sit in a plain list and nothing drifts, bursts or types */
 .ks.still-motion .chat *, .ks.still-motion .chat *::before, .ks.still-motion .chat *::after { animation: none !important; }
+.ks.still-motion .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
+.ks.still-motion .sky { margin: 0; }
+.ks.still-motion .sky li { position: static; width: auto; }
+.ks.still-motion .cloud { max-width: none; }
 
 /* ---------- 7. the price and the close, at night: the mist turns to dusk and the words to cream ---------- */
 .ks .sect.night { --mist-rgb: 18, 20, 42; color: var(--cream); padding-bottom: clamp(120px, 22vh, 240px); }
@@ -379,6 +366,10 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @media (prefers-reduced-motion: reduce) {
   .ks.page-home, .ks .journey .cam canvas, .ks.page-home .btn, .ks .nav-mark { transition: none; }
   .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
+  .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
+  .ks .sky { margin: 0; }
+  .ks .sky li { position: static; width: auto; }
+  .ks .cloud { max-width: none; }
   .ks .gua.rv .gua-stamp, .ks .gua.rv .gua-cards li { opacity: 1 !important; transform: rotate(-13deg); transition: none; }
   .ks .gua.rv .gua-cards li { transform: none !important; }
   .ks .ways .sweep, .ks .ways .draw { stroke-dashoffset: 0; }

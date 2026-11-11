@@ -1,31 +1,32 @@
 "use client";
 
-// The parent's questions, as a text conversation with Karman. The questions sit in topics beside the chat;
-// tapping one sends it as the parent's own message, Karman types, and the answer lands as two messages: one
-// short line set large, then the detail. Some answers bring something with them (the guarantee's stamp, the
-// tutor kinds, a Start free button: the page passes these in as "shows"). The message box under the chat
-// types the next question that hasn't been asked, so one press of Send keeps the conversation going. The
-// first exchange is already on the page, so it reads without scripts. Under reduced motion, or when the
-// painting is held still, nothing types and answers arrive at once.
-import { useEffect, useRef, useState, type ReactNode } from "react";
-
-export interface DoubtTopic {
-  name: string;
-  asks: [string, string][];
-}
+// The parent's questions, as clouds, and Karman's answers, as a text conversation in the sky beside them.
+// The clouds drift up the left side, about six in view, fade out at the top and come round again from the
+// bottom. Picking one makes it burst into puffs; its words fly across to the message box, are typed in and
+// sent, and the answer is typed back (founder, 2026-11-10). The clouds stop while the pointer or the
+// keyboard is on them, so one can be read and picked. The first exchange is already on the page, so it
+// reads without scripts. Under reduced motion, or when the painting is held still, the clouds sit in a
+// plain list, nothing flies or types, and a picked question is answered at once.
+import { useEffect, useRef, useState } from "react";
 
 interface Words {
   label: string;
-  send: string;
+  box: string;
   typing: string;
   delivered: string;
   read: string;
 }
 
-type Msg =
-  | { id: number; kind: "q" | "lead" | "rest"; text: string }
-  | { id: number; kind: "typing" }
-  | { id: number; kind: "show"; show: string };
+interface Msg {
+  id: number;
+  kind: "q" | "lead" | "rest" | "typing";
+  text: string;
+  /** False for messages that were on the page from the start: they are not typed out. */
+  typed: boolean;
+}
+
+const TYPE_MS = 26;
+const ANSWER_MS = 17;
 
 const still = () =>
   matchMedia("(prefers-reduced-motion: reduce)").matches ||
@@ -38,106 +39,152 @@ function split(answer: string): [string, string] {
   return cut > 0 ? [answer.slice(0, cut + 1), answer.slice(cut + 2)] : [answer, ""];
 }
 
-/** The messages one question and its answer make, in order. */
-function exchange(q: string, a: string, show: string | undefined, id: number): Msg[] {
-  const [lead, rest] = split(a);
-  const out: Msg[] = [
-    { id, kind: "q", text: q },
-    { id: id + 1, kind: "lead", text: lead },
-  ];
-  if (rest) out.push({ id: id + 2, kind: "rest", text: rest });
-  if (show) out.push({ id: id + 3, kind: "show", show });
-  return out;
+/** Words that write themselves out. The whole text holds its place from the start, so nothing jumps. */
+function Typed({ text, on }: { text: string; on: boolean }) {
+  const [n, setN] = useState(on ? 0 : text.length);
+  useEffect(() => {
+    if (!on) return;
+    const id = setInterval(() => setN((was) => (was >= text.length ? was : was + 1)), ANSWER_MS);
+    return () => clearInterval(id);
+  }, [on, text]);
+  return (
+    <>
+      {text.slice(0, n)}
+      <span className="chat-untyped">{text.slice(n)}</span>
+    </>
+  );
 }
 
-export default function Doubts({
-  topics,
-  shows,
-  extras,
-  words,
-}: {
-  topics: DoubtTopic[];
-  /** Question -> the name of what its answer brings with it. */
-  shows: Record<string, string>;
-  /** What each name draws. */
-  extras: Record<string, ReactNode>;
-  words: Words;
-}) {
-  const [first] = topics[0].asks;
-  const [msgs, setMsgs] = useState<Msg[]>(() => exchange(first[0], first[1], shows[first[0]], 0));
-  const [asked, setAsked] = useState<string[]>([first[0]]);
-  const [topic, setTopic] = useState(0);
+export default function Doubts({ items, words }: { items: [string, string][]; words: Words }) {
+  const [msgs, setMsgs] = useState<Msg[]>(() => {
+    const [q, a] = items[0];
+    const [lead, rest] = split(a);
+    return [
+      { id: 0, kind: "q" as const, text: q, typed: false },
+      { id: 1, kind: "lead" as const, text: lead, typed: false },
+      ...(rest ? [{ id: 2, kind: "rest" as const, text: rest, typed: false }] : []),
+    ];
+  });
+  /* clouds that have burst and are waiting to come round again */
+  const [burst, setBurst] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [seen, setSeen] = useState(false);
   const [draft, setDraft] = useState("");
   const [receipt, setReceipt] = useState(words.read);
   const host = useRef<HTMLDivElement>(null);
+  const fx = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLParagraphElement>(null);
   const view = useRef<HTMLDivElement>(null);
   const next = useRef(10);
   const alive = useRef(true);
 
-  /* the next question nobody has asked: from this topic first, then from any other */
-  const order = [...topics[topic].asks, ...topics.flatMap((t) => t.asks)];
-  const upNext = order.find(([q]) => !asked.includes(q))?.[0] ?? "";
-
   useEffect(() => {
     alive.current = true;
-    const el = host.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.25 });
-    io.observe(el);
     return () => {
       alive.current = false;
-      io.disconnect();
     };
   }, []);
-
-  /* the message box types the next question, a letter at a time */
-  useEffect(() => {
-    if (busy || !seen || !upNext) return;
-    if (still()) {
-      setDraft(upNext);
-      return;
-    }
-    let n = 0;
-    setDraft("");
-    const id = setInterval(() => {
-      n += 1;
-      setDraft(upNext.slice(0, n));
-      if (n >= upNext.length) clearInterval(id);
-    }, 34);
-    return () => clearInterval(id);
-  }, [upNext, busy, seen]);
 
   /* keep the newest message in view */
   useEffect(() => {
     const el = view.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: still() ? "auto" : "smooth" });
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: still() ? "auto" : "smooth" });
   }, [msgs, receipt]);
 
-  const ask = async (q: string) => {
-    const a = topics.flatMap((t) => t.asks).find(([question]) => question === q)?.[1];
+  /** The cloud bursts into puffs, and its words fly to the message box. */
+  const poof = (cloud: HTMLElement, q: string) => {
+    const layer = fx.current;
+    const to = box.current;
+    const frame = host.current;
+    if (!layer || !to || !frame) return;
+    const f = frame.getBoundingClientRect();
+    const c = cloud.getBoundingClientRect();
+    const b = to.getBoundingClientRect();
+    for (let k = 0; k < 16; k++) {
+      const puff = document.createElement("i");
+      const size = 18 + Math.random() * 34;
+      const angle = (k / 16) * Math.PI * 2 + Math.random() * 0.5;
+      const far = 40 + Math.random() * 80;
+      puff.style.cssText = `width:${size}px;height:${size}px;left:${c.left - f.left + Math.random() * c.width - size / 2}px;top:${c.top - f.top + Math.random() * c.height - size / 2}px`;
+      layer.append(puff);
+      puff
+        .animate(
+          [
+            { transform: "scale(.5)", opacity: 0.95 },
+            {
+              transform: `translate(${Math.cos(angle) * far}px, ${Math.sin(angle) * far - 30}px) scale(1.5)`,
+              opacity: 0,
+            },
+          ],
+          { duration: 620 + Math.random() * 380, easing: "cubic-bezier(.16, 1, .3, 1)" }
+        )
+        .finished.then(() => puff.remove());
+    }
+    const words = document.createElement("b");
+    words.textContent = q;
+    words.style.cssText = `left:${c.left - f.left + 22}px;top:${c.top - f.top + c.height / 2 - 12}px`;
+    layer.append(words);
+    words
+      .animate(
+        [
+          { transform: "none", opacity: 1 },
+          {
+            transform: `translate(${(b.left - c.left) * 0.55}px, ${(b.top - c.top) * 0.4 - 50}px) scale(1.12)`,
+            opacity: 1,
+            offset: 0.5,
+          },
+          {
+            transform: `translate(${b.left - c.left - 22 + 26}px, ${b.top - c.top - c.height / 2 + 12 + 18}px) scale(.9)`,
+            opacity: 0,
+          },
+        ],
+        { duration: 720, easing: "cubic-bezier(.5, 0, .2, 1)" }
+      )
+      .finished.then(() => words.remove());
+  };
+
+  const ask = async (q: string, cloud: HTMLElement) => {
+    const a = items.find(([question]) => question === q)?.[1];
     if (busy || !a) return;
+    const [lead, rest] = split(a);
     const id = next.current;
     next.current += 10;
-    const all = exchange(q, a, shows[q], id);
-    setAsked((was) => (was.includes(q) ? was : [...was, q]));
+    const answer: Msg[] = [
+      { id: id + 1, kind: "lead", text: lead, typed: true },
+      ...(rest ? [{ id: id + 2, kind: "rest" as const, text: rest, typed: true }] : []),
+    ];
     if (still()) {
-      setMsgs((m) => [...m, ...all]);
+      setMsgs((m) => [
+        ...m,
+        { id, kind: "q", text: q, typed: false },
+        ...answer.map((x) => ({ ...x, typed: false })),
+      ]);
       setReceipt(words.read);
       return;
     }
     setBusy(true);
+    setBurst((was) => [...was, q]);
+    poof(cloud, q);
+    await wait(640);
+    /* typed into the box, then sent */
+    for (let n = 1; n <= q.length; n++) {
+      if (!alive.current) return;
+      setDraft(q.slice(0, n));
+      await wait(TYPE_MS);
+    }
+    await wait(320);
     setDraft("");
     setReceipt(words.delivered);
-    setMsgs((m) => [...m, all[0], { id: id + 9, kind: "typing" }]);
-    await wait(1250);
-    for (let k = 1; k < all.length; k++) {
+    setMsgs((m) => [
+      ...m,
+      { id, kind: "q", text: q, typed: false },
+      { id: id + 9, kind: "typing", text: "", typed: false },
+    ]);
+    await wait(1100);
+    for (const part of answer) {
       if (!alive.current) return;
-      setMsgs((m) => [...m.filter((x) => x.kind !== "typing"), all[k]]);
-      if (k === 1) setReceipt(words.read);
-      await wait(k === all.length - 1 ? 250 : 620);
+      setMsgs((m) => [...m.filter((x) => x.kind !== "typing"), part]);
+      setReceipt(words.read);
+      await wait(part.text.length * ANSWER_MS + 260);
     }
     if (alive.current) setBusy(false);
   };
@@ -145,35 +192,32 @@ export default function Doubts({
   const lastQ = [...msgs].reverse().find((m) => m.kind === "q")?.id;
   return (
     <div className="chat" ref={host}>
-      <div className="chat-menu">
-        <div className="chat-topics" role="tablist" aria-label={words.label}>
-          {topics.map((t, i) => (
+      <ul
+        className="sky"
+        aria-label={words.label}
+        style={{ "--n": items.length } as React.CSSProperties}
+      >
+        {items.map(([q], i) => (
+          <li
+            key={q}
+            style={{ "--i": i } as React.CSSProperties}
+            /* a burst cloud comes back when its next trip up the sky begins */
+            onAnimationIteration={(e) => {
+              if (e.target === e.currentTarget) setBurst((was) => was.filter((x) => x !== q));
+            }}
+          >
             <button
-              key={t.name}
               type="button"
-              role="tab"
-              aria-selected={i === topic}
-              onClick={() => setTopic(i)}
+              className="cloud"
+              data-burst={burst.includes(q) || undefined}
+              disabled={busy || burst.includes(q)}
+              onClick={(e) => ask(q, e.currentTarget)}
             >
-              {t.name}
+              {q}
             </button>
-          ))}
-        </div>
-        <ul className="chat-asks" key={topic}>
-          {topics[topic].asks.map(([q], i) => (
-            <li key={q} style={{ "--i": i } as React.CSSProperties}>
-              <button
-                type="button"
-                data-asked={asked.includes(q) || undefined}
-                disabled={busy}
-                onClick={() => ask(q)}
-              >
-                {q}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+          </li>
+        ))}
+      </ul>
       <div className="chat-win">
         <div className="chat-view" ref={view} role="log" aria-live="polite" tabIndex={0}>
           {msgs.map((m) =>
@@ -183,10 +227,6 @@ export default function Doubts({
                 <i />
                 <i />
               </p>
-            ) : m.kind === "show" ? (
-              <div key={m.id} className="chat-show">
-                {extras[m.show]}
-              </div>
             ) : m.kind === "q" ? (
               <p key={m.id} className="chat-q">
                 {m.text}
@@ -194,26 +234,21 @@ export default function Doubts({
               </p>
             ) : (
               <p key={m.id} className={m.kind === "lead" ? "chat-a chat-lead" : "chat-a"}>
-                {m.text}
+                <Typed text={m.text} on={m.typed} />
               </p>
             )
           )}
         </div>
-        <form
-          className="chat-box"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (upNext) ask(upNext);
-          }}
-        >
-          <span aria-hidden="true">{draft}</span>
-          <button type="submit" disabled={busy || !upNext} aria-label={`${words.send}: ${upNext}`}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+        <p className="chat-box" ref={box} data-empty={!draft || undefined} aria-hidden="true">
+          <span>{draft || words.box}</span>
+          <i>
+            <svg viewBox="0 0 24 24">
               <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" />
             </svg>
-          </button>
-        </form>
+          </i>
+        </p>
       </div>
+      <div className="sky-fx" ref={fx} aria-hidden="true" />
     </div>
   );
 }
