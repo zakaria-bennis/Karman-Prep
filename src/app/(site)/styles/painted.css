@@ -188,6 +188,9 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .lanterns li[data-big] { padding: 13px 22px; }
 .ks .lanterns img { display: block; width: auto; height: clamp(15px, 1.6vw, 22px); max-width: 118px; object-fit: contain; pointer-events: none; }
 .ks .lanterns li[data-big] img { height: clamp(22px, 2.5vw, 36px); max-width: 176px; }
+.ks .lanterns li:has(> span) { display: flex; align-items: center; gap: 9px; }
+.ks .lanterns li > span { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(13px, 1.1vw, 16px); font-weight: 700; letter-spacing: .01em; white-space: nowrap; color: var(--ink); }
+.ks .lanterns li[data-big] > span { font-size: clamp(16px, 1.5vw, 21px); }
 /* a school's dark-mode picture waits until the page is dark (SchoolLogo.tsx) */
 .ks img.logo-night, .ks .lanterns img.logo-night, .ks .rcp-list .at img.logo-night { display: none; }
 .ks .lanterns.live { display: block; height: clamp(500px, 74vh, 720px); margin-bottom: clamp(-90px, -8vh, -40px); touch-action: pan-y; }
@@ -210,7 +213,15 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 }
 .ks .gua-sig svg { display: block; width: clamp(190px, 24vw, 350px); height: auto; overflow: visible; fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round; }
 .ks .gua-sig .pen { stroke-width: 6.5; }
-.ks .gua-sig .brush { stroke-width: 11; }
+.ks .gua-sig .brush { stroke-width: 8.5; }
+/* signed as the section arrives: the stem, the K and its long underline, the letters, the tail */
+.ks .gua-sig path { stroke-dasharray: 1; }
+.ks .gua.rv:not(.on) .gua-sig path { stroke-dashoffset: 1; }
+.ks .gua.rv.on .gua-sig path { animation: sig-draw .7s cubic-bezier(.4, 0, .3, 1) .9s both; }
+.ks .gua.rv.on .gua-sig path:nth-child(2) { animation-duration: 1.5s; animation-delay: 1.5s; }
+.ks .gua.rv.on .gua-sig path:nth-child(3) { animation-duration: 2.2s; animation-delay: 2.9s; }
+.ks .gua.rv.on .gua-sig path:nth-child(4) { animation-duration: .6s; animation-delay: 5s; }
+@keyframes sig-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 .ks .gua-sig .tail { stroke-width: 7.5; }
 /* the stamp: at the top right of the section, level with its headline. Held high over the page, brought
    down fast, flattened for an instant, then left there a little crooked. A ring of force goes out from
@@ -331,7 +342,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways .g3-token { transform: translate(274px, 132px); }
 .ks .ways .g4-bar { transform: scaleX(.7); }
 .ks .ways .g4-bar2 { transform: scaleX(.3); }
-.ks .ways :is(.g5-n1, .g5-n2) { opacity: 0; }
+.ks .ways .g5-pace { opacity: 0; }
+.ks .ways .g5-pace:last-of-type { opacity: 1; }
 .ks .ways .g5-arc { stroke-dashoffset: .4; }
 .ks .ways .g6-ring { stroke-dashoffset: .22; }
 .ks .ways .g6-bar { transform: scaleX(.8); }
@@ -360,27 +372,26 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ways li.on .g3-stop { animation: g-pop 7s var(--spring) infinite backwards; }
 .ks .ways li.on .g3-token { animation: g3-token 7s cubic-bezier(.4, 0, .4, 1) infinite; }
 @keyframes g3-token { 0%, 12% { transform: translate(50px, 132px); opacity: 1; } 20% { transform: translate(80px, 92px); } 28%, 33% { transform: translate(110px, 132px); } 40% { transform: translate(148px, 84px); } 47%, 52% { transform: translate(186px, 132px); } 59% { transform: translate(230px, 76px); } 66%, 88% { transform: translate(274px, 132px); opacity: 1; } 93% { transform: translate(274px, 132px); opacity: 0; } 94% { transform: translate(50px, 132px); opacity: 0; } 100% { transform: translate(50px, 132px); opacity: 1; } }
-.ks .ways li.on .g4-cup { animation: g4-cup 2.6s ease-in-out infinite; }
+.ks .ways li.on .g4-cup { animation: g4-cup 3.6s ease-in-out infinite; }
+.ks .ways li.on .g4-cup .g-shine { animation: g4-shine 3.6s ease-in-out infinite; }
+@keyframes g4-shine { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
 .ks .ways li.on .g4-spark { animation: g4-spark 2s ease-in-out infinite; }
 .ks .ways li.on .g4-bar { animation: g4-bar 5s var(--out) infinite; }
 .ks .ways li.on .g4-bar2 { animation: g4-bar2 5s var(--out) infinite; }
 .ks .ways li.on .g4-slip { animation: g4-slip 5s var(--out) infinite; }
-@keyframes g4-cup { 50% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes g4-cup { 50% { transform: translateY(-4px); } }
 @keyframes g4-spark { 0%, 100% { transform: scale(.1) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
 @keyframes g4-bar { 0%, 6% { transform: scaleX(0); } 26%, 90% { transform: scaleX(.7); } 98%, 100% { transform: scaleX(0); } }
 @keyframes g4-bar2 { 0%, 16% { transform: scaleX(0); } 36%, 90% { transform: scaleX(.3); } 98%, 100% { transform: scaleX(0); } }
 @keyframes g4-slip { 0%, 40% { fill: var(--p); } 48%, 90% { fill: var(--a); } 98%, 100% { fill: var(--p); } }
-.ks .ways li.on .g5-arc { animation: g5-arc 6s linear infinite; }
-.ks .ways li.on .g5-hand { animation: g-turn 2s linear infinite; }
-.ks .ways li.on .g5-n1 { animation: g5-n1 6s steps(1) infinite; }
-.ks .ways li.on .g5-n2 { animation: g5-n2 6s steps(1) infinite; }
-.ks .ways li.on .g5-n3 { animation: g5-n3 6s steps(1) infinite; }
+.ks .ways li.on .g5-arc { animation: g5-arc 1.2s linear infinite; }
+.ks .ways li.on .g5-hand { animation: g-turn 1.2s linear infinite; }
+.ks .ways li.on .g5-pace { animation: g5-pace 13.2s steps(1) infinite; }
 .ks .ways li.on .g5-acc { animation: g5-acc 1.6s ease-in-out infinite; }
 @keyframes g-turn { to { transform: rotate(360deg); } }
-@keyframes g5-arc { 0% { stroke-dashoffset: 0; } 33.3% { stroke-dashoffset: 1; } 33.4% { stroke-dashoffset: .2; } 66.6% { stroke-dashoffset: 1; } 66.7% { stroke-dashoffset: .4; } 100% { stroke-dashoffset: 1; } }
-@keyframes g5-n1 { 0% { opacity: 1; } 33.3%, 100% { opacity: 0; } }
-@keyframes g5-n2 { 0%, 66.6%, 100% { opacity: 0; } 33.3% { opacity: 1; } }
-@keyframes g5-n3 { 0%, 100% { opacity: 0; } 66.6% { opacity: 1; } }
+/* the ring is the time left: it empties exactly as the hand comes round */
+@keyframes g5-arc { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
+@keyframes g5-pace { 0% { opacity: 1; } 9.09%, 100% { opacity: 0; } }
 @keyframes g5-acc { 50% { transform: scaleX(.97); } }
 .ks .ways li.on .g6-bubble { animation: g-pop 6s var(--spring) infinite backwards; }
 .ks .ways li.on .g6-go { animation: g6-go 1.4s ease-in-out infinite; }
@@ -441,7 +452,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .sky-fx b { position: absolute; font-weight: 700; font-size: clamp(16px, 1.35vw, 19px); white-space: nowrap; transform-origin: 0 50%; }
 /* the conversation */
 .ks .chat-win { display: grid; gap: 14px; min-width: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-hanken), system-ui, sans-serif; }
-.ks .chat-view { height: var(--skyh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; display: flex; flex-direction: column; gap: 4px; padding: 26px 20px 14px; margin: 0 -20px; -webkit-mask-image: linear-gradient(transparent, #000 46px); mask-image: linear-gradient(transparent, #000 46px); }
+.ks .chat-view { height: var(--skyh); overflow-y: hidden; scrollbar-width: none; display: flex; flex-direction: column; gap: 4px; padding: 26px 20px 14px; margin: 0 -20px; -webkit-mask-image: linear-gradient(transparent, #000 46px); mask-image: linear-gradient(transparent, #000 46px); }
 .ks .chat-view::-webkit-scrollbar { display: none; }
 .ks .chat-view > :first-child { margin-top: auto; }
 .ks .chat-view > * { flex: none; margin: 0; }
@@ -466,7 +477,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes chat-dot { 0%, 60%, 100% { transform: none; opacity: .45; } 30% { transform: translateY(-4px); opacity: 1; } }
 @keyframes chat-fade { from { opacity: 0; } }
 /* the message field: a picked question is typed here before it is sent */
-.ks .chat-box { display: flex; align-items: center; gap: 10px; min-height: 52px; margin: 0; padding: 6px 6px 6px 22px; border-radius: 999px; border: 1.5px solid rgba(60, 60, 67, .3); background: rgba(255, 255, 255, .86); }
+.ks .chat-box { display: flex; align-items: center; gap: 10px; min-height: 52px; margin: 0; padding: 6px 6px 6px 22px; border-radius: 999px; border: 0; background: #e9e9eb; }
 .ks .chat-box span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #000; font-size: clamp(16px, 1.35vw, 19px); }
 .ks .chat-box[data-empty] span { color: #5b5b5f; }
 .ks .chat-box:not([data-empty]) span::after { content: ""; display: inline-block; width: 2px; height: 1.15em; margin-left: 2px; vertical-align: -3px; background: #0a6fe6; animation: chat-caret 1s steps(2) infinite; }
@@ -498,7 +509,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 
 @media (prefers-reduced-motion: reduce) {
   .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home .hd .theme svg { transition: none; }
-  .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
+  .ks .gua-sig path, .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }
   .ks .sky li { position: static; width: auto; }
@@ -630,9 +641,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
 .ks.page-home.theming * { transition-duration: 1.3s !important; }
 .ks.page-home[data-mode="dark"] .hd { color: var(--cream); }
-/* at night the actions are marigold (founder, 2026-11-11) */
-.ks.page-home[data-mode="dark"] .hd .cta { background: #f2b53c; color: #1d1a22; }
-@media (hover: hover) and (pointer: fine) { .ks.page-home[data-mode="dark"] .hd .cta:hover { background: #ffc85c; color: #1d1a22; } }
+.ks.page-home[data-mode="dark"] .hd .cta { background: var(--act, var(--cream)); color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { .ks.page-home[data-mode="dark"] .hd .cta:hover { background: var(--act, #fff); color: var(--ink); } }
 .ks.page-home[data-mode="dark"] .hd .menu { color: var(--ink); }
 .ks.page-home[data-mode="dark"] .nav-mark { background: rgba(255, 250, 243, .16); }
 .ks.page-home[data-mode="dark"] :focus-visible { outline-color: var(--cream); }
@@ -642,17 +652,21 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] .claim-pill { background: var(--cream); color: var(--ink); mix-blend-mode: normal; }
 .ks.page-home[data-mode="dark"] .gua-sig svg, .ks.page-home[data-mode="dark"] .gua-stamp :is(circle, .thin) { stroke: var(--cream); }
 .ks.page-home[data-mode="dark"] .gua-stamp text { fill: var(--cream); }
-.ks.page-home[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), #f2b53c; color: #1d1a22; }
+.ks.page-home[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), var(--act, var(--cream)); color: #1d1a22; }
 .ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
 /* anything that is a cream card keeps ink words */
-.ks.page-home[data-mode="dark"] :is(.gua-cards li, .sheet) { color: var(--ink); }
+.ks.page-home[data-mode="dark"] .sheet { color: var(--ink); }
+/* the guarantee's three cards are almost black at night */
+.ks.page-home[data-mode="dark"] .gua-cards li { background: rgba(24, 22, 30, .92); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), var(--lift); }
+.ks.page-home[data-mode="dark"] .gua-cards span { color: #cdc7d6; }
 /* the seven cards turn black with cream drawings; each keeps its accent */
 .ks.page-home[data-mode="dark"] .ways { --i: #fffaf3; --p: #1d1a22; }
 /* the receipts: cream rules and gains on the night, white school marks; the lit row stays a cream card */
 .ks.page-home[data-mode="dark"] .rcp-list li { border-color: rgba(255, 250, 243, .22); }
 .ks.page-home[data-mode="dark"] .rcp-list button { transition: color .5s var(--out); }
-.ks.page-home[data-mode="dark"] .rcp-list button.on { color: var(--ink); }
-.ks.page-home[data-mode="dark"] .rcp-list button:not(.on) .gain { background: var(--cream); color: var(--ink); }
+/* the lit row is a soft tint at night, a little stronger than the hover */
+.ks.page-home[data-mode="dark"] .rcp-list::before { background: rgba(255, 250, 243, .2); box-shadow: none; }
+.ks.page-home[data-mode="dark"] .rcp-list button .gain { background: var(--cream); color: var(--ink); }
 .ks.page-home[data-mode="dark"] .rcp-list button:not(.on):hover { background: rgba(255, 250, 243, .12); }
 /* the question clouds turn to dark fog with white words (founder, 2026-11-11) */
 .ks.page-home[data-mode="dark"] .chat { --fog: 78 86 130; }
@@ -662,9 +676,18 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* the school logos sit on dark lanterns: one-colour logos turn white, the others swap to their dark-mode
    picture, and a logo whose own colour reads on dark (Caltech's orange) stays as it is */
 .ks.page-home[data-mode="dark"] .lanterns li { background: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), 0 0 24px 5px var(--glow), 0 14px 26px -18px rgba(0, 0, 0, .8); }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-white { filter: brightness(0) invert(1); }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-day { display: none; }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list button:not(.on)) img.logo-night { display: block; }
+.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-white { filter: brightness(0) invert(1); }
+.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-day { display: none; }
+.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-night { display: block; }
 /* the answers in the sky and the phone's frame at night */
 .ks.page-home[data-mode="dark"] .chat-a { background: #262629; color: #fff; }
 .ks.page-home[data-mode="dark"] .chat-q { background: #2b97ff; }
+.ks.page-home[data-mode="dark"] .chat-box { background: #262629; }
+.ks.page-home[data-mode="dark"] .chat-box span { color: #fff; }
+.ks.page-home[data-mode="dark"] .chat-box[data-empty] span { color: #98989f; }
+.ks.page-home[data-mode="dark"] .lanterns li > span { color: var(--cream); }
+/* TEMPORARY: the colour tester for the night button (ActLab.tsx, development only) */
+.ks .lab-pick { position: fixed; z-index: 60; left: 14px; bottom: 14px; display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 14px; border-radius: 999px; background: #fffaf3; color: #1d1a22; font: 700 14px/1 var(--font-hanken), system-ui, sans-serif; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
+.ks .lab-pick button { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; }
+.ks .lab-pick button i { width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .35); }
+.ks .lab-pick button[aria-pressed="true"] { background: #1d1a22; }

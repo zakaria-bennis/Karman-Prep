@@ -10,6 +10,8 @@ export interface School {
    * the logo's own colour already reads on dark, so it is shown as it is.
    */
   night?: "white" | "file";
+  /** The school's name, written beside a logo that is only a letter, a crest or a nickname. */
+  label?: string;
 }
 
 export const SCHOOLS: School[] = [
@@ -29,17 +31,17 @@ export const SCHOOLS: School[] = [
   { name: "UC Berkeley", logo: "berkeley", night: "white" },
   { name: "UCLA", logo: "ucla", night: "white" },
   { name: "Dartmouth", logo: "dartmouth", night: "white" },
-  { name: "Vanderbilt", logo: "vanderbilt", night: "white" },
-  { name: "Notre Dame", logo: "notredame", night: "file" },
+  { name: "Vanderbilt", logo: "vanderbilt", night: "white", label: "Vanderbilt University" },
+  { name: "Notre Dame", logo: "notredame", night: "file", label: "University of Notre Dame" },
   { name: "Michigan", logo: "michigan", night: "file" },
   { name: "Georgetown", logo: "georgetown", night: "file" },
   { name: "Carnegie Mellon", logo: "cmu", night: "white" },
   { name: "Virginia", logo: "virginia", night: "white" },
   { name: "USC", logo: "usc", night: "white" },
   { name: "NYU", logo: "nyu", night: "file" },
-  { name: "UNC", logo: "unc", night: "file" },
+  { name: "UNC", logo: "unc", night: "file", label: "UNC Chapel Hill" },
   { name: "Georgia Tech", logo: "gatech" },
-  { name: "UT Austin", logo: "texas" },
+  { name: "UT Austin", logo: "texas", label: "UT Austin" },
   { name: "Tufts", logo: "tufts" },
   { name: "Illinois", logo: "illinois", night: "file" },
   { name: "Florida", logo: "florida", night: "file" },

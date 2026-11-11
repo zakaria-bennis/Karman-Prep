@@ -173,6 +173,18 @@ taken on his behalf.
 - Footer: the name rises letter by letter with a sunrise climbing through it; socials are the platforms'
   marks; no switch and no email there.
 
+## Founder's second wrap-up list (11 Nov 2026, done)
+
+- Marigold was too bright: the night actions are cream again. `ActLab.tsx` (development only) lets him try
+  other colours through `--act`; once he picks, put the colour in painted.css and delete the file.
+- Logo-only schools carry their name beside the mark (`label` in schools.ts), set in a plain serif because
+  the schools' own typefaces are not available to us.
+- At night the guarantee's three cards are almost black and the lit receipts row is a soft tint.
+- Time trials tighten by 5% a round, 1.25 down to 0.75; the stopwatch's hand and ring move together.
+- The chat's message bar is the bubbles' grey; the chat no longer traps the scroll wheel.
+- The signature has a curved K, clearer letters and is drawn over about five seconds.
+- The rising footer letters take no clicks (they were swallowing clicks meant for footer links).
+
 ## Price section removed (11 Nov 2026)
 
 The founder had the whole last section taken off the home page: "Four ways in. The first one is free.",

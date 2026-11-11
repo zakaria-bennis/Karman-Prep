@@ -287,6 +287,7 @@ export default function Lanterns({ schools }: { schools: School[] }) {
       {schools.map((s, i) => (
         <li key={s.name} data-big={i < TOP || undefined}>
           <SchoolLogo school={s} />
+          {s.label ? <span>{s.label}</span> : null}
         </li>
       ))}
     </ul>

@@ -279,15 +279,11 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
           <text className="g-small" x="248" y="60" textAnchor="middle">
             {w.pace}
           </text>
-          <text className="g-big g5-n1" x="248" y="98">
-            1.25×
-          </text>
-          <text className="g-big g5-n2" x="248" y="98">
-            1×
-          </text>
-          <text className="g-big g5-n3" x="248" y="98">
-            0.75×
-          </text>
+          {Array.from({ length: 11 }, (_, n) => (
+            <text key={n} className="g-big g5-pace" style={at(n * 1.2 - 13.2)} x="248" y="98">
+              {(1.25 - n * 0.05).toFixed(2)}×
+            </text>
+          ))}
           <text className="g-small" x="198" y="146">
             {w.accuracy}
           </text>
