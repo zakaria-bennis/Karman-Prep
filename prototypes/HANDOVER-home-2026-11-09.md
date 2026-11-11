@@ -140,6 +140,12 @@ painting on the home page. The portals still use `src/lib/painting/`.
 - The switch is the small sky in the top bar (the existing theme button, restyled in painted.css). The top
   bar is now fixed, so the switch travels with the page. On phones the Menu button shows three lines.
 - Dark mode's colours are at the end of painted.css: every section takes the night section's look.
+- Dark mode, founder's round two (11 Nov): the question clouds are dark fog with white words, the price
+  cards are black with white words, and the school logos sit on dark lanterns. One-colour logos turn white;
+  nine with two colours or a shield have their own dark file in `public/site/schools/night/`
+  (`scripts/dev/night-logos.mjs` makes them, `SchoolLogo.tsx` swaps them). Caltech and others whose colour
+  reads on dark stay as they are. The six-ways cards, the guarantee cards and the lit receipt row are still
+  cream at night; he has not said whether those should turn black too.
 - He likes both the Ghibli look and this more realistic one; the realism is on purpose, so the page does
   not read as low quality. The stamp's leaf burst went with the old engine.
 - Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real

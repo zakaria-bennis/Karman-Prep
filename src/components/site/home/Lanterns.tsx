@@ -9,6 +9,7 @@
 // nothing moves; the class "live" marks the moving version (painted.css, .lanterns). The page lists the schools' names once for screen readers.
 import { useEffect, useRef } from "react";
 import type { School } from "@/lib/marketing/schools";
+import SchoolLogo from "./SchoolLogo";
 
 /** How many of the schools are drawn larger: the top twelve. */
 const TOP = 12;
@@ -285,8 +286,7 @@ export default function Lanterns({ schools }: { schools: School[] }) {
     <ul ref={ref} className="lanterns" aria-hidden="true">
       {schools.map((s, i) => (
         <li key={s.name} data-big={i < TOP || undefined}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG logos */}
-          <img src={`/site/schools/${s.logo}.svg`} alt="" decoding="async" draggable={false} />
+          <SchoolLogo school={s} />
         </li>
       ))}
     </ul>

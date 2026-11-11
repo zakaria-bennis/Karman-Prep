@@ -118,5 +118,19 @@
   "florida": {
     "file": "File:University of Florida logo.svg",
     "licence": "Public domain"
+  },
+  "_night": {
+    "note": "The files in night/ are the same logos with colours changed for dark mode by scripts/dev/night-logos.mjs (dark type becomes cream, the school's colour stays). Nothing is redrawn. One-colour logos have no file: the page shows them in white.",
+    "files": [
+      "harvard",
+      "princeton",
+      "florida",
+      "illinois",
+      "unc",
+      "michigan",
+      "georgetown",
+      "notredame",
+      "nyu"
+    ]
   }
 }

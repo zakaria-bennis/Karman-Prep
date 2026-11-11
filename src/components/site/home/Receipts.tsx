@@ -10,6 +10,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import PhoneFrame from "@/components/site/PhoneFrame";
 import type { Receipt } from "@/lib/marketing/receipts";
+import { schoolByLogo } from "@/lib/marketing/schools";
+import SchoolLogo from "./SchoolLogo";
 
 const HOLD_MS = 6000;
 
@@ -130,8 +132,10 @@ export default function Receipts({
                   <span> weeks</span>
                 </span>
                 <span className="at">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- small static SVG logos */}
-                  <img src={`/site/schools/${r.school}.svg`} alt={r.schoolName} decoding="async" />
+                  <SchoolLogo
+                    school={schoolByLogo(r.school) ?? { name: r.schoolName, logo: r.school }}
+                    alt={r.schoolName}
+                  />
                 </span>
               </button>
             </li>
