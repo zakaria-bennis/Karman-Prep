@@ -1,11 +1,10 @@
 import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
-import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
 import Guarantee from "@/components/site/home/Guarantee";
 import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
-import HomeJourney from "@/components/site/home/HomeJourney";
+import HomeFlight from "@/components/site/home/HomeFlight";
 import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
@@ -20,7 +19,7 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
-import { pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
@@ -66,13 +65,43 @@ export default function HomePage() {
     ),
   }));
   const how = section(6);
+  const [
+    today,
+    day2,
+    day7,
+    day21,
+    row,
+    right,
+    wrong,
+    slip,
+    pace,
+    accuracy,
+    score,
+    reading,
+    math,
+    turn,
+  ] = list(how["art words"]);
+  const artWords = {
+    today,
+    day2,
+    day7,
+    day21,
+    row,
+    right,
+    wrong,
+    slip,
+    pace,
+    accuracy,
+    score,
+    reading,
+    math,
+    turn,
+  };
   const doubts = section(13);
   /* sample rows are for designing with: they never reach a production build (receipts.ts) */
   const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
-  const price = section(7);
-  const close = section(11);
   return (
-    <SitePage kind="home" className={homeFonts} stage={<HomeJourney />}>
+    <SitePage kind="home" className={homeFonts} stage={<HomeFlight />}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
       <HomeTouches />
       {/* a visitor who has already watched the headline arrive this visit sees it at once */}
@@ -82,7 +111,7 @@ export default function HomePage() {
       <section className="claim" id="claim">
         <Flock />
         <div className="mist" aria-hidden="true" />
-        <div className="say" data-paint-keepout>
+        <div className="say">
           <h1>
             <HeadWords text={before} />{" "}
             {number ? (
@@ -110,7 +139,7 @@ export default function HomePage() {
       {/* 2. The proof */}
       <section className="sect proof" id="proof" aria-labelledby="proof-h">
         <div className="mist" aria-hidden="true" />
-        <div className="inner rv" data-paint-keepout>
+        <div className="inner rv">
           <h2 id="proof-h">{nums(proof.headline)}</h2>
           <p className="lede">{proof.text}</p>
         </div>
@@ -125,7 +154,7 @@ export default function HomePage() {
       {/* 3. The offer */}
       <section className="sect offer" id="offer" aria-labelledby="offer-h">
         <div className="mist" aria-hidden="true" />
-        <div className="inner" data-paint-keepout>
+        <div className="inner">
           <div className="rv">
             <h2 id="offer-h">{nums(offer.headline)}</h2>
           </div>
@@ -146,7 +175,7 @@ export default function HomePage() {
       {/* 4. Who teaches */}
       <section className="sect who" id="who" aria-labelledby="who-h">
         <div className="mist" aria-hidden="true" />
-        <div className="inner" data-paint-keepout>
+        <div className="inner">
           <h2 className="rv" id="who-h">
             {who.headline}
           </h2>
@@ -157,11 +186,11 @@ export default function HomePage() {
       {/* 5. How we teach */}
       <section className="sect how" id="how" aria-labelledby="how-h">
         <div className="mist" aria-hidden="true" />
-        <div className="inner" data-paint-keepout>
+        <div className="inner">
           <h2 className="rv" id="how-h">
             {nums(how.headline)}
           </h2>
-          <Ways items={pairs(how.ways)} />
+          <Ways items={pairs(how.ways)} words={artWords} />
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>
@@ -170,7 +199,7 @@ export default function HomePage() {
       {showReceipts ? (
         <section className="sect receipts" id="receipts" aria-labelledby="receipts-h">
           <div className="mist" aria-hidden="true" />
-          <div className="inner" data-paint-keepout>
+          <div className="inner">
             <Receipts headline={section(14).headline} headingId="receipts-h" rows={RECEIPTS} />
           </div>
         </section>
@@ -179,42 +208,20 @@ export default function HomePage() {
       {/* 6. Their doubts */}
       <section className="sect ask" id="ask" aria-labelledby="ask-h">
         <div className="mist" aria-hidden="true" />
-        <div className="inner" data-paint-keepout>
+        <div className="inner">
           <h2 className="rv" id="ask-h">
             {doubts.headline}
           </h2>
-          <Doubts items={pairs(doubts.asks)} label={doubts.label} />
-        </div>
-      </section>
-
-      {/* 7. The price and the close, at night */}
-      <section className="sect price night" id="price" aria-labelledby="price-h">
-        <Fireflies />
-        <div className="mist" aria-hidden="true" />
-        <div className="inner" data-paint-keepout>
-          <h2 className="rv" id="price-h">
-            {nums(price.headline)}
-          </h2>
-          <ul className="plans">
-            {pairs(price.ways).map(([name, line], k) => {
-              const cut = line.indexOf(". ");
-              return (
-                <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
-                  <b>{name}</b>
-                  <i>{cut > 0 ? line.slice(0, cut) : line}</i>
-                  <span>{cut > 0 ? line.slice(cut + 2) : ""}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="go-row rv">
-            <Btn label={close.button} href={ROUTES.signUp} />
-            <a className="more" href={ROUTES.pricing}>
-              {price.link}
-              <Arrow />
-            </a>
-          </div>
-          <p className="lede rv">{close.headline}</p>
+          <Doubts
+            items={pairs(doubts.asks)}
+            words={{
+              label: doubts.label,
+              box: doubts.box,
+              typing: doubts.typing,
+              delivered: doubts.delivered,
+              read: doubts.read,
+            }}
+          />
         </div>
       </section>
     </SitePage>

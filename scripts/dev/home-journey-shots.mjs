@@ -1,4 +1,4 @@
-// Screenshots of the painted home page, one per section, at phone, iPad and desktop sizes in light and dark.
+// Screenshots of the home page, one per section, at phone, iPad and desktop sizes in light and dark.
 // Also reports sideways scroll and page errors. Usage:
 //   node scripts/dev/home-journey-shots.mjs <outDir> [baseUrl]
 import { chromium } from "playwright";
@@ -9,7 +9,7 @@ const base = process.argv[3] ?? "http://localhost:3320";
 const only = process.argv[4];
 mkdirSync(out, { recursive: true });
 const SIZES = { desk: [1440, 900], ipad: [820, 1180], phone: [440, 956] };
-const STOPS = ["#claim", "#proof", "#offer", "#who", "#how", "#ask", "#price"];
+const STOPS = ["#claim", "#proof", "#offer", "#who", "#how", "#ask"];
 
 // The installed Chrome by default; PW_BUNDLED=1 uses Playwright's own browser.
 const browser = await chromium.launch(process.env.PW_BUNDLED ? {} : { channel: "chrome" });
@@ -29,12 +29,8 @@ for (const [name, [width, height]] of Object.entries(SIZES)) {
     await page.waitForTimeout(1200);
     await page.screenshot({ path: `${out}/${name}-${scheme}-0-opening.jpg`, quality: 70 });
     await page
-      .waitForFunction(
-        () => [...document.querySelectorAll(".journey .cam canvas")].every((c) => c.width !== 300),
-        null,
-        { timeout: 30000 }
-      )
-      .catch(() => errors.push("not every light was painted in 30 s"));
+      .waitForSelector(".flight[data-painted]", { timeout: 30000 })
+      .catch(() => errors.push("the landscape was not drawn in 30 s"));
     await page.waitForTimeout(1500);
     let i = 1;
     for (const sel of STOPS) {
