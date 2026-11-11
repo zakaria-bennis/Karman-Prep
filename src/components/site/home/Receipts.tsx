@@ -161,24 +161,6 @@ export default function Receipts({
                   <path d="M65 5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" opacity=".45" />
                 </svg>
               </div>
-              <div className="txt-top">
-                <svg className="txt-back" viewBox="0 0 12 20" aria-hidden="true">
-                  <path d="M10 2 2 10l8 8" />
-                </svg>
-                <span className="txt-face" aria-hidden="true">
-                  {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
-                </span>
-                <b>
-                  {now.name}
-                  <svg viewBox="0 0 8 12" aria-hidden="true">
-                    <path d="m2 2 4 4-4 4" />
-                  </svg>
-                </b>
-                <svg className="txt-video" viewBox="0 0 28 18" aria-hidden="true">
-                  <rect x="1" y="1.5" width="17" height="15" rx="4" />
-                  <path d="m19.5 7 6-3.6v11.2l-6-3.6z" />
-                </svg>
-              </div>
               <div className="txt-view">
                 <div className="txt-thread" key={active} ref={thread}>
                   <small>
@@ -203,6 +185,24 @@ export default function Receipts({
                     );
                   })}
                 </div>
+              </div>
+              <div className="txt-top">
+                <svg className="txt-back" viewBox="0 0 12 20" aria-hidden="true">
+                  <path d="M10 2 2 10l8 8" />
+                </svg>
+                <span className="txt-face" aria-hidden="true">
+                  {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
+                </span>
+                <b>
+                  {now.name}
+                  <svg viewBox="0 0 8 12" aria-hidden="true">
+                    <path d="m2 2 4 4-4 4" />
+                  </svg>
+                </b>
+                <svg className="txt-video" viewBox="0 0 28 18" aria-hidden="true">
+                  <rect x="1" y="1.5" width="17" height="15" rx="4" />
+                  <path d="m19.5 7 6-3.6v11.2l-6-3.6z" />
+                </svg>
               </div>
               <div className="txt-bar" aria-hidden="true">
                 <i>
