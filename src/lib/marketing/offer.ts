@@ -454,6 +454,14 @@ export const CONTACT = {
   billing: "billing@karmanprep.com",
 } as const;
 
+/** Karman's own pages elsewhere. The handle is @KarmanPrep on all four (founder, 2026-11-11). */
+export const SOCIALS = {
+  facebook: "https://www.facebook.com/KarmanPrep",
+  instagram: "https://www.instagram.com/KarmanPrep",
+  tiktok: "https://www.tiktok.com/@KarmanPrep",
+  youtube: "https://www.youtube.com/@KarmanPrep",
+} as const;
+
 /**
  * Enrollment links. Both are optional: when unset, CTAs fall back
  * to the on-site lead form (see LeadForm).

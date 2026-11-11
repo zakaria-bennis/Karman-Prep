@@ -28,8 +28,9 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
 ## Design work
 
 - Load the `impeccable` skill first. Use Mobbin for reference screens and 21st.dev for components.
-- The feeling is Studio Ghibli: hand-painted, soft, quietly magical. The world is the painted landscape
-  in `src/lib/painting/`. Details are in `PRODUCT.md`.
+- The feeling is Studio Ghibli: hand-painted, soft, quietly magical. The portals' world is the painted
+  landscape in `src/lib/painting/`. The home page's world is the live, lit landscape in `src/lib/flight/`,
+  which is more realistic on purpose. Details are in `PRODUCT.md`.
 - No AI-generated images on the site. Draw in code, or use a real photo, logo or open-licence
   illustration.
 - Watch every animation before showing it (`scripts/dev/motion-sheet.mjs`). Look at full-size
