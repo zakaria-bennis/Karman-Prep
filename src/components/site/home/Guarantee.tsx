@@ -5,7 +5,8 @@
 // from the side. Everything else about the guarantee is one link away. The arrival plays when the section
 // scrolls into view (the site's "rv" then "on" classes, painted.css). When the stamp lands, the headline gives
 // a short jolt.
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { arman, SIG_STYLES } from "./signature";
 
 /** How long after the stamp starts to fall it hits the page: 52% of .gua-stamp's .75s (painted.css). */
 const IMPACT_MS = 390;
@@ -25,6 +26,14 @@ export interface GuaranteeWords {
     his request so it takes little height: a K whose leg sweeps away under the whole word, and the rest as
     one quick run of waves. It is simply there, never drawn on. */
 function Signature({ name }: { name: string }) {
+  /* TEMPORARY: the founder is choosing between twelve versions (SigLab.tsx sends the number) */
+  const [n, setN] = useState(1);
+  useEffect(() => {
+    const pick = (e: Event) => setN((e as CustomEvent<number>).detail);
+    document.addEventListener("karman:sig", pick);
+    return () => document.removeEventListener("karman:sig", pick);
+  }, []);
+  const style = SIG_STYLES[n] ?? SIG_STYLES[1];
   return (
     <p className="gua-sig" role="img" aria-label={name}>
       <svg viewBox="130 118 850 196" aria-hidden="true">
@@ -37,7 +46,8 @@ function Signature({ name }: { name: string }) {
         <path
           className="brush"
           pathLength={1}
-          d="M478 228 C 450 218, 415 240, 412 258 C 412 272, 440 268, 470 250 C 492 236, 510 224, 520 226 C 512 236, 500 250, 510 252 C 524 244, 540 228, 548 214 C 548 224, 562 226, 580 218 C 574 230, 568 244, 574 252 C 582 236, 598 214, 610 218 C 618 222, 608 240, 604 252 C 614 234, 632 212, 644 218 C 652 224, 642 242, 640 252 C 654 244, 672 232, 694 226 C 670 216, 648 236, 650 248 C 652 258, 678 248, 698 228 C 694 240, 690 250, 700 252 C 710 236, 728 214, 738 218 C 746 224, 736 242, 734 252 C 748 244, 766 228, 786 212"
+          style={{ strokeWidth: style.pen }}
+          d={arman(style)}
         />
         <path
           className="tail"
@@ -48,6 +58,34 @@ function Signature({ name }: { name: string }) {
     </p>
   );
 }
+
+/** One small moving picture per outcome: the arrow in the bullseye, the coin cut in two, the whole coin coming home. */
+const PICS: ReactNode[] = [
+  <>
+    <circle className="p-ring" cx="22" cy="26" r="17" />
+    <circle className="p-ring" cx="22" cy="26" r="10" />
+    <circle className="p-fill" cx="22" cy="26" r="3.6" />
+    <g className="p-arrow">
+      <path className="p-line" d="M22 26L42 6M36 5h7v7" />
+    </g>
+  </>,
+  <>
+    <g className="p-half-l">
+      <path className="p-fill" d="M22 8a16 16 0 0 0 0 32z" />
+    </g>
+    <g className="p-half-r">
+      <path className="p-ring" d="M26 8a16 16 0 0 1 0 32z" />
+      <path className="p-line" d="M32 30l6 6M38 30v6h-6" />
+    </g>
+  </>,
+  <>
+    <g className="p-home">
+      <circle className="p-fill" cx="24" cy="22" r="14" />
+      <path className="p-cut" d="M24 14v16M19 18h7.500a3 3 0 0 1 0 6H20.500a3 3 0 0 0 0 6H29" />
+    </g>
+    <path className="p-line p-loop" pathLength={1} d="M6 30a19 19 0 0 0 36 4M42 42v-8h-8" />
+  </>,
+];
 
 export default function Guarantee({
   outcomes,
@@ -111,6 +149,9 @@ export default function Guarantee({
       <ul className="gua-cards">
         {outcomes.map(([name, line], i) => (
           <li key={name} style={{ "--k": i } as CSSProperties}>
+            <svg className="gua-pic" viewBox="0 0 48 48" aria-hidden="true">
+              {PICS[i % PICS.length]}
+            </svg>
             <b>{name}</b>
             <span>{line}</span>
           </li>

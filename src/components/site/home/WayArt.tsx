@@ -280,7 +280,7 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
             {w.pace}
           </text>
           {Array.from({ length: 11 }, (_, n) => (
-            <text key={n} className="g-big g5-pace" style={at(n * 1.2 - 13.2)} x="248" y="98">
+            <text key={n} className="g-big g5-pace" style={at(n * 1.6 - 17.6)} x="248" y="98">
               {(1.25 - n * 0.05).toFixed(2)}×
             </text>
           ))}
@@ -346,50 +346,50 @@ export function wayArt(k: number, w: ArtWords): ReactNode {
         <>
           <rect className="g-drop" x="24" y="24" width="282" height="182" rx="14" />
           <rect className="g-card" x="18" y="16" width="282" height="182" rx="14" />
-          <path className="g-inktop" d="M18 30a14 14 0 0 1 14-14h254a14 14 0 0 1 14 14v10H18z" />
-          <circle className="g-dot" cx="34" cy="28" r="3.5" />
-          <circle className="g-dot" cx="46" cy="28" r="3.5" />
-          <circle className="g-dot" cx="58" cy="28" r="3.5" />
-          <rect className="g-board" x="30" y="52" width="150" height="134" rx="8" />
-          <path
-            className="g-accline g7-write"
-            pathLength={1}
-            d="M46 78h46M100 70l12 16M112 70l-12 16M122 78h14M146 72q10 0 10 8t-10 8"
-          />
-          <path
-            className="g-line g7-write"
-            pathLength={1}
-            style={at(1.2)}
-            d="M46 112h70M46 132h96"
-          />
-          <path
-            className="g-accline g7-write"
-            pathLength={1}
-            style={at(2.4)}
-            d="M46 160h34M92 152l8 14 20-24"
-          />
+          {/* the shared board: one equation, solved a line at a time */}
+          <rect className="g-board" x="28" y="26" width="164" height="134" rx="8" />
+          <text className="g-math g7-step" x="44" y="62">
+            2x + 6 = 14
+          </text>
+          <text className="g-math g7-step" style={at(1.3)} x="74" y="98">
+            2x = 8
+          </text>
+          <text className="g-math g-mathacc g7-step" style={at(2.6)} x="88" y="134">
+            x = 4
+          </text>
+          <path className="g-accline g7-under" pathLength={1} style={at(3.5)} d="M84 144h62" />
+          {/* the six seats down the side; the ring is whose turn it is */}
           {Array.from({ length: 6 }, (_, i) => (
             <g key={i}>
               <rect
                 className="g-seat"
-                x={192 + (i % 2) * 50}
-                y={52 + Math.floor(i / 2) * 46}
-                width="44"
+                x={200 + (i % 2) * 48}
+                y={26 + Math.floor(i / 2) * 46}
+                width="42"
                 height="40"
                 rx="8"
               />
               <circle
                 className="g-seatdot"
-                cx={214 + (i % 2) * 50}
-                cy={72 + Math.floor(i / 2) * 46}
+                cx={221 + (i % 2) * 48}
+                cy={46 + Math.floor(i / 2) * 46}
                 r="9"
               />
             </g>
           ))}
-          <rect className="g-turn g7-turn" x="192" y="52" width="44" height="40" rx="8" />
-          <text className="g-small g7-label" x="242" y="194" textAnchor="middle">
+          <rect className="g-turn g7-turn" x="200" y="26" width="42" height="40" rx="8" />
+          {/* the call's bar: microphone, camera, share, and the way out */}
+          <rect className="g-ink" x="28" y="168" width="264" height="22" rx="11" />
+          <rect className="g-dot" x="46" y="173" width="6" height="9" rx="3" />
+          <path className="g-barline" d="M43 179a6 6 0 0 0 12 0M49 185v2" />
+          <rect className="g-dot" x="72" y="174" width="12" height="10" rx="2.5" />
+          <path className="g-dot" d="M85 178l6-3v8l-6-3z" />
+          <rect className="g-barbox" x="108" y="173" width="14" height="11" rx="2" />
+          <path className="g-barline" d="M115 181v-5M112.5 178l2.5-2.5 2.5 2.5" />
+          <text className="g-bartext" x="160" y="183">
             {w.turn}
           </text>
+          <rect className="g-leave" x="252" y="172" width="30" height="14" rx="7" />
         </>
       );
   }

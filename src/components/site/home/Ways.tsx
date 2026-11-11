@@ -17,7 +17,6 @@ export default function Ways({ items, words }: { items: [string, string][]; word
           <div className="way-art" aria-hidden="true">
             <svg viewBox="0 0 320 220">{wayArt(k, words)}</svg>
           </div>
-          <i aria-hidden="true">{k + 1}</i>
           <b>{name}</b>
           <span>{line}</span>
         </li>

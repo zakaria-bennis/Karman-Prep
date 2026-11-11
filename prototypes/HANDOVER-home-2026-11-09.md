@@ -185,6 +185,15 @@ taken on his behalf.
 - The signature has a curved K, clearer letters and is drawn over about five seconds.
 - The rising footer letters take no clicks (they were swallowing clicks meant for footer links).
 
+## Third list (11 Nov 2026)
+
+Done: night buttons are soft gold (#e7cf9a); UNC and UT Austin lost their extra name (their logos say it);
+the seven-ways number badges are gone; the stopwatch turns a quarter slower; the live teaching picture is a
+video call with a sensible worked equation; the guarantee cards have a joke each and a small moving picture.
+Waiting on him: `ActLab.tsx` (development only) offers twelve light-mode button colours (sets `--go`) and
+twelve versions of the signature's "arman" (`signature.ts`). Once he picks, write the colour into
+painted.css, keep the one signature path, and delete ActLab and the other eleven styles.
+
 ## Price section removed (11 Nov 2026)
 
 The founder had the whole last section taken off the home page: "Four ways in. The first one is free.",
