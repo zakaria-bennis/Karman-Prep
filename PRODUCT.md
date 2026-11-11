@@ -93,9 +93,12 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
   claims still hold everywhere.
 - Founder direction for the marketing site, 2026-11-09, replacing the 2026-10-19
   "professional and serious first" note and the Jack Westin reference:
-  - The world is the student portal's painted landscape: one Karman painting, made
-    in code, behind the whole page, travelled from dawn sky to night as the page
-    scrolls. He calls it "very beautiful". Keep it.
+  - The world behind the home page is a live, lit landscape (founder, 2026-11-11,
+    replacing the code-made painting there): flown from above the clouds to the
+    sea as the page scrolls, one day in light mode and one night in dark mode
+    (`src/lib/flight/`). He likes the Ghibli look and this more realistic,
+    photoreal-painting look; the realism is intentional. The portals keep the
+    painted landscape in `src/lib/painting/`.
   - The feeling is Studio Ghibli (founder, 2026-11-09, after first choosing Duolingo and
     finding the result childish): hand-painted, soft, quietly magical. No bright orange,
     no toy-like chunky shapes. Actions are ink on the painting; the painting is the colour.

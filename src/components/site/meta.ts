@@ -16,6 +16,10 @@ export function pageMeta(path: string, title: string, description: string): Meta
       images: [{ url: "/site/film/day.jpg", width: 1440, height: 810, alt: "Karman Prep" }],
     },
     twitter: { card: "summary_large_image", title, description, images: ["/site/film/day.jpg"] },
+    /* The site draws its own light and dark. "darkreader-lock" tells the Dark Reader extension to leave
+       the page alone, and declaring both colour schemes stops a browser's forced dark mode from
+       inverting the painting (founder, 2026-11-11). */
+    other: { "darkreader-lock": "true", "color-scheme": "light dark" },
   };
 }
 
