@@ -9,7 +9,6 @@ import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
-import WaysLab from "@/components/site/home/WaysLab";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { jsonLd, pageMeta } from "@/components/site/meta";
@@ -66,19 +65,6 @@ export default function HomePage() {
     ),
   }));
   const how = section(6);
-  /* TEMPORARY: the research, for the six-ways layouts the founder is choosing between (WaysLab.tsx) */
-  const lab = process.env.NODE_ENV !== "production";
-  const research = section(82);
-  const studies = ["retrieval", "spacing", "review", "mixed", "feedback", "tutoring"].map((k) => ({
-    name: research[`${k} name`],
-    found: research[`${k} found`],
-    karman: research[`${k} karman`],
-    source: research[`${k} source`],
-  }));
-  /* which study stands behind each of the six ways, in their order; two have none */
-  const wayProof = [null, 4, 0, null, 2, 5].map((i) =>
-    i === null ? null : `${studies[i].name}. ${studies[i].source}`
-  );
   const doubts = section(13);
   /* sample rows are for designing with: they never reach a production build (receipts.ts) */
   const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
@@ -172,17 +158,7 @@ export default function HomePage() {
           <h2 className="rv" id="how-h">
             {nums(how.headline)}
           </h2>
-          <Ways items={pairs(how.ways)} proof={lab ? wayProof : undefined} />
-          {lab ? (
-            <WaysLab
-              studies={studies}
-              words={{
-                found: how["found label"],
-                study: how["study label"],
-                built: how["built label"],
-              }}
-            />
-          ) : null}
+          <Ways items={pairs(how.ways)} />
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>

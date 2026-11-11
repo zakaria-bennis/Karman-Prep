@@ -18,7 +18,7 @@ clouds to the sea as the page scrolls (see "Travelling background"). The founder
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
 | 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
-| 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
+| 5 | How: "Seven ways we make a skill stick, because one would be lazy." | `Ways.tsx` | Seven cartoon cards, each with a scene on a loop |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 
 Everywhere: the landscape (`HomeFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
@@ -150,15 +150,17 @@ painting on the home page. The portals still use `src/lib/painting/`.
 - Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
   phone has not been tried; the land up close is better but still not a photograph.
 
-## Six ways section (11 Nov 2026, four layouts waiting for his pick)
+## Seven ways section (11 Nov 2026)
 
-He wants all six on screen at once and the research up front. `WaysLab.tsx` (development builds only) adds
-a "Six ways: Now 1 2 3 4" switch at the bottom left; styles are in `styles/ways-lab.css`. 1 split cards (the
-finding on ink, what Karman built on cream). 2 the ledger (a plain list: finding, study, what we built).
-3 today's six cards with the study under each. 4 the six studies along a line by year. Layouts 1, 2 and 4
-show the six research findings from the research page instead of the six ways; in layout 3 two of the six
-ways ("Skill practice", "The Challenge") have no study behind them, and nothing may be invented for them.
-Once he picks: delete the layouts he passed over, the picker and the temporary props.
+He passed over four research-first layouts and asked for something lively, "almost a Fallout style", which
+he confirmed means the game's perk cards: each method a card with its own looping cartoon. He also added a
+seventh method, time trials (one section on the clock, starting at 1.25 times the real SAT time and
+tightening to 0.75 while accuracy holds; the feature is built but `TIME_TRIAL.ready` is still false in the
+student portal). `Ways.tsx` now draws seven cartoon cards in code, with Karman's own little student, not
+Fallout's character: hopping up the levels, writing the steps, ticking off ten dots, cheering over a cup,
+running against a shrinking clock, sitting a test, talking with a tutor. Wide screens hold all seven in one
+row. At night the cards are black with cream drawings. Held still, each scene rests in its finished state.
+The research link stays under the cards.
 
 ## Price section removed (11 Nov 2026)
 
