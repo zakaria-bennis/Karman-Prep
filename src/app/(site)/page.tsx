@@ -1,6 +1,5 @@
 import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
-import Fireflies from "@/components/site/home/Fireflies";
 import Flock from "@/components/site/home/Flock";
 import Guarantee from "@/components/site/home/Guarantee";
 import { homeFonts } from "@/components/site/home/fonts";
@@ -69,8 +68,6 @@ export default function HomePage() {
   const doubts = section(13);
   /* sample rows are for designing with: they never reach a production build (receipts.ts) */
   const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
-  const price = section(7);
-  const close = section(11);
   return (
     <SitePage kind="home" className={homeFonts} stage={<HomeFlight />}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
@@ -193,37 +190,6 @@ export default function HomePage() {
               read: doubts.read,
             }}
           />
-        </div>
-      </section>
-
-      {/* 7. The price and the close, at night */}
-      <section className="sect price night" id="price" aria-labelledby="price-h">
-        <Fireflies />
-        <div className="mist" aria-hidden="true" />
-        <div className="inner">
-          <h2 className="rv" id="price-h">
-            {nums(price.headline)}
-          </h2>
-          <ul className="plans">
-            {pairs(price.ways).map(([name, line], k) => {
-              const cut = line.indexOf(". ");
-              return (
-                <li className="rv" key={name} style={{ transitionDelay: `${k * 90}ms` }}>
-                  <b>{name}</b>
-                  <i>{cut > 0 ? line.slice(0, cut) : line}</i>
-                  <span>{cut > 0 ? line.slice(cut + 2) : ""}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="go-row rv">
-            <Btn label={close.button} href={ROUTES.signUp} />
-            <a className="more" href={ROUTES.pricing}>
-              {price.link}
-              <Arrow />
-            </a>
-          </div>
-          <p className="lede rv">{close.headline}</p>
         </div>
       </section>
     </SitePage>

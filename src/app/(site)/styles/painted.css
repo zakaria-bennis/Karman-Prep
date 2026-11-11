@@ -2,8 +2,8 @@
    .impeccable/surfaces/src-app-site-page-tsx.md). One sales argument told across one journey: a live, lit
    landscape sits behind everything and is flown from above the clouds to the sea as the page scrolls
    (HomeFlight.tsx, lib/flight). Words sit straight on the scene, on a soft band of mist with no edge, never
-   in a box. Light mode is one day: ink on cream mist, and cream on dusk mist for the last section. Dark mode
-   is one night: cream on night mist all the way down (the rules are at the end of this file). Every action is ink, never a bright colour: the painting is the colour.
+   in a box. Light mode is one day: ink on cream mist. Dark mode is one night: cream on night mist (the
+   rules are at the end of this file). Every action is ink, never a bright colour: the painting is the colour.
    Rounded, soft shapes that settle when pressed. The feeling is hand-painted and quiet, like a Ghibli
    background, not a toy. Young Serif for headlines; Hanken Grotesk for everything else and every numeral. */
 @property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255, 190, 140, 0.6); }
@@ -389,26 +389,6 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.still-motion .sky li { position: static; width: auto; }
 .ks.still-motion .cloud { max-width: none; }
 
-/* ---------- 7. the price and the close, at night: the mist turns to dusk and the words to cream ---------- */
-.ks .sect.night { --mist: rgb(18, 20, 42); color: var(--cream); padding-bottom: clamp(120px, 22vh, 240px); }
-.ks .sect.night > .mist { background: color-mix(in srgb, var(--mist) 74%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 80%, transparent); }
-.ks .sect.night :focus-visible { outline-color: var(--cream); }
-.ks .fireflies { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.ks .plans { width: 100%; display: grid; gap: 12px; }
-.ks .plans li { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 10em) minmax(0, 1fr); gap: 4px 22px; align-items: baseline; padding: 18px 30px; border-radius: 28px; background: var(--cream); color: var(--ink); box-shadow: 0 20px 40px -24px rgba(0, 0, 0, .8); }
-.ks .plans b { font-size: clamp(19px, 1.7vw, 24px); font-weight: 700; }
-.ks .plans i { font-style: normal; font-weight: 800; font-size: clamp(21px, 2vw, 28px); letter-spacing: -0.03em; }
-.ks .plans span { color: var(--ink2); font-size: clamp(15.5px, 1.3vw, 18px); }
-@media (max-width: 860px) { .ks .plans li { grid-template-columns: minmax(0, 1fr) auto; } .ks .plans span { grid-column: 1 / -1; } }
-/* dealt in from the side, one after another */
-.ks .plans li.rv { transform: translateX(-70px) rotate(-2.5deg); transition: opacity .5s var(--out), transform .85s var(--spring); }
-.ks .plans li.rv.on { transform: none; }
-@media (hover: hover) and (pointer: fine) { .ks .plans li.on:hover { transform: translateX(8px) rotate(.4deg); } }
-.ks .sect.night .btn { background: var(--cream); color: var(--ink); }
-.ks .sect.night .btn .go { color: var(--ink); }
-.ks .sect.night .more { color: var(--cream); }
-.ks .sect.night .lede { color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.15; max-width: 22ch; }
-.ks .sect .go-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 30px; }
 
 /* ---------- the footer's line about the painting, with the still button ---------- */
 .ks .ft .credit .motion { display: inline; min-height: 0; padding: 12px 0; color: #c9c4ba; font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
@@ -542,8 +522,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.still-motion .txt-thread { animation: none; }
 .ks.still-motion .txt-view { overflow-y: auto; }
 
-/* ---------- dark mode: one night. Every section takes the look the last section has by day: cream words on
-   night mist, cream buttons, and the cards stay cream like lit windows. Flipping the switch fades the page
+/* ---------- dark mode: one night. Cream words on night mist, cream buttons, and the cards stay cream like
+   lit windows. Flipping the switch fades the page
    over the same second and a half the sun takes to set (the "theming" class, ShellBehaviour.tsx). ---------- */
 .ks.page-home[data-mode="dark"] { --mist: rgb(13, 16, 36); --line: rgba(255, 250, 243, .2); color: var(--cream); color-scheme: dark; }
 .ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
@@ -575,9 +555,6 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] .cloud { color: var(--cream); }
 .ks.page-home[data-mode="dark"] .cloud-mist::after { background: radial-gradient(closest-side, rgba(6, 8, 20, .5), rgba(6, 8, 20, 0)); }
 .ks.page-home[data-mode="dark"] .sky-fx b { color: var(--cream); }
-/* the price cards turn black with white words */
-.ks.page-home[data-mode="dark"] .plans li { background: var(--ink); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 20px 40px -24px rgba(0, 0, 0, .9); }
-.ks.page-home[data-mode="dark"] .plans span { color: #cdc7d6; }
 /* the school logos sit on dark lanterns: one-colour logos turn white, the others swap to their dark-mode
    picture, and a logo whose own colour reads on dark (Caltech's orange) stays as it is */
 .ks.page-home[data-mode="dark"] .lanterns li { background: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), 0 0 24px 5px var(--glow), 0 14px 26px -18px rgba(0, 0, 0, .8); }

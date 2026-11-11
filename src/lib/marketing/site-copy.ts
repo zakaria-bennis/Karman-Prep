@@ -143,11 +143,6 @@ headline: Six ways we make a skill stick, because one would be lazy.
 ways: Skill practice = A practice set for every skill on the SAT. Three right in a row moves a skill up a level. | Written explanations = Every question shows the method, step by step. No "the answer is C, good luck." | The Daily 10 = Ten questions a day, pulled from whatever your student keeps missing. | The Challenge = Two hard questions a day, the same two for every student. Bragging rights included. | Full-length practice tests = Timed like the real thing and scored like the real thing, minus the Saturday morning panic. | Live teaching = Classes of ${w(CLASS)} and private one-on-one, with a tutor who has seen every answer before saying hello.
 research link: See the research we built it on
 
-## 7 Ways to start
-headline: Four ways in. The first one is free.
-ways: ${FREE.name} = $0. ${FREE.questionLimit} practice questions and a full-length practice test. No card. | ${PP.name} = ${$(PP.monthly)} a month. The question bank, written explanations and the Daily 10. Cheaper than the takeout you'll order while they study. | The ${w(MP.weeks)}-week cohort = ${$(MP.price)}. ${W(CLASS)} students at most, ${MP.totalClasses} live classes, and our guarantee. | Private tutoring = From ${$(P10.price)}. One tutor, one student, nowhere to hide, and our guarantee.
-link: See every price
-
 ## 8 Guarantee
 headline: The score goes up, or we pay you back.
 text: You've seen guarantees with a trapdoor in the fine print. Ours doesn't have one. Your student does the work, the score goes up, or the money comes back to you. Here is the whole deal, on one line.
@@ -176,13 +171,6 @@ stamp unit: points
 stamp ring: or your money back
 outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
 link: The guarantee, in full
-
-## 11 The close
-headline: You read this far. Now start free.
-text: Signing up costs nothing and the portal opens right away: ${FREE.questionLimit} practice questions and a full-length practice test with a score report. Worst case, you find out exactly where your student stands. Best case, scroll back up and read the first line again.
-objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} weeks from the test? We'll tell you to keep your money. Really.
-button: Start free
-button note: Free. No card. No catch.
 
 ## 12 Tutors
 headline: Our tutors are overqualified. That's the point.

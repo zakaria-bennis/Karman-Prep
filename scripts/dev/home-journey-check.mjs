@@ -53,7 +53,7 @@ for (const [size, width, height, mode] of [
     .catch(() => null);
   say(!!painted, `${name}: the landscape is drawn`);
   const bad = [];
-  for (const sel of ["#claim", "#proof", "#offer", "#who", "#how", "#receipts", "#ask", "#price"]) {
+  for (const sel of ["#claim", "#proof", "#offer", "#who", "#how", "#receipts", "#ask"]) {
     if (!(await page.locator(sel).count())) continue;
     await page.evaluate((s) => document.querySelector(s).scrollIntoView({ block: "center" }), sel);
     await page.waitForTimeout(1900);

@@ -9,7 +9,7 @@ const base = process.argv[3] ?? "http://localhost:3320";
 const only = process.argv[4];
 mkdirSync(out, { recursive: true });
 const SIZES = { desk: [1440, 900], ipad: [820, 1180], phone: [440, 956] };
-const STOPS = ["#claim", "#proof", "#offer", "#who", "#how", "#ask", "#price"];
+const STOPS = ["#claim", "#proof", "#offer", "#who", "#how", "#ask"];
 
 // The installed Chrome by default; PW_BUNDLED=1 uses Playwright's own browser.
 const browser = await chromium.launch(process.env.PW_BUNDLED ? {} : { channel: "chrome" });
