@@ -7,8 +7,8 @@
  * Only transforms and opacity change while scrolling, so nothing is laid out again. The dawn
  * light is painted first (stroke by stroke on the first visit of a session); the other three are
  * painted afterwards in idle time and simply stay hidden until they are ready. Wildlife follows
- * the light on screen, the season's leaves or snow drift down, and a click on open painting
- * scatters a burst. None of it moves inside a keep-out box (data-paint-keepout: every box of
+ * the light on screen, and the season's leaves or snow drift down. A click does nothing to it
+ * (founder, 2026-11-11: only passive life, no click effects). None of it moves inside a keep-out box (data-paint-keepout: every box of
  * words). Under reduced motion, or when the visitor holds the painting still, the camera stays
  * put and nothing moves; the light still changes down the page.
  */
@@ -213,17 +213,6 @@ export class PaintedJourney {
     );
     for (const w of ["pointerdown", "keydown", "wheel", "touchstart"] as const)
       addEventListener(w, this.wake, o);
-    addEventListener(
-      "pointerdown",
-      (e) => {
-        /* A burst only on open painting, never on a box of words or a control. */
-        const target = e.target as Element | null;
-        if (target?.closest(`${KEEP_OUT},a,button,input,label,header,footer,nav,[role=dialog]`))
-          return;
-        if (!this.still()) this.leaves.burst(e.clientX, e.clientY);
-      },
-      o
-    );
     /* something on the page can ask for a burst of leaves at a point (the guarantee tiles do) */
     document.addEventListener(
       "karman:burst",

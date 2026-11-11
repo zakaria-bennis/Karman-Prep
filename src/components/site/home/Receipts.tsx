@@ -142,21 +142,81 @@ export default function Receipts({
         <PhoneFrame>
           <div className="scr-host">
             <div className="scr txt">
+              <div className="txt-status" aria-hidden="true">
+                <b>9:41</b>
+                <svg viewBox="0 0 68 14">
+                  <path d="M1 10h2.6v3H1zM5.4 7.6H8V13H5.4zM9.8 5h2.6v8H9.8zM14.2 2.2h2.6V13h-2.6z" />
+                  <path d="M30.5 3.1c2.4 0 4.6.9 6.3 2.5l1-1.1A10.5 10.5 0 0 0 30.5 1.5c-2.8 0-5.3 1.1-7.3 3l1 1.1a9 9 0 0 1 6.3-2.5zm0 3.3c1.5 0 2.9.6 4 1.6l1-1.1a7.3 7.3 0 0 0-10 0l1 1.1c1.1-1 2.5-1.6 4-1.6zm0 3.3a2.6 2.6 0 0 0-1.8.7l1.8 2 1.8-2a2.6 2.6 0 0 0-1.8-.7z" />
+                  <rect
+                    x="43.5"
+                    y="1.5"
+                    width="20"
+                    height="11"
+                    rx="3.2"
+                    fill="none"
+                    stroke="currentColor"
+                    opacity=".4"
+                  />
+                  <rect x="45.2" y="3.2" width="16.6" height="7.6" rx="1.8" />
+                  <path d="M65 5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" opacity=".45" />
+                </svg>
+              </div>
               <div className="txt-top">
+                <svg className="txt-back" viewBox="0 0 12 20" aria-hidden="true">
+                  <path d="M10 2 2 10l8 8" />
+                </svg>
                 <span className="txt-face" aria-hidden="true">
                   {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
                 </span>
-                <b>{now.name}</b>
+                <b>
+                  {now.name}
+                  <svg viewBox="0 0 8 12" aria-hidden="true">
+                    <path d="m2 2 4 4-4 4" />
+                  </svg>
+                </b>
+                <svg className="txt-video" viewBox="0 0 28 18" aria-hidden="true">
+                  <rect x="1" y="1.5" width="17" height="15" rx="4" />
+                  <path d="m19.5 7 6-3.6v11.2l-6-3.6z" />
+                </svg>
               </div>
               <div className="txt-view">
                 <div className="txt-thread" key={active} ref={thread}>
-                  <small>Text Message</small>
-                  {now.texts.map((t, k) => (
-                    <p key={k} className={t.from === "karman" ? "me" : undefined}>
-                      {t.text}
-                    </p>
-                  ))}
+                  <small>
+                    <b>iMessage</b>
+                    <br />
+                    Today 9:41 AM
+                  </small>
+                  {now.texts.map((t, k) => {
+                    const mine = t.from === "karman";
+                    /* the last bubble of a run carries the tail, as on a phone */
+                    const tail = now.texts[k + 1]?.from !== t.from;
+                    return (
+                      <p
+                        key={k}
+                        className={
+                          [mine ? "me" : "", tail ? "tail" : ""].filter(Boolean).join(" ") ||
+                          undefined
+                        }
+                      >
+                        {t.text}
+                      </p>
+                    );
+                  })}
                 </div>
+              </div>
+              <div className="txt-bar" aria-hidden="true">
+                <i>
+                  <svg viewBox="0 0 20 20">
+                    <path d="M10 4v12M4 10h12" />
+                  </svg>
+                </i>
+                <span>
+                  iMessage
+                  <svg viewBox="0 0 14 20">
+                    <rect x="4" y="1" width="6" height="11" rx="3" />
+                    <path d="M1.5 9.500a5.5 5.5 0 0 0 11 0M7 15v4" fill="none" />
+                  </svg>
+                </span>
               </div>
             </div>
           </div>

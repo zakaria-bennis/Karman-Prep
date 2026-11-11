@@ -532,7 +532,6 @@ pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA
 pricing guarantee link: The guarantee, with worked examples
 pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
 pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
-credits: The painting behind this page is Karman's own. It is made in code, and it changes every day.
 `;
 
 /* ---------- reading the copy ---------- */

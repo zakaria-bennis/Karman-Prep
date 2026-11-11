@@ -217,7 +217,6 @@ export default function SitePage({
         </div>
         {stage ? (
           <p className="credit">
-            {SITE.credits}{" "}
             <button className="motion" type="button" aria-pressed="false">
               {SITE.pause}
             </button>
