@@ -144,29 +144,31 @@ export default function Receipts({
             <div className="scr txt">
               <div className="txt-status" aria-hidden="true">
                 <b>9:41</b>
-                <svg viewBox="0 0 68 14">
-                  <path d="M1 10h2.6v3H1zM5.4 7.6H8V13H5.4zM9.8 5h2.6v8H9.8zM14.2 2.2h2.6V13h-2.6z" />
-                  <path d="M30.5 3.1c2.4 0 4.6.9 6.3 2.5l1-1.1A10.5 10.5 0 0 0 30.5 1.5c-2.8 0-5.3 1.1-7.3 3l1 1.1a9 9 0 0 1 6.3-2.5zm0 3.3c1.5 0 2.9.6 4 1.6l1-1.1a7.3 7.3 0 0 0-10 0l1 1.1c1.1-1 2.5-1.6 4-1.6zm0 3.3a2.6 2.6 0 0 0-1.8.7l1.8 2 1.8-2a2.6 2.6 0 0 0-1.8-.7z" />
-                  <rect
-                    x="43.5"
-                    y="1.5"
-                    width="20"
-                    height="11"
-                    rx="3.2"
-                    fill="none"
-                    stroke="currentColor"
-                    opacity=".4"
+                <svg viewBox="0 0 80 14">
+                  <path d="M1 9.6h3v3.4H1zM5.8 7.2h3V13h-3zM10.6 4.600h3V13h-3zM15.4 1.800h3V13h-3z" />
+                  <path d="M35 3.200c2.7 0 5.2 1 7.1 2.800l1.2-1.300A12 12 0 0 0 35 1.300c-3.2 0-6.1 1.3-8.3 3.400L27.9 6A10.2 10.2 0 0 1 35 3.200zm0 3.700c1.7 0 3.3.7 4.5 1.800l1.2-1.300a8.3 8.3 0 0 0-11.4 0l1.2 1.300A6.5 6.5 0 0 1 35 6.900zm0 3.700c-.8 0-1.5.300-2 .800l2 2.2 2-2.200c-.5-.5-1.2-.8-2-.8z" />
+                  <rect x="51" y="1" width="25" height="12" rx="3.8" />
+                  <path
+                    d="M77.4 4.800v4.400c.9-.3 1.6-1.2 1.6-2.200s-.7-1.9-1.6-2.200z"
+                    opacity=".45"
                   />
-                  <rect x="45.2" y="3.2" width="16.6" height="7.6" rx="1.8" />
-                  <path d="M65 5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" opacity=".45" />
                 </svg>
               </div>
               <div className="txt-view">
                 <div className="txt-thread" key={active} ref={thread}>
                   <small>
-                    <b>iMessage</b>
-                    <br />
-                    Today 9:41 AM
+                    <span>iMessage</span>
+                    <span>
+                      <svg viewBox="0 0 12 15">
+                        <path d="M3.2 6V4.300a2.8 2.8 0 0 1 5.6 0V6h.400c.9 0 1.6.7 1.6 1.600v4.800c0 .9-.7 1.6-1.6 1.600H2.800c-.9 0-1.6-.7-1.6-1.600V7.600C1.2 6.7 1.9 6 2.8 6zm1.5 0h2.600V4.300a1.3 1.3 0 0 0-2.6 0z" />
+                      </svg>
+                      Encrypted
+                    </span>
+                  </small>
+                  <small>
+                    <span>
+                      <b>Today</b> 9:41 AM
+                    </span>
                   </small>
                   {now.texts.map((t, k) => {
                     const mine = t.from === "karman";
@@ -184,37 +186,52 @@ export default function Receipts({
                       </p>
                     );
                   })}
+                  {now.texts.at(-1)?.from === "karman" ? (
+                    <small className="txt-read">
+                      <span>
+                        <b>Read</b> 9:41 AM
+                      </span>
+                    </small>
+                  ) : null}
                 </div>
               </div>
               <div className="txt-top">
-                <svg className="txt-back" viewBox="0 0 12 20" aria-hidden="true">
-                  <path d="M10 2 2 10l8 8" />
-                </svg>
+                <i className="txt-back" aria-hidden="true">
+                  <svg viewBox="0 0 12 20">
+                    <path d="M10 2 2 10l8 8" />
+                  </svg>
+                </i>
                 <span className="txt-face" aria-hidden="true">
-                  {now.name.replace(/[^A-Z]/g, "").slice(-1) || now.name[0]}
+                  {now.name
+                    .split(/\s+/)
+                    .map((w) => w.replace(/[^A-Za-z]/g, "")[0] ?? "")
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </span>
                 <b>
-                  {now.name}
-                  <svg viewBox="0 0 8 12" aria-hidden="true">
-                    <path d="m2 2 4 4-4 4" />
+                  <span>{now.name}</span>
+                  <svg viewBox="0 0 8 14" aria-hidden="true">
+                    <path d="m1.5 1.5 5 5.5-5 5.5" />
                   </svg>
                 </b>
-                <svg className="txt-video" viewBox="0 0 28 18" aria-hidden="true">
-                  <rect x="1" y="1.5" width="17" height="15" rx="4" />
-                  <path d="m19.5 7 6-3.6v11.2l-6-3.6z" />
-                </svg>
+                <i className="txt-video" aria-hidden="true">
+                  <svg viewBox="0 0 30 20">
+                    <rect x="1.2" y="1.8" width="18.6" height="16.4" rx="4.6" />
+                    <path d="m20.8 8.2 6.3-4.100c.7-.4 1.7 0 1.7.900v10c0 .900-1 1.3-1.7.900l-6.3-4.1" />
+                  </svg>
+                </i>
               </div>
               <div className="txt-bar" aria-hidden="true">
                 <i>
                   <svg viewBox="0 0 20 20">
-                    <path d="M10 4v12M4 10h12" />
+                    <path d="M10 3v14M3 10h14" />
                   </svg>
                 </i>
                 <span>
                   iMessage
-                  <svg viewBox="0 0 14 20">
-                    <rect x="4" y="1" width="6" height="11" rx="3" />
-                    <path d="M1.5 9.500a5.5 5.5 0 0 0 11 0M7 15v4" fill="none" />
+                  <svg viewBox="0 0 22 16">
+                    <path d="M2 6.500v3M6.5 4v8M11 1.500v13M15.5 4v8M20 6.500v3" />
                   </svg>
                 </span>
               </div>
