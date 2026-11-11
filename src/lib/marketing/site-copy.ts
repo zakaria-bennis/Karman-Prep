@@ -139,14 +139,10 @@ parent tab: What you see
 switch label: Whose screen
 
 ## 6 How we teach
-headline: Six ways we make a skill stick, because one would be lazy.
-ways: Skill practice = A practice set for every skill on the SAT. Three right in a row moves a skill up a level. | Written explanations = Every question shows the method, step by step. No "the answer is C, good luck." | The Daily 10 = Ten questions a day, pulled from whatever your student keeps missing. | The Challenge = Two hard questions a day, the same two for every student. Bragging rights included. | Full-length practice tests = Timed like the real thing and scored like the real thing, minus the Saturday morning panic. | Live teaching = Classes of ${w(CLASS)} and private one-on-one, with a tutor who has seen every answer before saying hello.
+headline: Seven ways we make a skill stick, because one would be lazy.
+ways: Skill practice = A practice set for every skill on the SAT. Three right in a row moves a skill up a level. | Written explanations = Every question shows the method, step by step. No "the answer is C, good luck." | The Daily 10 = Ten questions a day, pulled from whatever your student keeps missing. | The Challenge = Two hard questions a day, the same two for every student. Bragging rights included. | Time trials = One section against the clock. It starts at 1.25 times the real SAT time and tightens by 5% a round, down to 0.75, as long as accuracy holds. | Full-length practice tests = Timed like the real thing and scored like the real thing, minus the Saturday morning panic. | Live teaching = Classes of ${w(CLASS)} and private one-on-one, with a tutor who has seen every answer before saying hello.
 research link: See the research we built it on
-
-## 7 Ways to start
-headline: Four ways in. The first one is free.
-ways: ${FREE.name} = $0. ${FREE.questionLimit} practice questions and a full-length practice test. No card. | ${PP.name} = ${$(PP.monthly)} a month. The question bank, written explanations and the Daily 10. Cheaper than the takeout you'll order while they study. | The ${w(MP.weeks)}-week cohort = ${$(MP.price)}. ${W(CLASS)} students at most, ${MP.totalClasses} live classes, and our guarantee. | Private tutoring = From ${$(P10.price)}. One tutor, one student, nowhere to hide, and our guarantee.
-link: See every price
+art words: Today | Day 2 | Day 7 | Day 21 | 3 in a row | Got it right | Got it wrong | Most common slip | Pace | Accuracy | Score | Reading and Writing | Math | Your turn
 
 ## 8 Guarantee
 headline: The score goes up, or we pay you back.
@@ -174,15 +170,8 @@ headline: ${UP_TO.private}, or your money back.
 text: Your student does the work, the score goes up, or the money comes back to you.
 stamp unit: points
 stamp ring: or your money back
-outcomes: They hit it. = Promise kept. You owe us a high five. | They came close. = Half your money comes back. | Not even close. = All of your money comes back.
+outcomes: They hit the target. = Say the target is +${G.bands[0].private}. The score goes up ${G.bands[0].private} or more: promise kept. You owe us a high five. We'll settle for a nice review. | They got at least halfway. = The score goes up ${G.bands[0].private / 2} to ${G.bands[0].private - 10}. Half your money comes back. Our tutors still get to eat. | They got less than halfway. = The score goes up less than ${G.bands[0].private / 2}. All of your money comes back. Our tutors eat instant noodles and think about what they did.
 link: The guarantee, in full
-
-## 11 The close
-headline: You read this far. Now start free.
-text: Signing up costs nothing and the portal opens right away: ${FREE.questionLimit} practice questions and a full-length practice test with a score report. Worst case, you find out exactly where your student stands. Best case, scroll back up and read the first line again.
-objection: Already scoring ${INTAKE.scoreFrom}, or under ${w(INTAKE.minWeeks)} weeks from the test? We'll tell you to keep your money. Really.
-button: Start free
-button note: Free. No card. No catch.
 
 ## 12 Tutors
 headline: Our tutors are overqualified. That's the point.
@@ -190,8 +179,12 @@ credentials: PhD students = Research by day. Your student's algebra by night. | 
 
 ## 13 Their doubts
 headline: Go on. Ask us the hard ones.
-label: More questions
-asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, medical students, published writers, researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card.
+label: Questions parents ask
+box: Pick a question out of the sky
+typing: Karman is typing
+delivered: Delivered
+read: Read
+asks: What if the score doesn't go up? = Then your money comes back. All of it if we miss by a lot, half if we miss by a little. Or your student keeps going with us for free. | Who's teaching my kid? = People who are overqualified on purpose. PhD students, medical students, published writers, peer-reviewed researchers and professors. | How much time does it take? = About ten minutes a day. In the cohort, add ${w(MP.classesPerWeek)} live classes a week. Get one wrong and your tutor is updated before you finish reading this sentence. | Can we try it first? = Yes, and it costs nothing. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card. | How many points do you promise? = It depends on where your student starts. ${UP_TO.private} on ${P20.name}, and ${UP_TO.cohort.toLowerCase()} on the cohort and ${P10.name}. From a start of ${G.noGuaranteeFrom} there is no guarantee, and we tell you before you pay. | What does it cost? = Nothing to start. ${PP.name} is ${$(PP.monthly)} a month, ${PRO.name} is ${$(PRO.monthly)}, the ${w(MP.weeks)}-week cohort is ${$(MP.price)}, and private tutoring starts at ${$(P10.price)}. | Does the tutor know what my kid gets wrong? = Every answer. Each one your student gives reaches their tutor before the next session. | What does my student have to do? = Show up and do the work. At least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, all ${w(MP.fullLengthTests)} full-length tests, ${G.practicePct}% of the weekly practice, and an SAT within ${G.satWithinDays} days of the last class. | When does the next cohort start? = The week of ${MP.startShort}. After that, cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 14 Receipts
 headline: We keep the receipts.
@@ -477,8 +470,15 @@ cookies link: Cookie Policy
 refunds link: Refund Policy
 email: ${CONTACT.general}
 footer programs: Programs
-footer company: Karman
+footer tools: Free tools
+footer company: Company
 footer legal: Legal
+footer follow: Follow
+facebook link: Facebook
+instagram link: Instagram
+tiktok link: TikTok
+youtube link: YouTube
+sat note: SAT® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, Karman Prep.
 menu: Menu
 close: Close
 pause: Hold the painting still
@@ -528,7 +528,6 @@ pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA
 pricing guarantee link: The guarantee, with worked examples
 pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
 pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
-credits: The painting behind this page is Karman's own. It is made in code, and it changes every day.
 `;
 
 /* ---------- reading the copy ---------- */

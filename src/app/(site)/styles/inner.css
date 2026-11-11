@@ -236,7 +236,7 @@
 .ks .i-sided { align-items: center; }
 .ks .rs-top { align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }
 
-/* the error page ((site)/error.tsx): the opening, with its links as pills */
+/* the 404 and error pages ((site)/not-found.tsx, (site)/error.tsx): the opening, with its links as pills */
 .ks .i-lost { min-height: 72svh; }
 .ks .i-lostlinks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
 .ks .i-lostlinks button.lk { background: none; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }

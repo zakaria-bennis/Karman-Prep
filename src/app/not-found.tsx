@@ -1,12 +1,9 @@
-// An address or a record that doesn't exist: one plain sentence and the pages people most often want.
-// Next.js answers with a 404 status; robots keep it out of search results.
-//
-// Every route in the app carries this file, lessons included, so it is plain on purpose: a server
-// component in the app's own theme colours and fonts, with no client code and none of the marketing site's
-// styles, frame or fonts. Importing those here once added about 38 KB to every lesson page. The words are
-// still the site copy's, read on the server.
+// A page inside the app (the student, tutor, school and admin areas) that calls notFound(), for example a
+// lesson link with an id that no longer exists. Next.js loads this file's imports on every route, so it
+// carries its own few styles and must never import a stylesheet: the marketing site's 404 page is
+// (site)/not-found.tsx. Colours follow the device's light or dark setting, as in global-error.tsx.
 import type { Metadata } from "next";
-import { KarmanLogo } from "@/components/shared/KarmanLogo";
+import Link from "next/link";
 import { ROUTES } from "@/components/site/routes";
 import { SITE } from "@/lib/marketing/site-copy";
 
@@ -15,37 +12,26 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-const LINKS: [string, string][] = [
-  [ROUTES.home, "not found home"],
-  [ROUTES.program, "program link"],
-  [ROUTES.private, "private link"],
-  [ROUTES.pricing, "pricing link"],
-  [ROUTES.test, "free test link"],
-  [ROUTES.faq, "faq link"],
-];
+const CSS = `
+.nf{position:fixed;inset:0;z-index:1;overflow:auto;display:grid;place-items:center;padding:24px;background:#0e0d0c;color:#f1ede4;font:17px/1.55 system-ui,sans-serif}
+.nf main{max-width:560px;display:grid;gap:22px;justify-items:start}
+.nf h1{margin:0;font-size:clamp(34px,6vw,56px);line-height:1.05;font-weight:700}
+.nf p{margin:0}.nf .mark{font-weight:800;letter-spacing:-0.01em}
+.nf .pill{display:inline-flex;align-items:center;min-height:52px;padding:0 22px;border-radius:999px;border:1.5px solid currentColor;color:inherit;font:800 17px/1 system-ui,sans-serif;text-decoration:none}
+.nf .pill:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+@media (prefers-color-scheme: light){.nf{background:#f5f5f2;color:#12110f}}
+`;
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[100svh] items-center justify-center bg-night px-6 py-16 text-ivory">
-      <main className="w-full max-w-xl">
-        <KarmanLogo size={36} />
-        <h1 className="mt-10 text-balance text-3xl font-extrabold text-ivory sm:text-4xl">
-          {SITE["not found title"]}
-        </h1>
-        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-taupe">
-          {SITE["not found text"]}
-        </p>
-        <nav aria-label="Pages" className="mt-8 flex flex-col items-start">
-          {LINKS.map(([href, k]) => (
-            <a
-              key={k}
-              href={href}
-              className="inline-flex min-h-11 items-center rounded-sm font-semibold text-ivory underline decoration-bronze decoration-2 underline-offset-4 transition-colors hover:decoration-ivory focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
-            >
-              {SITE[k]}
-            </a>
-          ))}
-        </nav>
+    <div className="nf">
+      <style>{CSS}</style>
+      <main>
+        <p className="mark">Karman</p>
+        <h1>{SITE["not found title"]}</h1>
+        <Link href={ROUTES.home} className="pill">
+          {SITE["not found home"]}
+        </Link>
       </main>
     </div>
   );
