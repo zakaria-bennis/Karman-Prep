@@ -121,6 +121,19 @@ rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.
 sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
 real students and the words they sent; nothing may be written for them.
 
+The phone's Messages screen (11 Nov) is measured from two real iPhone screenshots the founder sent, light
+and dark, and follows the page's mode. Sizes are in points of a 402-point screen (`--pt` in painted.css).
+
+## Travelling background (11 Nov 2026, waiting for the founder's verdict)
+
+He asked for a photorealistic, lit, moving background that changes as the page scrolls and differs in light
+and dark mode. A first live version is at `/lab-journey` (dev only): one landscape drawn on the graphics
+card (`lab-journey/flight-shader.ts`), flown from above the clouds, down through them, along a valley and a
+fjord to the open sea. Light mode is one day (just after sunrise to just after sunset); dark mode is one
+night (dusk, stars, northern lights, sunrise). It is not on the home page yet. If he approves it, it
+replaces `src/lib/painting/` on the home page, and needs: a still picture for browsers that cannot draw it,
+a reduced-motion version, contrast checks for the text, and the passive birds and snow he likes.
+
 ## Questions section (10 Nov 2026)
 
 "Go on. Ask us the hard ones." (`Doubts.tsx`): nine questions drift up the left as clouds, about six in
