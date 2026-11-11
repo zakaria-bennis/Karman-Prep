@@ -6,8 +6,12 @@
 // Neither runs under reduced motion or on touch screens.
 import { useEffect } from "react";
 
-const PULL = 0.3;
+const PULL = 0.22;
 const NEAR = 90;
+/* how far the button may lean, so it never reaches the words beside or above it */
+const MAX_X = 9;
+const MAX_Y = 5;
+const cap = (v: number, max: number) => Math.max(-max, Math.min(max, v));
 
 export default function HomeTouches() {
   useEffect(() => {
@@ -24,7 +28,7 @@ export default function HomeTouches() {
       mark.className = "nav-mark";
       mark.setAttribute("aria-hidden", "true");
       nav.prepend(mark);
-      const links = [...nav.querySelectorAll<HTMLElement>(".nl, .theme")];
+      const links = [...nav.querySelectorAll<HTMLElement>(".nl")];
       const clear = () => links.forEach((l) => l.classList.remove("hot"));
       for (const link of links) {
         link.addEventListener(
@@ -63,8 +67,14 @@ export default function HomeTouches() {
             const dx = e.clientX - (r.left + r.width / 2);
             const dy = e.clientY - (r.top + r.height / 2);
             const close = Math.abs(dx) < r.width / 2 + NEAR && Math.abs(dy) < r.height / 2 + NEAR;
-            b.style.setProperty("--pull-x", close ? `${(dx * PULL).toFixed(1)}px` : "0px");
-            b.style.setProperty("--pull-y", close ? `${(dy * PULL).toFixed(1)}px` : "0px");
+            b.style.setProperty(
+              "--pull-x",
+              close ? `${cap(dx * PULL, MAX_X).toFixed(1)}px` : "0px"
+            );
+            b.style.setProperty(
+              "--pull-y",
+              close ? `${cap(dy * PULL, MAX_Y).toFixed(1)}px` : "0px"
+            );
           }
         });
       },

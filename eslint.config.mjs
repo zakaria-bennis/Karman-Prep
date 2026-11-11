@@ -51,6 +51,12 @@ export default [
       "react-hooks/purity": "off",
       "react-hooks/immutability": "off",
       "react-hooks/refs": "off",
+
+      // Off because of the catch-all page src/app/(site)/[...missing]: with it, every internal
+      // address counts as "a page", so this rule would flag every plain <a>, including the ones
+      // that are plain on purpose (the marketing site's links, the Cal OAuth start). Before the
+      // catch-all the rule flagged none of this project's links.
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
 

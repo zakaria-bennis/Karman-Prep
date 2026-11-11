@@ -39,7 +39,8 @@ export default function ShellBehaviour() {
         /* the choice lasts for this page only */
       }
       paintTheme();
-      setTimeout(() => ks.classList.remove("theming"), 600);
+      /* long enough for the home page's slow fade (painted.css) */
+      setTimeout(() => ks.classList.remove("theming"), 1500);
     };
     themes.forEach((b) => b.addEventListener("click", flip, { signal }));
     paintTheme();

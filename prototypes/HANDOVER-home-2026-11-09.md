@@ -9,8 +9,8 @@ server: the `painted-site` entry in `.claude/launch.json` (port 3320, local data
 
 ## What is built
 
-One home page, `src/app/(site)/page.tsx`, in seven sections on one painting that travels from dawn to
-night as the page scrolls. The founder approved this order.
+One home page, `src/app/(site)/page.tsx`, in sections on one live landscape that is flown from above the
+clouds to the sea as the page scrolls (see "Travelling background"). The founder approved this order.
 
 | # | Section | Files | Animation |
 |---|---|---|---|
@@ -18,12 +18,10 @@ night as the page scrolls. The founder approved this order.
 | 2 | The proof: "We're twelve for twelve." | `Lanterns.tsx`, `src/lib/marketing/schools.ts` | 30 real logos on small lit lanterns that rise from the bottom, bump and bounce off one another, fade out at the top and come round again; one can be grabbed and thrown |
 | 3 | The offer: "Up to +200 points, or your money back." | `Guarantee.tsx`, `GUARANTEE` in `offer.ts` | One sentence; a +200 ring stamp brought down hard at the top right, level with the headline (the headline jolts and leaves burst); three outcome cards slide in from the side; his own "Karman" signature, kept low, right above the link to the full guarantee |
 | 4 | Who: "Our tutors are overqualified. That's the point." | `TutorArc.tsx`, `src/lib/marketing/tutors.ts` | Photos wait in a stack at the left, fan out along a half circle that turns slowly like a wheel with its lower half out of sight; the title of whoever is at the top pops up in the middle |
-| 5 | How: "Six ways we make a skill stick, because one would be lazy." | `Ways.tsx` | One small moving drawing per way |
+| 5 | How: "Seven ways we make a skill stick, because one would be lazy." | `Ways.tsx`, `WayArt.tsx` | Seven detailed pictures that move; layout being chosen |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
-| 7 | Price and close, at night: "Four ways in. The first one is free." | `Fireflies.tsx` | Rows dealt in; fireflies follow the cursor |
 
-Everywhere: the painting (`HomeJourney.tsx`, `src/lib/painting/journey.ts`), the sun crossing the sky,
-leaves with physics (`leaves.ts`), a button that leans toward the cursor
+Everywhere: the landscape (`HomeFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
 and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
@@ -90,8 +88,8 @@ a chat as the whole page).
   +100 to 1400, +50 to 1450. Cohort and Private 10 promise +150, +100, +70, +40. None from 1460. Founder's
   choice on 9 November: tiered targets, with every other rule kept exactly as the lawyer reviewed it
   (15 of 18 classes, five tests, 90% of practice, SAT within 60 days, half or all back, claim in 30 days).
-- The home page takes its light from the painting, not from the device: ink on cream mist by day, cream
-  on indigo at night. It has no light and dark switch.
+- The home page follows the device's light or dark mode until the visitor flips the switch in the top bar
+  (11 Nov). Light: ink on cream mist, cream on dusk mist for the last section. Dark: cream on night mist.
 - Logos are from Wikimedia Commons (`public/site/schools/SOURCES.json`). He was told once that a public
   domain mark is still a trademark.
 - The top menu keeps The SAT Program, Private tutoring, Pricing, Sign in and Start free. About, FAQ and
@@ -107,7 +105,7 @@ a chat as the whole page).
 
 ## Checks
 
-- `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real painting pixels in
+- `node scripts/dev/home-journey-check.mjs`: measures text contrast against the real pixels behind the words, in light and dark, in
   all seven sections at desktop, tablet and phone, and tests the guarantee's stamp and cards, the bubbles, the birds, the
   phone menu, the still button and every link. Passing.
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
@@ -120,3 +118,102 @@ which shows the text conversation behind the lit row. Six seconds a row; a tap h
 rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
 sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
 real students and the words they sent; nothing may be written for them.
+
+The phone's Messages screen (11 Nov) is measured from two real iPhone screenshots the founder sent, light
+and dark, and follows the page's mode. Sizes are in points of a 402-point screen (`--pt` in painted.css).
+
+## Travelling background (11 Nov 2026, approved and on the home page)
+
+The founder asked for a photorealistic, lit, moving background that changes as the page scrolls and differs
+in light and dark mode, and approved the first version ("Yes, keep going"). It replaced the code-made
+painting on the home page. The portals still use `src/lib/painting/`.
+
+- `src/lib/flight/shader.ts` is the landscape, drawn on the graphics card: above the clouds, down through
+  them, past the high peaks where it snows, along a valley and a fjord where birds fly, out to the sea.
+- `src/lib/flight/engine.ts` runs it: scroll flies the camera, it draws softer on slow devices, stops when
+  nobody is there, and steps by short fades when motion is held still.
+- `HomeFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
+- Light mode is one day (just after sunrise to just after sunset). Dark mode is one night (dusk, stars,
+  northern lights, sunrise). Flipping the switch makes the sun set or rise where the visitor is, in about a
+  second and a half, and the page does not move.
+- The switch is the small sky in the top bar (the existing theme button, restyled in painted.css). The top
+  bar is now fixed, so the switch travels with the page. On phones the Menu button shows three lines.
+- Dark mode's colours are at the end of painted.css: every section takes the night section's look.
+- Dark mode, founder's round two (11 Nov): the question clouds are dark fog with white words and the school
+  logos sit on dark lanterns. One-colour logos turn white;
+  nine with two colours or a shield have their own dark file in `public/site/schools/night/`
+  (`scripts/dev/night-logos.mjs` makes them, `SchoolLogo.tsx` swaps them). Caltech and others whose colour
+  reads on dark stay as they are. The six-ways cards, the guarantee cards and the lit receipt row are still
+  cream at night; he has not said whether those should turn black too.
+- He likes both the Ghibli look and this more realistic one; the realism is on purpose, so the page does
+  not read as low quality. The stamp's leaf burst went with the old engine.
+- Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
+  phone has not been tried; the land up close is better but still not a photograph.
+
+## Seven ways section (11 Nov 2026, picked)
+
+He rejected stick-figure cartoon cards ("low quality") and chose detailed objects combined with real moving
+diagrams, specific to each method, no people, ink and cream plus one accent colour each. Out of five
+layouts he picked the dashboard wall: tiles of different sizes, all moving. `WayArt.tsx` draws the seven
+pictures; their labels are `art words` in site-copy section 6. The seventh method is time trials (one
+section, starting at 1.25 times the real SAT time and tightening to 0.75 while accuracy holds;
+`TIME_TRIAL.ready` is still false in the student portal). The Challenge has no leaderboard: its picture
+shows how everyone did, with no made-up numbers. He wants to be asked before any creative direction is
+taken on his behalf.
+
+## Founder's wrap-up list (11 Nov 2026, done)
+
+- Top bar: the sliding marker covers only the four links and is a soft tint; the light and dark switch is
+  one round button to the right of Start free (the sun sets, the moon rises).
+- At night the actions are marigold. The Start free button's pull is capped so it never reaches the words.
+- Guarantee: three specific outcome cards worked from a +200 target; the signature and "The guarantee, in
+  full" sit level with the last card.
+- Receipts phone: deep blue at night, orange by day. The sky chat uses the phone's own grey and blue.
+- Question clouds come round in 26 seconds, so all nine pass in about 15.
+- Footer: the name rises letter by letter with a sunrise climbing through it; socials are the platforms'
+  marks; no switch and no email there.
+
+## Founder's second wrap-up list (11 Nov 2026, done)
+
+- Marigold was too bright: the night actions are cream again. `ActLab.tsx` (development only) lets him try
+  other colours through `--act`; once he picks, put the colour in painted.css and delete the file.
+- Logo-only schools carry their name beside the mark (`label` in schools.ts), set in a plain serif because
+  the schools' own typefaces are not available to us.
+- At night the guarantee's three cards are almost black and the lit receipts row is a soft tint.
+- Time trials tighten by 5% a round, 1.25 down to 0.75; the stopwatch's hand and ring move together.
+- The chat's message bar is the bubbles' grey; the chat no longer traps the scroll wheel.
+- The signature has a curved K, clearer letters and is drawn over about five seconds.
+- The rising footer letters take no clicks (they were swallowing clicks meant for footer links).
+
+## Third list (11 Nov 2026)
+
+Done: night buttons are soft gold (#e7cf9a); UNC and UT Austin lost their extra name (their logos say it);
+the seven-ways number badges are gone; the stopwatch turns a quarter slower; the live teaching picture is a
+video call with a sensible worked equation; the guarantee cards have a joke each and a small moving picture.
+He then picked: signature version 12 (`SIG` in `signature.ts`), cobalt blue (#2449b8) for the light-mode
+buttons, a trinomial on the live teaching board, and flames on the stopwatch as the pace gets faster. The
+tester panel is deleted. Do not run Prettier on the stylesheets: they are kept one rule to a line.
+
+## Price section removed (11 Nov 2026)
+
+The founder had the whole last section taken off the home page: "Four ways in. The first one is free.",
+its four plan cards, the fireflies, and the closing line and button that sat inside it ("You read this
+far. Now start free."). The page now runs from the questions straight into the footer. "Start free" stays
+in the travelling top bar and in the hero. Prices live on `/pricing`.
+
+## Footer (11 Nov 2026, picked)
+
+The footer's content is regrouped as he agreed: Programs, Free tools, Company, Legal; then the email, the
+four socials, the switch and the still button; then the SAT trademark line in fine print. On the home page
+it sits over the landscape with no black block (`styles/foot.css`). He picked "the horizon" out of three
+layouts and asked for the links in columns: a last full view, a huge "Karman" on the horizon, the four
+columns under it. Pages he agreed to add but that do not exist yet, so are not linked: Contact, Results,
+Free tools, For parents, Guides. Other pages keep the plain black footer.
+
+## Questions section (10 Nov 2026)
+
+"Go on. Ask us the hard ones." (`Doubts.tsx`): nine questions drift up the left as clouds, about six in
+view, and come round again from the bottom. A picked cloud bursts into puffs, its words fly to the message
+box, are typed in and sent, and Karman's answer is typed back in a text conversation on the right. The
+founder rejected topic tabs and answers with drawings attached. The nine are in `site-copy.ts` section 13,
+built from `offer.ts`; he will supply more questions and answers of his own.
