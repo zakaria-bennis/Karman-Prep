@@ -26,6 +26,8 @@
 }
 /* the name rises letter by letter as the footer comes into view, and a sunrise climbs through it */
 .ks .ft .mark.rv { opacity: 1; transform: none; }
+/* the rising letters pass over the links for a moment: they must never take a click meant for a link */
+.ks .ft .mark { pointer-events: none; }
 .ks.page-home .ft .mark span { display: inline-block; color: transparent; background: linear-gradient(0deg, #ff9d4d 0%, #ffcf8a 22%, #fffaf3 46%, #fffaf3 100%) 0 100% / 100% 320% no-repeat; -webkit-background-clip: text; background-clip: text; transform: translateY(.42em); opacity: 0; transition: transform 1.3s var(--spring), opacity .9s var(--out); transition-delay: calc(var(--i) * 95ms); }
 .ks.page-home .ft .mark.on span { transform: none; opacity: 1; animation: foot-sunrise 9s ease-in-out infinite alternate; animation-delay: calc(1.2s + var(--i) * .16s); }
 @keyframes foot-sunrise { from { background-position: 0 100%; } to { background-position: 0 6%; } }
