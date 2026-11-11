@@ -142,6 +142,9 @@ switch label: Whose screen
 headline: Six ways we make a skill stick, because one would be lazy.
 ways: Skill practice = A practice set for every skill on the SAT. Three right in a row moves a skill up a level. | Written explanations = Every question shows the method, step by step. No "the answer is C, good luck." | The Daily 10 = Ten questions a day, pulled from whatever your student keeps missing. | The Challenge = Two hard questions a day, the same two for every student. Bragging rights included. | Full-length practice tests = Timed like the real thing and scored like the real thing, minus the Saturday morning panic. | Live teaching = Classes of ${w(CLASS)} and private one-on-one, with a tutor who has seen every answer before saying hello.
 research link: See the research we built it on
+found label: The finding
+study label: The study
+built label: What we built from it
 
 ## 8 Guarantee
 headline: The score goes up, or we pay you back.

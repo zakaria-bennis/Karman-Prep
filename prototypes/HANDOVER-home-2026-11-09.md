@@ -150,6 +150,16 @@ painting on the home page. The portals still use `src/lib/painting/`.
 - Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
   phone has not been tried; the land up close is better but still not a photograph.
 
+## Six ways section (11 Nov 2026, four layouts waiting for his pick)
+
+He wants all six on screen at once and the research up front. `WaysLab.tsx` (development builds only) adds
+a "Six ways: Now 1 2 3 4" switch at the bottom left; styles are in `styles/ways-lab.css`. 1 split cards (the
+finding on ink, what Karman built on cream). 2 the ledger (a plain list: finding, study, what we built).
+3 today's six cards with the study under each. 4 the six studies along a line by year. Layouts 1, 2 and 4
+show the six research findings from the research page instead of the six ways; in layout 3 two of the six
+ways ("Skill practice", "The Challenge") have no study behind them, and nothing may be invented for them.
+Once he picks: delete the layouts he passed over, the picker and the temporary props.
+
 ## Price section removed (11 Nov 2026)
 
 The founder had the whole last section taken off the home page: "Four ways in. The first one is free.",

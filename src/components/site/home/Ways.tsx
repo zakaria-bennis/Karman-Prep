@@ -60,7 +60,14 @@ const ART: ReactNode[] = [
   </>,
 ];
 
-export default function Ways({ items }: { items: [string, string][] }) {
+export default function Ways({
+  items,
+  proof,
+}: {
+  items: [string, string][];
+  /** TEMPORARY (layout 3 of WaysLab): the study behind each way, or null where there is none. */
+  proof?: (string | null)[];
+}) {
   return (
     <ul className="ways">
       {items.map(([name, line], k) => (
@@ -70,6 +77,7 @@ export default function Ways({ items }: { items: [string, string][] }) {
           </svg>
           <b>{name}</b>
           <span>{line}</span>
+          {proof?.[k] ? <small className="way-proof">{proof[k]}</small> : null}
         </li>
       ))}
     </ul>

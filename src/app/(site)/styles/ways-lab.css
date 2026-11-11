@@ -1,0 +1,73 @@
+/* TEMPORARY: four other layouts of the home page's "six ways" section, for the founder to choose from
+   (WaysLab.tsx, development builds only). Each keeps all six on screen at once and leads with the research.
+   1 split cards, 2 the ledger, 3 today's cards with the study under each, 4 the six studies by year.
+   Once he picks, the layouts he passed over and this file's picker go. */
+.ks .how .wl, .ks .how .way-proof { display: none; }
+.ks .how:is([data-ways="1"], [data-ways="2"], [data-ways="4"]) .ways { display: none; }
+.ks .how .wl { width: 100%; margin: 0; padding: 0; list-style: none; }
+.ks .how .wl h3 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -.01em; line-height: 1.08; }
+.ks .how .wl p { margin: 0; }
+.ks .how .wl-src { font-size: 13.5px; font-weight: 800; letter-spacing: .02em; }
+
+/* ---------- 1. split cards ---------- */
+.ks .how[data-ways="1"] .wl-split { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ks .wl-split li { display: grid; grid-template-rows: 1fr auto; border-radius: 26px; overflow: hidden; box-shadow: var(--lift); }
+.ks .wl-split .wl-top { display: grid; align-content: start; gap: 5px; padding: 18px 24px 14px; background: #1d1a22; color: #fffaf3; }
+.ks .wl-split .wl-src { color: rgba(255, 250, 243, .74); }
+.ks .wl-split h3 { font-size: clamp(22px, 1.9vw, 27px); }
+.ks .wl-split .wl-top p:last-child { font-size: 15px; font-weight: 600; color: rgba(255, 250, 243, .86); }
+.ks .wl-split .wl-we { display: grid; align-content: start; gap: 3px; min-height: 92px; padding: 12px 24px 16px; background: #fffaf3; color: #1d1a22; }
+.ks .wl-split .wl-we b { font-size: 13.5px; font-weight: 800; color: #3a3442; }
+.ks .wl-split .wl-we p { font-size: 16.5px; font-weight: 700; line-height: 1.34; }
+.ks.page-home[data-mode="dark"] .wl-split li { box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), var(--lift); }
+.ks.page-home[data-mode="dark"] .wl-split .wl-we { background: #2a2632; color: #fffaf3; }
+.ks.page-home[data-mode="dark"] .wl-split .wl-we b { color: #cdc7d6; }
+@media (max-width: 1000px) { .ks .how[data-ways="1"] .wl-split { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ks .how[data-ways="1"] .wl-split { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- 2. the ledger ---------- */
+.ks .how[data-ways="2"] .wl-ledger { display: block; }
+.ks .wl-ledger :is(.wl-head, li) { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.5fr); gap: 8px 28px; align-items: center; }
+.ks .wl-ledger .wl-head { padding: 0 6px 10px; font-size: 14px; font-weight: 800; }
+.ks .wl-ledger ol { margin: 0; padding: 0; list-style: none; }
+.ks .wl-ledger li { padding: 15px 6px; border-top: 1.5px solid var(--line); }
+.ks .wl-ledger li:last-child { border-bottom: 1.5px solid var(--line); }
+.ks .wl-ledger h3 { font-size: clamp(21px, 1.9vw, 28px); }
+.ks .wl-ledger .wl-src { font-weight: 600; line-height: 1.35; }
+.ks .wl-ledger .wl-we { font-size: clamp(16px, 1.3vw, 18.5px); font-weight: 700; line-height: 1.34; }
+@media (max-width: 760px) {
+  .ks .wl-ledger .wl-head { display: none; }
+  .ks .wl-ledger :is(.wl-head, li) { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .ks .wl-ledger .wl-src br { display: none; }
+}
+
+/* ---------- 3. today's cards, with the study under each ---------- */
+.ks .how[data-ways="3"] .way-proof { display: block; grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1.5px solid rgba(29, 26, 34, .14); font-size: 13.5px; font-weight: 700; line-height: 1.35; color: #3a3442; }
+.ks .how[data-ways="3"] .ways li { align-content: start; }
+
+/* ---------- 4. by the year ---------- */
+.ks .how[data-ways="4"] .wl-years { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0 18px; position: relative; padding-top: 6px; }
+.ks .wl-years li { position: relative; display: grid; align-content: start; gap: 6px; padding-top: 26px; }
+/* the line the six years sit on, and each year's mark on it */
+.ks .wl-years li::before { content: ""; position: absolute; left: 0; right: -18px; top: 6px; height: 2px; background: currentColor; opacity: .34; }
+.ks .wl-years li:last-child::before { right: 0; }
+.ks .wl-years li::after { content: ""; position: absolute; left: 0; top: 0; width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
+.ks .wl-years .wl-year { font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(38px, 4.4vw, 68px); line-height: .95; letter-spacing: -.02em; }
+.ks .wl-years h3 { font-size: clamp(19px, 1.5vw, 23px); margin-top: 4px; }
+.ks .wl-years .wl-we { font-size: 15px; font-weight: 600; line-height: 1.4; }
+@media (max-width: 1100px) {
+  .ks .how[data-ways="4"] .wl-years { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 18px; }
+  .ks .wl-years li:nth-child(3n)::before { right: 0; }
+}
+@media (max-width: 640px) {
+  .ks .how[data-ways="4"] .wl-years { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; }
+  .ks .wl-years li { padding: 0 0 24px 30px; }
+  .ks .wl-years li::before { left: 6px; right: auto; top: 6px; bottom: -6px; width: 2px; height: auto; }
+  .ks .wl-years li:last-child::before { display: none; }
+  .ks .wl-years li::after { top: 6px; }
+}
+
+/* ---------- the picker (development only) ---------- */
+.ks .lab-pick { position: fixed; z-index: 60; left: 14px; bottom: 14px; display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; border-radius: 999px; background: #fffaf3; color: #1d1a22; font: 700 14px/1 var(--font-hanken), system-ui, sans-serif; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .6); }
+.ks .lab-pick button { min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 999px; font: inherit; color: inherit; }
+.ks .lab-pick button[aria-pressed="true"] { background: #1d1a22; color: #fffaf3; }
