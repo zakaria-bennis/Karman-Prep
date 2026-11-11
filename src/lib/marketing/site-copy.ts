@@ -481,7 +481,8 @@ cookies link: Cookie Policy
 refunds link: Refund Policy
 email: ${CONTACT.general}
 footer programs: Programs
-footer company: Karman
+footer tools: Free tools
+footer company: Company
 footer legal: Legal
 footer follow: Follow
 facebook link: Facebook

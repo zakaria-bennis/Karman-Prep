@@ -151,6 +151,16 @@ painting on the home page. The portals still use `src/lib/painting/`.
 - Not done: the footer still ends in a solid black block (he wants it to continue the landscape); a real
   phone has not been tried; the land up close is better but still not a photograph.
 
+## Footer (11 Nov 2026, three layouts waiting for his pick)
+
+The footer's content is regrouped as he agreed: Programs, Free tools, Company, Legal; then the email, the
+four socials, the switch and the still button; then the SAT trademark line in fine print. On the home page
+it sits over the landscape, with no black block, in three layouts (`styles/foot.css`): A the shore (words
+on mist), B the dock (one floating card, black at night), C the horizon (the name on the horizon, links in
+a strip). `FootPicker.tsx` shows an A, B, C switch at the bottom left on development builds only. Once he
+picks: delete the other two layouts and the picker. Pages he agreed to add but that do not exist yet, so
+are not linked: Contact, Results, Free tools, For parents, Guides. Other pages keep the plain black footer.
+
 ## Questions section (10 Nov 2026)
 
 "Go on. Ask us the hard ones." (`Doubts.tsx`): nine questions drift up the left as clouds, about six in

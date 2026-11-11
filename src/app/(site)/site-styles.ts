@@ -6,6 +6,7 @@ import "./styles/kit.css";
 import "./styles/screens.css";
 import "./styles/home.css";
 import "./styles/painted.css";
+import "./styles/foot.css";
 import "./styles/inner.css";
 import "./styles/pricing.css";
 import "./styles/photos.css";

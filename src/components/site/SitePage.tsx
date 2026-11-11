@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
+import FootPicker from "./home/FootPicker";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
@@ -96,6 +97,11 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.pricing, "pricing link"],
       [ROUTES.schools, "schools link"],
       [ROUTES.tutors, "tutors link"],
+    ],
+  ],
+  [
+    "footer tools",
+    [
       [ROUTES.test, "free test link"],
       [ROUTES.calculator, "calculator link"],
     ],
@@ -104,9 +110,9 @@ const FOOTER: [string, [string, string][]][] = [
     "footer company",
     [
       [ROUTES.guarantee, "guarantee link"],
-      [ROUTES.faq, "faq link"],
       [ROUTES.about, "about link"],
       [ROUTES.research, "research link"],
+      [ROUTES.faq, "faq link"],
       [ROUTES.signIn, "sign in link"],
     ],
   ],
@@ -200,38 +206,45 @@ export default function SitePage({
       {stage}
       <main id="main">{children}</main>
       <footer className="ft">
-        <div className="cols">
-          <span className="mark">{SITE.logo}</span>
-          <nav aria-label="Footer">
-            {FOOTER.map(([h, links]) => (
-              <div className="col" key={h}>
-                <p className="h">{SITE[h]}</p>
-                {links.map(([href, t]) => (
-                  <a key={t} href={href}>
-                    {SITE[t]}
-                  </a>
-                ))}
-                {h === "footer legal" ? <a href={`mailto:${SITE.email}`}>{SITE.email}</a> : null}
-              </div>
-            ))}
-            <div className="col">
-              <p className="h">{SITE["footer follow"]}</p>
+        <div className="ft-in">
+          <div className="cols">
+            <span className="mark">{SITE.logo}</span>
+            <nav aria-label="Footer">
+              {FOOTER.map(([h, links]) => (
+                <div className="col" key={h}>
+                  <p className="h">{SITE[h]}</p>
+                  {links.map(([href, t]) => (
+                    <a key={t} href={href}>
+                      {SITE[t]}
+                    </a>
+                  ))}
+                </div>
+              ))}
+            </nav>
+          </div>
+          <div className="ft-base">
+            <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            <span className="ft-social">
               {(Object.keys(SOCIALS) as (keyof typeof SOCIALS)[]).map((k) => (
                 <a key={k} href={SOCIALS[k]} rel="noopener">
                   {SITE[`${k} link`]}
                 </a>
               ))}
-            </div>
-          </nav>
+            </span>
+            {stage ? (
+              <span className="ft-set">
+                <ThemeButton />
+                <span className="credit">
+                  <button className="motion" type="button" aria-pressed="false">
+                    {SITE.pause}
+                  </button>
+                </span>
+              </span>
+            ) : null}
+          </div>
+          <p className="ft-fine">{SITE["sat note"]}</p>
         </div>
-        {stage ? (
-          <p className="credit">
-            <button className="motion" type="button" aria-pressed="false">
-              {SITE.pause}
-            </button>
-          </p>
-        ) : null}
-        <p className="ft-fine">{SITE["sat note"]}</p>
+        {stage && process.env.NODE_ENV !== "production" ? <FootPicker /> : null}
       </footer>
       <ShellBehaviour />
     </div>
