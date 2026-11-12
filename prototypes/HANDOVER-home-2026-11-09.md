@@ -159,7 +159,7 @@ diagrams, specific to each method, no people, ink and cream plus one accent colo
 layouts he picked the dashboard wall: tiles of different sizes, all moving. `WayArt.tsx` draws the seven
 pictures; their labels are `art words` in site-copy section 6. The seventh method is time trials (one
 section, starting at 1.25 times the real SAT time and tightening to 0.75 while accuracy holds;
-`TIME_TRIAL.ready` is still false in the student portal). The Challenge has no leaderboard: its picture
+open in the student portal at `/learn/time-trial` since 2026-11-12). The Challenge has no leaderboard: its picture
 shows how everyone did, with no made-up numbers. He wants to be asked before any creative direction is
 taken on his behalf.
 

@@ -8,7 +8,16 @@ import {
   actionStartDomainQuiz,
   actionStartFullTest,
   actionStartPracticeSet,
+  actionStartTimeTrial,
 } from "@/app/learn/quiz-run-actions";
+import {
+  formatClock,
+  formatMultiplier,
+  trialSeconds,
+  trialSectionTitle,
+  type TrialSection,
+  type TrialStanding,
+} from "@/lib/student/time-trial";
 import { Message } from "./FlowFrame";
 import { RunPlayer } from "./RunPlayer";
 import type { ShellUser } from "./types";
@@ -103,6 +112,44 @@ export function FullTestFlow({
                   label: pending ? "Loading" : "Start Reading and Writing",
                 }}
                 back={{ href: "/learn/tests", label: "Back to tests" }}
+              />
+            )
+      }
+    />
+  );
+}
+
+export function TimeTrialFlow({
+  user,
+  section,
+  standing,
+  resumable,
+  exitHref,
+}: {
+  user: ShellUser;
+  section: TrialSection;
+  standing: TrialStanding;
+  resumable: boolean;
+  exitHref: string;
+}) {
+  const open = useCallback(() => actionStartTimeTrial({ section }), [section]);
+  const name = trialSectionTitle(section);
+  return (
+    <RunPlayer
+      user={user}
+      title="Time trial"
+      open={open}
+      exitHref={exitHref}
+      againHref={`/learn/time-trial?section=${section}&again=${Date.now()}`}
+      intro={
+        resumable
+          ? undefined
+          : (start, pending) => (
+              <Message
+                title={`${name}, round ${standing.round}`}
+                text={`One module against the clock: ${formatClock(trialSeconds(section, standing.multiplier))} for the module, ${formatMultiplier(standing.multiplier)} the real SAT time. The clock starts when you do. At zero the round ends and scores what you answered. Hold your accuracy and the next round gets 5% tighter.`}
+                action={{ onClick: start, label: pending ? "Loading" : "Start the round" }}
+                back={{ href: exitHref, label: "Back" }}
               />
             )
       }

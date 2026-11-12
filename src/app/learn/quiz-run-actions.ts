@@ -16,6 +16,7 @@ import {
   submitSection,
 } from "@/lib/assembler/runs";
 import { PlanLimitError } from "@/lib/assembler/plan-gate";
+import { startTimeTrial, trialSectionSchema } from "@/lib/assembler/time-trial-run";
 import type { RunView } from "@/lib/assembler/run-types";
 
 async function studentId(): Promise<string> {
@@ -87,6 +88,15 @@ export async function actionStartFullTest(input: { form: number }) {
     startFullTest(
       await studentId(),
       z.object({ form: z.number().int().min(1).max(4) }).parse(input).form
+    )
+  );
+}
+
+export async function actionStartTimeTrial(input: { section: string }) {
+  return wrap(async () =>
+    startTimeTrial(
+      await studentId(),
+      z.object({ section: trialSectionSchema }).parse(input).section
     )
   );
 }

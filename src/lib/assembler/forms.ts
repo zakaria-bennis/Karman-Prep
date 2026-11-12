@@ -1,8 +1,8 @@
 /*
- * The one assembler: full-length tests, Domain quizzes and the diagnostic, all drawn from the
- * catalog pools (each item already passed `admitCatalogPool`: readCatalogQuestionScope plus the
- * catalogQuestionPayloadHash seal). Pure and deterministic: the same pool and seed give the same
- * form, so it can be tested without a database.
+ * The one assembler: full-length tests, Domain quizzes, time trials and the diagnostic, all
+ * drawn from the catalog pools (each item already passed `admitCatalogPool`:
+ * readCatalogQuestionScope plus the catalogQuestionPayloadHash seal). Pure and deterministic: the
+ * same pool and seed give the same form, so it can be tested without a database.
  *
  * Rules (brief, "The question bank"):
  * - Never two rows of one question family in a form, or across a student's four forms.
@@ -216,6 +216,39 @@ export function assembleFullLengthForms(
     forms.push({ form, sections });
   }
   return forms;
+}
+
+/**
+ * A time trial: one module of `section` in the full-length blueprint, mixed difficulty. Questions
+ * the student has not answered come first; the rest of the pool fills any gap. Families never
+ * repeat. Returns fewer when the pool runs dry.
+ */
+export function assembleTrialModule(
+  pool: readonly BankItem[],
+  options: { section: Section; maxDifficulty: number; seed: string; answered?: ReadonlySet<string> }
+): BankItem[] {
+  const picker: Picker = {
+    used: new Set(),
+    seed: options.seed,
+    maxDifficulty: options.maxDifficulty,
+  };
+  const band = bandTargets("mixed", options.maxDifficulty);
+  const sectionPool = pool.filter((item) => item.section === options.section);
+  const fresh = sectionPool.filter((item) => !options.answered?.has(item.id));
+  const out: BankItem[] = [];
+  MODULE_BLUEPRINT[options.section].forEach(({ domainId, count }, index) => {
+    const picked = pickFromDomain(fresh, domainId, count, band, picker, index * 3);
+    if (picked.length < count)
+      picked.push(
+        ...pickFromDomain(sectionPool, domainId, count - picked.length, band, picker, index * 3)
+      );
+    out.push(...picked);
+  });
+  return out.sort(
+    (a, b) =>
+      a.difficulty - b.difficulty ||
+      stableHash(`${picker.seed}:${a.id}`) - stableHash(`${picker.seed}:${b.id}`)
+  );
 }
 
 /** Whether Module 1's right answers route the student to the harder Module 2. */

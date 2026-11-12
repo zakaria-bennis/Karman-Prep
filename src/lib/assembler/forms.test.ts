@@ -6,6 +6,7 @@ import {
   assembleDiagnostic,
   assembleDomainQuiz,
   assembleFullLengthForms,
+  assembleTrialModule,
   routeHarder,
   type BankItem,
   type Section,
@@ -136,6 +137,41 @@ describe("Domain quiz and diagnostic", () => {
     expect(new Set(families(items)).size).toBe(items.length);
     expect(Math.max(...items.map((i) => i.difficulty))).toBeLessThanOrEqual(5);
     expect(new Set(items.map((i) => i.domainId)).size).toBe(8);
+  });
+});
+
+describe("time trial module", () => {
+  const pool = syntheticPool();
+
+  it("is one real module of the section, by the blueprint, with no repeated family", () => {
+    for (const section of ["reading", "math"] as const) {
+      const items = assembleTrialModule(pool, { section, maxDifficulty: 5, seed: "t1" });
+      expect(items).toHaveLength(SECTION_SHAPE[section].perModule);
+      expect(new Set(items.map((i) => i.section))).toEqual(new Set([section]));
+      expect(new Set(families(items)).size).toBe(items.length);
+      for (const { domainId, count } of MODULE_BLUEPRINT[section])
+        expect(items.filter((i) => i.domainId === domainId)).toHaveLength(count);
+    }
+  });
+
+  it("puts unseen questions first and refills from the rest when they run out", () => {
+    const first = assembleTrialModule(pool, { section: "math", maxDifficulty: 7, seed: "t2" });
+    const answered = new Set(first.map((i) => i.id));
+    const second = assembleTrialModule(pool, {
+      section: "math",
+      maxDifficulty: 7,
+      seed: "t2",
+      answered,
+    });
+    expect(second.some((i) => answered.has(i.id))).toBe(false);
+    const everything = new Set(pool.map((i) => i.id));
+    const refilled = assembleTrialModule(pool, {
+      section: "math",
+      maxDifficulty: 7,
+      seed: "t2",
+      answered: everything,
+    });
+    expect(refilled).toHaveLength(22);
   });
 });
 
