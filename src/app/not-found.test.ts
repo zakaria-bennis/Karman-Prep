@@ -15,6 +15,12 @@ describe("the app-wide 404 page", () => {
     }
   });
 
+  it("keeps the painting out of what every route loads", () => {
+    const loader = readFileSync(join(process.cwd(), "src/components/lost/LostMist.tsx"), "utf8");
+    expect(imports(loader)).toEqual(["react"]);
+    expect(loader).toContain('import("./paint-mist")');
+  });
+
   it("leaves the marketing styles to the (site) layout alone", () => {
     expect(imports(read("(site)/layout.tsx"))).toContain("./site-styles");
     expect(imports(read("(site)/not-found.tsx")).join("\n")).not.toMatch(/\.css$|site-styles/);
