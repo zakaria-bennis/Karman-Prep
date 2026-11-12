@@ -12,6 +12,9 @@
 
 import { expect, test, type Page } from "@playwright/test";
 
+// Each portal test opens several routes, and each route compiles on first visit under `next dev`.
+test.describe.configure({ timeout: 180_000 });
+
 const SITE_PAGES = [
   "/",
   "/program",

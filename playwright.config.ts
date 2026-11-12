@@ -33,6 +33,9 @@ export default defineConfig({
   workers: 1, // see fullyParallel comment
   reporter: "list",
   timeout: 60_000,
+  // The portals now load the flown landscape and more styles, so a route's first compile under
+  // `next dev` in CI can pass five seconds. Give each expectation room for that first compile.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
