@@ -22,6 +22,11 @@ jobs:
       STRIPE_SECRET_KEY: sk_test_placeholder
       RESEND_API_KEY: re_placeholder
       RESEND_FROM_EMAIL: hello@karmanprep.com
+      # Review-only switches: the partner map, and the assistant's inbox view. No real key: the
+      # pictures post nothing, so the assistant is never called.
+      PARTNER_MAP: "on"
+      MESSAGE_ASSISTANT: "on"
+      ANTHROPIC_API_KEY: placeholder-not-a-key
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,7 +46,7 @@ jobs:
       - name: Seed the test personas
         run: |
           KARMAN_LOCAL_STACK=. node scripts/overnight/seed-personas.mjs || echo "persona seed had errors"
-          for f in pricing parent-school student-portal-calendar student-portal-homework student-portal-progress tutor-affiliate admin-scholarship crm; do
+          for f in pricing parent-school student-portal-calendar student-portal-homework student-portal-progress tutor-affiliate admin-scholarship crm parent-messages; do
             docker exec -i -e PGPASSWORD=postgres supabase_db_karman-local psql -X -q -U postgres -h 127.0.0.1 -d postgres < supabase/seeds/overnight/$f.sql || echo "seed $f had errors"
           done
       - run: npx playwright install --with-deps chromium

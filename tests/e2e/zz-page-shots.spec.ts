@@ -95,6 +95,44 @@ const SITE: [string, string][] = [
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
+// Short recordings of a few pages loading, so the motion can be seen (webm, 1280 by 800).
+test("page load recordings", async ({ browser }) => {
+  const dir = join(OUT, "recordings");
+  mkdirSync(dir, { recursive: true });
+  const clips: { label: string; path: string; file: string }[] = [];
+  for (const [label, path] of [
+    ["Home", "/"],
+    ["Schools, with the partner map", "/schools#partners"],
+    ["Program", "/program"],
+    ["Pricing", "/pricing"],
+  ] as const) {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+      recordVideo: { dir, size: { width: 1280, height: 800 } },
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto(path, { timeout: 180_000 });
+      await page.waitForTimeout(1500);
+      // Scroll gently through the page so each part arrives.
+      for (let i = 0; i < 8; i++) {
+        await page.mouse.wheel(0, 700);
+        await page.waitForTimeout(900);
+      }
+    } catch (error) {
+      console.log(`! recording ${label}: ${error instanceof Error ? error.message : error}`);
+    }
+    const video = page.video();
+    await context.close();
+    if (video) {
+      const file = `recordings/${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.webm`;
+      await video.saveAs(join(OUT, file)).catch(() => {});
+      clips.push({ label, path, file });
+    }
+  }
+  writeFileSync(join(OUT, "recordings.json"), JSON.stringify(clips, null, 2));
+});
+
 test("site pages", async ({ page }) => {
   for (const [label, path] of SITE) await shoot(page, "Site", label, path);
   await page.emulateMedia({ colorScheme: "dark" });
@@ -169,19 +207,21 @@ test("parent portal", async ({ page }) => {
   await shoot(page, "Parent portal", "The week", null);
   for (const [label, sub] of [
     ["Daily report", "/report"],
-    ["Daily email preview", "/report/email"],
+    ["Messages", "/messages"],
+    ["Messages: move a session", "/messages?kind=move_session"],
     ["Progress", "/progress"],
     ["Sessions", "/sessions"],
-    ["Recap", "/recap"],
     ["Billing", "/billing"],
   ] as const)
     await shoot(page, "Parent portal", label, `${week}${sub}`);
   await shoot(page, "Parent portal", "Settings", "/dashboard/parent/settings");
   await page.emulateMedia({ colorScheme: "dark" });
   await shoot(page, "Parent portal", "Daily report", `${week}/report`, "dark desktop");
+  await shoot(page, "Parent portal", "Messages", `${week}/messages`, "dark desktop");
   await page.emulateMedia({ colorScheme: "light" });
   await page.setViewportSize({ width: 390, height: 844 });
   await shoot(page, "Parent portal", "Daily report", `${week}/report`, "light phone");
+  await shoot(page, "Parent portal", "Messages", `${week}/messages`, "light phone");
 });
 
 test("tutor portal", async ({ page }) => {
@@ -218,8 +258,15 @@ test("admin", async ({ page }) => {
     ["Analytics", "/admin/analytics"],
     ["Analytics (sample data)", "/admin/analytics?sample=1"],
     ["Plans", "/admin/plans"],
+    ["Schools", "/admin/schools"],
+    ["Messages from families", "/admin/messages"],
   ] as const)
     await shoot(page, "Admin", label, path);
+  await page.goto("/admin/messages", { timeout: 180_000 });
+  const family = page.locator('a[href^="/admin/messages/"]').first();
+  const familyHref = await family.getAttribute("href").catch(() => null);
+  if (familyHref)
+    await shoot(page, "Admin", "One family's conversation and the drafted reply", familyHref);
   await page.goto("/admin/crm", { timeout: 180_000 });
   const contact = page.locator('a[href^="/admin/crm/u-"]').first();
   const href = await contact.getAttribute("href").catch(() => null);
