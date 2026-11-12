@@ -8,7 +8,8 @@
 import "./tokens.css";
 import "./workbench.css";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { Num } from "@/components/portal/primitives";
 
 export type Tone = "ok" | "warn" | "fail" | "neutral" | "info";
 
@@ -40,13 +41,81 @@ export function WbPage({
 export function WbStats({ items }: { items: Array<{ label: string; value: ReactNode }> }) {
   return (
     <div className="wb-stats">
-      {items.map((s) => (
-        <div key={s.label} className="wb-stat">
-          <b>{s.value}</b>
+      {items.map((s, i) => (
+        <div key={s.label} className="wb-stat" style={{ "--i": i } as CSSProperties}>
+          {/* A whole number counts up as the tile settles (portal-motion.css); anything else shows as written. */}
+          <b>
+            {typeof s.value === "number" || typeof s.value === "string" ? (
+              <Num count>{s.value}</Num>
+            ) : (
+              s.value
+            )}
+          </b>
           <span>{s.label}</span>
         </div>
       ))}
     </div>
+  );
+}
+
+export interface WbMixPart {
+  label: string;
+  value: number;
+  /** "none" draws the part in a quiet grey: the rest that is not one of the kinds (Free, no role). */
+  tone?: "none";
+}
+
+/**
+ * A share bar: one whole split into its parts (people by role, people by plan). Parts keep the
+ * order they are given, which should be the kinds' own order, never sorted by size, so a part's
+ * colour never changes when the numbers do. The key names every part with its count and share.
+ */
+export function WbMix({
+  title,
+  note,
+  parts,
+}: {
+  title: string;
+  note?: ReactNode;
+  parts: WbMixPart[];
+}) {
+  const total = parts.reduce((sum, p) => sum + p.value, 0);
+  if (total === 0) return null;
+  const pct = (v: number) => `${Math.round((v / total) * 100)}%`;
+  let slot = 0;
+  const shown = parts.map((p) => ({
+    ...p,
+    color: p.tone === "none" ? "var(--mix-none)" : `var(--mix-${(slot++ % 7) + 1})`,
+  }));
+  const summary = shown.map((p) => `${p.label} ${p.value} (${pct(p.value)})`).join(", ");
+  return (
+    <figure className="wb-mix">
+      <figcaption>
+        {title}
+        {note !== undefined && <small>{note}</small>}
+      </figcaption>
+      <div className="wb-mix-bar" role="img" aria-label={`${title}: ${summary}`}>
+        {shown
+          .filter((p) => p.value > 0)
+          .map((p) => (
+            <span
+              key={p.label}
+              title={`${p.label}: ${p.value} (${pct(p.value)})`}
+              style={{ "--n": p.value, "--c": p.color } as CSSProperties}
+            />
+          ))}
+      </div>
+      <ul className="wb-mix-key" aria-hidden="true">
+        {shown.map((p, i) => (
+          <li key={p.label} style={{ "--i": i, "--c": p.color } as CSSProperties}>
+            <i />
+            {p.label}
+            <b>{p.value}</b>
+            {pct(p.value)}
+          </li>
+        ))}
+      </ul>
+    </figure>
   );
 }
 
