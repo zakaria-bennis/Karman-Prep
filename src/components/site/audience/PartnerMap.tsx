@@ -44,9 +44,7 @@ export default function PartnerMap() {
         </div>
         <figure className="au-report pm-card">
           <svg className="pm-map" viewBox={US_VIEWBOX} role="img" aria-labelledby="pm-title">
-            <title id="pm-title">
-              A map of the United States with {PARTNER_TOTAL} partner districts marked
-            </title>
+            <title id="pm-title">{`A map of the United States with ${PARTNER_TOTAL} partner districts marked`}</title>
             <path className="pm-land" d={US_NATION} pathLength={1} />
             <path className="pm-borders" d={US_BORDERS} />
             {dots.map((d, i) => (
