@@ -6,6 +6,7 @@ vi.mock("@/lib/supabase/server", () => ({ createAdminClient: () => ({}) }));
 const { completionFor, homeworkHref, homeworkTitle } = await import("./homework");
 const {
   JOIN_CODE_PATTERN,
+  freeYearLeft,
   makeJoinCode,
   normalizeJoinCode,
   planStatusLine,
@@ -90,5 +91,24 @@ describe("renewal trial end", () => {
     const now = new Date("2026-11-08T12:00:00Z");
     expect(trialEndFor("2027-08-31", now)).toBe(Date.parse("2027-08-31T00:00:00Z") / 1000);
     expect(trialEndFor("2026-11-09", now)).toBeUndefined();
+  });
+});
+
+describe("free year left", () => {
+  it("counts whole days to the end date and their share of a year", () => {
+    const left = freeYearLeft("2027-08-31", new Date("2026-11-12T22:00:00Z"));
+    expect(left.days).toBe(292);
+    expect(left.share).toBeCloseTo(292 / 365);
+  });
+
+  it("never goes below zero once the year has ended", () => {
+    expect(freeYearLeft("2026-01-01", new Date("2026-11-12T12:00:00Z"))).toEqual({
+      days: 0,
+      share: 0,
+    });
+  });
+
+  it("caps the share at a full ring", () => {
+    expect(freeYearLeft("2028-06-01", new Date("2026-11-12T12:00:00Z")).share).toBe(1);
   });
 });

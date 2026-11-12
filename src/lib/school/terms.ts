@@ -61,3 +61,17 @@ export function trialEndFor(freeUntil: string, now: Date = new Date()): number |
   const end = Math.floor(Date.parse(`${freeUntil.slice(0, 10)}T00:00:00Z`) / 1000);
   return end - Math.floor(now.getTime() / 1000) > 2 * DAY_S ? end : undefined;
 }
+
+/**
+ * How much of the free year is left on a given day: whole days to `freeUntil` (never below 0) and
+ * that as a share of a 365-day year, for the school's free-year ring.
+ */
+export function freeYearLeft(
+  freeUntil: string,
+  now: Date = new Date()
+): { days: number; share: number } {
+  const end = Date.parse(`${freeUntil.slice(0, 10)}T00:00:00Z`);
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const days = Number.isFinite(end) ? Math.max(0, Math.round((end - today) / 86_400_000)) : 0;
+  return { days, share: Math.min(1, days / 365) };
+}
