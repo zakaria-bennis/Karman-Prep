@@ -1,5 +1,6 @@
 import PricingPlans from "@/components/site/PricingPlans";
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { GuaranteeSection } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -20,7 +21,7 @@ export const metadata = pageMeta(
 
 export default function PricingPage() {
   return (
-    <SitePage kind="pricing">
+    <SitePage kind="lit" route={[0.56, 0.72]} className={`${litFonts} relit rl-pricing`}>
       <PricingPlans
         guarantee={
           <GuaranteeSection

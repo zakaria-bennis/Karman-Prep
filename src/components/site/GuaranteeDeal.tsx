@@ -7,7 +7,6 @@
 // page, so nothing depends on the pointer. Under it, the two sides of the deal, ticked in turn. Every word comes from site-copy.ts (section 8; pricing passes its own headline and text).
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { list, pairs, type CopySection } from "@/lib/marketing/site-copy";
-import Photo from "./Photo";
 import { Kinetic, TextLink } from "./parts";
 import { ROUTES } from "./routes";
 
@@ -134,7 +133,6 @@ export default function GuaranteeDeal({
       </div>
 
       <div className="gx-board">
-        <Photo name="start" className="gx-ph start" />
         <div
           className="gx-stage"
           onPointerMove={lean}

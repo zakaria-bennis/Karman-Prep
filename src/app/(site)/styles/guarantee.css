@@ -24,25 +24,12 @@
   color: var(--ink2);
 }
 
-/* the board: the student photo, the line, the three endings */
+/* the board: the line and the three endings */
 .ks .gx-board {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(0, 7fr) minmax(0, 3.2fr);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3.4fr);
   gap: clamp(14px, 2vw, 28px);
   align-items: center;
-}
-.ks .gx-ph .fr {
-  border-radius: var(--r-panel);
-}
-.ks .gx-ph.start {
-  align-self: end;
-  margin-bottom: 4%;
-}
-.ks .gx-ph.start .fr {
-  aspect-ratio: 4 / 5;
-}
-.ks .gx-ph figcaption {
-  font-size: 13px;
 }
 .ks .gx-stage {
   position: relative;
@@ -420,9 +407,6 @@
 @media (max-width: 900px) {
   .ks .gx-board {
     grid-template-columns: 1fr;
-  }
-  .ks .gx-ph.start {
-    display: none;
   }
   .ks .gx-ends {
     min-height: 0;

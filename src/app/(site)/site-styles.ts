@@ -17,3 +17,5 @@ import "./styles/research.css";
 import "./styles/calendar.css";
 import "./styles/alive.css";
 import "./styles/site.css";
+import "./styles/relit.css";
+import "./styles/legal.css";
