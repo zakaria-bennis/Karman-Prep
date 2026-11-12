@@ -3,11 +3,12 @@
 // ============================================================
 // TutorControlsTab — node status override + checkpoint controls.
 // Every change writes to tutor_node_overrides BEFORE learn_node_status.
+// Portal look: student-detail.css and the portal forms (forms.css).
 // ============================================================
 
 import { useMemo, useState, useTransition } from "react";
 import { Search, Lock, Unlock, Check, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/portal/primitives";
 import type { NodeStatusSnapshot } from "@/lib/supabase/queries/tutor";
 import type { OverrideStatus } from "@/types/quiz";
 import { RW_NODES, MATH_NODES, SUBJECT_LABELS, TIER_LABELS } from "@/data/curriculum";
@@ -81,32 +82,33 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="kp-st">
       {/* Node status override panel */}
-      <section>
-        <h2 className="mb-3 text-sm font-bold text-[color:var(--ink)]">Node Status Overrides</h2>
-        <p className="mb-3 text-xs text-[color:var(--mute)]">
+      <section className="kp-st">
+        <SectionHeader as="h3" title="Node status overrides" note={`${nodes.length} skills`} />
+        <p className="kp-meta">
           Changes apply immediately and silently to the student&apos;s view. All overrides are
           logged to the audit table.
         </p>
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--mute)]" />
+        <label className="kp-st-search">
+          <span className="kp-sr">Search nodes</span>
+          <Search aria-hidden="true" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search nodes by topic, ID, or cluster…"
-            className="w-full rounded border border-[color:var(--line)] py-2 pl-9 pr-3 text-sm"
+            className="kp-input"
           />
-        </div>
+        </label>
 
-        <div className="max-h-[32rem] overflow-hidden overflow-y-auto rounded-lg border border-[color:var(--line)]">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-[color:var(--card)]">
-              <tr className="text-left text-[11px] font-semibold text-[color:var(--mute)]">
-                <th className="px-3 py-2">Skill</th>
-                <th className="px-3 py-2">Tier</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 text-center">Lock pathway</th>
+        <div className="kp-st-scroll" data-tall="">
+          <table className="kp-st-table">
+            <thead>
+              <tr>
+                <th scope="col">Skill</th>
+                <th scope="col">Tier</th>
+                <th scope="col">Status</th>
+                <th scope="col">Lock pathway</th>
               </tr>
             </thead>
             <tbody>
@@ -115,28 +117,27 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                 const curLocked = lockedFor(n.id);
                 const isSaving = savingId === n.id;
                 return (
-                  <tr key={n.id} className="border-t border-[color:var(--line)]">
-                    <td className="px-3 py-2">
-                      <div className="max-w-[20rem] truncate font-medium text-[color:var(--ink)]">
-                        {n.topic}
-                      </div>
-                      <div className="text-xs text-[color:var(--mute)]">
+                  <tr key={n.id}>
+                    <td>
+                      {n.topic}
+                      <small>
                         {SUBJECT_LABELS[n.subject]} · {n.topic_cluster}
-                      </div>
+                      </small>
                     </td>
-                    <td className="px-3 py-2 text-xs text-[color:var(--mute)]">
-                      {TIER_LABELS[n.tier]}
+                    <td>
+                      <small>{TIER_LABELS[n.tier]}</small>
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       <select
                         value={curStatus}
                         disabled={isSaving}
+                        aria-label={`Status for ${n.topic}`}
                         onChange={(e) =>
                           startTransition(() => {
                             applyOverride(n.id, e.target.value as OverrideStatus, curLocked);
                           })
                         }
-                        className="rounded border border-[color:var(--line)] px-2 py-1 text-xs"
+                        className="kp-select"
                       >
                         {OVERRIDE_STATUSES.map((s) => (
                           <option key={s} value={s}>
@@ -145,20 +146,18 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
                         ))}
                       </select>
                     </td>
-                    <td className="px-3 py-2 text-center">
+                    <td>
                       <button
+                        type="button"
                         onClick={() =>
                           startTransition(() => applyOverride(n.id, curStatus, !curLocked))
                         }
                         disabled={isSaving}
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-semibold",
-                          curLocked
-                            ? "border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]"
-                            : "border-[color:var(--line)] text-[color:var(--mute)] hover:text-[color:var(--ink)]"
-                        )}
+                        aria-pressed={curLocked}
+                        className="kp-st-btn"
+                        data-tone={curLocked ? "late" : undefined}
                       >
-                        {curLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                        {curLocked ? <Lock aria-hidden="true" /> : <Unlock aria-hidden="true" />}
                         {curLocked ? "Only" : "Normal"}
                       </button>
                     </td>
@@ -171,53 +170,52 @@ export default function TutorControlsTab({ studentId, statuses }: Props) {
       </section>
 
       {/* Checkpoint management */}
-      <section>
-        <h2 className="mb-3 text-sm font-bold text-[color:var(--ink)]">Checkpoint Management</h2>
-        <div className="overflow-hidden rounded-lg border border-[color:var(--line)]">
-          <table className="w-full text-sm">
-            <thead className="bg-[color:var(--card)]">
-              <tr className="text-left text-[11px] font-semibold text-[color:var(--mute)]">
-                <th className="px-3 py-2">Checkpoint</th>
-                <th className="px-3 py-2">Actions</th>
+      <section className="kp-st">
+        <SectionHeader as="h3" title="Checkpoint management" />
+        <div className="kp-st-scroll">
+          <table className="kp-st-table">
+            <thead>
+              <tr>
+                <th scope="col">Checkpoint</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {["reading:1", "reading:2", "reading:3", "math:1", "math:2", "math:3"].map((cp) => {
                 const [subject, tier] = cp.split(":");
                 return (
-                  <tr key={cp} className="border-t border-[color:var(--line)]">
-                    <td className="px-3 py-2">
-                      <div className="font-medium text-[color:var(--ink)]">
-                        {subject === "reading" ? "Reading & Writing" : "Math"} — Tier {tier}{" "}
-                        Checkpoint
-                      </div>
-                      <div className="text-xs text-[color:var(--mute)]">
-                        {TIER_LABELS[Number(tier) as 1 | 2 | 3]}
-                      </div>
+                  <tr key={cp}>
+                    <td>
+                      {subject === "reading" ? "Reading & Writing" : "Math"} — Tier {tier}{" "}
+                      Checkpoint
+                      <small>{TIER_LABELS[Number(tier) as 1 | 2 | 3]}</small>
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex gap-2">
+                    <td>
+                      <div className="kp-st-actions">
                         <button
+                          type="button"
                           onClick={() =>
                             actionAssignCheckpointRetake({
                               student_id: studentId,
                               checkpoint_id: cp,
                             }).catch(console.error)
                           }
-                          className="inline-flex items-center gap-1 rounded bg-[color:var(--accent)] px-2.5 py-1 text-xs font-semibold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
+                          className="kp-st-btn"
+                          data-tone="good"
                         >
-                          <Check className="h-3 w-3" /> Assign retake
+                          <Check aria-hidden="true" /> Assign retake
                         </button>
                         <button
+                          type="button"
                           onClick={() =>
                             actionOverrideCooldown({
                               student_id: studentId,
                               checkpoint_id: cp,
                             }).catch(console.error)
                           }
-                          className="inline-flex items-center gap-1 rounded border border-[color:var(--line)] px-2.5 py-1 text-xs font-semibold text-[color:var(--mute)] hover:bg-[color:var(--card)]"
+                          className="kp-st-btn"
                         >
-                          <Clock className="h-3 w-3" /> Override cooldown
+                          <Clock aria-hidden="true" /> Override cooldown
                         </button>
                       </div>
                     </td>

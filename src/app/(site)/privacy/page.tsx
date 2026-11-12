@@ -3,6 +3,7 @@
 // ============================================================
 
 import SitePage from "@/components/site/SitePage";
+import LegalFrame from "@/components/site/company/LegalFrame";
 import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -183,110 +184,88 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} relit rl-legal`}>
-      <article className="legal">
-        {/* Header */}
-        <section>
-          <div>
-            <h1>Privacy Policy</h1>
-            <p>
-              Updated November 2026 · Questions:{" "}
-              <a href="mailto:privacy@karmanprep.com">privacy@karmanprep.com</a>
-            </p>
-          </div>
-        </section>
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} rl-legal`}>
+      <LegalFrame
+        title="Privacy Policy"
+        intro={
+          <p>
+            Updated November 2026 · Questions:{" "}
+            <a href="mailto:privacy@karmanprep.com">privacy@karmanprep.com</a>
+          </p>
+        }
+        contents={SECTIONS}
+      >
+        {SECTIONS.map((section) => (
+          <section key={section.id} id={section.id}>
+            <h2>{section.title}</h2>
 
-        {/* Table of contents + content */}
-        <div>
-          {/* TOC sidebar */}
-          <aside>
-            <div>
-              <p>Contents</p>
-              <nav>
-                {SECTIONS.map((s) => (
-                  <a key={s.id} href={`#${s.id}`}>
-                    {s.title}
-                  </a>
+            {section.content && <p>{section.content}</p>}
+
+            {/* Subsections (for What We Collect) */}
+            {"subsections" in section && section.subsections && (
+              <div>
+                {section.subsections.map((sub) => (
+                  <div key={sub.subtitle}>
+                    <p>{sub.subtitle}</p>
+                    <ul>
+                      {sub.items.map((item, i) => (
+                        <li key={i}>
+                          <span />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </nav>
-            </div>
-          </aside>
+              </div>
+            )}
 
-          {/* Content */}
-          <div>
-            {SECTIONS.map((section) => (
-              <section key={section.id} id={section.id}>
-                <h2>{section.title}</h2>
+            {/* Simple bullet list */}
+            {"list" in section && section.list && (
+              <ul>
+                {section.list.map((item, i) => (
+                  <li key={i}>
+                    <span />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-                {section.content && <p>{section.content}</p>}
-
-                {/* Subsections (for What We Collect) */}
-                {"subsections" in section && section.subsections && (
-                  <div>
-                    {section.subsections.map((sub) => (
-                      <div key={sub.subtitle}>
-                        <p>{sub.subtitle}</p>
-                        <ul>
-                          {sub.items.map((item, i) => (
-                            <li key={i}>
-                              <span />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+            {/* Third-party table */}
+            {"table" in section && section.table && (
+              <div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Purpose</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.table.map((row) => (
+                      <tr key={row.service}>
+                        <td>
+                          <a href={row.link} target="_blank" rel="noopener noreferrer">
+                            {row.service}
+                          </a>
+                        </td>
+                        <td>{row.purpose}</td>
+                      </tr>
                     ))}
-                  </div>
-                )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        ))}
 
-                {/* Simple bullet list */}
-                {"list" in section && section.list && (
-                  <ul>
-                    {section.list.map((item, i) => (
-                      <li key={i}>
-                        <span />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* Third-party table */}
-                {"table" in section && section.table && (
-                  <div>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Service</th>
-                          <th>Purpose</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {section.table.map((row) => (
-                          <tr key={row.service}>
-                            <td>
-                              <a href={row.link} target="_blank" rel="noopener noreferrer">
-                                {row.service}
-                              </a>
-                            </td>
-                            <td>{row.purpose}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
-            ))}
-
-            <div>
-              <a href="/terms">Terms of Service</a>
-              <a href="/refunds">Refund Policy</a>
-              <a href="/guarantee">Score Guarantee</a>
-            </div>
-          </div>
+        <div>
+          <a href="/terms">Terms of Service</a>
+          <a href="/refunds">Refund Policy</a>
+          <a href="/guarantee">Score Guarantee</a>
         </div>
-      </article>
+      </LegalFrame>
     </SitePage>
   );
 }

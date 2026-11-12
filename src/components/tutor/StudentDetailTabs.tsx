@@ -2,11 +2,14 @@
 
 // ============================================================
 // StudentDetailTabs — tab container (client-side router to avoid
-// unneeded server round-trips between tabs).
+// unneeded server round-trips between tabs). Styled with the
+// portal's own variables (student-detail.css), like the student
+// and parent portals.
 // ============================================================
 
 import { useState } from "react";
-import "@/components/admin/workbench/workbench.css";
+import "./student-detail.css";
+import "@/components/portal-extras/forms.css";
 import type { NodeStatusSnapshot } from "@/lib/supabase/queries/tutor";
 import type {
   QuizAttempt,
@@ -48,13 +51,8 @@ export default function StudentDetailTabs({
   const [activeTab, setActiveTab] = useState<Tab>(initial);
 
   return (
-    <div>
-      <div
-        className="wb-tabs"
-        role="tablist"
-        aria-label="Student detail"
-        style={{ marginBottom: 16 }}
-      >
+    <div className="kp-st">
+      <div className="kp-st-tabs" role="tablist" aria-label="Student detail">
         {TABS.map((t) => {
           const count =
             t.key === "flagged" ? flagged.length : t.key === "quiz" ? attempts.length : null;
@@ -66,7 +64,7 @@ export default function StudentDetailTabs({
               aria-selected={activeTab === t.key}
               aria-current={activeTab === t.key ? "page" : undefined}
               onClick={() => setActiveTab(t.key)}
-              className="wb-tab"
+              className="kp-st-tab"
             >
               {t.label}
               {count !== null && <small>{count}</small>}
