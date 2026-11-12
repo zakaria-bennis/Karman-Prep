@@ -18,6 +18,7 @@ import {
 import { PlanLimitError } from "@/lib/assembler/plan-gate";
 import { startTimeTrial, trialSectionSchema } from "@/lib/assembler/time-trial-run";
 import type { RunView } from "@/lib/assembler/run-types";
+import { trackServer } from "@/lib/analytics/server";
 
 async function studentId(): Promise<string> {
   const { userId } = await safeAuth();
@@ -84,12 +85,15 @@ export async function actionStartDomainQuiz(input: { domainId: string }) {
 }
 
 export async function actionStartFullTest(input: { form: number }) {
-  return wrap(async () =>
-    startFullTest(
-      await studentId(),
+  return wrap(async () => {
+    const id = await studentId();
+    const view = await startFullTest(
+      id,
       z.object({ form: z.number().int().min(1).max(4) }).parse(input).form
-    )
-  );
+    );
+    await trackServer("test_started", id, { kind: "full" }); // analytics funnel step
+    return view;
+  });
 }
 
 export async function actionStartTimeTrial(input: { section: string }) {
@@ -102,7 +106,12 @@ export async function actionStartTimeTrial(input: { section: string }) {
 }
 
 export async function actionStartDiagnostic() {
-  return wrap(async () => startDiagnostic(await studentId()));
+  return wrap(async () => {
+    const id = await studentId();
+    const view = await startDiagnostic(id);
+    await trackServer("test_started", id, { kind: "diagnostic" }); // analytics funnel step
+    return view;
+  });
 }
 
 export async function actionResumeRun(input: { runId: string }) {

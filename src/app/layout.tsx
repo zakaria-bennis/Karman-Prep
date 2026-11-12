@@ -22,6 +22,7 @@ import { quizRoleStyleSheet } from "@/lib/themes/quiz-roles";
 import { ConfirmProvider } from "@/components/shared/ConfirmDialog";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import ReplayConsentBanner from "@/components/consent/ReplayConsentBanner";
+import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
 import { IMPERSONATE_COOKIE, IMPERSONATE_USER_COOKIE } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveConsentState } from "@/lib/consent/server";
@@ -194,6 +195,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               {children}
               <ThemeToggle floating />
               <ReplayConsentBanner show={consentState === "banner_show"} />
+              <AnalyticsTracker siteDefault={consentState === "banner_hidden"} />
             </ConfirmProvider>
           </ThemeProvider>
         </body>

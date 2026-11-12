@@ -10,6 +10,7 @@ import { createCheckoutSession, getOrCreateCustomer } from "./client";
 import { findStripePrice, isSubscriptionPlan } from "./prices";
 import { createCheckoutBodySchema } from "./schemas";
 import { createAdminClient } from "@/lib/supabase/server";
+import { trackServer } from "@/lib/analytics/server";
 
 /** Subscription statuses that still hold a plan. A second renewing plan
  *  would bill twice, so those users change plan in the Stripe portal. */
@@ -117,5 +118,6 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     cancelUrl: `${appUrl}/pricing`,
   });
   if (!session.url) return { ok: false, status: 500, error: "Stripe returned no checkout link" };
+  await trackServer("checkout_started", userId, { plan: spec.planId, term: parsed.data.term });
   return { ok: true, url: session.url };
 }

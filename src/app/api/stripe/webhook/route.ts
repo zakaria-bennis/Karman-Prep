@@ -21,6 +21,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { recordPurchaseGrant } from "@/lib/plans";
+import { trackServer } from "@/lib/analytics/server";
 import Stripe from "stripe";
 
 /** Verifies the Stripe signature and returns the parsed event */
@@ -105,6 +106,13 @@ export const POST = withWebhookInstrumentation(
           if (saveError) throw saveError;
           if (!saved) throw new Error("Subscription was not persisted");
 
+          // Funnel step "paid": the subscription became live (now, or after a delayed payment).
+          const becameLive =
+            event.type === "customer.subscription.created" ||
+            !!(event.data.previous_attributes as { status?: string } | undefined)?.status;
+          if (becameLive && ["active", "trialing"].includes(sub.status))
+            await trackServer("paid", parsed.userId, { plan: parsed.row.plan_id });
+
           if (event.type === "customer.subscription.created") {
             const { data: user, error: userError } = await supabase
               .from("users")
@@ -163,6 +171,7 @@ export const POST = withWebhookInstrumentation(
             planId: meta.data.planId,
             checkoutSessionId: session.id,
           });
+          await trackServer("paid", meta.data.userId, { plan: meta.data.planId }); // funnel step
           // The cohort's instalment plan: the deposit is in; schedule the three payments.
           if (meta.data.planId === "cohort" && session.metadata?.term === "installments") {
             const scheduleId = await scheduleCohortInstallments(session);
