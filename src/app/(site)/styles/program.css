@@ -195,7 +195,7 @@
 .ks .sc .now { fill: var(--cream); stroke: var(--a); stroke-width: 4; }
 .ks .sc-chip { position: absolute; display: grid; padding: 7px 14px 8px; border-radius: 16px; background: var(--ink); color: var(--cream); translate: -50% calc(-100% - 22px); white-space: nowrap; box-shadow: 0 16px 26px -16px rgba(29, 26, 34, .8); transition: background-color .3s var(--out); pointer-events: none; }
 .ks .sc-chip::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 14px; height: 14px; margin-left: -7px; border-radius: 3px; background: inherit; rotate: 45deg; }
-.ks .sc-chip em { font-style: normal; font-size: 11.5px; font-weight: 800; opacity: .8; }
+.ks .sc-chip em { font-style: normal; font-size: 12px; font-weight: 800; opacity: .8; }
 .ks.lit .sc-chip .num { font-size: 26px; line-height: 1; }
 .ks .sc-chip[data-end] { background: var(--a); translate: -82% calc(-100% - 22px); }
 .ks .sc-chip[data-end]::after { left: 82%; }
@@ -223,8 +223,8 @@
 .ks .pd-stack h4 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(21px, 1.9vw, 26px); line-height: 1.1; }
 .ks .pd-cap { margin: 22px 0 0; font-size: clamp(15.5px, 1.25vw, 17.5px); font-weight: 700; animation: pd-cap .5s var(--out) both; }
 @keyframes pd-cap { from { opacity: 0; transform: translateY(8px); } }
-.ks .pd-dots { display: flex; gap: 8px; }
-.ks .pd-dots button { width: 30px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.ks .pd-dots { display: flex; gap: 0; }
+.ks .pd-dots button { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
 .ks .pd-dots button::before { content: ""; width: 22px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 26%, transparent); transition: width .5s var(--spring), background-color .3s var(--out); }
 .ks .pd-dots button[aria-pressed="true"]::before { width: 30px; background: var(--ink); }
 .ks .pd-list, .ks .pd-skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }

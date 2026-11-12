@@ -152,7 +152,7 @@ we do title: Our side
 we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | A progress report for parents every day
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT your cohort ends on
-covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back on ${PRIVATE_PACKAGES[0].name}; free hours, then half back on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
+covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[0].name}; half back or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
 claim: Within ${G.claimDays} days of the test, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
@@ -264,41 +264,44 @@ bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 31 Private: opening
-headline: One student, one tutor, every mistake worked through.
-text: Weekly 60-minute sessions. Each one starts from your student's latest full-length test and goes through every mistake. ${P10.hours} hours for ${$(P10.price)}, or ${P20.hours} hours for ${$(P20.price)}, both with the guarantee.
-button: Book a call with ${FOUNDER.firstName}
-button note: ${CALL_MINUTES} minutes with you, your student and ${FOUNDER.firstName}. Every private student starts here.
+headline: Up to ${guaranteeMax("private")} points higher, with a tutor who works around your week.
+button: Schedule a free call
+second button: See our packages
 
-## 32 Private: a session
-headline: Every session starts with a test, not a worksheet.
-rows: Before = Your student takes a full-length test, or we pick the skill holding them back | During = 60 minutes on every question they missed: what happened and how to fix it | After = A note to you: what you worked on, what improved and what comes next
+## 32 Private: booking
+headline: Your student books their own sessions.
+points: Around the week you actually have = Practice ran late, a test on Thursday, a free Sunday afternoon. They pick whichever open hour works for the family. | No fees to cancel or reschedule = You or your student can move a session, or book another, whenever you need to. No hidden fees.
+pick day: Pick a day
+pick time: Pick a time
+earlier: Earlier days
+later: Later days
+confirm: Confirm session
+booked: You're booked.
+none: No open times this day
 
 ## 33 Private: packages
-headline: Two packages, both with the guarantee.
-small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${UP_TO.cohort.toLowerCase()}, set by the starting score. If not, half the price back (${usd(P10.price / 2)}).
-large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${UP_TO.private.toLowerCase()}, set by the starting score. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
-includes: Everything in ${PRO.name}: every question, with video explanations as they're recorded | The weekly live session | A note to parents after every session
-
-## 34 Private: track record
-headline: This is how we have always tutored.
-text: Karman's 1:1 students gained ${TR.averageGain} points on average, and ${TR.reachedTargetPct}% reached their target score.
-proof: ${TR.sourceLabel}. ${FOUNDER.studentsTutored} students.
-
-## 35 Private: guarantee terms
-headline: What the guarantee asks of your student.
-rows: Every session = Cancelling with less than ${G.private.cancelHours} hours' notice counts as a missed session | Full-length tests = ${W(PRIVATE_BONUS[P10.id].fullLengthTests)} on ${P10.name}, ${w(PRIVATE_BONUS[P20.id].fullLengthTests)} on ${P20.name} | The SAT = Within ${G.private.satWithinDays} days of the last session
+headline: Two ways to work one-on-one.
+small package: ${P10.name} = ${$(P10.price)}
+large package: ${P20.name} = ${$(P20.price)}
+small lead: Everything in ${PRO.name}
+small bullets: ${W(P10.hours)} 60-minute sessions, one a week | A tutor from our team of PhD and medical students | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | Session statuses sent within 24 hours after each class | A private text line to the tutor | ${UP_TO.cohort}, or half back / free sessions
+large lead: Everything in ${P10.name}, plus
+large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
+best: Most families pick this
+save: Save
+no limit: No limit on sessions a week
+per: a session
+call: Schedule a free call
+link: The guarantee, in full
 
 ## 36 Private: close
-headline: Every private student starts with a call.
-text: You, your student and ${FOUNDER.firstName}, Karman's founder, on one video call. We talk about the target, the test date and how much time your student has each week. Then we tell you honestly whether private tutoring fits, how many hours make sense, and when a tutor is free.
-form email: Your email
-form latest: Latest SAT or PSAT score
-form latest help: Leave it empty if they haven't taken one yet.
-form date: When is their SAT?
-form date options: ${SAT_DATES.join(" | ")} | Another date | Not sure yet
-form button: Request the call
-form done title: Request received.
-form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
+headline: Schedule a free call.
+form name: Your name
+form phone: Phone
+form email: Email
+form button: Schedule my call
+form done title: You're on the calendar.
+form done text: ${FOUNDER.firstName} will text you to confirm.
 
 ## 41 Test: opening
 headline: A full-length practice SAT, free, whenever you're ready.
@@ -346,7 +349,7 @@ list: A "good faith" clause we get to judge | A quota on answering polls in clas
 
 ## 54 Guarantee: private and exclusions
 headline: Private tutoring and what isn't covered.
-rows: ${P10.name} = ${UP_TO.cohort}, set by the starting score. If not: half the price back (${usd(P10.price / 2)}) | ${P20.name} = ${UP_TO.private}, set by the starting score. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
+rows: ${P10.name} = ${UP_TO.cohort}, set by the starting score. One session a week. If we miss: half the price back (${usd(P10.price / 2)}) or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions. You choose | ${P20.name} = ${UP_TO.private}, set by the starting score. As many sessions a week as you want. If we miss: half the price back (${usd(P20.price / 2)}) or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions. You choose | Your side on private tutoring = Attend every session. Take the full practice test each week. Do ${G.practicePct}% of the weekly practice. Sit the SAT within ${G.private.satWithinDays} days of the last session. Moving a session with ${G.private.cancelHours} hours' notice never counts against the promise | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.
@@ -524,6 +527,9 @@ form error score: SAT and PSAT scores run from 320 to 1600, in steps of 10.
 form error target: Add the score they're aiming for, between 400 and 1600.
 form error email: That email looks incomplete. It needs an @ and a domain, like name@gmail.com.
 form error name: Add your student's first name, so we know whose test it is.
+form error your name: Add your name, so we know who to ask for.
+form error phone: Add a phone number we can reach you on, with the area code.
+form error slot: Pick a day and a time for the call.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again

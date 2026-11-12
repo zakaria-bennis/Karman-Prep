@@ -190,7 +190,7 @@
 .ks .gx-lab {
   position: absolute;
   margin: 0;
-  font-size: clamp(11px, 1vw, 14px);
+  font-size: clamp(12px, 1vw, 14px);
   font-weight: 700;
   color: var(--ink2);
   white-space: nowrap;

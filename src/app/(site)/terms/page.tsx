@@ -75,7 +75,8 @@ const SECTIONS = [
     title: "4. Session Policies",
     content: null,
     list: [
-      `Private sessions must be cancelled with at least ${G.private.cancelHours} hours' notice. A later cancellation or a no-show counts as a used hour of the package.`,
+      `Private sessions must be cancelled with at least ${G.private.cancelHours} hours' notice. A later cancellation or a no-show counts as a used session of the package.`,
+      `${P10.name} is scheduled at one session a week. ${P20.name} has no weekly limit. A session beyond the package is $${G.private.extraSessionPrice.toFixed(2)}.`,
       "Three or more no-shows within a single month may result in account review and temporary suspension of session scheduling privileges.",
       "Session recordings: live cohort classes may be recorded for the students in that cohort. Private sessions are not recorded without explicit consent from both the student and tutor.",
       "Karman reserves the right to substitute an equivalent tutor if your scheduled tutor is unavailable, with advance notice where possible.",
@@ -84,7 +85,7 @@ const SECTIONS = [
   {
     id: "guarantee",
     title: "5. The Karman Guarantee",
-    content: `The ${MP.planName}, ${P10.name} and ${P20.name} carry the Karman guarantee. The target depends on the baseline score and the plan. On ${P20.name}: ${targets("private")}. On the ${MP.planName} and ${P10.name}: ${targets("cohort")}. From a baseline of ${G.noGuaranteeFrom} or higher there is no points target: the promise is that the score rises, and if it does not, the student receives ${G.highStartProMonths} months of Pro at no charge. A ${G.topScore} always counts. If every requirement is met and the SAT falls short, the family gets the remedy shown at karmanprep.com/guarantee: on the ${MP.planName}, half or all of the price back, or the next cohort free; on Private 10, half the price back; on Private 20, free extra hours, then half the price back. ${PRACTICE_PLAN.name}, ${PRO_PLAN.name}, ${FREE_PLAN.name}, school licenses and ${TA.name} plans carry no guarantee. The requirements, eligibility and how to claim are listed in full on the guarantee page, and for private tutoring on the private tutoring page.`,
+    content: `The ${MP.planName}, ${P10.name} and ${P20.name} carry the Karman guarantee. The target depends on the baseline score and the plan. On ${P20.name}: ${targets("private")}. On the ${MP.planName} and ${P10.name}: ${targets("cohort")}. From a baseline of ${G.noGuaranteeFrom} or higher there is no points target: the promise is that the score rises, and if it does not, the student receives ${G.highStartProMonths} months of Pro at no charge. A ${G.topScore} always counts. If every requirement is met and the SAT falls short, the family gets the remedy shown at karmanprep.com/guarantee: on the ${MP.planName}, half or all of the price back, or the next cohort free; on ${P10.name}, half the price back or ${G.private.packages[P10.id].freeSessions} free sessions; on ${P20.name}, half the price back or ${G.private.packages[P20.id].freeSessions} free sessions. On private tutoring the requirements are to attend every session, take the full-length practice test each week, complete ${G.practicePct}% of the weekly practice, and sit the SAT within ${G.private.satWithinDays} days of the last session. ${PRACTICE_PLAN.name}, ${PRO_PLAN.name}, ${FREE_PLAN.name}, school licenses and ${TA.name} plans carry no guarantee. The requirements, eligibility and how to claim are listed in full on the guarantee page, and for private tutoring on the private tutoring page.`,
   },
   {
     id: "acceptable-use",

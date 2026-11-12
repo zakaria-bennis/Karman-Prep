@@ -110,7 +110,7 @@ const COMPARE: [string, string, string, string][] = [
     "The guarantee, set by the starting score",
     "",
     `Up to +${guaranteeMax("cohort")} points. Money back or the next cohort free`,
-    `${PRIVATE_PACKAGES[0].name}: up to +${guaranteeMax("cohort")}, half back. ${PRIVATE_PACKAGES[1].name}: up to +${guaranteeMax("private")}, free hours, then half back`,
+    `${PRIVATE_PACKAGES[0].name}: up to +${guaranteeMax("cohort")}, half back or ${G.private.packages["private-10"].freeSessions} free sessions. ${PRIVATE_PACKAGES[1].name}: up to +${guaranteeMax("private")}, half back or ${G.private.packages["private-20"].freeSessions} free sessions`,
   ],
 ];
 
