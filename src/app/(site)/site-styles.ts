@@ -10,6 +10,7 @@ import "./styles/painted.css";
 import "./styles/foot.css";
 import "./styles/program.css";
 import "./styles/audience.css";
+import "./styles/school-call.css";
 import "./styles/company.css";
 import "./styles/private.css";
 import "./styles/inner.css";

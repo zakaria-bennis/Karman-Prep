@@ -1,13 +1,16 @@
 // The Schools page (founder, 2026-11-11: every page in the home page's world), for school leaders. Three
 // screens on a desktop, in the SAT Program page's language: 1, the offer and a sum of what it costs for your
 // number of students (SeatSum); 2, what each student gets beside a turning deck of the school view
-// (TurnDeck, drawn with made-up sample data, labelled as such); 3, how it starts beside the close. The main
-// action is the school-license email. Words: site-copy.ts sections 101 to 104, 140 and 141.
+// (TurnDeck, drawn with made-up sample data, labelled as such); 3, how it starts beside the book-a-call card
+// (SchoolCallForm, founder 2026-11-12: it replaced the school-license email). Every main button leads to
+// that card. Words: site-copy.ts sections 101 to 104, 140 and 141.
 import { Arrow, Btn } from "@/components/site/parts";
+import { PARTNER_TOTAL } from "@/data/partners/partner-regions";
 import { SCHOOL_PLAN as SCHOOL } from "@/lib/marketing/offer";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
 import { Moves, Ring, TickCard, triples } from "./bits";
 import PartnerMap from "./PartnerMap";
+import SchoolCallForm from "./SchoolCallForm";
 import SeatSum from "./SeatSum";
 import TurnDeck from "./TurnDeck";
 
@@ -102,11 +105,19 @@ function schoolCards() {
   ];
 }
 
+/** Where every main button goes: the book-a-call card at the foot of the page. */
+const CALL = "#call";
+
+/** Beside the form, the reasons to trust it: real partners, the free year, and a quick reply. */
+const PROOF = [
+  `${PARTNER_TOTAL} districts already use Karman`,
+  ...(SCHOOL.firstYearFree ? ["The first year is free"] : []),
+  "We reply within one school day",
+];
+
 export default function SchoolsSections({
-  email,
   partners = false,
 }: {
-  email: string;
   /** The partner map, off unless PARTNER_MAP=on (it waits on the founder's OK). */
   partners?: boolean;
 }) {
@@ -127,7 +138,7 @@ export default function SchoolsSections({
             <p className="lede">{open.text}</p>
             <div className="pg-close">
               <div className="go-row">
-                <Btn label={open.button} href={email} />
+                <Btn label={open.button} href={CALL} />
                 <a className="more" href="#view">
                   {open["second button"]}
                   <Arrow />
@@ -179,7 +190,7 @@ export default function SchoolsSections({
         </div>
       </section>
 
-      {/* 3. How it starts, beside the place to start */}
+      {/* 3. How it starts, beside the book-a-call card */}
       <section className="sect pg-sect pg-end" id="start" aria-labelledby="start-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in pg-two rv">
@@ -187,16 +198,7 @@ export default function SchoolsSections({
             <h2 id="start-h">{how.headline}</h2>
             <Moves rows={pairs(how.rows)} />
           </div>
-          <div className="pg-say">
-            <div className="pg-start au-start">
-              <h3 className="pg-h3">{close.headline}</h3>
-              <p className="lede">{close.text}</p>
-              <div className="go-row">
-                <Btn label={close.button} href={email} />
-              </div>
-              <p className="pg-small">{open["button note"]}</p>
-            </div>
-          </div>
+          <SchoolCallForm heading={close.headline} text={close.text} proof={PROOF} />
         </div>
       </section>
     </>

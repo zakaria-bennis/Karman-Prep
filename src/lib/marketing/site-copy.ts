@@ -463,7 +463,7 @@ second button: Take the free practice test
 ## 101 Schools: opening
 headline: Real SAT prep for every student. The first year is on us.
 text: Every student gets a ${PP.name} plan of their own: the core question pool across all ${QB.skills} SAT skills, written explanations, the Daily 10 and full-length practice tests. Not a shared pool. Not a shared login. After the first year, ${$(SCHOOL.pricePerStudentPerYear)} per student a year.
-button: Email us about your school
+button: Book a call about your school
 button note: Free for the first year. No card.
 second button: See the school view
 
@@ -472,13 +472,13 @@ headline: Every student gets the real thing, not a demo.
 rows: Their own plan = Their own account, practice history and Daily 10. No shared logins and no shared question pool | The core question pool = Practice across all ${QB.skills} SAT skills, with a written explanation for every question | The Daily 10 = Ten questions a day, picked from the skills each student misses | Full-length practice tests = Timed, on the platform, with a breakdown by domain
 
 ## 103 Schools: how it starts
-headline: You send one email. We do the rest.
-rows: Write to us = Your school's name and roughly how many students | We set it up = Your students get a link to join with their own accounts | The first year = Free | After that = ${$(SCHOOL.pricePerStudentPerYear)} per student a year, invoiced once a year
+headline: You book one call. We do the rest.
+rows: Book a call = Two short steps, under a minute: your school, then how to reach you | We set it up = Your students get a link to join with their own accounts | The first year = Free | After that = ${$(SCHOOL.pricePerStudentPerYear)} per student a year, invoiced once a year
 
 ## 104 Schools: close
 headline: Start with a free year. Yes, free.
-text: Email us your school's name and roughly how many students. We'll set it up and send your students their link.
-button: Email us about your school
+text: Tell us about your school and how to reach you. We'll call, set it up and send your students their link.
+button: Book a call about your school
 
 ## 111 Tutors: opening
 headline: One code puts up to ${TA.maxStudents} of your students on Karman.

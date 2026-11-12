@@ -62,6 +62,7 @@ export const SOURCE_LABEL: Readonly<Record<string, string>> = {
   waitlist: "Cohort waitlist",
   school: "School seat",
   "tutor-code": "Tutor's code",
+  school_call: "School call request",
 };
 
 export function sourceLabel(key: string): string {
@@ -69,7 +70,7 @@ export function sourceLabel(key: string): string {
 }
 
 /** Sources that mean a conversation has started: an application or a call request. */
-const TALKING_SOURCES: ReadonlySet<string> = new Set(["cohort", "private"]);
+const TALKING_SOURCES: ReadonlySet<string> = new Set(["cohort", "private", "school_call"]);
 
 // ---------- stage ----------
 
@@ -160,6 +161,11 @@ const DETAIL_LABEL: Readonly<Record<string, string>> = {
   plan: "Plan",
   slot: "Call time",
   phone: "Phone",
+  school: "School",
+  schoolRole: "Role",
+  students: "Students",
+  starting: "Wants to start",
+  callTime: "Best time to call",
 };
 
 /** The form's answers as labelled pairs. Phone only when asked for (the profile, not the timeline). */
