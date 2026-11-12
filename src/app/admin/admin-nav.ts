@@ -22,6 +22,7 @@ const TITLES: Array<[string, string]> = [
   ["/admin/tutors", "Tutors"],
   ["/admin/cohorts", "Cohorts"],
   ["/admin/revenue", "Revenue"],
+  ["/admin/analytics", "Analytics"],
   ["/admin/moderation", "Moderation"],
   ["/admin/jobs", "Background jobs"],
   ["/admin/pdf-pipeline", "Import jobs"],

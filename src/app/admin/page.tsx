@@ -32,6 +32,7 @@ const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
       ["/admin/affiliates", "Affiliate tutors"],
       ["/admin/schools", "Schools"],
       ["/admin/revenue", "Revenue"],
+      ["/admin/analytics", "Analytics: visits, sign-up funnel, student engagement"],
     ],
   },
   {

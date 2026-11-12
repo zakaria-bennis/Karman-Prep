@@ -61,6 +61,7 @@ const isMaintenanceExempt = createRouteMatcher([
   "/api/cron(.*)", // CF cron triggers (self-auth via CRON_SECRET)
   "/api/email/subscribe", // Coming-soon notify form posts here
   "/api/consent", // the session-replay consent banner, shown to signed-out visitors too
+  "/api/track", // first-party usage events; the route applies the consent rules itself
   "/api/calendar/feed/(.*)", // Calendar apps fetch it; the secret token is the credential
 ]);
 
@@ -99,6 +100,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/api/email/subscribe",
   "/api/consent",
+  "/api/track",
   "/api/cron(.*)",
   "/api/calendar/feed/(.*)",
 ]);

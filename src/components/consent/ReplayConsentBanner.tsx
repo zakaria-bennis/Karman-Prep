@@ -81,6 +81,8 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
       setSubmitting(false);
       return;
     }
+    // Our own visit counter (src/components/analytics) starts now if they allowed it.
+    window.dispatchEvent(new Event("karman:consent"));
     // The cookie takes its bite and the card drops away; reduced motion skips straight to gone.
     setLeaving(true);
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -113,8 +115,8 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
         <div>
           <h2 id="replay-consent-title">Cookies? Just the boring kind.</h2>
           <p id="replay-consent-body">
-            Allow all and we can replay a session to squash bugs. Anything you type stays hidden.{" "}
-            <a href={privacyHref}>Details</a>
+            Allow all and we can count visits (just us, no ads) and replay a session to squash bugs.
+            Anything you type stays hidden. <a href={privacyHref}>Details</a>
           </p>
         </div>
       </div>
