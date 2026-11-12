@@ -5,7 +5,7 @@
 .ks.page-inner .hd { color: var(--ink); }
 .ks.page-inner main { background: var(--paper); }
 /* no film behind the inner pages: a panel (the guarantee) is a card on the paper, squared, with a hairline */
-:is(.ks.page-inner, .ks.page-pricing) .panel { max-width: var(--max); margin: 0 auto var(--gap); width: calc(100% - 2 * var(--gutter)); background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ks.page-inner .panel { max-width: var(--max); margin: 0 auto var(--gap); width: calc(100% - 2 * var(--gutter)); background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---------- the opening: words on one side, the drawing at the outer edge ---------- */
 .ks .i-hero { padding: clamp(130px, 14vw, 190px) var(--gutter) clamp(50px, 6vw, 90px); overflow: hidden; }
@@ -215,7 +215,3 @@
 .ks .i-sided { align-items: center; }
 .ks .rs-top { align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }
 
-/* the 404 and error pages ((site)/not-found.tsx, (site)/error.tsx): the opening, with its links as pills */
-.ks .i-lost { min-height: 72svh; }
-.ks .i-lostlinks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
-.ks .i-lostlinks button.lk { background: none; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }

@@ -1,0 +1,51 @@
+/* The legal pages (terms, refunds, privacy, cookies) and the not-found and error pages, in the home page's
+   world (SitePage kind="lit", classes "relit rl-legal" and "relit rl-lost"; the shared night colours are in
+   relit.css). They fly the same calm stretch: the open sea at the end of the route. The legal text reads in
+   one column on a rounded cream sheet, so contrast holds over the moving landscape in light and dark. One
+   rule to a line; never run Prettier on this. */
+
+/* ---------- the legal pages: one column on a cream sheet ---------- */
+.ks.rl-legal .legal { position: relative; width: min(860px, calc(100% - 2 * var(--gutter))); margin: clamp(104px, 14svh, 140px) auto clamp(72px, 10vw, 130px); padding: clamp(26px, 4vw, 60px) clamp(20px, 4.4vw, 64px); display: grid; gap: 28px; border-radius: 32px; background: #fffaf3; color: var(--ink); box-shadow: 0 30px 60px -36px rgba(29, 26, 34, .75), 0 0 0 1px rgba(29, 26, 34, .06); }
+.ks.rl-legal[data-mode="dark"] .legal { background: rgb(20, 19, 28); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 30px 60px -36px rgba(0, 0, 0, .9); }
+.ks.rl-legal .legal > :first-child { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.ks.rl-legal .legal h1 { margin: 0 0 14px; font-size: clamp(36px, 4.6vw, 62px); line-height: 1.1; max-width: 16ch; }
+.ks.rl-legal .legal h2 { margin: 38px 0 10px; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -0.005em; max-width: none; }
+.ks.rl-legal .legal h3 { margin: 18px 0 6px; font-size: 19px; }
+.ks.rl-legal .legal :is(p, li, td, th, dd) { font-size: 17px; line-height: 1.65; color: var(--ink2); }
+.ks.rl-legal .legal > :first-child p { color: var(--ink); font-weight: 600; }
+.ks.rl-legal .legal p + p { margin-top: 12px; }
+.ks.rl-legal .legal :is(ul, ol) { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.ks.rl-legal .legal li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; }
+.ks.rl-legal .legal li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--go); margin-top: .7em; }
+.ks.rl-legal .legal li > span:empty { display: none; }
+.ks.rl-legal .legal a { color: var(--ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--go) 75%, transparent); text-decoration-thickness: 2px; text-underline-offset: 4px; overflow-wrap: anywhere; }
+@media (hover: hover) and (pointer: fine) { .ks.rl-legal .legal a:hover { text-decoration-color: var(--go); } }
+.ks.rl-legal .legal section { scroll-margin-top: 110px; }
+/* the contents, on a soft tint at the top of the sheet */
+.ks.rl-legal .legal aside { margin-bottom: 8px; padding: 16px 20px; border-radius: 22px; background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.ks.rl-legal .legal aside p { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: var(--ink); }
+.ks.rl-legal .legal aside nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+.ks.rl-legal .legal aside nav a { min-height: 36px; display: inline-flex; align-items: center; font-size: 15px; font-weight: 600; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) { .ks.rl-legal .legal aside nav a:hover { text-decoration: underline; } }
+/* the links to the other policies at the end */
+.ks.rl-legal .legal div:has(> a + a) { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); font-weight: 700; }
+/* the Cookie Policy's name = purpose lists */
+.ks.rl-legal .legal dl { display: grid; gap: 14px; margin: 10px 0 14px; }
+.ks.rl-legal .legal dt code { font: 600 15px/1.4 var(--font-hanken), system-ui, sans-serif; color: var(--ink); overflow-wrap: anywhere; }
+.ks.rl-legal .legal dd { margin: 2px 0 0; }
+/* the privacy policy's services table */
+.ks.rl-legal .legal table { width: 100%; margin: 12px 0; border-collapse: collapse; display: block; overflow-x: auto; }
+.ks.rl-legal .legal :is(th, td) { padding: 10px 12px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+.ks.rl-legal .legal th { color: var(--ink); font-weight: 700; }
+
+/* ---------- not found and error: one centred screen on the mist, the way on as round links ---------- */
+.ks.rl-lost .lost { min-height: 100svh; display: grid; align-content: center; justify-items: center; padding: clamp(120px, 16svh, 160px) var(--gutter) clamp(64px, 10svh, 110px); text-align: center; }
+.ks.rl-lost .lost-in { width: min(760px, 100%); display: grid; gap: 22px; justify-items: center; }
+.ks.rl-lost .lost h1 { font-size: clamp(38px, 4.8vw, 72px); line-height: 1.12; max-width: 14ch; }
+.ks.rl-lost .lost .lede { max-width: 30em; }
+.ks.rl-lost .lost-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
+.ks.rl-lost .lost-links .lk { display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--card); color: var(--ink); box-shadow: var(--card-lift); font: inherit; font-size: 16px; font-weight: 800; text-decoration: none; cursor: pointer; transition: transform .45s var(--spring), background-color .25s var(--out), color .25s var(--out); }
+.ks.rl-lost .lost-links .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks.rl-lost .lost-links .lk:hover { background: var(--solid); color: var(--on-solid); } .ks.rl-lost .lost-links .lk:hover svg { transform: translateX(4px); } }
+.ks.rl-lost .lost-links .lk:active { transform: scale(.96); transition-duration: .08s; }
+@media (prefers-reduced-motion: reduce) { .ks.rl-lost .lost-links .lk, .ks.rl-lost .lost-links .lk svg { transition: none; } }

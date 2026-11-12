@@ -9,12 +9,6 @@
 }
 
 /* ---------- pricing ---------- */
-.ks.page-pricing {
-  background: var(--paper);
-}
-.ks.page-pricing .hd {
-  color: var(--ink);
-}
 .ks .p-hero {
   padding: 150px var(--gutter) 34px;
 }

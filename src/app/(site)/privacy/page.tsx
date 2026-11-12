@@ -3,6 +3,7 @@
 // ============================================================
 
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 
@@ -170,7 +171,7 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <SitePage kind="inner">
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} relit rl-legal`}>
       <article className="legal">
         {/* Header */}
         <section>

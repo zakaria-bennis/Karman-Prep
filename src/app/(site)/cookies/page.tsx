@@ -2,6 +2,7 @@
 // short plain style of the first-pass draft (.impeccable/mocks/fresh/morning/cookies.html), written to
 // match what the site really stores. Update it whenever a cookie or storage key is added.
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
@@ -50,7 +51,7 @@ function Table({ rows }: { rows: [string, string][] }) {
 
 export default function CookiesPage() {
   return (
-    <SitePage kind="inner">
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} relit rl-legal`}>
       <article className="legal">
         <header>
           <div>

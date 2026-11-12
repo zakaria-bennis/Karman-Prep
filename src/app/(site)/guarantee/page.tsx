@@ -1,6 +1,5 @@
-import ArtDrawing from "@/components/site/ArtDrawing";
-import Photo from "@/components/site/Photo";
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { Close, GuaranteeSection, InnerHero, Rows, Statements } from "@/components/site/inner";
 import { pageMeta } from "@/components/site/meta";
 import { delay, Icon } from "@/components/site/parts";
@@ -17,8 +16,8 @@ export const metadata = pageMeta(
 export default function GuaranteePage() {
   const ex = section(52);
   return (
-    <SitePage kind="inner">
-      <InnerHero n={51} href={ROUTES.test} side={<ArtDrawing name="report" style={delay(0.2)} />} />
+    <SitePage kind="lit" route={[0.72, 0.88]} className={`${litFonts} relit rl-guarantee`}>
+      <InnerHero n={51} href={ROUTES.test} />
       <GuaranteeSection linkHref="#s-52" />
       <Rows n={56} />
       <section className="i-sec" data-light id="s-52">
@@ -27,7 +26,6 @@ export default function GuaranteePage() {
             <div className="i-head">
               <h2 className="rv">{ex.headline}</h2>
             </div>
-            <Photo name="guarantee" className="ph-side" />
           </div>
           <div className="i-ex">
             {pairs(ex.rows).map(([a, b], k) => {

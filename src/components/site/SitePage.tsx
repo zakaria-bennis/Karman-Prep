@@ -160,7 +160,7 @@ const FOOTER: [string, [string, string][]][] = [
 
 /** "home" and "lit" are the live-landscape world (the home page and the pages rebuilt in its style); the
  *  others are the older pages, until each is rebuilt. */
-export type SiteKind = "home" | "lit" | "inner" | "pricing";
+export type SiteKind = "home" | "lit" | "inner";
 
 export default function SitePage({
   kind,

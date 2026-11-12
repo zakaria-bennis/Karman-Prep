@@ -1,4 +1,5 @@
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -28,7 +29,7 @@ const halfOf = (price: number) =>
 
 export default function RefundsPage() {
   return (
-    <SitePage kind="inner">
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} relit rl-legal`}>
       <article className="legal">
         <header>
           <div>
