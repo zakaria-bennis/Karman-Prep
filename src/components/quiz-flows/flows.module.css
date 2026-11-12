@@ -195,7 +195,7 @@
   margin-top: 16px;
   padding: 10px 14px;
   border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--accent, #2f6f5e) 10%, transparent);
   color: inherit;
 }
@@ -212,7 +212,7 @@
 .paintSquare {
   width: 22px;
   height: 22px;
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   border: 1.5px solid var(--l4, #2f6f5e);
   background: linear-gradient(to top, var(--sq) 0 0) bottom / 100% 0% no-repeat;
   animation: paint-in 900ms ease-out 200ms forwards;

@@ -25,6 +25,17 @@ import { PortalShell, Panel, Card, SectionHeader, Row, Cta } from "@/components/
 render its content straight into the shell. The working example is the student Today page:
 `src/components/dashboard/StudentDashboardClient.tsx`.
 
+## Two looks, until the founder picks (2026-11-12)
+
+`portal-lit.css` lays the home page's design language over the painted shell: ink on cream mist
+by day and cream on night mist at night, a cobalt (day) or soft gold (night) pill for the main
+button, rounded cream cards with a soft lift, Young Serif headings and wordmark, and the site's
+light and dark switch beside the fox (the choice is shared with the site). It is on by default.
+Add `?look=painted` to any portal address to see the approved painted look of 2026-11-08, and
+`?look=lit` to come back; the browser remembers the choice. Corners in the portals' own sheets
+read `var(--kp-r, 4px)`, which the lit look sets to 16px. Once he picks, delete the losing look,
+the `LOOK_KEY` switch in `PortalShell.tsx` and this section.
+
 ## Rules
 
 - **One main button per screen.** `Cta` is the only highlighted button. Every other action is a

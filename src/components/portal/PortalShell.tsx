@@ -9,6 +9,7 @@
  */
 import "./portal.css";
 import "./portal-content.css";
+import "./portal-lit.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
@@ -64,12 +65,59 @@ export interface PortalShellProps {
   home?: string;
 }
 
+/** Which look the portals wear: the home page's ("lit", the default) or the painted look of
+ *  2026-11-08 ("painted"), for comparison until the founder picks (portal-lit.css). */
+const LOOK_KEY = "karman-portal-look";
+/** Day or night, shared with the public site's switch so a choice made on one holds on the other. */
+const MODE_KEY = "karman-site-theme";
+
 /*
  * Runs while the HTML is parsed, before the first paint: marks Reduce motion on the root; if the
  * opening will play, the box waits for it; and the last colors of today's painting apply at once. If the opening never starts,
  * the box shows anyway after six seconds.
  */
-const BOOT = `(function(){try{var r=document.documentElement,m=${PREFERS_STILL_JS};if(localStorage.getItem("${MOTION_KEY}")==="still")r.setAttribute("${STILL_ATTR}","");var s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
+const BOOT = `(function(){try{var r=document.documentElement,q=location.search.match(/[?&]look=(lit|painted)(&|$)/),k;if(q)localStorage.setItem("${LOOK_KEY}",q[1]);k=localStorage.getItem("${LOOK_KEY}");if(k==="painted")r.setAttribute("data-kp-look","painted");else r.removeAttribute("data-kp-look");var t=localStorage.getItem("${MODE_KEY}");r.setAttribute("data-kp-mode",t==="dark"||t==="light"?t:window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}try{var r=document.documentElement,m=${PREFERS_STILL_JS};if(localStorage.getItem("${MOTION_KEY}")==="still")r.setAttribute("${STILL_ATTR}","");var s=sessionStorage.getItem("${PAINTED_IN_KEY}");if(!m&&(!s||/[?&]paint-in=1/.test(location.search))){r.setAttribute("data-paint-opening","");setTimeout(function(){r.removeAttribute("data-paint-opening")},6000)}var d=new Date(),h=d.getHours(),b=h>=22||h<5?"night":h<11?"morning":h<17?"day":"evening",c=JSON.parse(localStorage.getItem("${COLORS_KEY}")||"null");if(c&&c.k===d.toDateString()+":"+b){r.style.setProperty("--hue",c.hue);r.style.setProperty("--hs",c.sat+"%");r.style.setProperty("--accent",c.accent)}}catch(e){}})();`;
+
+/** The site's light and dark switch, in the portal: the sun by day, the moon at night. */
+function ThemeSwitch() {
+  function flip() {
+    const root = document.documentElement;
+    const next = root.getAttribute("data-kp-mode") === "dark" ? "light" : "dark";
+    root.setAttribute("data-kp-mode", next);
+    try {
+      localStorage.setItem(MODE_KEY, next);
+    } catch {
+      /* storage blocked: the choice lasts for this page only */
+    }
+  }
+  return (
+    <button className="kp-theme" type="button" onClick={flip} aria-label="Day or night">
+      <svg
+        className="sun"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      >
+        <circle cx="12" cy="12" r="4.2" />
+        <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" />
+      </svg>
+      <svg
+        className="moon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      >
+        <path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z" />
+      </svg>
+    </button>
+  );
+}
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -252,6 +300,7 @@ export default function PortalShell({
             {streak.days}
           </Link>
         )}
+        <ThemeSwitch />
         <AccountMenu name={name} detail={accountDetail} items={items} />
       </div>
       <main className="kp-main" id="portal-main" tabIndex={-1}>
