@@ -8,9 +8,6 @@
 
 import { expect, test } from "@playwright/test";
 
-// Each route compiles on first visit under `next dev`, which can take most of a minute in CI.
-test.describe.configure({ timeout: 180_000 });
-
 test.describe("admin analytics", () => {
   test("shows the funnel, daily active and engagement sections with table alternatives", async ({
     page,

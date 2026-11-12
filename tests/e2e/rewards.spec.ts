@@ -9,9 +9,6 @@
 
 import { expect, test } from "@playwright/test";
 
-// Each route compiles on first visit under `next dev`, which can take most of a minute in CI.
-test.describe.configure({ timeout: 180_000 });
-
 test.describe("student rewards", () => {
   test("the Rewards page shows the student's token balance", async ({ page }) => {
     page.on("dialog", (dialog) => dialog.accept());
