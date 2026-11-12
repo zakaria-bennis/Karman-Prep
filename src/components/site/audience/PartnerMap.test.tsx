@@ -11,6 +11,10 @@ it("draws 65 dots labelled by area, naming only districts that agreed", () => {
     "Public Schools",
     "Public Schools",
   ]); // Greenwich only: its title and its hover label.
+  // The animated group never holds the position: a CSS animation's transform would replace it
+  // and stack every dot in the corner.
+  expect(html).not.toMatch(/class="pm-dot"[^>]*transform=/);
+  expect(html.match(/translate\(/g)).toHaveLength(65);
   // Every dot sits inside the 960 by 600 map.
   for (const [, x, y] of html.matchAll(/translate\(([\d.-]+) ([\d.-]+)\)/g)) {
     expect(Number(x)).toBeGreaterThan(0);
