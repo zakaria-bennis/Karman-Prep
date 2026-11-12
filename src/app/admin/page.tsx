@@ -25,6 +25,7 @@ const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
   {
     title: "People and money",
     links: [
+      ["/admin/messages", "Messages from families"],
       ["/admin/crm", "CRM: every lead, family, school and tutor"],
       ["/admin/users", "People and roles"],
       ["/admin/students", "Students, as their tutor sees them"],
@@ -70,7 +71,8 @@ function show(n: number | null): string {
 }
 
 export default async function AdminHomePage() {
-  const [claims, flags, students, cohorts] = await Promise.all([
+  const [messages, claims, flags, students, cohorts] = await Promise.all([
+    countRows("family_messages", ["status", "open"]),
     countRows("scholarship_claims", ["status", "submitted"]),
     countRows("question_import_flags", ["status", "open"]),
     countRows("users", ["role", "student"]),
@@ -82,7 +84,11 @@ export default async function AdminHomePage() {
       title="Today"
       summary="What needs a decision, and every admin tool."
       actions={
-        claims ? (
+        messages ? (
+          <Link className="wb-btn" data-variant="primary" href="/admin/messages">
+            Answer {messages} family {messages === 1 ? "message" : "messages"}
+          </Link>
+        ) : claims ? (
           <Link className="wb-btn" data-variant="primary" href="/admin/scholarship">
             Review {claims} scholarship {claims === 1 ? "claim" : "claims"}
           </Link>
@@ -91,6 +97,7 @@ export default async function AdminHomePage() {
     >
       <WbStats
         items={[
+          { label: "Family messages waiting", value: show(messages) },
           { label: "Scholarship claims to review", value: show(claims) },
           { label: "Questions flagged for import", value: show(flags) },
           { label: "Students", value: show(students) },

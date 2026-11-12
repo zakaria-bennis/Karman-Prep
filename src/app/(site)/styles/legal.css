@@ -60,3 +60,12 @@
 .ks.rl-legal .consent-choice button:disabled:not([aria-pressed="true"]) { opacity: .6; cursor: progress; }
 .ks.rl-legal .consent-choice button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .ks.rl-legal .consent-choice button { transition: none; } }
+
+/* ---------- arrival (2026-11-12 motion audit): the sheet rises onto the sea, then its heading, its contents and its text follow in a short cascade; nothing moves once it has landed, so reading is never disturbed ---------- */
+.ks.rl-legal .legal { animation: lg-sheet .8s var(--ease) .05s both; }
+.ks.rl-legal .legal > * { animation: lg-part .7s var(--ease) both; animation-delay: .2s; }
+.ks.rl-legal .legal > :nth-child(2) { animation-delay: .32s; }
+.ks.rl-legal .legal > :nth-child(n + 3) { animation-delay: .42s; }
+@keyframes lg-sheet { from { opacity: 0; transform: translateY(36px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes lg-part { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ks.rl-legal .legal, .ks.rl-legal .legal > * { animation: none; } }

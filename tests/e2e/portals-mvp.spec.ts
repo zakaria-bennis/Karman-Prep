@@ -119,7 +119,7 @@ test.describe("student portal", () => {
 });
 
 test.describe("parent portal", () => {
-  test("the week, the daily report and the email preview open", async ({ page }) => {
+  test("the week, the daily report, Messages and Progress open", async ({ page }) => {
     const errors = watchErrors(page);
     await impersonate(page, "dev-seed-parent@karman.local");
     await page.goto("/dashboard/parent");
@@ -131,9 +131,16 @@ test.describe("parent portal", () => {
     await expect(page).toHaveTitle(/Daily report/);
     await expect(page.getByRole("heading", { name: "Predicted score" })).toBeVisible();
 
-    await page.goto(`${week}/report/email`);
-    await expect(page).toHaveTitle(/Daily email/);
-    await expect(page.getByRole("heading", { name: "Preview" })).toBeVisible();
+    await page.goto(`${week}/messages`);
+    await expect(page).toHaveTitle(/Messages/);
+    await expect(page.getByRole("button", { name: "Send to Karman Prep" })).toBeVisible();
+
+    await page.goto(`${week}/progress`);
+    await expect(page).toHaveTitle(/Progress/);
+    await expect(page.getByRole("button", { name: "Add score" })).toBeVisible();
+
+    // The email pages are gone from the portal.
+    expect((await page.goto(`${week}/report/email`))?.status()).toBe(404);
     expect(errors).toEqual([]);
   });
 });

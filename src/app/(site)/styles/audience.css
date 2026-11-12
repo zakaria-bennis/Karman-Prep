@@ -239,3 +239,47 @@
   .ks :is(.au-sum, .au-rail, .au-report, .au-deck) *, .ks .au-rail ol::after { animation: none !important; transition: none !important; }
   .ks .cu, .ks .cu > span, .ks .cu::after { animation: none !important; }
 }
+
+/* Partner map on /schools (2026-11-12): the outline traces in, dots land west to east, the hub of
+   each area pulses twice, then everything is still. Hover or focus shows the area only. */
+.ks .pm { display: grid; gap: clamp(20px, 3vw, 36px); width: min(100%, 1180px); }
+.ks .pm-say { max-width: 46ch; }
+.ks .pm-card { padding: clamp(14px, 2vw, 24px); gap: 18px; }
+.ks .pm-map { display: block; width: 100%; height: auto; overflow: visible; }
+.ks .pm-land { fill: color-mix(in srgb, var(--a) 7%, transparent); stroke: color-mix(in srgb, var(--ink) 45%, transparent); stroke-width: 1.2; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.ks .pm-borders { fill: none; stroke: color-mix(in srgb, var(--ink) 14%, transparent); stroke-width: .8; }
+.ks .pm-dot { cursor: default; outline: none; }
+.ks .pm-core { fill: var(--a); stroke: var(--cream); stroke-width: 1.5; transition: transform .25s var(--spring); transform-box: fill-box; transform-origin: center; }
+.ks .pm-pulse { fill: none; stroke: var(--a); stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.ks .pm-tip { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+.ks .pm-tip rect { fill: var(--ink); }
+.ks .pm-tip text { fill: var(--cream); font-size: 14px; font-weight: 600; }
+.ks .pm-dot:is(:hover, :focus-visible) .pm-tip { opacity: 1; }
+.ks .pm-dot:is(:hover, :focus-visible) .pm-core { transform: scale(1.5); }
+.ks .pm-dot:focus-visible .pm-core { stroke: var(--ink); }
+.ks .pm-areas ul { list-style: none; margin: 0; padding: 0 4px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 22px; }
+.ks .pm-areas li { position: relative; display: flex; justify-content: space-between; gap: 8px; padding-bottom: 6px; font-size: 14px; color: var(--ink2); }
+.ks .pm-areas li b { color: var(--ink); }
+.ks .pm-areas li i { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--v) * 100%); border-radius: 3px; background: var(--a); transform-origin: left; }
+.ks.lit[data-mode="dark"] .pm-areas li b { color: var(--cream); }
+.ks.lit[data-mode="dark"] .pm-tip rect { fill: var(--cream); }
+.ks.lit[data-mode="dark"] .pm-tip text { fill: rgb(24, 22, 30); }
+.ks.lit[data-mode="dark"] .pm-land { stroke: rgba(255, 250, 243, .45); }
+.ks.lit[data-mode="dark"] .pm-borders { stroke: rgba(255, 250, 243, .14); }
+.ks .pg-in.rv:not(.on) .pm-land { stroke-dashoffset: 1; fill-opacity: 0; }
+.ks .pg-in.rv:not(.on) .pm-dot { opacity: 0; }
+.ks .pg-in.rv:not(.on) .pm-areas li i { transform: scaleX(0); }
+.ks .pg-in.rv.on .pm-land { animation: pm-trace 1.6s cubic-bezier(.4, 0, .2, 1) both; }
+.ks .pg-in.rv.on .pm-dot { animation: pm-land .55s var(--spring) both; animation-delay: calc(1s + var(--w) * .12s + var(--j) * .05s); }
+.ks .pg-in.rv.on .pm-pulse { animation: pm-pulse 1.4s ease-out 2 both; animation-delay: calc(1.5s + var(--w) * .12s); }
+.ks .pg-in.rv.on .pm-areas li i { animation: pg-grow .9s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(1.2s + var(--w, 0) * .05s); }
+@keyframes pm-trace { from { stroke-dashoffset: 1; fill-opacity: 0; } 70% { stroke-dashoffset: 0; fill-opacity: 0; } to { stroke-dashoffset: 0; fill-opacity: 1; } }
+@keyframes pm-land { from { opacity: 0; transform: translateY(-14px) scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes pm-pulse { from { opacity: .7; transform: scale(.6); } to { opacity: 0; transform: scale(2.6); } }
+@media (prefers-reduced-motion: reduce) {
+  .ks .pg-in.rv .pm-land, .ks .pg-in.rv .pm-dot, .ks .pg-in.rv .pm-pulse, .ks .pg-in.rv .pm-areas li i { animation: none !important; opacity: 1; transform: none; stroke-dashoffset: 0; fill-opacity: 1; }
+  .ks .pg-in.rv .pm-pulse { opacity: 0; }
+}
+[data-kp-still] .ks .pm-land, [data-kp-still] .ks .pm-dot, [data-kp-still] .ks .pm-pulse { animation: none !important; }
+.ks .pm-dot[data-named] .pm-core { fill: var(--ink); stroke: var(--a); stroke-width: 2; }
+.ks.lit[data-mode="dark"] .pm-dot[data-named] .pm-core { fill: var(--cream); }

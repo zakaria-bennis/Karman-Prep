@@ -396,3 +396,148 @@
   color: var(--wb-mute);
   margin-right: 6px;
 }
+
+/*
+ * A share bar (WbMix): one bar split by who or what makes up a whole, e.g. people by role or
+ * students and parents by plan. Each part keeps one hue in a fixed order (the order of its kind,
+ * never its size), with a 2px gap between parts, and a key that names each part with its count and
+ * share, so no part is told by colour alone. The hues are the validated categorical set from the
+ * data-viz guide, with their dark-mode steps for the portal's night look.
+ */
+.wb-mix {
+  --mix-1: #2a78d6;
+  --mix-2: #eb6834;
+  --mix-3: #1baf7a;
+  --mix-4: #eda100;
+  --mix-5: #e87ba4;
+  --mix-6: #008300;
+  --mix-7: #6250d6;
+  --mix-none: color-mix(in srgb, var(--wb-mute) 45%, transparent);
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--kp-r, 4px);
+  background: var(--wb-card);
+  padding: 14px 16px;
+}
+:root[data-kp-mode="dark"] .wb-mix {
+  --mix-1: #3987e5;
+  --mix-2: #d95926;
+  --mix-3: #199e70;
+  --mix-4: #c98500;
+  --mix-5: #d55181;
+  --mix-7: #9085e9;
+}
+.wb-mix figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-weight: 600;
+}
+.wb-mix figcaption small {
+  color: var(--wb-mute);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+.wb-mix-bar {
+  display: flex;
+  gap: 2px;
+  height: 18px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.wb-mix-bar > span {
+  flex: var(--n) 1 0;
+  min-width: 4px;
+  background: var(--c);
+}
+.wb-mix-key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 0.85rem;
+}
+.wb-mix-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--wb-mute);
+}
+.wb-mix-key i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--c);
+}
+.wb-mix-key b {
+  color: var(--wb-ink);
+  font-weight: 600;
+}
+
+/*
+ * Arrival (portal-motion.css cascades the page's parts; these are the parts' own beats):
+ * the number tiles settle in left to right while their numbers count up, the share bar draws
+ * left to right like a gauge filling, and a table's first rows come in top to bottom. Nothing
+ * reaches past its own box while it moves (the admin box scrolls sideways for wide tables).
+ * All of it is off under reduced motion and the portal's own Reduce motion.
+ */
+.wb-stats > .wb-stat {
+  animation: wb-tile-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
+  animation-delay: calc(0.16s + var(--i, 0) * 60ms);
+}
+.wb-mix-bar {
+  animation: wb-draw 1s cubic-bezier(0.45, 0, 0.2, 1) 0.3s backwards;
+}
+.wb-mix-key li {
+  animation: wb-fade 0.4s ease-out backwards;
+  animation-delay: calc(0.55s + var(--i, 0) * 70ms);
+}
+.wb-table tbody tr {
+  animation: wb-fade 0.45s ease-out 0.42s backwards;
+}
+.wb-table tbody tr:nth-child(-n + 3) {
+  animation-delay: 0.24s;
+}
+.wb-table tbody tr:nth-child(n + 4):nth-child(-n + 6) {
+  animation-delay: 0.3s;
+}
+.wb-table tbody tr:nth-child(n + 7):nth-child(-n + 9) {
+  animation-delay: 0.36s;
+}
+@keyframes wb-tile-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+@keyframes wb-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+@keyframes wb-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wb-stats > .wb-stat,
+  .wb-mix-bar,
+  .wb-mix-key li,
+  .wb-table tbody tr {
+    animation: none !important;
+  }
+}
+:root[data-kp-still] :is(.wb-stats > .wb-stat, .wb-mix-bar, .wb-mix-key li, .wb-table tbody tr) {
+  animation: none !important;
+}
+/* On the first open of a session the box waits for the painting; so do these beats. */
+:root[data-paint-opening]
+  :is(.wb-stats > .wb-stat, .wb-mix-bar, .wb-mix-key li, .wb-table tbody tr) {
+  animation-play-state: paused;
+}

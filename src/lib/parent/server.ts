@@ -175,7 +175,7 @@ function sessionEnd(start: string, end: string | null, minutes: number | null): 
   return new Date(Date.parse(start) + (minutes ?? 60) * 60_000).toISOString();
 }
 
-async function sessionsFor(supabase: Admin, child: Child, now: Date) {
+export async function sessionsFor(supabase: Admin, child: Child, now: Date) {
   const [{ data: bookings }, { data: member }] = await Promise.all([
     supabase
       .from("bookings")

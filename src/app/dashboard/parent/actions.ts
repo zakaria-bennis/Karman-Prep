@@ -1,13 +1,14 @@
 "use server";
 /*
  * Parent portal actions: open Stripe's customer portal for the family (test mode tonight),
- * and send the weekly recap email to the parent now. Inputs are checked with Zod and every
- * action re-checks the parent's link to the student.
+ * write to the Karman Prep team from Messages, type in a real SAT score, and choose alerts.
+ * Inputs are checked with Zod and every action re-checks the parent's link to the student.
+ * Nothing here sends an email or a text: a message lands in the team's inbox in admin.
  */
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import {
-  appUrl,
   createTestCustomer,
   customerPortalUrl,
   isPlaceholderCustomer,
@@ -16,8 +17,13 @@ import {
 import { DAILY_EMAIL_TIMES } from "@/lib/parent/daily-email-schedule";
 import { saveDailyEmailChoice } from "@/lib/parent/daily-email-settings";
 import { acceptInvite, LINK_CODE_PATTERN, normalizeLinkCode } from "@/lib/parent/invites";
-import { recapHtml, recapSubject } from "@/lib/parent/recap";
-import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
+import { postFamilyMessage, saveAlertPrefs, saveOfficialScore } from "@/lib/parent/messages";
+import { KIND_LABEL, NEEDS_SESSION, sendMessageInput } from "@/lib/parent/messages-model";
+import { requireChild, requireParentContext, sessionsFor } from "@/lib/parent/server";
+import { untypedAdmin } from "@/lib/school/db";
+import { claudeAssistant } from "@/lib/message-assistant/claude";
+import { isAssistantOn, readFamily } from "@/lib/message-assistant/server";
+import { officialScoreInput } from "@/lib/parent/test-day";
 import { createAdminClient } from "@/lib/supabase/server";
 
 const studentSchema = z.object({ studentId: z.string().uuid() });
@@ -64,47 +70,6 @@ export async function openFamilyBillingAction(formData: FormData) {
     back(page, "error", "Stripe could not open billing. Try again in a minute.");
   }
   redirect(url);
-}
-
-export async function sendRecapAction(formData: FormData) {
-  const ctx = await requireParentContext();
-  const parsed = studentSchema.safeParse({ studentId: formData.get("studentId") });
-  if (!parsed.success) redirect("/dashboard/parent");
-  const child = await requireChild(ctx, parsed.data.studentId);
-  const page = `/dashboard/parent/${child.id}/recap`;
-  if (!ctx.viewer.email) back(page, "error", "Your account has no email address.");
-  const week = await loadChildWeek(child);
-  const input = {
-    childFirstName: child.firstName,
-    parentFirstName: ctx.viewer.firstName,
-    week,
-    portalUrl: `${appUrl()}/dashboard/parent/${child.id}`,
-    weekOf: new Date().toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      timeZone: "America/Chicago",
-    }),
-  };
-  if (!process.env.RESEND_API_KEY) {
-    console.info("[parent] weekly recap not sent: email is switched off here", {
-      to: ctx.viewer.email,
-      subject: recapSubject(input),
-    });
-    back(page, "done", "Email is switched off on this computer, so the send was logged instead.");
-  }
-  // Loaded only here: the client refuses to start without a key, and email is off locally.
-  const { FROM, resend } = await import("@/lib/integrations/resend/client");
-  const { error } = await resend.emails.send({
-    from: FROM,
-    to: ctx.viewer.email,
-    subject: recapSubject(input),
-    html: recapHtml(input),
-  });
-  if (error) {
-    console.error("[parent] weekly recap send failed", error);
-    back(page, "error", "The email could not be sent. Try again later.");
-  }
-  back(page, "done", `Sent to ${ctx.viewer.email}.`);
 }
 
 const linkCodeSchema = z
@@ -155,4 +120,117 @@ export async function saveDailyEmailTimeAction(formData: FormData) {
     "done",
     parsed.data.time === "off" ? "Daily email turned off." : "Daily email time saved."
   );
+}
+
+/** A parent writes to the team, or asks to miss, move or book a session. */
+export async function sendFamilyMessageAction(formData: FormData) {
+  const ctx = await requireParentContext();
+  const parsed = sendMessageInput.safeParse({
+    studentId: formData.get("studentId"),
+    kind: formData.get("kind") ?? "message",
+    sessionId: formData.get("sessionId") ?? "",
+    body: formData.get("body") ?? "",
+  });
+  const studentId = String(formData.get("studentId") ?? "");
+  const page = /^[0-9a-f-]{36}$/i.test(studentId)
+    ? `/dashboard/parent/${studentId}/messages`
+    : "/dashboard/parent";
+  if (!parsed.success) back(page, "error", parsed.error.issues[0]?.message ?? "Check the message.");
+  const child = await requireChild(ctx, parsed.data.studentId);
+  if (ctx.isAdmin && !ctx.children.some((c) => c.id === child.id))
+    back(page, "error", "Admins answer families from the team inbox in admin.");
+  let sessionStartsAt: string | null = null;
+  if (parsed.data.sessionId) {
+    // Only a session of this child that hasn't ended yet.
+    const { upcoming } = await sessionsFor(untypedAdmin(), child, new Date());
+    const session = upcoming.find((s) => s.id === parsed.data.sessionId);
+    if (!session) back(page, "error", "That session isn't coming up any more. Pick another.");
+    sessionStartsAt = session.startsAt;
+  } else if (NEEDS_SESSION.has(parsed.data.kind)) {
+    back(page, "error", "Pick the session first.");
+  }
+  try {
+    await postFamilyMessage({
+      parentUserId: ctx.viewer.userId,
+      studentUserId: child.id,
+      authorUserId: ctx.viewer.userId,
+      authorRole: "parent",
+      kind: parsed.data.kind,
+      sessionRef: parsed.data.sessionId ?? null,
+      sessionStartsAt,
+      body: parsed.data.body,
+    });
+  } catch (error) {
+    console.error("[parent] message could not be saved", error);
+    back(page, "error", "That didn't send. Try again in a minute.");
+  }
+  // The team's assistant reads the new message after the response is sent. It only sorts and
+  // drafts for the team; it never writes to the family.
+  if (isAssistantOn()) {
+    const parentUserId = ctx.viewer.userId;
+    after(() =>
+      readFamily(parentUserId, child.id, { client: claudeAssistant() }).catch((e: unknown) =>
+        console.error("[assistant] read after a parent message failed", e)
+      )
+    );
+  }
+  back(
+    page,
+    "done",
+    parsed.data.kind === "message"
+      ? "Sent to the Karman Prep team. We usually answer within a day."
+      : `${KIND_LABEL[parsed.data.kind]} request sent. We'll confirm here.`
+  );
+}
+
+/** A parent (or admin) types in a real College Board score. */
+export async function saveOfficialScoreAction(formData: FormData) {
+  const ctx = await requireParentContext();
+  const today = new Date().toISOString().slice(0, 10);
+  const studentId = String(formData.get("studentId") ?? "");
+  const page = /^[0-9a-f-]{36}$/i.test(studentId)
+    ? `/dashboard/parent/${studentId}/progress`
+    : "/dashboard/parent";
+  const parsed = officialScoreInput(today).safeParse({
+    studentId,
+    testDate: formData.get("testDate"),
+    readingWriting: formData.get("readingWriting"),
+    math: formData.get("math"),
+  });
+  if (!parsed.success) back(page, "error", parsed.error.issues[0]?.message ?? "Check the score.");
+  const child = await requireChild(ctx, parsed.data.studentId);
+  try {
+    await saveOfficialScore({
+      studentUserId: child.id,
+      enteredByUserId: ctx.viewer.userId,
+      testDate: parsed.data.testDate,
+      readingWriting: parsed.data.readingWriting,
+      math: parsed.data.math,
+    });
+  } catch (error) {
+    console.error("[parent] official score could not be saved", error);
+    back(page, "error", "That didn't save. Try again in a minute.");
+  }
+  back(page, "done", `Saved: ${parsed.data.readingWriting + parsed.data.math} on the SAT.`);
+}
+
+const alertsSchema = z.object({
+  lateHomework: z.boolean(),
+  missedSession: z.boolean(),
+});
+
+/** Which alerts the parent wants. Alerts send nothing until PARENT_ALERTS=on. */
+export async function saveAlertsAction(formData: FormData) {
+  const ctx = await requireParentContext();
+  const prefs = alertsSchema.parse({
+    lateHomework: formData.get("lateHomework") === "on",
+    missedSession: formData.get("missedSession") === "on",
+  });
+  try {
+    await saveAlertPrefs(ctx.viewer.userId, prefs);
+  } catch (error) {
+    console.error("[parent] alert choices could not be saved", error);
+    back(SETTINGS_PAGE, "error", "That didn't save. Try again in a minute.");
+  }
+  back(SETTINGS_PAGE, "done", "Alert choices saved.");
 }

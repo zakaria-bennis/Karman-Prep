@@ -38,10 +38,10 @@ export function NoDailyReport({ childName, base }: { childName: string; base: st
         Daily report
       </h2>
       <p className="kp-meta">
-        {childName}&rsquo;s plan doesn&rsquo;t include the daily report. The weekly email has the
-        big picture.
+        {childName}&rsquo;s plan doesn&rsquo;t include the daily report. The week page and the
+        tutor&rsquo;s notes have the big picture.
       </p>
-      <MoreLink href={`${base}/recap`}>Preview this week&rsquo;s email</MoreLink>
+      <MoreLink href={`${base}/messages`}>Tutor notes and messages</MoreLink>
     </section>
   );
 }

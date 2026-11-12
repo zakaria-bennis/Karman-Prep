@@ -29,7 +29,7 @@ type One<T> = T | T[] | null;
 const pick = <T>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 const USER_COLUMNS = "id, clerk_id, email, first_name, last_name, time_zone";
 
-async function loadLinks(): Promise<DailyEmailLink[]> {
+export async function loadLinks(): Promise<DailyEmailLink[]> {
   const { data, error } = await untypedAdmin()
     .from("parent_student_links")
     .select(
