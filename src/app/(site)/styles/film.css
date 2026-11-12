@@ -178,12 +178,12 @@
 .ks .ft nav { display: flex; flex-wrap: wrap; gap: 32px 56px; }
 .ks .ft .col { display: grid; align-content: start; }
 .ks .ft .col .h { color: #fff; font-weight: 800; margin-bottom: 6px; }
-.ks .ft .col a { min-height: 40px; display: flex; align-items: center; text-decoration: none; font-size: 15px; transition: color .2s; }
+.ks .ft .col a { min-height: 44px; display: flex; align-items: center; text-decoration: none; font-size: 15px; transition: color .2s; }
 @media (hover: hover) and (pointer: fine) { .ks .ft .col a:hover { color: var(--marigold); } }
 /* the bottom row: the email, Karman's pages elsewhere and, on the home page, the switch and the still button */
 .ks .ft .ft-in { max-width: var(--max); margin: 0 auto; }
 .ks .ft .ft-base { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 34px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #222; font-size: 15px; }
-.ks .ft .ft-base a { min-height: 40px; display: inline-flex; align-items: center; text-decoration: none; }
+.ks .ft .ft-base a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
 .ks .ft .ft-social { display: flex; flex-wrap: wrap; gap: 0 22px; }
 /* the trademark line, in fine print at the very bottom of every page */
 .ks .ft .ft-fine { margin: 10px 0 0; padding: 0; font-size: 12.5px; line-height: 1.5; color: #8c877e; }

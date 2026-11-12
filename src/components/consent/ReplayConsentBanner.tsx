@@ -110,7 +110,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             onClick={() => submit("no")}
             disabled={submitting}
-            className="rounded-lg border border-ivory/15 bg-surface/[0.04] px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface/[0.08] disabled:opacity-50"
+            className="min-h-11 rounded-lg border border-ivory/15 bg-surface/[0.04] px-4 py-1.5 text-sm font-semibold text-ivory hover:bg-surface/[0.08] disabled:opacity-50"
           >
             Decline
           </button>
@@ -118,7 +118,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             onClick={() => submit("yes")}
             disabled={submitting}
-            className="rounded-lg bg-info px-4 py-1.5 text-xs font-semibold text-black hover:bg-info-bright disabled:opacity-50"
+            className="min-h-11 rounded-lg bg-info px-5 py-1.5 text-sm font-semibold text-black hover:bg-info-bright disabled:opacity-50"
           >
             Allow
           </button>
@@ -126,7 +126,7 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
             type="button"
             aria-label="Dismiss without choosing"
             onClick={() => setDismissed(true)}
-            className="rounded-lg p-1 text-taupe hover:bg-surface/[0.05] hover:text-ivory"
+            className="grid h-11 w-11 place-items-center rounded-lg text-taupe hover:bg-surface/[0.05] hover:text-ivory"
           >
             <X className="h-4 w-4" />
           </button>

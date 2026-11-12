@@ -97,8 +97,8 @@
   .ks.lit .hd .mark { font-size: 23px; }
   .ks.lit .hd .si { padding: 0 7px; }
   .ks.lit .hd .cta { padding: 0 12px; }
-  .ks.lit .hd .theme, .ks.lit .hd .menu { width: 40px; margin-left: 4px; }
-  .ks.lit .hd .theme svg { left: 9px; }
+  .ks.lit .hd .theme, .ks.lit .hd .menu { width: 44px; margin-left: 2px; }
+  .ks.lit .hd .theme svg { left: 11px; }
 }
 @media (max-width: 372px) { .ks.lit .hd .si { display: none; } }
 /* the menu drops from its button (film.css); here it sits just under the home page's bar */

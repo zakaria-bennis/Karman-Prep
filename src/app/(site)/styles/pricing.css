@@ -523,3 +523,10 @@
 .ks .compare .cost .cost-line {
   display: block;
 }
+
+/* a note that is one whole link gets a full-height tap target */
+.ks p.meta > a:only-child {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
