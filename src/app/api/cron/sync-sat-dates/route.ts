@@ -20,6 +20,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { fetchSatDatesFromCollegeBoard, SAT_DATES_SOURCE_URL } from "@/lib/sat-dates-source";
 import { STATIC_SAT_DATES } from "@/lib/sat-dates-static";
 import { withCronInstrumentation } from "@/lib/observability/cron";
+import { takeRevenueSnapshot } from "@/app/admin/revenue/_snapshot";
 
 // Force Node runtime — we use `@supabase/supabase-js` with the
 // service role key, which needs Node APIs (edge runtime would
@@ -55,6 +56,14 @@ export const GET = withCronInstrumentation("sync-sat-dates", async (req: Request
     .upsert(seedRows, { onConflict: "test_date", ignoreDuplicates: true });
   if (seedErr) {
     console.error("[sync-sat-dates] static seed upsert error:", seedErr);
+  }
+
+  // Nightly MRR snapshot for the admin Revenue page (founder, 2026-11-12). Its own failure never
+  // stops the SAT dates sync.
+  try {
+    await takeRevenueSnapshot(supabase);
+  } catch (err) {
+    console.error("[sync-sat-dates] revenue snapshot threw:", err);
   }
 
   // 2. Try the live scraper. Failure is non-fatal: the seed above
