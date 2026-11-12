@@ -26,8 +26,8 @@ const SKILL = [
   [0.6, 1],
 ] as const;
 
-export default function ProgramPortal({ w }: { w: PortalWords }) {
-  const [at, setAt] = useState(0);
+export default function ProgramPortal({ w, first = 0 }: { w: PortalWords; first?: number }) {
+  const [at, setAt] = useState(first);
   return (
     <div className="pg-portal">
       <div className="pg-bar">
