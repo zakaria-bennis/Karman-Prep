@@ -21,6 +21,21 @@ export default function PrivateLab({
     if (!/^[1-9]+$/.test(mix)) return;
     setPick(sections.map((s, i) => Math.min(s.options.length, Number(mix[i] ?? mix[0])) - 1));
   }, [dev, sections]);
+  /* a design swapped in after the page loaded has to arrive on scroll like the rest: the page's own reveal
+     only watches what was there at load */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("on");
+          io.unobserve(e.target);
+        }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll("[data-lab] .rv:not(.on)").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [pick]);
   return (
     <>
       {sections.map((s, i) => (
