@@ -87,42 +87,48 @@ export default function ShellBehaviour() {
     on("scroll", runScrolled);
     runScrolled();
 
+    /* ---------- nothing animates off screen ----------
+       Looping drawings cost the same whether or not anyone can see them, and on a phone that cost is felt
+       as a sluggish scroll. Each section, and each card of drawings, is marked data-away while it is well
+       off screen; kit.css pauses every animation inside it. */
+    const away = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) =>
+          (e.target as HTMLElement).toggleAttribute("data-away", !e.isIntersecting)
+        ),
+      { rootMargin: "240px 0px" }
+    );
+    ks.querySelectorAll("main > section, .ways li, .gua-cards li, .ft").forEach((el) =>
+      away.observe(el)
+    );
+    offs.push(() => away.disconnect());
+
     /* ---------- phone menu ---------- */
     const sheet = ks.querySelector<HTMLElement>("#menu");
     const mbtn = ks.querySelector<HTMLButtonElement>(".hd .menu");
     if (sheet && mbtn) {
-      // while the menu is open, everything behind it is inert, so Tab stays inside the menu (aria-modal)
-      const behind = () =>
-        [...ks.children].filter(
-          (el): el is HTMLElement => el instanceof HTMLElement && el !== sheet
-        );
-      const shut = () => {
-        sheet.hidden = true;
-        behind().forEach((el) => (el.inert = false));
-        document.documentElement.classList.remove("ks-lock");
-        mbtn.setAttribute("aria-expanded", "false");
-        mbtn.focus();
+      // It opens and closes the way menus do everywhere: its own button toggles it, and a tap outside,
+      // a picked link, Escape, or tabbing out of it closes it. There is no separate close button.
+      const isOpen = () => !sheet.hidden;
+      const set = (show: boolean, refocus = false) => {
+        sheet.hidden = !show;
+        mbtn.setAttribute("aria-expanded", String(show));
+        if (show) sheet.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+        else if (refocus) mbtn.focus({ preventScroll: true });
       };
-      mbtn.addEventListener(
-        "click",
-        () => {
-          sheet.hidden = false;
-          behind().forEach((el) => (el.inert = true));
-          document.documentElement.classList.add("ks-lock");
-          mbtn.setAttribute("aria-expanded", "true");
-          sheet.querySelector<HTMLElement>(".close")?.focus();
-        },
-        { signal }
-      );
-      sheet.querySelector(".close")?.addEventListener("click", shut, { signal });
-      sheet.addEventListener("click", (e) => (e.target as Element).closest("a") && shut(), {
+      const inside = (t: EventTarget | null) =>
+        t instanceof Node && (sheet.contains(t) || mbtn.contains(t));
+      mbtn.addEventListener("click", () => set(!isOpen()), { signal });
+      on("pointerdown", (e) => isOpen() && !inside(e.target) && set(false));
+      sheet.addEventListener("click", (e) => (e.target as Element).closest("a") && set(false), {
         signal,
       });
-      on("keydown", (e) => e.key === "Escape" && !sheet.hidden && shut());
-      offs.push(() => {
-        behind().forEach((el) => (el.inert = false));
-        document.documentElement.classList.remove("ks-lock");
-      });
+      sheet.addEventListener(
+        "focusout",
+        (e) => e.relatedTarget && !inside(e.relatedTarget) && set(false),
+        { signal }
+      );
+      on("keydown", (e) => e.key === "Escape" && isOpen() && set(false, true));
     }
 
     /* ---------- presses: a button's orb only if the next page takes over 400 ms; any other link to a page

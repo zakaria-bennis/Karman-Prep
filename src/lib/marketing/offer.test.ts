@@ -5,15 +5,15 @@ describe("the tiered guarantee", () => {
   it("promises by starting score and by track", () => {
     expect(guaranteedGain(1000, "private")).toBe(200);
     expect(guaranteedGain(1200, "private")).toBe(200);
-    expect(guaranteedGain(1210, "private")).toBe(150);
-    expect(guaranteedGain(1300, "cohort")).toBe(100);
-    expect(guaranteedGain(1310, "cohort")).toBe(70);
-    expect(guaranteedGain(1400, "private")).toBe(100);
+    expect(guaranteedGain(1210, "private")).toBe(160);
+    expect(guaranteedGain(1300, "cohort")).toBe(120);
+    expect(guaranteedGain(1310, "cohort")).toBe(80);
+    expect(guaranteedGain(1400, "private")).toBe(120);
     expect(guaranteedGain(1410, "cohort")).toBe(40);
-    expect(guaranteedGain(1450, "private")).toBe(50);
+    expect(guaranteedGain(1450, "private")).toBe(60);
   });
 
-  it("sells no guarantee from 1460", () => {
+  it("sets no points target from 1460", () => {
     expect(GUARANTEE.noGuaranteeFrom).toBe(1460);
     expect(guaranteedGain(1460, "private")).toBeNull();
     expect(guaranteedGain(1600, "cohort")).toBeNull();

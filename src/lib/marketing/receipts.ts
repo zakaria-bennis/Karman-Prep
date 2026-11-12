@@ -19,10 +19,11 @@ export interface Receipt {
 }
 
 /**
- * True while the rows below are made-up samples that only exist to design the section (founder,
- * 2026-11-10: "get the layout, design, animations ready"). The home page leaves the whole section out of a
- * production build while this is true, so a sample can never be published as a real result. Set it to
- * false only when every row is a real student who agreed to be shown, with the words they really sent.
+ * True while the rows below are made-up samples that stand in for real students. The section is on the
+ * live site (founder, 2026-11-11: "keep as is for right now and put on live"), so while this is true the
+ * home page prints the "sample note" line from site-copy.ts under the heading, and a sample is never read
+ * as a real result. Set it to false only when every row is a real student who agreed to be shown, with the
+ * words they really sent; the note then goes away by itself.
  */
 export const RECEIPTS_ARE_SAMPLES = true;
 
