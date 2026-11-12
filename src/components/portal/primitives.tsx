@@ -5,8 +5,10 @@
  * lining, even-width figures (Num), boxes and cards have 4px corners.
  */
 import Link from "next/link";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { Chevron } from "./icons";
+import { countParts } from "./count";
+import "./portal-motion.css";
 
 /**
  * The tinted, squared-off box: left of center, full height on desktop, the same on every tab.
@@ -158,9 +160,35 @@ export function Cta(props: CtaProps) {
   );
 }
 
-/** A number in Hanken Grotesk with lining, even-width figures. Young Serif is never used for numbers. */
-export function Num({ children, big = false }: { children: ReactNode; big?: boolean }) {
-  return <span className={big ? "kp-big" : "kp-num"}>{children}</span>;
+/**
+ * A number in Hanken Grotesk with lining, even-width figures. Young Serif is never used for numbers.
+ * A whole number (with an optional sign, $ or %) counts up to its value when it appears: always for
+ * `big` and inside a ring, and anywhere with `count`. The real number stays in the page, so it is
+ * what screen readers read and what shows with reduced motion (portal-motion.css).
+ */
+export function Num({
+  children,
+  big = false,
+  count = false,
+}: {
+  children: ReactNode;
+  big?: boolean;
+  count?: boolean;
+}) {
+  const cls = big ? "kp-big" : "kp-num";
+  const parts = countParts(children);
+  if (!parts) return <span className={cls}>{children}</span>;
+  return (
+    <span
+      className={`${cls} kp-count`}
+      data-go={count ? "" : undefined}
+      data-pre={parts.pre || undefined}
+      data-post={parts.post || undefined}
+      style={{ "--to": parts.value } as CSSProperties}
+    >
+      <span>{children}</span>
+    </span>
+  );
 }
 
 export interface LegendItem {

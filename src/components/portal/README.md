@@ -127,9 +127,18 @@ doesn't count) and the colors.
 ## Legend, Num, TutorNote, Banner
 
 - `Legend items={[{ label, value?, color }]}` is the key under a ring or squares.
-- `Num` sets a number in Hanken Grotesk; `<Num big>` is the 64px score style.
+- `Num` sets a number in Hanken Grotesk; `<Num big>` is the 64px score style. A whole number counts
+  up to its value when it appears: always when `big` or inside a ring, elsewhere with `count`.
 - `TutorNote from="David"` is a handwritten note in Caveat, signed.
 - `Banner` is a strip across the top of the box (pass it to `Panel banner`).
+
+## Motion
+
+`portal-motion.css`, all CSS (founder, 2026-11-12: motion first, every motion carrying meaning). When a
+page opens, its cards arrive in a short cascade on a spring; rings fill from empty to their value and
+settle; the level ring sweeps round; skill squares pop in one after another; numbers count up (`Num`).
+The real number stays in the page, so screen readers and reduced motion get it at once. Under the
+device's reduced motion or Settings > Reduce motion (`data-kp-still`), everything shows finished.
 
 ## The painting
 

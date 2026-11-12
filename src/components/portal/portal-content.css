@@ -328,7 +328,7 @@
   background: var(
     --g,
     conic-gradient(
-      var(--ring-color, var(--l3)) calc(var(--p) * 1turn),
+      var(--ring-color, var(--l3)) calc(var(--kp-p) * 1turn),
       color-mix(in srgb, var(--ink) 14%, transparent) 0
     )
   );

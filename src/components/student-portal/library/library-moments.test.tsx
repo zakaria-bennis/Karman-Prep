@@ -121,6 +121,9 @@ describe("Challenge moment", () => {
       "/learn/daily"
     );
     expect(challengeMoment.settled()).toBe(false);
+    /* The window listens for Escape from the moment it stops the page behind from scrolling,
+       which is a beat after it appears. */
+    await waitFor(() => expect(document.documentElement.style.overflow).toBe("hidden"));
 
     act(() => {
       fireEvent.keyDown(document, { key: "Escape" });

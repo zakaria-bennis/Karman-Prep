@@ -5,6 +5,7 @@
 // test link (LeadFormCard, posting through the existing lead action, unchanged). Start free stays the main
 // action. Never call the test "official". Words: site-copy.ts sections 41 to 45.
 import type { CSSProperties } from "react";
+import CountUp from "@/components/site/CountUp";
 import LeadFormCard from "@/components/site/LeadFormCard";
 import { Arrow, Btn } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
@@ -27,11 +28,12 @@ function Report() {
         <span className="au-chip">{r.score}</span>
       </header>
       <div className="au-report-top">
-        <b className="num">{SAMPLE.scores[0] + SAMPLE.scores[1]}</b>
+        {/* The scores count up as the report arrives, with the domain bars filling beside them. */}
+        <CountUp>{SAMPLE.scores[0] + SAMPLE.scores[1]}</CountUp>
         <p>
           {sections.map((s, i) => (
             <span key={s}>
-              {s} <b className="num">{SAMPLE.scores[i]}</b>
+              {s} <CountUp>{SAMPLE.scores[i]}</CountUp>
             </span>
           ))}
         </p>

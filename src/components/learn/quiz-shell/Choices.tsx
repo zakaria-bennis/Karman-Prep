@@ -5,7 +5,7 @@ import {
   CalculatorTableAction,
 } from "@/components/calculator/CalculatorSourceAction";
 import { useCalculator } from "@/components/calculator/CalculatorScope";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { describeChoiceTable } from "@/lib/question-bank/choice-table";
 import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
 import type { StudentQuizQuestion } from "@/types/quiz";
@@ -26,6 +26,12 @@ export type ChoiceState = {
   correct: string | null;
   locked: boolean;
 };
+
+/** A wrong pick shakes like a head saying no: quick, then smaller each time, then still. */
+const SHAKE = [0, -8, 7, -5, 3, -1, 0];
+/** A right pick lifts a little and settles back into place. */
+const LIFT = [0, -5, 0];
+const LIFT_SCALE = [1, 1.018, 1];
 
 function suffix(letter: string, s: ChoiceState): string {
   if (s.correct === letter) return ", correct answer";
@@ -53,6 +59,10 @@ export function Choices({
 }) {
   const hasCalculator = useCalculator() !== null;
   const { reduced } = useShellMotion();
+  // Answer feedback plays when the answer is graded in front of the student, not when a graded
+  // question is opened again in review (each question mounts its own choices).
+  const [gradedAtMount] = useState(() => !!state.correct);
+  const live = !reduced && !gradedAtMount;
   // No press squash while the pencil is writing across the choices.
   const pencilOn = !!usePencil()?.pencilOn;
   const strike = useStateTransition();
@@ -187,12 +197,33 @@ export function Choices({
               }`}
               onClick={pick}
               whileTap={disabled || reduced || pencilOn ? undefined : { scale: 0.985 }}
-              animate={isWrong && !reduced ? { x: [0, -5, 5, -3, 0] } : { x: 0 }}
-              // A spring cannot run a five-keyframe shake; the shake is a short tween.
+              animate={
+                isWrong && live
+                  ? { x: SHAKE }
+                  : isCorrect && selected && live
+                    ? { y: LIFT, scale: LIFT_SCALE }
+                    : { x: 0, y: 0, scale: 1 }
+              }
+              // A spring cannot run a keyframe list: the shake and the lift are short tweens.
               transition={
-                isWrong ? { x: { type: "tween", duration: 0.32, ease: "easeOut" } } : BOUNCE
+                isWrong && live
+                  ? { x: { type: "tween", duration: 0.5, ease: "easeOut" } }
+                  : isCorrect && selected && live
+                    ? { type: "tween", duration: 0.55, times: [0, 0.35, 1], ease: "easeOut" }
+                    : BOUNCE
               }
             >
+              {isCorrect && live && (
+                // A ring of the right colour washes out from the right answer: at once when it
+                // was the student's pick, a beat after the shake when it shows what was right.
+                <motion.span
+                  className={styles.ripple}
+                  aria-hidden="true"
+                  initial={{ opacity: 0.7, scale: 0.97 }}
+                  animate={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.75, ease: "easeOut", delay: selected ? 0.05 : 0.4 }}
+                />
+              )}
               <span data-choice-badge className={styles.badge}>
                 <AnimatePresence>
                   {selected && (
