@@ -111,13 +111,15 @@ a chat as the whole page).
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
 
-## Receipts section (10 Nov 2026, in progress)
+## Receipts section (10 Nov 2026, live with sample rows since 11 Nov)
 
 Between "How we teach" and the questions: `Receipts.tsx`, a plain list of students beside the orange phone,
 which shows the text conversation behind the lit row. Six seconds a row; a tap holds a row. The heading and
 rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
-sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
-real students and the words they sent; nothing may be written for them.
+sample. The section is on the live site all the same (founder, 11 Nov: "keep as is for right now and put
+on live"), so while `RECEIPTS_ARE_SAMPLES` is true one small line under the heading says the rows are
+samples. The founder is supplying the real students and the words they sent; nothing may be written for
+them. When the real rows are in, set the flag to false and the line goes away.
 
 The phone's Messages screen (11 Nov) is measured from two real iPhone screenshots the founder sent, light
 and dark, and follows the page's mode. Sizes are in points of a 402-point screen (`--pt` in painted.css).

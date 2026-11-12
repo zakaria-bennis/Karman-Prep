@@ -21,10 +21,13 @@ const still = () =>
 
 export default function Receipts({
   headline,
+  note,
   headingId,
   rows,
 }: {
   headline: ReactNode;
+  /** Shown under the heading while the rows are samples. */
+  note?: string;
   headingId: string;
   rows: Receipt[];
 }) {
@@ -107,6 +110,7 @@ export default function Receipts({
     >
       <div className="rcp-side">
         <h2 id={headingId}>{headline}</h2>
+        {note ? <p className="rcp-note">{note}</p> : null}
         <ol
           className="rcp-list"
           ref={list}

@@ -627,6 +627,9 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .rcp { --pw: clamp(250px, 25vw, 320px); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(28px, 5vw, 84px); align-items: stretch; }
 .ks .rcp-side { display: flex; flex-direction: column; min-height: 0; height: calc(var(--pw) * 150 / 71.9); }
 .ks .rcp-side h2 { padding-bottom: clamp(12px, 1.6vw, 22px); }
+/* the line that says the rows are samples: it sits close under the heading, in the page's ink */
+.ks .rcp-side h2:has(+ .rcp-note) { padding-bottom: 6px; }
+.ks .rcp-note { margin: 0; padding-bottom: clamp(10px, 1.3vw, 18px); font-size: clamp(13px, 1vw, 15px); line-height: 1.4; font-weight: 600; }
 .ks .rcp-list { --n: var(--rows); position: relative; list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: grid; grid-auto-rows: minmax(0, 1fr); }
 /* the light: one cream shape that slides from row to row, so it never blinks off one and on the next */
 .ks .rcp-list::before { content: ""; position: absolute; left: -6px; right: -6px; top: 0; height: calc(100% / var(--n)); border-radius: 16px; background: var(--cream); box-shadow: 0 10px 26px -18px rgba(29, 26, 34, .55); transform: translateY(calc(var(--at) * 100%)); transition: transform .9s cubic-bezier(.5, 0, .15, 1); pointer-events: none; }

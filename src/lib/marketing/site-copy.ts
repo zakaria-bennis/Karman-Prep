@@ -188,6 +188,7 @@ asks: What if the score doesn't go up? = Then your money comes back. All of it i
 
 ## 14 Receipts
 headline: We keep the receipts.
+sample note: Sample rows for now. Real students, and the texts they really sent, go here once they say yes.
 
 ## 21 Program: opening
 headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
