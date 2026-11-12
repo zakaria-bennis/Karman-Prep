@@ -264,7 +264,7 @@ it("AR-1 only lazy modules and the CalculatorLoader import() import lazy calcula
   expect(paths).toContain("src/lib/calculator/theme/roles.ts");
   expect(paths.filter((path) => path.includes(".test."))).toEqual([]);
   expect(importViolations(files)).toEqual([]);
-});
+}, 60_000); // parses every source file under src/; past Vitest's 5 s default on a busy CI runner
 
 it("AR-1 every subfolder of src/components/calculator/ is classified as lazy", () => {
   const dirs = readdirSync(join(ROOT, COMPONENTS), { withFileTypes: true })

@@ -4,7 +4,8 @@
 // Imported by the engine tests, the list tests and the transfer tests; never by production code.
 
 import { defaultViewport, type ViewSpec } from "../../../plot/viewport";
-import { createMainThreadBackend, type ComputeBackend } from "../../../worker/backend";
+import { createMainThreadBackendWith, type ComputeBackend } from "../../../worker/backend";
+import type { ExecutorTiming } from "../../../worker/executor";
 import { macrotask } from "../../../worker/__fixtures__/messages";
 import type { MainToWorker, WorkerToMain } from "../../../worker/protocol";
 import { CalculatorEngine } from "../engine";
@@ -70,8 +71,11 @@ const SETTLED_LIMIT_MS = 10_000;
 const FRAME_ROUNDS_LIMIT = 100;
 
 /** The main-thread backend, with every post recorded before it reaches the executor. */
-function recordedMainThread(posted: MainToWorker[]): ComputeBackend {
-  const inner = createMainThreadBackend();
+function recordedMainThread(
+  posted: MainToWorker[],
+  timing: Partial<ExecutorTiming>
+): ComputeBackend {
+  const inner = createMainThreadBackendWith(timing);
   return {
     get kind() {
       return inner.kind;
@@ -113,12 +117,17 @@ function isSettled(posted: readonly MainToWorker[], received: readonly WorkerToM
 
 export function createTestEngine(
   options?: CalculatorOptions,
-  config: { backend?: "fake" | "main-thread"; randomSeeds?: number[] } = {}
+  config: {
+    backend?: "fake" | "main-thread";
+    randomSeeds?: number[];
+    /** The main-thread backend's Executor timing; the default is the production timing. */
+    timing?: Partial<ExecutorTiming>;
+  } = {}
 ): TestEngine {
   const fake = (config.backend ?? "fake") === "fake" ? createFakeBackend() : null;
   const posted: MainToWorker[] = fake ? fake.posted : [];
   const received: WorkerToMain[] = [];
-  const backend = fake ?? recordedMainThread(posted);
+  const backend = fake ?? recordedMainThread(posted, config.timing ?? {});
   backend.onMessage((message) => received.push(message));
 
   let time = 0,
