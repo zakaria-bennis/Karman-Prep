@@ -67,7 +67,8 @@ export const MARCH_PROGRAM = {
   classesPerWeek: 2,
   classMinutes: 60,
   totalClasses: 18,
-  fullLengthTests: 5,
+  /** One every week, taken between that week's classes (founder, 2026-11-11; it was five). */
+  fullLengthTests: 9,
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
   /** Registration closes one week before the first class (founder, 2026-11-11). */
@@ -92,14 +93,14 @@ export const MARCH_PROGRAM = {
         "18 classes of 60 minutes in a group of up to six, taught by a Karman tutor. Each cohort is one score band: 1000 to 1200, 1200 to 1400, or 1400 to 1600.",
     },
     {
-      title: "Five full-length practice tests",
+      title: "Nine full-length practice tests",
       detail:
-        "The baseline is your student's latest SAT or PSAT score. A student with no score yet sits a placement test, proctored live.",
+        "One every week, taken between that week's classes. The class then goes over what the group missed.",
     },
     {
-      title: "A weekly live session",
+      title: "Weekly workshops, on top of the classes",
       detail:
-        "Test mechanics (pacing, Desmos, how the adaptive second module works), alternating with workshops on the skills students miss most.",
+        "Optional live sessions on test mechanics (pacing, Desmos, how the adaptive second module works) and the skills students miss most. Your student picks the ones they need.",
     },
     {
       title: "Daily 10",

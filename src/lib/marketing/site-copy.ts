@@ -198,7 +198,7 @@ closes: Registration closes ${CLOSES}
 days left: days left to register
 starts: Classes start ${START_DAY}.
 headline: One seat. Everything it takes to raise a score.
-stack: ${MP.totalClasses} live classes, ${w(CLASS)} students = Grouped by starting score, so nobody waits and nobody drowns. | Practice built from their own mistakes = Ten questions a day, pulled from what your student got wrong. | ${W(MP.fullLengthTests)} full-length practice tests = Timed like the real thing. Every miss comes back until it sticks. | A report for you, every day = The work done, the predicted score and a note from the tutor. | Everything in ${PRO.name} = The whole question bank, every explanation, every daily tool. | ${UP_TO.cohort}, or your money back = The promise is written down before you pay.
+stack: ${MP.totalClasses} live classes, ${w(CLASS)} students = Grouped by starting score, so nobody waits and nobody drowns. | Practice built from their own mistakes = Ten questions a day, pulled from what your student got wrong. | ${W(MP.fullLengthTests)} full-length practice tests, one a week = Timed like the real thing. Every miss comes back until it sticks. | A report for you, every day = The work done, the predicted score and a note from the tutor. | Everything in ${PRO.name} = The whole question bank, every explanation, every daily tool. | ${UP_TO.cohort}, or your money back = The promise is written down before you pay.
 
 ## 22 Program: a week
 headline: What a week looks like.
@@ -206,7 +206,7 @@ rows: Twice a week = A live class, ${MP.classMinutes} minutes | Once a week = Th
 
 ## 23 Program: the nine weeks
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks.
-rows: Week 1 = A baseline: your student's latest SAT or PSAT score. A student with no score yet sits a placement test, proctored live | Weeks 3 to 7 = Three more full-length tests, each in one timed sitting | Week ${MP.weeks} = The last full-length, in one timed sitting, and a plan for test day
+rows: Every week = A full-length practice test, in one timed sitting, between that week's classes | In class = The tutor goes over what the group missed on it | After week ${MP.weeks} = A last review, a test-day guide and one more practice test before the real SAT
 
 ## 24 Program: who it's for
 headline: Built for an 11th grader with room to grow.
