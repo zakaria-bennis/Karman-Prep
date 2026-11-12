@@ -1,32 +1,44 @@
 "use client";
 
-// The days and hours left until a date (registration closing), never below zero. The server's count shows
-// first and the browser corrects it, then keeps it current. It takes the date and its words as props on
-// purpose: importing the site's facts or words here would ship them all to the browser.
+// A ticking countdown to a date (registration closing): days, hours, minutes and seconds, each in its own
+// box, the seconds visibly running. The server's count shows first and the browser takes over. It takes
+// the date and its words as props on purpose: importing the site's facts or words here would ship them all
+// to the browser.
 import { useEffect, useState } from "react";
 
 const left = (until: string) => {
-  const hours = Math.max(0, Math.floor((Date.parse(`${until}T23:59:59`) - Date.now()) / 36e5));
-  return [Math.floor(hours / 24), hours % 24] as const;
+  const s = Math.max(0, Math.floor((Date.parse(`${until}T23:59:59`) - Date.now()) / 1000));
+  return [Math.floor(s / 86400), Math.floor(s / 3600) % 24, Math.floor(s / 60) % 60, s % 60];
 };
 
 export default function TimeLeft({
   until,
-  words,
+  label,
+  units,
 }: {
   until: string;
-  words: [string, string, string];
+  label: string;
+  units: string[];
 }) {
-  const [[d, h], set] = useState(() => left(until));
+  const [parts, set] = useState(() => left(until));
   useEffect(() => {
     set(left(until));
-    const t = setInterval(() => set(left(until)), 60_000);
+    const t = setInterval(() => set(left(until)), 1000);
     return () => clearInterval(t);
   }, [until]);
   return (
-    <p className="pg-timer" suppressHydrationWarning>
-      <b className="num">{d}</b> {words[0]} <b className="num">{h}</b> {words[1]}
-      <span>{words[2]}</span>
-    </p>
+    <div className="pg-clock" role="timer" aria-label={label}>
+      <p>{label}</p>
+      <ol suppressHydrationWarning>
+        {parts.map((v, i) => (
+          <li key={units[i]}>
+            <b className="num" key={v} suppressHydrationWarning>
+              {String(v).padStart(2, "0")}
+            </b>
+            <span>{units[i]}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

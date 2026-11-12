@@ -1,15 +1,16 @@
 // The SAT Program page (founder, 2026-11-11): four screens on a desktop, in the home page's design language
 // (big serif headings on the left, on mist, with the picture beside them). 1: the outcome and the
-// starting-score switch. 2: how a week works, with the week's test and its fixes (WeekFix.tsx). 3: what the seat is worth at Karman's own prices, beside the parent portal. 4: the promise's two
+// starting-score switch. 2: the nine weeks as a score climb with a
+// travelling marker (ScoreClimb.tsx). 3: what the seat is worth at Karman's own prices, beside a turning deck of parent-portal views (PortalDeck.tsx). 4: the promise's two
 // sides, beside the "start here" box. Words: site-copy.ts, sections 21 to 24, 27 and 29. Only the small
 // interactive pieces run in the browser, and they get their facts and words as props.
 import { Arrow, Btn } from "@/components/site/parts";
 import TimeLeft from "./TimeLeft";
-import WeekFix from "./WeekFix";
-import ProgramPortal from "./ProgramPortal";
+import ScoreClimb from "./ScoreClimb";
+import PortalDeck from "./PortalDeck";
 import ProgramPromise from "./ProgramPromise";
 import { ROUTES } from "@/components/site/routes";
-import { GUARANTEE as G, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
+import { GUARANTEE as G, guaranteedGain, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { list, pairs, section } from "@/lib/marketing/site-copy";
 
 /** The two actions and the dates. The seat is reserved on the pricing page for now. */
@@ -39,6 +40,10 @@ function Tick() {
     </svg>
   );
 }
+
+/** The student whose portal the deck shows (founder: a 1370 start), and the cohort's promise for that start. */
+const PARENT_START = 1370;
+const PARENT_GAIN = guaranteedGain(PARENT_START, "cohort") ?? 0;
 
 export default function ProgramSections() {
   const open = section(21);
@@ -83,13 +88,11 @@ export default function ProgramSections() {
               ))}
             </ol>
           </div>
-          <WeekFix
-            sheet={climb.sheet}
-            week={climb.week}
-            of={climb.of}
-            fix={climb.fix}
-            skills={list(climb.skills)}
-            clear={climb.clear}
+          <ScoreClimb
+            start={G.bands[0].upTo - 50}
+            gain={G.bands[0].cohort}
+            weeks={MP.weeks}
+            words={{ start: climb.start, goal: climb.goal, test: climb.test, note: climb.note }}
           />
         </div>
       </section>
@@ -130,21 +133,23 @@ export default function ProgramSections() {
           </div>
           <div className="pg-say">
             <h3 className="pg-h3">{portal.headline}</h3>
-            <ProgramPortal
-              first={2}
+            <PortalDeck
               w={{
-                tabs: list(portal.tabs),
-                sample: portal.sample,
-                captions: [
-                  portal["score caption"],
-                  portal["skills caption"],
-                  portal["homework caption"],
-                  portal["notes caption"],
-                ],
-                weeks: list(portal["score weeks"]),
-                skills: list(portal.skills),
-                levels: list(portal.levels),
-                homework: list(portal.homework),
+                titles: list(portal.titles),
+                captions: list(portal.captions),
+                homework: pairs(portal.homework),
+                skills: pairs(portal.skills),
+                score: {
+                  startLabel: portal["score start"],
+                  start: PARENT_START,
+                  nowLabel: portal["score now"],
+                  now: PARENT_START + PARENT_GAIN / 2,
+                  goalLabel: portal["score goal"],
+                  goal: PARENT_START + PARENT_GAIN,
+                },
+                days: list(portal.days),
+                minutes: [35, 20, 45, 30, 25, 60, 15],
+                timeTotal: `3 h 50 min ${portal.time}`,
                 note: portal.note,
                 noteFrom: portal["note from"],
               }}
@@ -195,9 +200,9 @@ export default function ProgramSections() {
             <div className="pg-start">
               <TimeLeft
                 until={MP.enrollmentCloses}
-                words={list(open.timer) as [string, string, string]}
+                label={open["clock label"]}
+                units={list(open.clock)}
               />
-              <p className="pg-h3">{open.closes}</p>
               <p className="lede">{open.starts}</p>
               <div className="go-row">
                 <Btn label={open.button} href={ROUTES.pricing} />

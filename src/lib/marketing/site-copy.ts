@@ -192,17 +192,16 @@ button: Reserve a seat
 second button: How the promise works
 closes: Registration closes ${CLOSES}.
 starts: Classes start ${START_DAY}.
-timer: days | hours | left to register
+clock label: Registration closes in
+clock: days | hours | min | sec
 
-## 22 Program: the week
+## 22 Program: the climb
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks. Each one shows us what to fix next.
 steps: The test = Every week your student sits a full practice test, timed like the real SAT. | The two classes = Their tutor has the results before class, and teaches the questions the group missed. | The homework = Each student drills their own misses. A skill still missed is assigned again the next week.
-sheet: Practice test
-week: Week
-of: of
-fix: This week's fixes
-skills: Quadratics | Inference | Words in context | Ratios and rates | Comma rules | Linear equations
-clear: Nothing left to fix. Ready for test day.
+start: Latest SAT score
+goal: The score we promise
+test: Test
+note: Drawn for a start of ${G.bands[0].upTo - 50}, where the promise is +${G.bands[0].cohort}. It shows the plan, not a student's result.
 
 ## 29 Program: the value
 headline: What the seat is worth, at our own prices.
@@ -213,18 +212,17 @@ price: ${$(MP.price)}
 
 ## 23 Program: the portal
 headline: And you see what the tutor sees.
-tabs: Score | Skills | Homework | Notes
-sample: Example
-score caption: The predicted score, updated as your student works.
-score weeks: Week 1 | Week 5 | Week 9
-skills: Linear equations | Punctuation | Words in context | Ratios and rates | Inference
-levels: Mastered | Getting there | Needs work
-skills caption: Every SAT skill, and the level your student has reached in each.
-homework: Daily 10 | Flashcards | Strategy check | Time trial
-homework caption: What was assigned, and whether it was done.
+titles: This week's homework | Skills | Predicted score | Practice time | Tutor's note
+captions: What was assigned, and what's been done. | Every skill, and the level your student has reached. | One predicted score, updated as they work. | How long they practised, day by day. | A few sentences from their tutor, every day.
+homework: Daily 10 = 6 of 7 days | Flashcards = 40 of 40 cards | Strategy check = Passed | Time trial = Due Friday
+skills: Linear equations = Mastered | Words in context = Strong | Comma rules = Getting there | Ratios and rates = Needs work | Inference = Strong
+score start: Started at
+score now: Predicted today
+score goal: Promised
+days: M | T | W | T | F | S | S
+time: this week
 note: Good focus in class today. Two misses on punctuation, both the same comma rule, so I've added a short set on it. Pacing is better: the math module was done with four minutes to spare.
-note from: Your student's tutor
-notes caption: A few sentences from the tutor, every day.
+note from: Their tutor
 
 ## 24 Program: the promise
 headline: A promise with two sides.
