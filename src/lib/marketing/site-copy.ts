@@ -293,6 +293,21 @@ best: Most families pick this
 both: A full practice test every week | Every session recorded | A private text line to the tutor | Everything in ${PRO.name}
 cohort: Prefer a small class? The ${w(MP.weeks)}-week cohort is ${$(MP.price)}.
 cohort link: See the SAT Program
+call: Schedule a free call
+per: a session
+sessions: sessions
+single: Bought one at a time, twenty sessions cost more.
+save: You keep
+plus: Everything in ${P10.name}, plus
+plus rows: Twice the sessions | No weekly limit | The higher promise: ${UP_TO.private} | Ten free sessions if we miss, not five
+cohort name: The ${w(MP.weeks)}-week cohort
+cohort rows: Pace = Two live classes a week, in a class of ${w(CLASS)} | Promise = ${UP_TO.cohort} | If we miss = Money back, or the next cohort free
+choose: Choose a package
+need: How many points does your student need?
+fit small: ${P10.name} fits: one session a week for ten weeks.
+fit large: ${P20.name} fits: more sessions and the higher promise.
+risk: You pay only after the free call, and the promise is in writing before you do.
+table: Sessions | Sessions a week | Promised gain | If we miss | Extra sessions
 
 ## 35 Private: the promise
 headline: A promise with two sides.
