@@ -11,12 +11,13 @@ import {
   actionStartTimeTrial,
 } from "@/app/learn/quiz-run-actions";
 import {
+  barLine,
   formatClock,
   formatMultiplier,
   trialSeconds,
   trialSectionTitle,
   type TrialSection,
-  type TrialStanding,
+  type TrialStart,
 } from "@/lib/student/time-trial";
 import { Message } from "./FlowFrame";
 import { RunPlayer } from "./RunPlayer";
@@ -122,13 +123,13 @@ export function FullTestFlow({
 export function TimeTrialFlow({
   user,
   section,
-  standing,
+  start,
   resumable,
   exitHref,
 }: {
   user: ShellUser;
   section: TrialSection;
-  standing: TrialStanding;
+  start: TrialStart;
   resumable: boolean;
   exitHref: string;
 }) {
@@ -144,11 +145,11 @@ export function TimeTrialFlow({
       intro={
         resumable
           ? undefined
-          : (start, pending) => (
+          : (begin, pending) => (
               <Message
-                title={`${name}, round ${standing.round}`}
-                text={`One module against the clock: ${formatClock(trialSeconds(section, standing.multiplier))} for the module, ${formatMultiplier(standing.multiplier)} the real SAT time. The clock starts when you do. At zero the round ends and scores what you answered. Hold your accuracy and the next round gets 5% tighter.`}
-                action={{ onClick: start, label: pending ? "Loading" : "Start the round" }}
+                title={`${name}, round ${start.round}`}
+                text={`One module against the clock: ${formatClock(trialSeconds(section, start.multiplier))} for the module, ${formatMultiplier(start.multiplier)} the real SAT time. The clock starts when you do. At zero the round ends and scores what you answered. ${barLine(start.baseline)} Hold it and the next round gets 5% faster.`}
+                action={{ onClick: begin, label: pending ? "Loading" : "Start the round" }}
                 back={{ href: exitHref, label: "Back" }}
               />
             )

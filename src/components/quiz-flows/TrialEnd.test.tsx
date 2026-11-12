@@ -16,7 +16,11 @@ import { TrialEnd, trialVerdict } from "./TrialEnd";
 const trial = (correct: number, answered = 27, elapsed = 1700): TrialRoundResult =>
   scoreRound({
     section: "reading",
-    standing: { round: 2, multiplier: 1.2, referenceAccuracy: 0.75 },
+    start: {
+      round: 2,
+      multiplier: 1.2,
+      baseline: { accuracy: 0.73, basis: "history", sample: 100 },
+    },
     limitSeconds: 2304,
     elapsedSeconds: elapsed,
     correct,
@@ -54,6 +58,7 @@ describe("TrialEnd", () => {
     );
     expect(screen.getByRole("heading", { name: "Round 2 done" })).toBeInTheDocument();
     expect(screen.getByText("89%")).toBeInTheDocument();
+    expect(screen.getByText("68%")).toBeInTheDocument();
     expect(screen.getByText("28:20")).toBeInTheDocument();
     expect(screen.getByText("38:24")).toBeInTheDocument();
     expect(screen.getByText("1.20×")).toBeInTheDocument();
@@ -76,9 +81,11 @@ describe("TrialEnd", () => {
 
 describe("trialVerdict", () => {
   it("explains the next pace", () => {
-    expect(trialVerdict(trial(24))).toMatch(/5% tighter/);
+    expect(trialVerdict(trial(24))).toBe(
+      "Your bar was 68% (your untimed accuracy is 73%). You kept it, so the clock gets 5% tighter next round."
+    );
     expect(trialVerdict(trial(18))).toBe(
-      "Next round stays at this pace until you get 75% or more right."
+      "Your bar was 68% (your untimed accuracy is 73%). Next round stays at this pace until you get 68% or more right."
     );
   });
 });

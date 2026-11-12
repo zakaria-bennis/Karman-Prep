@@ -21,10 +21,10 @@ vi.mock("@/components/quiz-flows/Flows", () => ({
   TimeTrialFlow: (p: {
     section: string;
     resumable: boolean;
-    standing: { round: number; multiplier: number };
+    start: { round: number; multiplier: number };
   }) => (
     <p>
-      Flow {p.section} round {p.standing.round} at {p.standing.multiplier}
+      Flow {p.section} round {p.start.round} at {p.start.multiplier}
       {p.resumable ? " (resume)" : ""}
     </p>
   ),
@@ -34,12 +34,19 @@ import Page from "./page";
 const open = (query: Record<string, string> = {}) =>
   Page({ searchParams: Promise.resolve(query) }).then((el) => render(el));
 
+const baseline = { accuracy: 0.8, basis: "default", sample: 0 };
+
 beforeEach(() => {
   vi.clearAllMocks();
   m.user.mockResolvedValue({ clerkId: "student-1", user: { name: "Sam" } });
   m.status.mockResolvedValue([
-    { section: "reading", standing: { round: 3, multiplier: 1.15 }, open: false, last: null },
-    { section: "math", standing: { round: 1, multiplier: 1.25 }, open: true, last: null },
+    {
+      section: "reading",
+      start: { round: 3, multiplier: 1.15, baseline },
+      open: false,
+      last: null,
+    },
+    { section: "math", start: { round: 1, multiplier: 1.25, baseline }, open: true, last: null },
   ]);
 });
 
