@@ -1,0 +1,59 @@
+# Page pictures for the founder's review (2026-11-12). Lives only on the
+# claude/page-shots branch and is never merged. Seeds the test personas into an
+# ephemeral local Supabase, takes full-page pictures of every page and portal,
+# and pushes them to the claude/page-shots-images branch.
+name: Page pictures
+
+on:
+  push:
+    branches: [claude/page-shots]
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_cGxhY2Vob2xkZXIuY2xlcmsuYWNjb3VudHMuZGV2JA
+      CLERK_SECRET_KEY: sk_test_placeholder
+      STRIPE_SECRET_KEY: sk_test_placeholder
+      RESEND_API_KEY: re_placeholder
+      RESEND_FROM_EMAIL: hello@karmanprep.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+      - run: npm install --no-audit --no-fund
+      - run: supabase start --workdir .
+      - run: |
+          STATUS=$(supabase status -o json)
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(echo "$STATUS" | jq -r .API_URL)" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(echo "$STATUS" | jq -r .ANON_KEY)" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(echo "$STATUS" | jq -r .SERVICE_ROLE_KEY)" >> $GITHUB_ENV
+      - name: Seed the test personas
+        run: |
+          KARMAN_LOCAL_STACK=. node scripts/overnight/seed-personas.mjs || echo "persona seed had errors"
+          for f in pricing parent-school student-portal-calendar student-portal-homework student-portal-progress tutor-affiliate admin-scholarship crm; do
+            docker exec -i -e PGPASSWORD=postgres supabase_db_karman-local psql -X -q -U postgres -h 127.0.0.1 -d postgres < supabase/seeds/overnight/$f.sql || echo "seed $f had errors"
+          done
+      - run: npx playwright install --with-deps chromium
+      - name: Take the pictures
+        run: npx playwright test --project=e2e tests/e2e/zz-page-shots.spec.ts --retries=0 || true
+      - name: Publish the pictures
+        run: |
+          test -f shots/manifest.json
+          cd shots
+          git init -q -b images
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Page pictures for ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" images:claude/page-shots-images
