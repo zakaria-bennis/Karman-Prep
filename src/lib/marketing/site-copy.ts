@@ -197,21 +197,8 @@ second button: See pricing
 closes: Registration closes ${CLOSES}
 days left: days left to register
 starts: Classes start ${START_DAY}.
-d headline: One seat. Everything it takes to raise a score.
-d stack: ${MP.totalClasses} live classes, ${w(CLASS)} students = Grouped by starting score, so nobody waits and nobody drowns. | Practice built from their own mistakes = Ten questions a day, pulled from what your student got wrong. | ${W(MP.fullLengthTests)} full-length practice tests = Timed like the real thing. Every miss comes back until it sticks. | A report for you, every day = The work done, the predicted score and a note from the tutor. | Everything in ${PRO.name} = The whole question bank, every explanation, every daily tool. | ${UP_TO.cohort}, or your money back = The promise is written down before you pay.
-e headline: Your student gets taught. You get to watch it work.
-e student title: What your student gets
-e student: ${W(MP.classesPerWeek)} live classes a week, in a group of ${w(CLASS)} | Classmates who start at the same score | Daily practice picked from their own mistakes | ${W(MP.fullLengthTests)} full-length practice tests | Every question explained, step by step
-e parent title: What you get
-e parent: A report every day | A parent portal with every class, test and missed question | One predicted score, so you always know where they stand | Nothing to chase: we track the homework | ${UP_TO.cohort}, or your money back
-e today: Today | Live class | Daily 10 | Back from last week
-e report: Today's report | Class attended | Daily 10 done | Predicted score | A note from the tutor
-e sample: Example
-f headline: This is your student's week. Every week, for ${w(MP.weeks)} weeks.
-f days: Mon | Tue | Wed | Thu | Fri | Sat | Sun
-f lanes: Live | Daily 10 | Your report
-f blocks: Class | Class | Workshop
-f note: Class days are set with each cohort.
+headline: One seat. Everything it takes to raise a score.
+stack: ${MP.totalClasses} live classes, ${w(CLASS)} students = Grouped by starting score, so nobody waits and nobody drowns. | Practice built from their own mistakes = Ten questions a day, pulled from what your student got wrong. | ${W(MP.fullLengthTests)} full-length practice tests = Timed like the real thing. Every miss comes back until it sticks. | A report for you, every day = The work done, the predicted score and a note from the tutor. | Everything in ${PRO.name} = The whole question bank, every explanation, every daily tool. | ${UP_TO.cohort}, or your money back = The promise is written down before you pay.
 
 ## 22 Program: a week
 headline: What a week looks like.

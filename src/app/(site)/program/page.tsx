@@ -1,5 +1,5 @@
 import SitePage from "@/components/site/SitePage";
-import HeroOptions from "@/components/site/program/HeroOptions";
+import ProgramStack from "@/components/site/program/ProgramStack";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { formatPrice, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
@@ -39,12 +39,12 @@ const COURSE = {
 };
 
 /* The page is being rebuilt in the home page's world, one section at a time (founder, 2026-11-11). It flies
-   the mountain valleys of the route, in full daylight. So far: the opening, as three options to pick from. */
+   the mountain valleys of the route, in full daylight. So far: the opening (the stack). */
 export default function ProgramPage() {
   return (
     <SitePage kind="lit" route={[0.2, 0.56]}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(COURSE)} />
-      <HeroOptions />
+      <ProgramStack />
     </SitePage>
   );
 }
