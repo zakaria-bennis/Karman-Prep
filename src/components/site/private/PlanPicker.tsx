@@ -1,16 +1,19 @@
 "use client";
 
-// The two private packages, side by side. Private 20 is the one we recommend: it starts pinned, larger than
-// Private 10. Hovering a plan lifts it; clicking anywhere on a plan pins it as the larger one. Either
-// button goes to the free-call form at the bottom of the page, and tells it which plan was chosen.
-import { useState } from "react";
+// The two private packages, side by side and the same size: Private 10 in shimmering black, Private 20 in
+// shimmering blue with its badges. The plan under the pointer (or holding the keyboard focus) lifts and
+// lights up a little. Either button goes to the free-call form at the bottom of the page, and tells it
+// which plan was chosen.
 import { Arrow } from "@/components/site/parts";
 
 export interface Plan {
   name: string;
   price: string;
   each: string;
+  /** The line under the price: "Everything in Pro", "Everything in Private 10, plus". */
+  lead: string;
   bullets: string[];
+  badges?: string[];
 }
 
 function Tick() {
@@ -25,40 +28,31 @@ function Tick() {
 export default function PlanPicker({
   small,
   large,
-  plus,
-  best,
   per,
   call,
 }: {
   small: Plan;
   large: Plan;
-  /** "Everything in Private 10, plus" */
-  plus: string;
-  best: string;
   per: string;
   call: string;
 }) {
-  const [pin, setPin] = useState<"small" | "large">("large");
   const card = (k: "small" | "large", p: Plan) => (
-    <article
-      className="pl"
-      data-plan={k}
-      data-pin={pin === k || undefined}
-      onClick={() => setPin(k)}
-    >
-      {k === "large" ? <em>{best}</em> : null}
-      <h3>
-        <button type="button" aria-pressed={pin === k} onClick={() => setPin(k)}>
-          {p.name}
-        </button>
-      </h3>
+    <article className="pl" data-plan={k}>
+      {p.badges ? (
+        <p className="pl-badges">
+          {p.badges.map((b) => (
+            <em key={b}>{b}</em>
+          ))}
+        </p>
+      ) : null}
+      <h3>{p.name}</h3>
       <p className="pl-price">
         <b className="num">{p.price}</b>
         <span>
           {p.each} {per}
         </span>
       </p>
-      {k === "large" ? <p className="pl-plus">{plus}</p> : null}
+      <p className="pl-lead">{p.lead}</p>
       <ul>
         {p.bullets.map((x, i) => (
           <li key={x} style={{ "--i": i } as React.CSSProperties}>
@@ -80,7 +74,7 @@ export default function PlanPicker({
     </article>
   );
   return (
-    <div className="pls" data-pin={pin}>
+    <div className="pls">
       {card("small", small)}
       {card("large", large)}
     </div>

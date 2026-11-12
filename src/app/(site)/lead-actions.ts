@@ -71,6 +71,8 @@ const SCHEMAS = {
     phone: z.string().trim().max(24).refine(okPhone, { message: SITE["form error phone"] }),
     slot: z.string().refine(okSlot, { message: SITE["form error slot"] }),
     plan: z.enum(["", ...PRIVATE_PACKAGES.map((p) => p.name)]).optional(),
+    // the visitor's own time zone, so the time they saw can be worked out from the Central one
+    zone: z.string().max(60).optional(),
     company: trap,
   }),
   seat: z.object({
@@ -122,7 +124,7 @@ export async function submitLead(
         ? "private"
         : COHORTS[data.date ?? ""];
   const details = Object.fromEntries(
-    (["latest", "target", "date", "grade", "phone", "slot", "plan"] as const)
+    (["latest", "target", "date", "grade", "phone", "slot", "zone", "plan"] as const)
       .filter((k) => data[k])
       .map((k) => [
         k === "date" ? (form === "apply" ? "startDate" : "satDate") : k,

@@ -264,30 +264,32 @@ bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 31 Private: opening
-headline: One tutor. Your hours. A score in writing.
+headline: Up to ${guaranteeMax("private")} points higher, with a tutor who works around your week.
 button: Schedule a free call
-second button: See the two packages
+second button: See our packages
 
 ## 32 Private: booking
-headline: Your student's sessions, around your week.
-points: Book any open hour = Evenings, weekends, the hour after practice. You choose every session yourself. | Move it yourself = Plans change. Move any session up to ${G.private.cancelHours} hours before it starts.
+headline: Your student books their own sessions.
+points: Around the week you actually have = Practice ran late, a test on Thursday, a free Sunday afternoon. They pick whichever open hour works for the family. | No fees to cancel or reschedule = You or your student can move a session, or book another, whenever you need to. No hidden fees.
 pick day: Pick a day
 pick time: Pick a time
 earlier: Earlier days
 later: Later days
 confirm: Confirm session
 booked: You're booked.
-again: Book another
 none: No open times this day
 
 ## 33 Private: packages
 headline: Two ways to work one-on-one.
 small package: ${P10.name} = ${$(P10.price)}
 large package: ${P20.name} = ${$(P20.price)}
-small bullets: ${W(P10.hours)} 60-minute sessions, one a week | One tutor, matched to your student | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | A note to you after every session | A private text line to the tutor | Everything in ${PRO.name} | ${UP_TO.cohort}, or half back or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions
-plus: Everything in ${P10.name}, plus
-large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss, not ${w(PRIVATE_BONUS[P10.id].freeSessions)} | More sessions any time, ${usd(G.private.extraSessionPrice)} each
+small lead: Everything in ${PRO.name}
+small bullets: ${W(P10.hours)} 60-minute sessions, one a week | A tutor from our team of PhD and medical students | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | Session statuses sent within 24 hours after each class | A private text line to the tutor | ${UP_TO.cohort}, or half back / free sessions
+large lead: Everything in ${P10.name}, plus
+large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
 best: Most families pick this
+save: Save
+no limit: No limit on sessions a week
 per: a session
 call: Schedule a free call
 link: The guarantee, in full
@@ -297,7 +299,6 @@ headline: Schedule a free call.
 form name: Your name
 form phone: Phone
 form email: Email
-form zone: Central Time
 form button: Schedule my call
 form done title: You're on the calendar.
 form done text: ${FOUNDER.firstName} will text you to confirm.

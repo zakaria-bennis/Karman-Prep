@@ -3,11 +3,14 @@
 // The free-call form that closes the Private tutoring page: a name, a phone number, an email, and a time
 // picked from the same day-and-time picker as the session demo. It sits straight on the landscape, in
 // frosted-glass pills. Each field is checked when you leave it and again on the server (lead-actions.ts).
+// Call times are kept in Central Time and shown in the visitor's own time zone, so nobody has to be told
+// which zone it is; the request carries the Central time and the visitor's zone.
 // If a plan's button was pressed above (PlanPicker.tsx), the plan's name goes along with the request.
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
 import { okEmail, okPhone } from "@/lib/marketing/lead-rules";
+import FoxCheer from "./FoxCheer";
 import SlotPicker, {
   dayKey,
   fmtTime,
@@ -23,7 +26,6 @@ export interface CallWords extends SlotWords {
   name: string;
   phone: string;
   email: string;
-  zone: string;
   button: string;
   sending: string;
   doneTitle: string;
@@ -50,6 +52,19 @@ const INPUT: Record<Field, Record<string, string | number>> = {
 };
 const FIELDS: Field[] = ["name", "phone", "email"];
 
+/** The moment a Central-Time hour on a date happens, daylight saving included. */
+function centralInstant(d: Date, h: number): Date {
+  const noon = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12));
+  const central = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      hour: "numeric",
+      hourCycle: "h23",
+    }).format(noon)
+  );
+  return new Date(noon.getTime() + (h - central) * 36e5);
+}
+
 export default function CallForm({ w, today }: { w: CallWords; today: string }) {
   const days = useDays(today, 14);
   const first = days.find((d) => openHours(d, "calls").length) ?? days[0];
@@ -59,11 +74,14 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   const [banner, setBanner] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+  // the visitor's zone is only known in the browser; until then times read as Central, as the server drew them
+  const [local, setLocal] = useState(false);
   const plan = useRef("");
   const form = useRef<HTMLFormElement>(null);
   const doneBox = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setLocal(true);
     const on = (e: Event) => (plan.current = String((e as CustomEvent).detail ?? ""));
     window.addEventListener("karman:plan", on);
     return () => window.removeEventListener("karman:plan", on);
@@ -72,9 +90,23 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     if (done) doneBox.current?.focus();
   }, [done]);
 
+  const timeLabel = (d: Date, h: number) =>
+    local
+      ? centralInstant(d, h)
+          .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+          .toLowerCase()
+      : fmtTime(h);
+  const dayLabel = (d: Date, h: number) =>
+    local
+      ? centralInstant(d, h).toLocaleDateString([], {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })
+      : longDay(d);
   const check = (k: Field, v: string) =>
     setErrors((e) => ({ ...e, [k]: OK[k](v) ? "" : w.errors[k] }));
-  const when = hour === null ? "" : `${longDay(day)} · ${fmtTime(hour)} ${w.zone}`;
+  const when = hour === null ? "" : `${dayLabel(day, hour)} · ${timeLabel(day, hour)}`;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -96,6 +128,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       result = await submitLead("call", {
         ...data,
         slot: `${dayKey(day)} ${fmtTime(hour as number)}`,
+        zone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
         plan: plan.current,
       });
     } catch {
@@ -113,10 +146,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   if (done)
     return (
       <div className="cf cf-done" id="call" tabIndex={-1} ref={doneBox} role="status">
-        <svg viewBox="0 0 64 64" aria-hidden="true">
-          <circle cx="32" cy="32" r="29" />
-          <path d="M19 33.5 28 42.5 46 23.5" />
-        </svg>
+        <FoxCheer />
         <h3>{w.doneTitle}</h3>
         <p>{when}</p>
         <p>{w.doneText}</p>
@@ -162,6 +192,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
             setErrors((e) => ({ ...e, slot: "" }));
           }}
           w={w}
+          timeLabel={timeLabel}
         />
         {errors.slot ? <p className="cf-msg">{errors.slot}</p> : null}
       </div>
@@ -177,7 +208,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       />
       <div className="cf-end">
         <p className="cf-sum" aria-live="polite">
-          {when || w.zone}
+          {when}
         </p>
         {banner ? (
           <p className="cf-msg" role="alert">

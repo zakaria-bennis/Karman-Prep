@@ -56,6 +56,7 @@ export default function SlotPicker({
   onHour,
   w,
   tap,
+  timeLabel = (_d, h) => fmtTime(h),
 }: {
   days: Date[];
   kind: Hours;
@@ -66,6 +67,8 @@ export default function SlotPicker({
   w: SlotWords;
   /** While the demo plays: the thing being pressed, "day" or "hour". */
   tap?: "day" | "hour" | null;
+  /** How a time reads (the call form shows it in the visitor's own time zone). */
+  timeLabel?: (d: Date, h: number) => string;
 }) {
   const strip = useRef<HTMLDivElement>(null);
   const open = openHours(day, kind);
@@ -107,6 +110,7 @@ export default function SlotPicker({
       <div className="sp-days" role="radiogroup" aria-label={w.pickDay} ref={strip}>
         {days.map((d) => {
           const on = dayKey(d) === dayKey(day);
+          const n = openHours(d, kind).length;
           return (
             <button
               key={dayKey(d)}
@@ -114,12 +118,13 @@ export default function SlotPicker({
               role="radio"
               aria-checked={on}
               aria-label={longDay(d)}
-              disabled={!openHours(d, kind).length}
+              disabled={!n}
               data-tap={(on && tap === "day") || undefined}
               onClick={() => onDay(d)}
             >
               <span>{d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" })}</span>
               <b>{d.getUTCDate()}</b>
+              <i data-many={n > 3 || undefined} />
             </button>
           );
         })}
@@ -136,7 +141,7 @@ export default function SlotPicker({
               style={{ "--i": i } as React.CSSProperties}
               onClick={() => onHour(h)}
             >
-              {fmtTime(h)}
+              {timeLabel(day, h)}
             </button>
           ))
         ) : (

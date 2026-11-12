@@ -1,7 +1,7 @@
 // The Private tutoring page, in the home page's world. Four screens:
-//   1 One large line and the button
-//   2 Booking: what is flexible about it, beside a booking demo that plays once and can then be used
-//   3 The two packages; Private 20 is the recommended one and starts pinned
+//   1 One line, arriving word by word, and the button
+//   2 Booking: the student books their own sessions, beside a booking demo that plays once and can be used
+//   3 The two packages, the same size: Private 10 in black, Private 20 in blue with its badges
 //   4 The free-call form: a name, a number, an email and a time
 // Words: site-copy.ts sections 31, 32, 33 and 36; numbers: facts.ts.
 import { Arrow, Btn } from "@/components/site/parts";
@@ -29,13 +29,23 @@ export default function PrivateSections({ today }: { today: string }) {
       <section className="pg-hero pv-hero" id="top">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in">
-          <h1>{top.headline}</h1>
+          <h1 aria-label={top.headline}>
+            {top.headline.split(" ").map((word, i) => (
+              <span
+                key={i}
+                aria-hidden="true"
+                data-num={/\d/.test(word) || undefined}
+                style={{ "--i": i } as React.CSSProperties}
+              >
+                {word}{" "}
+              </span>
+            ))}
+          </h1>
           <div className="pg-close">
             <div className="go-row">
               <Btn label={top.button} href="#call" />
               <a className="more" href="#packages">
                 {top["second button"]}
-                <Arrow />
               </a>
             </div>
           </div>
@@ -46,7 +56,9 @@ export default function PrivateSections({ today }: { today: string }) {
         <div className="mist" aria-hidden="true" />
         <div className="pg-in pg-two rv">
           <div className="pg-say">
-            <h2 id="session-h">{book.headline}</h2>
+            <h2 id="session-h">
+              <span>{book.headline}</span>
+            </h2>
             <ul className="pv-points">
               {pairs(book.points).map(([k, v]) => (
                 <li key={k}>
@@ -56,10 +68,7 @@ export default function PrivateSections({ today }: { today: string }) {
               ))}
             </ul>
           </div>
-          <SessionDemo
-            today={today}
-            w={{ ...slot, confirm: book.confirm, booked: book.booked, again: book.again }}
-          />
+          <SessionDemo today={today} w={{ ...slot, confirm: book.confirm, booked: book.booked }} />
         </div>
       </section>
 
@@ -72,16 +81,17 @@ export default function PrivateSections({ today }: { today: string }) {
               name: F.small.name,
               price: F.small.price,
               each: F.small.each,
+              lead: packs["small lead"],
               bullets: list(packs["small bullets"]),
             }}
             large={{
               name: F.large.name,
               price: F.large.price,
               each: F.large.each,
+              lead: packs["large lead"],
               bullets: list(packs["large bullets"]),
+              badges: [packs.best, `${packs.save} ${F.saved}`, packs["no limit"]],
             }}
-            plus={packs.plus}
-            best={packs.best}
             per={packs.per}
             call={packs.call}
           />
@@ -103,7 +113,6 @@ export default function PrivateSections({ today }: { today: string }) {
               name: close["form name"],
               phone: close["form phone"],
               email: close["form email"],
-              zone: close["form zone"],
               button: close["form button"],
               sending: SITE["form sending"],
               doneTitle: close["form done title"],
