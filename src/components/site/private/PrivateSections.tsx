@@ -89,7 +89,6 @@ export default function PrivateSections({ today }: { today: string }) {
               lead: packs["large lead"],
               bullets: list(packs["large bullets"]),
               badge: `${packs.save} ${F.saved}`,
-              was: F.small.each,
             }}
             per={packs.per}
             call={packs.call}
