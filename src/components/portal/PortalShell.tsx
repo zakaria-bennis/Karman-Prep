@@ -30,6 +30,7 @@ import Greeting from "./Greeting";
 import { pickGreeting } from "./greetings";
 import { Flame, KarmanWordmark, PortalIcon, type PortalIconName } from "./icons";
 import PaintedBackdrop, { COLORS_KEY, PAINTED_IN_KEY } from "./PaintedBackdrop";
+import PortalFlight from "./PortalFlight";
 import ThemeMusic from "./ThemeMusic";
 
 export interface PortalNavItem {
@@ -167,14 +168,23 @@ export default function PortalShell({
   const [typeMs, setTypeMs] = useState<number | null>(null);
   const [tone, setTone] = useState<"light" | "dark" | null>(null);
   const [opening, setOpening] = useState(false);
+  /* The home page's look (the default) flies its landscape; ?look=painted keeps the painting. */
+  const [lit, setLit] = useState(false);
   const safety = useRef<ReturnType<typeof setTimeout> | null>(null);
   const serverPass = useServerPass();
 
   /* Decide the painting, and whether the opening plays, before the first client paint. */
   useIsoLayoutEffect(() => {
+    const root = document.documentElement;
+    if (root.getAttribute("data-kp-look") !== "painted") {
+      /* The landscape has no opening to wait for: the page shows at once. */
+      root.removeAttribute("data-paint-opening");
+      setLit(true);
+      setHeading(title ?? pickGreeting(new Date(), name, satDate ? new Date(satDate) : null));
+      return;
+    }
     const dev = process.env.NODE_ENV !== "production";
     const picked = choosePainting(new Date(), window.location.search, dev);
-    const root = document.documentElement;
     let willOpen = root.hasAttribute("data-paint-opening");
     if (!willOpen && picked.replay) {
       root.setAttribute("data-paint-opening", "");
@@ -205,8 +215,8 @@ export default function PortalShell({
 
   /* A new page title types in again. */
   useEffect(() => {
-    if (title && choice && !opening) setHeading(title);
-  }, [title, choice, opening]);
+    if (title && (choice || lit) && !opening) setHeading(title);
+  }, [title, choice, lit, opening]);
 
   function finishOpening(slide: boolean) {
     const root = document.documentElement;
@@ -260,7 +270,9 @@ export default function PortalShell({
       <a className="kp-skip" href="#portal-main">
         Skip to content
       </a>
-      {choice ? (
+      {lit ? (
+        <PortalFlight />
+      ) : choice ? (
         <PaintedBackdrop choice={choice} events={events} />
       ) : (
         <div className="kp-backdrop" aria-hidden="true" />
