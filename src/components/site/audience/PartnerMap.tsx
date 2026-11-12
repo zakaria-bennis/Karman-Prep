@@ -48,29 +48,31 @@ export default function PartnerMap() {
             <path className="pm-land" d={US_NATION} pathLength={1} />
             <path className="pm-borders" d={US_BORDERS} />
             {dots.map((d, i) => (
-              <g
-                key={i}
-                className="pm-dot"
-                data-hub={d.index === 0 ? "" : undefined}
-                data-named={d.named ? "" : undefined}
-                tabIndex={0}
-                style={{ "--w": d.wave, "--j": d.index } as React.CSSProperties}
-                transform={`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)})`}
-              >
-                <title>{d.label}</title>
-                {d.index === 0 && <circle className="pm-pulse" r={9} />}
-                <circle className="pm-core" r={d.index === 0 ? 6 : 4.5} />
-                <g className="pm-tip" aria-hidden="true">
-                  <rect
-                    x={-d.label.length * 4.2 - 12}
-                    y={-42}
-                    width={d.label.length * 8.4 + 24}
-                    height={28}
-                    rx={14}
-                  />
-                  <text y={-23} textAnchor="middle">
-                    {d.label}
-                  </text>
+              // The place sits on an outer group: the landing animation moves the inner one,
+              // and a CSS transform there would otherwise replace the translate.
+              <g key={i} transform={`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)})`}>
+                <g
+                  className="pm-dot"
+                  data-hub={d.index === 0 ? "" : undefined}
+                  data-named={d.named ? "" : undefined}
+                  tabIndex={0}
+                  style={{ "--w": d.wave, "--j": d.index } as React.CSSProperties}
+                >
+                  <title>{d.label}</title>
+                  {d.index === 0 && <circle className="pm-pulse" r={9} />}
+                  <circle className="pm-core" r={d.index === 0 ? 6 : 4.5} />
+                  <g className="pm-tip" aria-hidden="true">
+                    <rect
+                      x={-d.label.length * 4.2 - 12}
+                      y={-42}
+                      width={d.label.length * 8.4 + 24}
+                      height={28}
+                      rx={14}
+                    />
+                    <text y={-23} textAnchor="middle">
+                      {d.label}
+                    </text>
+                  </g>
                 </g>
               </g>
             ))}
