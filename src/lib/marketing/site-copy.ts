@@ -264,92 +264,43 @@ bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 31 Private: opening
-headline: A higher SAT score, on your calendar.
+headline: One tutor. Your hours. A score in writing.
 button: Schedule a free call
 second button: See the two packages
-facts: One tutor = Matched to your student, start to finish | Your hours = You pick every session from open times | In writing = ${UP_TO.private}, or half your money back
-bands title: What we promise, by starting score
-student title: For your student
-student: One tutor who knows how they think | Sessions on the questions they missed | Homework built from their own mistakes
-parent title: For you
-parent: A note after every session | A private text line to the tutor | The promise in writing before you pay
-kicker headline: One tutor. Your hours. A score in writing.
-note: ${CALL_MINUTES} minutes with you, your student and ${FOUNDER.firstName}. No charge, no pressure.
-ask: Their latest SAT score
-promise: points with ${P20.name}, or half your money back.
-high title: It goes up
-high: From ${G.noGuaranteeFrom}, we promise the score rises. If it doesn't, your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free.
 
-## 32 Private: a session
-headline: You pick the hour. We bring the plan.
-steps: Before = Your student sits a full practice test every week. Their tutor reads it before you meet. | During = Sixty minutes, one student, on the questions they missed and why. Every session is recorded. | After = You get a note the same day, and a private text line to the tutor for anything in between.
-days: Mon | Tue | Wed | Thu | Fri | Sat | Sun
-times: 4:00 | 5:00 | 6:00 | 7:00
-open: Open
-yours: Yours
-picked: Thursday, 6:00 pm. Booked.
-move: Need to move it? Give us ${G.private.cancelHours} hours.
+## 32 Private: booking
+headline: Your student's sessions, around your week.
+points: Book any open hour = Evenings, weekends, the hour after practice. You choose every session yourself. | Move it yourself = Plans change. Move any session up to ${G.private.cancelHours} hours before it starts.
 pick day: Pick a day
 pick time: Pick a time
-zone: Central Time
-length: 60 minutes, one-on-one
-with: with Zeeshawn
+earlier: Earlier days
+later: Later days
 confirm: Confirm session
-booked: Booked
-taken: Taken
+booked: You're booked.
+again: Book another
 none: No open times this day
 
 ## 33 Private: packages
 headline: Two ways to work one-on-one.
-small package: ${P10.name} = ${P10.hours} sessions, ${$(P10.price)}
-large package: ${P20.name} = ${P20.hours} sessions, ${$(P20.price)}
-small rows: Pace = One session a week | Promise = ${UP_TO.cohort} | If we miss = Half back, or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions
-large rows: Pace = As many a week as you want | Promise = ${UP_TO.private} | If we miss = Half back, or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions | More sessions = ${usd(G.private.extraSessionPrice)} each, as many as you need
-best: Most families pick this
-both: A full practice test every week | Every session recorded | A private text line to the tutor | Everything in ${PRO.name}
-cohort: Prefer a small class? The ${w(MP.weeks)}-week cohort is ${$(MP.price)}.
-cohort link: See the SAT Program
-call: Schedule a free call
-per: a session
-sessions: sessions
-single: Bought one at a time, twenty sessions cost more.
-save: You keep
+small package: ${P10.name} = ${$(P10.price)}
+large package: ${P20.name} = ${$(P20.price)}
+small bullets: ${W(P10.hours)} 60-minute sessions, one a week | One tutor, matched to your student | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | A note to you after every session | A private text line to the tutor | Everything in ${PRO.name} | ${UP_TO.cohort}, or half back or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions
 plus: Everything in ${P10.name}, plus
-plus rows: Twice the sessions | No weekly limit | The higher promise: ${UP_TO.private} | Ten free sessions if we miss, not five
-cohort name: The ${w(MP.weeks)}-week cohort
-cohort rows: Pace = Two live classes a week, in a class of ${w(CLASS)} | Promise = ${UP_TO.cohort} | If we miss = Money back, or the next cohort free
-choose: Choose a package
-need: How many points does your student need?
-fit small: ${P10.name} fits: one session a week for ten weeks.
-fit large: ${P20.name} fits: more sessions and the higher promise.
-risk: You pay only after the free call, and the promise is in writing before you do.
-table: Sessions | Sessions a week | Promised gain | If we miss | Extra sessions
-
-## 35 Private: the promise
-headline: A promise with two sides.
-ours title: Our side
-ours: One tutor, matched to your student | Sessions at the hours you choose | A full practice test every week | Homework built from their own mistakes | A note to you after every session | A private text line to the tutor
-terms title: Your student's side of it
-terms: Attend every session | Take the practice test each week | Do ${G.practicePct}% of the weekly practice | Sit the SAT within ${G.private.satWithinDays} days of the last session
-grace: Moving a session with ${G.private.cancelHours} hours' notice never counts against the promise.
+large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss, not ${w(PRIVATE_BONUS[P10.id].freeSessions)} | More sessions any time, ${usd(G.private.extraSessionPrice)} each
+best: Most families pick this
+per: a session
+call: Schedule a free call
 link: The guarantee, in full
 
 ## 36 Private: close
-calm: Twenty minutes. No charge. No pressure.
-next title: What happens next
-next: You pick a time = Any open slot this week. | We talk = You, your student and ${FOUNDER.firstName}: the goal, the test date, the hours you have. | You decide = We tell you which package fits, or that neither does.
-doubts: Is the call a sales pitch? = No. If private tutoring isn't right, we say so. | Do we pay on the call? = No. You pay only if you choose a package afterwards. | What should we bring? = Their latest SAT score, and the date they plan to test.
-assure: No card needed | We reply within a day | Cancel the call any time
 headline: Schedule a free call.
-text: You, your student and ${FOUNDER.firstName}, Karman's founder, on one video call. We talk about the target, the test date and how much time your student has each week. Then we tell you honestly whether private tutoring fits, how many hours make sense, and when a tutor is free.
-form email: Your email
-form latest: Latest SAT score
-form latest help: Leave it empty if they haven't taken one yet.
-form date: When is their SAT?
-form date options: ${SAT_DATES.join(" | ")} | Another date | Not sure yet
-form button: Request the call
-form done title: Request received.
-form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
+form name: Your name
+form phone: Phone
+form email: Email
+form zone: Central Time
+form button: Schedule my call
+form done title: You're on the calendar.
+form done text: ${FOUNDER.firstName} will text you to confirm.
 
 ## 41 Test: opening
 headline: A full-length practice SAT, free, whenever you're ready.
@@ -575,6 +526,9 @@ form error score: SAT and PSAT scores run from 320 to 1600, in steps of 10.
 form error target: Add the score they're aiming for, between 400 and 1600.
 form error email: That email looks incomplete. It needs an @ and a domain, like name@gmail.com.
 form error name: Add your student's first name, so we know whose test it is.
+form error your name: Add your name, so we know who to ask for.
+form error phone: Add a phone number we can reach you on, with the area code.
+form error slot: Pick a day and a time for the call.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again

@@ -7,11 +7,19 @@
 import { z } from "zod";
 import { FROM, resend } from "@/lib/integrations/resend/client";
 import { addToWaitlist } from "@/lib/integrations/resend/emails";
-import { okEmail, okScore, SCORE_FLOOR, type LeadForm } from "@/lib/marketing/lead-rules";
+import {
+  okEmail,
+  okPhone,
+  okScore,
+  okSlot,
+  SCORE_FLOOR,
+  type LeadForm,
+} from "@/lib/marketing/lead-rules";
 import {
   FREE_PRACTICE_TEST,
   MARCH_PROGRAM,
   NEXT_PROGRAMS,
+  PRIVATE_PACKAGES,
   type LeadSource,
 } from "@/lib/marketing/offer";
 import { list, section, SITE } from "@/lib/marketing/site-copy";
@@ -40,24 +48,34 @@ const target = z
   .trim()
   .max(4)
   .refine((v) => okScore(v, SCORE_FLOOR.target), { message: SITE["form error target"] });
+/** A name on one line: control and invisible characters are dropped before the length checks. */
+const oneLine = (message: string) =>
+  z
+    .string()
+    .transform((v) =>
+      v
+        .replace(/[\p{C}]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .pipe(z.string().min(1, { message }).max(60));
 /** A hidden field people never see; anything in it means a bot filled the form. */
 const trap = z.literal("").optional();
 
 const SCHEMAS = {
   apply: z.object({ email, latest, target, date: z.enum(options(25, "date")), company: trap }),
-  call: z.object({ email, latest, date: z.enum(options(36, "date")), company: trap }),
+  // the free call: who to ask for, the number to text, and the time they picked
+  call: z.object({
+    email,
+    name: oneLine(SITE["form error your name"]),
+    phone: z.string().trim().max(24).refine(okPhone, { message: SITE["form error phone"] }),
+    slot: z.string().refine(okSlot, { message: SITE["form error slot"] }),
+    plan: z.enum(["", ...PRIVATE_PACKAGES.map((p) => p.name)]).optional(),
+    company: trap,
+  }),
   seat: z.object({
     email,
-    // a first name on one line: control and invisible characters are dropped before the length checks
-    name: z
-      .string()
-      .transform((v) =>
-        v
-          .replace(/[\p{C}]/gu, " ")
-          .replace(/\s+/g, " ")
-          .trim()
-      )
-      .pipe(z.string().min(1, { message: SITE["form error name"] }).max(60)),
+    name: oneLine(SITE["form error name"]),
     grade: z.enum(options(42, "grade")),
     date: z.enum(options(42, "date")),
     company: trap,
@@ -104,7 +122,7 @@ export async function submitLead(
         ? "private"
         : COHORTS[data.date ?? ""];
   const details = Object.fromEntries(
-    (["latest", "target", "date", "grade"] as const)
+    (["latest", "target", "date", "grade", "phone", "slot", "plan"] as const)
       .filter((k) => data[k])
       .map((k) => [
         k === "date" ? (form === "apply" ? "startDate" : "satDate") : k,
@@ -173,7 +191,7 @@ async function notifyAdmin(
     only ? "NOT saved in the database: this email is the only record of this lead. Keep it." : "",
     `Email: ${data.email}`,
     `Source: ${source}`,
-    data.name ? `Student's first name: ${data.name}` : "",
+    data.name ? `${form === "call" ? "Name" : "Student's first name"}: ${data.name}` : "",
     ...Object.entries(details).map(([k, v]) => `${k}: ${v}`),
   ].filter(Boolean);
   const { error } = await resend.emails.send({

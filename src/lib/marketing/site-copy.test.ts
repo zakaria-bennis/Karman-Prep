@@ -78,7 +78,7 @@ describe("site copy", () => {
       /Self-paced|self-paced|\$29\b|\$49\b|or a 1450|1,295|1,950|3,600|\$195/
     );
     expect(section(33)["small package"]).toContain(formatPrice(PRIVATE_PACKAGES[0].price));
-    expect(section(33)["small rows"]).toContain(`Up to +${guaranteeMax("cohort")} points`);
+    expect(section(33)["small bullets"]).toContain(`Up to +${guaranteeMax("cohort")} points`);
   });
 
   it("puts every tutoring result next to where it came from", () => {
