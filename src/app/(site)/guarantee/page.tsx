@@ -11,7 +11,7 @@ import { pairs, section } from "@/lib/marketing/site-copy";
 export const metadata = pageMeta(
   ROUTES.guarantee,
   "Karman Prep: The guarantee",
-  `The Karman guarantee in full. The target depends on the starting score: up to +${guaranteeMax("private")} points on Private 20, up to +${guaranteeMax("cohort")} on the cohort and Private 10, and a rising score from ${G.noGuaranteeFrom}. On the cohort: half or all of your money back, or the next cohort free. On Private 10: half back. On Private 20: free extra hours, then half back. Every rule is on the page.`
+  `The Karman guarantee in full. The target depends on the starting score: up to +${guaranteeMax("private")} points on Private 20, up to +${guaranteeMax("cohort")} on the cohort and Private 10, and a rising score from ${G.noGuaranteeFrom}. On the cohort: half or all of your money back, or the next cohort free. On private tutoring: half back, or ${G.private.packages["private-10"].freeSessions} free sessions on Private 10 and ${G.private.packages["private-20"].freeSessions} on Private 20. Every rule is on the page.`
 );
 
 export default function GuaranteePage() {

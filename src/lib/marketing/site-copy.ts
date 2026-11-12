@@ -152,7 +152,7 @@ we do title: Our side
 we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | A progress report for parents every day
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT your cohort ends on
-covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back on ${PRIVATE_PACKAGES[0].name}; free hours, then half back on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
+covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[0].name}; half back or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
 claim: Within ${G.claimDays} days of the test, email us the College Board score report. One email. Nothing is taken out of a refund.
 link: The guarantee, with worked examples
 
@@ -397,7 +397,7 @@ list: A "good faith" clause we get to judge | A quota on answering polls in clas
 
 ## 54 Guarantee: private and exclusions
 headline: Private tutoring and what isn't covered.
-rows: ${P10.name} = ${UP_TO.cohort}, set by the starting score. If not: half the price back (${usd(P10.price / 2)}) | ${P20.name} = ${UP_TO.private}, set by the starting score. If not: up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back if the next SAT still falls short | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
+rows: ${P10.name} = ${UP_TO.cohort}, set by the starting score. One session a week. If we miss: half the price back (${usd(P10.price / 2)}) or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions. You choose | ${P20.name} = ${UP_TO.private}, set by the starting score. As many sessions a week as you want. If we miss: half the price back (${usd(P20.price / 2)}) or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions. You choose | Your side on private tutoring = Attend every session. Take the full practice test each week. Do ${G.practicePct}% of the weekly practice. Sit the SAT within ${G.private.satWithinDays} days of the last session. Moving a session with ${G.private.cancelHours} hours' notice never counts against the promise | ${PP.name} and ${PRO.name} = No guarantee. No tutor teaches your student every week | Free practice test = No guarantee. It's free
 
 ## 55 Guarantee: claim
 headline: Claiming takes one email.

@@ -75,10 +75,12 @@ export default function RefundsPage() {
             <p>
               {P10.name} ({P10.hours} hours, {$(P10.price)}) and {P20.name} ({P20.hours} hours,{" "}
               {$(P20.price)}) are paid before the first session. Both carry the guarantee: if every
-              requirement is met and the SAT misses the target, {P10.name} gets half the price back
-              ({halfOf(P10.price)}), and {P20.name} gets up to {bonus[P20.id].bonusHours} more hours
-              free, then half the price back if the next SAT still falls short. A session cancelled
-              with less than {G.private.cancelHours} hours&apos; notice counts as a used hour.
+              requirement is met and the SAT misses the target, the family chooses: on {P10.name},
+              half the price back ({halfOf(P10.price)}) or {bonus[P10.id].freeSessions} free
+              sessions; on {P20.name}, half the price back ({halfOf(P20.price)}) or{" "}
+              {bonus[P20.id].freeSessions} free sessions. A session cancelled with less than{" "}
+              {G.private.cancelHours} hours&apos; notice counts as a used session. A session beyond
+              the package is {halfOf(G.private.extraSessionPrice * 2)}.
             </p>
           </section>
 
