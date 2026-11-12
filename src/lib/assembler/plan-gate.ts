@@ -4,6 +4,7 @@
  * shapes its answers for the assembler.
  */
 import {
+  CORE_MAX_DIFFICULTY,
   canAccess,
   difficultyRangeFor,
   getPlan,
@@ -13,6 +14,9 @@ import {
   type PlanAccess,
   type PlanUsage,
 } from "@/lib/plans";
+import { FREE_QUESTIONS_MESSAGE, PlanLimitError } from "./plan-limit";
+
+export { PlanLimitError } from "./plan-limit";
 
 export type QuizAccess = {
   /** Highest difficulty the plan opens (5 for core plans, 7 with the mastery pool). */
@@ -48,4 +52,26 @@ export async function loadQuizAccess(clerkId: string): Promise<QuizAccess & { li
   return { ...quizAccessFor(plan, usage), limited };
 }
 
-export class PlanLimitError extends Error {}
+/**
+ * The one check every answer-saving path runs before it saves a new answer (skill practice,
+ * catalog practice, quiz runs, the Daily Challenge). Throws PlanLimitError once Free's 100
+ * questions are used; unlimited plans pass without counting.
+ */
+export async function assertQuestionsLeft(clerkId: string): Promise<QuizAccess> {
+  const access = await loadQuizAccess(clerkId);
+  if (access.questionsLeft === 0) throw new PlanLimitError(FREE_QUESTIONS_MESSAGE);
+  return access;
+}
+
+/**
+ * Highest difficulty a viewer's plan opens, for the Daily Challenge. Signed-out visitors and
+ * unreadable plans get the core pool, as Free does.
+ */
+export async function maxDifficultyFor(clerkId: string | null): Promise<number> {
+  if (!clerkId) return CORE_MAX_DIFFICULTY;
+  const plan = await getPlan(clerkId).catch((error: unknown) => {
+    console.error("[quiz access] plan could not be read", error);
+    return null;
+  });
+  return plan ? difficultyRangeFor(plan).maximumDifficulty : CORE_MAX_DIFFICULTY;
+}

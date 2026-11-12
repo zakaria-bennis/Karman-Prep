@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { actionReviewDailyAnswer } from "@/app/learn/daily-challenge-actions";
+import { FreeLimitPrompt } from "@/components/quiz-flows/FreeLimitPrompt";
+import { isPlanLimit } from "@/lib/assembler/plan-limit";
 import type { DailySlot } from "@/lib/daily-challenge/server";
 import type { DailySubject } from "@/lib/daily-challenge/selection";
 import type { StudentQuizReview } from "@/types/quiz";
@@ -99,6 +101,7 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
     null
   );
   const [error, setError] = useState<string | null>(null);
+  const [limit, setLimit] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [student, setStudent] = useState<{
     hasTutor: boolean;
@@ -113,11 +116,13 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
   }
 
   async function submitAnswer(answer: string) {
-    if (pending || review || !answer.trim()) return;
+    if (pending || review || limit || !answer.trim()) return;
     setPending(true);
     setError(null);
     try {
-      setReview(await actionReviewDailyAnswer({ subject, day, questionId: q.id, answer }));
+      const result = await actionReviewDailyAnswer({ subject, day, questionId: q.id, answer });
+      if (isPlanLimit(result)) setLimit(result.message);
+      else setReview(result);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "The answer could not be checked. Try again."
@@ -174,7 +179,9 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
             actionReportProblem({ questionId: id, nodeId: q.node_id ?? null, note })
           }
           feedback={
-            error ? (
+            limit ? (
+              <FreeLimitPrompt text={limit} />
+            ) : error ? (
               <p role="alert" className="mt-4 text-sm">
                 {error}
               </p>

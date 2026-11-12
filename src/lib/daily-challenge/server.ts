@@ -18,20 +18,33 @@ export type DailySlot =
   | { state: "empty" }
   | { state: "unavailable" };
 
+/** The Challenge's hardest band starts here; the plan sets the top (src/lib/plans). */
+export const CHALLENGE_MIN_DIFFICULTY = 5;
+
 /**
  * Today's hard question for a subject, drawn from the live catalog pools.
- * Skills are tried in today's rotating order; the first with an eligible difficulty 5–7
- * question supplies it. Eligibility is the same admission check practice uses.
+ * Skills are tried in today's rotating order; the first with an eligible question from
+ * difficulty 5 up to the plan's top (5 for core plans, 7 with the mastery pool) supplies it.
+ * Eligibility is the same admission check practice uses.
  */
 async function loadDailyQuestion(
   subject: DailySubject,
-  day: string
+  day: string,
+  maxDifficulty: number
 ): Promise<{ question: QuizQuestionWithChoices; skillId: string } | null> {
+  const minimumDifficulty = Math.min(CHALLENGE_MIN_DIFFICULTY, maxDifficulty);
   for (const skillId of rankDailySkills(CATALOG_SKILLS, subject, day)) {
     const pool = (
-      await fetchCatalogQuestionPool({ skillId, minimumDifficulty: 5, maximumDifficulty: 7 })
+      await fetchCatalogQuestionPool({
+        skillId,
+        minimumDifficulty,
+        maximumDifficulty: maxDifficulty,
+      })
     ).filter(
-      (row) => row.subject === subject && row.difficulty_level >= 5 && row.difficulty_level <= 7
+      (row) =>
+        row.subject === subject &&
+        row.difficulty_level >= minimumDifficulty &&
+        row.difficulty_level <= maxDifficulty
     );
     if (!pool.length) continue;
     const admitted = admitCatalogPool(
@@ -52,10 +65,15 @@ async function loadDailyQuestion(
   return null;
 }
 
-export async function loadDailySlot(subject: DailySubject, asOf = new Date()): Promise<DailySlot> {
+/** `maxDifficulty` is the viewer's plan top (`maxDifficultyFor` in the assembler's plan gate). */
+export async function loadDailySlot(
+  subject: DailySubject,
+  maxDifficulty: number,
+  asOf = new Date()
+): Promise<DailySlot> {
   const day = utcDayKey(asOf);
   try {
-    const found = await loadDailyQuestion(subject, day);
+    const found = await loadDailyQuestion(subject, day, maxDifficulty);
     if (!found) return { state: "empty" };
     return {
       state: "ready",
@@ -73,6 +91,7 @@ export async function reviewDailyAnswer(
   day: string,
   questionId: string,
   answer: string,
+  maxDifficulty: number,
   /** Signed-in students earn points; the public lane passes nothing and keeps no record. */
   reward?: {
     clerkId: string;
@@ -87,7 +106,7 @@ export async function reviewDailyAnswer(
 ): Promise<StudentQuizReview> {
   if (day !== utcDayKey(new Date()))
     throw new Error("A new daily question is available. Refresh the page.");
-  const found = await loadDailyQuestion(subject, day);
+  const found = await loadDailyQuestion(subject, day, maxDifficulty);
   if (!found || found.question.id !== questionId) {
     throw new Error("This daily question is no longer available. Refresh the page.");
   }

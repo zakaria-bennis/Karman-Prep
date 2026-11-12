@@ -20,6 +20,7 @@ import QuizResults from "./QuizResults";
 import { VideoPromptBanner } from "./quiz/VideoPromptBanner";
 import { QuizShell } from "./quiz-shell/QuizShell";
 import { bandRose } from "./quiz-shell/LevelUpCard";
+import { FreeLimitPrompt } from "@/components/quiz-flows/FreeLimitPrompt";
 
 interface Props {
   node: MappedNode;
@@ -38,6 +39,7 @@ export default function QuizEngine({
 }: Props) {
   const {
     state,
+    planLimit,
     startQuiz,
     selectAnswer,
     submitAnswer,
@@ -151,6 +153,7 @@ export default function QuizEngine({
               : null
           }
           onLevelUpDone={() => setLevelUpSeen(true)}
+          feedback={planLimit ? <FreeLimitPrompt text={planLimit} /> : undefined}
         />
       )}
 

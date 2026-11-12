@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ load: vi.fn() }));
 vi.mock("@/lib/daily-challenge/server", () => ({ loadDailySlot: m.load }));
+vi.mock("@/lib/auth/dev-auth", () => ({ safeAuth: async () => ({ userId: null }) }));
+vi.mock("@/lib/assembler/plan-gate", () => ({ maxDifficultyFor: async () => 5 }));
 vi.mock("@/components/learn/DailyChallenge", () => ({
   default: () => <div>Daily question slots</div>,
 }));
@@ -23,7 +25,8 @@ it("loads both daily slots using one day and mounts the committed features", asy
   expect(m.load).toHaveBeenCalledTimes(2);
   expect(m.load.mock.calls[0][0]).toBe("math");
   expect(m.load.mock.calls[1][0]).toBe("reading");
-  expect(m.load.mock.calls[0][1]).toBe(m.load.mock.calls[1][1]);
+  expect(m.load.mock.calls[0][1]).toBe(5);
+  expect(m.load.mock.calls[0][2]).toBe(m.load.mock.calls[1][2]);
   expect(screen.getByRole("heading", { level: 1, name: "Daily practice" })).toBeInTheDocument();
   for (const text of [
     "Daily question slots",

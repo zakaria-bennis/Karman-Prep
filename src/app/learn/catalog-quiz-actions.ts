@@ -1,6 +1,8 @@
 "use server";
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { assertQuestionsLeft } from "@/lib/assembler/plan-gate";
+import { withPlanLimit } from "@/lib/assembler/plan-limit";
 import { awardForAnswer } from "@/lib/quiz/points";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { fetchCatalogQuestionPool } from "@/lib/supabase/queries/catalog-question-pool";
@@ -44,7 +46,11 @@ export async function actionSubmitCatalogPractice(input: {
   answer: string;
   responseTimeSeconds: number;
 }) {
-  return service.submit(input, await studentId());
+  return withPlanLimit(async () => {
+    const id = await studentId();
+    await assertQuestionsLeft(id);
+    return service.submit(input, id);
+  });
 }
 
 export async function actionCompleteCatalogPractice(sessionId: string) {

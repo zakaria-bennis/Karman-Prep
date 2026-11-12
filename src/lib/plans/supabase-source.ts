@@ -209,6 +209,19 @@ export function supabasePlanDataSource(
           for (const answer of answers) questionIds.add(answer.question_id);
         }
       }
+      // The Daily Challenge keeps one answer per subject a day, with no parent row.
+      const challenge = await readAll(
+        answerRow,
+        (from, to) =>
+          db
+            .from("daily_challenge_answers")
+            .select("question_id")
+            .eq("student_id", userId)
+            .order("day", { ascending: true })
+            .range(from, to),
+        "Answered questions"
+      );
+      for (const answer of challenge) questionIds.add(answer.question_id);
       return questionIds.size;
     },
     // A full-length test counts once it is finished (quiz_runs.completed_at).
