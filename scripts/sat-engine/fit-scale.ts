@@ -95,7 +95,7 @@ function interpolate(knots: { theta: number[]; scale: number[] }, x: number) {
 const round10 = (x: number) => Math.max(200, Math.min(800, Math.round(x / 10) * 10));
 
 /** Leave one test out: predict its table from the others and compare to the official one. */
-function leaveOneOut(tables: (Table & { tests: number[] })[], section: Section) {
+export function leaveOneOut(tables: (Table & { tests: number[] })[], section: Section) {
   return tables.map((held) => {
     const knots = fitKnots(
       tables.filter((t) => t !== held),

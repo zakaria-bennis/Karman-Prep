@@ -39,7 +39,7 @@
    "officialRangeWidth": 17.6,
    "meanAbsError": 16.9,
    "maxAbsError": 30,
-   "shareInsideOfficialRange": 0.328
+   "shareInsideOfficialRange": 0.313
   },
   {
    "tests": [
@@ -48,14 +48,14 @@
    "officialRangeWidth": 40,
    "meanAbsError": 10.7,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 0.925
+   "shareInsideOfficialRange": 0.91
   },
   {
    "tests": [
     6
    ],
    "officialRangeWidth": 40.1,
-   "meanAbsError": 26.8,
+   "meanAbsError": 26.3,
    "maxAbsError": 50,
    "shareInsideOfficialRange": 0.373
   },
@@ -64,9 +64,9 @@
     7
    ],
    "officialRangeWidth": 43.3,
-   "meanAbsError": 9.4,
+   "meanAbsError": 9.6,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 1
+   "shareInsideOfficialRange": 0.985
   },
   {
    "tests": [
@@ -75,34 +75,34 @@
    "officialRangeWidth": 42.5,
    "meanAbsError": 4,
    "maxAbsError": 10,
-   "shareInsideOfficialRange": 1
+   "shareInsideOfficialRange": 0.985
   },
   {
    "tests": [
     9
    ],
    "officialRangeWidth": 43.3,
-   "meanAbsError": 10.3,
+   "meanAbsError": 10.6,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 1
+   "shareInsideOfficialRange": 0.985
   },
   {
    "tests": [
     10
    ],
    "officialRangeWidth": 42.2,
-   "meanAbsError": 12.2,
+   "meanAbsError": 12.6,
    "maxAbsError": 30,
-   "shareInsideOfficialRange": 0.985
+   "shareInsideOfficialRange": 0.955
   },
   {
    "tests": [
     11
    ],
    "officialRangeWidth": 40.7,
-   "meanAbsError": 11.7,
+   "meanAbsError": 12.2,
    "maxAbsError": 30,
-   "shareInsideOfficialRange": 0.94
+   "shareInsideOfficialRange": 0.91
   }
  ],
  "math": [
@@ -114,70 +114,70 @@
     4
    ],
    "officialRangeWidth": 25.5,
-   "meanAbsError": 18.4,
-   "maxAbsError": 45,
-   "shareInsideOfficialRange": 0.491
+   "meanAbsError": 18,
+   "maxAbsError": 55,
+   "shareInsideOfficialRange": 0.509
   },
   {
    "tests": [
     5
    ],
    "officialRangeWidth": 44.2,
-   "meanAbsError": 6.1,
+   "meanAbsError": 5.7,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 0.927
+   "shareInsideOfficialRange": 0.964
   },
   {
    "tests": [
     6
    ],
    "officialRangeWidth": 42.7,
-   "meanAbsError": 7.7,
+   "meanAbsError": 7.2,
    "maxAbsError": 35,
-   "shareInsideOfficialRange": 0.855
+   "shareInsideOfficialRange": 0.873
   },
   {
    "tests": [
     7
    ],
    "officialRangeWidth": 46.2,
-   "meanAbsError": 6.5,
+   "meanAbsError": 7.1,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 0.982
+   "shareInsideOfficialRange": 1
   },
   {
    "tests": [
     8
    ],
    "officialRangeWidth": 47.8,
-   "meanAbsError": 4.3,
-   "maxAbsError": 15,
-   "shareInsideOfficialRange": 0.982
+   "meanAbsError": 4.6,
+   "maxAbsError": 20,
+   "shareInsideOfficialRange": 1
   },
   {
    "tests": [
     9
    ],
    "officialRangeWidth": 42.2,
-   "meanAbsError": 7.3,
+   "meanAbsError": 7.5,
    "maxAbsError": 20,
-   "shareInsideOfficialRange": 0.982
+   "shareInsideOfficialRange": 1
   },
   {
    "tests": [
     10
    ],
    "officialRangeWidth": 42.7,
-   "meanAbsError": 3,
+   "meanAbsError": 3.4,
    "maxAbsError": 10,
-   "shareInsideOfficialRange": 0.982
+   "shareInsideOfficialRange": 1
   },
   {
    "tests": [
     11
    ],
    "officialRangeWidth": 44.2,
-   "meanAbsError": 8.6,
+   "meanAbsError": 9,
    "maxAbsError": 30,
    "shareInsideOfficialRange": 0.945
   }

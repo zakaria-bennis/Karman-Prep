@@ -17,10 +17,11 @@ import type { Section } from "./params";
 import { thetaForScale } from "./scale";
 
 /**
- * Section score of the median student, where the routing cut sits. Assumption: the middle of the
- * 200-800 scale. Replace with the median of real test takers once known.
+ * Section score of the median student, where the routing cut sits. Math: 500, the median of
+ * recent test takers. Reading and Writing: 510, between that median (about 520) and the cut that
+ * published Bluebook results show (19 of 27 right in Module 1 routes harder, 18 routes easier).
  */
-export const ROUTING_MEDIAN_SCORE: Record<Section, number> = { reading: 500, math: 500 };
+export const ROUTING_MEDIAN_SCORE: Record<Section, number> = { reading: 510, math: 500 };
 
 export const medianCut = (section: Section) =>
   thetaForScale(section, ROUTING_MEDIAN_SCORE[section]);

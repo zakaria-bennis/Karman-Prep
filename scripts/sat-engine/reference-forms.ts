@@ -32,8 +32,19 @@ function itemsFromMix(section: Section, mix: number[], count: number, shift = 0)
   return out;
 }
 
+/**
+ * How much harder (in theta) the paper practice tests are than the release-exam blueprint mix
+ * suggests. Tuned by tune-bluebook.ts so that the scale fitted on the paper tables also matches
+ * published Bluebook adaptive results.
+ */
+export const PAPER_FORM_SHIFT: Record<Section, number> = { reading: 0.3, math: 0.1 };
+
 /** A linear (non-adaptive) form: Module 1 mix plus both Module 2 mixes, like the paper tests. */
-export function linearForm(section: Section, count: number, shift = 0): ItemParams[] {
+export function linearForm(
+  section: Section,
+  count: number,
+  shift = PAPER_FORM_SHIFT[section]
+): ItemParams[] {
   const kinds: ModuleKind[] = ["module1", "harder", "easier"];
   const mixes = kinds.map((k) => difficultyMix(section, k, "standard"));
   const avg = mixes[0].map((_, i) => 0.5 * mixes[0][i] + 0.25 * mixes[1][i] + 0.25 * mixes[2][i]);
