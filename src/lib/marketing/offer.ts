@@ -387,12 +387,17 @@ export const GUARANTEE = {
   claimEmail: "guarantee@karmanprep.com",
   /** Private 10 and Private 20: the same targets, made good with free hours, then money. */
   private: {
+    /** Founder, 2026-11-12: a missed promise is half the price back or `freeSessions` free sessions, the
+     *  family's choice; a full practice test every week; Private 10 is one session a week at most, Private 20
+     *  has no weekly cap; a session past the package is `extraSessionPrice`. The older fields below are still
+     *  read by the Guarantee and Terms pages and are due the same update. */
+    extraSessionPrice: 149.5,
     cancelHours: 24,
     satWithinDays: 30,
     packages: {
       /** Founder, 2026-11-08: half the price back, no extra hours. */
-      "private-10": { bonusHours: 0, fullLengthTests: 2 },
-      "private-20": { bonusHours: 6, fullLengthTests: 4 },
+      "private-10": { bonusHours: 0, fullLengthTests: 2, freeSessions: 5, weeklyCap: 1 },
+      "private-20": { bonusHours: 6, fullLengthTests: 4, freeSessions: 10, weeklyCap: null },
     },
     requirements: [
       "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",

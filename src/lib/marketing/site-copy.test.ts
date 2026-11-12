@@ -78,12 +78,11 @@ describe("site copy", () => {
       /Self-paced|self-paced|\$29\b|\$49\b|or a 1450|1,295|1,950|3,600|\$195/
     );
     expect(section(33)["small package"]).toContain(formatPrice(PRIVATE_PACKAGES[0].price));
-    expect(section(33)["small package"]).toContain("guarantee");
+    expect(section(33)["small rows"]).toContain(`Up to +${guaranteeMax("cohort")} points`);
   });
 
   it("puts every tutoring result next to where it came from", () => {
     expect(section(63).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
-    expect(section(34).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
   });
 
   it("reads sections, the site block and pairs", () => {

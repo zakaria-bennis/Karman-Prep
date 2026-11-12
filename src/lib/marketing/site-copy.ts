@@ -264,35 +264,50 @@ bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 31 Private: opening
-headline: One student, one tutor, every mistake worked through.
-text: Weekly 60-minute sessions. Each one starts from your student's latest full-length test and goes through every mistake. ${P10.hours} hours for ${$(P10.price)}, or ${P20.hours} hours for ${$(P20.price)}, both with the guarantee.
-button: Book a call with ${FOUNDER.firstName}
-button note: ${CALL_MINUTES} minutes with you, your student and ${FOUNDER.firstName}. Every private student starts here.
+headline: A higher SAT score, on your calendar.
+button: Schedule a free call
+second button: See the two packages
+note: ${CALL_MINUTES} minutes with you, your student and ${FOUNDER.firstName}. No charge, no pressure.
+ask: Their latest SAT score
+promise: points with ${P20.name}, or half your money back.
+high title: It goes up
+high: From ${G.noGuaranteeFrom}, we promise the score rises. If it doesn't, your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free.
 
 ## 32 Private: a session
-headline: Every session starts with a test, not a worksheet.
-rows: Before = Your student takes a full-length test, or we pick the skill holding them back | During = 60 minutes on every question they missed: what happened and how to fix it | After = A note to you: what you worked on, what improved and what comes next
+headline: You pick the hour. We bring the plan.
+steps: Before = Your student sits a full practice test every week. Their tutor reads it before you meet. | During = Sixty minutes, one student, on the questions they missed and why. Every session is recorded. | After = You get a note the same day, and a private text line to the tutor for anything in between.
+days: Mon | Tue | Wed | Thu | Fri | Sat | Sun
+times: 4:00 | 5:00 | 6:00 | 7:00
+open: Open
+yours: Yours
+picked: Thursday, 6:00 pm. Booked.
+move: Need to move it? Give us ${G.private.cancelHours} hours.
 
 ## 33 Private: packages
-headline: Two packages, both with the guarantee.
-small package: ${P10.name} = ${P10.hours} hours, ${$(P10.price)}. For a focused push on one section. Comes with the guarantee: ${UP_TO.cohort.toLowerCase()}, set by the starting score. If not, half the price back (${usd(P10.price / 2)}).
-large package: ${P20.name} = ${P20.hours} hours, ${$(P20.price)}. Comes with the guarantee: ${UP_TO.private.toLowerCase()}, set by the starting score. If not, up to ${PRIVATE_BONUS[P20.id].bonusHours} more hours free, then half the price back.
-includes: Everything in ${PRO.name}: every question, with video explanations as they're recorded | The weekly live session | A note to parents after every session
+headline: Two ways to work one-on-one.
+small package: ${P10.name} = ${P10.hours} sessions, ${$(P10.price)}
+large package: ${P20.name} = ${P20.hours} sessions, ${$(P20.price)}
+small rows: Pace = One session a week | Promise = ${UP_TO.cohort} | If we miss = Half back, or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions
+large rows: Pace = As many a week as you want | Promise = ${UP_TO.private} | If we miss = Half back, or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions | More sessions = ${usd(G.private.extraSessionPrice)} each, as many as you need
+best: Most families pick this
+both: A full practice test every week | Every session recorded | A private text line to the tutor | Everything in ${PRO.name}
+cohort: Prefer a small class? The ${w(MP.weeks)}-week cohort is ${$(MP.price)}.
+cohort link: See the SAT Program
 
-## 34 Private: track record
-headline: This is how we have always tutored.
-text: Karman's 1:1 students gained ${TR.averageGain} points on average, and ${TR.reachedTargetPct}% reached their target score.
-proof: ${TR.sourceLabel}. ${FOUNDER.studentsTutored} students.
-
-## 35 Private: guarantee terms
-headline: What the guarantee asks of your student.
-rows: Every session = Cancelling with less than ${G.private.cancelHours} hours' notice counts as a missed session | Full-length tests = ${W(PRIVATE_BONUS[P10.id].fullLengthTests)} on ${P10.name}, ${w(PRIVATE_BONUS[P20.id].fullLengthTests)} on ${P20.name} | The SAT = Within ${G.private.satWithinDays} days of the last session
+## 35 Private: the promise
+headline: A promise with two sides.
+ours title: Our side
+ours: One tutor, matched to your student | Sessions at the hours you choose | A full practice test every week | Homework built from their own mistakes | A note to you after every session | A private text line to the tutor
+terms title: Your student's side of it
+terms: Attend every session | Take the practice test each week | Do ${G.practicePct}% of the weekly practice | Sit the SAT within ${G.private.satWithinDays} days of the last session
+grace: Moving a session with ${G.private.cancelHours} hours' notice never counts against the promise.
+link: The guarantee, in full
 
 ## 36 Private: close
-headline: Every private student starts with a call.
+headline: Schedule a free call.
 text: You, your student and ${FOUNDER.firstName}, Karman's founder, on one video call. We talk about the target, the test date and how much time your student has each week. Then we tell you honestly whether private tutoring fits, how many hours make sense, and when a tutor is free.
 form email: Your email
-form latest: Latest SAT or PSAT score
+form latest: Latest SAT score
 form latest help: Leave it empty if they haven't taken one yet.
 form date: When is their SAT?
 form date options: ${SAT_DATES.join(" | ")} | Another date | Not sure yet
