@@ -1,6 +1,7 @@
 /*
  * Rings: every progress measure is a ring, never a bar (founder pick, 2026-11-08).
  * The track is a faint ink; the fill takes the painting's color. Numbers inside are Hanken.
+ * Each ring fills from empty to its value on a spring when it appears (portal-motion.css).
  */
 import type { CSSProperties, ReactNode } from "react";
 import { SKILL_LEVELS, type SkillLevel } from "./skill-levels";
@@ -26,7 +27,7 @@ export function Ring({
 }) {
   const p = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
   const style = {
-    "--p": p,
+    "--kp-p": p,
     "--s": `${size}px`,
     "--w": `${width}px`,
     ...(color ? { "--ring-color": color } : {}),
@@ -76,7 +77,13 @@ export function LevelRing({
       .map((l) => `${l.name} ${counts[l.level]}`)
       .join(", ");
   return (
-    <span className="kp-ring" style={style} role="img" aria-label={spoken || "No skills yet"}>
+    <span
+      className="kp-ring"
+      data-split=""
+      style={style}
+      role="img"
+      aria-label={spoken || "No skills yet"}
+    >
       {children !== undefined && <b aria-hidden="true">{children}</b>}
     </span>
   );

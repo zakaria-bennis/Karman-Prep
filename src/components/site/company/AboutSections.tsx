@@ -1,10 +1,11 @@
 // The About page, in the home page's world (founder, 2026-11-11: every page "relates to the home page", and the
 // landscape keeps travelling from one page to the next). Built on the SAT Program page's frame (program.css):
 // big serif headings on mist, rounded cream cards, Start free as the main action. 1: the claim and the track
-// record. 2: three things we refuse to do, struck out as they arrive. 3: how we teach, as a loop. 4: the rules
+// record, counting up. 2: three things we refuse to do, struck out as they arrive. 3: how we teach, as a loop. 4: the rules
 // we hold our own marketing to. 5: the close. Words: site-copy.ts, sections 61 to 65. Styles: company.css.
 import type { CSSProperties } from "react";
 import { Arrow, Btn } from "@/components/site/parts";
+import CountUp from "@/components/site/CountUp";
 import { ROUTES } from "@/components/site/routes";
 import { list, pairs, section } from "@/lib/marketing/site-copy";
 import { Close, Tick } from "./parts";
@@ -35,15 +36,8 @@ export default function AboutSections() {
             </div>
           </div>
           <figure className="co-card ab-stat">
-            <b className="num">{open.stat}</b>
-            <svg
-              className="ab-swoosh"
-              viewBox="0 0 240 24"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path pathLength={1} d="M4 16C46 6 88 20 128 11s74-4 108 1" />
-            </svg>
+            {/* The gain counts up from nothing to its size: the number is the picture. */}
+            <CountUp>{open.stat}</CountUp>
             <figcaption>
               <span>{open["stat label"]}</span>
               <small>{open["stat source"]}</small>

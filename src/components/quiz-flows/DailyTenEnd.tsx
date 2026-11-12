@@ -4,8 +4,9 @@
 // three skills. Round-one sounds, the painting's accent (no marigold), a squared box with no
 // machine and no shadow. Tap or press any key to skip; reduced motion skips straight to results.
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Card, Cta, Num } from "@/components/portal";
+import { prefersStill } from "@/lib/painting/motion";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import type { RunView } from "@/lib/assembler/run-types";
 import { AnswerShapes, LevelChanges, type LevelChange } from "./LevelBanner";
@@ -14,16 +15,26 @@ import { ScoreRing, SkillsMoved, answersOf, weakestSkill } from "./RunEnd";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
 
+/** Where each token is thrown: how far sideways, and how high it flies before it falls. */
+const TOSSES = [
+  { dx: -58, dy: -74 },
+  { dx: -26, dy: -96 },
+  { dx: 6, dy: -104 },
+  { dx: 34, dy: -90 },
+  { dx: 62, dy: -70 },
+];
+
 function Box({ tokens, onDone }: { tokens: number; onDone(): void }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return onDone();
+    // The device's reduced motion or the portal's own Reduce motion: straight to the results.
+    if (prefersStill()) return onDone();
+    // The box lands, shivers as if something is pushing from inside, then bursts open.
     const openAt = window.setTimeout(() => {
       setOpen(true);
       playRewardSound("levelUp");
-    }, 900);
-    const doneAt = window.setTimeout(onDone, 3200);
+    }, 1100);
+    const doneAt = window.setTimeout(onDone, 3400);
     const skip = () => onDone();
     window.addEventListener("keydown", skip, { once: true });
     return () => {
@@ -36,15 +47,22 @@ function Box({ tokens, onDone }: { tokens: number; onDone(): void }) {
     <button type="button" className={s.boxStage} onClick={onDone} aria-label="Skip to your results">
       <svg viewBox="0 0 160 150" className={s.box} data-open={open} aria-hidden="true">
         <g className={s.tokensOut}>
-          {[0, 1, 2, 3, 4].map((i) => (
-            <circle
+          {/* Each token is thrown out of the box on its own arc: sideways at a steady speed
+              (the outer group), up and then falling back under gravity (the inner one). */}
+          {TOSSES.map((t, i) => (
+            <g
               key={i}
-              cx={52 + i * 14}
-              cy="62"
-              r="7"
-              className={s.token}
-              style={{ animationDelay: `${i * 70}ms` }}
-            />
+              className={s.tokenX}
+              style={{ "--dx": `${t.dx}px`, animationDelay: `${i * 55}ms` } as CSSProperties}
+            >
+              <g
+                className={s.tokenY}
+                style={{ "--dy": `${t.dy}px`, animationDelay: `${i * 55}ms` } as CSSProperties}
+              >
+                <circle cx="80" cy="74" r="7" className={s.token} />
+                <path d="M77 74h6" className={s.tokenMark} />
+              </g>
+            </g>
           ))}
         </g>
         <rect x="28" y="70" width="104" height="70" rx="4" className={s.boxBody} />
@@ -57,7 +75,7 @@ function Box({ tokens, onDone }: { tokens: number; onDone(): void }) {
       <p className={s.boxText} aria-live="polite">
         {open ? (
           <>
-            You earned <Num>{tokens}</Num> tokens
+            You earned <Num count>{tokens}</Num> tokens
           </>
         ) : (
           "Your Daily 10 box"
@@ -127,12 +145,12 @@ export function DailyTenEnd({
           <p className={s.facts}>
             {streak > 0 && (
               <span>
-                <Num>{streak}</Num> {streak === 1 ? "day" : "days"} in a row
+                <Num count>{streak}</Num> {streak === 1 ? "day" : "days"} in a row
               </span>
             )}
             {result.tokens > 0 && (
               <span>
-                <Num>+{result.tokens}</Num> tokens
+                <Num count>+{result.tokens}</Num> tokens
               </span>
             )}
           </p>

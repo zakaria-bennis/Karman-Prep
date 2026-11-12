@@ -38,10 +38,10 @@ export function TestReport({
               </p>
               <p className={s.split}>
                 <span>
-                  Reading and Writing <Num>{predicted.reading}</Num>
+                  Reading and Writing <Num count>{predicted.reading}</Num>
                 </span>
                 <span>
-                  Math <Num>{predicted.math}</Num>
+                  Math <Num count>{predicted.math}</Num>
                 </span>
               </p>
             </>

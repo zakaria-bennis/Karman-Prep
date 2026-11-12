@@ -133,7 +133,7 @@ export function RunEnd({
           <AnswerShapes answers={answersOf(run)} />
           {result.tokens > 0 && (
             <p className={s.tokens}>
-              <Num>+{result.tokens}</Num> tokens
+              <Num count>+{result.tokens}</Num> tokens
             </p>
           )}
           {set && leveled && (

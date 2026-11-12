@@ -21,11 +21,11 @@
 .ks.lit .pg-sect .co-centre h2 { max-width: 20em; }
 .ks .co-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; }
 
-/* ---------- About: 1. the track record, as one big number with its source ---------- */
+/* ---------- About: 1. the track record, as one big number that counts up, with its source ---------- */
 .ks .ab-stat { margin: 0; justify-items: start; align-content: center; gap: 8px; min-height: clamp(240px, 28vw, 360px); overflow: hidden; }
 .ks.lit .ab-stat .num { font-size: clamp(92px, 11vw, 168px); line-height: .9; letter-spacing: -.05em; animation: pg-pop .8s cubic-bezier(.2, 1.5, .4, 1) .3s both; }
-.ks .ab-swoosh { width: min(100%, 300px); height: 22px; overflow: visible; }
-.ks .ab-swoosh path { fill: none; stroke: var(--a); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: pg-draw .9s cubic-bezier(.5, 0, .2, 1) .9s forwards; }
+/* the gain counts up as it pops in: the number climbing is the picture (CountUp, .cu in audience.css) */
+.ks.lit .ab-stat .num.cu { animation: pg-pop .8s cubic-bezier(.2, 1.5, .4, 1) .3s both, cu-n 1.4s cubic-bezier(.16, 1, .3, 1) .3s backwards; }
 .ks .ab-stat figcaption { display: grid; gap: 6px; }
 .ks .ab-stat figcaption span { font-size: clamp(19px, 1.7vw, 24px); font-weight: 700; line-height: 1.3; }
 .ks .ab-stat figcaption small { font-size: 14.5px; font-weight: 700; color: var(--ink2); }
@@ -128,10 +128,8 @@
 
 /* ---------- held still, or reduced motion: everything rests finished ---------- */
 .ks.still-motion :is(.ab-stat, .ab-loop, .rs-books) *, .ks.still-motion .fq-group details p { animation: none !important; }
-.ks.still-motion .ab-swoosh path { stroke-dashoffset: 0; }
 @media (prefers-reduced-motion: reduce) {
   .ks :is(.ab-stat, .ab-loop, .rs-books) *, .ks .fq-group details p { animation: none !important; }
-  .ks .ab-swoosh path { stroke-dashoffset: 0; }
   .ks .ab-refuse li, .ks .ab-refuse s, .ks .rs-books a, .ks .fq-group summary i { transition: none !important; }
   .ks .pg-in.rv:not(.on) .ab-refuse li { opacity: 1; transform: none; }
   .ks .ab-refuse s { background-size: 100% 5px; }

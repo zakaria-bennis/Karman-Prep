@@ -211,6 +211,31 @@
 .ks.lit[data-mode="dark"] .au-form .k-banner { background: rgba(238, 110, 88, .16); color: #ffc4bb; }
 .ks.lit[data-mode="dark"] .au-form .k-done { background: rgba(255, 250, 243, .08); }
 
+/* ---------- numbers that count up when they arrive (CountUp.tsx): the real number is hidden under a counter
+   that climbs from 0 on the same digits, then hands back. Used by the sample report here and About's gain. ---------- */
+@property --cu-n { syntax: "<integer>"; inherits: true; initial-value: 0; }
+.ks .cu { position: relative; display: inline-block; --cu-n: var(--to); }
+.ks .cu::after { counter-reset: cu var(--cu-n); content: attr(data-pre) counter(cu) attr(data-post); position: absolute; inset: 0; text-align: right; white-space: nowrap; opacity: 0; pointer-events: none; }
+.ks .pg-in.rv.on .au-report .cu { animation: cu-n 1.3s cubic-bezier(.16, 1, .3, 1) .35s backwards; }
+.ks :is(.ab-stat, .pg-in.rv.on .au-report) .cu > span { animation: cu-hide 1.35s linear .3s backwards; }
+.ks :is(.ab-stat, .pg-in.rv.on .au-report) .cu::after { animation: cu-show 1.35s linear .3s backwards; }
+@keyframes cu-n { from { --cu-n: 0; } }
+@keyframes cu-hide { from, to { opacity: 0; } }
+@keyframes cu-show { from, to { opacity: 1; } }
+.ks.still-motion .cu, .ks.still-motion .cu > span, .ks.still-motion .cu::after { animation: none !important; }
+
+/* ---------- the turning decks: as a screen comes to the front, its numbers fill in ---------- */
+/* each student's ring runs round to their progress */
+.ks .pd-stack article[data-place="0"] .au-ring circle + circle { animation: au-ring-fill 1s cubic-bezier(.2, .8, .2, 1) .25s both; }
+@keyframes au-ring-fill { from { stroke-dashoffset: 100; } }
+/* each homework's done bar fills to how many handed it in */
+.ks .pd-stack article[data-place="0"] .au-done i { animation: au-done-fill .9s cubic-bezier(.2, .8, .2, 1) .3s both; }
+@keyframes au-done-fill { from { background-size: 0 100%; } }
+/* each student's skill squares pop in, one after another, row by row */
+.ks .pd-stack article[data-place="0"] .au-squares i { animation: au-pop .4s var(--spring) both; animation-delay: calc(.3s + var(--j, 0) * .045s); }
+.ks.still-motion .pd-stack article :is(.au-ring circle, .au-done i, .au-squares i) { animation: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .ks :is(.au-sum, .au-rail, .au-report, .au-deck) *, .ks .au-rail ol::after { animation: none !important; transition: none !important; }
+  .ks .cu, .ks .cu > span, .ks .cu::after { animation: none !important; }
 }

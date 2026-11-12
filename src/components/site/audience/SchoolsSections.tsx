@@ -15,7 +15,11 @@ function Squares({ pct, seed }: { pct: number; seed: number }) {
   return (
     <span className="au-squares" aria-hidden="true">
       {Array.from({ length: 8 }, (_, i) => (
-        <i key={i} data-l={Math.min(3, Math.floor(((pct + i * 29 + seed * 13) % 100) / 25))} />
+        <i
+          key={i}
+          data-l={Math.min(3, Math.floor(((pct + i * 29 + seed * 13) % 100) / 25))}
+          style={{ "--j": i } as React.CSSProperties}
+        />
       ))}
     </span>
   );
