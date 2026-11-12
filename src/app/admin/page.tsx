@@ -9,6 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import ImpersonationMenu from "@/components/admin/ImpersonationMenu";
 import { WbPage, WbSection, WbStats } from "@/components/admin/workbench";
+import AdminWaiting from "@/components/admin/AdminWaiting";
 
 export const metadata: Metadata = { title: "Admin | Karman" };
 export const dynamic = "force-dynamic";
@@ -104,6 +105,7 @@ export default async function AdminHomePage() {
           { label: "Active cohorts", value: show(cohorts) },
         ]}
       />
+      <AdminWaiting messages={messages} claims={claims} flags={flags} />
       <div className="wb-grid" data-columns="2">
         {TOOLS.map((group) => (
           <WbSection key={group.title} title={group.title}>

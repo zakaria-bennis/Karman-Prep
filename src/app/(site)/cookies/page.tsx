@@ -2,6 +2,7 @@
 // short plain style of the first-pass draft (.impeccable/mocks/fresh/morning/cookies.html), written to
 // match what the site really stores. Update it whenever a cookie or storage key is added.
 import SitePage from "@/components/site/SitePage";
+import LegalFrame, { type LegalPart } from "@/components/site/company/LegalFrame";
 import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -55,56 +56,62 @@ function Table({ rows }: { rows: [string, string][] }) {
   );
 }
 
+/** The parts of the page, for the contents card (each is a section's heading below). */
+const CONTENTS: LegalPart[] = [
+  { id: "cookies", title: "Cookies" },
+  { id: "storage", title: "Browser storage" },
+  { id: "choices", title: "Your choices" },
+];
+
 export default function CookiesPage() {
   return (
-    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} relit rl-legal`}>
-      <article className="legal">
-        <header>
-          <div>
-            <h1>Cookie Policy</h1>
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} rl-legal`}>
+      <LegalFrame
+        title="Cookie Policy"
+        intro={
+          <>
             <p>
               karmanprep.com uses a few cookies and small notes in your browser&apos;s own storage.
               None are for advertising, and nothing is shared with outside analytics or advertising
               companies. Questions: <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>.
             </p>
-          </div>
-        </header>
+          </>
+        }
+        contents={CONTENTS}
+      >
+        <section id="cookies">
+          <h2>Cookies</h2>
+          <Table rows={COOKIES} />
+          <p>
+            Payments happen on Stripe&apos;s own checkout pages, which set Stripe&apos;s cookies
+            there under Stripe&apos;s policy, not on karmanprep.com.
+          </p>
+        </section>
 
-        <div>
-          <section>
-            <h2>Cookies</h2>
-            <Table rows={COOKIES} />
-            <p>
-              Payments happen on Stripe&apos;s own checkout pages, which set Stripe&apos;s cookies
-              there under Stripe&apos;s policy, not on karmanprep.com.
-            </p>
-          </section>
+        <section id="storage">
+          <h2>Browser storage</h2>
+          <p>
+            These stay on your device. Only the two visit ids are ever sent to Karman, with the
+            visit records they label.
+          </p>
+          <Table rows={STORAGE} />
+        </section>
 
-          <section>
-            <h2>Browser storage</h2>
-            <p>
-              These stay on your device. Only the two visit ids are ever sent to Karman, with the
-              visit records they label.
-            </p>
-            <Table rows={STORAGE} />
-          </section>
-
-          <section>
-            <h2>Your choices</h2>
-            <p>
-              Clearing your browser&apos;s site data removes all of them. Removing the sign-in
-              cookies signs you out. Counting visits and session recording stay off on the website
-              unless you allow them, and Do Not Track or Global Privacy Control turns counting off.
-              Inside your account, practice and usage are recorded because the product needs them.
-              Change your website choice here at any time:
-            </p>
-            <ConsentChoice />
-            <p>
-              More on how we handle your information: <a href={ROUTES.privacy}>Privacy Policy</a>.
-            </p>
-          </section>
-        </div>
-      </article>
+        <section id="choices">
+          <h2>Your choices</h2>
+          <p>
+            Clearing your browser&apos;s site data removes all of them. Removing the sign-in cookies
+            signs you out. Counting visits and session recording stay off on the website unless you
+            allow them, and Do Not Track or Global Privacy Control turns counting off. Inside your
+            account, practice and usage are recorded because the product needs them. Change your
+            website choice here at any time:
+          </p>
+          <ConsentChoice />
+          <p>
+            More on how we handle your information: <a href={ROUTES.privacy}>Privacy Policy</a>.
+          </p>
+        </section>
+      </LegalFrame>
     </SitePage>
   );
 }
