@@ -80,6 +80,15 @@ button, select { font: inherit; color: inherit; }
 .still svg .w, .still svg .ln { animation: none !important; stroke-dashoffset: 0 !important; }
 .still svg .fx { animation: none !important; opacity: 1 !important; transform: none !important; }
 
+/* logo + intro pairs */
+.pairs { display: grid; gap: 22px; }
+.pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; align-items: start; scroll-margin-top: 20px; }
+.pair .card .art { aspect-ratio: 16 / 9; }
+.pair .card.mono .art .holder { width: 46%; }
+.pair .icard .meta h3 { font-size: 18px; }
+.pair .icard .meta .tag { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); }
+@media (max-width: 860px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+
 /* intro cards */
 .intros { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .icard { background: var(--card); border-radius: var(--r); padding: 14px; display: grid; gap: 12px; align-content: start; min-width: 0; scroll-margin-top: 20px; }
@@ -137,7 +146,7 @@ button, select { font: inherit; color: inherit; }
   <header class="top">
     <span class="eyebrow">Karman Prep · logo and intro concepts · 12 Nov 2026</span>
     <h1>A logo that writes itself</h1>
-    <p class="lede">Sixteen hand-written marks and nine intro screens, all drawn in code and set in your site's colours. Tap any logo to watch it write again. Each intro plays the opening seconds of the home page: the logo signs in, then flies up to the top left.</p>
+    <p class="lede">Sixteen hand-written marks, each shown with the intro that suits it. When a row scrolls into view the logo writes itself, then its intro plays the opening seconds of the home page: the logo signs in and flies up to the top left. Tap either side to play it again, or try another intro from the menu.</p>
     <div class="bar">
       <div class="seg" role="group" aria-label="Preview colours">
         <button type="button" data-mode="auto" aria-pressed="true">Match device</button>
@@ -149,24 +158,19 @@ button, select { font: inherit; color: inherit; }
   </header>
 
   <section class="picks" aria-label="My picks">
-    <a class="pick" href="#c-founders-hand"><i>first pick</i><b>11 · Your Hand</b><span>Your own signature, already on the guarantee section. One mark across the whole site, and nobody else can have it.</span></a>
-    <a class="pick" href="#c-karman-line"><i>second</i><b>1 · Kármán Line</b><span>The most polished script, and the horizon arc plus rising star tells the Kármán line story without a rocket.</span></a>
+    <a class="pick" href="#c-founders-hand"><i>first pick</i><b>11 · Your Hand</b><span>Your own signature, already on the guarantee section, with the 280 points slam. Nobody else can have this mark.</span></a>
+    <a class="pick" href="#c-karman-line"><i>second</i><b>1 · Kármán Line</b><span>The most polished script. The horizon arc and rising star tell the Kármán line story without a rocket, and the Four Skies intro finishes it.</span></a>
     <a class="pick" href="#c-k-orbit"><i>for the app icon</i><b>12 · K in Orbit</b><span>The monogram that reads at 32 pixels: favicon, app icon, social avatar.</span></a>
   </section>
 
   <section class="sec" aria-labelledby="h-words" style="display:grid;gap:22px">
-    <div class="sec-head"><span class="eyebrow">Wordmarks</span><h2 id="h-words">Karman, written out</h2><p>Each one is drawn by a pen that follows the letters in writing order. Use the number to tell me which ones you like.</p></div>
-    <div class="grid" id="words"></div>
+    <div class="sec-head"><span class="eyebrow">Wordmarks</span><h2 id="h-words">Karman, written out</h2><p>Each logo is drawn by a pen that follows the letters in writing order. Use the number to tell me which ones you like.</p></div>
+    <div class="pairs" id="words"></div>
   </section>
 
   <section class="sec" aria-labelledby="h-mono" style="display:grid;gap:22px">
     <div class="sec-head"><span class="eyebrow">Monograms</span><h2 id="h-mono">Marks that fit in a square</h2><p>For the favicon, the app icon, profile pictures and the stamp. Any of these can pair with any wordmark above.</p></div>
-    <div class="grid mono" id="monos"></div>
-  </section>
-
-  <section class="sec" aria-labelledby="h-intros" style="display:grid;gap:22px">
-    <div class="sec-head"><span class="eyebrow">Intros</span><h2 id="h-intros">The first three seconds</h2><p>Each stage is a small copy of the home page. The intro plays once, on a visitor's first visit, while the page loads, and can be skipped. Pick any logo for any intro from its menu.</p></div>
-    <div class="intros" id="intros"></div>
+    <div class="pairs" id="monos"></div>
   </section>
 
   <section class="notes" aria-label="Notes">
@@ -208,8 +212,7 @@ button, select { font: inherit; color: inherit; }
   const cards = [];
   function addCard(c) {
     const el = document.createElement("article");
-    el.className = "card" + (PICKS.includes(c.id) ? " is-pick" : "");
-    el.id = "c-" + c.id;
+    el.className = "card" + (c.mono ? " mono" : "") + (PICKS.includes(c.id) ? " is-pick" : "");
     el.innerHTML = `<div class="art" role="button" tabindex="0" aria-label="Replay ${c.name}"><div class="holder"></div></div>
       <div class="meta"><span class="num">${c.n}</span><h3>${c.name}</h3><p class="feel">${c.feel}</p></div>
       <div class="acts"><button type="button" class="btn rp">Replay</button><button type="button" class="btn st" aria-pressed="false">Show still</button></div>`;
@@ -222,18 +225,13 @@ button, select { font: inherit; color: inherit; }
     el.querySelector(".rp").addEventListener("click", () => { holder.classList.remove("still"); draw(); });
     const st = el.querySelector(".st");
     st.addEventListener("click", () => { const on = !holder.classList.contains("still"); holder.classList.toggle("still", on); st.setAttribute("aria-pressed", String(on)); st.textContent = on ? "Show writing" : "Show still"; if (!on) draw(); });
-    (c.mono ? document.getElementById("monos") : document.getElementById("words")).appendChild(el);
-    cards.push({ el, draw, holder });
+    const pair = document.createElement("div"); pair.className = "pair"; pair.id = "c-" + c.id;
+    pair.appendChild(el);
+    (c.mono ? document.getElementById("monos") : document.getElementById("words")).appendChild(pair);
+    const k = { el, draw, holder, pair, c };
+    cards.push(k);
+    return k;
   }
-  DATA.forEach(addCard);
-  document.getElementById("replay-all").addEventListener("click", () => cards.forEach(k => { k.holder.classList.remove("still"); k.draw(); }));
-  // replay each card the first time it scrolls into view, so it is seen writing
-  if ("IntersectionObserver" in window && !reduce.matches) {
-    const seen = new WeakSet();
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && !seen.has(e.target)) { seen.add(e.target); const k = cards.find(k => k.el === e.target); if (k && e.target.getBoundingClientRect().top > 40) k.draw(); } }), { threshold: .45 });
-    cards.forEach(k => io.observe(k.el));
-  }
-
   /* ---------- helpers for intros ---------- */
   const rnd = (a, b) => a + Math.random() * (b - a);
   const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -454,17 +452,17 @@ button, select { font: inherit; color: inherit; }
 
   /* ---------- the stage ---------- */
   const players = [];
-  function buildStage(intro) {
+  function buildStage(intro, logoId, parent) {
     const el = document.createElement("article");
-    el.className = "icard"; el.id = "i-" + intro.id;
-    const opts = DATA.map(c => `<option value="${c.id}"${c.id === intro.logo ? " selected" : ""}>${c.n} · ${c.name}</option>`).join("");
+    el.className = "icard";
+    const opts = INTROS.map(i => `<option value="${i.id}"${i.id === intro.id ? " selected" : ""}>${i.name}</option>`).join("");
     el.innerHTML = `<div class="stage"><div class="inner"><div class="page"><div class="hill"></div>
         <div class="hd"><div class="slot"></div><nav><span>The SAT Program</span><span>Private tutoring</span><span>Pricing</span><span>Sign in</span><span class="go">Start free</span></nav></div>
         <div class="hero"><h4></h4><span class="cta">Start free →</span></div></div></div></div>
-      <div class="meta"><h3>${intro.name}</h3><p>${intro.about}</p></div>
-      <div class="acts"><button type="button" class="btn solid pl">Play</button><button type="button" class="btn fs">Full screen</button>
-        <label>Logo <select aria-label="Logo for ${intro.name}">${opts}</select></label></div>`;
-    document.getElementById("intros").appendChild(el);
+      <div class="meta"><span class="tag">Intro</span><h3 class="iname">${intro.name}</h3><p class="iabout">${intro.about}</p></div>
+      <div class="acts"><button type="button" class="btn solid pl">Play intro</button><button type="button" class="btn fs">Full screen</button>
+        <label>Try another <select>${opts}</select></label></div>`;
+    parent.appendChild(el);
     const stage = el.querySelector(".stage"), inner = el.querySelector(".inner"), page = el.querySelector(".page");
     const h = el.querySelector("h4");
     const words = "Our average student gains".split(" ").map((w, i) => `<span class="w" style="--i:${i}">${w}</span>`).join(" ") +
@@ -473,16 +471,17 @@ button, select { font: inherit; color: inherit; }
     el.querySelectorAll("nav > *").forEach((n, i) => n.style.setProperty("--i", i));
     el.querySelector(".cta").style.setProperty("--i", 12);
     const sel = el.querySelector("select");
-    const P = { el, stage, inner, page, intro, sel, raf: 0, overlay: null };
+    sel.setAttribute("aria-label", "Intro for " + byId[logoId].name);
+    const P = { el, stage, inner, page, intro, sel, logoId, raf: 0, overlay: null };
     function fit() {
       const w = stage.clientWidth, hh = stage.clientHeight; const s = Math.min(w / 1280, hh / 720);
       inner.style.transform = `translate(${(w - 1280 * s) / 2}px, ${(hh - 720 * s) / 2}px) scale(${s})`;
     }
     P.fit = fit; fit();
     new ResizeObserver(fit).observe(stage);
-    function setSlot() { const c = byId[sel.value]; const slot = el.querySelector(".slot"); slot.className = "slot" + (c.mono ? " mono" : ""); slot.innerHTML = `<div class="still" style="height:100%">${markup(c)}</div>`; const svg = slot.querySelector("svg"); svg.style.height = "100%"; }
+    function setSlot() { const c = byId[logoId]; const slot = el.querySelector(".slot"); slot.className = "slot" + (c.mono ? " mono" : ""); slot.innerHTML = `<div class="still" style="height:100%">${markup(c)}</div>`; const svg = slot.querySelector("svg"); svg.style.height = "100%"; }
     setSlot();
-    sel.addEventListener("change", () => { setSlot(); play(P); });
+    sel.addEventListener("change", () => { P.intro = INTROS.find(i => i.id === sel.value); el.querySelector(".iname").textContent = P.intro.name; el.querySelector(".iabout").textContent = P.intro.about; play(P); });
     el.querySelector(".pl").addEventListener("click", () => play(P));
     el.querySelector(".fs").addEventListener("click", () => { if (stage.requestFullscreen) stage.requestFullscreen().then(() => setTimeout(() => play(P), 250)).catch(() => play(P)); else play(P); });
     stage.addEventListener("click", e => { if (!e.target.closest(".skip")) play(P); });
@@ -490,11 +489,11 @@ button, select { font: inherit; color: inherit; }
     return P;
   }
 
-  function stop(P) { cancelAnimationFrame(P.raf); if (P.overlay) P.overlay.remove(); P.overlay = null; P.page.classList.remove("hold", "enter"); const tp = P.page.querySelector(".hero .pill"); tp.style.visibility = ""; tp.style.animation = ""; P.page.querySelector(".slot").style.visibility = ""; void P.page.offsetWidth; }
+  function stop(P) { cancelAnimationFrame(P.raf); if (P.overlay) P.overlay.remove(); P.overlay = null; P.page.classList.remove("hold", "enter"); }
 
   async function play(P) {
     stop(P);
-    const intro = P.intro, c = byId[P.sel.value], col = themeColors();
+    const intro = P.intro, c = byId[P.logoId], col = themeColors();
     const page = P.page; page.classList.add("hold"); page.classList.remove("enter");
     const ov = document.createElement("div"); ov.className = "overlay"; P.overlay = ov;
     const cv = document.createElement("canvas"); cv.width = 1280; cv.height = 720; ov.appendChild(cv);
@@ -564,12 +563,26 @@ button, select { font: inherit; color: inherit; }
     if (!P.page.classList.contains("enter")) { P.page.classList.remove("hold"); P.page.classList.add("enter"); }
   }
 
-  INTROS.forEach(buildStage);
-  // play each intro once when it first comes into view
+  // which intro suits each logo best
+  const PAIRING = { "karman-line": "skies", "copperplate": "warp", "paper-plane": "clouds", "orbit": "dust", "monoline": "comet",
+    "ink-stars": "lanterns", "signature": "bloom", "flourish": "clouds", "whisper": "constellation", "bounce": "comet",
+    "founders-hand": "slam", "k-orbit": "dust", "kp-ligature": "lanterns", "constellation-k": "constellation", "seal": "warp", "atmosphere": "skies" };
+  DATA.forEach(c => {
+    const k = addCard(c);
+    k.player = buildStage(INTROS.find(i => i.id === (PAIRING[c.id] || "clouds")), c.id, k.pair);
+  });
+  document.getElementById("replay-all").addEventListener("click", () => cards.forEach(k => { k.holder.classList.remove("still"); k.draw(); }));
+  // the first time a row comes into view: the logo writes, then its intro plays
   if ("IntersectionObserver" in window && !reduce.matches) {
     const done = new WeakSet();
-    const io = new IntersectionObserver(es => es.forEach(e => { const P = players.find(p => p.stage === e.target); if (e.isIntersecting && !done.has(e.target) && P) { done.add(e.target); play(P); } }), { threshold: .6 });
-    players.forEach(P => io.observe(P.stage));
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting || done.has(e.target)) return;
+      done.add(e.target);
+      const k = cards.find(k => k.pair === e.target); if (!k) return;
+      k.holder.classList.remove("still"); k.draw();
+      setTimeout(() => play(k.player), Math.round(k.c.end * 1000) + 600);
+    }), { threshold: .5 });
+    cards.forEach(k => io.observe(k.pair));
   }
   document.addEventListener("fullscreenchange", () => players.forEach(p => p.fit()));
 })();

@@ -5,7 +5,7 @@ For review only. Nothing in `src/` uses these files, and the live logo (`src/com
 Open `index.html` in a browser. It shows:
 
 - **16 logos** that write themselves (tap to replay, or switch to the still).
-- **9 intro screens**: the first two or three seconds of a first visit, where the logo signs in and flies up to the top left while the home page arrives. Every intro can be skipped, and with reduced motion on it is skipped entirely.
+- **9 intro screens**, each shown beside the logo it suits best: the first two or three seconds of a first visit, where the logo signs in and flies up to the top left while the home page arrives. Every intro can be skipped, and with reduced motion on it is skipped entirely.
 
 `previews/all-light.png` and `previews/all-dark.png` show every logo at rest.
 
