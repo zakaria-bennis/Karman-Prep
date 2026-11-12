@@ -36,6 +36,8 @@ import {
   withStored,
 } from "@/lib/student/skill-levels-server";
 import { summarisePoints, type PointAward } from "@/lib/student/skill-points";
+import { balanceOf } from "@/lib/rewards/economy";
+import { loadOpenedBoxes } from "@/lib/rewards/server";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Progress" };
@@ -76,7 +78,7 @@ export default async function StudentProgressPage() {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
 
-  const [answers, runAnswers, stored, diagnostics, trials, awards] = await Promise.all([
+  const [answers, runAnswers, stored, diagnostics, trials, awards, boxes] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
     loadRunAnswers(ctx.clerkId),
     loadStoredLevels(ctx.clerkId, nowMs),
@@ -92,6 +94,7 @@ export default async function StudentProgressPage() {
       .eq("student_id", ctx.clerkId)
       .limit(1000),
     loadAwards(db, ctx.clerkId),
+    loadOpenedBoxes(ctx.clerkId).catch(() => []),
   ]);
 
   const history = scoreHistory((diagnostics.data ?? []) as DiagnosticRow[]);
@@ -113,7 +116,8 @@ export default async function StudentProgressPage() {
     sets: practiceSets(everyAnswer),
     trials: (trials.data ?? []) as TrialRun[],
   });
-  const tokens = summarisePoints(awards, nowMs).total;
+  // Tokens to spend: earned, minus the mystery boxes opened on Rewards.
+  const tokens = balanceOf(summarisePoints(awards, nowMs).total, boxes);
 
   const side = (
     <>
