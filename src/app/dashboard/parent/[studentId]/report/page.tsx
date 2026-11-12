@@ -114,7 +114,9 @@ export default async function ParentReportPage({
                 ? r.isToday
                   ? `Nothing logged yet today. ${name}’s work shows here as it happens.`
                   : `A quiet day for ${name}. Rest days are part of it too.`
-                : `${name} didn’t practice questions on this day.`}
+                : r.isToday
+                  ? "No practice questions yet today."
+                  : `${name} didn’t practice questions on this day.`}
             </p>
           )}
           <Cta href={emailHref}>
