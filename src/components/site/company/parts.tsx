@@ -12,18 +12,21 @@ export function Tick() {
   );
 }
 
-/** The last band of a page: the headline, one sentence, and Start free as the main action. */
+/** The last band of a page: the headline, one sentence, and Start free (or `href`) as the main action. */
 export function Close({
   id,
   headline,
   text,
   button,
+  href = ROUTES.signUp,
   second,
 }: {
   id: string;
   headline: string;
   text: string;
   button: string;
+  /** Where the main button goes: Start free, unless the page's close asks for something else. */
+  href?: string;
   second?: { label: string; href: string };
 }) {
   return (
@@ -33,7 +36,7 @@ export function Close({
         <h2 id={`${id}-h`}>{headline}</h2>
         <p className="lede">{text}</p>
         <div className="co-go">
-          <Btn label={button} href={ROUTES.signUp} />
+          <Btn label={button} href={href} />
           {second ? (
             <a className="more" href={second.href}>
               {second.label}
