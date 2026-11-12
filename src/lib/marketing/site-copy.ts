@@ -11,7 +11,7 @@
 //
 // Sections: 1 to 12 the home page, 21 to 27 the SAT Program, 31 to 36
 // private tutoring, 41 to 45 the free practice test, 51 to 55 the
-// guarantee, 61 to 65 About, 71 the FAQ, 90 the photos' alt text and
+// guarantee, 61 to 65 About, 71 the FAQ, 81 to 83 the research, 90 the photos' alt text and
 // captions. "## Site" holds the header, menu, footer, pricing page
 // ("pricing ...") and the loading and form messages ("form ...").
 //
@@ -359,72 +359,93 @@ headline: The target, by starting score.
 rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
 
 ## 61 About: opening
-headline: Test prep that shows its work.
-text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives.
+headline: We show our work. All of it.
+text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives. No black box. No "just trust us."
+button: Start free
+second button: See how we teach
+stat: +${TR.averageGain}
+stat label: points, on average, for our 1:1 students
+stat source: ${TR.sourceLabel}
 
 ## 62 About: three things
-headline: Three things we won't do.
-rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Parents get the same numbers the guarantee is measured on, every day
+headline: Three things we refuse to do.
+rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session. | Hide the rules = The guarantee's terms are one click from the home page, in full, with worked examples. | Go quiet after you pay = Parents get the same numbers the guarantee is measured on, every day.
 
 ## 63 About: how we teach
 headline: A test, then an hour on every mistake.
-text: Karman began as one-on-one tutoring. The method hasn't changed: a timed full-length test, then a review of every question missed. The programs add what research keeps backing: spaced review of mistakes, mixed practice and small groups.
+text: We started as one-on-one tutoring. The method hasn't changed: a timed full-length test, then a review of every question missed. The programs add what research keeps backing: spaced review of mistakes, mixed practice and small groups.
 proof: ${PROOF}
+loop: The test = Timed like the real SAT. | The review = Every missed question, one by one, until the method makes sense. | The practice = Their own misses, mixed with other skills, like the SAT does. | The comeback = A missed question comes back days later, then again after a longer gap.
+link: See the research we built it on
 
 ## 64 About: our own rules
 headline: Rules we hold our own marketing to.
-list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 SAT scores exist
+list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No fake deadlines and no made-up scarcity | Every cohort's results published, dropouts included, once 15 to 20 SAT scores exist
+note: Catch us breaking one and you can quote this page back at us.
 
 ## 65 About: close
-headline: Start with one Saturday.
-text: The free practice test shows you our questions and our feedback before you spend anything.
-button: Take the free practice test
+headline: Start free. Judge us after.
+text: Your student gets ${FREE.questionLimit} practice questions and a full-length practice test. You see exactly how we teach before you spend a dollar. No card. No catch.
+button: Start free
+second button: Or take the free practice test
 
 ## 71 FAQ
-headline: Straight answers.
-qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, the SAT the cohort ends on. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student already scores high. Is that covered? = Up to ${TOP.upTo}, yes. From a start of ${BAND_LABELS[3]} the target is +${TOP.cohort} points on the cohort and ${P10.name}, and +${TOP.private} on ${P20.name}. From ${G.noGuaranteeFrom} the promise is that the score rises, or your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of the test.
+headline: Ask us anything. We text back.
+text: Tap a question in the sky. We answer it the way we'd answer you on the phone: straight, short, and with the real numbers.
+label: Questions parents ask
+box: Pick a question out of the sky
+typing: Karman is typing
+delivered: Delivered
+read: Read
+all headline: Every answer, in one place.
+all text: For the parents who'd rather read it all than chase clouds. Same answers, nothing hidden.
+groups: The money | The promise | The classes | Getting started
+money: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | Can we pay for three months at once? = Yes. ${PP.name} is ${$(PP.threeMonths)} for three months and ${PRO.name} is ${$(PRO.threeMonths)}. ${PLAN_RENEWAL} | Is there a scholarship? = Yes. The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
+promise: How many points do you promise? = It depends on where your student starts. ${UP_TO.private} on ${P20.name}, and ${UP_TO.cohort.toLowerCase()} on the cohort and ${P10.name}. | What if the score doesn't go up enough? = Then money comes back. On the cohort: half the target or more, and half the price comes back or the next cohort is free. Under half, the full price comes back or the next cohort is free. You choose. | What does my student have to do? = Show up and do the work. At least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, all ${w(MP.fullLengthTests)} full-length tests, ${G.practicePct}% of the weekly practice, and the SAT their cohort ends on. | Which SAT counts for the guarantee? = On the cohort, the SAT the cohort ends on. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student already scores high. Is that covered? = Up to ${TOP.upTo}, yes. From a start of ${BAND_LABELS[3]} the target is +${TOP.cohort} points on the cohort and ${P10.name}, and +${TOP.private} on ${P20.name}. From ${G.noGuaranteeFrom} the promise is that the score rises, or your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of the test.
+classes: Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | How big are the classes? = ${W(MP.paidSeats)} students at most. Each cohort is one score band (${MP.scoreBands.join(", ")}), so the whole class works at the same level. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. One class can be made up at a workshop, and one test can be a week late. | When does the next cohort start? = The week of ${MP.startShort}. Registration closes ${CLOSES}. After that, cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}. | What do I see as a parent? = A report every day on the cohort: the work done, the predicted score and a note from the tutor.
+start: Can we try it first? = Yes, and it costs nothing. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | My student is already at ${INTAKE.scoreFrom}. Should we buy a program? = Honestly, maybe not. If your student is already scoring ${INTAKE.scoreFrom} or higher, or the SAT is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you a program probably isn't the best use of your money.
+close headline: Still deciding? Start free. It's the fastest answer.
+close text: ${FREE.questionLimit} practice questions and a full-length practice test. No card. Nothing to cancel.
+button: Start free
 
 ## 81 Research: opening
-headline: Why Karman is built the way it is.
-text: Every habit we ask of your student comes from studies you can read yourself. Here they are, what each one found, and where it shows up in the program.
-button: Take the free practice test
-curve once: Read once
-curve spaced: Recalled, spread out
-curve memory: What sticks
-curve time: Weeks of practice
+headline: Seven ways we teach. The science behind every one.
+text: Every habit we ask of your student comes from studies you can read yourself. Here is each way we make a skill stick, what the research found, and the link to check our homework.
+button: Start free
+second button: See the seven ways
+shelf: The reading list
+shelf note: Six studies. Seven ways. Every one a click away.
 
 ## 82 Research: the studies
-headline: Six findings, and what we built from each.
+headline: Show your work? Gladly.
+text: Each way we teach, the study behind it and what that study found. Read the originals. They're better than a sales page.
+why: Answering beats rereading. So every skill gets a practice set, not a summary to skim. | A miss is only useful if your student knows why. Every explanation says what went wrong and what to do next. | A missed question comes back days later, then again after a longer gap, mixed in with other skills. | Two hard questions a day means your student recalls, every day, instead of cramming once. | A timed section is a practice test, and practice testing is one of the two techniques the research rates highest. | Practice tests carry the program. Highlighting and rereading don't appear anywhere. | Attention and fast correction: classes of ${w(CLASS)} where every student answers out loud, and private one-on-one.
+studies label: The research
 retrieval name: Recall beats rereading
 retrieval found: Students who practiced recalling a passage remembered more of it a week later than students who spent the same time rereading it.
-retrieval karman: The Daily 10 asks your student to answer, never to review notes.
 retrieval source: Roediger and Karpicke, Psychological Science, 2006
 spacing name: Spread it out
 spacing found: Reviews spread over days and weeks held up far better than the same reviews crammed together, and the best gap grew with how long the memory had to last.
-spacing karman: A missed question comes back days later, then again after a longer gap.
 spacing source: Cepeda and colleagues, Psychological Science, 2008
 review name: Two techniques stand out
 review found: A review of ten common study techniques rated only two as highly useful: practice testing and practice spread out over time. Highlighting and rereading rated low.
-review karman: Practice tests and spaced daily practice carry the program. Highlighting doesn't appear anywhere.
 review source: Dunlosky and colleagues, Psychological Science in the Public Interest, 2013
 mixed name: Mix the problem types
 mixed found: Students who practiced shuffled math problems did much better on a later test than students who practiced one type at a time, because they had to choose the method.
-mixed karman: Homework and the Daily 10 mix skills, like the SAT does.
 mixed source: Rohrer and Taylor, Instructional Science, 2007
 feedback name: Feedback on the task
 feedback found: Feedback that says what went wrong and what to do next is among the strongest influences on learning. Praise on its own does very little.
-feedback karman: In private tutoring, an hour one-on-one on each missed question after every full-length test.
 feedback source: Hattie and Timperley, Review of Educational Research, 2007
 tutoring name: Attention changes results
 tutoring found: Students taught one-on-one, with checks and corrections along the way, did far better than students taught in a regular class.
-tutoring karman: Private tutoring, and classes of six where every student answers out loud.
 tutoring source: Bloom, Educational Researcher, 1984
 read link: Read the study
 
 ## 83 Research: close
 headline: See it working before you pay.
-text: The free practice test uses the same questions and the same feedback. You'll see the score range, the domains and the call before you spend anything.
-button: Take the free practice test
+text: The free plan runs on the same questions and the same feedback: ${FREE.questionLimit} practice questions and a full-length practice test. No card.
+button: Start free
+second button: Take the free practice test
 
 ## 101 Schools: opening
 headline: A ${PP.name} plan for every student. The first year is free.

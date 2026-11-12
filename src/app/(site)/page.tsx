@@ -6,6 +6,7 @@ import { HeadWords, nums } from "@/components/site/home/Head";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
+import { artWords } from "@/components/site/home/WayArt";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { litFonts } from "@/components/site/home/fonts";
@@ -17,7 +18,7 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
-import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
@@ -63,38 +64,6 @@ export default function HomePage() {
     ),
   }));
   const how = section(6);
-  const [
-    today,
-    day2,
-    day7,
-    day21,
-    row,
-    right,
-    wrong,
-    slip,
-    pace,
-    accuracy,
-    score,
-    reading,
-    math,
-    turn,
-  ] = list(how["art words"]);
-  const artWords = {
-    today,
-    day2,
-    day7,
-    day21,
-    row,
-    right,
-    wrong,
-    slip,
-    pace,
-    accuracy,
-    score,
-    reading,
-    math,
-    turn,
-  };
   const doubts = section(13);
   /* while the rows are samples, the section says so under its heading (receipts.ts) */
   const receipts = section(14);
@@ -187,7 +156,7 @@ export default function HomePage() {
           <h2 className="rv" id="how-h">
             {nums(how.headline)}
           </h2>
-          <Ways items={pairs(how.ways)} words={artWords} />
+          <Ways items={pairs(how.ways)} words={artWords(how["art words"])} />
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>
