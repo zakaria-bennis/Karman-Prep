@@ -195,21 +195,43 @@ closes: Registration closes ${CLOSES}
 days left: days left to register
 starts: Classes start ${START_DAY}.
 stack: ${MP.totalClasses} live classes, in a group of ${w(CLASS)} = Five classmates who start where your student starts, so the pace fits. | ${W(MP.fullLengthTests)} full-length tests, one a week = We know what to fix within seven days, not at the end. | Homework built for one student = Ten questions a day from their own mistakes, and time trials if the clock is the problem. | One tutor, from the first class to test day = Matched to what your student struggles with. You never explain your child twice. | A report for you, every day = The work done, the predicted score and a note from the tutor. | ${QB.verifiedCount} questions, none written by AI = Written by people who have written real exams, and checked by 1550+ scorers. | ${UP_TO.cohort}, or your money back = You see the exact number before you pay.
+stack headline: One seat holds all of this.
+climb start: Today
+climb goal: Promised
+climb weeks: Week
+climb note: The line shows the promise for a start of ${G.bands[0].upTo} or below. It is not a student's result.
+before: Today
+after: ${W(MP.weeks)} weeks from now
+report label: SAT score
+report note: An example: the promise for a student who starts at ${G.bands[0].upTo - 50}.
 
 ## 22 Program: the loop
 headline: Every week runs the same way. That is how a score goes up.
 steps: Test = A full practice test, timed like the real one. | Class = The tutor walks in knowing what the group missed, and teaches that. | Homework = Each student gets work built from their own mistakes. | Back again = A skill still missed is assigned next week, until it is mastered.
+center: Skills still missed
 note: Nothing is missed or forgotten.
 
-## 23 Program: both sides
-headline: Your student does the work. You see all of it.
-student title: Your student
-student: A class of ${w(CLASS)} at their own level | A tutor who knows how they think by week two | Homework no classmate shares, because no classmate has their mistakes | A tutor in the cohort chat every day, 9am to 9pm Central | Optional workshops on the skills they find hardest
-parent title: You
-parent: A report in your inbox every day | A few sentences from the tutor, signed with their name | A portal with the predicted score, every skill and every assignment | Nothing to chase: you can see the work for yourself | One person to talk to about your child
-today: Today | Live class | Daily 10 | Back from last week
-report: Today's report | Class attended | Daily 10 done | Predicted score | A note from the tutor
+## 23 Program: the portal
+headline: You see what the tutor sees.
+text: A report lands in your inbox every day, and the parent portal is open whenever you want to look.
+tabs: Score | Skills | Homework | Notes
 sample: Example
+score caption: The predicted score, updated as your student works.
+score weeks: Week 1 | Week 5 | Week 9
+skills: Linear equations | Punctuation | Words in context | Ratios and rates | Inference
+levels: Mastered | Getting there | Needs work
+skills caption: Every SAT skill, and the level your student has reached in each.
+homework: Daily 10 | Flashcards | Strategy check | Time trial
+homework caption: What was assigned, and whether it was done.
+note: Good focus in class today. Two misses on punctuation, both the same comma rule, so I've added a short set on it. Pacing is better: the math module was done with four minutes to spare.
+note from: Your student's tutor
+notes caption: A few sentences from the tutor, every day.
+
+## 28 Program: compare
+headline: The same goal. A very different nine weeks.
+columns: The Karman cohort | A typical course | A private tutor
+rows: The class = ${W(CLASS)} students at one starting score ; Often a dozen, at every level ; One student | Full practice tests = ${W(MP.fullLengthTests)}, one a week ; A few ; Up to the tutor | Homework = Built from each student's mistakes ; The same for everyone ; Up to the tutor | Your tutor = One, from start to finish ; Whoever teaches that class ; One | Report to parents = Every day ; Rarely ; When you ask | The promise = A set number of points, in writing ; Varies, with conditions ; Rarely any | The cost = The price of a class ; The price of a class ; Several times more
+note: "A typical course" means large national courses in general. Check the details of any course you are weighing.
 
 ## 24 Program: the promise
 headline: The gain we promise depends on where your student starts.
@@ -246,6 +268,12 @@ headline: The real cost is another test date with the same score.
 text: Each class has ${w(CLASS)} seats and is built by starting score, so the right one for your student can fill first.
 bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to use before class begins.
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
+ask: What did your student score last time?
+field: SAT or PSAT score
+show: Show their class
+class: Your student would join the class that starts between
+no score: No score yet? Your student sits a short placement test first.
+bad: Enter a score between 400 and 1600.
 
 ## 31 Private: opening
 headline: One student, one tutor, every mistake worked through.
