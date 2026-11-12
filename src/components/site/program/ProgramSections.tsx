@@ -1,11 +1,10 @@
-// The SAT Program page, section by section (founder's picks, 2026-11-11): the opening (three animated
-// versions to choose from, switched by OpeningPicker on the development server), the comparison table, the
+// The SAT Program page, section by section (founder's picks, 2026-11-11): the opening (the outcome and the
+// starting-score switch, his pick), the comparison table, the
 // weekly loop, the stack, the parent portal, the promise and the close with its "start here" box. Centred
 // sections, deliberately not the home page's look. Words: site-copy.ts, sections 21 to 24, 27 and 28. Only
 // the small interactive pieces run in the browser, and they get their facts and words as props.
 import { Arrow, Btn } from "@/components/site/parts";
 import DaysLeft from "./DaysLeft";
-import OpeningPicker from "./OpeningPicker";
 import ProgramPortal from "./ProgramPortal";
 import ProgramPromise from "./ProgramPromise";
 import ProgramStart from "./ProgramStart";
@@ -111,114 +110,6 @@ const MOVES = [
   </g>,
 ];
 
-/** The example the opening's pictures use: a start just under the first band's top, and the promise for it. */
-const START = G.bands[0].upTo - 50;
-const GAIN = G.bands[0].cohort;
-
-/** Opening A's picture: a score line that climbs week by week to the promised gain. */
-function Climb() {
-  const s = section(21);
-  const pts = Array.from({ length: MP.weeks + 1 }, (_, i) => {
-    const t = i / MP.weeks;
-    return [
-      44 + i * (392 / MP.weeks),
-      252 - 186 * t ** 0.9 + (i % 2 ? 7 : -3) * (i > 0 && i < MP.weeks ? 1 : 0),
-    ];
-  });
-  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`).join("");
-  return (
-    <figure className="pg-climb">
-      <svg viewBox="0 0 480 310" role="img" aria-label={s["climb note"]}>
-        <path className="g" d="M44 66h392M44 128h392M44 190h392M44 252h392" />
-        <path className="a" d={`${line}L436 252L44 252Z`} />
-        <path className="l" pathLength={1} d={line} />
-        {pts.map(([x, y], i) => (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r={i === MP.weeks ? 9 : 5.5}
-            style={{ "--i": i } as React.CSSProperties}
-          />
-        ))}
-        {pts.slice(1).map(([x], i) => (
-          <text key={i} className="w" x={x} y={280} textAnchor="middle">
-            {i + 1}
-          </text>
-        ))}
-        <text className="w" x={44} y={280} textAnchor="middle">
-          0
-        </text>
-        <text className="k" x={44} y={300}>
-          {s["climb weeks"]}
-        </text>
-      </svg>
-      <span className="pg-flag pg-from">
-        {s["climb start"]} <b className="num">{START}</b>
-      </span>
-      <span className="pg-flag pg-to">
-        {s["climb goal"]} <b className="num">{START + GAIN}</b>
-      </span>
-      <figcaption>{s["climb note"]}</figcaption>
-    </figure>
-  );
-}
-
-/** Opening C's picture: today's score report, and the one nine weeks from now laid over it. */
-function Reports() {
-  const s = section(21);
-  const card = (label: string, score: number, cls: string) => (
-    <div className={`pg-rep ${cls}`}>
-      <span>{label}</span>
-      <em>{s["report label"]}</em>
-      <b className="num">{score}</b>
-      <i style={{ "--v": (score - 400) / 1200 } as React.CSSProperties} />
-    </div>
-  );
-  return (
-    <figure className="pg-reports">
-      {card(s.before, START, "pg-then")}
-      {card(s.after, START + GAIN, "pg-next")}
-      <strong className="num">+{GAIN}</strong>
-      <figcaption>{s["report note"]}</figcaption>
-    </figure>
-  );
-}
-
-function Opening({ kind }: { kind: "climb" | "switch" | "reports" }) {
-  const s = section(21);
-  const p = section(24);
-  return (
-    <section className={`pg-hero pg-o-${kind}`} id="top">
-      <div className="mist" aria-hidden="true" />
-      <div className="pg-in">
-        <div className="pg-say">
-          <h1>{s.headline}</h1>
-          <p className="lede">{s.lede}</p>
-          {kind === "switch" ? null : <Actions />}
-        </div>
-        {kind === "climb" ? (
-          <Climb />
-        ) : kind === "reports" ? (
-          <Reports />
-        ) : (
-          <>
-            <ProgramPromise
-              ask={p.ask}
-              bands={list(p.bands)}
-              gains={G.bands.map((b) => b.cohort)}
-              promise={p.promise}
-              highTitle={p["high title"]}
-              high={p.high}
-            />
-            <Actions />
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
-
 export default function ProgramSections() {
   const open = section(21);
   const loop = section(22);
@@ -230,14 +121,23 @@ export default function ProgramSections() {
   const steps = pairs(loop.steps);
   return (
     <>
-      {/* 1. The outcome: three versions to choose from */}
-      <OpeningPicker names={["1A. Score climb", "1B. The switch", "1C. Before and after"]}>
-        {[
-          <Opening key="a" kind="climb" />,
-          <Opening key="b" kind="switch" />,
-          <Opening key="c" kind="reports" />,
-        ]}
-      </OpeningPicker>
+      {/* 1. The outcome, and the switch: a starting score in, the promised points out */}
+      <section className="pg-hero" id="top">
+        <div className="mist" aria-hidden="true" />
+        <div className="pg-in">
+          <h1>{open.headline}</h1>
+          <p className="lede">{open.lede}</p>
+          <ProgramPromise
+            ask={promise.ask}
+            bands={list(promise.bands)}
+            gains={G.bands.map((b) => b.cohort)}
+            promise={promise.promise}
+            highTitle={promise["high title"]}
+            high={promise.high}
+          />
+          <Actions />
+        </div>
+      </section>
 
       {/* 2. Against the usual prep */}
       <section className="sect pg-sect" id="compare" aria-labelledby="compare-h">
@@ -361,34 +261,48 @@ export default function ProgramSections() {
         </div>
       </section>
 
-      {/* 6. The promise, by starting score */}
+      {/* 6. The promise's two sides, and what happens either way */}
       <section className="sect pg-sect" id="promise" aria-labelledby="promise-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in rv">
           <h2 id="promise-h">{promise.headline}</h2>
-          <ProgramPromise
-            ask={promise.ask}
-            bands={list(promise.bands)}
-            gains={G.bands.map((b) => b.cohort)}
-            promise={promise.promise}
-            highTitle={promise["high title"]}
-            high={promise.high}
-          />
-          <div className="pg-terms">
-            <h3>{promise["terms title"]}</h3>
-            <ul>
-              {list(promise.terms).map((x) => (
-                <li key={x}>
-                  <Tick />
-                  {x}
-                </li>
-              ))}
-            </ul>
-            <a className="more" href={ROUTES.guarantee}>
-              {promise.link}
-              <Arrow />
-            </a>
+          <div className="pg-deal">
+            <article className="pg-terms">
+              <h3>{promise["ours title"]}</h3>
+              <ul>
+                {list(promise.ours).map((x) => (
+                  <li key={x}>
+                    <Tick />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article className="pg-terms pg-theirs">
+              <h3>{promise["terms title"]}</h3>
+              <ul>
+                {list(promise.terms).map((x) => (
+                  <li key={x}>
+                    <Tick />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+            </article>
           </div>
+          <ol className="pg-ends">
+            {pairs(promise.ends).map(([k, v], i) => (
+              <li key={k} style={{ "--i": i } as React.CSSProperties}>
+                <b>{k}</b>
+                <span>{v}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="pg-small">{promise.high}</p>
+          <a className="more" href={ROUTES.guarantee}>
+            {promise.link}
+            <Arrow />
+          </a>
         </div>
       </section>
 

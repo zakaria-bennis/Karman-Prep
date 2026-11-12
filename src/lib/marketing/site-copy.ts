@@ -196,14 +196,6 @@ days left: days left to register
 starts: Classes start ${START_DAY}.
 stack: ${MP.totalClasses} live classes, in a group of ${w(CLASS)} = Five classmates who start where your student starts, so the pace fits. | ${W(MP.fullLengthTests)} full-length tests, one a week = We know what to fix within seven days, not at the end. | Homework built for one student = Ten questions a day from their own mistakes, and time trials if the clock is the problem. | One tutor, from the first class to test day = Matched to what your student struggles with. You never explain your child twice. | A report for you, every day = The work done, the predicted score and a note from the tutor. | ${QB.verifiedCount} questions, none written by AI = Written by people who have written real exams, and checked by 1550+ scorers. | ${UP_TO.cohort}, or your money back = You see the exact number before you pay.
 stack headline: One seat holds all of this.
-climb start: Today
-climb goal: Promised
-climb weeks: Week
-climb note: The line shows the promise for a start of ${G.bands[0].upTo} or below. It is not a student's result.
-before: Today
-after: ${W(MP.weeks)} weeks from now
-report label: SAT score
-report note: An example: the promise for a student who starts at ${G.bands[0].upTo - 50}.
 
 ## 22 Program: the loop
 headline: Every week runs the same way. That is how a score goes up.
@@ -234,7 +226,10 @@ rows: The class = ${W(CLASS)} students at one starting score ; Often a dozen, at
 note: "A typical course" means large national courses in general. Check the details of any course you are weighing.
 
 ## 24 Program: the promise
-headline: The gain we promise depends on where your student starts.
+headline: A promise with two sides.
+ours title: Our side
+ours: A class of ${w(CLASS)} at your student's level | A full practice test every week | Homework built from their own mistakes | A report to you every day
+ends: They hit the number = The promise is kept. | They get at least halfway = Half your money comes back. | They fall short of halfway = All of it comes back, or the next cohort is free.
 ask: Their latest SAT or PSAT score
 bands: ${G.bands.map((b, i) => (i === 0 ? `Up to ${b.upTo}` : `${G.bands[i - 1].upTo + 10} to ${b.upTo}`)).join(" | ")} | ${G.noGuaranteeFrom} and up
 promise: points in ${w(MP.weeks)} weeks, or your money back.
