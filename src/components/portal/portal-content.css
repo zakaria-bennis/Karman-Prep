@@ -7,7 +7,7 @@
 .kp-panel {
   margin-top: 18px;
   padding: 4px 22px 20px;
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--bg) var(--panel-tint), transparent);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
@@ -80,7 +80,7 @@
   gap: 16px;
   margin-top: 18px;
   padding: 14px 16px;
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .kp-banner > div {
@@ -108,7 +108,7 @@
 .kp-card {
   padding: 18px 20px 16px;
   border: 1px solid color-mix(in srgb, hsl(var(--hue) var(--hs) 50%) 18%, var(--line));
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, hsl(var(--hue) var(--hs) 55%) 7%, var(--card));
   min-width: 0;
 }
@@ -328,7 +328,7 @@
   background: var(
     --g,
     conic-gradient(
-      var(--ring-color, var(--l3)) calc(var(--p) * 1turn),
+      var(--ring-color, var(--l3)) calc(var(--kp-p) * 1turn),
       color-mix(in srgb, var(--ink) 14%, transparent) 0
     )
   );
@@ -447,7 +447,7 @@
   --tint: var(--accent);
   border: 1px solid color-mix(in srgb, var(--tint) 32%, var(--line));
   border-left: 4px solid var(--tint);
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--tint) 8%, var(--card));
   transition: background-color 0.25s;
 }

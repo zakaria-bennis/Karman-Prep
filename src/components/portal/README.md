@@ -25,6 +25,17 @@ import { PortalShell, Panel, Card, SectionHeader, Row, Cta } from "@/components/
 render its content straight into the shell. The working example is the student Today page:
 `src/components/dashboard/StudentDashboardClient.tsx`.
 
+## Two looks, until the founder picks (2026-11-12)
+
+`portal-lit.css` lays the home page's design language over the painted shell: ink on cream mist
+by day and cream on night mist at night, a cobalt (day) or soft gold (night) pill for the main
+button, rounded cream cards with a soft lift, Young Serif headings and wordmark, and the site's
+light and dark switch beside the fox (the choice is shared with the site). It is on by default.
+Add `?look=painted` to any portal address to see the approved painted look of 2026-11-08, and
+`?look=lit` to come back; the browser remembers the choice. Corners in the portals' own sheets
+read `var(--kp-r, 4px)`, which the lit look sets to 16px. Once he picks, delete the losing look,
+the `LOOK_KEY` switch in `PortalShell.tsx` and this section.
+
 ## Rules
 
 - **One main button per screen.** `Cta` is the only highlighted button. Every other action is a
@@ -116,9 +127,18 @@ doesn't count) and the colors.
 ## Legend, Num, TutorNote, Banner
 
 - `Legend items={[{ label, value?, color }]}` is the key under a ring or squares.
-- `Num` sets a number in Hanken Grotesk; `<Num big>` is the 64px score style.
+- `Num` sets a number in Hanken Grotesk; `<Num big>` is the 64px score style. A whole number counts
+  up to its value when it appears: always when `big` or inside a ring, elsewhere with `count`.
 - `TutorNote from="David"` is a handwritten note in Caveat, signed.
 - `Banner` is a strip across the top of the box (pass it to `Panel banner`).
+
+## Motion
+
+`portal-motion.css`, all CSS (founder, 2026-11-12: motion first, every motion carrying meaning). When a
+page opens, its cards arrive in a short cascade on a spring; rings fill from empty to their value and
+settle; the level ring sweeps round; skill squares pop in one after another; numbers count up (`Num`).
+The real number stays in the page, so screen readers and reduced motion get it at once. Under the
+device's reduced motion or Settings > Reduce motion (`data-kp-still`), everything shows finished.
 
 ## The painting
 

@@ -1,6 +1,6 @@
-import PricingPlans from "@/components/site/PricingPlans";
 import SitePage from "@/components/site/SitePage";
-import { GuaranteeSection } from "@/components/site/inner";
+import PricingSections from "@/components/site/deal/PricingSections";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -10,7 +10,6 @@ import {
   PRACTICE_PLAN,
   PRO_PLAN,
 } from "@/lib/marketing/offer";
-import { SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.pricing,
@@ -18,19 +17,12 @@ export const metadata = pageMeta(
   `Every Karman price on one page: ${PRACTICE_PLAN.name} at ${formatPrice(PRACTICE_PLAN.monthly)} a month, ${PRO_PLAN.name} at ${formatPrice(PRO_PLAN.monthly)}, the live cohort at ${formatPrice(MARCH_PROGRAM.price)} and private tutoring, with the guarantee in full: up to +${guaranteeMax("private")} points, set by the starting score, or your money back.`
 );
 
+/* In the home page's world, on the SAT Program page's frame (founder, 2026-11-12). The landscape keeps
+   travelling: pricing flies the stretch after About's. */
 export default function PricingPage() {
   return (
-    <SitePage kind="pricing">
-      <PricingPlans
-        guarantee={
-          <GuaranteeSection
-            override={{
-              headline: SITE["pricing guarantee headline"],
-              text: SITE["pricing guarantee text"],
-            }}
-          />
-        }
-      />
+    <SitePage kind="lit" route={[0.56, 0.72]} className={litFonts}>
+      <PricingSections />
     </SitePage>
   );
 }

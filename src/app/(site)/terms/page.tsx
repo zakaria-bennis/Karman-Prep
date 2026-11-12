@@ -3,6 +3,8 @@
 // ============================================================
 
 import SitePage from "@/components/site/SitePage";
+import LegalFrame from "@/components/site/company/LegalFrame";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -134,59 +136,35 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <SitePage kind="inner">
-      <article className="legal">
-        {/* Header */}
-        <section>
-          <div>
-            <h1>Terms of Service</h1>
-            <p>Effective November 8, 2026 · Governing law: Texas, United States</p>
-          </div>
-        </section>
-
-        {/* Table of contents + content */}
-        <div>
-          {/* TOC sidebar — hidden on mobile */}
-          <aside>
-            <div>
-              <p>Contents</p>
-              <nav>
-                {SECTIONS.map((s) => (
-                  <a key={s.id} href={`#${s.id}`}>
-                    {s.title}
-                  </a>
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} rl-legal`}>
+      <LegalFrame
+        title="Terms of Service"
+        intro={<p>Effective November 8, 2026 · Governing law: Texas, United States</p>}
+        contents={SECTIONS}
+      >
+        {SECTIONS.map((section) => (
+          <section key={section.id} id={section.id}>
+            <h2>{section.title}</h2>
+            {section.content && <p>{section.content}</p>}
+            {section.list && (
+              <ul>
+                {section.list.map((item, i) => (
+                  <li key={i}>
+                    <span />
+                    {item}
+                  </li>
                 ))}
-              </nav>
-            </div>
-          </aside>
+              </ul>
+            )}
+          </section>
+        ))}
 
-          {/* Content */}
-          <div>
-            {SECTIONS.map((section) => (
-              <section key={section.id} id={section.id}>
-                <h2>{section.title}</h2>
-                {section.content && <p>{section.content}</p>}
-                {section.list && (
-                  <ul>
-                    {section.list.map((item, i) => (
-                      <li key={i}>
-                        <span />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ))}
-
-            <div>
-              <a href="/privacy">Privacy Policy</a>
-              <a href="/refunds">Refund Policy</a>
-              <a href="/guarantee">Score Guarantee</a>
-            </div>
-          </div>
+        <div>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/refunds">Refund Policy</a>
+          <a href="/guarantee">Score Guarantee</a>
         </div>
-      </article>
+      </LegalFrame>
     </SitePage>
   );
 }

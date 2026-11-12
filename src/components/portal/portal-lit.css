@@ -1,0 +1,317 @@
+/*
+ * The portals in the home page's design language (founder, 2026-11-12: "follow the same design
+ * language as the existing homepage" in every portal). This sheet is laid over portal.css and
+ * portal-content.css and changes the look only; every page, tab and piece of data is the same.
+ *
+ * What carries over from the home page (src/app/(site)/styles/painted.css):
+ *   - ink on cream mist by day, cream on night mist at night, with the same light and dark
+ *     switch as the site (one round button; the choice is shared with the site);
+ *   - one main action per screen: a cobalt pill by day (#2449b8), soft gold at night (#e7cf9a);
+ *   - rounded shapes, never hard-edged, blurred or ragged boxes: a soft band of mist behind the
+ *     content and cream cards on it, lifted by a soft shadow;
+ *   - Young Serif for the wordmark and headings, Hanken Grotesk for everything else;
+ *   - springy movement that settles when pressed.
+ * The painted landscape stays behind the portals (PRODUCT.md); the founder decides whether the
+ * home page's flown landscape should replace it.
+ *
+ * The look is on by default. `?look=painted` (remembered in this browser) shows the approved
+ * painted look of 2026-11-08 for comparison, and `?look=lit` comes back. Once the founder picks,
+ * delete the losing look and the switch (PortalShell's BOOT script).
+ */
+
+:root:not([data-kp-look="painted"]) .kp-shell {
+  --hue: 225;
+  --hs: 67%;
+  /* Every 4px corner in the portals' own sheets reads this (var(--kp-r, 4px)). */
+  --kp-r: 16px;
+  --cream: #fffaf3;
+  --mist: rgb(255 246 236);
+  --bg: #efe6da;
+  --ink: #1d1a22;
+  --mute: #57505f;
+  --line: rgb(29 26 34 / 0.14);
+  --card: #fffaf3;
+  --accent: #2449b8;
+  --accent-ink: #fffaf3;
+  --late: #a52c18;
+  --good: #2f6b45;
+  --l1: hsl(225 70% 88%);
+  --l2: hsl(225 62% 70%);
+  --l3: hsl(225 60% 48%);
+  --l4: hsl(225 62% 30%);
+  --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+  --out: cubic-bezier(0.16, 1, 0.3, 1);
+  --lift: 0 24px 46px -30px rgb(29 26 34 / 0.7), 0 0 0 1px rgb(29 26 34 / 0.06);
+  color-scheme: light;
+}
+
+/* Night: the device is dark and nobody chose day, or somebody chose night. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-kp-look="painted"]):not([data-kp-mode="light"]) .kp-shell {
+    --mist: rgb(23 21 32);
+    --bg: #0f0e16;
+    --ink: #fffaf3;
+    --mute: #cdc7d6;
+    --line: rgb(255 250 243 / 0.16);
+    --card: rgb(24 22 30);
+    --accent: #e7cf9a;
+    --accent-ink: #1d1a22;
+    --late: #ffb09f;
+    --good: #8fd0a8;
+    --l1: hsl(225 40% 30%);
+    --l2: hsl(225 55% 46%);
+    --l3: hsl(225 70% 66%);
+    --l4: hsl(225 80% 84%);
+    --lift: 0 24px 46px -30px rgb(0 0 0 / 0.9), inset 0 0 0 1px rgb(255 250 243 / 0.12);
+    color-scheme: dark;
+  }
+}
+:root[data-kp-mode="dark"]:not([data-kp-look="painted"]) .kp-shell {
+  --mist: rgb(23 21 32);
+  --bg: #0f0e16;
+  --ink: #fffaf3;
+  --mute: #cdc7d6;
+  --line: rgb(255 250 243 / 0.16);
+  --card: rgb(24 22 30);
+  --accent: #e7cf9a;
+  --accent-ink: #1d1a22;
+  --late: #ffb09f;
+  --good: #8fd0a8;
+  --l1: hsl(225 40% 30%);
+  --l2: hsl(225 55% 46%);
+  --l3: hsl(225 70% 66%);
+  --l4: hsl(225 80% 84%);
+  --lift: 0 24px 46px -30px rgb(0 0 0 / 0.9), inset 0 0 0 1px rgb(255 250 243 / 0.12);
+  color-scheme: dark;
+}
+
+/* ---------- The box: a soft band of mist with rounded ends, not a tinted square ---------- */
+:root:not([data-kp-look="painted"]) .kp-shell .kp-panel {
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--mist) 82%, transparent);
+  box-shadow: 0 30px 70px -40px rgb(29 26 34 / 0.55);
+  backdrop-filter: saturate(1.2);
+  -webkit-backdrop-filter: saturate(1.2);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-banner {
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+}
+
+/* ---------- Cards: cream, rounded, lifted ---------- */
+:root:not([data-kp-look="painted"]) .kp-shell :is(.kp-card, .kp-expand) {
+  border: 0;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--lift);
+  transition:
+    transform 0.6s var(--spring),
+    box-shadow 0.4s var(--out);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-expand[data-open] {
+  background: var(--card);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-card[data-tone="late"] {
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 2px color-mix(in srgb, var(--late) 45%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  :root:not([data-kp-look="painted"]) .kp-shell .kp-card:has(a:hover) {
+    transform: translateY(-2px);
+  }
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-sec-h > :first-child {
+  font: 400 24px/30px var(--font-serif);
+  letter-spacing: -0.01em;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-row {
+  border-radius: 14px;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-sq,
+:root:not([data-kp-look="painted"]) .kp-shell .kp-legend i {
+  border-radius: 5px;
+}
+
+/* ---------- The one main action: a pill of ink colour that settles when pressed ---------- */
+:root:not([data-kp-look="painted"]) .kp-shell .kp-cta {
+  border-radius: 999px;
+  min-height: 54px;
+  padding: 0 26px;
+  box-shadow:
+    0 14px 28px -14px color-mix(in srgb, var(--accent) 80%, #000),
+    0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
+  transition:
+    transform 0.5s var(--spring),
+    box-shadow 0.5s var(--out);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-cta:active {
+  transform: scale(0.96);
+  box-shadow: 0 6px 14px -10px color-mix(in srgb, var(--accent) 80%, #000);
+  transition-duration: 0.08s;
+}
+@media (hover: hover) and (pointer: fine) {
+  :root:not([data-kp-look="painted"]) .kp-shell .kp-cta:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 18px 32px -14px color-mix(in srgb, var(--accent) 80%, #000),
+      0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-who {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ---------- The rail, the tab bar and the app bar: words on mist, a soft tint for the current tab ---------- */
+:root:not([data-kp-look="painted"]) .kp-shell :is(.kp-nav, .kp-appbar, .kp-brand-m) {
+  --ink: inherit;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--mist) 80%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: 0 16px 40px -24px rgb(29 26 34 / 0.6);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-nav {
+  border-radius: 30px;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-nav a {
+  border-radius: 999px;
+  color: var(--mute);
+  transition:
+    color 0.25s var(--out),
+    background-color 0.25s var(--out),
+    transform 0.5s var(--spring);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-nav a[aria-current="page"] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 11%, transparent);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-nav a:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-wordmark {
+  font: 400 21px/1 var(--font-serif);
+  letter-spacing: -0.01em;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-brand-m .kp-wordmark {
+  font-size: 26px;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-avatar {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-streak svg {
+  fill: var(--accent);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-badge {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* The account menu: a rounded cream sheet. */
+:root:not([data-kp-look="painted"]) .kp-shell .kp-menu {
+  border: 0;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow:
+    0 26px 50px -24px rgb(29 26 34 / 0.6),
+    0 0 0 1px var(--line);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-menu-row {
+  border-radius: 14px;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-menu-row:hover,
+:root:not([data-kp-look="painted"]) .kp-shell .kp-menu-row:focus-visible {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+/* ---------- The heading: Young Serif, ink on a soft glow of mist, as on the home page ---------- */
+:root:not([data-kp-look="painted"]) .kp-shell .kp-top,
+:root:not([data-kp-look="painted"]) .kp-shell[data-picture="light"] .kp-top {
+  color: var(--ink);
+  text-shadow:
+    0 0 26px var(--mist),
+    0 0 10px var(--mist);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-greet {
+  font-size: clamp(32px, 3.2vw, 48px);
+  line-height: 1.1;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-caret {
+  background: var(--accent);
+}
+:root:not([data-kp-look="painted"]) .kp-shell :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+:root:not([data-kp-look="painted"]) .kp-shell ::selection {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+/* ---------- The light and dark switch, as on the site: one round button showing the sky ---------- */
+.kp-theme {
+  display: none;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-theme {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 20%, transparent);
+  transition: transform 0.45s var(--spring);
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-theme:active {
+  transform: scale(0.92);
+  transition-duration: 0.08s;
+}
+:root:not([data-kp-look="painted"]) .kp-shell .kp-theme svg {
+  position: absolute;
+  left: 11px;
+  top: 11px;
+  width: 22px;
+  height: 22px;
+  transition:
+    transform 0.8s var(--spring),
+    opacity 0.45s var(--out);
+}
+/* By day the sun shows and the moon waits below the rim; at night the other way round. */
+:root:not([data-kp-look="painted"]) .kp-shell .kp-theme .moon {
+  transform: translateY(34px) rotate(-70deg);
+  opacity: 0;
+}
+:root[data-kp-mode="dark"]:not([data-kp-look="painted"]) .kp-shell .kp-theme .sun {
+  transform: translateY(34px) rotate(70deg);
+  opacity: 0;
+}
+:root[data-kp-mode="dark"]:not([data-kp-look="painted"]) .kp-shell .kp-theme .moon {
+  transform: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-kp-look="painted"]) .kp-shell :is(.kp-card, .kp-cta, .kp-nav a, .kp-theme, .kp-theme svg) {
+    transition: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root:not([data-kp-look="painted"]) .kp-shell :is(.kp-panel, .kp-nav, .kp-appbar, .kp-brand-m) {
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

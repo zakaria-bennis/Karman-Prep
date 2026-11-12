@@ -9,6 +9,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  WbMix,
   WbPage,
   WbPill,
   WbSearch,
@@ -175,6 +176,19 @@ export default async function PlansPage({
         ]}
       />
 
+      <WbMix
+        title="Plan mix"
+        note={
+          q
+            ? "People matching the search, by the plan they can use today"
+            : "By the plan each person can use today"
+        }
+        parts={PLAN_FILTERS.filter((f) => f !== "all").map((f) => ({
+          label: FILTER_LABEL[f],
+          value: countOf(f),
+          tone: f === "free" ? ("none" as const) : undefined,
+        }))}
+      />
       <WbToolbar>
         <WbTabs
           label="Filter by plan"

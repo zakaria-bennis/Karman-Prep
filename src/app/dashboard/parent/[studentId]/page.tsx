@@ -20,8 +20,11 @@ import {
 import { ParentShell } from "@/components/parent/ParentShell";
 import { GuaranteeCard, sessionWhen } from "@/components/parent/parts";
 import { JoinButton } from "@/components/portal-extras/JoinButton";
+import { TestDayCard } from "@/components/parent/TestDayCard";
 import { joinOpen } from "@/lib/parent/join-window";
+import { childTestDate, loadOfficialScores } from "@/lib/parent/messages";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
+import { testDay } from "@/lib/parent/test-day";
 
 export const metadata: Metadata = { title: "Week" };
 export const dynamic = "force-dynamic";
@@ -33,7 +36,18 @@ export default async function ParentWeekPage({
 }) {
   const ctx = await requireParentContext();
   const child = await requireChild(ctx, (await params).studentId);
-  const week = await loadChildWeek(child);
+  const [week, testDate, official] = await Promise.all([
+    loadChildWeek(child),
+    childTestDate(child.id),
+    loadOfficialScores(child.id),
+  ]);
+  const day = testDay({
+    today: new Date().toISOString().slice(0, 10),
+    testDate,
+    target: week.guarantee?.target ?? null,
+    predicted: week.score.current,
+    official,
+  });
   const base = `/dashboard/parent/${child.id}`;
   const hw = week.homework;
   const total = hw.done + hw.open.length;
@@ -44,6 +58,7 @@ export default async function ParentWeekPage({
 
   const side = (
     <>
+      <TestDayCard day={day} childName={child.firstName} />
       {week.guarantee && <GuaranteeCard status={week.guarantee} childName={child.firstName} />}
       <Card>
         <SectionHeader title="Predicted score" />
@@ -79,7 +94,7 @@ export default async function ParentWeekPage({
               <span>Join on Zoom</span>
               <Chevron />
             </a>
-            <MoreLink href={`${base}/recap`}>Preview this week&rsquo;s email</MoreLink>
+            <MoreLink href={`${base}/messages`}>Tutor notes and messages</MoreLink>
           </section>
         ) : (
           <section aria-labelledby="week-main">
@@ -93,7 +108,7 @@ export default async function ParentWeekPage({
             <p className="kp-meta">
               <Num>{week.minutesThisWeek}</Num> minutes of practice in the last 7 days.
             </p>
-            <Cta href={`${base}/recap`}>Preview this week&rsquo;s email</Cta>
+            <Cta href={`${base}/messages`}>Tutor notes and messages</Cta>
           </section>
         )}
         <Card tone={hw.late ? "late" : undefined}>

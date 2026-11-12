@@ -13,7 +13,14 @@ function db(): SupabaseClient {
 const runRow = z.object({
   id: z.string().uuid(),
   student_id: z.string(),
-  kind: z.enum(["daily-ten", "practice-set", "domain-quiz", "full-test", "diagnostic"]),
+  kind: z.enum([
+    "daily-ten",
+    "practice-set",
+    "domain-quiz",
+    "full-test",
+    "diagnostic",
+    "time-trial",
+  ]),
   run_key: z.string(),
   scope: z.string().nullable(),
   form: z.record(z.string(), z.unknown()),
@@ -82,6 +89,25 @@ export async function latestRunOfKind(studentId: string, kind: RunKind): Promise
     .maybeSingle();
   if (error) throw new Error("Saved run could not be loaded");
   return data ? toRecord(data) : null;
+}
+
+/** The student's most recently finished run of one kind and scope, or null. */
+export async function latestFinishedRun(
+  studentId: string,
+  kind: RunKind,
+  scope: string
+): Promise<RunRecord | null> {
+  const { data, error } = await db()
+    .from("quiz_runs")
+    .select(RUN_COLUMNS)
+    .eq("student_id", studentId)
+    .eq("kind", kind)
+    .eq("scope", scope)
+    .not("completed_at", "is", null)
+    .order("completed_at", { ascending: false })
+    .limit(1);
+  if (error) throw new Error("Saved run could not be loaded");
+  return data?.[0] ? toRecord(data[0]) : null;
 }
 
 export async function findOpenRun(

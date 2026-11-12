@@ -1,0 +1,397 @@
+/*
+ * The admin money view, part two: sales by plan, cohort payments, the retention grid, the small
+ * lists, the phone layout and the motion keyframes. Tokens and charts are in revenue.css.
+ */
+
+/* ---------- Sales by plan ---------- */
+.kp-rev-ladder-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.kp-rev-ladder {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+  font-size: 14px;
+}
+.kp-rev-ladder thead th {
+  padding: 0 8px 4px;
+  color: var(--mute);
+  font: 600 12px/16px var(--font-sans);
+  text-align: left;
+}
+.kp-rev-ladder tbody tr {
+  animation: kp-rev-tile 0.7s var(--rev-spring) both;
+  animation-delay: calc(var(--i) * 45ms + 0.2s);
+}
+.kp-rev-ladder tbody th,
+.kp-rev-ladder tbody td {
+  padding: 8px;
+  vertical-align: top;
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+}
+.kp-rev-ladder tbody th {
+  display: flex;
+  gap: 10px;
+  min-width: 170px;
+  border-radius: 14px 0 0 14px;
+  text-align: left;
+  font-weight: 400;
+}
+.kp-rev-ladder tbody td:last-child {
+  border-radius: 0 14px 14px 0;
+}
+.kp-rev-ladder b {
+  font-weight: 700;
+}
+.kp-rev-ladder small {
+  display: block;
+  color: var(--mute);
+  font-size: 12px;
+  line-height: 16px;
+}
+.kp-rev-step {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--c);
+  color: var(--card);
+  font: 700 12px/1 var(--font-sans);
+}
+.kp-rev-meter {
+  display: block;
+  height: 6px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  overflow: hidden;
+}
+.kp-rev-meter i {
+  display: block;
+  height: 100%;
+  width: calc(var(--w) * 100%);
+  min-width: 2px;
+  border-radius: inherit;
+  background: var(--c, var(--rev-line));
+  transform-origin: left;
+  animation: kp-rev-bar 1s var(--rev-spring) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 0.35s);
+  transition: width 0.6s var(--rev-spring);
+}
+.kp-rev-meter[data-kind="count"] i {
+  opacity: 0.55;
+}
+.kp-rev-cell {
+  display: block;
+  min-width: 110px;
+}
+.kp-rev-share {
+  color: var(--mute);
+  font-size: 12px;
+}
+.kp-rev-ladder tfoot th,
+.kp-rev-ladder tfoot td {
+  padding: 8px;
+  text-align: left;
+  font-weight: 700;
+}
+
+/* ---------- Cohort payments ---------- */
+.kp-rev-cohort-lead {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.kp-rev-cohort-lead b {
+  font-size: 24px;
+}
+.kp-rev-cohort-lead small {
+  display: block;
+  color: var(--mute);
+}
+.kp-rev-split {
+  display: flex;
+  gap: 3px;
+  height: 18px;
+}
+.kp-rev-split i {
+  flex-basis: 0;
+  min-width: 6px;
+  border-radius: 6px;
+  transform-origin: left;
+  animation: kp-rev-bar 0.9s var(--rev-spring) both;
+  animation-delay: calc(var(--i) * 120ms + 0.3s);
+}
+.kp-rev-split i[data-kind="due"],
+.kp-rev-key i[data-kind="due"] {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--rev-cohort) 35%, transparent) 4px 7px
+  ) !important;
+}
+.kp-rev-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--mute);
+  font-size: 13px;
+}
+.kp-rev-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.kp-rev-key b {
+  color: var(--ink);
+}
+.kp-rev-seats {
+  display: grid;
+  gap: 2px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+.kp-rev-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.kp-rev-track li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding-top: 22px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 17px;
+}
+.kp-rev-track li::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: -50%;
+  right: 50%;
+  height: 2px;
+  background: color-mix(in srgb, var(--rev-cohort) 30%, transparent);
+}
+.kp-rev-track li:first-child::before {
+  display: none;
+}
+.kp-rev-track i {
+  position: absolute;
+  top: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--rev-cohort);
+  background: var(--card);
+  animation: kp-rev-pop 0.6s var(--rev-spring) both;
+  animation-delay: calc(var(--i) * 140ms + 0.4s);
+}
+.kp-rev-track li[data-done] i {
+  background: var(--rev-cohort);
+}
+.kp-rev-track small {
+  color: var(--mute);
+  font-size: 12px;
+}
+
+/* ---------- Retention heat grid ---------- */
+.kp-rev-heat {
+  border-spacing: 4px;
+  border-collapse: separate;
+  font-size: 14px;
+}
+.kp-rev-heat th {
+  padding: 4px 8px;
+  color: var(--mute);
+  font: 600 12px/16px var(--font-sans);
+  text-align: left;
+  white-space: nowrap;
+}
+.kp-rev-heat tbody th {
+  color: var(--ink);
+  font-size: 14px;
+}
+.kp-rev-heat td {
+  padding: 8px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.kp-rev-heat td[style] {
+  background: color-mix(in srgb, var(--rev-new) calc(var(--s) * 70%), transparent);
+  animation: kp-rev-pop 0.6s var(--rev-spring) both;
+  animation-delay: calc(var(--d) * 70ms + 0.2s);
+}
+.kp-rev-heat td b {
+  font-weight: 700;
+}
+.kp-rev-heat td small {
+  margin-left: 6px;
+  color: var(--mute);
+  font-size: 12px;
+}
+.kp-rev-heat td[data-ahead] {
+  color: var(--mute);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+/* ---------- Small number groups and lists ---------- */
+.kp-rev-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.kp-rev-trio[data-four] {
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+}
+.kp-rev-trio span {
+  display: grid;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.kp-rev-trio b {
+  font-size: 22px;
+  line-height: 28px;
+}
+.kp-rev-trio small {
+  color: var(--mute);
+  font-size: 12px;
+}
+.kp-rev-rows {
+  display: grid;
+  gap: 2px;
+}
+.kp-rev-tutor {
+  display: grid;
+  animation: kp-rev-tile 0.6s var(--rev-spring) both;
+  animation-delay: calc(var(--i) * 60ms + 0.2s);
+}
+.kp-rev-tutor .kp-rev-meter {
+  margin: 0 12px 6px;
+}
+.kp-rev-sources {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--mute);
+  font-size: 14px;
+  line-height: 21px;
+}
+.kp-rev-sources b {
+  color: var(--ink);
+}
+
+/* ---------- Phones: the ladder stacks, the heat grid drops its counts ---------- */
+@media (max-width: 560px) {
+  .kp-rev-ladder thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .kp-rev-ladder tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 6px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--c) 7%, transparent);
+  }
+  .kp-rev-ladder tbody th,
+  .kp-rev-ladder tbody td {
+    background: none;
+  }
+  .kp-rev-ladder tbody th {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-bottom: 0;
+  }
+  .kp-rev-cell {
+    min-width: 0;
+  }
+  .kp-rev-ladder tfoot tr {
+    display: flex;
+    justify-content: space-between;
+  }
+  .kp-rev-heat td small {
+    display: none;
+  }
+  .kp-rev-trio b {
+    font-size: 18px;
+  }
+}
+
+/* ---------- Motion ---------- */
+@keyframes kp-rev-tile {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+@keyframes kp-rev-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes kp-rev-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes kp-rev-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes kp-rev-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes kp-rev-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes kp-rev-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+@keyframes kp-rev-tip-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kp-rev *,
+  .kp-rev *::before,
+  .kp-rev *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

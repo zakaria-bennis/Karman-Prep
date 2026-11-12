@@ -35,7 +35,8 @@ import {
   type HomeworkResult,
   type StudentHomeworkItem,
 } from "./homework-model";
-import { CB_MODULE, type TrialSection } from "./time-trial";
+import { TRIAL_MODULE, type TrialSection } from "./time-trial";
+import { TIME_TRIAL } from "./quiz-routes";
 import { assignmentState, type Assignment } from "./unlocks";
 
 export * from "./homework-model";
@@ -393,7 +394,7 @@ export async function loadStudentHomework(
     };
     const state = assignmentState(a, nowMs);
     const run = lastRun.get(a.id);
-    const trialModule = a.section ? CB_MODULE[a.section] : null;
+    const trialModule = a.section ? TRIAL_MODULE[a.section] : null;
     items.push({
       key: `trial:${a.id}`,
       source: "trial",
@@ -410,8 +411,13 @@ export async function loadStudentHomework(
       dueOn: a.scheduledFor || null,
       dueAt: null,
       state,
-      // The time trial and test runners are being rebuilt in the Library; open work starts there.
-      href: state === "open" ? "/dashboard/student/library#practice" : null,
+      // An open time trial starts its section's next round; a full-length test from the Library.
+      href:
+        state !== "open"
+          ? null
+          : a.kind === "time_trial" && a.section
+            ? `${TIME_TRIAL.path}?section=${a.section}`
+            : "/dashboard/student/library#practice",
       note: null,
       from: a.tutor || null,
       completedAt: a.completedAt,

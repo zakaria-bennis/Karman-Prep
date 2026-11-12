@@ -11,7 +11,7 @@
 //
 // Sections: 1 to 12 the home page, 21 to 27 the SAT Program, 31 to 36
 // private tutoring, 41 to 45 the free practice test, 51 to 55 the
-// guarantee, 61 to 65 About, 71 the FAQ, 90 the photos' alt text and
+// guarantee, 61 to 65 About, 71 the FAQ, 81 to 83 the research, 90 the photos' alt text and
 // captions. "## Site" holds the header, menu, footer, pricing page
 // ("pricing ...") and the loading and form messages ("form ...").
 //
@@ -304,12 +304,14 @@ form done title: You're on the calendar.
 form done text: ${FOUNDER.firstName} will text you to confirm.
 
 ## 41 Test: opening
-headline: A full-length practice SAT, free, whenever you're ready.
-text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call.
-facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | On Karman = Bluebook-style | $0 = No card needed
+headline: A full-length practice SAT. Free, whenever you're ready.
+text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call with a Karman tutor. It comes with the free plan, so start free and it's waiting in the portal.
+button: Start free
+second button: Or email me the link
+facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | Online = No proctor, no drive | ${$(0)} = No card needed
 
 ## 42 Test: the form
-headline: Get the test link.
+headline: Rather have the link by email?
 form email: Your email
 form email help: Your results go here.
 form name: Student's first name
@@ -323,17 +325,26 @@ form done title: You're in.
 form done text: We'll email you the link to start the test from ${CONTACT.general}, with a way to book the results call when you're done.
 
 ## 43 Test: what you get
-headline: What you get back.
+headline: You get more than a number.
 rows: A score report = Where your student stands today | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = Optional: a Karman tutor walks you through it and answers questions
+sample: Sample report. A made-up student, the real layout.
+score: Estimated score
+sections: Reading and Writing | Math
+domains: Information and Ideas | Craft and Structure | Expression of Ideas | Standard English Conventions | Algebra | Advanced Math | Problem-Solving and Data Analysis | Geometry and Trigonometry
+weakest: Costing the most points
+call: Book the ${FT.callMinutes}-minute call
 
 ## 44 Test: the sitting
-headline: How it runs.
+headline: How it runs. The kitchen table works fine.
 rows: Start = Whenever you have the time, from your Karman account | Reading and Writing = Two timed modules | Math = Two timed modules, with a calculator | Done = Your results come with a link to book the call
+module: Module
+total: ${FT.durationLabel}, ${FT.questionCount} questions.
 
 ## 45 Test: honest note
-headline: An estimate, not a prediction.
-text: It's built from our own questions, not the College Board's, so the score is an estimate. We show it so you can judge the quality of our questions before you pay for anything.
-button: Send me the link
+headline: An estimate, not a prophecy.
+text: It's built from our own questions, not the College Board's, so the score is an estimate. We hand it over free so you can judge our questions before you pay us a cent.
+button: Start free
+button note: The test comes with the free plan, along with ${FREE.questionLimit} practice questions. No card.
 
 ## 51 Guarantee: opening
 headline: ${UP_TO.private}, or your money back.
@@ -362,112 +373,191 @@ headline: The target, by starting score.
 rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
 
 ## 61 About: opening
-headline: Test prep that shows its work.
-text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives.
+headline: We show our work. All of it.
+text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives. No black box. No "just trust us."
+button: Start free
+second button: See how we teach
+stat: +${TR.averageGain}
+stat label: points, on average, for our 1:1 students
+stat source: ${TR.sourceLabel}
 
 ## 62 About: three things
-headline: Three things we won't do.
-rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session | Hide the rules = The guarantee's terms sit on the home page, in full, next to the promise | Stop watching after you pay = Parents get the same numbers the guarantee is measured on, every day
+headline: Three things we refuse to do.
+rows: Keep tutors guessing = Every answer your student gives reaches their tutor before the next session. | Hide the rules = The guarantee's terms are one click from the home page, in full, with worked examples. | Go quiet after you pay = Parents get the same numbers the guarantee is measured on, every day.
 
 ## 63 About: how we teach
 headline: A test, then an hour on every mistake.
-text: Karman began as one-on-one tutoring. The method hasn't changed: a timed full-length test, then a review of every question missed. The programs add what research keeps backing: spaced review of mistakes, mixed practice and small groups.
+text: We started as one-on-one tutoring. The method hasn't changed: a timed full-length test, then a review of every question missed. The programs add what research keeps backing: spaced review of mistakes, mixed practice and small groups.
 proof: ${PROOF}
+loop: The test = Timed like the real SAT. | The review = Every missed question, one by one, until the method makes sense. | The practice = Their own misses, mixed with other skills, like the SAT does. | The comeback = A missed question comes back days later, then again after a longer gap.
+link: See the research we built it on
 
 ## 64 About: our own rules
 headline: Rules we hold our own marketing to.
-list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No countdown timers or fake deadlines | Every cohort's results published, dropouts included, once 15 to 20 SAT scores exist
+list: No testimonials until real ones exist | Every result says where it came from | Score estimates are always ranges | No fake deadlines and no made-up scarcity | Every cohort's results published, dropouts included, once 15 to 20 SAT scores exist
+note: Catch us breaking one and you can quote this page back at us.
 
 ## 65 About: close
-headline: Start with one Saturday.
-text: The free practice test shows you our questions and our feedback before you spend anything.
-button: Take the free practice test
+headline: Start free. Judge us after.
+text: Your student gets ${FREE.questionLimit} practice questions and a full-length practice test. You see exactly how we teach before you spend a dollar. No card. No catch.
+button: Start free
+second button: Or take the free practice test
 
 ## 71 FAQ
-headline: Straight answers.
-qa: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. | Which SAT counts for the guarantee? = On the cohort, the SAT the cohort ends on. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student already scores high. Is that covered? = Up to ${TOP.upTo}, yes. From a start of ${BAND_LABELS[3]} the target is +${TOP.cohort} points on the cohort and ${P10.name}, and +${TOP.private} on ${P20.name}. From ${G.noGuaranteeFrom} the promise is that the score rises, or your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of the test.
+headline: Ask us anything. We text back.
+text: Tap a question in the sky. We answer it the way we'd answer you on the phone: straight, short, and with the real numbers.
+label: Questions parents ask
+box: Pick a question out of the sky
+typing: Karman is typing
+delivered: Delivered
+read: Read
+all headline: Every answer, in one place.
+all text: For the parents who'd rather read it all than chase clouds. Same answers, nothing hidden.
+groups: The money | The promise | The classes | Getting started
+money: What does the ${monthOf(MP.startDate)} cohort cost, all in? = ${$(MP.price)}, or ${SPLIT}. There is no materials fee and no platform fee. | Is the ${$(MP.depositAmount)} deposit refundable? = Yes. It holds the seat after your call with ${FOUNDER.firstName}, and it counts toward the ${$(MP.price)}. | What's the difference between ${PP.name} and ${PRO.name}? = ${PP.name} (${$(PP.monthly)} a month) is the core question pool with written explanations. ${PRO.name} (${$(PRO.monthly)} a month) adds the hard mastery questions, and video explanations, added as they're recorded. | Can we pay for three months at once? = Yes. ${PP.name} is ${$(PP.threeMonths)} for three months and ${PRO.name} is ${$(PRO.threeMonths)}. ${PLAN_RENEWAL} | Is there a scholarship? = Yes. The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
+promise: How many points do you promise? = It depends on where your student starts. ${UP_TO.private} on ${P20.name}, and ${UP_TO.cohort.toLowerCase()} on the cohort and ${P10.name}. | What if the score doesn't go up enough? = Then money comes back. On the cohort: half the target or more, and half the price comes back or the next cohort is free. Under half, the full price comes back or the next cohort is free. You choose. | What does my student have to do? = Show up and do the work. At least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, all ${w(MP.fullLengthTests)} full-length tests, ${G.practicePct}% of the weekly practice, and the SAT their cohort ends on. | Which SAT counts for the guarantee? = On the cohort, the SAT the cohort ends on. On private tutoring, within ${G.private.satWithinDays} days of the last session. | My student already scores high. Is that covered? = Up to ${TOP.upTo}, yes. From a start of ${BAND_LABELS[3]} the target is +${TOP.cohort} points on the cohort and ${P10.name}, and +${TOP.private} on ${P20.name}. From ${G.noGuaranteeFrom} the promise is that the score rises, or your student gets ${w(G.highStartProMonths)} months of ${PRO.name} free. | How do I claim the guarantee? = Email the College Board score report to ${G.claimEmail} within ${G.claimDays} days of the test.
+classes: Who teaches the classes? = A Karman tutor teaches the live classes. The cohort has no one-on-one sessions; private tutoring does. | How big are the classes? = ${W(MP.paidSeats)} students at most. Each cohort is one score band (${MP.scoreBands.join(", ")}), so the whole class works at the same level. | What if my student misses a class? = The guarantee counts live attendance: at least ${G.minClassesAttended} of the ${MP.totalClasses} classes. A recording doesn't count toward it. One class can be made up at a workshop, and one test can be a week late. | When does the next cohort start? = The week of ${MP.startShort}. Registration closes ${CLOSES}. After that, cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}. | What do I see as a parent? = A report every day on the cohort: the work done, the predicted score and a note from the tutor.
+start: Can we try it first? = Yes, and it costs nothing. Start free. ${FREE.questionLimit} practice questions and a full-length practice test, with no card. | Why is there a call before I can pay? = Every class has ${w(MP.paidSeats)} seats, so ${FOUNDER.firstName} meets each student and parent first. We want to know the goal and whether the program is the right fit before anyone pays. | Do you use real College Board questions? = The baseline is a Bluebook practice test from the College Board. Everything else, including the free practice test and the Daily 10, is written by Karman. | My student is already at ${INTAKE.scoreFrom}. Should we buy a program? = Honestly, maybe not. If your student is already scoring ${INTAKE.scoreFrom} or higher, or the SAT is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you a program probably isn't the best use of your money.
+close headline: Still deciding? Start free. It's the fastest answer.
+close text: ${FREE.questionLimit} practice questions and a full-length practice test. No card. Nothing to cancel.
+button: Start free
 
 ## 81 Research: opening
-headline: Why Karman is built the way it is.
-text: Every habit we ask of your student comes from studies you can read yourself. Here they are, what each one found, and where it shows up in the program.
-button: Take the free practice test
-curve once: Read once
-curve spaced: Recalled, spread out
-curve memory: What sticks
-curve time: Weeks of practice
+headline: Seven ways we teach. The science behind every one.
+text: Every habit we ask of your student comes from studies you can read yourself. Here is each way we make a skill stick, what the research found, and the link to check our homework.
+button: Start free
+second button: See the seven ways
+shelf: The reading list
+shelf note: Six studies. Seven ways. Every one a click away.
 
 ## 82 Research: the studies
-headline: Six findings, and what we built from each.
+headline: Show your work? Gladly.
+text: Each way we teach, the study behind it and what that study found. Read the originals. They're better than a sales page.
+why: Answering beats rereading. So every skill gets a practice set, not a summary to skim. | A miss is only useful if your student knows why. Every explanation says what went wrong and what to do next. | A missed question comes back days later, then again after a longer gap, mixed in with other skills. | Two hard questions a day means your student recalls, every day, instead of cramming once. | A timed section is a practice test, and practice testing is one of the two techniques the research rates highest. | Practice tests carry the program. Highlighting and rereading don't appear anywhere. | Attention and fast correction: classes of ${w(CLASS)} where every student answers out loud, and private one-on-one.
+studies label: The research
 retrieval name: Recall beats rereading
 retrieval found: Students who practiced recalling a passage remembered more of it a week later than students who spent the same time rereading it.
-retrieval karman: The Daily 10 asks your student to answer, never to review notes.
 retrieval source: Roediger and Karpicke, Psychological Science, 2006
 spacing name: Spread it out
 spacing found: Reviews spread over days and weeks held up far better than the same reviews crammed together, and the best gap grew with how long the memory had to last.
-spacing karman: A missed question comes back days later, then again after a longer gap.
 spacing source: Cepeda and colleagues, Psychological Science, 2008
 review name: Two techniques stand out
 review found: A review of ten common study techniques rated only two as highly useful: practice testing and practice spread out over time. Highlighting and rereading rated low.
-review karman: Practice tests and spaced daily practice carry the program. Highlighting doesn't appear anywhere.
 review source: Dunlosky and colleagues, Psychological Science in the Public Interest, 2013
 mixed name: Mix the problem types
 mixed found: Students who practiced shuffled math problems did much better on a later test than students who practiced one type at a time, because they had to choose the method.
-mixed karman: Homework and the Daily 10 mix skills, like the SAT does.
 mixed source: Rohrer and Taylor, Instructional Science, 2007
 feedback name: Feedback on the task
 feedback found: Feedback that says what went wrong and what to do next is among the strongest influences on learning. Praise on its own does very little.
-feedback karman: In private tutoring, an hour one-on-one on each missed question after every full-length test.
 feedback source: Hattie and Timperley, Review of Educational Research, 2007
 tutoring name: Attention changes results
 tutoring found: Students taught one-on-one, with checks and corrections along the way, did far better than students taught in a regular class.
-tutoring karman: Private tutoring, and classes of six where every student answers out loud.
 tutoring source: Bloom, Educational Researcher, 1984
 read link: Read the study
 
 ## 83 Research: close
 headline: See it working before you pay.
-text: The free practice test uses the same questions and the same feedback. You'll see the score range, the domains and the call before you spend anything.
-button: Take the free practice test
+text: The free plan runs on the same questions and the same feedback: ${FREE.questionLimit} practice questions and a full-length practice test. No card.
+button: Start free
+second button: Take the free practice test
 
 ## 101 Schools: opening
-headline: A ${PP.name} plan for every student. The first year is free.
-text: Every student gets a ${PP.name} plan of their own: the core question pool across all ${QB.skills} SAT skills, written explanations, the Daily 10 and full-length practice tests. It is not a shared pool. After the first year, ${$(SCHOOL.pricePerStudentPerYear)} per student a year.
-button: Email us about your school
+headline: Real SAT prep for every student. The first year is on us.
+text: Every student gets a ${PP.name} plan of their own: the core question pool across all ${QB.skills} SAT skills, written explanations, the Daily 10 and full-length practice tests. Not a shared pool. Not a shared login. After the first year, ${$(SCHOOL.pricePerStudentPerYear)} per student a year.
+button: Book a call about your school
 button note: Free for the first year. No card.
-facts: ${$(0)} = The first year | ${$(SCHOOL.pricePerStudentPerYear)} = Per student a year, after that | ${QB.skills} = SAT skills covered | ${QB.difficultyLevels} = Difficulty levels
+second button: See the school view
 
 ## 102 Schools: what each student gets
-headline: What each student gets.
+headline: Every student gets the real thing, not a demo.
 rows: Their own plan = Their own account, practice history and Daily 10. No shared logins and no shared question pool | The core question pool = Practice across all ${QB.skills} SAT skills, with a written explanation for every question | The Daily 10 = Ten questions a day, picked from the skills each student misses | Full-length practice tests = Timed, on the platform, with a breakdown by domain
 
 ## 103 Schools: how it starts
-headline: How it starts.
-rows: Write to us = Your school's name and roughly how many students | We set it up = Your students get a link to join with their own accounts | The first year = Free | After that = ${$(SCHOOL.pricePerStudentPerYear)} per student a year, invoiced once a year
+headline: You book one call. We do the rest.
+rows: Book a call = Two short steps, under a minute: your school, then how to reach you | We set it up = Your students get a link to join with their own accounts | The first year = Free | After that = ${$(SCHOOL.pricePerStudentPerYear)} per student a year, invoiced once a year
 
 ## 104 Schools: close
-headline: Start with a free year.
-text: Email us your school's name and roughly how many students. We'll set it up and send your students their link.
-button: Email us about your school
+headline: Start with a free year. Yes, free.
+text: Tell us about your school and how to reach you. We'll call, set it up and send your students their link.
+button: Book a call about your school
 
 ## 111 Tutors: opening
-headline: One code gives up to ${TA.maxStudents} of your students Karman.
-text: For tutors who sell on marketplaces like Leland. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe, and you see how each of them is doing.
+headline: One code puts up to ${TA.maxStudents} of your students on Karman.
+text: For tutors who sell on marketplaces like Leland, or on their own. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe. You keep teaching, we keep them practicing, and you see every answer.
 button: Start as a tutor affiliate
-button note: ${$(TA.monthly)} a month. Cancel any time.
-facts: ${$(TA.monthly)} = A month, per tutor | ${TA.maxStudents} = Students on one code | ${$(0)} = For your students, while you subscribe | ${QB.skills} = SAT skills covered
+button note: ${$(TA.monthly)} a month. ${PLAN_RENEWAL}
+second button: See your dashboard
 
 ## 112 Tutors: what your students get
-headline: What your students get.
+headline: Your students get the ${PP.name} plan. You pick up the tab.
 rows: The ${PP.name} plan = The core question pool across all ${QB.skills} SAT skills, with written explanations | The Daily 10 = Ten questions a day, picked from the skills they miss | Full-length practice tests = Timed, on the platform | Free = For as long as your subscription is active
 
 ## 113 Tutors: what you get
-headline: Admin rights over your students.
+headline: You get admin rights. Use them.
 rows: See their progress = Every answer, every skill and every test score | Assign work = Practice for one student or the whole roster | Manage your roster = Up to ${TA.maxStudents} students on your code | Remove a student = The seat opens for someone else
 
 ## 114 Tutors: close
 headline: Your students practice. You see every answer.
 text: ${$(TA.monthly)} a month for up to ${TA.maxStudents} students. When you stop, your students keep their accounts and move to the Free plan.
 button: Start as a tutor affiliate
+
+## 140 Schools: the sum
+ask: How many students?
+unit: students
+first: The first year
+after: Every year after
+after note: ${$(SCHOOL.pricePerStudentPerYear)} per student, invoiced once a year.
+family: A family pays ${$(PP.monthly)} a month for the same plan. Your students get it for ${$(SCHOOL.pricePerStudentPerYear)} a year.
+
+## 141 Schools: the school view
+headline: And you see every class at once.
+titles: Classes | Join code | Roster | Homework | Your plan
+captions: Every class, its code, and how many students have joined. | One code per class. Students type it, or tap the link. | Each student's progress, domain by domain. | What you assigned, and how many have done it. | What it costs, and when.
+classes: Period 2 SAT Prep = 4KQ7RM = 28 | Period 4 SAT Prep = 9TXH3P = 31 | Junior seminar = M6CZ2W = 24 | After-school club = R8DJ5N = 12
+students: students
+code label: Code
+code help: Share the link, or students type the code when they join.
+copy code: Copy code
+copy link: Copy link
+roster title: Period 2 SAT Prep
+roster: Maya = 72 | Diego = 64 | Priya = 58 | Sam = 81 | Noor = 47
+homework: Linear equations = Due Friday = 22 | Words in context = Due Monday = 9 | Full practice test = Due next week = 3
+done: done
+plan title: Free for the first year
+plan text: Then ${$(SCHOOL.pricePerStudentPerYear)} per student a year. Each student has a ${PP.name} plan of their own.
+seats: Students with a seat
+school: Your school
+initials: YS
+sample: A sample school. Every name and number here is made up.
+
+## 142 Tutors: the sum
+ask: Students on your code
+unit: students
+per: Your cost per student, a month
+alone: If each paid for the ${PP.name} plan on their own
+alone unit: a month, all together
+note: One price, ${$(TA.monthly)} a month, for up to ${TA.maxStudents} students at a time.
+
+## 143 Tutors: the dashboard
+headline: Your whole roster, on one screen.
+titles: Your code | Students | Assign | Skills
+captions: Share one code. Everyone who joins lands on your roster. | Everyone on your code, with progress at a glance. | Practice for one student or the whole roster. | Every skill, for every student, as they work.
+code: TUTR-8KQ2
+code help: Students type it when they sign up, or tap your link.
+seats: seats used
+left: left
+roster: Maya = 72 = Today | Diego = 64 = Today | Priya = 58 = Yesterday | Sam = 81 = Monday
+assign title: Sent to
+assign: Comma rules = Everyone | Linear equations = Diego | Inference = Priya | Full practice test = Everyone
+skills student: Diego
+skills: Linear equations = Mastered | Words in context = Strong | Comma rules = Getting there | Ratios and rates = Needs work | Inference = Strong
+tutor: You
+initials: Y
+sample: A sample roster. Every name and number here is made up.
+
+## 144 Tutors: teach for us
+text: Rather teach for Karman? Our own tutors start in January, and ${FOUNDER.firstName} trains every one of them himself.
+link: Write to us
 
 ## 90 Photos
 program alt: A student at her desk in the evening, in a live online class on her laptop, earbuds in, smiling at something the tutor said.
@@ -595,18 +685,4 @@ export function section(n: number): CopySection {
 /** The header, menu, footer, pricing and form words. */
 export const SITE: CopySection = PARSED.site;
 
-/** "a | b | c" -> ["a", "b", "c"] */
-export function list(s: string | undefined): string[] {
-  return (s ?? "")
-    .split("|")
-    .map((x) => x.trim())
-    .filter(Boolean);
-}
-
-/** "a = b | c = d" -> [["a", "b"], ["c", "d"]] */
-export function pairs(s: string | undefined): [string, string][] {
-  return list(s).map((x) => {
-    const [a, ...b] = x.split(" = ");
-    return [a.trim(), b.join(" = ").trim()];
-  });
-}
+export { list, pairs } from "./site-copy-format";

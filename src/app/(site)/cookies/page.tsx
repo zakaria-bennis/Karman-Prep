@@ -2,15 +2,18 @@
 // short plain style of the first-pass draft (.impeccable/mocks/fresh/morning/cookies.html), written to
 // match what the site really stores. Update it whenever a cookie or storage key is added.
 import SitePage from "@/components/site/SitePage";
+import LegalFrame, { type LegalPart } from "@/components/site/company/LegalFrame";
+import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT } from "@/lib/marketing/offer";
 import { CONSENT_COOKIE } from "@/lib/consent/server";
+import ConsentChoice from "@/components/consent/ConsentChoice";
 
 export const metadata = pageMeta(
   ROUTES.cookies,
   "Karman Prep: Cookie Policy",
-  "The cookies and browser storage karmanprep.com uses: sign-in, your consent choice and your display settings. No advertising cookies."
+  "The cookies and browser storage karmanprep.com uses: sign-in, your consent choice, counting visits and your display settings. No advertising cookies."
 );
 
 const COOKIES: [string, string][] = [
@@ -20,11 +23,16 @@ const COOKIES: [string, string][] = [
   ],
   [
     CONSENT_COOKIE,
-    "Remembers whether you allowed or declined session recording for fixing bugs, so we don't ask again.",
+    "Remembers your choice in the cookie note: Allow all (we count visits and may replay a session to fix bugs) or Essentials only. Kept so we don't ask again.",
   ],
 ];
 
 const STORAGE: [string, string][] = [
+  [
+    "karman-aid",
+    "A random id for this device, so we can count visits. Set only after Allow all on the website, or when you sign in.",
+  ],
+  ["karman-visit", "A random id for the current visit and when it was last active."],
   ["karman-site-theme", "Your light or dark choice on the website, if you picked one."],
   ["karman-motion", "Whether you paused the film on the home page."],
   [
@@ -48,50 +56,62 @@ function Table({ rows }: { rows: [string, string][] }) {
   );
 }
 
+/** The parts of the page, for the contents card (each is a section's heading below). */
+const CONTENTS: LegalPart[] = [
+  { id: "cookies", title: "Cookies" },
+  { id: "storage", title: "Browser storage" },
+  { id: "choices", title: "Your choices" },
+];
+
 export default function CookiesPage() {
   return (
-    <SitePage kind="inner">
-      <article className="legal">
-        <header>
-          <div>
-            <h1>Cookie Policy</h1>
+    <SitePage kind="lit" route={[0.9, 1]} className={`${litFonts} rl-legal`}>
+      <LegalFrame
+        title="Cookie Policy"
+        intro={
+          <>
             <p>
               karmanprep.com uses a few cookies and small notes in your browser&apos;s own storage.
-              None are for advertising, and no analytics cookies are set. Questions:{" "}
-              <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>.
+              None are for advertising, and nothing is shared with outside analytics or advertising
+              companies. Questions: <a href={`mailto:${CONTACT.general}`}>{CONTACT.general}</a>.
             </p>
-          </div>
-        </header>
+          </>
+        }
+        contents={CONTENTS}
+      >
+        <section id="cookies">
+          <h2>Cookies</h2>
+          <Table rows={COOKIES} />
+          <p>
+            Payments happen on Stripe&apos;s own checkout pages, which set Stripe&apos;s cookies
+            there under Stripe&apos;s policy, not on karmanprep.com.
+          </p>
+        </section>
 
-        <div>
-          <section>
-            <h2>Cookies</h2>
-            <Table rows={COOKIES} />
-            <p>
-              Payments happen on Stripe&apos;s own checkout pages, which set Stripe&apos;s cookies
-              there under Stripe&apos;s policy, not on karmanprep.com.
-            </p>
-          </section>
+        <section id="storage">
+          <h2>Browser storage</h2>
+          <p>
+            These stay on your device. Only the two visit ids are ever sent to Karman, with the
+            visit records they label.
+          </p>
+          <Table rows={STORAGE} />
+        </section>
 
-          <section>
-            <h2>Browser storage</h2>
-            <p>These stay on your device. Karman never reads them from its servers.</p>
-            <Table rows={STORAGE} />
-          </section>
-
-          <section>
-            <h2>Your choices</h2>
-            <p>
-              Clearing your browser&apos;s site data removes all of them. Removing the sign-in
-              cookies signs you out. Session recording stays off unless you allow it, and you can
-              change that choice from the banner or by writing to us.
-            </p>
-            <p>
-              More on how we handle your information: <a href={ROUTES.privacy}>Privacy Policy</a>.
-            </p>
-          </section>
-        </div>
-      </article>
+        <section id="choices">
+          <h2>Your choices</h2>
+          <p>
+            Clearing your browser&apos;s site data removes all of them. Removing the sign-in cookies
+            signs you out. Counting visits and session recording stay off on the website unless you
+            allow them, and Do Not Track or Global Privacy Control turns counting off. Inside your
+            account, practice and usage are recorded because the product needs them. Change your
+            website choice here at any time:
+          </p>
+          <ConsentChoice />
+          <p>
+            More on how we handle your information: <a href={ROUTES.privacy}>Privacy Policy</a>.
+          </p>
+        </section>
+      </LegalFrame>
     </SitePage>
   );
 }

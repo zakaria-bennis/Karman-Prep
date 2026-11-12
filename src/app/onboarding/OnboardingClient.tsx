@@ -29,7 +29,7 @@
 // recommendation flow.
 // ============================================================
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Target, Compass, Gauge, History } from "lucide-react";
 import {
   recommendPlan,
@@ -47,6 +47,7 @@ import { HoursStep } from "./_steps/HoursStep";
 import { ChoiceStep } from "./_steps/ChoiceStep";
 import { RecommendationStep } from "./_steps/RecommendationStep";
 import type { TestType } from "@/components/student-portal/settings/test-dates";
+import { track } from "@/lib/analytics/client";
 
 export default function OnboardingClient({
   satDates,
@@ -57,6 +58,8 @@ export default function OnboardingClient({
   /** Today (YYYY-MM-DD), the earliest PSAT date. */
   today: string;
 }) {
+  // The account exists once someone reaches the intake: the funnel's "signed up" step.
+  useEffect(() => track("signup"), []);
   // ─── Form state ──────────────────────────────────────────
   const [role, setRole] = useState<Role>("student");
   const [testType, setTestType] = useState<TestType>("sat");

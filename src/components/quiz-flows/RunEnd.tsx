@@ -1,15 +1,20 @@
 "use client";
 // Result screens in the painting style, one per kind of run. Tokens show only here.
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, Cta, Num, Ring, SectionHeader, SkillSquares, levelName } from "@/components/portal";
 import type { RunView, SkillMove } from "@/lib/assembler/run-types";
 import { AnswerShapes, LevelBanner, LevelChanges, type LevelChange } from "./LevelBanner";
-import { DailyTenEnd } from "./DailyTenEnd";
 import { FlowFrame } from "./FlowFrame";
 import { TestReport } from "./TestReport";
+import { TrialEnd } from "./TrialEnd";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
+
+// The Daily 10 ending carries the companion engine and the box's sounds; load it only when a Daily
+// 10 ends, so the diagnostic and other runs that share this file stay light.
+const DailyTenEnd = dynamic(() => import("./DailyTenEnd").then((m) => m.DailyTenEnd));
 
 export function answersOf(run: RunView) {
   return run.sections.flatMap((section) =>
@@ -116,6 +121,8 @@ export function RunEnd({
   if (run.kind === "daily-ten") return <DailyTenEnd user={user} run={run} changes={changes} />;
   if (run.kind === "full-test" || run.kind === "diagnostic")
     return <TestReport user={user} run={run} exitHref={exitHref} />;
+  if (run.kind === "time-trial")
+    return <TrialEnd user={user} run={run} exitHref={exitHref} nextHref={againHref ?? exitHref} />;
   const next = weakestSkill(result.skills);
   const set = run.kind === "practice-set" ? result.skills[0] : null;
   const leveled = set ? set.to > set.from && set.to >= 2 : result.skills.some((k) => k.to > k.from);
@@ -130,7 +137,7 @@ export function RunEnd({
           <AnswerShapes answers={answersOf(run)} />
           {result.tokens > 0 && (
             <p className={s.tokens}>
-              <Num>+{result.tokens}</Num> tokens
+              <Num count>+{result.tokens}</Num> tokens
             </p>
           )}
           {set && leveled && (

@@ -1,0 +1,192 @@
+/* The cookie note (founder, 2026-11-12: short, friendly, one big "Allow all"). A small card in the
+   bottom corner, in the site's lit look: cream by day, night ink by night. It sits outside the site's
+   #ks root, so night follows the site's own switch through :has(), and the device otherwise. */
+.kc {
+  --kc-ink: #1d1a22;
+  --kc-mute: #57505f;
+  --kc-card: #fffaf3;
+  --kc-go: #2449b8;
+  --kc-on-go: #fffaf3;
+  --kc-line: rgb(29 26 34 / 0.12);
+  --kc-crumb: #b9895a;
+  --kc-dough: #e2b07a;
+  position: fixed;
+  z-index: 100;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-width: 380px;
+  padding: 18px 18px 16px;
+  border-radius: 22px;
+  background: var(--kc-card);
+  color: var(--kc-ink);
+  box-shadow:
+    0 24px 50px -24px rgb(29 26 34 / 0.55),
+    0 0 0 1px var(--kc-line);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  animation: kc-in 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) 0.6s both;
+}
+@media (prefers-color-scheme: dark) {
+  .kc {
+    --kc-ink: #f4ede4;
+    --kc-mute: #b9b0c2;
+    --kc-card: #1c1a24;
+    --kc-go: #e7cf9a;
+    --kc-on-go: #1d1a22;
+    --kc-line: rgb(255 255 255 / 0.1);
+  }
+}
+body:has(#ks[data-mode="light"]) .kc {
+  --kc-ink: #1d1a22;
+  --kc-mute: #57505f;
+  --kc-card: #fffaf3;
+  --kc-go: #2449b8;
+  --kc-on-go: #fffaf3;
+  --kc-line: rgb(29 26 34 / 0.12);
+}
+body:has(#ks[data-mode="dark"]) .kc {
+  --kc-ink: #f4ede4;
+  --kc-mute: #b9b0c2;
+  --kc-card: #1c1a24;
+  --kc-go: #e7cf9a;
+  --kc-on-go: #1d1a22;
+  --kc-line: rgb(255 255 255 / 0.1);
+}
+.kc[data-leaving] {
+  animation: kc-out 0.35s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+.kc-top {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+/* The cookie itself: it takes a bite when the visitor says yes. */
+.kc-cookie {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  transform-origin: 50% 60%;
+  animation: kc-wobble 1.1s cubic-bezier(0.3, 1.5, 0.5, 1) 1.1s both;
+}
+.kc-cookie .dough {
+  fill: var(--kc-dough);
+}
+.kc-cookie .crumb {
+  fill: var(--kc-crumb);
+}
+.kc-cookie .chip {
+  fill: #5b3a24;
+}
+.kc-cookie .bite {
+  fill: var(--kc-card);
+  transform: scale(0);
+  transform-origin: 40px 6px;
+  transition: transform 0.28s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.kc[data-leaving] .kc-cookie .bite {
+  transform: scale(1);
+}
+.kc h2 {
+  margin: 2px 0 4px;
+  font-family: var(--font-plex-serif), Georgia, serif;
+  font-size: 19px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.kc p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--kc-mute);
+}
+.kc p a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.kc-acts {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+}
+.kc-go {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--kc-go);
+  color: var(--kc-on-go);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.kc-go:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+.kc-go:active {
+  transform: scale(0.96);
+}
+.kc-less {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--kc-mute);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.kc-less:hover {
+  background: color-mix(in srgb, var(--kc-ink) 8%, transparent);
+  color: var(--kc-ink);
+}
+.kc button:focus-visible {
+  outline: 3px solid var(--kc-ink);
+  outline-offset: 3px;
+}
+.kc button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+@keyframes kc-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+  }
+}
+@keyframes kc-out {
+  to {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}
+@keyframes kc-wobble {
+  0% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: rotate(-14deg);
+  }
+  60% {
+    transform: rotate(9deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kc,
+  .kc[data-leaving],
+  .kc-cookie {
+    animation: none;
+  }
+  .kc-go,
+  .kc-cookie .bite {
+    transition: none;
+  }
+}

@@ -19,6 +19,7 @@ const PATHS = {
     </>
   ),
   progress: <path d="M4 18l5-6 4 3 7-9M15 6h5v5" />,
+  rewards: <path d="M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0" />,
   students: (
     <>
       <circle cx="9" cy="9" r="3.2" />

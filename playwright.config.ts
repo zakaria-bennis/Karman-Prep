@@ -32,7 +32,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1, // see fullyParallel comment
   reporter: "list",
-  timeout: 60_000,
+  // Every route compiles on its first visit under `next dev`, and a slow CI runner can spend most
+  // of a minute on one portal page, so a test that opens several first-time routes needs room.
+  timeout: 180_000,
+  // The portals now load the flown landscape and more styles, so a route's first compile under
+  // `next dev` in CI can pass five seconds. Give each expectation room for that first compile.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",

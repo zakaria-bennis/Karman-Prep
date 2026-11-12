@@ -32,6 +32,12 @@ const impact = Anton({
  *  visitor's own choice, which then wins. Runs before paint. Without scripts the page stays dark. */
 const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="dark"&&m!=="light")m=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
 
+/** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
+ *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
+ *  this shows everything at once. Without scripts at all, NO_SCRIPT_REVEAL does the same. */
+const REVEAL_FAILSAFE = `setTimeout(function(){var k=document.getElementById("ks");if(!k||k.classList.contains("ready"))return;k.querySelectorAll(".rv,.kin").forEach(function(e){e.classList.add("on")});k.classList.add("ready")},4000)`;
+const NO_SCRIPT_REVEAL = `.ks .rv{opacity:1;transform:none}.ks .w>span{transform:none}`;
+
 const SUN = (
   <svg
     className="sun"
@@ -160,7 +166,7 @@ const FOOTER: [string, [string, string][]][] = [
 
 /** "home" and "lit" are the live-landscape world (the home page and the pages rebuilt in its style); the
  *  others are the older pages, until each is rebuilt. */
-export type SiteKind = "home" | "lit" | "inner" | "pricing";
+export type SiteKind = "home" | "lit" | "inner";
 
 export default function SitePage({
   kind,
@@ -188,6 +194,10 @@ export default function SitePage({
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       <script dangerouslySetInnerHTML={{ __html: TEXT_SIZE_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: REVEAL_FAILSAFE }} />
+      <noscript>
+        <style>{NO_SCRIPT_REVEAL}</style>
+      </noscript>
       <a className="skip" href="#main">
         Skip to content
       </a>

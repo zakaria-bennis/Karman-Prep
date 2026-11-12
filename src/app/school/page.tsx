@@ -4,10 +4,10 @@
  */
 import type { Metadata } from "next";
 import { Card, Cta, MoreLink, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import { FreeYearRow } from "@/components/school/FreeYear";
 import { ActionMessage, SchoolShell } from "@/components/school/SchoolShell";
 import { requireSchoolContext, visibleClasses } from "@/lib/school/access";
 import { schoolStudentCount, seatCounts } from "@/lib/school/roster";
-import { formatLongDate, SCHOOL_TERMS } from "@/lib/school/terms";
 import { createClassAction } from "./actions";
 
 export const metadata: Metadata = { title: "School" };
@@ -30,10 +30,7 @@ export default async function SchoolHomePage({
     <>
       <Card>
         <SectionHeader title="Your plan" />
-        <p className="kp-meta">
-          Free until {formatLongDate(ctx.school.freeUntil)}, then $
-          {SCHOOL_TERMS.pricePerStudentPerYear} per student a year.
-        </p>
+        <FreeYearRow freeUntil={ctx.school.freeUntil} />
         <Row title="Students with a seat" right={<Num>{students}</Num>} />
         <p className="kp-meta">Each student has a Practice plan of their own.</p>
         <MoreLink href="/school/billing">Billing and renewal</MoreLink>

@@ -27,7 +27,7 @@ test.describe("admin Inspector", () => {
     await page.goto("/admin/questions/inspect");
 
     // Heading is the canonical mount signal.
-    await expect(page.getByRole("heading", { name: "Inspector" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inspector", exact: true })).toBeVisible();
 
     // Back-to-admin link is always present in the chrome.
     const backLink = page.getByRole("link", { name: /Back to admin/i });
@@ -45,7 +45,7 @@ test.describe("admin Inspector", () => {
     await page.goto("/admin/questions/inspect");
 
     // Wait for the page to settle.
-    await expect(page.getByRole("heading", { name: "Inspector" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inspector", exact: true })).toBeVisible();
 
     // The worklist is empty IFF the summary header says 0 findings.
     const headerText = await page.getByText(/questions with findings/i).innerText();
@@ -69,7 +69,7 @@ test.describe("admin Inspector", () => {
 
   test("worklist filter dropdowns are reachable", async ({ page }) => {
     await page.goto("/admin/questions/inspect");
-    await expect(page.getByRole("heading", { name: "Inspector" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inspector", exact: true })).toBeVisible();
 
     // Severity is a row of tabs (a labelled group); Source, Category, Source PDF and Domain
     // are labelled selects.
@@ -83,7 +83,7 @@ test.describe("admin Inspector", () => {
     // dashboard links use to drill into a specific scope. Tests
     // that searchParams parsing doesn't 500.
     await page.goto("/admin/questions/inspect?severity=BLOCKING");
-    await expect(page.getByRole("heading", { name: "Inspector" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Inspector", exact: true })).toBeVisible();
 
     // The summary header still renders even with the filter applied.
     await expect(page.getByText(/distinct codes/i)).toBeVisible();

@@ -1,0 +1,83 @@
+/* The legal pages (terms, refunds, privacy, cookies) and the not-found and error pages, in the home page's
+   world (SitePage kind="lit", classes "rl-legal" and "relit rl-lost"; the not-found page's night colours are
+   in relit.css). They fly the same calm stretch: the open sea at the end of the route. The legal text reads in
+   one column on a rounded cream card, so contrast holds over the moving landscape in light and dark. One
+   rule to a line; never run Prettier on this. */
+
+/* ---------- the legal pages, on the SAT Program page's frame (LegalFrame.tsx; program.css and company.css):
+   the title on the mist beside a numbered contents card, then the text on one rounded cream card ---------- */
+.ks.rl-legal .lg-hero { min-height: 0; padding-bottom: clamp(24px, 4svh, 48px); }
+.ks.rl-legal .lg-hero .pg-in.pg-two { align-items: start; }
+.ks.lit.rl-legal .lg-hero h1 { font-size: clamp(36px, 4.4vw, 64px); }
+.ks .lg-intro { display: grid; gap: 10px; }
+.ks .lg-intro p { margin: 0; font-size: clamp(17px, 1.4vw, 20px); font-weight: 600; line-height: 1.5; }
+.ks .lg-intro a, .ks .legal a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--a, var(--go)) 75%, transparent); text-decoration-thickness: 2px; text-underline-offset: 4px; overflow-wrap: anywhere; }
+@media (hover: hover) and (pointer: fine) { .ks .lg-intro a:hover, .ks .legal a:hover { text-decoration-color: var(--a, var(--go)); } }
+/* the contents: numbered entries that arrive one after another, two columns when there are many */
+.ks .lg-index { gap: 10px; animation: pg-rise .9s var(--spring) .2s both; }
+.ks .lg-index > p { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(22px, 2vw, 28px); line-height: 1.1; }
+.ks .lg-index ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px 18px; counter-reset: lg; }
+.ks .lg-index ol:has(li:nth-child(9)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ks .lg-index li { counter-increment: lg; animation: pd-cap .5s var(--out) both; animation-delay: calc(.45s + var(--k) * .05s); }
+.ks .lg-index a { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: center; min-height: 44px; font-size: 15px; font-weight: 700; line-height: 1.25; text-decoration: none; color: inherit; }
+.ks .lg-index a::before { content: counter(lg); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--a) 14%, transparent); color: var(--a); font-size: 13px; font-weight: 800; transition: background-color .3s var(--out), color .3s var(--out), scale .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks .lg-index a:hover span { text-decoration: underline; text-underline-offset: 3px; } .ks .lg-index a:hover::before { background: var(--a); color: var(--cream); scale: 1.08; } }
+.ks.lit[data-mode="dark"] .lg-index a:hover::before { color: #17151c; }
+@media (max-width: 560px) { .ks .lg-index ol:has(li:nth-child(9)) { grid-template-columns: minmax(0, 1fr); } }
+/* the text: one column on one card, arriving once, then still */
+.ks .lg-sect { align-content: start; padding-top: clamp(24px, 4svh, 48px); }
+.ks .lg-sect .pg-in { justify-items: center; }
+.ks .legal { width: min(880px, 100%); gap: 0; padding: clamp(24px, 4vw, 56px) clamp(20px, 4.4vw, 60px); animation: lg-sheet .8s var(--ease) .15s both; }
+.ks .legal h2 { margin: 34px 0 10px; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -0.005em; }
+.ks .legal > section:first-child h2, .ks .legal > :first-child > section:first-child h2 { margin-top: 0; }
+.ks .legal h3 { margin: 18px 0 6px; font-size: 19px; }
+.ks .legal :is(p, li, td, th, dd) { font-size: 17px; line-height: 1.65; color: var(--ink2); }
+.ks .legal p { margin: 0; }
+.ks .legal p + p, .ks .legal p + a, .ks .legal ul + p { margin-top: 12px; }
+.ks .legal :is(ul, ol) { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.ks .legal li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; }
+.ks .legal li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--a); margin-top: .7em; }
+.ks .legal li > span:empty { display: none; }
+.ks .legal section { scroll-margin-top: 110px; }
+.ks .legal section + section { margin-top: 8px; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, currentColor 18%, transparent); }
+.ks .legal section > a { display: inline-block; margin-top: 12px; font-weight: 700; }
+/* the links to the other policies at the end */
+.ks .legal div:has(> a + a), .ks .legal > div:last-child:has(> a:only-child) { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-weight: 700; }
+/* the Cookie Policy's name = purpose lists */
+.ks .legal dl { display: grid; gap: 14px; margin: 10px 0 14px; }
+.ks .legal dt code { font: 600 15px/1.4 var(--font-hanken), system-ui, sans-serif; color: var(--ink); overflow-wrap: anywhere; }
+.ks .legal dd { margin: 2px 0 0; }
+/* the privacy policy's services table, scrolling inside the card on a phone */
+.ks .legal div:has(> table) { max-width: 100%; overflow-x: auto; }
+.ks .legal table { width: 100%; margin: 12px 0; border-collapse: collapse; }
+.ks .legal :is(th, td) { padding: 10px 12px; text-align: left; vertical-align: top; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.ks .legal th { color: var(--ink); font-weight: 700; }
+.ks.lit[data-mode="dark"] .legal :is(p, li, td, dd), .ks.lit[data-mode="dark"] .lg-intro p { color: #cdc7d6; }
+.ks.lit[data-mode="dark"] .legal :is(th, dt code, h2, h3) { color: var(--cream); }
+.ks.lit[data-mode="dark"] .lg-intro p { color: var(--cream); }
+@keyframes lg-sheet { from { opacity: 0; transform: translateY(36px) scale(.985); } to { opacity: 1; transform: none; } }
+.ks.still-motion :is(.legal, .lg-index, .lg-index li) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .ks :is(.legal, .lg-index, .lg-index li) { animation: none !important; } .ks .lg-index a::before { transition: none; } }
+
+/* ---------- not found and error: one centred screen on the mist, the way on as round links ---------- */
+.ks.rl-lost .lost { min-height: 100svh; display: grid; align-content: center; justify-items: center; padding: clamp(120px, 16svh, 160px) var(--gutter) clamp(64px, 10svh, 110px); text-align: center; }
+.ks.rl-lost .lost-in { width: min(760px, 100%); display: grid; gap: 22px; justify-items: center; }
+.ks.rl-lost .lost h1 { font-size: clamp(38px, 4.8vw, 72px); line-height: 1.12; max-width: 14ch; }
+.ks.rl-lost .lost .lede { max-width: 30em; }
+.ks.rl-lost .lost-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
+.ks.rl-lost .lost-links .lk { display: inline-flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--card); color: var(--ink); box-shadow: var(--card-lift); font: inherit; font-size: 16px; font-weight: 800; text-decoration: none; cursor: pointer; transition: transform .45s var(--spring), background-color .25s var(--out), color .25s var(--out); }
+.ks.rl-lost .lost-links .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks.rl-lost .lost-links .lk:hover { background: var(--solid); color: var(--on-solid); } .ks.rl-lost .lost-links .lk:hover svg { transform: translateX(4px); } }
+.ks.rl-lost .lost-links .lk:active { transform: scale(.96); transition-duration: .08s; }
+@media (prefers-reduced-motion: reduce) { .ks.rl-lost .lost-links .lk, .ks.rl-lost .lost-links .lk svg { transition: none; } }
+/* The cookie page's choice switch (ConsentChoice): two pills, the current choice filled. */
+.ks.rl-legal .consent-choice { display: grid; gap: 10px; margin-top: 6px; }
+.ks.rl-legal .consent-choice p { margin: 0; font-weight: 600; }
+.ks.rl-legal .consent-choice div { display: flex; flex-wrap: wrap; gap: 8px; }
+.ks.rl-legal .consent-choice button { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid currentColor; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; transition: transform .3s cubic-bezier(.3, 1.5, .5, 1); }
+.ks.rl-legal .consent-choice button:hover:not(:disabled) { transform: translateY(-2px); }
+.ks.rl-legal .consent-choice button[aria-pressed="true"] { background: var(--ink); color: #fffaf3; border-color: var(--ink); cursor: default; }
+.ks.rl-legal[data-mode="dark"] .consent-choice button[aria-pressed="true"] { background: #fffaf3; color: rgb(20, 19, 28); border-color: #fffaf3; }
+.ks.rl-legal .consent-choice button:disabled:not([aria-pressed="true"]) { opacity: .6; cursor: progress; }
+.ks.rl-legal .consent-choice button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .ks.rl-legal .consent-choice button { transition: none; } }
