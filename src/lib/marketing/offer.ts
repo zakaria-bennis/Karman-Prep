@@ -70,9 +70,10 @@ export const MARCH_PROGRAM = {
   fullLengthTests: 5,
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
-  enrollmentClosesLabel: "January 1, 2027",
+  /** Registration closes one week before the first class (founder, 2026-11-11). */
+  enrollmentClosesLabel: "December 28, 2026",
   /** The same day as a date, for the countdown on the Program page. */
-  enrollmentCloses: "2027-01-01",
+  enrollmentCloses: "2026-12-28",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.
@@ -123,7 +124,7 @@ export const MARCH_PROGRAM = {
 
 /**
  * Later cohorts, named by the week they start (never a weekday; founder, 2026-11-08).
- * Applications close the week before.
+ * Registration closes one week before the first class (founder, 2026-11-11).
  */
 export const NEXT_PROGRAMS = [
   {
@@ -131,14 +132,14 @@ export const NEXT_PROGRAMS = [
     startDate: "2027-03-01",
     startLabel: "the week of March 1",
     startShort: "March 1",
-    enrollmentClosesLabel: "February 24",
+    enrollmentClosesLabel: "February 22",
   },
   {
     id: "cohort-june-2027",
     startDate: "2027-04-05",
     startLabel: "the week of April 5",
     startShort: "April 5",
-    enrollmentClosesLabel: "March 31",
+    enrollmentClosesLabel: "March 29",
   },
 ] as const;
 /** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
