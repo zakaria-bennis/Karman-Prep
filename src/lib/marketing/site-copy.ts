@@ -301,12 +301,14 @@ form done title: Request received.
 form done text: We'll email you times for the ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}.
 
 ## 41 Test: opening
-headline: A full-length practice SAT, free, whenever you're ready.
-text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call.
-facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | On Karman = Bluebook-style | $0 = No card needed
+headline: A full-length practice SAT. Free, whenever you're ready.
+text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call with a Karman tutor. It comes with the free plan, so start free and it's waiting in the portal.
+button: Start free
+second button: Or email me the link
+facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | Online = No proctor, no drive | ${$(0)} = No card needed
 
 ## 42 Test: the form
-headline: Get the test link.
+headline: Rather have the link by email?
 form email: Your email
 form email help: Your results go here.
 form name: Student's first name
@@ -320,17 +322,26 @@ form done title: You're in.
 form done text: We'll email you the link to start the test from ${CONTACT.general}, with a way to book the results call when you're done.
 
 ## 43 Test: what you get
-headline: What you get back.
+headline: You get more than a number.
 rows: A score report = Where your student stands today | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = Optional: a Karman tutor walks you through it and answers questions
+sample: Sample report. A made-up student, the real layout.
+score: Estimated score
+sections: Reading and Writing | Math
+domains: Information and Ideas | Craft and Structure | Expression of Ideas | Standard English Conventions | Algebra | Advanced Math | Problem-Solving and Data Analysis | Geometry and Trigonometry
+weakest: Costing the most points
+call: Book the ${FT.callMinutes}-minute call
 
 ## 44 Test: the sitting
-headline: How it runs.
+headline: How it runs. The kitchen table works fine.
 rows: Start = Whenever you have the time, from your Karman account | Reading and Writing = Two timed modules | Math = Two timed modules, with a calculator | Done = Your results come with a link to book the call
+module: Module
+total: ${FT.durationLabel}, ${FT.questionCount} questions.
 
 ## 45 Test: honest note
-headline: An estimate, not a prediction.
-text: It's built from our own questions, not the College Board's, so the score is an estimate. We show it so you can judge the quality of our questions before you pay for anything.
-button: Send me the link
+headline: An estimate, not a prophecy.
+text: It's built from our own questions, not the College Board's, so the score is an estimate. We hand it over free so you can judge our questions before you pay us a cent.
+button: Start free
+button note: The test comes with the free plan, along with ${FREE.questionLimit} practice questions. No card.
 
 ## 51 Guarantee: opening
 headline: ${UP_TO.private}, or your money back.
@@ -427,44 +438,102 @@ text: The free practice test uses the same questions and the same feedback. You'
 button: Take the free practice test
 
 ## 101 Schools: opening
-headline: A ${PP.name} plan for every student. The first year is free.
-text: Every student gets a ${PP.name} plan of their own: the core question pool across all ${QB.skills} SAT skills, written explanations, the Daily 10 and full-length practice tests. It is not a shared pool. After the first year, ${$(SCHOOL.pricePerStudentPerYear)} per student a year.
+headline: Real SAT prep for every student. The first year is on us.
+text: Every student gets a ${PP.name} plan of their own: the core question pool across all ${QB.skills} SAT skills, written explanations, the Daily 10 and full-length practice tests. Not a shared pool. Not a shared login. After the first year, ${$(SCHOOL.pricePerStudentPerYear)} per student a year.
 button: Email us about your school
 button note: Free for the first year. No card.
-facts: ${$(0)} = The first year | ${$(SCHOOL.pricePerStudentPerYear)} = Per student a year, after that | ${QB.skills} = SAT skills covered | ${QB.difficultyLevels} = Difficulty levels
+second button: See the school view
 
 ## 102 Schools: what each student gets
-headline: What each student gets.
+headline: Every student gets the real thing, not a demo.
 rows: Their own plan = Their own account, practice history and Daily 10. No shared logins and no shared question pool | The core question pool = Practice across all ${QB.skills} SAT skills, with a written explanation for every question | The Daily 10 = Ten questions a day, picked from the skills each student misses | Full-length practice tests = Timed, on the platform, with a breakdown by domain
 
 ## 103 Schools: how it starts
-headline: How it starts.
+headline: You send one email. We do the rest.
 rows: Write to us = Your school's name and roughly how many students | We set it up = Your students get a link to join with their own accounts | The first year = Free | After that = ${$(SCHOOL.pricePerStudentPerYear)} per student a year, invoiced once a year
 
 ## 104 Schools: close
-headline: Start with a free year.
+headline: Start with a free year. Yes, free.
 text: Email us your school's name and roughly how many students. We'll set it up and send your students their link.
 button: Email us about your school
 
 ## 111 Tutors: opening
-headline: One code gives up to ${TA.maxStudents} of your students Karman.
-text: For tutors who sell on marketplaces like Leland. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe, and you see how each of them is doing.
+headline: One code puts up to ${TA.maxStudents} of your students on Karman.
+text: For tutors who sell on marketplaces like Leland, or on their own. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe. You keep teaching, we keep them practicing, and you see every answer.
 button: Start as a tutor affiliate
-button note: ${$(TA.monthly)} a month. Cancel any time.
-facts: ${$(TA.monthly)} = A month, per tutor | ${TA.maxStudents} = Students on one code | ${$(0)} = For your students, while you subscribe | ${QB.skills} = SAT skills covered
+button note: ${$(TA.monthly)} a month. ${PLAN_RENEWAL}
+second button: See your dashboard
 
 ## 112 Tutors: what your students get
-headline: What your students get.
+headline: Your students get the ${PP.name} plan. You pick up the tab.
 rows: The ${PP.name} plan = The core question pool across all ${QB.skills} SAT skills, with written explanations | The Daily 10 = Ten questions a day, picked from the skills they miss | Full-length practice tests = Timed, on the platform | Free = For as long as your subscription is active
 
 ## 113 Tutors: what you get
-headline: Admin rights over your students.
+headline: You get admin rights. Use them.
 rows: See their progress = Every answer, every skill and every test score | Assign work = Practice for one student or the whole roster | Manage your roster = Up to ${TA.maxStudents} students on your code | Remove a student = The seat opens for someone else
 
 ## 114 Tutors: close
 headline: Your students practice. You see every answer.
 text: ${$(TA.monthly)} a month for up to ${TA.maxStudents} students. When you stop, your students keep their accounts and move to the Free plan.
 button: Start as a tutor affiliate
+
+## 140 Schools: the sum
+ask: How many students?
+unit: students
+first: The first year
+after: Every year after
+after note: ${$(SCHOOL.pricePerStudentPerYear)} per student, invoiced once a year.
+family: A family pays ${$(PP.monthly)} a month for the same plan. Your students get it for ${$(SCHOOL.pricePerStudentPerYear)} a year.
+
+## 141 Schools: the school view
+headline: And you see every class at once.
+titles: Classes | Join code | Roster | Homework | Your plan
+captions: Every class, its code, and how many students have joined. | One code per class. Students type it, or tap the link. | Each student's progress, domain by domain. | What you assigned, and how many have done it. | What it costs, and when.
+classes: Period 2 SAT Prep = 4KQ7RM = 28 | Period 4 SAT Prep = 9TXH3P = 31 | Junior seminar = M6CZ2W = 24 | After-school club = R8DJ5N = 12
+students: students
+code label: Code
+code help: Share the link, or students type the code when they join.
+copy code: Copy code
+copy link: Copy link
+roster title: Period 2 SAT Prep
+roster: Maya = 72 | Diego = 64 | Priya = 58 | Sam = 81 | Noor = 47
+homework: Linear equations = Due Friday = 22 | Words in context = Due Monday = 9 | Full practice test = Due next week = 3
+done: done
+plan title: Free for the first year
+plan text: Then ${$(SCHOOL.pricePerStudentPerYear)} per student a year. Each student has a ${PP.name} plan of their own.
+seats: Students with a seat
+school: Your school
+initials: YS
+sample: A sample school. Every name and number here is made up.
+
+## 142 Tutors: the sum
+ask: Students on your code
+unit: students
+per: Your cost per student, a month
+alone: If each paid for the ${PP.name} plan on their own
+alone unit: a month, all together
+note: One price, ${$(TA.monthly)} a month, for up to ${TA.maxStudents} students at a time.
+
+## 143 Tutors: the dashboard
+headline: Your whole roster, on one screen.
+titles: Your code | Students | Assign | Skills
+captions: Share one code. Everyone who joins lands on your roster. | Everyone on your code, with progress at a glance. | Practice for one student or the whole roster. | Every skill, for every student, as they work.
+code: TUTR-8KQ2
+code help: Students type it when they sign up, or tap your link.
+seats: seats used
+left: left
+roster: Maya = 72 = Today | Diego = 64 = Today | Priya = 58 = Yesterday | Sam = 81 = Monday
+assign title: Sent to
+assign: Comma rules = Everyone | Linear equations = Diego | Inference = Priya | Full practice test = Everyone
+skills student: Diego
+skills: Linear equations = Mastered | Words in context = Strong | Comma rules = Getting there | Ratios and rates = Needs work | Inference = Strong
+tutor: You
+initials: Y
+sample: A sample roster. Every name and number here is made up.
+
+## 144 Tutors: teach for us
+text: Rather teach for Karman? Our own tutors start in January, and ${FOUNDER.firstName} trains every one of them himself.
+link: Write to us
 
 ## 90 Photos
 program alt: A student at her desk in the evening, in a live online class on her laptop, earbuds in, smiling at something the tutor said.
