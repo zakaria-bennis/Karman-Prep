@@ -3,12 +3,15 @@ import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { gzipSync } from "node:zlib";
 import { expect, it } from "vitest";
 import {
+  BUDGETS,
   EAGER_ROUTES,
   checkBundle,
+  eagerCalculatorImports,
   formatBaseline,
+  isEagerCalculatorFile,
+  measureEagerCalculator,
   type BundleBaseline,
 } from "../../../scripts/build/check-calculator-bundle.mjs";
 import {
@@ -58,19 +61,8 @@ it("AR-32 eagerFiles lists the route's entry JS and CSS and none of the lazy gro
   for (const file of expected.asyncChunkGroups.flat()) expect(eager).not.toContain(file);
 });
 
-const routes = (n: number) => Object.fromEntries(EAGER_ROUTES.map((r) => [r, n]));
 const noise = (bytes: number) => randomBytes(bytes).toString("base64");
 const asset = (file: string) => `.open-next/assets/_next/${file}`;
-const gz = (root: string, file: string) =>
-  gzipSync(readFileSync(join(root, asset(file))), { level: 9 }).length;
-const manifestOf = (root: string, route: string) =>
-  readFileSync(
-    join(
-      root,
-      `.open-next/server-functions/default/.next/server/app${route}_client-reference-manifest.js`
-    ),
-    "utf8"
-  );
 
 /** A temp dir holding the recorded Turbopack 16.3.8 output shapes as an OpenNext build. */
 function syntheticBuild(edit?: (files: Map<string, string>) => void): string {
@@ -106,32 +98,25 @@ function syntheticBuild(edit?: (files: Map<string, string>) => void): string {
   return root;
 }
 
-const lax = (root: string): BundleBaseline => ({
+const lax: BundleBaseline = {
   next: "16.3.8",
-  base: {
-    commit: "08c8c76",
-    eagerGzipBytes: Object.fromEntries(
-      EAGER_ROUTES.map((r) => [
-        r,
-        eagerFiles(manifestOf(root, r), r).reduce((n, f) => n + gz(root, f), 0),
-      ])
-    ),
-  },
-  eagerAddedGzipBytes: routes(1e9),
+  eagerGzipBytes: 1e9,
   lazyGzipBytes: 1e9,
   workerGzipBytes: 1e9,
   perf: null,
-});
-const problems = async (root: string, baseline = lax(root)) =>
-  (await checkBundle({ root, baseline })).problems;
+};
+// The synthetic builds pass the eager size in, so they never measure this repository's source.
+const EAGER = 9000;
+const problems = async (root: string, baseline = lax, eagerGzipBytes = EAGER) =>
+  (await checkBundle({ root, baseline, eagerGzipBytes })).problems;
 const eagerJs = () => expected.eagerFiles.find((f: string) => f.endsWith(".js"));
 
-it("AR-32 a clean build passes, adds nothing eagerly and the lazy group is found by its sentinel", async () => {
+it("AR-32 a clean build passes and the lazy group is found by its sentinel", async () => {
   const root = syntheticBuild();
-  const report = await checkBundle({ root, baseline: lax(root) });
+  const report = await checkBundle({ root, baseline: lax, eagerGzipBytes: EAGER });
   expect(report.problems).toEqual([]);
   expect(report.worker).toEqual(expected.workerCall);
-  expect(report.measured.eagerAddedGzipBytes).toEqual(routes(0));
+  expect(report.measured.eagerGzipBytes).toBe(EAGER);
 });
 
 it("AR-32 the positive control fails when no lazy group holds the sentinel and mq-root-block", async () => {
@@ -160,24 +145,21 @@ it("AR-32 the sentinel or mq-root-block in the server handler or an eager file f
 it("AR-33 each gzip budget fails above its limit", async () => {
   const [lazy, chunk] = [expected.asyncChunkGroups[0][0], expected.workerCall.chunks[0]];
   const root = syntheticBuild((f) => {
-    f.set(asset(eagerJs()), f.get(asset(eagerJs())) + noise(12_000));
     f.set(asset(lazy), f.get(asset(lazy)) + noise(420_000));
     f.set(asset(chunk), noise(270_000));
   });
-  const text = (await problems(root, lax(syntheticBuild()))).join("\n");
-  expect(text).toMatch(
-    /^AR-33 \/learn\/diagnostic\/page: \d+ gzip bytes added eagerly, budget 10240$/m
-  );
+  const text = (await problems(root, lax, BUDGETS.eagerGzipBytes + 1)).join("\n");
+  expect(text).toMatch(/^AR-33 eager calculator code: 10241 gzip bytes, budget 10240$/m);
   expect(text).toMatch(/^AR-33 lazy chunk group: \d+ gzip bytes, budget 409600$/m);
   expect(text).toMatch(/^AR-33 worker: \d+ gzip bytes, budget 256000$/m);
 });
 
-it("AR-33 growth over 10% fails until the baseline is updated, from a committed 0 and from a negative eager delta too", async () => {
+it("AR-33 growth over 10% fails until the baseline is updated, from a committed 0 too", async () => {
   const lazy = expected.asyncChunkGroups[0][0];
   const root = syntheticBuild((f) => f.set(asset(lazy), f.get(asset(lazy)) + noise(4_000)));
-  const measured = (await checkBundle({ root, baseline: lax(root) })).measured;
+  const measured = (await checkBundle({ root, baseline: lax, eagerGzipBytes: EAGER })).measured;
   const text = async (patch: Partial<BundleBaseline>) =>
-    (await problems(root, { ...lax(root), ...measured, ...patch })).join("\n");
+    (await problems(root, { ...lax, ...measured, ...patch })).join("\n");
   expect(await text({ lazyGzipBytes: Math.floor(measured.lazyGzipBytes / 1.2) })).toMatch(
     /^AR-33 lazyGzipBytes grew to \d+ from \d+ \(over 10%\); update docs\/calculator-bundle-baseline\.json in this PR with --update-baseline$/m
   );
@@ -185,12 +167,64 @@ it("AR-33 growth over 10% fails until the baseline is updated, from a committed 
   expect(await text({ workerGzipBytes: 0 })).toMatch(
     /^AR-33 workerGzipBytes grew to \d+ from 0 \(over 10%\)/m
   );
-  expect(
-    await text({
-      eagerAddedGzipBytes: { ...measured.eagerAddedGzipBytes, "/learn/diagnostic/page": -100 },
-    })
-  ).toContain("AR-33 eagerAddedGzipBytes[/learn/diagnostic/page] grew to 0 from -100 (over 10%)");
+  expect(await text({ eagerGzipBytes: 8000 })).toContain(
+    "AR-33 eagerGzipBytes grew to 9000 from 8000 (over 10%)"
+  );
 });
+
+it("AR-33 only the eager calculator modules and their CSS count as eager calculator code", () => {
+  for (const path of [
+    "src/components/calculator/CalculatorScope.tsx",
+    "src/components/calculator/calculator.module.css",
+    "src/components/calculator/calculator-chrome.generated.css",
+    "src/lib/calculator-transfer/math-split.ts",
+  ]) {
+    expect(isEagerCalculatorFile(path), path).toBe(true);
+  }
+  for (const path of [
+    "src/components/calculator/KarmanCalculator.ts",
+    "src/components/calculator/host/quiz-host.tsx",
+    "src/components/calculator/CalculatorScope.test.tsx",
+    "src/lib/calculator-transfer/clipboard.ts",
+    "src/lib/calculator/core/api/engine.ts",
+    "src/components/learn/QuizTools.tsx",
+  ]) {
+    expect(isEagerCalculatorFile(path), path).toBe(false);
+  }
+});
+
+it("AR-33 the eager entries are the value imports from outside the calculator, by name", () => {
+  const file = (path: string, source: string) => ({ path, source });
+  const imports = eagerCalculatorImports(process.cwd(), [
+    file(
+      "src/components/learn/Quiz.tsx",
+      [
+        'import { CalculatorScope, type CalculatorScopeProps } from "@/components/calculator/CalculatorScope";',
+        'import type { QuestionKey } from "@/components/calculator/question-key";',
+        'import { KarmanCalculator } from "@/components/calculator/KarmanCalculator";',
+        'const lazy = () => import("@/components/calculator/host/quiz-host");',
+      ].join("\n")
+    ),
+    file("src/components/learn/tools.ts", 'export * from "../calculator/question-key";'),
+    file(
+      "src/components/calculator/CalculatorWindow.tsx",
+      'import { useCalculator } from "./bridge-context";'
+    ),
+  ]);
+  expect(Object.fromEntries([...imports].map(([m, names]) => [m, [...names]]))).toEqual({
+    "src/components/calculator/CalculatorScope.tsx": ["CalculatorScope"],
+    "src/components/calculator/question-key.ts": ["*"],
+  });
+});
+
+it("AR-33 the measured eager code bundles no lazy calculator module and stays in budget", async () => {
+  const { gzipBytes, inputs } = await measureEagerCalculator();
+  expect(inputs.length).toBeGreaterThan(0);
+  for (const input of inputs) expect(isEagerCalculatorFile(input), input).toBe(true);
+  expect(inputs).toContain("src/components/calculator/calculator-chrome.generated.css");
+  expect(gzipBytes).toBeGreaterThan(0);
+  expect(gzipBytes).toBeLessThanOrEqual(BUDGETS.eagerGzipBytes);
+}, 30_000);
 
 it("AR-66 a missing bootstrap or a missing worker marker fails and static/media .ts copies are ignored", async () => {
   expect(
@@ -203,13 +237,17 @@ it("AR-66 a missing bootstrap or a missing worker marker fails and static/media 
   ).toContain("AR-66 no worker chunk contains karman-compute");
 });
 
-it("AR-33 the committed baseline is script-formatted, pinned to Next 16.3.8 and covers every eager route", async () => {
+it("AR-33 the committed baseline is script-formatted and pinned to Next 16.3.8", async () => {
   const text = readFileSync("docs/calculator-bundle-baseline.json", "utf8");
   const baseline = JSON.parse(text);
-  const sorted = [...EAGER_ROUTES].sort();
-  expect([baseline.next, baseline.base.commit]).toEqual(["16.3.8", "08c8c76"]);
-  expect(Object.keys(baseline.base.eagerGzipBytes).sort()).toEqual(sorted);
-  expect(Object.keys(baseline.eagerAddedGzipBytes).sort()).toEqual(sorted);
+  expect(Object.keys(baseline)).toEqual([
+    "next",
+    "eagerGzipBytes",
+    "lazyGzipBytes",
+    "workerGzipBytes",
+    "perf",
+  ]);
+  expect(baseline.next).toBe("16.3.8");
   expect(await formatBaseline(baseline)).toBe(text);
 });
 
