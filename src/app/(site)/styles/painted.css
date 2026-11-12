@@ -17,7 +17,6 @@
   --out: cubic-bezier(.16, 1, .3, 1);
   --glow: rgba(255, 190, 140, 0.6);
   color: var(--ink); color-scheme: light;
-  transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease;
 }
 .ks.page-home[data-light="day"] { --glow: rgba(255, 252, 232, 0.55); }
 .ks.page-home[data-light="sunset"] { --glow: rgba(255, 138, 72, 0.62); }
@@ -62,34 +61,49 @@
 .ks.page-home .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
 .ks.page-home .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
 .ks.page-home .hd .menu { border: 0; background: var(--cream); box-shadow: 0 10px 22px -14px rgba(29, 26, 34, .6); }
+/* the menu button is three lines that cross into an X while the menu is open: the same button closes it */
+.ks.page-home .hd .menu i { display: block; }
+.ks.page-home .hd .menu i, .ks.page-home .hd .menu::before, .ks.page-home .hd .menu::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 2px; margin: -1px 0 0 -9px; border-radius: 2px; background: currentColor; transition: transform .45s var(--spring), opacity .2s var(--out); }
+.ks.page-home .hd .menu::before { transform: translateY(-6px); }
+.ks.page-home .hd .menu::after { transform: translateY(6px); }
+.ks.page-home .hd .menu[aria-expanded="true"]::before { transform: rotate(45deg); }
+.ks.page-home .hd .menu[aria-expanded="true"]::after { transform: rotate(-45deg); }
+.ks.page-home .hd .menu[aria-expanded="true"] i { opacity: 0; transform: scaleX(.2); }
 @media (hover: hover) and (pointer: fine) {
   .ks.page-home .hd .mark:hover { transform: rotate(-3deg) scale(1.05); }
   .ks.page-home .hd .cta:hover { background: #3560d6; color: var(--cream); transform: translateY(-2px); }
 }
-/* phones: the switch, the action and the menu all stay in the bar, so the menu becomes three lines and
-   everything tightens; on the narrowest phones the action moves into the menu */
-@media (max-width: 440px) {
-  .ks.page-home .hd { gap: 6px; }
-  .ks.page-home .hd nav { gap: 2px; font-size: 15.5px; }
-  .ks.page-home .hd .mark { font-size: 26px; }
-  .ks.page-home .hd .theme { width: 44px; height: 44px; margin-left: 2px; }
-  .ks.page-home .hd .theme svg { left: 11px; top: 11px; }
-  .ks.page-home .hd .cta { display: inline-flex; margin-left: 2px; padding: 0 14px; min-height: 44px; white-space: nowrap; }
-  .ks.page-home .hd .menu { width: 46px; padding: 0; justify-content: center; font-size: 0; }
-  .ks.page-home .hd .menu::before { content: ""; width: 18px; height: 12px; background: linear-gradient(currentColor 0 2px, transparent 2px 5px, currentColor 5px 7px, transparent 7px 10px, currentColor 10px 12px); }
+/* tablets and phones: the links move into the menu; Sign in, Start free, the switch and the menu stay in
+   the bar, in that order. Everything tightens as the screen narrows, and Start free never wraps or leaves.
+   Sign in is the first to move into the menu, on the narrowest screens (a phone with the page zoomed in). */
+@media (max-width: 960px) {
+  .ks.page-home .hd .si { display: inline-flex; }
+  .ks.page-home .hd .cta { display: inline-flex; white-space: nowrap; }
+  .ks.page-home .hd .menu { display: inline-block; flex: none; width: 46px; height: 46px; min-height: 0; padding: 0; margin-left: 8px; font-size: 0; }
 }
-@media (max-width: 374px) { .ks.page-home .hd .cta { display: none; } }
-/* the phone menu: a small rounded sheet that drops from the Menu button, not a screen of its own */
-.ks.page-home .sheet { inset: 84px 16px auto auto; width: min(330px, calc(100vw - 32px)); max-height: calc(100svh - 110px); padding: 10px 22px 22px; gap: 14px; border-radius: 30px; background: var(--cream); box-shadow: 0 24px 50px -24px rgba(29, 26, 34, .6); transform-origin: 90% 0; animation: sheet-in .45s var(--spring) both; }
-@keyframes sheet-in { from { opacity: 0; transform: scale(.7) translateY(-12px); } }
-.ks.page-home .sheet .top .mark { display: none; }
-.ks.page-home .sheet .top { justify-content: flex-end; min-height: 0; }
-.ks.page-home .sheet .close { min-height: 40px; border: 0; background: var(--soft); }
-.ks.page-home .sheet nav { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
-.ks.page-home .sheet nav a { min-height: 50px; }
+@media (max-width: 480px) {
+  .ks.page-home .hd { gap: 6px; }
+  .ks.page-home .hd nav { gap: 0; font-size: 15.5px; }
+  .ks.page-home .hd .mark { font-size: 26px; }
+  .ks.page-home .hd .si { padding: 0 9px; }
+  .ks.page-home .hd .cta { margin-left: 2px; padding: 0 15px; min-height: 44px; }
+  .ks.page-home .hd .theme { width: 44px; height: 44px; margin-left: 6px; }
+  .ks.page-home .hd .theme svg { left: 11px; top: 11px; }
+  .ks.page-home .hd .menu { width: 44px; height: 44px; margin-left: 6px; }
+}
+@media (max-width: 410px) {
+  .ks.page-home .hd { gap: 4px; }
+  .ks.page-home .hd nav { font-size: 15px; }
+  .ks.page-home .hd .mark { font-size: 23px; }
+  .ks.page-home .hd .si { padding: 0 7px; }
+  .ks.page-home .hd .cta { padding: 0 12px; }
+  .ks.page-home .hd .theme, .ks.page-home .hd .menu { width: 40px; margin-left: 4px; }
+  .ks.page-home .hd .theme svg { left: 9px; }
+}
+@media (max-width: 372px) { .ks.page-home .hd .si { display: none; } }
+/* the menu drops from its button (film.css); here it sits just under the home page's bar */
+.ks.page-home .sheet { top: 78px; background: var(--cream); }
 .ks.page-home .sheet .theme { display: none; }
-.ks.page-home .sheet .btn { align-self: stretch; justify-content: center; }
-html.ks-lock:has(.ks.page-home) { overflow: auto; }
 
 /* ---------- type ---------- */
 .ks.page-home :is(h1, h2) { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.08; text-wrap: balance; }
@@ -168,12 +182,23 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks.page-home h1 { font-size: clamp(40px, 7.2vw, 62px); }
   .ks .claim .mist { background: linear-gradient(180deg, transparent 26%, color-mix(in srgb, var(--mist) 62%, transparent) 46%, color-mix(in srgb, var(--mist) 62%, transparent) 88%, transparent); }
 }
+/* phones: the headline starts close under the bar, and the landscape gets the room below the button */
+@media (max-width: 640px) {
+  .ks .claim { align-items: flex-start; padding-top: clamp(108px, 14svh, 140px); padding-bottom: 8svh; }
+  .ks .claim .mist { background: linear-gradient(180deg, color-mix(in srgb, var(--mist) 62%, transparent) 70%, transparent 92%); }
+  .ks.page-home .hd::before { inset: -22px calc(var(--gutter) * -1) -44px; background: linear-gradient(var(--mist) 30%, color-mix(in srgb, var(--mist) 92%, transparent) 62%, transparent); }
+}
 
 /* ---------- every section after the first: words on a band of mist that runs the full width and fades out
    above and below, so the landscape shows between one section and the next ---------- */
 .ks .sect { position: relative; padding: clamp(96px, 17vh, 190px) var(--gutter); }
 .ks .sect > .mist { position: absolute; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--mist) 66%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); }
 .ks .sect .inner { position: relative; width: min(1240px, 100%); display: grid; gap: clamp(20px, 2.6vw, 34px); justify-items: start; }
+/* phones: less air between sections, and the mist reaches full strength just above each heading */
+@media (max-width: 640px) {
+  .ks .sect { padding-top: clamp(72px, 10svh, 96px); padding-bottom: clamp(72px, 10svh, 96px); }
+  .ks .sect > .mist { -webkit-mask-image: linear-gradient(transparent, #000 64px, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(transparent, #000 64px, #000 calc(100% - 64px), transparent); }
+}
 .ks .sect .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .ks .sect .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
 @media (hover: hover) and (pointer: fine) { .ks .sect .lk:hover svg { transform: translateX(5px); } }
@@ -194,7 +219,14 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* a school's dark-mode picture waits until the page is dark (SchoolLogo.tsx) */
 .ks img.logo-night, .ks .lanterns img.logo-night, .ks .rcp-list .at img.logo-night { display: none; }
 .ks .lanterns.live { display: block; height: clamp(500px, 74vh, 720px); margin-bottom: clamp(-90px, -8vh, -40px); touch-action: pan-y; }
-.ks .lanterns.live li { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+/* a finger that lands on a lantern moves the lantern, in any direction; a finger between them scrolls the page */
+.ks .lanterns.live li { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+@media (max-width: 640px) {
+  .ks .lanterns li { padding: 11px 17px; }
+  .ks .lanterns li[data-big] { padding: 14px 20px; }
+  .ks .lanterns img { height: 17px; }
+  .ks .lanterns li[data-big] img { height: 24px; max-width: 150px; }
+}
 .ks .lanterns.live li[data-held] { cursor: grabbing; z-index: 2; box-shadow: 0 0 34px 10px var(--glow), 0 22px 34px -18px rgba(29, 26, 34, .7); }
 
 /* ---------- 3. the offer: one sentence, the founder's "Karman", a stamp brought down beside it, and three
@@ -326,8 +358,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .arc-title span { max-width: 26em; font-size: clamp(16.5px, 1.7vw, 23px); font-weight: 600; line-height: 1.4; animation: arc-pop .7s cubic-bezier(.2, 1.3, .4, 1) .1s both; }
 @keyframes arc-pop { from { opacity: 0; transform: translateY(18px) scale(.72); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @media (max-width: 760px) {
-  .ks .arc { aspect-ratio: 1.12 / 1; }
-  .ks .arc-title { width: 74%; bottom: 1%; }
+  .ks .arc { aspect-ratio: 1.42 / 1; --arc-below: .27; }
+  .ks .arc-title { width: 68%; bottom: 0; }
   .ks .arc-title b { font-size: clamp(24px, 7.4vw, 38px); }
   .ks .arc-title span { font-size: 15.5px; }
 }
@@ -618,7 +650,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .cloud { max-width: none; }
   .ks .gua.rv .gua-stamp, .ks .gua.rv .gua-cards li { opacity: 1 !important; transform: rotate(-13deg); transition: none; }
   .ks .gua.rv .gua-cards li { transform: none !important; }
-  .ks .claim .mist, .ks.page-home .sheet, .ks.page-home main .btn { animation: none !important; }
+  .ks .claim .mist, .ks.page-home main .btn { animation: none !important; }
 }
 
 /* ---------- The receipts: a plain list beside the orange phone (Receipts.tsx). The heading and the rows
@@ -728,6 +760,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .rcp-list li:nth-child(n + 7) { display: none; }
   .ks .rcp-list button { grid-template-columns: 1.1fr 1.5fr auto 1fr; padding: 0 10px; gap: 8px; font-size: 15px; }
   .ks .rcp-list .wk { display: none; }
+/* the narrowest screens (a phone with the page zoomed in): the name keeps its room, the logo gives some up */
+@media (max-width: 400px) { .ks .rcp-list button { grid-template-columns: minmax(0, 1.25fr) auto auto minmax(0, .8fr); gap: 6px; padding: 0 8px; font-size: 14px; } }
 }
 @media (prefers-reduced-motion: reduce) {
   .ks .rcp .rcp-list li, .ks .rcp .rcp-phone { opacity: 1 !important; transform: none !important; transition: none; }
@@ -743,6 +777,9 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
    lit windows. Flipping the switch fades the page
    over the same second and a half the sun takes to set (the "theming" class, ShellBehaviour.tsx). ---------- */
 .ks.page-home[data-mode="dark"] { --mist: rgb(13, 16, 36); --line: rgba(255, 250, 243, .2); color: var(--cream); color-scheme: dark; }
+/* The glow and the mist are colours every element inherits, so easing them restyles the whole page on every
+   frame. That is fine for the second and a half after the switch is pressed (the page is not scrolling
+   then), and only then: when the light changes because the visitor scrolled, the colours simply change. */
 .ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
 .ks.page-home.theming * { transition-duration: 1.3s !important; }
 .ks.page-home[data-mode="dark"] .hd { color: var(--cream); }
@@ -760,7 +797,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.page-home[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), #e7cf9a; color: #1d1a22; }
 .ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
 /* anything that is a cream card keeps ink words */
-.ks.page-home[data-mode="dark"] .sheet { color: var(--ink); }
+.ks.page-home[data-mode="dark"] .sheet { background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 24px 50px -24px rgba(0, 0, 0, .8); }
+.ks.page-home[data-mode="dark"] .sheet nav a { border-color: rgba(255, 250, 243, .16); }
 /* the guarantee's three cards are almost black at night */
 .ks.page-home[data-mode="dark"] .gua-cards li { background: rgba(24, 22, 30, .92); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), var(--lift); }
 .ks.page-home[data-mode="dark"] .gua-cards span { color: #cdc7d6; }

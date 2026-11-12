@@ -219,3 +219,33 @@ view, and come round again from the bottom. A picked cloud bursts into puffs, it
 box, are typed in and sent, and Karman's answer is typed back in a text conversation on the right. The
 founder rejected topic tabs and answers with drawings attached. The nine are in `site-copy.ts` section 13,
 built from `offer.ts`; he will supply more questions and answers of his own.
+
+## Phones (11 Nov 2026, founder's list after trying the live site on an iPhone in Safari)
+
+- **Top bar on phones and tablets:** Karman, then Sign in, Start free, the light and dark switch and the
+  menu, in that order, on one row. Start free never wraps and never leaves; on the narrowest screens
+  (under 373 px, a phone with the page zoomed in) Sign in moves into the menu. The bar has a soft band of
+  mist behind it so words do not show through it while the page scrolls.
+- **Menu:** a small sheet that drops from its button on every page. The button's three lines cross into an
+  X while it is open. It closes when its button is tapped again, on a tap anywhere outside it, when a link
+  is picked, and on Escape. The separate Close button and the full-screen menu are gone.
+- **Less forehead:** on phones the headline starts close under the bar and sections have less air between
+  them.
+- **Tutor arc:** a true half circle at every size (it was taller than wide on phones). On phones the title
+  sits partly below the circle's centre line (`--arc-below`).
+- **Footer:** the big Karman is always one word, sized to the screen. The calculator is not a free tool
+  (founder: it is for paying members) and is out of the footer.
+- **School lanterns:** a finger on a lantern moves it in any direction (`touch-action: none` on the
+  lantern); a finger between lanterns scrolls the page. They are a little larger on phones.
+- **Text size:** Safari's own page zoom makes the screen narrower in the page's eyes, and the layout holds
+  from 320 px up. The iPhone's system Text Size setting is read by `src/components/site/text-size.ts`,
+  which lays the page out for a narrower screen so everything is drawn larger, up to 1.3 times.
+- **Speed on phones:** the landscape starts with fewer pixels on a phone and may only use a small share of
+  each frame (`PHONE` in `src/lib/flight/engine.ts`); looping drawings stop while they are off screen
+  (`data-away`, set in `ShellBehaviour.tsx`, used in `kit.css`); the glow and mist colours no longer ease
+  when the light changes from scrolling (that restyled the whole page on every frame), only when the
+  switch is pressed; the footer word has no soft shadow on phones.
+- Tested in real Safari on an iPhone simulator, which shows layout and touch truthfully but not speed. The
+  speed changes still need the founder's own phone to confirm.
+- Subpages still have their old top bar; they get this one when each is rebuilt.
+

@@ -8,7 +8,7 @@
 .ks.page-home .ft::before { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--foot-mist) 88%, transparent); -webkit-mask-image: linear-gradient(transparent 38%, #000 66%); mask-image: linear-gradient(transparent 38%, #000 66%); }
 .ks.page-home .ft .ft-in { width: 100%; max-width: var(--max); margin: 0 auto; }
 .ks.page-home .ft .cols { display: block; max-width: none; margin: 0; }
-.ks.page-home .ft .mark { display: block; margin-bottom: clamp(30px, 5vh, 56px); color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(88px, 19vw, 300px); line-height: .9; letter-spacing: -.02em; text-align: center; text-shadow: 0 4px 60px rgba(8, 10, 30, .5); }
+.ks.page-home .ft .mark { display: block; margin-bottom: clamp(30px, 5vh, 56px); color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: min(19vw, 300px); line-height: .9; letter-spacing: -.02em; text-align: center; white-space: nowrap; text-shadow: 0 4px 60px rgba(8, 10, 30, .5); }
 .ks.page-home .ft nav { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 26px clamp(24px, 4vw, 60px); }
 .ks.page-home .ft .col .h { color: var(--cream); font-size: 16px; }
 .ks.page-home .ft .col a { min-height: 34px; color: color-mix(in srgb, var(--cream) 86%, transparent); font-size: 16px; font-weight: 600; }
@@ -32,6 +32,8 @@
 .ks.page-home .ft .mark.on span { transform: none; opacity: 1; animation: foot-sunrise 9s ease-in-out infinite alternate; animation-delay: calc(1.2s + var(--i) * .16s); }
 @keyframes foot-sunrise { from { background-position: 0 100%; } to { background-position: 0 6%; } }
 .ks.page-home .ft .mark { text-shadow: none; filter: drop-shadow(0 6px 44px rgba(255, 160, 90, .28)); }
+/* a soft shadow under moving letters is redrawn on every frame: phones go without it */
+@media (pointer: coarse), (max-width: 760px) { .ks.page-home .ft .mark { filter: none; } }
 @media (prefers-reduced-motion: reduce) { .ks.page-home .ft .mark span { transform: none; opacity: 1; transition: none; animation: none !important; background-position: 0 100%; } }
 .ks.still-motion .ft .mark span { animation: none !important; }
 /* Karman's pages elsewhere, as each platform's own mark */

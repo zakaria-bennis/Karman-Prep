@@ -60,3 +60,5 @@
 .ks .k-done .k-badge .k-ico { width: 28px; height: 28px; }
 .ks .k-done h3 { font-size: 26px; }
 .ks .k-done p { color: var(--ink2); }
+/* Anything far off screen stops animating (ShellBehaviour marks it data-away) and picks up where it was. */
+.ks [data-away] *, .ks [data-away] *::before, .ks [data-away] *::after, .ks [data-away]::before, .ks [data-away]::after { animation-play-state: paused !important; }

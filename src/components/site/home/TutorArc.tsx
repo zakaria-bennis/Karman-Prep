@@ -12,7 +12,9 @@ import { useEffect, useRef, useState } from "react";
 /** Seconds for the wheel to move one photo along. */
 const STEP_S = 3.8;
 const FAN_MS = 1500;
-/** The half circle inside its box: centre at the bottom middle, radii as a share of the box. */
+/** The half circle inside its box. Its centre sits on the "horizon": the bottom of the box, or higher when
+ *  the stylesheet keeps room below it for the title (--arc-below, a share of the height; phones). The radius
+ *  is the largest that fits both ways, so it is a true circle at every size. */
 const RX = 0.44;
 const RY = 0.86;
 
@@ -43,6 +45,8 @@ export default function TutorArc({
     const gap = 360 / dots.length;
     let W = 0;
     let H = 0;
+    let R = 0;
+    let horizon = 0;
     let raf = 0;
     let last = performance.now();
     let turn = gap / 2;
@@ -54,6 +58,8 @@ export default function TutorArc({
     const measure = () => {
       W = el.clientWidth;
       H = el.clientHeight;
+      horizon = H * (1 - (parseFloat(getComputedStyle(el).getPropertyValue("--arc-below")) || 0));
+      R = Math.min(RX * W, RY * horizon);
     };
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -75,8 +81,8 @@ export default function TutorArc({
         /* in the stack every photo of the first set shows; on the wheel only those above the horizon */
         const onWheel = Math.min(1, Math.max(0, (up + 0.02) / 0.34));
         const opacity = first ? Math.max(onWheel, 1 - fan) : onWheel * fan;
-        const x = W * (0.5 + RX * Math.cos(a)) + (first ? (1 - fan) * i * 9 : 0);
-        const y = H * (1 - RY * up) - (first ? (1 - fan) * i * 6 : 0) - (1 - fan) * H * 0.12;
+        const x = W * 0.5 + R * Math.cos(a) + (first ? (1 - fan) * i * 9 : 0);
+        const y = horizon - R * up - (first ? (1 - fan) * i * 6 : 0) - (1 - fan) * H * 0.12;
         const scale = 0.74 + 0.46 * Math.max(0, up) ** 1.4;
         dot.style.opacity = opacity.toFixed(3);
         dot.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${scale.toFixed(3)}) rotate(${((1 - fan) * (i - n / 2) * 4).toFixed(2)}deg)`;
