@@ -1,5 +1,6 @@
 import SitePage from "@/components/site/SitePage";
-import PricingSections from "@/components/site/deal/PricingSections";
+import PricingLab from "@/components/site/deal/PricingLab";
+import { pricingLabData } from "@/components/site/deal/pricing-lab-data";
 import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -22,7 +23,7 @@ export const metadata = pageMeta(
 export default function PricingPage() {
   return (
     <SitePage kind="lit" route={[0.56, 0.72]} className={litFonts}>
-      <PricingSections />
+      <PricingLab {...pricingLabData()} />
     </SitePage>
   );
 }

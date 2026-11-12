@@ -370,6 +370,41 @@ button: Take the free practice test
 headline: The target, by starting score.
 rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
 
+## 58 Pricing: simple
+headline: Pick how your student preps.
+self: Self-study
+tutor: With a tutor
+month: a month
+three months: for 3 months
+or: or
+practice line: Every core question, explained in writing.
+practice bullets: All 39 SAT skills | Written explanations | The Daily 10 | Full-length practice tests
+practice button: Start ${PP.name}
+pro line: The hard questions too, explained on video.
+pro bullets: Everything in ${PP.name} | The hard mastery questions | Video explanations
+pro button: Start ${PRO.name}
+cohort line: Two live classes a week, in a group of ${w(CLASS)}.
+cohort bullets: A full practice test every week | Everything in ${PRO.name} | ${UP_TO.cohort}, or your money back
+cohort unit: ${w(MP.weeks)} weeks
+cohort button: Reserve a seat
+starts: Starts
+closes: Enrollment closes
+award: scholarship for each cohort's top scorer
+small line: ${W(P10.hours)} one-on-one sessions, one a week.
+small bullets: Book your own sessions | A full practice test every week | ${UP_TO.cohort}, or half back / free sessions
+large line: ${W(P20.hours)} one-on-one sessions, as many a week as you want.
+large bullets: Everything in ${P10.name} | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)}
+save: Save
+a session: a session
+private button: Schedule a free call
+rows: Price | Teaching | Promise
+teach none: Self-paced
+teach group: A class of ${w(CLASS)}
+teach one: One-on-one
+promise none: No guarantee
+points: points
+link: The guarantee, in full
+
 ## 61 About: opening
 headline: We show our work. All of it.
 text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives. No black box. No "just trust us."
