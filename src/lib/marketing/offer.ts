@@ -364,8 +364,7 @@ export const GUARANTEE = {
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },
     {
       result: "Half the target or more",
-      remedy:
-        "Private 10: half the price back. Private 20: up to 6 more hours free, then half the price back if the next SAT still falls short.",
+      remedy: "Half the price back, or the next cohort free. You choose.",
     },
     {
       result: "Under half the target",
@@ -385,22 +384,18 @@ export const GUARANTEE = {
   claim:
     "Within 30 days of scores coming out, email the College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
-  /** Private 10 and Private 20: the same targets, made good with free hours, then money. */
+  /** Private 10 and Private 20: their own targets, made good with money or free sessions. */
   private: {
+    /** Founder, 2026-11-12: a missed promise is half the price back or `freeSessions` free sessions, the
+     *  family's choice; a full practice test every week; Private 10 is one session a week at most, Private 20
+     *  has no weekly cap; a session past the package is `extraSessionPrice`. */
+    extraSessionPrice: 149.5,
     cancelHours: 24,
     satWithinDays: 30,
     packages: {
-      /** Founder, 2026-11-08: half the price back, no extra hours. */
-      "private-10": { bonusHours: 0, fullLengthTests: 2 },
-      "private-20": { bonusHours: 6, fullLengthTests: 4 },
+      "private-10": { freeSessions: 5, weeklyCap: 1 },
+      "private-20": { freeSessions: 10, weeklyCap: null },
     },
-    requirements: [
-      "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",
-      "Take the full-length practice tests in your package: two on Private 10, four on Private 20.",
-      "Sit the SAT within 30 days of the last session.",
-    ],
-    remedy:
-      "Free extra hours (3 on Private 10, 6 on Private 20). If the next SAT still falls short, half the price back.",
   },
 } as const;
 
