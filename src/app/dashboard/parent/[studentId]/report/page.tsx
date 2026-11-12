@@ -64,7 +64,6 @@ export default async function ParentReportPage({
   const hw = r.homework;
   const anyHomework =
     hw.completed.length + hw.dueToday.length + hw.dueTomorrow.length + hw.pastDue.length > 0;
-  const emailHref = `${base}/report/email${r.isToday ? "" : `?day=${r.day}`}`;
 
   const side = (
     <>
@@ -120,9 +119,7 @@ export default async function ParentReportPage({
                   : `${name} didn’t practice questions on this day.`}
             </p>
           )}
-          <Cta href={emailHref}>
-            {r.isToday ? "Preview today’s email" : "Preview this day’s email"}
-          </Cta>
+          <Cta href={`${base}/messages`}>Tutor notes and messages</Cta>
           <DayNav base={`${base}/report`} day={r.day} today={today} />
         </section>
 

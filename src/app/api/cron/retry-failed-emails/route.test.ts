@@ -32,6 +32,8 @@ vi.mock("@/lib/integrations/resend/email-queue", () => ({
 }));
 vi.mock("@/lib/supabase/queries/bookings", () => ({ updateBooking: m.booking }));
 vi.mock("@/lib/parent/daily-email-cron", () => ({ runDailyParentEmailsNow: async () => null }));
+vi.mock("@/lib/parent/alerts-cron", () => ({ runParentAlertsNow: async () => null }));
+vi.mock("@/lib/message-assistant/sweep-cron", () => ({ runAssistantSweepNow: async () => null }));
 vi.mock("@/lib/observability/cron", () => ({
   withCronInstrumentation: (_: string, handler: unknown) => handler,
 }));

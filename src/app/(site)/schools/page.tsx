@@ -2,6 +2,7 @@ import SitePage from "@/components/site/SitePage";
 import SchoolsSections from "@/components/site/audience/SchoolsSections";
 import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
+import { partnerMapOn } from "@/data/partners/partner-regions";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT, formatPrice, PRACTICE_PLAN, SCHOOL_PLAN } from "@/lib/marketing/offer";
 
@@ -19,7 +20,7 @@ const EMAIL = `mailto:${CONTACT.general}?subject=${encodeURIComponent("School li
 export default function SchoolsPage() {
   return (
     <SitePage kind="lit" route={[0.3, 0.6]} className={litFonts}>
-      <SchoolsSections email={EMAIL} />
+      <SchoolsSections email={EMAIL} partners={partnerMapOn()} />
     </SitePage>
   );
 }

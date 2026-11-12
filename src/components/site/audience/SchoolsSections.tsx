@@ -7,6 +7,7 @@ import { Arrow, Btn } from "@/components/site/parts";
 import { SCHOOL_PLAN as SCHOOL } from "@/lib/marketing/offer";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
 import { Moves, Ring, TickCard, triples } from "./bits";
+import PartnerMap from "./PartnerMap";
 import SeatSum from "./SeatSum";
 import TurnDeck from "./TurnDeck";
 
@@ -101,7 +102,14 @@ function schoolCards() {
   ];
 }
 
-export default function SchoolsSections({ email }: { email: string }) {
+export default function SchoolsSections({
+  email,
+  partners = false,
+}: {
+  email: string;
+  /** The partner map, off unless PARTNER_MAP=on (it waits on the founder's OK). */
+  partners?: boolean;
+}) {
   const open = section(101);
   const gets = section(102);
   const how = section(103);
@@ -145,6 +153,8 @@ export default function SchoolsSections({ email }: { email: string }) {
           />
         </div>
       </section>
+
+      {partners && <PartnerMap />}
 
       {/* 2. What each student gets, beside the school view */}
       <section className="sect pg-sect" id="view" aria-labelledby="view-h">

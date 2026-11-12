@@ -5,7 +5,7 @@
 // ============================================================
 
 import type { Metadata } from "next";
-import { Card, Panel, Row, SectionHeader } from "@/components/portal";
+import { Card, MoreLink, Panel, Row, SectionHeader } from "@/components/portal";
 import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
 import { ParentShell } from "@/components/parent/ParentShell";
 import { sessionWhen } from "@/components/parent/parts";
@@ -28,6 +28,7 @@ export default async function ParentSessionsPage({
   const child = await requireChild(ctx, (await params).studentId);
   const week = await loadChildWeek(child);
   const recorded = week.past.filter((s) => s.recordingUrl);
+  const base = `/dashboard/parent/${child.id}`;
 
   return (
     <ParentShell ctx={ctx} child={child} title="Sessions">
@@ -47,6 +48,25 @@ export default async function ParentSessionsPage({
               <Row
                 key={s.id}
                 title={who(s)}
+                sub={
+                  !ctx.isAdmin && (
+                    <>
+                      <a
+                        className="kp-link"
+                        href={`${base}/messages?kind=miss_class&session=${s.id}#write`}
+                      >
+                        Can&rsquo;t make it
+                      </a>
+                      {" · "}
+                      <a
+                        className="kp-link"
+                        href={`${base}/messages?kind=move_session&session=${s.id}#write`}
+                      >
+                        Move it
+                      </a>
+                    </>
+                  )
+                }
                 right={
                   <>
                     {sessionWhen(s.startsAt)}
@@ -59,6 +79,11 @@ export default async function ParentSessionsPage({
             ))
           ) : (
             <p className="kp-meta">Nothing booked right now.</p>
+          )}
+          {!ctx.isAdmin && (
+            <MoreLink href={`${base}/messages?kind=book_session#write`}>
+              Book a 1:1 session
+            </MoreLink>
           )}
         </Card>
         <Card>
