@@ -19,6 +19,8 @@ export interface FlightOptions {
   still: () => boolean;
   /** True in dark mode. */
   night: () => boolean;
+  /** The stretch of the route this page flies, as [from, to] between 0 and 1. The whole route if left out. */
+  route?: [number, number];
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -248,7 +250,9 @@ export class Flight {
     if (!this.gl || this.frozen || document.hidden) return;
     const still = this.o.still();
     const max = document.documentElement.scrollHeight - innerHeight;
-    const goal = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const down = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const [from, to] = this.o.route ?? [0, 1];
+    const goal = from + down * (to - from);
     const want = this.o.night() ? 1 : 0;
     const light: FlightLight = want
       ? goal > 0.86
@@ -266,7 +270,7 @@ export class Flight {
 
     if (still) {
       /* no flying and no drifting: step between the stops, each change a short fade */
-      const stop = Math.round(goal * STOPS) / STOPS;
+      const stop = from + (Math.round(down * STOPS) / STOPS) * (to - from);
       this.turn = null;
       if (!this.fading && (stop !== this.shown.p || want !== this.shown.night)) {
         if (this.shown.p < 0) {

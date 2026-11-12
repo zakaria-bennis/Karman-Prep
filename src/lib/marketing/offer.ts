@@ -71,6 +71,8 @@ export const MARCH_PROGRAM = {
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
   enrollmentClosesLabel: "January 1, 2027",
+  /** The same day as a date, for the countdown on the Program page. */
+  enrollmentCloses: "2027-01-01",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.

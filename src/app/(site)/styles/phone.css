@@ -38,6 +38,6 @@
 .ks[data-mode="dark"] .pshot .ps-light, .ks:not([data-mode="dark"]) .pshot .ps-dark { display: none; }
 
 /* on the home page at night the phone is the deep blue iPhone; the shine across its glass stays */
-.ks.page-home[data-mode="dark"] .iphone { background: linear-gradient(145deg, #6c83a8 0%, #33496d 30%, #223552 62%, #51688e 100%); box-shadow: inset 0 0 0 calc(var(--pw) * 0.003) rgba(205, 222, 255, .5), 0 calc(var(--pw) * 0.04) calc(var(--pw) * 0.12) rgba(0, 0, 0, .5), 0 calc(var(--pw) * 0.01) calc(var(--pw) * 0.02) rgba(0, 0, 0, .3); }
-.ks.page-home[data-mode="dark"] .iphone .btns::before, .ks.page-home[data-mode="dark"] .iphone .btns::after { background: #263a59; }
-.ks.page-home[data-mode="dark"] .iphone .btns::before { box-shadow: 0 calc(var(--pw) * 0.12) 0 #263a59, 0 calc(var(--pw) * 0.24) 0 #263a59; }
+.ks.lit[data-mode="dark"] .iphone { background: linear-gradient(145deg, #6c83a8 0%, #33496d 30%, #223552 62%, #51688e 100%); box-shadow: inset 0 0 0 calc(var(--pw) * 0.003) rgba(205, 222, 255, .5), 0 calc(var(--pw) * 0.04) calc(var(--pw) * 0.12) rgba(0, 0, 0, .5), 0 calc(var(--pw) * 0.01) calc(var(--pw) * 0.02) rgba(0, 0, 0, .3); }
+.ks.lit[data-mode="dark"] .iphone .btns::before, .ks.lit[data-mode="dark"] .iphone .btns::after { background: #263a59; }
+.ks.lit[data-mode="dark"] .iphone .btns::before { box-shadow: 0 calc(var(--pw) * 0.12) 0 #263a59, 0 calc(var(--pw) * 0.24) 0 #263a59; }

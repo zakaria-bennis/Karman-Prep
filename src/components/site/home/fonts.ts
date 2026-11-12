@@ -1,4 +1,4 @@
-// The home page's own faces. Young Serif for headlines, the same face as the portal's greeting, and Caveat
+// The faces of the home page and of every page in its world (SitePage's "lit" frame). Young Serif for headlines, the same face as the portal's greeting, and Caveat
 // for the handwritten promise note. Everything else, numbers included, stays in Hanken Grotesk (SitePage.tsx).
 import { Caveat, Young_Serif } from "next/font/google";
 
@@ -17,5 +17,5 @@ export const caveat = Caveat({
   preload: false,
 });
 
-/** Class names that register the home page's font variables. */
-export const homeFonts = `${youngSerif.variable} ${caveat.variable}`;
+/** Class names that register these font variables. */
+export const litFonts = `${youngSerif.variable} ${caveat.variable}`;

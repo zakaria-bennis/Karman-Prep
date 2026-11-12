@@ -9,6 +9,9 @@ import { TEXT_SIZE_BOOT } from "./text-size";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
+import SiteFlight from "./SiteFlight";
+import SiteTouches from "./SiteTouches";
+import { litFonts } from "./home/fonts";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -156,25 +159,29 @@ const FOOTER: [string, [string, string][]][] = [
   ],
 ];
 
-export type SiteKind = "home" | "inner" | "pricing";
+/** "home" and "lit" are the live-landscape world (the home page and the pages rebuilt in its style); the
+ *  others are the older pages, until each is rebuilt. */
+export type SiteKind = "home" | "lit" | "inner" | "pricing";
 
 export default function SitePage({
   kind,
   children,
-  stage,
+  route,
   className = "",
 }: {
   kind: SiteKind;
   children: ReactNode;
-  /** The home page's painting, drawn behind everything. */
-  stage?: ReactNode;
-  /** Extra classes for the page's root, such as a font variable only this page uses. */
+  /** In the landscape world: the stretch of the route this page flies, as [from, to] between 0 and 1. The
+   *  home page flies all of it. */
+  route?: [number, number];
+  /** Extra classes for the page's root. */
   className?: string;
 }) {
+  const lit = kind === "home" || kind === "lit";
   return (
     <div
       id="ks"
-      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${className}`}
+      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${lit ? `lit ${litFonts}` : ""} ${className}`}
       data-mode="dark"
       suppressHydrationWarning
     >
@@ -221,7 +228,8 @@ export default function SitePage({
         <ThemeButton labeled />
         <Btn label={SITE["start free"]} href={ROUTES.signUp} />
       </div>
-      {stage}
+      {lit ? <SiteFlight route={route} /> : null}
+      {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
       <footer className="ft">
         <div className="ft-in">
@@ -254,7 +262,7 @@ export default function SitePage({
                 </a>
               ))}
             </span>
-            {stage ? (
+            {lit ? (
               <span className="credit">
                 <button className="motion" type="button" aria-pressed="false">
                   {SITE.pause}

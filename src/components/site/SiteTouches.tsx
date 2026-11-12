@@ -1,6 +1,6 @@
 "use client";
 
-// Two small touches for the home page, for people using a mouse. It renders nothing.
+// Two small touches for the home page and the pages in its world, for people using a mouse. It renders nothing.
 //   - In the top bar, one marker slides from page to page as the pointer moves along them.
 //   - The main buttons lean a little toward the pointer when it comes close, and spring back when it leaves.
 // Neither runs under reduced motion or on touch screens.
@@ -13,7 +13,7 @@ const MAX_X = 9;
 const MAX_Y = 5;
 const cap = (v: number, max: number) => Math.max(-max, Math.min(max, v));
 
-export default function HomeTouches() {
+export default function SiteTouches() {
   useEffect(() => {
     const ks = document.getElementById("ks");
     if (!ks || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;

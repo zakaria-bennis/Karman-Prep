@@ -191,11 +191,26 @@ headline: We keep the receipts.
 sample note: Sample rows for now. Real students, and the texts they really sent, go here once they say yes.
 
 ## 21 Program: opening
-headline: ${W(CLASS)} students, ${w(MP.classesPerWeek)} live classes a week, ${w(MP.weeks)} weeks.
 text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
-button: Apply for a seat
-button note: Enrollment closes ${CLOSES}.
-facts: ${$(MP.price)} = The whole program, all in | ${CLASS} = Students per class, at most | ${MP.totalClasses} = Live classes of ${MP.classMinutes} minutes | ${MP.fullLengthTests} = Full-length practice tests
+button: Reserve a seat
+second button: See the guarantee
+closes: Registration closes ${CLOSES}
+days left: days left to register
+starts: Classes start ${START_DAY}.
+a before: ${W(MP.weeks)} weeks.
+a pill: ${UP_TO.cohort}
+a after: or your money back.
+a lede: ${W(CLASS)} students who start at about the same score. ${W(MP.classesPerWeek)} live classes a week. Daily practice picked from what each one gets wrong.
+b headline: One seat. ${W(MP.weeks)} weeks. One promise.
+b ticket: ${MP.name}
+b rows: Starts = ${START_DAY} | Runs = ${W(MP.weeks)} weeks, ${w(MP.classesPerWeek)} live classes a week | Class = ${W(CLASS)} students, one starting score | Every day = Practice picked from what your student gets wrong | Promise = ${UP_TO.cohort}, or your money back
+b price note: all ${w(MP.weeks)} weeks, nothing added later
+c headline: Tell us where your student starts. We'll tell you what we promise.
+c ask: Their latest SAT or PSAT score
+c bands: ${G.bands.map((b, i) => (i === 0 ? `Up to ${b.upTo}` : `${G.bands[i - 1].upTo + 10} to ${b.upTo}`)).join(" | ")} | ${G.noGuaranteeFrom} and up
+c promise: points in ${w(MP.weeks)} weeks, or your money back.
+c none title: No promise
+c none: We still teach a student who starts at ${G.noGuaranteeFrom} or above. There just aren't enough points left to promise, and we say so before you pay.
 
 ## 22 Program: a week
 headline: What a week looks like.

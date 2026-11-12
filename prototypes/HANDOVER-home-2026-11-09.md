@@ -21,8 +21,8 @@ clouds to the sea as the page scrolls (see "Travelling background"). The founder
 | 5 | How: "Seven ways we make a skill stick, because one would be lazy." | `Ways.tsx`, `WayArt.tsx` | Seven detailed pictures that move; layout being chosen |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 
-Everywhere: the landscape (`HomeFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
-and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
+Everywhere: the landscape (`SiteFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
+and a marker that slides along the top menu (`SiteTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
 ## Where the founder's approval stands
@@ -134,7 +134,7 @@ painting on the home page. The portals still use `src/lib/painting/`.
   them, past the high peaks where it snows, along a valley and a fjord where birds fly, out to the sea.
 - `src/lib/flight/engine.ts` runs it: scroll flies the camera, it draws softer on slow devices, stops when
   nobody is there, and steps by short fades when motion is held still.
-- `HomeFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
+- `SiteFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
 - Light mode is one day (just after sunrise to just after sunset). Dark mode is one night (dusk, stars,
   northern lights, sunrise). Flipping the switch makes the sun set or rise where the visitor is, in about a
   second and a half, and the page does not move.
