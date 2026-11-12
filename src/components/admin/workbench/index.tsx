@@ -9,7 +9,7 @@ import "./tokens.css";
 import "./workbench.css";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { Num } from "@/components/portal";
+import { Num } from "@/components/portal/primitives";
 
 export type Tone = "ok" | "warn" | "fail" | "neutral" | "info";
 

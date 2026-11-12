@@ -537,6 +537,7 @@
   animation: none !important;
 }
 /* On the first open of a session the box waits for the painting; so do these beats. */
-:root[data-paint-opening] :is(.wb-stats > .wb-stat, .wb-mix-bar, .wb-mix-key li, .wb-table tbody tr) {
+:root[data-paint-opening]
+  :is(.wb-stats > .wb-stat, .wb-mix-bar, .wb-mix-key li, .wb-table tbody tr) {
   animation-play-state: paused;
 }
