@@ -1,8 +1,9 @@
 // The SAT Program page (founder, 2026-11-11): four screens on a desktop, in the home page's design language
 // (big serif headings on the left, on mist, with the picture beside them). 1: the outcome and the
-// starting-score switch. 2: how a week works, as a loop. 3: what the seat holds, beside the parent portal.
-// 4: the promise's two sides, beside the "start here" box. Words: site-copy.ts, sections 21 to 24 and 27.
-// Only the small interactive pieces run in the browser, and they get their facts and words as props.
+// starting-score switch. 2: the nine weeks as a score climb, drawn week by week with every test and class
+// on it. 3: what the seat is worth at Karman's own prices, beside the parent portal. 4: the promise's two
+// sides, beside the "start here" box. Words: site-copy.ts, sections 21 to 24, 27 and 29. Only the small
+// interactive pieces run in the browser, and they get their facts and words as props.
 import { Arrow, Btn } from "@/components/site/parts";
 import DaysLeft from "./DaysLeft";
 import ProgramPortal from "./ProgramPortal";
@@ -36,50 +37,6 @@ function Actions() {
   );
 }
 
-/* Small drawings, one per layer of the stack: seats, a timed test, a mistake coming back, a tutor, a
-   report, the question bank, the promise. Ink line, one filled accent each. */
-const ICONS = [
-  <g key="seats">
-    <circle className="f" cx="13" cy="15" r="5" />
-    <circle cx="24" cy="15" r="5" />
-    <circle cx="35" cy="15" r="5" />
-    <circle cx="13" cy="31" r="5" />
-    <circle cx="24" cy="31" r="5" />
-    <circle cx="35" cy="31" r="5" />
-  </g>,
-  <g key="test">
-    <circle cx="24" cy="27" r="14" />
-    <path d="M24 13V8m-5 0h10" />
-    <path className="s" d="M24 27V18" />
-    <circle className="f" cx="24" cy="27" r="3" />
-  </g>,
-  <g key="back">
-    <rect x="8" y="9" width="22" height="28" rx="4" />
-    <path d="M14 18l6 6m0-6l-6 6" />
-    <path className="s" d="M34 14a13 13 0 0 1 0 20" />
-    <path className="s" d="M30 31l4 4 4-5" />
-  </g>,
-  <g key="tutor">
-    <circle className="f" cx="24" cy="16" r="7" />
-    <path d="M9 40c1-9 7-14 15-14s14 5 15 14" />
-  </g>,
-  <g key="report">
-    <rect x="7" y="11" width="34" height="26" rx="5" />
-    <path d="M8 14l16 12 16-12" />
-    <circle className="f" cx="38" cy="12" r="5" />
-  </g>,
-  <g key="portal">
-    <rect x="7" y="9" width="34" height="30" rx="5" />
-    <path d="M7 18h34" />
-    <rect className="f" x="13" y="24" width="9" height="9" rx="2" />
-    <path d="M27 26h9m-9 6h6" />
-  </g>,
-  <g key="promise">
-    <path d="M24 6l15 6v11c0 9-6 16-15 19C15 39 9 32 9 23V12z" />
-    <path className="s" d="M16 24l6 6 11-12" />
-  </g>,
-];
-
 function Tick() {
   return (
     <svg className="pg-tick" viewBox="0 0 20 20" aria-hidden="true">
@@ -89,34 +46,116 @@ function Tick() {
   );
 }
 
-/* The four moves of a week, as small drawings: a test sheet, a class, homework, an arrow coming back. */
-const MOVES = [
-  <g key="test">
-    <rect x="12" y="7" width="24" height="34" rx="4" />
-    <path d="M18 17h12m-12 7h12m-12 7h7" />
-  </g>,
-  <g key="class">
-    <rect x="6" y="9" width="36" height="24" rx="4" />
-    <path d="M17 41h14m-7-8v8" />
-    <path className="s" d="M14 25l6-7 5 4 8-8" />
-  </g>,
-  <g key="home">
-    <rect x="9" y="9" width="30" height="30" rx="5" />
-    <path className="s" d="M16 24l6 6 11-12" />
-  </g>,
-  <g key="back">
-    <path d="M38 24a14 14 0 1 1-5-10.7" />
-    <path className="s" d="M34 6v8h-8" />
-  </g>,
-];
+/** The example the climb is drawn for: a start just under the first band's top, and the promise for it. */
+const START = G.bands[0].upTo - 50;
+const GAIN = G.bands[0].cohort;
+/* the plot: weeks across, the score up */
+const X0 = 78;
+const X1 = 700;
+const Y0 = 318;
+const Y1 = 70;
+const WEEK = (X1 - X0) / MP.weeks;
+const yOf = (gain: number) => Y0 - (gain / GAIN) * (Y0 - Y1);
+
+/** The nine weeks as a score climb: every week has its test and its two classes on it, the line rises from
+ *  the starting score to the promised one, and the last week ends on SAT day. */
+function Climb() {
+  const s = section(22);
+  /* the plan's shape: slow at first, then steady, landing on the promise */
+  const gains = Array.from({ length: MP.weeks + 1 }, (_, i) =>
+    Math.round(GAIN * (i / MP.weeks) ** 1.12)
+  );
+  const pts = gains.map((g, i) => [X0 + i * WEEK, yOf(g)] as const);
+  const line = pts
+    .map(([x, y], i) =>
+      i
+        ? `C${(x - WEEK * 0.45).toFixed(1)} ${pts[i - 1][1].toFixed(1)} ${(x - WEEK * 0.4).toFixed(1)} ${y.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`
+        : `M${x} ${y}`
+    )
+    .join("");
+  const marks = [0, 50, 100, GAIN].filter((v, i, a) => a.indexOf(v) === i);
+  return (
+    <figure className="pg-climb">
+      <svg viewBox="0 0 720 440" role="img" aria-label={s.note}>
+        {Array.from({ length: MP.weeks }, (_, i) => (
+          <g key={i} className="wk" style={{ "--i": i } as React.CSSProperties}>
+            {i % 2 ? null : (
+              <rect
+                className="band"
+                x={X0 + i * WEEK}
+                y={Y1 - 22}
+                width={WEEK}
+                height={Y0 - Y1 + 22}
+                rx="10"
+              />
+            )}
+            <text className="n" x={X0 + (i + 0.5) * WEEK} y={Y0 + 26} textAnchor="middle">
+              {i + 1}
+            </text>
+            {/* the week's full test: a sheet that gets its tick as the line passes */}
+            <g
+              className="pg-test"
+              transform={`translate(${(X0 + (i + 0.5) * WEEK - 9).toFixed(1)} ${Y0 + 42})`}
+            >
+              <rect width="18" height="23" rx="3.5" />
+              <path className="ln" d="M4 6h10M4 10.5h10" />
+              <path className="ok" d="M4.5 16l3 3 6-6.5" />
+            </g>
+            {/* its two live classes */}
+            <circle className="cls" cx={X0 + (i + 0.27) * WEEK} cy={Y0 + 86} r="5" />
+            <circle className="cls" cx={X0 + (i + 0.73) * WEEK} cy={Y0 + 86} r="5" />
+          </g>
+        ))}
+        {marks.map((m) => (
+          <g key={m}>
+            <path className="g" d={`M${X0} ${yOf(m)}H${X1}`} />
+            <text className="y" x={X0 - 10} y={yOf(m) + 4.5} textAnchor="end">
+              {START + m}
+            </text>
+          </g>
+        ))}
+        <path className="sat" d={`M${X1} ${Y1 - 30}V${Y0}`} />
+        <path className="a" d={`${line}L${X1} ${Y0}L${X0} ${Y0}Z`} />
+        <path className="l" pathLength={1} d={line} />
+        {pts.map(([x, y], i) => (
+          <circle
+            key={i}
+            className="pt"
+            cx={x}
+            cy={y}
+            r={i === MP.weeks ? 9 : 5}
+            style={{ "--i": i } as React.CSSProperties}
+          />
+        ))}
+        <text className="k" x={X0 - 10} y={Y0 + 26} textAnchor="end">
+          {s.week}
+        </text>
+        <text className="k" x={X0 - 10} y={Y0 + 58} textAnchor="end">
+          {s.test}
+        </text>
+        <text className="k" x={X0 - 10} y={Y0 + 90} textAnchor="end">
+          {s.class}
+        </text>
+      </svg>
+      <span className="pg-flag pg-from">
+        {s.start} <b className="num">{START}</b>
+      </span>
+      <span className="pg-flag pg-to">
+        {s.goal} <b className="num">{START + GAIN}</b>
+      </span>
+      <span className="pg-flag pg-sat">{s.sat}</span>
+      <figcaption>{s.note}</figcaption>
+    </figure>
+  );
+}
 
 export default function ProgramSections() {
   const open = section(21);
-  const loop = section(22);
+  const climb = section(22);
   const portal = section(23);
   const promise = section(24);
   const close = section(27);
-  const steps = pairs(loop.steps);
+  const value = section(29);
   return (
     <>
       {/* 1. The outcome, and the switch: a starting score in, the promised points out */}
@@ -125,7 +164,6 @@ export default function ProgramSections() {
         <div className="pg-in pg-two">
           <div className="pg-say">
             <h1>{open.headline}</h1>
-            <p className="lede">{open.lede}</p>
             <Actions />
           </div>
           <ProgramPromise
@@ -139,65 +177,55 @@ export default function ProgramSections() {
         </div>
       </section>
 
-      {/* 2. How a week works: the loop */}
+      {/* 2. The nine weeks, as a climb */}
       <section className="sect pg-sect" id="week" aria-labelledby="week-h">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in pg-two rv">
+        <div className="pg-in pg-two pg-wide rv">
           <div className="pg-say">
-            <h2 id="week-h">{loop.headline}</h2>
+            <h2 id="week-h">{climb.headline}</h2>
             <ol className="pg-moves">
-              {steps.map(([k, v], i) => (
-                <li key={k} style={{ "--i": i } as React.CSSProperties}>
+              {pairs(climb.steps).map(([k, v]) => (
+                <li key={k}>
                   <b>{k}</b>
                   <span>{v}</span>
                 </li>
               ))}
             </ol>
-            <p className="pg-note">{loop.note}</p>
           </div>
-          <div className="pg-wheel">
-            <div className="pg-ring" aria-hidden="true">
-              <svg viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="78" />
-              </svg>
-              <span className="pg-orbit">
-                <i />
-              </span>
-              {steps.map(([k], i) => (
-                <span key={k} className="pg-node" style={{ "--i": i } as React.CSSProperties}>
-                  <svg viewBox="0 0 48 48">{MOVES[i]}</svg>
-                </span>
-              ))}
-              <div className="pg-core">
-                <b>{loop.center}</b>
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <u key={i} style={{ "--i": i } as React.CSSProperties} />
-                ))}
-              </div>
-            </div>
-          </div>
+          <Climb />
         </div>
       </section>
 
-      {/* 3. What the seat holds, beside what the parent sees */}
+      {/* 3. What the seat is worth, beside what the parent sees */}
       <section className="sect pg-sect" id="seat" aria-labelledby="seat-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in pg-two rv">
           <div className="pg-say">
-            <h2 id="seat-h">{open["stack headline"]}</h2>
-            <ol className="pg-stack">
-              {pairs(open.stack).map(([title, line], i) => (
-                <li key={title} style={{ "--i": i } as React.CSSProperties}>
-                  <svg viewBox="0 0 48 48" aria-hidden="true">
-                    {ICONS[i]}
-                  </svg>
-                  <p>
-                    <b>{title}</b>
-                    <span>{line}</span>
-                  </p>
-                </li>
-              ))}
-            </ol>
+            <h2 id="seat-h">{value.headline}</h2>
+            <div className="pg-bill">
+              <ol>
+                {value.rows.split("|").map((row, i) => {
+                  const [title, detail, worth] = row.split("=").map((x) => x.trim());
+                  return (
+                    <li key={title} style={{ "--i": i } as React.CSSProperties}>
+                      <p>
+                        <b>{title}</b>
+                        <span>{detail}</span>
+                      </p>
+                      <em className={/\d/.test(worth) ? "num" : undefined}>{worth}</em>
+                    </li>
+                  );
+                })}
+              </ol>
+              <p className="pg-sum">
+                <span>
+                  {value["total label"]} <s className="num">{value.total}</s>
+                </span>
+                <span>
+                  {value["price label"]} <b className="num">{value.price}</b>
+                </span>
+              </p>
+            </div>
           </div>
           <div className="pg-say">
             <h3 className="pg-h3">{portal.headline}</h3>
@@ -253,14 +281,9 @@ export default function ProgramSections() {
                 </ul>
               </article>
             </div>
-            <ol className="pg-ends">
-              {pairs(promise.ends).map(([k, v], i) => (
-                <li key={k} style={{ "--i": i } as React.CSSProperties}>
-                  <b>{k}</b>
-                  <span>{v}</span>
-                </li>
-              ))}
-            </ol>
+            <p className="pg-small">
+              {promise.grace} {promise.high}
+            </p>
             <a className="more" href={ROUTES.guarantee}>
               {promise.link}
               <Arrow />

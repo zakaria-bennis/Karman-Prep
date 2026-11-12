@@ -28,6 +28,7 @@ import {
   FREE_PRACTICE_TEST as FT,
   FOUNDER,
   GUARANTEE as G,
+  pricePerHour,
   type GuaranteeTrack,
   guaranteeBandLabel,
   guaranteedGain,
@@ -187,21 +188,31 @@ sample note: Sample rows for now. Real students, and the texts they really sent,
 
 ## 21 Program: opening
 text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
-headline: A higher SAT score in ${w(MP.weeks)} weeks. We put the number in writing.
-lede: Your student sits a full test every week. We find what they got wrong, and fix it before the next one.
+headline: A higher SAT score in ${w(MP.weeks)} weeks.
 button: Reserve a seat
 second button: How the promise works
 closes: Registration closes ${CLOSES}
 days left: days left to register
 starts: Classes start ${START_DAY}.
-stack: ${MP.totalClasses} live classes, in a group of ${w(CLASS)} = Five classmates who start where your student starts, so the pace fits. | ${W(MP.fullLengthTests)} full-length tests, one a week = We know what to fix within seven days, not at the end. | Homework built for one student = Ten questions a day from their own mistakes, and time trials if the clock is the problem. | One tutor, from the first class to test day = Matched to what your student struggles with. You never explain your child twice. | A report for you, every day = The work done, the predicted score and a note from the tutor. | ${QB.verifiedCount} questions, none written by AI = Written by people who have written real exams, and checked by 1550+ scorers. | ${UP_TO.cohort}, or your money back = You see the exact number before you pay.
-stack headline: One seat holds all of this.
 
-## 22 Program: the loop
-headline: Every week runs the same way. That is how a score goes up.
-steps: Test = A full practice test, timed like the real one. | Class = The tutor walks in knowing what the group missed, and teaches that. | Homework = Each student gets work built from their own mistakes. | Back again = A skill still missed is assigned next week, until it is mastered.
-center: Skills still missed
-note: Nothing is missed or forgotten.
+## 22 Program: the climb
+headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks. Each one shows us what to fix next.
+steps: The test = Every week your student sits a full practice test, timed like the real SAT. | The two classes = Their tutor has the results before class, and teaches the questions the group missed. | The homework = Each student drills their own misses. A skill still missed is assigned again the next week.
+start: Latest SAT score
+goal: The score we promise
+week: Week
+test: Full practice test
+class: Live class
+sat: SAT day
+note: Drawn for a student who starts at ${G.bands[0].upTo - 50}: the promise is +${G.bands[0].cohort}. It shows the plan, not a student's result.
+
+## 29 Program: the value
+headline: What the seat is worth, at our own prices.
+rows: ${MP.totalClasses} live classes, ${MP.classMinutes} minutes each = A one-on-one session with us is ${pricePerHour(P10)}. Your student gets ${MP.totalClasses} hours in a class of ${w(CLASS)}. = ${$(MP.totalClasses * (P10.price / P10.hours))} | ${PRO.name}, for the whole program and the weeks before it = Every question, the Daily 10, the weekly workshops. ${$(PRO.monthly)} a month on its own. = ${$(PRO.threeMonths)} | ${W(MP.fullLengthTests)} full-length practice tests = One a week, each one new, each one gone through in class. = Included | One tutor from the first class to test day = Matched to what your student struggles with. = Included | A report for you, every day = The work done, the predicted score and a signed note from the tutor. = Included
+total label: At our own prices
+total: ${$(MP.totalClasses * (P10.price / P10.hours) + PRO.threeMonths)}
+price label: The ${w(MP.weeks)}-week cohort
+price: ${$(MP.price)}
 
 ## 23 Program: the portal
 headline: And you see what the tutor sees.
@@ -221,15 +232,15 @@ notes caption: A few sentences from the tutor, every day.
 ## 24 Program: the promise
 headline: A promise with two sides.
 ours title: Our side
-ours: A class of ${w(CLASS)} at your student's level | A full practice test every week | Homework built from their own mistakes | A report to you every day
-ends: They hit the number = The promise is kept. | They get at least halfway = Half your money comes back. | They fall short of halfway = All of it comes back, or the next cohort is free.
-ask: Their latest SAT or PSAT score
+ours: A class of ${w(CLASS)} at your student's level | ${W(MP.classesPerWeek)} live classes every week | A full practice test every week | Homework built from their own mistakes | One tutor from start to finish | A report to you every day
+ask: Their latest SAT score
 bands: ${G.bands.map((b, i) => (i === 0 ? `Up to ${b.upTo}` : `${G.bands[i - 1].upTo + 10} to ${b.upTo}`)).join(" | ")} | ${G.noGuaranteeFrom} and up
 promise: points in ${w(MP.weeks)} weeks, or your money back.
 high title: It goes up
 high: From ${G.noGuaranteeFrom}, we promise the score rises. If it doesn't, your student gets three months of ${PRO.name} free.
 terms title: Your student's side of it
-terms: At least ${G.minClassesAttended} of the ${MP.totalClasses} live classes (one may be made up at a workshop) | All ${w(MP.fullLengthTests)} tests, each in its own week (one may be a week late) | ${G.practicePct}% of the weekly practice | The SAT their cohort ends on
+terms: Attend ${G.minClassesAttended} of the ${MP.totalClasses} live classes | Take all ${w(MP.fullLengthTests)} practice tests | Do ${G.practicePct}% of the weekly practice | Take the same SAT as their cohort
+grace: One class can be made up at a workshop, and one test can be a week late.
 link: The guarantee, in full
 
 ## 25 Program: how to join
@@ -255,10 +266,10 @@ text: The same price for every cohort, and the deposit is part of it. Nothing is
 bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to use before class begins.
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 ask: What did your student score last time?
-field: SAT or PSAT score
+field: SAT score
 show: Show their class
 class: Your student would join the class that starts between
-no score: No score yet? Your student sits a short placement test first.
+no score: No SAT score yet? Your student sits a placement test first.
 bad: Enter a score between 400 and 1600.
 
 ## 31 Private: opening
