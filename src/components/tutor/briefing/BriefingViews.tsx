@@ -1,12 +1,18 @@
+// The tutor's briefings, in the portal's look (student-detail.css and the portal forms), like the
+// student and parent portals: one sub-card per session or saved practice inside the page's Card, a ring
+// for how much of each practice was answered, and text links for every action.
 import Link from "next/link";
-import "@/components/admin/workbench/workbench.css";
+import "../student-detail.css";
+import "@/components/portal-extras/forms.css";
+import { MoreLink, Num } from "@/components/portal/primitives";
+import { Ring } from "@/components/portal/Ring";
 import MathText from "@/components/learn/MathText";
 import type { DailyBriefing } from "@/lib/educator-briefing/daily";
 import type { readStudentBriefing } from "@/lib/educator-briefing/server";
 
 export function BriefingUnavailable() {
   return (
-    <p role="status" className="wb-empty">
+    <p role="status" className="kp-st-empty">
       The briefing is unavailable right now. No saved work has been changed. Reload this page to try
       again.
     </p>
@@ -16,7 +22,7 @@ export function BriefingUnavailable() {
 export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
   if (!briefing.timeZone)
     return (
-      <p role="status" className="wb-empty">
+      <p role="status" className="kp-st-empty">
         Your account timezone is unavailable, so a calendar-day briefing cannot be shown.{" "}
         <Link className="kp-link" href="/tutor/schedule">
           Open your schedule
@@ -25,38 +31,33 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
       </p>
     );
   return (
-    <>
-      <form method="get" className="flex flex-wrap items-end gap-3">
-        <label className="text-sm font-semibold text-[color:var(--ink)]">
-          Briefing date
+    <div className="kp-st">
+      <form method="get" className="kp-st-day">
+        <label className="kp-field">
+          <span>Briefing date</span>
           <input
             type="date"
             name="date"
             defaultValue={briefing.day ?? ""}
             required
-            className="wb-input mt-2 block"
+            className="kp-input"
           />
         </label>
-        <button type="submit" className="wb-btn">
+        <button type="submit" className="kp-st-btn">
           Show day
         </button>
-        <p className="text-sm text-[color:var(--mute)]">Times in {briefing.timeZone}</p>
+        <p className="kp-meta">Times in {briefing.timeZone}</p>
       </form>
       {briefing.sessions.length === 0 ? (
-        <p className="rounded border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
+        <p className="kp-st-empty">
           No scheduled sessions with students in your current roster on this date.
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="kp-st-cards">
           {briefing.sessions.map((session) => (
-            <li
-              key={session.bookingId}
-              className="min-w-0 rounded border border-[color:var(--line)] bg-[color:var(--card)] p-5"
-            >
-              <h2 className="break-words text-lg font-semibold text-[color:var(--ink)]">
-                {session.studentLabel}
-              </h2>
-              <p className="mt-2 text-sm text-[color:var(--mute)]">
+            <li key={session.bookingId} className="kp-st-sub">
+              <h2>{session.studentLabel}</h2>
+              <p className="kp-meta">
                 <time dateTime={session.scheduledStart}>
                   {new Intl.DateTimeFormat("en-US", {
                     timeZone: briefing.timeZone!,
@@ -65,25 +66,22 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
                   }).format(new Date(session.scheduledStart))}
                 </time>
               </p>
-              <Link
-                href={`/tutor/${encodeURIComponent(session.studentClerkId)}/briefing`}
-                className="kp-link mt-3 inline-flex min-h-11 items-center text-sm font-semibold"
-              >
+              <MoreLink href={`/tutor/${encodeURIComponent(session.studentClerkId)}/briefing`}>
                 View practice briefing
-              </Link>
+              </MoreLink>
             </li>
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 }
 
 type StudentBriefing = NonNullable<Awaited<ReturnType<typeof readStudentBriefing>>>;
 export function StudentBriefingView({ briefing }: { briefing: StudentBriefing }) {
   return (
-    <>
-      <p className="text-sm text-[color:var(--mute)]">
+    <div className="kp-st">
+      <p className="kp-meta">
         The most recent 30 saved skill-practice sessions are shown. Earlier quizzes remain in the{" "}
         <Link
           href={`/tutor/${encodeURIComponent(briefing.studentClerkId)}?tab=quiz`}
@@ -93,37 +91,38 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
         </Link>
         .
       </p>
-      <p
-        role="note"
-        className="rounded border border-[color:var(--line)] bg-[color:var(--card)] p-4 text-sm text-[color:var(--mute)]"
-      >
+      <p role="note" className="kp-st-note">
         Assigned practice is not yet linked to individual tutoring sessions here. These records do
         not establish session-homework deadlines, lateness, or parent notices.
       </p>
       {briefing.attempts.length === 0 ? (
-        <p className="rounded border border-[color:var(--line)] p-5 text-[color:var(--mute)]">
-          No saved skill-practice sessions were found.
-        </p>
+        <p className="kp-st-empty">No saved skill-practice sessions were found.</p>
       ) : (
-        <ul className="space-y-5">
+        <ul className="kp-st-cards" data-one="">
           {briefing.attempts.map((attempt) => {
             const href = `/tutor/${encodeURIComponent(briefing.studentClerkId)}/practice/${attempt.id}`;
             return (
-              <li
-                key={attempt.id}
-                className="min-w-0 rounded border border-[color:var(--line)] bg-[color:var(--card)] p-5"
-              >
-                <p className="text-sm text-[color:var(--mute)]">
-                  {attempt.assignmentId
-                    ? attempt.assignment
-                      ? `Assigned practice · ${attempt.assignment.status}`
-                      : "Assigned practice · details unavailable"
-                    : "Independent practice"}
-                </p>
-                <h2 className="mt-1 break-words text-lg font-semibold text-[color:var(--ink)]">
-                  {attempt.assignment?.title ?? attempt.skillLabel}
-                </h2>
-                <p className="mt-2 text-sm text-[color:var(--mute)]">
+              <li key={attempt.id} className="kp-st-sub">
+                <div className="kp-st-subhead">
+                  <Ring
+                    value={attempt.total ? attempt.answered / attempt.total : 0}
+                    label={`${attempt.answered} of ${attempt.total} answers saved`}
+                    size={52}
+                  >
+                    <Num>{attempt.answered}</Num>
+                  </Ring>
+                  <div>
+                    <p className="kp-meta">
+                      {attempt.assignmentId
+                        ? attempt.assignment
+                          ? `Assigned practice · ${attempt.assignment.status}`
+                          : "Assigned practice · details unavailable"
+                        : "Independent practice"}
+                    </p>
+                    <h2>{attempt.assignment?.title ?? attempt.skillLabel}</h2>
+                  </div>
+                </div>
+                <p>
                   {attempt.answered} of {attempt.total} answers saved ·{" "}
                   {attempt.completedAt ? "Completed" : "In progress"}
                   {attempt.completedAt
@@ -132,7 +131,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                       : ` · ${attempt.score}% on this practice`
                     : ""}
                 </p>
-                <p className="mt-1 text-xs text-[color:var(--mute)]">
+                <p className="kp-meta">
                   Started{" "}
                   {new Date(attempt.startedAt).toLocaleString("en-US", {
                     timeZone: "UTC",
@@ -142,32 +141,17 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                   (UTC)
                 </p>
                 {attempt.missed.length === 0 ? (
-                  <p className="mt-3 text-sm text-[color:var(--mute)]">
-                    No missed answers among the responses saved so far.
-                  </p>
+                  <p className="kp-meta">No missed answers among the responses saved so far.</p>
                 ) : (
                   <>
-                    <h3 className="mt-4 text-sm font-semibold text-[color:var(--ink)]">
-                      Recorded misses ({attempt.missed.length})
-                    </h3>
-                    <ul className="mt-2 space-y-3">
+                    <h3>Recorded misses ({attempt.missed.length})</h3>
+                    <ul className="kp-st-misses">
                       {attempt.missed.map((miss) => (
-                        <li
-                          key={miss.ordinal}
-                          className="min-w-0 border-l-2 border-[color:var(--line)] pl-3 text-sm text-[color:var(--ink)]"
-                        >
-                          <p className="font-semibold">Question {miss.ordinal + 1}</p>
-                          <MathText
-                            text={miss.questionText}
-                            className="block whitespace-pre-wrap break-words"
-                          />
-                          <p className="mt-1 break-words text-[color:var(--mute)]">
-                            Saved answer: {miss.originalAnswer}
-                          </p>
-                          <Link
-                            href={`${href}#question-${miss.ordinal + 1}`}
-                            className="kp-link inline-flex min-h-11 items-center"
-                          >
+                        <li key={miss.ordinal}>
+                          <b>Question {miss.ordinal + 1}</b>
+                          <MathText text={miss.questionText} className="kp-st-text" />
+                          <p className="kp-meta">Saved answer: {miss.originalAnswer}</p>
+                          <Link href={`${href}#question-${miss.ordinal + 1}`} className="kp-link">
                             Review question {miss.ordinal + 1} as student
                           </Link>
                         </li>
@@ -175,22 +159,17 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                     </ul>
                   </>
                 )}
-                <Link
-                  href={href}
-                  className="kp-link mt-3 inline-flex min-h-11 items-center text-sm font-semibold"
-                >
-                  Review this saved practice
-                </Link>
+                <MoreLink href={href}>Review this saved practice</MoreLink>
               </li>
             );
           })}
         </ul>
       )}
       {briefing.hasMore && (
-        <p className="text-sm text-[color:var(--mute)]">
+        <p className="kp-meta">
           Older skill-practice sessions are outside this briefing. Their saved history is preserved.
         </p>
       )}
-    </>
+    </div>
   );
 }

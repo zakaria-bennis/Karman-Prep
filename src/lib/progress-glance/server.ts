@@ -12,7 +12,7 @@ import type { PracticeAnswer } from "./levels";
 
 export interface PracticeActivity {
   answers: PracticeAnswer[];
-  /** Seconds spent answering since `since`. */
+  /** Seconds spent answering since `since`: skill practice and every quiz-flow run. */
   secondsSince: number;
   /** ISO time of the most recent completed practice, if any. */
   lastPracticedAt: string | null;
@@ -69,6 +69,33 @@ export async function loadPracticeActivity(
     ])
   );
   if (!studentClerkIds.length) return out;
+  const sinceIso = since.toISOString();
+  const add = (studentId: string, answer: PracticeAnswer, seconds: number | null) => {
+    const entry = out.get(studentId);
+    if (!entry) return;
+    entry.answers.push(answer);
+    if (answer.at >= sinceIso) entry.secondsSince += seconds ?? 0;
+  };
+  const finished = (studentId: string, at: string | null) => {
+    const entry = out.get(studentId);
+    if (entry && at && (!entry.lastPracticedAt || at > entry.lastPracticedAt))
+      entry.lastPracticedAt = at;
+  };
+  await addCatalogPractice(studentClerkIds, supabase, add, finished);
+  await addQuizRuns(studentClerkIds, supabase, add, finished);
+  return out;
+}
+
+type AddAnswer = (studentId: string, answer: PracticeAnswer, seconds: number | null) => void;
+type Finished = (studentId: string, at: string | null) => void;
+
+/** Skill practice (`catalog_practice_sessions`). */
+async function addCatalogPractice(
+  studentClerkIds: readonly string[],
+  supabase: Admin,
+  add: AddAnswer,
+  finished: Finished
+) {
   const { data: sessions, error } = await supabase
     .from("catalog_practice_sessions")
     .select("id, student_id, skill_id, completed_at")
@@ -80,19 +107,9 @@ export async function loadPracticeActivity(
     skill_id: string;
     completed_at: string | null;
   }[];
-  if (!sessionRows.length) return out;
   const byId = new Map(sessionRows.map((s) => [s.id, s]));
-  for (const s of sessionRows) {
-    const entry = out.get(s.student_id);
-    if (
-      entry &&
-      s.completed_at &&
-      (!entry.lastPracticedAt || s.completed_at > entry.lastPracticedAt)
-    )
-      entry.lastPracticedAt = s.completed_at;
-  }
+  for (const s of sessionRows) finished(s.student_id, s.completed_at);
   const ids = sessionRows.map((s) => s.id);
-  const sinceIso = since.toISOString();
   for (let i = 0; i < ids.length; i += 200) {
     const { data: responses, error: responseError } = await supabase
       .from("catalog_practice_responses")
@@ -107,18 +124,65 @@ export async function loadPracticeActivity(
       response_time_seconds: number | null;
     }[]) {
       const session = byId.get(r.session_id);
-      const entry = session ? out.get(session.student_id) : undefined;
-      if (!session || !entry) continue;
-      entry.answers.push({
-        skillId: session.skill_id,
-        subSkillId: subSkillOfQuestion(r.question_id ?? "", session.skill_id),
-        correct: r.is_correct,
-        at: r.answered_at,
-      });
-      if (r.answered_at >= sinceIso) entry.secondsSince += r.response_time_seconds ?? 0;
+      if (!session) continue;
+      add(
+        session.student_id,
+        {
+          skillId: session.skill_id,
+          subSkillId: subSkillOfQuestion(r.question_id ?? "", session.skill_id),
+          correct: r.is_correct,
+          at: r.answered_at,
+        },
+        r.response_time_seconds
+      );
     }
   }
-  return out;
+}
+
+/** The quiz flows (`quiz_runs`: Daily 10, sets, Domain quizzes, full tests, the diagnostic). */
+async function addQuizRuns(
+  studentClerkIds: readonly string[],
+  supabase: Admin,
+  add: AddAnswer,
+  finished: Finished
+) {
+  const { data: runs, error } = await supabase
+    .from("quiz_runs")
+    .select("id, student_id, completed_at")
+    .in("student_id", [...studentClerkIds]);
+  if (error) throw error;
+  const runRows = (runs ?? []) as { id: string; student_id: string; completed_at: string | null }[];
+  const byId = new Map(runRows.map((r) => [r.id, r]));
+  for (const r of runRows) finished(r.student_id, r.completed_at);
+  const ids = runRows.map((r) => r.id);
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data: responses, error: responseError } = await supabase
+      .from("quiz_run_responses")
+      .select("run_id, question_id, skill_id, is_correct, answered_at, response_time_seconds")
+      .in("run_id", ids.slice(i, i + 200));
+    if (responseError) throw responseError;
+    for (const r of (responses ?? []) as {
+      run_id: string;
+      question_id: string;
+      skill_id: string;
+      is_correct: boolean;
+      answered_at: string;
+      response_time_seconds: number | null;
+    }[]) {
+      const run = byId.get(r.run_id);
+      if (!run) continue;
+      add(
+        run.student_id,
+        {
+          skillId: r.skill_id,
+          subSkillId: subSkillOfQuestion(r.question_id, r.skill_id),
+          correct: r.is_correct,
+          at: r.answered_at,
+        },
+        r.response_time_seconds
+      );
+    }
+  }
 }
 
 /** The latest diagnostic ranges for each student users.id, oldest first. */

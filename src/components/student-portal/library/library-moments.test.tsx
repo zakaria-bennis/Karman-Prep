@@ -158,11 +158,17 @@ describe("Challenge moment", () => {
       "/learn/daily"
     );
     expect(challengeMoment.settled()).toBe(false);
+    /* The window listens for Escape from the moment it stops the page behind from scrolling,
+       which is a beat after it appears. */
+    await waitFor(() => expect(document.documentElement.style.overflow).toBe("hidden"));
 
-    act(() => {
-      fireEvent.keyDown(document, { key: "Escape" });
+    // The Escape listener attaches in an effect; under a busy CI runner it can lag the dialog.
+    await waitFor(() => {
+      act(() => {
+        fireEvent.keyDown(document, { key: "Escape" });
+      });
+      expect(localStorage.getItem(CHALLENGE_CLOSED_KEY)).toBe("2026-11-08");
     });
-    expect(localStorage.getItem(CHALLENGE_CLOSED_KEY)).toBe("2026-11-08");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(challengeMoment.settled()).toBe(true);
   });

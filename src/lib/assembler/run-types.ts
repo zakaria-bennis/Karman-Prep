@@ -1,9 +1,17 @@
-/* Shared shapes for quiz runs (Daily 10, practice set, Domain quiz, full-length test, diagnostic). */
+/* Shared shapes for quiz runs (Daily 10, practice set, Domain quiz, full-length test, diagnostic,
+   time trial). */
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
 import type { SkillLevel } from "@/lib/levels/rules";
+import type { TrialRoundResult, TrialStart } from "@/lib/student/time-trial";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
-export type RunKind = "daily-ten" | "practice-set" | "domain-quiz" | "full-test" | "diagnostic";
+export type RunKind =
+  | "daily-ten"
+  | "practice-set"
+  | "domain-quiz"
+  | "full-test"
+  | "diagnostic"
+  | "time-trial";
 
 export type RunSectionForm = {
   key: string;
@@ -26,6 +34,8 @@ export type RunForm = {
   sections: RunSectionForm[];
   /** Practice set: questions are chosen one at a time from the frozen pool. */
   adaptive?: { size: number; skillId: string; startDifficulty: number; maxDifficulty: number };
+  /** Time trial: the round, pace and accuracy baseline this run was started with. */
+  trial?: TrialStart;
 };
 
 export type RunResponse = {
@@ -70,6 +80,8 @@ export type RunResult = {
   predicted?: { reading: number; math: number; total: number };
   /** Daily 10 only. */
   streak?: number;
+  /** Time trial only: the round's pace, accuracy and the next round's pace. */
+  trial?: TrialRoundResult;
 };
 
 export type RunRecord = {

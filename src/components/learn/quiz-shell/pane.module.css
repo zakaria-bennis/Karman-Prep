@@ -181,6 +181,14 @@
   display: inline-flex;
   color: var(--quiz-correct);
 }
+/* Answer feedback: a ring of the right colour washes out from the right answer (Choices). */
+.ripple {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px var(--quiz-correct);
+  pointer-events: none;
+}
 .markWrong {
   color: var(--quiz-wrong);
 }

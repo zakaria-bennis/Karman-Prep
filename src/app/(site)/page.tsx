@@ -2,15 +2,14 @@ import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Flock from "@/components/site/home/Flock";
 import Guarantee from "@/components/site/home/Guarantee";
-import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
-import HomeFlight from "@/components/site/home/HomeFlight";
-import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
+import { artWords } from "@/components/site/home/WayArt";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
@@ -19,7 +18,7 @@ import { siteOrigin } from "@/lib/marketing/public-pages";
 import { RECEIPTS, RECEIPTS_ARE_SAMPLES } from "@/lib/marketing/receipts";
 import { SCHOOLS } from "@/lib/marketing/schools";
 import { TUTOR_PHOTOS } from "@/lib/marketing/tutors";
-import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
@@ -65,45 +64,12 @@ export default function HomePage() {
     ),
   }));
   const how = section(6);
-  const [
-    today,
-    day2,
-    day7,
-    day21,
-    row,
-    right,
-    wrong,
-    slip,
-    pace,
-    accuracy,
-    score,
-    reading,
-    math,
-    turn,
-  ] = list(how["art words"]);
-  const artWords = {
-    today,
-    day2,
-    day7,
-    day21,
-    row,
-    right,
-    wrong,
-    slip,
-    pace,
-    accuracy,
-    score,
-    reading,
-    math,
-    turn,
-  };
   const doubts = section(13);
-  /* sample rows are for designing with: they never reach a production build (receipts.ts) */
-  const showReceipts = !RECEIPTS_ARE_SAMPLES || process.env.NODE_ENV !== "production";
+  /* while the rows are samples, the section says so under its heading (receipts.ts) */
+  const receipts = section(14);
   return (
-    <SitePage kind="home" className={homeFonts} stage={<HomeFlight />}>
+    <SitePage kind="home" className={litFonts}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
-      <HomeTouches />
       {/* a visitor who has already watched the headline arrive this visit sees it at once */}
       <script dangerouslySetInnerHTML={{ __html: CLAIM_BOOT }} />
 
@@ -190,20 +156,23 @@ export default function HomePage() {
           <h2 className="rv" id="how-h">
             {nums(how.headline)}
           </h2>
-          <Ways items={pairs(how.ways)} words={artWords} />
+          <Ways items={pairs(how.ways)} words={artWords(how["art words"])} />
           <TextLink label={how["research link"]} href={ROUTES.research} />
         </div>
       </section>
 
       {/* The receipts: what students scored, and the texts behind it */}
-      {showReceipts ? (
-        <section className="sect receipts" id="receipts" aria-labelledby="receipts-h">
-          <div className="mist" aria-hidden="true" />
-          <div className="inner">
-            <Receipts headline={section(14).headline} headingId="receipts-h" rows={RECEIPTS} />
-          </div>
-        </section>
-      ) : null}
+      <section className="sect receipts" id="receipts" aria-labelledby="receipts-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="inner">
+          <Receipts
+            headline={receipts.headline}
+            note={RECEIPTS_ARE_SAMPLES ? receipts["sample note"] : undefined}
+            headingId="receipts-h"
+            rows={RECEIPTS}
+          />
+        </div>
+      </section>
 
       {/* 6. Their doubts */}
       <section className="sect ask" id="ask" aria-labelledby="ask-h">

@@ -2,12 +2,11 @@
 
 // ============================================================
 // FlaggedTab — flagged questions for this specific student.
-// Resolve + inline edit supported.
+// Resolve + inline edit supported. Portal look: student-detail.css.
 // ============================================================
 
 import { useState } from "react";
 import { Flag, Check, Edit3 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { FlaggedQuestion, QuizQuestionWithChoices } from "@/types/quiz";
 import { actionResolveFlag, actionEditFlaggedQuestion } from "@/app/tutor/actions";
 
@@ -32,85 +31,63 @@ export default function FlaggedTab({ studentId, flagged }: Props) {
   }
 
   if (rows.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed border-[color:var(--line)] p-10 text-center">
-        <Check className="mx-auto mb-2 h-7 w-7 text-[color:var(--good)]" />
-        <p className="text-sm text-[color:var(--mute)]">This student has no flagged questions.</p>
-      </div>
-    );
+    return <p className="kp-st-empty">This student has no flagged questions.</p>;
   }
 
   return (
-    <div className="space-y-3">
+    <ul className="kp-st-flags">
       {rows.map((flag) => {
         if (!flag.question) return null;
         const q = flag.question;
         const isEditing = editingId === flag.id;
         const sortedChoices = [...q.answer_choices].sort((a, b) => (a.letter > b.letter ? 1 : -1));
         return (
-          <article
-            key={flag.id}
-            className="rounded-lg border border-[color-mix(in_srgb,var(--late)_40%,transparent)] bg-[color-mix(in_srgb,var(--late)_30%,transparent)] p-4"
-          >
-            <header className="mb-2 flex items-start gap-2">
-              <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--late)]" />
-              <div className="flex-1 text-xs text-[color:var(--mute)]">
-                <div className="flex flex-wrap items-center gap-2">
-                  <code>{flag.node_id}</code>
-                  <span>•</span>
-                  <span>{new Date(flag.created_at).toLocaleString()}</span>
-                </div>
+          <li key={flag.id} className="kp-st-flag">
+            <div className="kp-st-flag-head">
+              <div className="kp-meta">
+                <Flag size={14} aria-hidden="true" /> <code>{flag.node_id}</code> ·{" "}
+                <span>{new Date(flag.created_at).toLocaleString()}</span>
                 {flag.flag_note && (
-                  <p className="mt-1 italic not-italic text-[color:var(--late)]">
-                    &ldquo;{flag.flag_note}&rdquo;
-                  </p>
+                  <p className="kp-st-flag-note">&ldquo;{flag.flag_note}&rdquo;</p>
                 )}
               </div>
-              <div className="flex shrink-0 gap-1">
+              <div className="kp-st-actions">
                 <button
+                  type="button"
                   onClick={() => setEditingId(isEditing ? null : flag.id)}
-                  className="rounded p-1.5 text-[color:var(--mute)] hover:bg-[color:var(--card)]"
-                  title="Edit question"
+                  className="kp-st-btn"
+                  aria-expanded={isEditing}
                 >
-                  <Edit3 className="h-3.5 w-3.5" />
+                  <Edit3 aria-hidden="true" /> Edit question
                 </button>
                 <button
+                  type="button"
                   onClick={() => resolve(flag.id)}
-                  className="rounded bg-[color-mix(in_srgb,var(--good)_28%,transparent)] px-3 py-1 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color-mix(in_srgb,var(--good)_28%,transparent)]"
+                  className="kp-st-btn"
+                  data-tone="good"
                 >
-                  Mark resolved
+                  <Check aria-hidden="true" /> Mark resolved
                 </button>
-              </div>
-            </header>
-
-            <div className="rounded border border-[color:var(--line)] bg-[color:var(--card)] p-3">
-              <p className="mb-2 whitespace-pre-wrap text-sm font-medium text-[color:var(--ink)]">
-                {q.question_text}
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {sortedChoices.map((c) => (
-                  <div
-                    key={c.letter}
-                    className={cn(
-                      "rounded border px-2 py-1",
-                      c.is_correct
-                        ? "border-[color-mix(in_srgb,var(--good)_40%,transparent)] bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
-                        : "border-[color:var(--line)]"
-                    )}
-                  >
-                    <strong>{c.letter}.</strong> {c.choice_text}
-                  </div>
-                ))}
               </div>
             </div>
+
+            <p className="kp-st-q">{q.question_text}</p>
+            <ul className="kp-st-choices">
+              {sortedChoices.map((c) => (
+                <li key={c.letter} data-right={c.is_correct ? "" : undefined}>
+                  <strong>{c.letter}.</strong> {c.choice_text}
+                  {c.is_correct && <span className="kp-sr"> (correct answer)</span>}
+                </li>
+              ))}
+            </ul>
 
             {isEditing && (
               <InlineEdit question={q} studentId={studentId} onDone={() => setEditingId(null)} />
             )}
-          </article>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
@@ -126,29 +103,31 @@ function InlineEdit({
   const [qText, setQText] = useState(question.question_text);
   const [exp, setExp] = useState(question.explanation_text);
   return (
-    <div className="mt-3 space-y-2 rounded border border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_40%,transparent)] p-3">
-      <label className="text-[11px] font-semibold text-[color:var(--mute)]">Question text</label>
-      <textarea
-        value={qText}
-        onChange={(e) => setQText(e.target.value)}
-        rows={3}
-        className="w-full rounded border border-[color:var(--line)] px-2 py-1.5 text-sm"
-      />
-      <label className="text-[11px] font-semibold text-[color:var(--mute)]">Explanation</label>
-      <textarea
-        value={exp}
-        onChange={(e) => setExp(e.target.value)}
-        rows={2}
-        className="w-full rounded border border-[color:var(--line)] px-2 py-1.5 text-sm"
-      />
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={onDone}
-          className="px-3 py-1 text-xs font-semibold text-[color:var(--mute)]"
-        >
+    <div className="kp-form kp-st-edit">
+      <label className="kp-field">
+        <span>Question text</span>
+        <textarea
+          value={qText}
+          onChange={(e) => setQText(e.target.value)}
+          rows={3}
+          className="kp-input kp-textarea"
+        />
+      </label>
+      <label className="kp-field">
+        <span>Explanation</span>
+        <textarea
+          value={exp}
+          onChange={(e) => setExp(e.target.value)}
+          rows={2}
+          className="kp-input kp-textarea"
+        />
+      </label>
+      <div className="kp-st-actions">
+        <button type="button" onClick={onDone} className="kp-textbtn">
           Cancel
         </button>
         <button
+          type="button"
           onClick={async () => {
             await actionEditFlaggedQuestion(
               question.id,
@@ -157,7 +136,8 @@ function InlineEdit({
             );
             onDone();
           }}
-          className="rounded bg-[color:var(--accent)] px-3 py-1 text-xs font-bold text-[color:var(--accent-ink)] hover:bg-[color:var(--accent)]"
+          className="kp-st-btn"
+          data-tone="good"
         >
           Save edits
         </button>

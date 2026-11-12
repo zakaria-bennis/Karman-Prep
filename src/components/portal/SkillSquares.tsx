@@ -2,6 +2,7 @@
  * Skills are squares (founder pick, 2026-11-08): an outline for not started, then the four
  * shades of the day's painting for New, Learning, Understanding and Conquered.
  */
+import type { CSSProperties } from "react";
 import { clampLevel, levelName } from "./skill-levels";
 
 export interface SkillSquare {
@@ -32,7 +33,16 @@ export function SkillSquares({
         const sq = typeof s === "number" ? { level: s } : s;
         const level = clampLevel(sq.level);
         const title = sq.name ? `${sq.name}: ${levelName(level)}` : levelName(level);
-        return <i key={i} className="kp-sq" data-level={level} title={title} />;
+        // --i staggers the pop-in (portal-motion.css).
+        return (
+          <i
+            key={i}
+            className="kp-sq"
+            data-level={level}
+            title={title}
+            style={{ "--i": i } as CSSProperties}
+          />
+        );
       })}
     </span>
   );

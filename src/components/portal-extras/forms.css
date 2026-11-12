@@ -22,7 +22,7 @@
   min-height: 44px;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--ink) 4%, transparent);
   color: var(--ink);
   font: inherit;
@@ -58,7 +58,7 @@
   margin: 0;
   padding: 10px 12px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--ink);
   font-size: 15px;
@@ -85,7 +85,7 @@
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: transparent;
   color: var(--ink);
   font: inherit;
@@ -176,7 +176,7 @@
 }
 .kp-email {
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: #fff;
   color: #1c1917;
   padding: 0;
@@ -188,4 +188,41 @@
   min-height: 44px;
   margin-left: 12px;
   font-weight: 700;
+}
+
+/* Parent progress: real SAT scores (2026-11-12). */
+.kp-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-top: 16px;
+}
+.kp-official {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.kp-official li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.kp-official li span {
+  display: grid;
+  gap: 2px;
+}
+.kp-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.kp-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent, currentColor);
 }

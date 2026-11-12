@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { redirect, notFound } from "next/navigation";
-import { Card, MoreLink, Num, Ring, SectionHeader } from "@/components/portal";
+import { Card, Cta, MoreLink, Num, Ring, SectionHeader } from "@/components/portal";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { getTimingAccommodation } from "@/lib/supabase/queries/quiz/saved";
@@ -22,16 +22,21 @@ import { RW_NODES, MATH_NODES, currentAtmosphere } from "@/data/curriculum";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 import AffiliateStudent from "@/components/tutor-affiliate/AffiliateStudent";
 import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
+import { when } from "@/components/messages/Thread";
+import { ActionMessage } from "@/components/school/SchoolShell";
+import { recentParentNotes } from "@/lib/parent/messages";
+import { postFamilyNoteAction } from "./actions";
+import "@/components/portal-extras/forms.css";
 
 export const metadata: Metadata = { title: "Student" };
 
 interface Params {
   params: Promise<{ studentId: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; done?: string; error?: string }>;
 }
 
 export default async function StudentDetailPage({ params, searchParams }: Params) {
-  const [{ studentId }, { tab: tabParam }] = await Promise.all([params, searchParams]);
+  const [{ studentId }, { tab: tabParam, done, error }] = await Promise.all([params, searchParams]);
 
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
@@ -57,11 +62,12 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged, timing] = await Promise.all([
+  const [statuses, attempts, flagged, timing, familyNotes] = await Promise.all([
     fetchNodeStatuses(studentId),
     fetchAllAttemptsForStudent(studentId),
     fetchFlaggedQuestionsForStudent(studentId),
     getTimingAccommodation(studentId),
+    recentParentNotes(student.id),
   ]);
 
   // Preload per-attempt responses (expandable in Quiz History tab) — first 20 only for perf
@@ -142,6 +148,43 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           </MoreLink>
           <MoreLink href="/tutor">All students</MoreLink>
         </div>
+      </Card>
+
+      <Card label="Note for the family" id="family-note">
+        <SectionHeader title="Note for the family" note="they see it in Messages" />
+        <ActionMessage done={done} error={error} />
+        <form action={postFamilyNoteAction} className="kp-form">
+          <input type="hidden" name="studentClerkId" value={studentId} />
+          <label className="kp-field">
+            <span>After today&rsquo;s session</span>
+            <textarea
+              name="body"
+              className="kp-input kp-textarea"
+              maxLength={4000}
+              required
+              placeholder="What you worked on, how it went, and what to practice before next time."
+            />
+          </label>
+          <div className="kp-actions-row">
+            <Cta type="submit">Share with the family</Cta>
+            <span className="kp-meta">
+              Shown next to this week&rsquo;s practice. No email goes out.
+            </span>
+          </div>
+        </form>
+        {familyNotes.length > 0 && (
+          <ul className="kp-notes">
+            {familyNotes.map((n) => (
+              <li key={n.id}>
+                <div className="kp-note-head">
+                  <b>{n.from ?? "A tutor"}</b>
+                  <time dateTime={n.at}>{when(n.at)}</time>
+                </div>
+                <p className="kp-note-body">{n.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       <Card>

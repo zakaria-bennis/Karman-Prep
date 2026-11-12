@@ -46,7 +46,7 @@ describe("site copy", () => {
     });
     expect(rows.at(-1)?.[0]).toBe(`${GUARANTEE.noGuaranteeFrom} or higher`);
     expect(section(8)["promise note"]).toContain(
-      `From ${GUARANTEE.noGuaranteeFrom} there is no guarantee`
+      `From ${GUARANTEE.noGuaranteeFrom} the promise is that the score rises`
     );
     // nothing of the flat "+100, or +50 from 1400" promise is left
     expect(SITE_COPY).not.toMatch(/\+100 points, or \+50|from 1400\b|under 1400/);
@@ -78,12 +78,11 @@ describe("site copy", () => {
       /Self-paced|self-paced|\$29\b|\$49\b|or a 1450|1,295|1,950|3,600|\$195/
     );
     expect(section(33)["small package"]).toContain(formatPrice(PRIVATE_PACKAGES[0].price));
-    expect(section(33)["small package"]).toContain("guarantee");
+    expect(section(33)["small bullets"]).toContain(`Up to +${guaranteeMax("cohort")} points`);
   });
 
   it("puts every tutoring result next to where it came from", () => {
     expect(section(63).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
-    expect(section(34).proof).toMatch(/Karman 1:1 tutoring, median 16 weeks/);
   });
 
   it("reads sections, the site block and pairs", () => {

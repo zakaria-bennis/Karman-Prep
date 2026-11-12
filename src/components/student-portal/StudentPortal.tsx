@@ -15,6 +15,7 @@ export const STUDENT_ROUTES = {
   library: "/dashboard/student/library",
   calendar: "/dashboard/student/schedule",
   progress: "/dashboard/student/progress",
+  rewards: "/dashboard/student/rewards",
   settings: "/dashboard/student/settings",
 } as const;
 
@@ -35,6 +36,7 @@ export function studentNav(
     nav.push({ href: STUDENT_ROUTES.calendar, label: "Calendar", icon: "calendar" });
   }
   nav.push({ href: STUDENT_ROUTES.progress, label: "Progress", icon: "progress" });
+  if (nav.length < 5) nav.push({ href: STUDENT_ROUTES.rewards, label: "Rewards", icon: "rewards" });
   return nav;
 }
 

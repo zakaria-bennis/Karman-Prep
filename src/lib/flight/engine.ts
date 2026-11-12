@@ -19,6 +19,8 @@ export interface FlightOptions {
   still: () => boolean;
   /** True in dark mode. */
   night: () => boolean;
+  /** The stretch of the route this page flies, as [from, to] between 0 and 1. The whole route if left out. */
+  route?: [number, number];
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -30,10 +32,21 @@ const IDLE_MS = 60_000;
 const TURN_MS = 1500;
 const STOPS = 6;
 const STILL_TIME = 40;
-/* How many pixels to draw: where it starts, and how far it may go either way. */
-const START_PX = 620_000;
-const MAX_PX = 1_500_000;
-const MIN_PX = 130_000;
+/* How many pixels to draw: where it starts, how far it may go either way, and how long one picture may
+   take (slower than SLOW_MS: draw fewer pixels; quicker than FAST_MS: draw more). A phone's graphics chip
+   also has to scroll the page, at up to 120 pictures a second, so a phone starts smaller and the landscape
+   may only use a small share of each moment; otherwise scrolling drags. */
+interface Pace {
+  start: number;
+  max: number;
+  min: number;
+  slowMs: number;
+  fastMs: number;
+}
+const DESK: Pace = { start: 620_000, max: 1_500_000, min: 130_000, slowMs: 16, fastMs: 7 };
+const PHONE: Pace = { start: 300_000, max: 620_000, min: 110_000, slowMs: 8, fastMs: 3.5 };
+const paceFor = (): Pace =>
+  matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 700 ? PHONE : DESK;
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -53,7 +66,8 @@ export class Flight {
   private p = -1;
   private night = 0;
   private turn: { from: number; to: number; at: number } | null = null;
-  private budget = START_PX;
+  private rate = DESK;
+  private budget = DESK.start;
   private slow = 0;
   private fast = 0;
   private frames = 0;
@@ -76,6 +90,8 @@ export class Flight {
     });
     if (!gl) return false;
     this.gl = gl;
+    this.rate = paceFor();
+    this.budget = this.rate.start;
     if (!this.build()) return false;
     const { signal } = this.stop;
     const touch = () => this.wake();
@@ -217,13 +233,14 @@ export class Flight {
     this.draw(p, night, time);
     gl.finish();
     const ms = performance.now() - t0;
-    this.slow = ms > 22 ? this.slow + 1 : 0;
-    this.fast = ms < 7 ? this.fast + 1 : 0;
-    if (this.slow >= 2 && this.budget > MIN_PX) {
-      this.budget = Math.max(MIN_PX, this.budget * 0.7);
+    const { min, max, slowMs, fastMs } = this.rate;
+    this.slow = ms > slowMs ? this.slow + 1 : 0;
+    this.fast = ms < fastMs ? this.fast + 1 : 0;
+    if (this.slow >= 2 && this.budget > min) {
+      this.budget = Math.max(min, this.budget * 0.7);
       this.slow = 0;
-    } else if (this.fast >= 4 && this.budget < MAX_PX) {
-      this.budget = Math.min(MAX_PX, this.budget * 1.25);
+    } else if (this.fast >= 4 && this.budget < max) {
+      this.budget = Math.min(max, this.budget * 1.25);
       this.fast = 0;
     }
   }
@@ -233,7 +250,9 @@ export class Flight {
     if (!this.gl || this.frozen || document.hidden) return;
     const still = this.o.still();
     const max = document.documentElement.scrollHeight - innerHeight;
-    const goal = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const down = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const [from, to] = this.o.route ?? [0, 1];
+    const goal = from + down * (to - from);
     const want = this.o.night() ? 1 : 0;
     const light: FlightLight = want
       ? goal > 0.86
@@ -251,7 +270,7 @@ export class Flight {
 
     if (still) {
       /* no flying and no drifting: step between the stops, each change a short fade */
-      const stop = Math.round(goal * STOPS) / STOPS;
+      const stop = from + (Math.round(down * STOPS) / STOPS) * (to - from);
       this.turn = null;
       if (!this.fading && (stop !== this.shown.p || want !== this.shown.night)) {
         if (this.shown.p < 0) {

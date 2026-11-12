@@ -27,6 +27,8 @@ import {
   actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
 import { QuizShell } from "../quiz-shell/QuizShell";
+import { FreeLimitPrompt } from "@/components/quiz-flows/FreeLimitPrompt";
+import { isPlanLimit } from "@/lib/assembler/plan-limit";
 import CatalogPoolPreview from "./CatalogPoolPreview";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
@@ -55,6 +57,7 @@ export default function CatalogPractice({
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<CatalogSavedReview | null>(null);
   const [error, setError] = useState(initialError);
+  const [limit, setLimit] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [student, setStudent] = useState<{
     hasTutor: boolean;
@@ -127,6 +130,7 @@ export default function CatalogPractice({
           Math.max(0, Math.round((Date.now() - startedAt.current) / 1000))
         ),
       });
+      if (isPlanLimit(saved)) return setLimit(saved.message);
       if (saved.questionId !== current.id) throw new Error("Practice session is unavailable");
       // Use the server's saved first response even after a retry or another open tab.
       setFeedback(saved);
@@ -151,10 +155,17 @@ export default function CatalogPractice({
   if (feedback) reviews[feedback.questionId] = feedback;
   const position = session ? Math.min(session.answered, session.total - 1) : 0;
   const currentIndex = session?.question ? session.answered : position;
-  const errorBox = error && (
-    <p role="alert" className="mb-6 rounded-xl border border-error p-4 text-sm leading-relaxed">
-      {error}
-    </p>
+  const errorBox = limit ? (
+    <FreeLimitPrompt
+      text={limit}
+      back={{ href: `/learn/${skill.subject}`, label: "Back to skills" }}
+    />
+  ) : (
+    error && (
+      <p role="alert" className="mb-6 rounded-xl border border-error p-4 text-sm leading-relaxed">
+        {error}
+      </p>
+    )
   );
 
   if (session && !session.completedAt && seen.some(Boolean) && (session.question || feedback))

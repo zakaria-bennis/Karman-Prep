@@ -5,9 +5,12 @@ import type { CSSProperties, ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
+import { TEXT_SIZE_BOOT } from "./text-size";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
+import SiteFlight from "./SiteFlight";
+import SiteTouches from "./SiteTouches";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -28,6 +31,12 @@ const impact = Anton({
 /** The theme follows the device (founder, 8 November, replacing the dark default); the switch remembers a
  *  visitor's own choice, which then wins. Runs before paint. Without scripts the page stays dark. */
 const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="dark"&&m!=="light")m=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
+
+/** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
+ *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
+ *  this shows everything at once. Without scripts at all, NO_SCRIPT_REVEAL does the same. */
+const REVEAL_FAILSAFE = `setTimeout(function(){var k=document.getElementById("ks");if(!k||k.classList.contains("ready"))return;k.querySelectorAll(".rv,.kin").forEach(function(e){e.classList.add("on")});k.classList.add("ready")},4000)`;
+const NO_SCRIPT_REVEAL = `.ks .rv{opacity:1;transform:none}.ks .w>span{transform:none}`;
 
 const SUN = (
   <svg
@@ -133,13 +142,7 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.tutors, "tutors link"],
     ],
   ],
-  [
-    "footer tools",
-    [
-      [ROUTES.test, "free test link"],
-      [ROUTES.calculator, "calculator link"],
-    ],
-  ],
+  ["footer tools", [[ROUTES.test, "free test link"]]],
   [
     "footer company",
     [
@@ -161,29 +164,40 @@ const FOOTER: [string, [string, string][]][] = [
   ],
 ];
 
-export type SiteKind = "home" | "inner" | "pricing";
+/** "home" and "lit" are the live-landscape world (the home page and the pages rebuilt in its style); the
+ *  others are the older pages, until each is rebuilt. */
+export type SiteKind = "home" | "lit" | "inner";
 
 export default function SitePage({
   kind,
   children,
-  stage,
+  route,
   className = "",
 }: {
   kind: SiteKind;
   children: ReactNode;
-  /** The home page's painting, drawn behind everything. */
-  stage?: ReactNode;
-  /** Extra classes for the page's root, such as a font variable only this page uses. */
+  /** In the landscape world: the stretch of the route this page flies, as [from, to] between 0 and 1. The
+   *  home page flies all of it. */
+  route?: [number, number];
+  /** Extra classes for the page's root. A page in the landscape world passes `litFonts` here: importing
+   *  those typefaces in this file would bundle the marketing site's whole font list into the student app
+   *  (the build's bundle guard catches it). */
   className?: string;
 }) {
+  const lit = kind === "home" || kind === "lit";
   return (
     <div
       id="ks"
-      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${className}`}
+      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${lit ? "lit" : ""} ${className}`}
       data-mode="dark"
       suppressHydrationWarning
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: TEXT_SIZE_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: REVEAL_FAILSAFE }} />
+      <noscript>
+        <style>{NO_SCRIPT_REVEAL}</style>
+      </noscript>
       <a className="skip" href="#main">
         Skip to content
       </a>
@@ -201,7 +215,7 @@ export default function SitePage({
           <a className="nl" href={ROUTES.pricing}>
             {SITE["pricing link"]}
           </a>
-          <a className="nl" href={ROUTES.signIn}>
+          <a className="nl si" href={ROUTES.signIn}>
             {SITE["sign in link"]}
           </a>
           <a className="cta" href={ROUTES.signUp}>
@@ -209,24 +223,12 @@ export default function SitePage({
           </a>
           <ThemeButton />
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
-            {SITE.menu}
+            <span>{SITE.menu}</span>
+            <i aria-hidden="true" />
           </button>
         </nav>
       </header>
-      <div
-        className="sheet"
-        id="menu"
-        role="dialog"
-        aria-modal="true"
-        aria-label={SITE.menu}
-        hidden
-      >
-        <div className="top">
-          <span className="mark">{SITE.logo}</span>
-          <button className="close" type="button">
-            {SITE.close}
-          </button>
-        </div>
+      <div className="sheet" id="menu" hidden>
         <nav aria-label="Menu links">
           {MENU.map(([href, t]) => (
             <a key={t} href={href}>
@@ -237,7 +239,8 @@ export default function SitePage({
         <ThemeButton labeled />
         <Btn label={SITE["start free"]} href={ROUTES.signUp} />
       </div>
-      {stage}
+      {lit ? <SiteFlight route={route} /> : null}
+      {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
       <footer className="ft">
         <div className="ft-in">
@@ -270,7 +273,7 @@ export default function SitePage({
                 </a>
               ))}
             </span>
-            {stage ? (
+            {lit ? (
               <span className="credit">
                 <button className="motion" type="button" aria-pressed="false">
                   {SITE.pause}

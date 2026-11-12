@@ -8,6 +8,8 @@ export function parentNav(child: Child): PortalNavItem[] {
   const base = `/dashboard/parent/${child.id}`;
   return [
     { href: base, label: "Week", icon: "today" },
+    { href: `${base}/messages`, label: "Messages", icon: "messages" },
+    { href: `${base}/report`, label: "Report", icon: "review" },
     { href: `${base}/progress`, label: "Progress", icon: "progress" },
     { href: `${base}/sessions`, label: "Sessions", icon: "calendar" },
     { href: `${base}/billing`, label: "Billing", icon: "money" },
@@ -38,7 +40,6 @@ export function ParentShell({
       home={`/dashboard/parent/${child.id}`}
       settingsHref={PARENT_SETTINGS}
       menu={[
-        { label: "Weekly email", icon: "mail", href: `/dashboard/parent/${child.id}/recap` },
         ...others.map((c) => ({
           label: `Switch to ${c.firstName}`,
           icon: "child" as const,

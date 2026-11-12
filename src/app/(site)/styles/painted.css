@@ -1,14 +1,14 @@
 /* The painted home page (founder's direction, 2026-11-09; the contract is in
    .impeccable/surfaces/src-app-site-page-tsx.md). One sales argument told across one journey: a live, lit
    landscape sits behind everything and is flown from above the clouds to the sea as the page scrolls
-   (HomeFlight.tsx, lib/flight). Words sit straight on the scene, on a soft band of mist with no edge, never
+   (SiteFlight.tsx, lib/flight). Words sit straight on the scene, on a soft band of mist with no edge, never
    in a box. Light mode is one day: ink on cream mist. Dark mode is one night: cream on night mist (the
    rules are at the end of this file). Every action is ink, never a bright colour: the painting is the colour.
    Rounded, soft shapes that settle when pressed. The feeling is hand-painted and quiet, like a Ghibli
    background, not a toy. Young Serif for headlines; Hanken Grotesk for everything else and every numeral. */
 @property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255, 190, 140, 0.6); }
 @property --mist { syntax: "<color>"; inherits: true; initial-value: rgb(255, 246, 236); }
-.ks.page-home {
+.ks.lit {
   --ink: #1d1a22; --ink2: #3a3442; --cream: #fffaf3; --paper: #fffaf3; --card: #fffaf3; --soft: #f1e9dc; --line: rgba(29, 26, 34, .14);
   --go: #2449b8; --go-edge: #000; --solid: #1d1a22; --on-solid: #fffaf3;
   --accent: var(--go); --marigold: var(--go); --marigold-hi: #37313f; --marigold-ink: #1d1a22; --on-mari: #fffaf3;
@@ -17,15 +17,14 @@
   --out: cubic-bezier(.16, 1, .3, 1);
   --glow: rgba(255, 190, 140, 0.6);
   color: var(--ink); color-scheme: light;
-  transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease;
 }
-.ks.page-home[data-light="day"] { --glow: rgba(255, 252, 232, 0.55); }
-.ks.page-home[data-light="sunset"] { --glow: rgba(255, 138, 72, 0.62); }
-.ks.page-home[data-light="night"] { --glow: rgba(176, 200, 255, 0.4); }
-.ks.page-home ::selection { background: var(--ink); color: var(--cream); }
+.ks.lit[data-light="day"] { --glow: rgba(255, 252, 232, 0.55); }
+.ks.lit[data-light="sunset"] { --glow: rgba(255, 138, 72, 0.62); }
+.ks.lit[data-light="night"] { --glow: rgba(176, 200, 255, 0.4); }
+.ks.lit ::selection { background: var(--ink); color: var(--cream); }
 /* the page shares one layer with the painting, so a shape here can be cut through to it */
-.ks.page-home main { z-index: auto; }
-.ks.page-home :focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 12px; }
+.ks.lit main { z-index: auto; }
+.ks.lit :focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; border-radius: 12px; }
 .ks .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- the landscape: one canvas, fixed behind the page. Until its first picture is drawn, and in a
@@ -40,85 +39,100 @@
 /* ---------- the top bar: words on the sky, and the one action. The sky is lighter behind the bar and fades
    out below it, with no edge and no shape (founder, 2026-11-10). ---------- */
 /* the bar travels with the page, so the light and dark switch is always at hand (founder, 2026-11-11) */
-.ks.page-home .hd { position: fixed; inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
-.ks.page-home .hd::before { content: ""; position: absolute; z-index: -1; inset: -22px calc(var(--gutter) * -1) -54px; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--mist) 86%, transparent), color-mix(in srgb, var(--mist) 55%, transparent) 46%, transparent); }
-.ks.page-home .hd .mark { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 2.4vw, 34px); letter-spacing: -0.01em; transition: transform .5s var(--spring); }
-.ks.page-home .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
-.ks.page-home .hd nav a, .ks.page-home .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
-.ks.page-home .hd .nl::after { display: none; }
+.ks.lit .hd { position: fixed; inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
+.ks.lit .hd::before { content: ""; position: absolute; z-index: -1; inset: -22px calc(var(--gutter) * -1) -54px; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--mist) 86%, transparent), color-mix(in srgb, var(--mist) 55%, transparent) 46%, transparent); }
+.ks.lit .hd .mark { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 2.4vw, 34px); letter-spacing: -0.01em; transition: transform .5s var(--spring); }
+.ks.lit .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
+.ks.lit .hd nav a, .ks.lit .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
+.ks.lit .hd .nl::after { display: none; }
 /* the light and dark switch: one round button to the right of Start free (founder, 2026-11-11). It shows
    the sky as it is: the sun by day, the moon at night. Pressing it sets the sun below the button's rim
    while the moon rises from it, and the other way round. */
-.ks.page-home .hd .theme { position: relative; flex: none; display: inline-block; width: 46px; min-height: 0; height: 46px; padding: 0; margin-left: 8px; border-radius: 50%; overflow: hidden; background: rgba(29, 26, 34, .09); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .6s var(--out), box-shadow .6s var(--out), transform .45s var(--spring); }
-.ks.page-home .hd .theme:active { transform: scale(.92); transition-duration: .08s; }
-.ks.page-home .hd .theme svg { display: block; position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; stroke-width: 2; transition: transform .8s var(--spring), opacity .45s var(--out); }
-.ks.page-home .hd .theme .sun { color: #1d1a22; }
-.ks.page-home .hd .theme .moon { color: #fffaf3; transform: translateY(34px) rotate(-70deg); opacity: 0; }
-.ks.page-home[data-mode="dark"] .hd .theme { background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
-.ks.page-home[data-mode="dark"] .hd .theme .sun { transform: translateY(34px) rotate(70deg); opacity: 0; }
-.ks.page-home[data-mode="dark"] .hd .theme .moon { transform: none; opacity: 1; }
-@media (hover: hover) and (pointer: fine) { .ks.page-home .hd .theme:hover svg { transform: rotate(24deg); } .ks.page-home[data-mode="dark"] .hd .theme:hover .sun { transform: translateY(34px) rotate(70deg); } .ks.page-home:not([data-mode="dark"]) .hd .theme:hover .moon { transform: translateY(34px) rotate(-70deg); } }
+.ks.lit .hd .theme { position: relative; flex: none; display: inline-block; width: 46px; min-height: 0; height: 46px; padding: 0; margin-left: 8px; border-radius: 50%; overflow: hidden; background: rgba(29, 26, 34, .09); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .6s var(--out), box-shadow .6s var(--out), transform .45s var(--spring); }
+.ks.lit .hd .theme:active { transform: scale(.92); transition-duration: .08s; }
+.ks.lit .hd .theme svg { display: block; position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; stroke-width: 2; transition: transform .8s var(--spring), opacity .45s var(--out); }
+.ks.lit .hd .theme .sun { color: #1d1a22; }
+.ks.lit .hd .theme .moon { color: #fffaf3; transform: translateY(34px) rotate(-70deg); opacity: 0; }
+.ks.lit[data-mode="dark"] .hd .theme { background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
+.ks.lit[data-mode="dark"] .hd .theme .sun { transform: translateY(34px) rotate(70deg); opacity: 0; }
+.ks.lit[data-mode="dark"] .hd .theme .moon { transform: none; opacity: 1; }
+@media (hover: hover) and (pointer: fine) { .ks.lit .hd .theme:hover svg { transform: rotate(24deg); } .ks.lit[data-mode="dark"] .hd .theme:hover .sun { transform: translateY(34px) rotate(70deg); } .ks.lit:not([data-mode="dark"]) .hd .theme:hover .moon { transform: translateY(34px) rotate(-70deg); } }
 .ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 11%, transparent); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
-.ks.page-home .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
-.ks.page-home .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
-.ks.page-home .hd .menu { border: 0; background: var(--cream); box-shadow: 0 10px 22px -14px rgba(29, 26, 34, .6); }
+.ks.lit .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
+.ks.lit .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
+.ks.lit .hd .menu { border: 0; background: var(--cream); box-shadow: 0 10px 22px -14px rgba(29, 26, 34, .6); }
+/* the menu button is three lines that cross into an X while the menu is open: the same button closes it */
+.ks.lit .hd .menu i { display: block; }
+.ks.lit .hd .menu i, .ks.lit .hd .menu::before, .ks.lit .hd .menu::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 2px; margin: -1px 0 0 -9px; border-radius: 2px; background: currentColor; transition: transform .45s var(--spring), opacity .2s var(--out); }
+.ks.lit .hd .menu::before { transform: translateY(-6px); }
+.ks.lit .hd .menu::after { transform: translateY(6px); }
+.ks.lit .hd .menu[aria-expanded="true"]::before { transform: rotate(45deg); }
+.ks.lit .hd .menu[aria-expanded="true"]::after { transform: rotate(-45deg); }
+.ks.lit .hd .menu[aria-expanded="true"] i { opacity: 0; transform: scaleX(.2); }
 @media (hover: hover) and (pointer: fine) {
-  .ks.page-home .hd .mark:hover { transform: rotate(-3deg) scale(1.05); }
-  .ks.page-home .hd .cta:hover { background: #3560d6; color: var(--cream); transform: translateY(-2px); }
+  .ks.lit .hd .mark:hover { transform: rotate(-3deg) scale(1.05); }
+  .ks.lit .hd .cta:hover { background: #3560d6; color: var(--cream); transform: translateY(-2px); }
 }
-/* phones: the switch, the action and the menu all stay in the bar, so the menu becomes three lines and
-   everything tightens; on the narrowest phones the action moves into the menu */
-@media (max-width: 440px) {
-  .ks.page-home .hd { gap: 6px; }
-  .ks.page-home .hd nav { gap: 2px; font-size: 15.5px; }
-  .ks.page-home .hd .mark { font-size: 26px; }
-  .ks.page-home .hd .theme { width: 44px; height: 44px; margin-left: 2px; }
-  .ks.page-home .hd .theme svg { left: 11px; top: 11px; }
-  .ks.page-home .hd .cta { display: inline-flex; margin-left: 2px; padding: 0 14px; min-height: 44px; white-space: nowrap; }
-  .ks.page-home .hd .menu { width: 46px; padding: 0; justify-content: center; font-size: 0; }
-  .ks.page-home .hd .menu::before { content: ""; width: 18px; height: 12px; background: linear-gradient(currentColor 0 2px, transparent 2px 5px, currentColor 5px 7px, transparent 7px 10px, currentColor 10px 12px); }
+/* tablets and phones: the links move into the menu; Sign in, Start free, the switch and the menu stay in
+   the bar, in that order. Everything tightens as the screen narrows, and Start free never wraps or leaves.
+   Sign in is the first to move into the menu, on the narrowest screens (a phone with the page zoomed in). */
+@media (max-width: 960px) {
+  .ks.lit .hd .si { display: inline-flex; }
+  .ks.lit .hd .cta { display: inline-flex; white-space: nowrap; }
+  .ks.lit .hd .menu { display: inline-block; flex: none; width: 46px; height: 46px; min-height: 0; padding: 0; margin-left: 8px; font-size: 0; }
 }
-@media (max-width: 374px) { .ks.page-home .hd .cta { display: none; } }
-/* the phone menu: a small rounded sheet that drops from the Menu button, not a screen of its own */
-.ks.page-home .sheet { inset: 84px 16px auto auto; width: min(330px, calc(100vw - 32px)); max-height: calc(100svh - 110px); padding: 10px 22px 22px; gap: 14px; border-radius: 30px; background: var(--cream); box-shadow: 0 24px 50px -24px rgba(29, 26, 34, .6); transform-origin: 90% 0; animation: sheet-in .45s var(--spring) both; }
-@keyframes sheet-in { from { opacity: 0; transform: scale(.7) translateY(-12px); } }
-.ks.page-home .sheet .top .mark { display: none; }
-.ks.page-home .sheet .top { justify-content: flex-end; min-height: 0; }
-.ks.page-home .sheet .close { min-height: 40px; border: 0; background: var(--soft); }
-.ks.page-home .sheet nav { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
-.ks.page-home .sheet nav a { min-height: 50px; }
-.ks.page-home .sheet .theme { display: none; }
-.ks.page-home .sheet .btn { align-self: stretch; justify-content: center; }
-html.ks-lock:has(.ks.page-home) { overflow: auto; }
+@media (max-width: 480px) {
+  .ks.lit .hd { gap: 6px; }
+  .ks.lit .hd nav { gap: 0; font-size: 15.5px; }
+  .ks.lit .hd .mark { font-size: 26px; }
+  .ks.lit .hd .si { padding: 0 9px; }
+  .ks.lit .hd .cta { margin-left: 2px; padding: 0 15px; min-height: 44px; }
+  .ks.lit .hd .theme { width: 44px; height: 44px; margin-left: 6px; }
+  .ks.lit .hd .theme svg { left: 11px; top: 11px; }
+  .ks.lit .hd .menu { width: 44px; height: 44px; margin-left: 6px; }
+}
+@media (max-width: 410px) {
+  .ks.lit .hd { gap: 4px; }
+  .ks.lit .hd nav { font-size: 15px; }
+  .ks.lit .hd .mark { font-size: 23px; }
+  .ks.lit .hd .si { padding: 0 7px; }
+  .ks.lit .hd .cta { padding: 0 12px; }
+  .ks.lit .hd .theme, .ks.lit .hd .menu { width: 44px; margin-left: 2px; }
+  .ks.lit .hd .theme svg { left: 11px; }
+}
+@media (max-width: 372px) { .ks.lit .hd .si { display: none; } }
+/* the menu drops from its button (film.css); here it sits just under the home page's bar */
+.ks.lit .sheet { top: 78px; background: var(--cream); }
+.ks.lit .sheet .theme { display: none; }
 
 /* ---------- type ---------- */
-.ks.page-home :is(h1, h2) { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.08; text-wrap: balance; }
-.ks.page-home h1 { font-size: clamp(40px, 4.5vw, 72px); max-width: none; line-height: 1.2; }
-.ks.page-home h2 { font-size: clamp(34px, 4.3vw, 64px); max-width: 18ch; }
-.ks.page-home .num { font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; font-size: .97em; letter-spacing: -0.035em; font-variant-numeric: lining-nums; }
-.ks.page-home .lede { font-size: clamp(18px, 1.6vw, 24px); font-weight: 600; line-height: 1.45; max-width: 34em; color: var(--ink); }
-.ks.page-home .fine { font-size: 16px; font-weight: 800; color: var(--ink); max-width: 34em; }
+.ks.lit :is(h1, h2) { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.08; text-wrap: balance; }
+.ks.lit h1 { font-size: clamp(40px, 4.5vw, 72px); max-width: none; line-height: 1.2; }
+.ks.lit h2 { font-size: clamp(34px, 4.3vw, 64px); max-width: 18ch; }
+.ks.lit .num { font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; font-size: .97em; letter-spacing: -0.035em; font-variant-numeric: lining-nums; }
+.ks.lit .lede { font-size: clamp(18px, 1.6vw, 24px); font-weight: 600; line-height: 1.45; max-width: 34em; color: var(--ink); }
+.ks.lit .fine { font-size: 16px; font-weight: 800; color: var(--ink); max-width: 34em; }
 
 /* ---------- the main button: ink on the painting, lit by the hour. A soft ring of the sky's light breathes
-   around it, and a highlight on its top edge slides toward the pointer as the button leans (HomeTouches.tsx).
+   around it, and a highlight on its top edge slides toward the pointer as the button leans (SiteTouches.tsx).
    No sweep of light across it (alive.css): that read as fake here (founder, 2026-11-10). ---------- */
-.ks.page-home .btn { min-height: 70px; padding: 0 32px 0 38px; gap: 12px; border-radius: 999px; background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .3), transparent 70%), var(--go); color: var(--cream); font-weight: 700; font-size: clamp(20px, 1.6vw, 23px); letter-spacing: -0.01em; transform: translate(var(--pull-x, 0px), var(--pull-y, 0px)); transition: transform .45s var(--spring); animation: btn-breathe 4.6s ease-in-out infinite; }
+.ks.lit .btn { min-height: 70px; padding: 0 32px 0 38px; gap: 12px; border-radius: 999px; background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .3), transparent 70%), var(--go); color: var(--cream); font-weight: 700; font-size: clamp(20px, 1.6vw, 23px); letter-spacing: -0.01em; transform: translate(var(--pull-x, 0px), var(--pull-y, 0px)); transition: transform .45s var(--spring); animation: btn-breathe 4.6s ease-in-out infinite; }
 @keyframes btn-breathe {
   0%, 100% { box-shadow: 0 0 0 5px rgba(255, 250, 243, .34), 0 0 34px 6px var(--glow), 0 18px 34px -16px rgba(29, 26, 34, .8); }
   50% { box-shadow: 0 0 0 9px rgba(255, 250, 243, .2), 0 0 60px 16px var(--glow), 0 18px 34px -16px rgba(29, 26, 34, .8); }
 }
-.ks.page-home.still-motion .btn { animation: none; box-shadow: 0 0 0 6px rgba(255, 250, 243, .3), 0 0 40px 8px var(--glow), 0 18px 34px -16px rgba(29, 26, 34, .8); }
-.ks.page-home .btn.glint::after { content: none; }
-.ks.page-home .btn .go { width: 24px; height: 24px; background: none; color: var(--cream); overflow: visible; }
-.ks.page-home .btn .go svg { width: 20px; height: 20px; }
+.ks.lit.still-motion .btn { animation: none; box-shadow: 0 0 0 6px rgba(255, 250, 243, .3), 0 0 40px 8px var(--glow), 0 18px 34px -16px rgba(29, 26, 34, .8); }
+.ks.lit .btn.glint::after { content: none; }
+.ks.lit .btn .go { width: 24px; height: 24px; background: none; color: var(--cream); overflow: visible; }
+.ks.lit .btn .go svg { width: 20px; height: 20px; }
 @media (hover: hover) and (pointer: fine) {
-  .ks.page-home .btn:hover { animation-duration: 1.8s; }
-  .ks.page-home .btn:hover .go { transform: translateX(5px); }
+  .ks.lit .btn:hover { animation-duration: 1.8s; }
+  .ks.lit .btn:hover .go { transform: translateX(5px); }
 }
-.ks.page-home .btn:active { transform: translate(var(--pull-x, 0px), calc(var(--pull-y, 0px) + 2px)) scale(.975); transition-duration: .08s; }
-.ks.page-home .more { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; font-weight: 800; font-size: 19px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
-.ks.page-home .more svg { width: 16px; height: 16px; transition: transform .4s var(--spring); }
-@media (hover: hover) and (pointer: fine) { .ks.page-home .more:hover svg { transform: translateX(5px); } }
+.ks.lit .btn:active { transform: translate(var(--pull-x, 0px), calc(var(--pull-y, 0px) + 2px)) scale(.975); transition-duration: .08s; }
+.ks.lit .more { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; font-weight: 800; font-size: 19px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.ks.lit .more svg { width: 16px; height: 16px; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks.lit .more:hover svg { transform: translateX(5px); } }
 
 /* ---------- 1. the claim: the headline on the dawn sky, and a few flocks of birds passing far off ---------- */
 .ks .claim { position: relative; min-height: 100svh; display: flex; align-items: center; padding: 120px var(--gutter) clamp(90px, 16vh, 170px); }
@@ -165,8 +179,14 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 @keyframes pill-ring { from { opacity: .5; transform: scale(.96); } to { opacity: 0; transform: scale(1.5, 1.9); } }
 @media (max-width: 1100px) {
   .ks .claim { align-items: flex-end; padding-top: 40svh; padding-bottom: 12svh; }
-  .ks.page-home h1 { font-size: clamp(40px, 7.2vw, 62px); }
+  .ks.lit h1 { font-size: clamp(40px, 7.2vw, 62px); }
   .ks .claim .mist { background: linear-gradient(180deg, transparent 26%, color-mix(in srgb, var(--mist) 62%, transparent) 46%, color-mix(in srgb, var(--mist) 62%, transparent) 88%, transparent); }
+}
+/* phones: the headline starts close under the bar, and the landscape gets the room below the button */
+@media (max-width: 640px) {
+  .ks .claim { align-items: flex-start; padding-top: clamp(108px, 14svh, 140px); padding-bottom: 8svh; }
+  .ks .claim .mist { background: linear-gradient(180deg, color-mix(in srgb, var(--mist) 62%, transparent) 70%, transparent 92%); }
+  .ks.lit .hd::before { inset: -22px calc(var(--gutter) * -1) -44px; background: linear-gradient(var(--mist) 30%, color-mix(in srgb, var(--mist) 92%, transparent) 62%, transparent); }
 }
 
 /* ---------- every section after the first: words on a band of mist that runs the full width and fades out
@@ -174,11 +194,16 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .sect { position: relative; padding: clamp(96px, 17vh, 190px) var(--gutter); }
 .ks .sect > .mist { position: absolute; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--mist) 66%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); mask-image: linear-gradient(transparent, #000 24%, #000 76%, transparent); }
 .ks .sect .inner { position: relative; width: min(1240px, 100%); display: grid; gap: clamp(20px, 2.6vw, 34px); justify-items: start; }
+/* phones: less air between sections, and the mist reaches full strength just above each heading */
+@media (max-width: 640px) {
+  .ks .sect { padding-top: clamp(72px, 10svh, 96px); padding-bottom: clamp(72px, 10svh, 96px); }
+  .ks .sect > .mist { -webkit-mask-image: linear-gradient(transparent, #000 64px, #000 calc(100% - 64px), transparent); mask-image: linear-gradient(transparent, #000 64px, #000 calc(100% - 64px), transparent); }
+}
 .ks .sect .lk { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 .ks .sect .lk svg { width: 15px; height: 15px; transition: transform .4s var(--spring); }
 @media (hover: hover) and (pointer: fine) { .ks .sect .lk:hover svg { transform: translateX(5px); } }
 /* a soft cream surface for the few things that need one: rounded, lightly lifted, never a hard box */
-.ks.page-home { --soft-card: rgba(255, 250, 243, .94); --lift: 0 18px 34px -22px rgba(29, 26, 34, .55); }
+.ks.lit { --soft-card: rgba(255, 250, 243, .94); --lift: 0 18px 34px -22px rgba(29, 26, 34, .55); }
 
 /* ---------- 2. the proof: each university's own logo on a small lit lantern, rising through the section
    (Lanterns.tsx). Plain rows by default; "live" is the moving version, where each lantern is placed by the
@@ -194,7 +219,14 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* a school's dark-mode picture waits until the page is dark (SchoolLogo.tsx) */
 .ks img.logo-night, .ks .lanterns img.logo-night, .ks .rcp-list .at img.logo-night { display: none; }
 .ks .lanterns.live { display: block; height: clamp(500px, 74vh, 720px); margin-bottom: clamp(-90px, -8vh, -40px); touch-action: pan-y; }
-.ks .lanterns.live li { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+/* a finger that lands on a lantern moves the lantern, in any direction; a finger between them scrolls the page */
+.ks .lanterns.live li { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+@media (max-width: 640px) {
+  .ks .lanterns li { padding: 11px 17px; }
+  .ks .lanterns li[data-big] { padding: 14px 20px; }
+  .ks .lanterns img { height: 17px; }
+  .ks .lanterns li[data-big] img { height: 24px; max-width: 150px; }
+}
 .ks .lanterns.live li[data-held] { cursor: grabbing; z-index: 2; box-shadow: 0 0 34px 10px var(--glow), 0 22px 34px -18px rgba(29, 26, 34, .7); }
 
 /* ---------- 3. the offer: one sentence, the founder's "Karman", a stamp brought down beside it, and three
@@ -326,8 +358,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .arc-title span { max-width: 26em; font-size: clamp(16.5px, 1.7vw, 23px); font-weight: 600; line-height: 1.4; animation: arc-pop .7s cubic-bezier(.2, 1.3, .4, 1) .1s both; }
 @keyframes arc-pop { from { opacity: 0; transform: translateY(18px) scale(.72); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @media (max-width: 760px) {
-  .ks .arc { aspect-ratio: 1.12 / 1; }
-  .ks .arc-title { width: 74%; bottom: 1%; }
+  .ks .arc { aspect-ratio: 1.42 / 1; --arc-below: .27; }
+  .ks .arc-title { width: 68%; bottom: 0; }
   .ks .arc-title b { font-size: clamp(24px, 7.4vw, 38px); }
   .ks .arc-title span { font-size: 15.5px; }
 }
@@ -610,7 +642,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ft .credit .motion[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ks.page-home, .ks .flight canvas, .ks.page-home .btn, .ks .nav-mark, .ks.page-home .hd .theme svg { transition: none; }
+  .ks.lit, .ks .flight canvas, .ks.lit .btn, .ks .nav-mark, .ks.lit .hd .theme svg { transition: none; }
   .ks .gua-sig path, .ks .gua-pic *, .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }
@@ -618,7 +650,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .cloud { max-width: none; }
   .ks .gua.rv .gua-stamp, .ks .gua.rv .gua-cards li { opacity: 1 !important; transform: rotate(-13deg); transition: none; }
   .ks .gua.rv .gua-cards li { transform: none !important; }
-  .ks .claim .mist, .ks.page-home .sheet, .ks.page-home main .btn { animation: none !important; }
+  .ks .claim .mist, .ks.lit main .btn { animation: none !important; }
 }
 
 /* ---------- The receipts: a plain list beside the orange phone (Receipts.tsx). The heading and the rows
@@ -627,6 +659,9 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .rcp { --pw: clamp(250px, 25vw, 320px); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(28px, 5vw, 84px); align-items: stretch; }
 .ks .rcp-side { display: flex; flex-direction: column; min-height: 0; height: calc(var(--pw) * 150 / 71.9); }
 .ks .rcp-side h2 { padding-bottom: clamp(12px, 1.6vw, 22px); }
+/* the line that says the rows are samples: it sits close under the heading, in the page's ink */
+.ks .rcp-side h2:has(+ .rcp-note) { padding-bottom: 6px; }
+.ks .rcp-note { margin: 0; padding-bottom: clamp(10px, 1.3vw, 18px); font-size: clamp(13px, 1vw, 15px); line-height: 1.4; font-weight: 600; }
 .ks .rcp-list { --n: var(--rows); position: relative; list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: grid; grid-auto-rows: minmax(0, 1fr); }
 /* the light: one cream shape that slides from row to row, so it never blinks off one and on the next */
 .ks .rcp-list::before { content: ""; position: absolute; left: -6px; right: -6px; top: 0; height: calc(100% / var(--n)); border-radius: 16px; background: var(--cream); box-shadow: 0 10px 26px -18px rgba(29, 26, 34, .55); transform: translateY(calc(var(--at) * 100%)); transition: transform .9s cubic-bezier(.5, 0, .15, 1); pointer-events: none; }
@@ -725,6 +760,8 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
   .ks .rcp-list li:nth-child(n + 7) { display: none; }
   .ks .rcp-list button { grid-template-columns: 1.1fr 1.5fr auto 1fr; padding: 0 10px; gap: 8px; font-size: 15px; }
   .ks .rcp-list .wk { display: none; }
+/* the narrowest screens (a phone with the page zoomed in): the name keeps its room, the logo gives some up */
+@media (max-width: 400px) { .ks .rcp-list button { grid-template-columns: minmax(0, 1.25fr) auto auto minmax(0, .8fr); gap: 6px; padding: 0 8px; font-size: 14px; } }
 }
 @media (prefers-reduced-motion: reduce) {
   .ks .rcp .rcp-list li, .ks .rcp .rcp-phone { opacity: 1 !important; transform: none !important; transition: none; }
@@ -739,54 +776,58 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* ---------- dark mode: one night. Cream words on night mist, cream buttons, and the cards stay cream like
    lit windows. Flipping the switch fades the page
    over the same second and a half the sun takes to set (the "theming" class, ShellBehaviour.tsx). ---------- */
-.ks.page-home[data-mode="dark"] { --mist: rgb(13, 16, 36); --line: rgba(255, 250, 243, .2); color: var(--cream); color-scheme: dark; }
-.ks.page-home.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
-.ks.page-home.theming * { transition-duration: 1.3s !important; }
-.ks.page-home[data-mode="dark"] .hd { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .hd .cta { background: #e7cf9a; color: var(--ink); }
-@media (hover: hover) and (pointer: fine) { .ks.page-home[data-mode="dark"] .hd .cta:hover { background: #f1dcab; color: var(--ink); } }
-.ks.page-home[data-mode="dark"] .hd .menu { color: var(--ink); }
-.ks.page-home[data-mode="dark"] .nav-mark { background: rgba(255, 250, 243, .16); }
-.ks.page-home[data-mode="dark"] :focus-visible { outline-color: var(--cream); }
-.ks.page-home[data-mode="dark"] ::selection { background: var(--cream); color: var(--ink); }
+.ks.lit[data-mode="dark"] { --mist: rgb(13, 16, 36); --line: rgba(255, 250, 243, .2); color: var(--cream); color-scheme: dark; }
+/* The glow and the mist are colours every element inherits, so easing them restyles the whole page on every
+   frame. That is fine for the second and a half after the switch is pressed (the page is not scrolling
+   then), and only then: when the light changes because the visitor scrolled, the colours simply change. */
+.ks.lit.theming { transition: --glow 1.6s linear, --mist 1.3s ease, color 1.3s ease !important; }
+.ks.lit.theming * { transition-duration: 1.3s !important; }
+.ks.lit[data-mode="dark"] .hd { color: var(--cream); }
+.ks.lit[data-mode="dark"] .hd .cta { background: #e7cf9a; color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { .ks.lit[data-mode="dark"] .hd .cta:hover { background: #f1dcab; color: var(--ink); } }
+.ks.lit[data-mode="dark"] .hd .menu { color: var(--ink); }
+.ks.lit[data-mode="dark"] .nav-mark { background: rgba(255, 250, 243, .16); }
+.ks.lit[data-mode="dark"] :focus-visible { outline-color: var(--cream); }
+.ks.lit[data-mode="dark"] ::selection { background: var(--cream); color: var(--ink); }
 /* words and marks that sit straight on the scene turn cream */
-.ks.page-home[data-mode="dark"] :is(.lede, .fine) { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .claim-pill { background: var(--cream); color: var(--ink); mix-blend-mode: normal; }
-.ks.page-home[data-mode="dark"] .gua-sig svg, .ks.page-home[data-mode="dark"] .gua-stamp :is(circle, .thin) { stroke: var(--cream); }
-.ks.page-home[data-mode="dark"] .gua-stamp text { fill: var(--cream); }
-.ks.page-home[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), #e7cf9a; color: #1d1a22; }
-.ks.page-home[data-mode="dark"] .btn .go { color: var(--ink); }
+.ks.lit[data-mode="dark"] :is(.lede, .fine) { color: var(--cream); }
+.ks.lit[data-mode="dark"] .claim-pill { background: var(--cream); color: var(--ink); mix-blend-mode: normal; }
+.ks.lit[data-mode="dark"] .gua-sig svg, .ks.lit[data-mode="dark"] .gua-stamp :is(circle, .thin) { stroke: var(--cream); }
+.ks.lit[data-mode="dark"] .gua-stamp text { fill: var(--cream); }
+.ks.lit[data-mode="dark"] .btn { background: radial-gradient(150px 80px at calc(50% + var(--pull-x, 0px) * 4) -10%, rgba(255, 255, 255, .4), transparent 70%), #e7cf9a; color: #1d1a22; }
+.ks.lit[data-mode="dark"] .btn .go { color: var(--ink); }
 /* anything that is a cream card keeps ink words */
-.ks.page-home[data-mode="dark"] .sheet { color: var(--ink); }
+.ks.lit[data-mode="dark"] .sheet { background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 24px 50px -24px rgba(0, 0, 0, .8); }
+.ks.lit[data-mode="dark"] .sheet nav a { border-color: rgba(255, 250, 243, .16); }
 /* the guarantee's three cards are almost black at night */
-.ks.page-home[data-mode="dark"] .gua-cards li { background: rgba(24, 22, 30, .92); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), var(--lift); }
-.ks.page-home[data-mode="dark"] .gua-cards span { color: #cdc7d6; }
+.ks.lit[data-mode="dark"] .gua-cards li { background: rgba(24, 22, 30, .92); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), var(--lift); }
+.ks.lit[data-mode="dark"] .gua-cards span { color: #cdc7d6; }
 /* the seven cards turn black with cream drawings; each keeps its accent */
-.ks.page-home[data-mode="dark"] .ways { --i: #fffaf3; --p: #1d1a22; }
+.ks.lit[data-mode="dark"] .ways { --i: #fffaf3; --p: #1d1a22; }
 /* the receipts: cream rules and gains on the night, white school marks; the lit row stays a cream card */
-.ks.page-home[data-mode="dark"] .rcp-list li { border-color: rgba(255, 250, 243, .22); }
-.ks.page-home[data-mode="dark"] .rcp-list button { transition: color .5s var(--out); }
+.ks.lit[data-mode="dark"] .rcp-list li { border-color: rgba(255, 250, 243, .22); }
+.ks.lit[data-mode="dark"] .rcp-list button { transition: color .5s var(--out); }
 /* the lit row is a soft tint at night, a little stronger than the hover */
-.ks.page-home[data-mode="dark"] .rcp-list::before { background: rgba(255, 250, 243, .2); box-shadow: none; }
-.ks.page-home[data-mode="dark"] .rcp-list button .gain { background: var(--cream); color: var(--ink); }
-.ks.page-home[data-mode="dark"] .rcp-list button:not(.on):hover { background: rgba(255, 250, 243, .12); }
+.ks.lit[data-mode="dark"] .rcp-list::before { background: rgba(255, 250, 243, .2); box-shadow: none; }
+.ks.lit[data-mode="dark"] .rcp-list button .gain { background: var(--cream); color: var(--ink); }
+.ks.lit[data-mode="dark"] .rcp-list button:not(.on):hover { background: rgba(255, 250, 243, .12); }
 /* the question clouds turn to dark fog with white words (founder, 2026-11-11) */
-.ks.page-home[data-mode="dark"] .chat { --fog: 78 86 130; }
-.ks.page-home[data-mode="dark"] .cloud { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .cloud-mist::after { background: radial-gradient(closest-side, rgba(6, 8, 20, .5), rgba(6, 8, 20, 0)); }
-.ks.page-home[data-mode="dark"] .sky-fx b { color: var(--cream); }
+.ks.lit[data-mode="dark"] .chat { --fog: 78 86 130; }
+.ks.lit[data-mode="dark"] .cloud { color: var(--cream); }
+.ks.lit[data-mode="dark"] .cloud-mist::after { background: radial-gradient(closest-side, rgba(6, 8, 20, .5), rgba(6, 8, 20, 0)); }
+.ks.lit[data-mode="dark"] .sky-fx b { color: var(--cream); }
 /* the school logos sit on dark lanterns: one-colour logos turn white, the others swap to their dark-mode
    picture, and a logo whose own colour reads on dark (Caltech's orange) stays as it is */
-.ks.page-home[data-mode="dark"] .lanterns li { background: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), 0 0 24px 5px var(--glow), 0 14px 26px -18px rgba(0, 0, 0, .8); }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-white { filter: brightness(0) invert(1); }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-day { display: none; }
-.ks.page-home[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-night { display: block; }
+.ks.lit[data-mode="dark"] .lanterns li { background: var(--ink); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .16), 0 0 24px 5px var(--glow), 0 14px 26px -18px rgba(0, 0, 0, .8); }
+.ks.lit[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-white { filter: brightness(0) invert(1); }
+.ks.lit[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-day { display: none; }
+.ks.lit[data-mode="dark"] :is(.lanterns, .rcp-list) img.logo-night { display: block; }
 /* the answers in the sky and the phone's frame at night */
-.ks.page-home[data-mode="dark"] .chat-a { background: #262629; color: #fff; }
-.ks.page-home[data-mode="dark"] .chat-q { background: #2b97ff; }
-.ks.page-home[data-mode="dark"] .chat-box { background: #262629; }
-.ks.page-home[data-mode="dark"] .chat-box span { color: #fff; }
-.ks.page-home[data-mode="dark"] .chat-box[data-empty] span { color: #98989f; }
-.ks.page-home[data-mode="dark"] .lanterns li > span { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .gua-pic { color: var(--cream); }
-.ks.page-home[data-mode="dark"] .gua-pic { --pp: #18161e; --pg: #6cbf8d; --pr: #ee6e58; }
+.ks.lit[data-mode="dark"] .chat-a { background: #262629; color: #fff; }
+.ks.lit[data-mode="dark"] .chat-q { background: #2b97ff; }
+.ks.lit[data-mode="dark"] .chat-box { background: #262629; }
+.ks.lit[data-mode="dark"] .chat-box span { color: #fff; }
+.ks.lit[data-mode="dark"] .chat-box[data-empty] span { color: #98989f; }
+.ks.lit[data-mode="dark"] .lanterns li > span { color: var(--cream); }
+.ks.lit[data-mode="dark"] .gua-pic { color: var(--cream); }
+.ks.lit[data-mode="dark"] .gua-pic { --pp: #18161e; --pg: #6cbf8d; --pr: #ee6e58; }

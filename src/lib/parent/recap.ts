@@ -15,7 +15,7 @@ export interface RecapInput {
 
 const LEVEL_NAMES = ["Not started", "New", "Learning", "Understanding", "Conquered"] as const;
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s.replace(
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c

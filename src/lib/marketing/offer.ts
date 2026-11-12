@@ -67,10 +67,14 @@ export const MARCH_PROGRAM = {
   classesPerWeek: 2,
   classMinutes: 60,
   totalClasses: 18,
-  fullLengthTests: 5,
+  /** One every week, taken between that week's classes (founder, 2026-11-11; it was five). */
+  fullLengthTests: 9,
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
-  enrollmentClosesLabel: "January 1, 2027",
+  /** Registration closes one week before the first class (founder, 2026-11-11). */
+  enrollmentClosesLabel: "December 28, 2026",
+  /** The same day as a date, for the countdown on the Program page. */
+  enrollmentCloses: "2026-12-28",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.
@@ -89,14 +93,14 @@ export const MARCH_PROGRAM = {
         "18 classes of 60 minutes in a group of up to six, taught by a Karman tutor. Each cohort is one score band: 1000 to 1200, 1200 to 1400, or 1400 to 1600.",
     },
     {
-      title: "Five full-length practice tests",
+      title: "Nine full-length practice tests",
       detail:
-        "Your week-1 baseline is a Bluebook practice test, proctored live. So is the last one, in week nine.",
+        "One every week, taken between that week's classes. The class then goes over what the group missed.",
     },
     {
-      title: "A weekly live session",
+      title: "Weekly workshops, on top of the classes",
       detail:
-        "Test mechanics (pacing, Desmos, how the adaptive second module works), alternating with workshops on the skills students miss most.",
+        "Optional live sessions on test mechanics (pacing, Desmos, how the adaptive second module works) and the skills students miss most. Your student picks the ones they need.",
     },
     {
       title: "Daily 10",
@@ -113,15 +117,15 @@ export const MARCH_PROGRAM = {
       detail: "A group chat for your cohort. Questions are answered by a Karman tutor every day.",
     },
     {
-      title: "Weekly updates for parents",
-      detail: "Practice time, attendance, test scores and what's next.",
+      title: "A daily report for parents",
+      detail: "The work done, the predicted score and a note from the tutor.",
     },
   ] satisfies ProgramInclusion[],
 } as const;
 
 /**
  * Later cohorts, named by the week they start (never a weekday; founder, 2026-11-08).
- * Applications close the week before.
+ * Registration closes one week before the first class (founder, 2026-11-11).
  */
 export const NEXT_PROGRAMS = [
   {
@@ -129,14 +133,14 @@ export const NEXT_PROGRAMS = [
     startDate: "2027-03-01",
     startLabel: "the week of March 1",
     startShort: "March 1",
-    enrollmentClosesLabel: "February 24",
+    enrollmentClosesLabel: "February 22",
   },
   {
     id: "cohort-june-2027",
     startDate: "2027-04-05",
     startLabel: "the week of April 5",
     startShort: "April 5",
-    enrollmentClosesLabel: "March 31",
+    enrollmentClosesLabel: "March 29",
   },
 ] as const;
 /** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
@@ -322,14 +326,16 @@ export const DIAGNOSTIC = {
  *   re-read the targets.
  */
 export const GUARANTEE = {
-  /** A starting score at or above this carries no guarantee. */
+  /** From this starting score there is no points target. The promise is that the score rises; if it does
+   *  not, the student gets `highStartProMonths` months of Pro free (founder, 2026-11-11; cohort and private). */
   noGuaranteeFrom: 1460,
+  highStartProMonths: 3,
   /** Starting score up to `upTo`: points promised on each track. */
   bands: [
     { upTo: 1200, private: 200, cohort: 150 },
-    { upTo: 1300, private: 150, cohort: 100 },
-    { upTo: 1400, private: 100, cohort: 70 },
-    { upTo: 1450, private: 50, cohort: 40 },
+    { upTo: 1300, private: 160, cohort: 120 },
+    { upTo: 1400, private: 120, cohort: 80 },
+    { upTo: 1450, private: 60, cohort: 40 },
   ],
   /** Which track each plan is on. */
   trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
@@ -342,20 +348,23 @@ export const GUARANTEE = {
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
-  satWithinDays: 60,
+  /** A cohort student sits the SAT their cohort ends on (founder, 2026-11-11), and may make up one test a
+   *  week late and one missed class at a workshop. One of each, no more. */
+  lateTestsAllowed: 1,
+  classMakeUpsAllowed: 1,
   /** How recent an SAT or PSAT score must be to serve as the baseline. */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
-  claimDays: 30,
+  /** Days after sitting the SAT to send the score (founder, 2026-11-11; it was 30 days after scores came out). */
+  claimDays: 60,
   baseline:
-    "an SAT or PSAT score from the last 6 months, or the week-1 Bluebook practice test, proctored live by Karman",
+    "an SAT or PSAT score from the last 6 months, or, for a student with no score yet, a placement test proctored live by Karman",
   /** What the family gets, by SAT result. The family chooses money or a seat. */
   outcomes: [
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },
     {
       result: "Half the target or more",
-      remedy:
-        "Private 10: half the price back. Private 20: up to 6 more hours free, then half the price back if the next SAT still falls short.",
+      remedy: "Half the price back, or the next cohort free. You choose.",
     },
     {
       result: "Under half the target",
@@ -375,22 +384,18 @@ export const GUARANTEE = {
   claim:
     "Within 30 days of scores coming out, email the College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
-  /** Private 10 and Private 20: the same targets, made good with free hours, then money. */
+  /** Private 10 and Private 20: their own targets, made good with money or free sessions. */
   private: {
+    /** Founder, 2026-11-12: a missed promise is half the price back or `freeSessions` free sessions, the
+     *  family's choice; a full practice test every week; Private 10 is one session a week at most, Private 20
+     *  has no weekly cap; a session past the package is `extraSessionPrice`. */
+    extraSessionPrice: 149.5,
     cancelHours: 24,
     satWithinDays: 30,
     packages: {
-      /** Founder, 2026-11-08: half the price back, no extra hours. */
-      "private-10": { bonusHours: 0, fullLengthTests: 2 },
-      "private-20": { bonusHours: 6, fullLengthTests: 4 },
+      "private-10": { freeSessions: 5, weeklyCap: 1 },
+      "private-20": { freeSessions: 10, weeklyCap: null },
     },
-    requirements: [
-      "Attend every session. Cancelling with less than 24 hours' notice counts as a missed session.",
-      "Take the full-length practice tests in your package: two on Private 10, four on Private 20.",
-      "Sit the SAT within 30 days of the last session.",
-    ],
-    remedy:
-      "Free extra hours (3 on Private 10, 6 on Private 20). If the next SAT still falls short, half the price back.",
   },
 } as const;
 

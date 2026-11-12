@@ -51,9 +51,12 @@ student's SAT date.
 - Enrollment for the first cohort opens November 2026. The first 9-week cohort
   starts January 4, 2027; later cohorts start March 1 and April 5, 2027. Cohorts
   are no longer tied to an SAT date.
-- Classes are live on Zoom. Free practice tests are proctored live monthly,
-  first on December 12, 2026.
-- Parents receive a weekly progress update.
+- Classes are live on Zoom. A proctored test is only for a student with no SAT
+  or PSAT score yet, for placement in the program (founder, 2026-11-11); every
+  other student uploads a score.
+- Parents on the cohort, private tutoring and Pro receive a daily progress
+  report (founder, 2026-11-11): the work done, the predicted score and a note
+  from the tutor.
 - Every price, date, seat count and claim the site may state lives in
   `src/lib/marketing/offer.ts`. Reasoning is in `docs/business-plan.md`.
 

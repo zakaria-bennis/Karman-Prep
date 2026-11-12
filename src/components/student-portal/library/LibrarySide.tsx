@@ -46,20 +46,12 @@ export default function LibrarySide({
           href={ENDLESS.path}
           right="Start"
         />
-        {TIME_TRIAL.ready ? (
-          <Row
-            title="Time trials"
-            sub="Shorter than a full test, at real SAT pace"
-            href={TIME_TRIAL.path}
-            right="Start"
-          />
-        ) : (
-          <Row
-            title="Time trials"
-            sub="Shorter than a full test, at real SAT pace"
-            right={<span className={styles.soon}>Not open yet</span>}
-          />
-        )}
+        <Row
+          title="Time trials"
+          sub="One section against the clock, 5% tighter each round"
+          href={TIME_TRIAL.path}
+          right="Start"
+        />
         {left !== null && (
           <p className={styles.locked}>
             <Num>{left}</Num> of <Num>{questionLimit}</Num> free questions left.{" "}

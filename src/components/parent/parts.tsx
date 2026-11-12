@@ -36,8 +36,9 @@ export function GuaranteeCard({
         <SectionHeader title="Score guarantee" />
         <p className="kp-meta">
           {childName} started at <Num>{status.baseline}</Num>. From a starting score of{" "}
-          <Num>{GUARANTEE.noGuaranteeFrom}</Num> or higher, the {status.plan} plan carries no score
-          guarantee.
+          <Num>{GUARANTEE.noGuaranteeFrom}</Num> or higher, the {status.plan} plan promises that the
+          score rises. If it does not, {childName} gets {GUARANTEE.highStartProMonths} months of Pro
+          free.
         </p>
       </Card>
     );

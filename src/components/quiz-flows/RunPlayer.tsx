@@ -21,6 +21,7 @@ import {
 import type { RunReview, RunView } from "@/lib/assembler/run-types";
 import { LevelBanner, type LevelChange } from "./LevelBanner";
 import { FlowFrame, Message } from "./FlowFrame";
+import { FreeLimitPrompt } from "./FreeLimitPrompt";
 import { RunEnd } from "./RunEnd";
 import type { ShellUser } from "./types";
 
@@ -95,18 +96,20 @@ export function RunPlayer({
         {intro(() => void begin(), pending)}
       </FlowFrame>
     );
+  if (error?.limit)
+    return (
+      <FlowFrame user={user} title={title}>
+        <FreeLimitPrompt text={error.text} back={{ href: exitHref, label: "Back" }} />
+      </FlowFrame>
+    );
   if (!run)
     return (
       <FlowFrame user={user} title={title}>
         {error ? (
           <Message
-            title={error.limit ? "That is the end of the Free plan" : "Something went wrong"}
+            title="Something went wrong"
             text={error.text}
-            action={
-              error.limit
-                ? { href: "/billing", label: "See plans" }
-                : { onClick: () => void begin(), label: "Try again" }
-            }
+            action={{ onClick: () => void begin(), label: "Try again" }}
             back={{ href: exitHref, label: "Back" }}
           />
         ) : (

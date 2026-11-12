@@ -1,0 +1,15 @@
+/* The not-found and error pages in the home page's world (SitePage kind="lit", class "relit rl-lost"; their
+   own layout is in legal.css). This file gives them the home page's night colours and the band of mist
+   behind each section. Pricing, the guarantee and the legal pages are built on the SAT Program page's
+   frame instead (deal.css, legal.css). One rule to a line; never run Prettier on this. */
+
+/* ---------- shared ---------- */
+.ks.relit { --r-panel: 28px; --card-lift: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
+/* night: everything inside the page turns to cream words on night cards; the bar and footer have their own */
+.ks.relit[data-mode="dark"] main { --ink: #fffaf3; --ink2: #cdc7d6; --line: rgba(255, 250, 243, .2); --soft: rgb(24, 22, 30); --paper: rgb(24, 22, 30); --card: rgb(24, 22, 30); --solid: #fffaf3; --on-solid: #1d1a22; --go: #e7cf9a; --marigold: #e7cf9a; --marigold-ink: #e7cf9a; --marigold-hi: #f1dcab; --card-lift: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
+.ks.relit[data-mode="dark"] main .btn .go { color: #1d1a22; }
+/* every section sits on a band of mist that fades out above and below it */
+.ks.relit main > section { position: relative; isolation: isolate; }
+.ks.relit main > section::before { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: color-mix(in srgb, var(--mist) 82%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 80px, #000 calc(100% - 80px), transparent); mask-image: linear-gradient(transparent, #000 80px, #000 calc(100% - 80px), transparent); }
+.ks.relit main h3 { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.005em; }
+.ks.relit .k-photo { display: none; }

@@ -14,9 +14,22 @@ export interface BreakCase {
   known?: { reason: string; ours: Outcome[] };
 }
 
+/**
+ * The corpus checks what each row gives, not how fast: no case's recorded outcome is a timeout.
+ * The executor's clock therefore runs at a tenth of real time, so the AR-48 row budget (250 ms)
+ * becomes 2.5 s of wall time. A cold JIT on a busy CI runner took over 250 ms for f(9999) and
+ * failed the recursion case on unrelated pull requests; a real runaway still stops, just later.
+ * The budget itself is tested in core/deadline.test.ts and worker/slice.test.ts.
+ */
+const BREAK_CLOCK_SLOWDOWN = 10;
+const breakTiming = { now: () => performance.now() / BREAK_CLOCK_SLOWDOWN };
+
 export async function runBreakCase(c: Pick<BreakCase, "rows" | "settings">): Promise<Outcome[]> {
   const errors: unknown[] = [];
-  const t = createTestEngine({ onError: (e) => errors.push(e) }, { backend: "main-thread" });
+  const t = createTestEngine(
+    { onError: (e) => errors.push(e) },
+    { backend: "main-thread", timing: breakTiming }
+  );
   try {
     t.engine.setView(TEST_VIEW);
     t.engine.updateSettings({

@@ -79,6 +79,7 @@ beforeEach(() => {
   };
   quiz = {
     state,
+    planLimit: null,
     startQuiz: vi.fn(async () => {}),
     selectAnswer: vi.fn(),
     submitAnswer: vi.fn(async () => {}),

@@ -6,7 +6,7 @@
   min-height: 40px;
   min-width: 72px;
   padding: 0 16px;
-  border-radius: 4px;
+  border-radius: var(--kp-r, 4px);
   background: var(--accent);
   color: #fff;
   font-weight: 650;

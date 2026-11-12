@@ -21,8 +21,8 @@ clouds to the sea as the page scrolls (see "Travelling background"). The founder
 | 5 | How: "Seven ways we make a skill stick, because one would be lazy." | `Ways.tsx`, `WayArt.tsx` | Seven detailed pictures that move; layout being chosen |
 | 6 | Doubts: "Go on. Ask us the hard ones." | `Doubts.tsx` | Floating question bubbles; tap one and its answer springs in |
 
-Everywhere: the landscape (`HomeFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
-and a marker that slides along the top menu (`HomeTouches.tsx`). All styles are in
+Everywhere: the landscape (`SiteFlight.tsx`, `src/lib/flight/`), a button that leans toward the cursor
+and a marker that slides along the top menu (`SiteTouches.tsx`). All styles are in
 `src/app/(site)/styles/painted.css`. All words are in `src/lib/marketing/site-copy.ts`.
 
 ## Where the founder's approval stands
@@ -111,13 +111,15 @@ a chat as the whole page).
 - `node scripts/dev/home-journey-shots.mjs <dir>`: screenshots.
 - The six checks in `CLAUDE.md` pass on this commit.
 
-## Receipts section (10 Nov 2026, in progress)
+## Receipts section (10 Nov 2026, live with sample rows since 11 Nov)
 
 Between "How we teach" and the questions: `Receipts.tsx`, a plain list of students beside the orange phone,
 which shows the text conversation behind the lit row. Six seconds a row; a tap holds a row. The heading and
 rows are exactly as tall as the phone. Every row in `src/lib/marketing/receipts.ts` is still a made-up
-sample, so `RECEIPTS_ARE_SAMPLES` keeps the section out of production builds. The founder is supplying the
-real students and the words they sent; nothing may be written for them.
+sample. The section is on the live site all the same (founder, 11 Nov: "keep as is for right now and put
+on live"), so while `RECEIPTS_ARE_SAMPLES` is true one small line under the heading says the rows are
+samples. The founder is supplying the real students and the words they sent; nothing may be written for
+them. When the real rows are in, set the flag to false and the line goes away.
 
 The phone's Messages screen (11 Nov) is measured from two real iPhone screenshots the founder sent, light
 and dark, and follows the page's mode. Sizes are in points of a 402-point screen (`--pt` in painted.css).
@@ -132,7 +134,7 @@ painting on the home page. The portals still use `src/lib/painting/`.
   them, past the high peaks where it snows, along a valley and a fjord where birds fly, out to the sea.
 - `src/lib/flight/engine.ts` runs it: scroll flies the camera, it draws softer on slow devices, stops when
   nobody is there, and steps by short fades when motion is held still.
-- `HomeFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
+- `SiteFlight.tsx` puts it behind the page. A browser that cannot draw it keeps a plain sky.
 - Light mode is one day (just after sunrise to just after sunset). Dark mode is one night (dusk, stars,
   northern lights, sunrise). Flipping the switch makes the sun set or rise where the visitor is, in about a
   second and a half, and the page does not move.
@@ -157,7 +159,7 @@ diagrams, specific to each method, no people, ink and cream plus one accent colo
 layouts he picked the dashboard wall: tiles of different sizes, all moving. `WayArt.tsx` draws the seven
 pictures; their labels are `art words` in site-copy section 6. The seventh method is time trials (one
 section, starting at 1.25 times the real SAT time and tightening to 0.75 while accuracy holds;
-`TIME_TRIAL.ready` is still false in the student portal). The Challenge has no leaderboard: its picture
+open in the student portal at `/learn/time-trial` since 2026-11-12). The Challenge has no leaderboard: its picture
 shows how everyone did, with no made-up numbers. He wants to be asked before any creative direction is
 taken on his behalf.
 
@@ -217,3 +219,54 @@ view, and come round again from the bottom. A picked cloud bursts into puffs, it
 box, are typed in and sent, and Karman's answer is typed back in a text conversation on the right. The
 founder rejected topic tabs and answers with drawings attached. The nine are in `site-copy.ts` section 13,
 built from `offer.ts`; he will supply more questions and answers of his own.
+
+## Phones (11 Nov 2026, founder's list after trying the live site on an iPhone in Safari)
+
+- **Top bar on phones and tablets:** Karman, then Sign in, Start free, the light and dark switch and the
+  menu, in that order, on one row. Start free never wraps and never leaves; on the narrowest screens
+  (under 373 px, a phone with the page zoomed in) Sign in moves into the menu. The bar has a soft band of
+  mist behind it so words do not show through it while the page scrolls.
+- **Menu:** a small sheet that drops from its button on every page. The button's three lines cross into an
+  X while it is open. It closes when its button is tapped again, on a tap anywhere outside it, when a link
+  is picked, and on Escape. The separate Close button and the full-screen menu are gone.
+- **Less forehead:** on phones the headline starts close under the bar and sections have less air between
+  them.
+- **Tutor arc:** a true half circle at every size (it was taller than wide on phones). On phones the title
+  sits partly below the circle's centre line (`--arc-below`).
+- **Footer:** the big Karman is always one word, sized to the screen. The calculator is not a free tool
+  (founder: it is for paying members) and is out of the footer.
+- **School lanterns:** a finger on a lantern moves it in any direction (`touch-action: none` on the
+  lantern); a finger between lanterns scrolls the page. They are a little larger on phones.
+- **Text size:** Safari's own page zoom makes the screen narrower in the page's eyes, and the layout holds
+  from 320 px up. The iPhone's system Text Size setting is read by `src/components/site/text-size.ts`,
+  which lays the page out for a narrower screen so everything is drawn larger, up to 1.3 times.
+- **Speed on phones:** the landscape starts with fewer pixels on a phone and may only use a small share of
+  each frame (`PHONE` in `src/lib/flight/engine.ts`); looping drawings stop while they are off screen
+  (`data-away`, set in `ShellBehaviour.tsx`, used in `kit.css`); the glow and mist colours no longer ease
+  when the light changes from scrolling (that restyled the whole page on every frame), only when the
+  switch is pressed; the footer word has no soft shadow on phones.
+- Tested in real Safari on an iPhone simulator, which shows layout and touch truthfully but not speed. The
+  speed changes still need the founder's own phone to confirm.
+- Subpages still have their old top bar; they get this one when each is rebuilt.
+
+
+## Subpages in the home page's world (from 11 Nov 2026)
+
+`SitePage kind="lit"` gives a subpage the home page's top bar, menu, footer, typefaces and live landscape;
+`route={[from, to]}` picks the stretch of the route it flies. Each page passes `litFonts` itself (importing
+them in `SitePage.tsx` grows the student app's bundle). The SAT Program page is the first:
+`src/components/site/program/ProgramSections.tsx`, styles in `program.css`, words in `site-copy.ts`
+sections 21 to 24 and 27. It leads with the outcome, then the offer as a stack, the weekly loop, the
+student's side beside the parent's, the promise by starting score, and the close. Its Reserve button goes
+to the pricing page until the registration form is built. The founder's product facts and copy rules for
+it are in the memory notes (cohort product facts, subpages plan).
+
+## Private tutoring page (12 Nov 2026)
+
+Rebuilt in the home page's world, on the Program page's frame: `src/components/site/private/PrivateSections.tsx`,
+styles in `private.css`, words in `site-copy.ts` sections 31 to 33, 35 and 36. Four desktop screens: the
+outcome with the promise by starting score; a session beside a week of open slots with one being booked;
+the two packages side by side; the promise's two sides beside the free-call form (the site's existing lead
+form). Private facts set on 2026-11-12 are in `offer.ts` (`GUARANTEE.private`): a test every week, half back
+or free sessions on a miss, Private 10's one-a-week cap, $149.50 for a session past the package. The
+Guarantee and Terms pages still state the older private remedy and test counts.

@@ -14,6 +14,7 @@ import {
   type DotState,
 } from "@/lib/quiz/rewards";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
+import { track } from "@/lib/analytics/client";
 import styles from "./quiz-shell.module.css";
 import nav from "./nav.module.css";
 import { AnnotationContext } from "./annotation-context";
@@ -101,6 +102,11 @@ export function QuizShell(props: QuizShellProps) {
   const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
+  // Analytics: which questions were seen (skips and time to first answer, with the answer tables).
+  useEffect(() => {
+    if (q && !props.loading) track("question_viewed", { questionId: q.id, mode: mode.grading });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q?.id, props.loading]);
   /** Bumped by "?" to open the shortcuts list in the More menu. */
   const [shortcutsAsked, setShortcutsAsked] = useState(0);
   // The host's server start time wins; otherwise the first start this session (survives reloads).
@@ -430,7 +436,10 @@ export function QuizShell(props: QuizShellProps) {
                     attemptKey={attemptKey}
                     questionId={q.id}
                     open={calcOpen}
-                    onOpenChange={setCalcOpen}
+                    onOpenChange={(open) => {
+                      setCalcOpen(open);
+                      if (open) track("calculator_opened", q ? { questionId: q.id } : {});
+                    }}
                     dockTop={dockTop}
                   >
                     {c}

@@ -20,13 +20,13 @@ describe("guaranteeFor", () => {
       met: true,
     });
     const cohort = guaranteeFor("cohort", [{ score: 1400 }, { score: 1430 }]);
-    expect(cohort).toMatchObject({ needed: 70, target: 1470, gained: 30, met: false });
+    expect(cohort).toMatchObject({ needed: 80, target: 1480, gained: 30, met: false });
   });
 
   it("gives Private 10 the cohort's numbers", () => {
     expect(guaranteeFor("private-10", [{ score: 1190 }])).toMatchObject({ needed: 150 });
     expect(guaranteeFor("private-20", [{ score: 1190 }])).toMatchObject({ needed: 200 });
-    expect(guaranteeFor("private", [{ score: 1250 }])).toMatchObject({ needed: 150 });
+    expect(guaranteeFor("private", [{ score: 1250 }])).toMatchObject({ needed: 160 });
   });
 
   it("carries no guarantee from a 1460 start", () => {
