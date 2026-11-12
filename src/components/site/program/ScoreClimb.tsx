@@ -34,8 +34,12 @@ export default function ScoreClimb({
   const host = useRef<HTMLElement>(null);
   const path = useRef<SVGPathElement>(null);
   const [t, setT] = useState(1);
-  /* the plan's shape: slow at first, then steady, landing on the promise */
-  const gains = Array.from({ length: weeks + 1 }, (_, i) => gain * (i / weeks) ** 1.15);
+  /* real progress is uneven: a quick first gain, a dip, a flat week, a late surge. It ends on the promise. */
+  const SHAPE = [0, 0.14, 0.09, 0.27, 0.28, 0.47, 0.41, 0.66, 0.83, 1];
+  const gains = Array.from(
+    { length: weeks + 1 },
+    (_, i) => gain * (SHAPE[Math.round((i / weeks) * (SHAPE.length - 1))] ?? i / weeks)
+  );
   const step = (X1 - X0) / weeks;
   const pts = gains.map((g, i) => [X0 + i * step, Y0 - (g / gain) * (Y0 - Y1)] as const);
   const d = pts

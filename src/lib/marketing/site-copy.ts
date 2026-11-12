@@ -194,6 +194,7 @@ closes: Registration closes ${CLOSES}.
 starts: Classes start ${START_DAY}.
 clock label: Registration closes in
 clock: days | hours | min | sec
+clock sentence: left to register
 
 ## 22 Program: the climb
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks. Each one shows us what to fix next.
@@ -212,7 +213,7 @@ price: ${$(MP.price)}
 
 ## 23 Program: the portal
 headline: And you see what the tutor sees.
-titles: This week's homework | Skills | Predicted score | Practice time | Tutor's note
+titles: Homework | Skills | Score | Practice | Notes
 captions: What was assigned, and what's been done. | Every skill, and the level your student has reached. | One predicted score, updated as they work. | How long they practised, day by day. | A few sentences from their tutor, every day.
 homework: Daily 10 = 6 of 7 days | Flashcards = 40 of 40 cards | Strategy check = Passed | Time trial = Due Friday
 skills: Linear equations = Mastered | Words in context = Strong | Comma rules = Getting there | Ratios and rates = Needs work | Inference = Strong
@@ -222,7 +223,9 @@ score goal: Promised
 days: M | T | W | T | F | S | S
 time: this week
 note: Good focus in class today. Two misses on punctuation, both the same comma rule, so I've added a short set on it. Pacing is better: the math module was done with four minutes to spare.
-note from: Their tutor
+note from: Zeeshan, tutor
+student: Amira
+initials: A
 
 ## 24 Program: the promise
 headline: A promise with two sides.

@@ -26,6 +26,10 @@ export interface DeckWords {
   timeTotal: string;
   note: string;
   noteFrom: string;
+  /** The portal's own chrome: its name, the student's name and initials. */
+  brand: string;
+  student: string;
+  initials: string;
 }
 
 /* how full each sample skill's bar is, beside its level word */
@@ -116,7 +120,20 @@ export default function PortalDeck({ w }: { w: DeckWords }) {
           const place = (i - at + n) % n;
           return (
             <article key={i} data-place={place > 2 ? "back" : place} aria-hidden={place !== 0}>
-              <h4>{w.titles[i]}</h4>
+              <header>
+                <b>{w.brand}</b>
+                <nav>
+                  {w.titles.map((t, j) => (
+                    <span key={t} data-on={j === i || undefined}>
+                      {t}
+                    </span>
+                  ))}
+                </nav>
+                <em>
+                  <i>{w.initials}</i>
+                  {w.student}
+                </em>
+              </header>
               {card}
             </article>
           );
