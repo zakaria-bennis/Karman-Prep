@@ -2,15 +2,13 @@ import ClaimPill from "@/components/site/home/ClaimPill";
 import Doubts from "@/components/site/home/Doubts";
 import Flock from "@/components/site/home/Flock";
 import Guarantee from "@/components/site/home/Guarantee";
-import { homeFonts } from "@/components/site/home/fonts";
 import { HeadWords, nums } from "@/components/site/home/Head";
-import HomeFlight from "@/components/site/home/HomeFlight";
-import HomeTouches from "@/components/site/home/HomeTouches";
 import Lanterns from "@/components/site/home/Lanterns";
 import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
@@ -101,9 +99,8 @@ export default function HomePage() {
   /* while the rows are samples, the section says so under its heading (receipts.ts) */
   const receipts = section(14);
   return (
-    <SitePage kind="home" className={homeFonts} stage={<HomeFlight />}>
+    <SitePage kind="home" className={litFonts}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
-      <HomeTouches />
       {/* a visitor who has already watched the headline arrive this visit sees it at once */}
       <script dangerouslySetInnerHTML={{ __html: CLAIM_BOOT }} />
 

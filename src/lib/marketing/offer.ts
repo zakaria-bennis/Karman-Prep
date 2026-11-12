@@ -67,10 +67,14 @@ export const MARCH_PROGRAM = {
   classesPerWeek: 2,
   classMinutes: 60,
   totalClasses: 18,
-  fullLengthTests: 5,
+  /** One every week, taken between that week's classes (founder, 2026-11-11; it was five). */
+  fullLengthTests: 9,
   /** Each cohort is grouped by starting score, so a class works on the same level. */
   scoreBands: ["1000 to 1200", "1200 to 1400", "1400 to 1600"],
-  enrollmentClosesLabel: "January 1, 2027",
+  /** Registration closes one week before the first class (founder, 2026-11-11). */
+  enrollmentClosesLabel: "December 28, 2026",
+  /** The same day as a date, for the countdown on the Program page. */
+  enrollmentCloses: "2026-12-28",
   /** At most six students in a cohort, every seat paid. */
   paidSeats: 6,
   /** Paid seats already held with a deposit. The site shows the seats still open.
@@ -89,14 +93,14 @@ export const MARCH_PROGRAM = {
         "18 classes of 60 minutes in a group of up to six, taught by a Karman tutor. Each cohort is one score band: 1000 to 1200, 1200 to 1400, or 1400 to 1600.",
     },
     {
-      title: "Five full-length practice tests",
+      title: "Nine full-length practice tests",
       detail:
-        "The baseline is your student's latest SAT or PSAT score. A student with no score yet sits a placement test, proctored live.",
+        "One every week, taken between that week's classes. The class then goes over what the group missed.",
     },
     {
-      title: "A weekly live session",
+      title: "Weekly workshops, on top of the classes",
       detail:
-        "Test mechanics (pacing, Desmos, how the adaptive second module works), alternating with workshops on the skills students miss most.",
+        "Optional live sessions on test mechanics (pacing, Desmos, how the adaptive second module works) and the skills students miss most. Your student picks the ones they need.",
     },
     {
       title: "Daily 10",
@@ -121,7 +125,7 @@ export const MARCH_PROGRAM = {
 
 /**
  * Later cohorts, named by the week they start (never a weekday; founder, 2026-11-08).
- * Applications close the week before.
+ * Registration closes one week before the first class (founder, 2026-11-11).
  */
 export const NEXT_PROGRAMS = [
   {
@@ -129,14 +133,14 @@ export const NEXT_PROGRAMS = [
     startDate: "2027-03-01",
     startLabel: "the week of March 1",
     startShort: "March 1",
-    enrollmentClosesLabel: "February 24",
+    enrollmentClosesLabel: "February 22",
   },
   {
     id: "cohort-june-2027",
     startDate: "2027-04-05",
     startLabel: "the week of April 5",
     startShort: "April 5",
-    enrollmentClosesLabel: "March 31",
+    enrollmentClosesLabel: "March 29",
   },
 ] as const;
 /** Official SAT dates families can name on the call and test forms (College Board 2026-27 calendar,
@@ -322,14 +326,16 @@ export const DIAGNOSTIC = {
  *   re-read the targets.
  */
 export const GUARANTEE = {
-  /** A starting score at or above this carries no guarantee. */
+  /** From this starting score there is no points target. The promise is that the score rises; if it does
+   *  not, the student gets `highStartProMonths` months of Pro free (founder, 2026-11-11; cohort and private). */
   noGuaranteeFrom: 1460,
+  highStartProMonths: 3,
   /** Starting score up to `upTo`: points promised on each track. */
   bands: [
     { upTo: 1200, private: 200, cohort: 150 },
-    { upTo: 1300, private: 150, cohort: 100 },
-    { upTo: 1400, private: 100, cohort: 70 },
-    { upTo: 1450, private: 50, cohort: 40 },
+    { upTo: 1300, private: 160, cohort: 120 },
+    { upTo: 1400, private: 120, cohort: 80 },
+    { upTo: 1450, private: 60, cohort: 40 },
   ],
   /** Which track each plan is on. */
   trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
@@ -342,11 +348,15 @@ export const GUARANTEE = {
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
-  satWithinDays: 60,
+  /** A cohort student sits the SAT their cohort ends on (founder, 2026-11-11), and may make up one test a
+   *  week late and one missed class at a workshop. One of each, no more. */
+  lateTestsAllowed: 1,
+  classMakeUpsAllowed: 1,
   /** How recent an SAT or PSAT score must be to serve as the baseline. */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
-  claimDays: 30,
+  /** Days after sitting the SAT to send the score (founder, 2026-11-11; it was 30 days after scores came out). */
+  claimDays: 60,
   baseline:
     "an SAT or PSAT score from the last 6 months, or, for a student with no score yet, a placement test proctored live by Karman",
   /** What the family gets, by SAT result. The family chooses money or a seat. */

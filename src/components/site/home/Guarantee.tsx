@@ -39,7 +39,7 @@ function Signature({ name }: { name: string }) {
         <path
           className="tail"
           pathLength={1}
-          d="M786 212 C 806 220, 826 221, 860 216 C 900 212, 930 222, 950 230"
+          d="M741 212 C 765 220, 800 221, 845 216 C 895 212, 930 222, 950 230"
         />
       </svg>
     </p>

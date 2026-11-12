@@ -82,10 +82,12 @@ export interface SigStyle {
 /** The version the founder picked (the twelfth of twelve, 2026-11-11): a strong lean and a fine pen. */
 export const SIG: SigStyle = { lean: 1.15, tall: 36, wideM: 1.3, round: 0.22, pen: 5.5 };
 
-const X0 = 414;
-const X1 = 786;
+/* The word starts half as far from the K as it first did (founder, 2026-11-11): the whole word moved 45
+   left, and the tail in Guarantee.tsx starts where the word now ends. */
+const X0 = 369;
+const X1 = 741;
 const BASE = 254;
-const END: [number, number] = [786, 212];
+const END: [number, number] = [741, 212];
 
 /** The joined letters as one path, from the K's leg to where the tail begins. */
 export function arman(s: SigStyle): string {

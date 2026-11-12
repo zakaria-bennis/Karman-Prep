@@ -46,7 +46,7 @@ describe("site copy", () => {
     });
     expect(rows.at(-1)?.[0]).toBe(`${GUARANTEE.noGuaranteeFrom} or higher`);
     expect(section(8)["promise note"]).toContain(
-      `From ${GUARANTEE.noGuaranteeFrom} there is no guarantee`
+      `From ${GUARANTEE.noGuaranteeFrom} the promise is that the score rises`
     );
     // nothing of the flat "+100, or +50 from 1400" promise is left
     expect(SITE_COPY).not.toMatch(/\+100 points, or \+50|from 1400\b|under 1400/);
