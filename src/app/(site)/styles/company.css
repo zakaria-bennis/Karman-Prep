@@ -9,7 +9,7 @@
 .ks .co-stack > * { min-width: 0; max-width: 100%; }
 .ks .co-card { --a: #2449b8; position: relative; min-width: 0; display: grid; gap: 14px; padding: clamp(20px, 2.4vw, 32px); border-radius: 30px; background: var(--cream); color: var(--ink); box-shadow: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
 .ks .co-card > * { min-width: 0; }
-.ks.lit[data-mode="dark"] .co-card { --a: #e7cf9a; background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 24px 46px -30px rgba(0, 0, 0, .9); }
+.ks.lit[data-mode="dark"] .co-card { --a: #e7cf9a; background: var(--card-night); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 24px 46px -30px rgba(0, 0, 0, .9); }
 .ks.lit[data-mode="dark"] .co-card .pg-small { color: #cdc7d6; }
 /* a section taller than a screen: the mist reaches full strength a fixed distance in, not a share of the height */
 .ks .co-tall { min-height: 0; }

@@ -8,7 +8,7 @@
 
 /* ---------- the cream panels these pages draw on the painting: rounded, lifted, never hard-edged ---------- */
 .ks :is(.au-sum, .au-rail, .au-report, .au-form) { --a: #2449b8; position: relative; min-width: 0; border-radius: 30px; background: var(--cream); color: var(--ink); box-shadow: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
-.ks.lit[data-mode="dark"] :is(.au-sum, .au-rail, .au-report, .au-form) { --a: #8fb0ff; background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
+.ks.lit[data-mode="dark"] :is(.au-sum, .au-rail, .au-report, .au-form) { --a: #8fb0ff; background: var(--card-night); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
 @keyframes au-pop { from { opacity: 0; transform: translateY(10px) scale(.92); } }
 
 /* ---------- the opening's sum (SeatSum.tsx, TutorMath.tsx): a slider, then two tiles of what it costs ---------- */
@@ -40,8 +40,8 @@
 .ks.lit[data-mode="dark"] .au-tile.au-free span { color: rgba(23, 21, 28, .78); }
 .ks.lit[data-mode="dark"] .au-dial input::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--a) 0 calc(15px + var(--v) * (100% - 30px)), rgba(255, 250, 243, .16) 0); }
 .ks.lit[data-mode="dark"] .au-dial input::-moz-range-track { background: rgba(255, 250, 243, .16); }
-.ks.lit[data-mode="dark"] .au-dial input::-webkit-slider-thumb { background: rgb(24, 22, 30); }
-.ks.lit[data-mode="dark"] .au-dial input::-moz-range-thumb { background: rgb(24, 22, 30); }
+.ks.lit[data-mode="dark"] .au-dial input::-webkit-slider-thumb { background: var(--card-night); }
+.ks.lit[data-mode="dark"] .au-dial input::-moz-range-thumb { background: var(--card-night); }
 .ks.lit[data-mode="dark"] .au-dial input:focus-visible { outline-color: var(--cream); }
 @media (max-width: 420px) { .ks .au-tiles, .ks .au-dial { grid-template-columns: minmax(0, 1fr); } .ks .au-dial label { padding-bottom: 0; } }
 
@@ -140,7 +140,7 @@
 .ks .au-mods i { font-style: normal; padding: 6px 12px; border-radius: 10px; background: color-mix(in srgb, var(--a) 13%, transparent); color: var(--a); font-size: 13px; font-weight: 800; }
 .ks .au-rail-total { margin: 18px 0 0; padding-top: 14px; border-top: 1px dashed color-mix(in srgb, var(--ink) 24%, transparent); font-size: 15px; font-weight: 800; }
 .ks.lit[data-mode="dark"] .au-rail ol::before { background: rgba(255, 250, 243, .2); }
-.ks.lit[data-mode="dark"] .au-rail li::before { background: rgb(24, 22, 30); box-shadow: inset 0 0 0 3px rgba(255, 250, 243, .4); }
+.ks.lit[data-mode="dark"] .au-rail li::before { background: var(--card-night); box-shadow: inset 0 0 0 3px rgba(255, 250, 243, .4); }
 .ks.lit[data-mode="dark"] .au-mods i { background: rgba(143, 176, 255, .16); }
 .ks.lit[data-mode="dark"] .au-rail-total { border-color: rgba(255, 250, 243, .24); }
 .ks.still-motion .au-rail ol::after { animation: none; }
@@ -263,7 +263,7 @@
 .ks .pm-areas li i { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--v) * 100%); border-radius: 3px; background: var(--a); transform-origin: left; }
 .ks.lit[data-mode="dark"] .pm-areas li b { color: var(--cream); }
 .ks.lit[data-mode="dark"] .pm-tip rect { fill: var(--cream); }
-.ks.lit[data-mode="dark"] .pm-tip text { fill: rgb(24, 22, 30); }
+.ks.lit[data-mode="dark"] .pm-tip text { fill: var(--card-night); }
 .ks.lit[data-mode="dark"] .pm-land { stroke: rgba(255, 250, 243, .45); }
 .ks.lit[data-mode="dark"] .pm-borders { stroke: rgba(255, 250, 243, .14); }
 .ks .pg-in.rv:not(.on) .pm-land { stroke-dashoffset: 1; fill-opacity: 0; }

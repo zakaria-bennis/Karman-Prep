@@ -1,0 +1,96 @@
+/* Phone and colour polish (founder, 2026-11-12). Loaded last, so it settles what the files before it leave
+   rough: on a phone every two-column section stacks to one full-width column and nothing slides in from the
+   side past the screen's edge; the score-climb bubble and the guarantee's pictures shrink to phone size.
+   No pure white anywhere: the cream is warmer and softer at night, and the night cards are lifted from the
+   night sky's own blue instead of a flat black that sat apart from the painting. Cards drift a little and a
+   few motes of light rise through the featured ones; all of it stops under reduced motion and when the
+   painting is held still. One rule to a line; never run Prettier on this. */
+
+/* ---------- softer colours ---------- */
+/* the night cards: a lifted shade of the night mist, so a card reads as part of the sky */
+.ks { --card-night: rgb(29, 32, 58); --cream-night: #e8e1d4; }
+/* day: the cards and chips are a warm paper, not a white that glares off the cream mist */
+.ks.lit:not([data-mode="dark"]) { --cream: #fcf5ea; --paper: #fcf5ea; --card: #fcf5ea; --on-solid: #fcf5ea; --on-mari: #fcf5ea; }
+.ks.lit:not([data-mode="dark"]) .sc { background: linear-gradient(170deg, #fcf6ec, #f4eadb); }
+.ks.lit:not([data-mode="dark"]) .pl-badges em, .ks.lit:not([data-mode="dark"]) .pl[data-plan="large"] .btn { background: #f6efe3; }
+.ks.lit .pl .pg-tick circle { fill: #f1eadf; }
+/* night: cream words, cream buttons and cream marks all take the softer cream */
+.ks.lit[data-mode="dark"] { --cream: var(--cream-night); --on-solid: var(--cream-night); --on-mari: var(--cream-night); }
+.ks[data-mode="dark"]:not(.lit) { --ink: #e6e0d5; --paper: #151412; }
+.ks.relit[data-mode="dark"] main { --ink: var(--cream-night); --solid: var(--cream-night); }
+.ks.lit[data-mode="dark"] .ways { --i: var(--cream-night); }
+.ks.lit[data-mode="dark"] :is(.chat-a, .chat-box span) { color: var(--cream-night); }
+.ks.lit[data-mode="dark"] .pl-badges em { background: var(--cream-night); }
+.ks.lit[data-mode="dark"] .pl[data-plan="large"] .btn { background: var(--cream-night); }
+.ks.lit[data-mode="dark"] .pl:not([data-plan="large"]) { color: var(--cream-night); background: linear-gradient(115deg, transparent 38%, var(--sheen) 50%, transparent 62%) 0 0 / 280% 100%, linear-gradient(160deg, rgb(40, 44, 78), var(--card-night)); }
+.ks.lit .pl { color: #f6efe3; }
+/* the secondary words at night are a touch quieter than the headings, so a page is not one block of light */
+.ks.lit[data-mode="dark"] :is(.lede, .fine, .pg-moves span, .gua-cards span, .pg-bill span) { color: color-mix(in srgb, var(--cream-night) 86%, #8e8aa6); }
+/* the night cards: the lifted blue, a hairline of light at the top edge, and a soft shadow */
+.ks.lit[data-mode="dark"] :is(.pg-start, .pg-bill, .sc, .pd-stack article, .pg-terms, .co-card, .au-rail, .au-report, .au-form) { background: linear-gradient(180deg, rgb(33, 37, 66), var(--card-night) 46%); box-shadow: inset 0 1px 0 rgba(232, 225, 212, .1), inset 0 0 0 1px rgba(232, 225, 212, .09), 0 26px 50px -30px rgba(2, 4, 16, .85); }
+.ks.lit[data-mode="dark"] .gua-cards li { background: color-mix(in srgb, var(--card-night) 90%, transparent); box-shadow: inset 0 1px 0 rgba(232, 225, 212, .1), inset 0 0 0 1px rgba(232, 225, 212, .09), var(--lift); }
+.ks.lit[data-mode="dark"] .sheet { background: var(--card-night); }
+.ks.lit[data-mode="dark"] .nav-mark { background: rgba(232, 225, 212, .14); }
+
+/* ---------- the phone ---------- */
+@media (max-width: 960px) {
+  /* the score climb kept its two columns on a phone (a later rule outranked the stacking one) */
+  .ks .pg-in.pg-wide { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  /* things that arrive slide up, not in from the right, so nothing pokes past the screen's edge */
+  .ks .pg-in.rv:not(.on) > :last-child { transform: translateY(28px); }
+  .ks .gua.rv:not(.on) .gua-cards li { transform: translateY(36px); }
+  .ks main { overflow-x: clip; }
+  /* the price comparison scrolls sideways inside its card instead of running off the screen */
+  .ks .dl-compare { grid-template-columns: minmax(0, 1fr); }
+  .ks .dl-compare > * { min-width: 0; max-width: 100%; }
+}
+@media (max-width: 560px) {
+  /* the score climb: a smaller bubble, labels you can read, and three short steps */
+  .ks .sc { padding: 10px 8px 12px; border-radius: 24px; }
+  .ks .sc text { font-size: 21px; }
+  .ks .sc .k { font-size: 18px; }
+  .ks .sc-chip { padding: 4px 10px 5px; border-radius: 11px; translate: -50% calc(-100% - 13px); box-shadow: 0 10px 18px -12px rgba(2, 4, 16, .8); }
+  .ks .sc-chip::after { width: 9px; height: 9px; margin-left: -4.5px; bottom: -4px; border-radius: 2px; }
+  .ks .sc-chip em { font-size: 10px; }
+  .ks.lit .sc-chip .num { font-size: 17px; }
+  .ks .sc-chip[data-end] { translate: -86% calc(-100% - 13px); }
+  .ks .sc-chip[data-end]::after { left: 86%; }
+  .ks .sc figcaption { margin: 4px 8px 0; font-size: 12px; line-height: 1.4; }
+  .ks .pg-moves { gap: 14px; }
+  .ks .pg-moves li { grid-template-columns: 30px minmax(0, 1fr); column-gap: 12px; }
+  .ks .pg-moves li::before { width: 30px; height: 30px; font-size: 14px; }
+  .ks .pg-moves b { font-size: 20px; }
+  .ks .pg-moves span { font-size: 15px; line-height: 1.4; }
+  .ks.lit .pg-sect h2 { font-size: 30px; }
+  .ks.lit .pg-hero h1 { font-size: 36px; }
+  .ks.lit .pg-gain .num { font-size: 88px; }
+  /* the guarantee: the picture sits above its words, so the words get the card's whole width */
+  .ks .gua-cards li { grid-template-columns: minmax(0, 1fr); padding: 16px 18px 18px; row-gap: 4px; }
+  .ks .gua-pic { grid-row: auto; width: 54px; height: 42px; margin-bottom: 4px; }
+  .ks .gua-cards b { font-size: 17px; }
+  .ks .gua-cards span { font-size: 15px; }
+  /* the private plans: the badges sit above the plan's name instead of over it */
+  .ks .pl-badges { position: static; justify-content: center; margin: -8px 0 4px; }
+  .ks .pl-badges em { padding: 5px 10px 6px; font-size: 12px; }
+}
+
+/* ---------- motion: cards drift a little, and light rises through the featured ones ---------- */
+@keyframes ks-drift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+.ks :is(.sc, .pg-bill, .gua-cards li, .co-card, .au-report) { animation: ks-drift 7s ease-in-out infinite; }
+.ks .gua-cards li:nth-child(2) { animation-delay: -2.3s; }
+.ks .gua-cards li:nth-child(3) { animation-delay: -4.6s; }
+.ks .pg-bill { animation-delay: -3.5s; }
+/* pressed on a phone, a card settles under the finger */
+.ks :is(.gua-cards li, .co-card, .pl, .pd-stack article) { transition: scale .35s var(--spring, ease); }
+.ks :is(.gua-cards li, .co-card, .pl, .pd-stack article):active { scale: .985; }
+/* motes: a few points of light rising slowly through a card, at night only */
+@keyframes ks-motes { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 -260px, 0 -360px, 0 -520px; } }
+.ks.lit[data-mode="dark"] :is(.sc, .pg-bill, .gua-cards)::before { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none; opacity: .55; background-image: radial-gradient(1.6px 1.6px at 18% 30%, rgba(232, 225, 212, .9), transparent 70%), radial-gradient(1.2px 1.2px at 62% 70%, rgba(231, 207, 154, .9), transparent 70%), radial-gradient(1.4px 1.4px at 84% 18%, rgba(176, 200, 255, .9), transparent 70%); background-size: 140px 260px, 190px 360px, 230px 520px; animation: ks-motes 26s linear infinite; mask-image: linear-gradient(180deg, transparent, #000 25%, #000 70%, transparent); }
+.ks .gua-cards { position: relative; }
+.ks :is(.sc, .pg-bill, .gua-cards) > * { position: relative; z-index: 1; }
+.ks .sc > .sc-chip { position: absolute; z-index: 2; }
+@media (prefers-reduced-motion: reduce) { .ks :is(.sc, .pg-bill, .gua-cards li, .co-card, .au-report) { animation: none; } .ks :is(.sc, .pg-bill, .gua-cards)::before { animation: none; } }
+.ks.still-motion :is(.sc, .pg-bill, .gua-cards li, .co-card, .au-report) { animation: none; }
+.ks.still-motion :is(.sc, .pg-bill, .gua-cards, .pl)::before { animation: none; }
