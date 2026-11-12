@@ -40,7 +40,8 @@
 .ks .legal li > span:empty { display: none; }
 .ks .legal section { scroll-margin-top: 110px; }
 .ks .legal section + section { margin-top: 8px; padding-top: 8px; border-top: 1px dashed color-mix(in srgb, currentColor 18%, transparent); }
-.ks .legal section > a { display: inline-block; margin-top: 12px; font-weight: 700; }
+.ks .legal section > a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; font-weight: 700; }
+.ks .legal div:has(> a + a) > a, .ks .legal > div:last-child > a:only-child { display: inline-flex; align-items: center; min-height: 44px; }
 /* the links to the other policies at the end */
 .ks .legal div:has(> a + a), .ks .legal > div:last-child:has(> a:only-child) { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 30px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-weight: 700; }
 /* the Cookie Policy's name = purpose lists */
