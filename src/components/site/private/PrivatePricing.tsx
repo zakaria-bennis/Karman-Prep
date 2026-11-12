@@ -88,8 +88,19 @@ function PerSession() {
       <div className="pp-unit">
         <ol>
           {bar(s["more one"] ?? "One at a time", F.extra, s.per, 1)}
-          {bar(F.small.name, F.small.each, `${F.small.price}, ${F.small.sessions} ${s.sessions}`, 1)}
-          {bar(F.large.name, F.large.each, `${F.large.price}, ${F.large.sessions} ${s.sessions}`, 0.834, true)}
+          {bar(
+            F.small.name,
+            F.small.each,
+            `${F.small.price}, ${F.small.sessions} ${s.sessions}`,
+            1
+          )}
+          {bar(
+            F.large.name,
+            F.large.each,
+            `${F.large.price}, ${F.large.sessions} ${s.sessions}`,
+            0.834,
+            true
+          )}
         </ol>
         <div className="pp-say">
           <p>
@@ -183,13 +194,21 @@ function OneDefault() {
         </article>
         <a className="pp-row" href="#call">
           <b>{F.small.name}</b>
-          <span>{pairs(s["small rows"]).map(([, v]) => v).join(" · ")}</span>
+          <span>
+            {pairs(s["small rows"])
+              .map(([, v]) => v)
+              .join(" · ")}
+          </span>
           <strong className="num">{F.small.price}</strong>
           <Arrow />
         </a>
         <a className="pp-row" href={ROUTES.program}>
           <b>{s["cohort name"]}</b>
-          <span>{pairs(s["cohort rows"]).map(([, v]) => v).join(" · ")}</span>
+          <span>
+            {pairs(s["cohort rows"])
+              .map(([, v]) => v)
+              .join(" · ")}
+          </span>
           <strong className="num">{F.cohort.price}</strong>
           <Arrow />
         </a>
