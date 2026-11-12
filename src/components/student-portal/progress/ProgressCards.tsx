@@ -330,6 +330,7 @@ export function RewardsCard({
             </small>
           </span>
         </div>
+        <MoreLink href="/dashboard/student/rewards">Open Rewards</MoreLink>
         <div className={styles.reward}>
           <Fox size={48} />
           <span>
