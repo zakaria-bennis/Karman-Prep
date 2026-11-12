@@ -12,6 +12,7 @@ export const ADMIN_NAV: PortalNavItem[] = [
 
 /** Longest matching prefix wins. */
 const TITLES: Array<[string, string]> = [
+  ["/admin/crm", "CRM"],
   ["/admin/scholarship", "Scholarship"],
   ["/admin/plans", "Plans and subscriptions"],
   ["/admin/affiliates", "Affiliate tutors"],
