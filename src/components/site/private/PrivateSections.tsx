@@ -56,9 +56,7 @@ export default function PrivateSections({ today }: { today: string }) {
         <div className="mist" aria-hidden="true" />
         <div className="pg-in pg-two rv">
           <div className="pg-say">
-            <h2 id="session-h">
-              <span>{book.headline}</span>
-            </h2>
+            <h2 id="session-h">{book.headline}</h2>
             <ul className="pv-points">
               {pairs(book.points).map(([k, v]) => (
                 <li key={k}>
@@ -90,7 +88,8 @@ export default function PrivateSections({ today }: { today: string }) {
               each: F.large.each,
               lead: packs["large lead"],
               bullets: list(packs["large bullets"]),
-              badges: [packs.best, `${packs.save} ${F.saved}`, packs["no limit"]],
+              badge: `${packs.save} ${F.saved}`,
+              was: F.small.each,
             }}
             per={packs.per}
             call={packs.call}

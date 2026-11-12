@@ -287,9 +287,7 @@ small lead: Everything in ${PRO.name}
 small bullets: ${W(P10.hours)} 60-minute sessions, one a week | A tutor from our team of PhD and medical students | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | Session statuses sent within 24 hours after each class | A private text line to the tutor | ${UP_TO.cohort}, or half back / free sessions
 large lead: Everything in ${P10.name}, plus
 large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
-best: Most families pick this
 save: Save
-no limit: No limit on sessions a week
 per: a session
 call: Schedule a free call
 link: The guarantee, in full

@@ -10,7 +10,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
 import { okEmail, okPhone } from "@/lib/marketing/lead-rules";
-import FoxCheer from "./FoxCheer";
+import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
   fmtTime,
@@ -146,6 +146,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   if (done)
     return (
       <div className="cf cf-done" id="call" tabIndex={-1} ref={doneBox} role="status">
+        <Confetti />
         <FoxCheer />
         <h3>{w.doneTitle}</h3>
         <p>{when}</p>

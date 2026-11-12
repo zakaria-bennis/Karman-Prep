@@ -7,11 +7,11 @@
 //
 // TEMPORARY (2026-11-12): three motion designs for the founder to choose from, switched by the small row
 // under the card on the dev server only (private.css, "motion designs"):
-//   1 Paper   paper bits rain over the card when a session is booked; the times bounce in
+//   1 Bounce  the times bounce in
 //   2 Doodles pen doodles draw themselves around the card: an arrow, stars, a loop
 //   3 Tickets small coloured session tickets drift behind the card; one flies in when you book
 import { useEffect, useRef, useState } from "react";
-import FoxCheer from "./FoxCheer";
+import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, { fmtTime, longDay, openHours, useDays, type SlotWords } from "./SlotPicker";
 
 export interface DemoWords extends SlotWords {
@@ -143,11 +143,7 @@ export default function SessionDemo({ w, today }: { w: DemoWords; today: string 
             </button>
           </>
         )}
-        <div className="bk-rain" aria-hidden="true">
-          {Array.from({ length: 16 }, (_, i) => (
-            <i key={i} style={{ "--n": i } as React.CSSProperties} />
-          ))}
-        </div>
+        {done ? <Confetti /> : null}
       </div>
       {PICK ? (
         <p className="bk-pick">
