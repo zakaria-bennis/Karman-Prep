@@ -84,7 +84,7 @@
 .ks .bk-hold { width: 120px; height: 5px; margin-top: 14px; border-radius: 3px; background: color-mix(in srgb, currentColor 10%, transparent); overflow: hidden; }
 .ks .bk-hold::after { content: ""; display: block; height: 100%; border-radius: 3px; background: var(--a); transform-origin: left; animation: bk-hold 3s linear both; }
 @keyframes bk-hold { from { scale: 1 1; } to { scale: 0 1; } }
-.ks.lit[data-mode="dark"] .bk { background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
+.ks.lit[data-mode="dark"] .bk { background: var(--card-night); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
 .ks.lit[data-mode="dark"] :is(.bk, .cf) .sp { --on-ink: #17151c; }
 .ks.lit[data-mode="dark"] .bk-go { color: #17151c; }
 

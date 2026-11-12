@@ -21,3 +21,4 @@ import "./styles/alive.css";
 import "./styles/site.css";
 import "./styles/relit.css";
 import "./styles/legal.css";
+import "./styles/polish.css";

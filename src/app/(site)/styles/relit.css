@@ -6,7 +6,7 @@
 /* ---------- shared ---------- */
 .ks.relit { --r-panel: 28px; --card-lift: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
 /* night: everything inside the page turns to cream words on night cards; the bar and footer have their own */
-.ks.relit[data-mode="dark"] main { --ink: #fffaf3; --ink2: #cdc7d6; --line: rgba(255, 250, 243, .2); --soft: rgb(24, 22, 30); --paper: rgb(24, 22, 30); --card: rgb(24, 22, 30); --solid: #fffaf3; --on-solid: #1d1a22; --go: #e7cf9a; --marigold: #e7cf9a; --marigold-ink: #e7cf9a; --marigold-hi: #f1dcab; --card-lift: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
+.ks.relit[data-mode="dark"] main { --ink: #fffaf3; --ink2: #cdc7d6; --line: rgba(255, 250, 243, .2); --soft: var(--card-night); --paper: var(--card-night); --card: var(--card-night); --solid: #fffaf3; --on-solid: #1d1a22; --go: #e7cf9a; --marigold: #e7cf9a; --marigold-ink: #e7cf9a; --marigold-hi: #f1dcab; --card-lift: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
 .ks.relit[data-mode="dark"] main .btn .go { color: #1d1a22; }
 /* every section sits on a band of mist that fades out above and below it */
 .ks.relit main > section { position: relative; isolation: isolate; }
