@@ -7,11 +7,24 @@ import { type CohortPayment } from "./cohort-installments";
 import { cohortInstallmentSpecs, priceLabel, type StripePriceSpec } from "./prices";
 
 /**
- * Card plus buy now, pay later on one-payment checkouts (Cohort, Private 10, Private 20).
+ * Card plus Stripe Link on every checkout. Founder, 2026-11-12: push Link, because a returning
+ * Link customer has everything saved and finishes in a tap. Checkout puts the Link button above
+ * the card form on its own; listing "link" next to "card" is what Stripe's docs require when
+ * payment_method_types is given. Link must also be on in the Dashboard's payment method settings.
+ */
+export const CARD_METHODS = ["card", "link"] as const;
+
+/**
+ * Card, Link and buy now, pay later on one-payment checkouts (Cohort, Private 10, Private 20).
  * Founder, 2026-11-08. Checked on the Stripe test account on 8 Nov: Klarna, Affirm and
  * Afterpay all open on $995, $1,495 and $2,495. Each must also be on in live mode at launch.
  */
-export const ONE_PAYMENT_METHODS = ["card", "klarna", "affirm", "afterpay_clearpay"] as const;
+export const ONE_PAYMENT_METHODS = [
+  ...CARD_METHODS,
+  "klarna",
+  "affirm",
+  "afterpay_clearpay",
+] as const;
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -94,7 +107,7 @@ export async function createCheckoutSession({
     return stripe.checkout.sessions.create({
       customer: customerId,
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: [...CARD_METHODS],
       line_items: [{ price: deposit.id, quantity: 1 }],
       payment_intent_data: { setup_future_usage: "off_session", metadata },
       success_url: successUrl,
@@ -107,7 +120,7 @@ export async function createCheckoutSession({
   const metadata = { userId, planId: spec.planId, term: spec.term, ...cohort };
   const shared: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
-    payment_method_types: ["card"],
+    payment_method_types: [...CARD_METHODS],
     line_items: [{ price: price.id, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
