@@ -454,7 +454,6 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 logo: Karman
 free test link: Free practice test
 start free: Start free
-calculator link: Calculator
 program link: The SAT Program
 private link: Private tutoring
 schools link: Schools
@@ -481,7 +480,6 @@ tiktok link: TikTok
 youtube link: YouTube
 sat note: SAT® is a trademark registered by the College Board, which is not affiliated with, and does not endorse, Karman Prep.
 menu: Menu
-close: Close
 pause: Hold the painting still
 play: Let the painting move
 dark mode: Dark mode

@@ -73,19 +73,20 @@
 .ks .sheet .theme { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--line); font-weight: 700; align-self: flex-start; }
 .ks.theming, .ks.theming * { transition: background-color .5s var(--ease), color .5s var(--ease), border-color .5s var(--ease) !important; }
 .ks .hd .menu { display: none; border: 1.5px solid currentColor; font-weight: 700; }
+.ks .hd .menu i { display: none; }
 @media (max-width: 960px) { .ks .hd .nl { display: none; } .ks .hd .menu { display: inline-flex; } }
 @media (max-width: 960px) { .ks .hd .theme { display: none; } }
 @media (max-width: 440px) { .ks .hd .cta { display: none; } }
 
 /* phone menu */
-.ks .sheet { position: fixed; inset: 0; z-index: 120; background: var(--paper); color: var(--ink); padding: 12px var(--gutter) 32px; display: flex; flex-direction: column; gap: 28px; overflow-y: auto; }
+.ks .sheet { position: fixed; inset: 84px var(--gutter) auto auto; z-index: 120; width: min(330px, calc(100vw - 2 * var(--gutter))); max-height: calc(100svh - 110px); background: var(--paper); color: var(--ink); padding: 12px 22px 22px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; overscroll-behavior: contain; border-radius: 30px; box-shadow: 0 24px 50px -24px rgba(29, 26, 34, .6); transform-origin: 90% 0; animation: sheet-in .45s var(--spring) both; }
+@keyframes sheet-in { from { opacity: 0; transform: scale(.7) translateY(-12px); } }
+@media (min-width: 961px) { .ks .sheet { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ks .sheet { animation: none; } }
 .ks .sheet[hidden] { display: none; }
-.ks .sheet .top { display: flex; justify-content: space-between; align-items: center; min-height: 48px; }
-.ks .sheet .close { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--ink); border-radius: 999px; font-weight: 700; }
-.ks .sheet nav { display: grid; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
-.ks .sheet nav a { min-height: 60px; display: flex; align-items: center; text-decoration: none; border-bottom: 1px solid var(--line); }
-.ks .sheet .btn { align-self: flex-start; }
-html.ks-lock { overflow: hidden; }
+.ks .sheet nav { display: grid; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+.ks .sheet nav a { min-height: 50px; display: flex; align-items: center; text-decoration: none; border-bottom: 1px solid var(--line); }
+.ks .sheet .btn { align-self: stretch; justify-content: center; }
 
 /* ---------- type ---------- */
 .ks h1, .ks h2 { font-weight: 800; letter-spacing: -0.045em; line-height: .96; text-wrap: balance; }

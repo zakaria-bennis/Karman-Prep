@@ -30,10 +30,21 @@ const IDLE_MS = 60_000;
 const TURN_MS = 1500;
 const STOPS = 6;
 const STILL_TIME = 40;
-/* How many pixels to draw: where it starts, and how far it may go either way. */
-const START_PX = 620_000;
-const MAX_PX = 1_500_000;
-const MIN_PX = 130_000;
+/* How many pixels to draw: where it starts, how far it may go either way, and how long one picture may
+   take (slower than SLOW_MS: draw fewer pixels; quicker than FAST_MS: draw more). A phone's graphics chip
+   also has to scroll the page, at up to 120 pictures a second, so a phone starts smaller and the landscape
+   may only use a small share of each moment; otherwise scrolling drags. */
+interface Pace {
+  start: number;
+  max: number;
+  min: number;
+  slowMs: number;
+  fastMs: number;
+}
+const DESK: Pace = { start: 620_000, max: 1_500_000, min: 130_000, slowMs: 16, fastMs: 7 };
+const PHONE: Pace = { start: 300_000, max: 620_000, min: 110_000, slowMs: 8, fastMs: 3.5 };
+const paceFor = (): Pace =>
+  matchMedia("(pointer: coarse)").matches || Math.min(innerWidth, innerHeight) < 700 ? PHONE : DESK;
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
@@ -53,7 +64,8 @@ export class Flight {
   private p = -1;
   private night = 0;
   private turn: { from: number; to: number; at: number } | null = null;
-  private budget = START_PX;
+  private rate = DESK;
+  private budget = DESK.start;
   private slow = 0;
   private fast = 0;
   private frames = 0;
@@ -76,6 +88,8 @@ export class Flight {
     });
     if (!gl) return false;
     this.gl = gl;
+    this.rate = paceFor();
+    this.budget = this.rate.start;
     if (!this.build()) return false;
     const { signal } = this.stop;
     const touch = () => this.wake();
@@ -217,13 +231,14 @@ export class Flight {
     this.draw(p, night, time);
     gl.finish();
     const ms = performance.now() - t0;
-    this.slow = ms > 22 ? this.slow + 1 : 0;
-    this.fast = ms < 7 ? this.fast + 1 : 0;
-    if (this.slow >= 2 && this.budget > MIN_PX) {
-      this.budget = Math.max(MIN_PX, this.budget * 0.7);
+    const { min, max, slowMs, fastMs } = this.rate;
+    this.slow = ms > slowMs ? this.slow + 1 : 0;
+    this.fast = ms < fastMs ? this.fast + 1 : 0;
+    if (this.slow >= 2 && this.budget > min) {
+      this.budget = Math.max(min, this.budget * 0.7);
       this.slow = 0;
-    } else if (this.fast >= 4 && this.budget < MAX_PX) {
-      this.budget = Math.min(MAX_PX, this.budget * 1.25);
+    } else if (this.fast >= 4 && this.budget < max) {
+      this.budget = Math.min(max, this.budget * 1.25);
       this.fast = 0;
     }
   }

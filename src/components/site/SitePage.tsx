@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Anton, Hanken_Grotesk } from "next/font/google";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
+import { TEXT_SIZE_BOOT } from "./text-size";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
@@ -133,13 +134,7 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.tutors, "tutors link"],
     ],
   ],
-  [
-    "footer tools",
-    [
-      [ROUTES.test, "free test link"],
-      [ROUTES.calculator, "calculator link"],
-    ],
-  ],
+  ["footer tools", [[ROUTES.test, "free test link"]]],
   [
     "footer company",
     [
@@ -184,6 +179,7 @@ export default function SitePage({
       suppressHydrationWarning
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: TEXT_SIZE_BOOT }} />
       <a className="skip" href="#main">
         Skip to content
       </a>
@@ -201,7 +197,7 @@ export default function SitePage({
           <a className="nl" href={ROUTES.pricing}>
             {SITE["pricing link"]}
           </a>
-          <a className="nl" href={ROUTES.signIn}>
+          <a className="nl si" href={ROUTES.signIn}>
             {SITE["sign in link"]}
           </a>
           <a className="cta" href={ROUTES.signUp}>
@@ -209,24 +205,12 @@ export default function SitePage({
           </a>
           <ThemeButton />
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
-            {SITE.menu}
+            <span>{SITE.menu}</span>
+            <i aria-hidden="true" />
           </button>
         </nav>
       </header>
-      <div
-        className="sheet"
-        id="menu"
-        role="dialog"
-        aria-modal="true"
-        aria-label={SITE.menu}
-        hidden
-      >
-        <div className="top">
-          <span className="mark">{SITE.logo}</span>
-          <button className="close" type="button">
-            {SITE.close}
-          </button>
-        </div>
+      <div className="sheet" id="menu" hidden>
         <nav aria-label="Menu links">
           {MENU.map(([href, t]) => (
             <a key={t} href={href}>

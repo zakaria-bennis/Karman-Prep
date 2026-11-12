@@ -189,6 +189,22 @@ for (const [size, width, height, mode] of [
     );
     await page.keyboard.press("Escape");
     say(await page.locator("#menu").isHidden(), "phone: Escape closes the menu");
+    await page.locator(".hd .menu").click();
+    await page.locator(".hd .menu").click();
+    say(await page.locator("#menu").isHidden(), "phone: the menu button closes the menu it opened");
+    await page.locator(".hd .menu").click();
+    await page.mouse.click(4, Math.round(height * 0.6));
+    say(await page.locator("#menu").isHidden(), "phone: a tap outside closes the menu");
+    const bar = await page.evaluate(() =>
+      [".hd .cta", ".hd .theme", ".hd .menu"].map((sel) => {
+        const b = document.querySelector(sel).getBoundingClientRect();
+        return [Math.round(b.left), Math.round(b.height)];
+      })
+    );
+    say(
+      bar.every(([, h]) => h > 30 && h < 52) && bar[0][0] < bar[1][0] && bar[1][0] < bar[2][0],
+      "phone: Start free (one line), the switch and the menu sit in the bar in that order"
+    );
   }
   if (size === "desktop") {
     /* the switch travels with the page; flipping it changes the mode and leaves the reader where they are */
