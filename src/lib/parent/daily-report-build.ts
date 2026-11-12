@@ -53,6 +53,8 @@ export interface ReportSkill {
   label: string;
   answered: number;
   correct: number;
+  /** The skill's level at the end of the day, from its answers. */
+  level: SkillLevel;
   /** Set when the skill reached Learning or higher that day. */
   levelUp: { from: SkillLevel; to: SkillLevel } | null;
   /** True when the day's answers were the skill's first ever. */
@@ -175,6 +177,7 @@ function skillsOfDay(
       label: skillLabel(id, today[0].skillId),
       answered: today.length,
       correct: today.filter((a) => a.correct).length,
+      level: to,
       levelUp: to > from && to >= 2 ? { from, to } : null,
       firstTry: before.length === 0,
     });
