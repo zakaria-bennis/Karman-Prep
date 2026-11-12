@@ -9,7 +9,8 @@
 // Posture decisions (locked):
 //   - Opt-in by default in EU/EEA/UK + US-CA only.
 //   - Binary consent (no granular categories).
-//   - Bottom slide-up (non-blocking, dismissable via Accept/Decline).
+//   - A small card in the bottom corner (founder, 2026-11-12: short, friendly, one big
+//     "Allow all", with "Essentials only" beside it as the real way to decline).
 //   - Choice persists "forever" (cookie max-age 100y) — see
 //     /api/consent/route.ts.
 //
@@ -24,7 +25,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Shield, X } from "lucide-react";
+import "./consent.css";
 
 /** Portal and quiz screens have a fixed Submit bar or phone tab bar at the bottom. The banner
  *  never covers them (design rule 34), so it shows on the public site only. Without an answer
@@ -55,8 +56,9 @@ interface Props {
   privacyHref?: string;
 }
 
-export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: Props) {
+export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: Props) {
   const [dismissed, setDismissed] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const pathname = usePathname();
 
@@ -79,7 +81,10 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
       setSubmitting(false);
       return;
     }
-    setDismissed(true);
+    // The cookie takes its bite and the card drops away; reduced motion skips straight to gone.
+    setLeaving(true);
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setTimeout(() => setDismissed(true), still ? 0 : 380);
   }
 
   return (
@@ -87,50 +92,44 @@ export default function ReplayConsentBanner({ show, privacyHref = "/privacy" }: 
       role="dialog"
       aria-labelledby="replay-consent-title"
       aria-describedby="replay-consent-body"
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-ivory/10 bg-night/95 backdrop-blur-md"
+      className="kc"
+      data-leaving={leaving ? "" : undefined}
     >
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
-        <Shield className="h-5 w-5 shrink-0 text-info-bright" aria-hidden="true" />
-        <div className="flex-1">
-          <p id="replay-consent-title" className="text-sm font-bold text-ivory">
-            Help us debug your experience?
-          </p>
-          <p id="replay-consent-body" className="mt-0.5 text-xs text-taupe">
-            With your permission, Karman records anonymized session activity (clicks, navigation,
-            page text) so we can reproduce bugs. Sensitive fields are masked and never sent. You can
-            change this anytime from{" "}
-            <a href={privacyHref} className="underline hover:text-info-bright">
-              Privacy
-            </a>
-            .
+      <div className="kc-top">
+        <svg className="kc-cookie" viewBox="0 0 48 48" aria-hidden="true">
+          <circle className="crumb" cx="24" cy="25" r="20" />
+          <circle className="dough" cx="24" cy="24" r="19" />
+          <circle className="chip" cx="16" cy="18" r="2.6" />
+          <circle className="chip" cx="28" cy="15" r="2.2" />
+          <circle className="chip" cx="31" cy="28" r="2.8" />
+          <circle className="chip" cx="19" cy="31" r="2.3" />
+          <circle className="chip" cx="24" cy="23" r="1.6" />
+          <g className="bite">
+            <circle cx="40" cy="6" r="7" />
+            <circle cx="45" cy="13" r="6" />
+            <circle cx="33" cy="3" r="6" />
+          </g>
+        </svg>
+        <div>
+          <h2 id="replay-consent-title">Cookies? Just the boring kind.</h2>
+          <p id="replay-consent-body">
+            Allow all and we can replay a session to squash bugs. Anything you type stays hidden.{" "}
+            <a href={privacyHref}>Details</a>
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => submit("no")}
-            disabled={submitting}
-            className="rounded-lg border border-ivory/15 bg-surface/[0.04] px-3 py-1.5 text-xs font-semibold text-ivory hover:bg-surface/[0.08] disabled:opacity-50"
-          >
-            Decline
-          </button>
-          <button
-            type="button"
-            onClick={() => submit("yes")}
-            disabled={submitting}
-            className="rounded-lg bg-info px-4 py-1.5 text-xs font-semibold text-black hover:bg-info-bright disabled:opacity-50"
-          >
-            Allow
-          </button>
-          <button
-            type="button"
-            aria-label="Dismiss without choosing"
-            onClick={() => setDismissed(true)}
-            className="rounded-lg p-1 text-taupe hover:bg-surface/[0.05] hover:text-ivory"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+      </div>
+      <div className="kc-acts">
+        <button type="button" className="kc-go" onClick={() => submit("yes")} disabled={submitting}>
+          Allow all
+        </button>
+        <button
+          type="button"
+          className="kc-less"
+          onClick={() => submit("no")}
+          disabled={submitting}
+        >
+          Essentials only
+        </button>
       </div>
     </div>
   );
