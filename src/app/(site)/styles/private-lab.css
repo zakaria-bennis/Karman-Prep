@@ -76,7 +76,7 @@
 .ks .bc-line li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: center; }
 .ks .bc-line span { font-size: 13px; font-weight: 800; color: var(--ink2); text-align: right; }
 .ks .bc-line button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; text-align: left; font: inherit; font-size: 14.5px; font-weight: 800; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--ink) 9%, transparent) 0 8px, color-mix(in srgb, var(--ink) 4%, transparent) 8px 16px); color: var(--ink2); }
-.ks .bc-line li[data-free] button { background: color-mix(in srgb, var(--a) 12%, transparent); box-shadow: inset 4px 0 0 var(--a); color: var(--a); cursor: pointer; transition: transform .35s var(--spring), background-color .2s var(--out); }
+.ks .bc-line li[data-free] button { background: color-mix(in srgb, var(--a) 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--a) 40%, transparent); color: var(--a); cursor: pointer; transition: transform .35s var(--spring), background-color .2s var(--out); }
 .ks .bc-line li[data-on] button { background: var(--a); color: #fff; transform: translateX(6px); }
 /* on a phone */
 .ks .bc[data-look="phone"] { width: min(100%, 360px); justify-self: center; padding: 14px; border-radius: 46px; background: #17151c; box-shadow: 0 40px 70px -36px rgba(29, 26, 34, .9), inset 0 0 0 2px #3a3542; }
