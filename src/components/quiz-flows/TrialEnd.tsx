@@ -7,6 +7,7 @@ import type { RunView } from "@/lib/assembler/run-types";
 import {
   formatClock,
   formatMultiplier,
+  formatPercent,
   trialSectionTitle,
   type TrialRoundResult,
 } from "@/lib/student/time-trial";
@@ -17,15 +18,20 @@ import { SectionReviews } from "./TestReport";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
 
-const percent = (share: number) => `${Math.round(share * 100)}%`;
+const percent = formatPercent;
 
-/** One plain sentence on why the next round's pace is what it is. */
+/** Plain sentences: the bar, where it came from, and why the next pace is what it is. */
 export function trialVerdict(trial: TrialRoundResult): string {
+  const bar = percent(trial.bar);
+  const source =
+    trial.baseline.basis === "history"
+      ? `your untimed accuracy is ${percent(trial.baseline.accuracy)}`
+      : "that's our starting bar until we know your untimed accuracy";
+  const why = `Your bar was ${bar} (${source}).`;
   if (trial.held && trial.nextMultiplier < trial.multiplier)
-    return "Accuracy held, so the clock gets 5% tighter next round.";
-  if (trial.held) return "Accuracy held at the fastest pace. Keep it there.";
-  const needed = Math.max(0.7, trial.referenceAccuracy ?? 0);
-  return `Next round stays at this pace until you get ${percent(needed)} or more right.`;
+    return `${why} You kept it, so the clock gets 5% tighter next round.`;
+  if (trial.held) return `${why} You kept it at the fastest pace. Keep it there.`;
+  return `${why} Next round stays at this pace until you get ${bar} or more right.`;
 }
 
 export function TrialEnd({
@@ -56,6 +62,9 @@ export function TrialEnd({
               <p className={s.facts}>
                 <span>
                   Accuracy <Num>{percent(trial.accuracy)}</Num>
+                </span>
+                <span>
+                  Your bar <Num>{percent(trial.bar)}</Num>
                 </span>
                 <span>
                   Time used <Num>{formatClock(trial.elapsedSeconds)}</Num> of{" "}

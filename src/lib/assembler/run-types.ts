@@ -2,7 +2,7 @@
    time trial). */
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
 import type { SkillLevel } from "@/lib/levels/rules";
-import type { TrialRoundResult, TrialStanding } from "@/lib/student/time-trial";
+import type { TrialRoundResult, TrialStart } from "@/lib/student/time-trial";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
 export type RunKind =
@@ -34,8 +34,8 @@ export type RunForm = {
   sections: RunSectionForm[];
   /** Practice set: questions are chosen one at a time from the frozen pool. */
   adaptive?: { size: number; skillId: string; startDifficulty: number; maxDifficulty: number };
-  /** Time trial: the round and pace this run was started at. */
-  trial?: TrialStanding;
+  /** Time trial: the round, pace and accuracy baseline this run was started with. */
+  trial?: TrialStart;
 };
 
 export type RunResponse = {

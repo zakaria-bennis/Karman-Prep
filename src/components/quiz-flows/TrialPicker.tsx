@@ -6,8 +6,10 @@ import type { TrialStatus } from "@/lib/assembler/time-trial-run";
 import { TIME_TRIAL } from "@/lib/student/quiz-routes";
 import {
   TRIAL_MODULE,
+  accuracyBar,
   formatClock,
   formatMultiplier,
+  formatPercent,
   trialSeconds,
   trialSectionTitle,
 } from "@/lib/student/time-trial";
@@ -20,14 +22,16 @@ export function TrialPicker({ status, exitHref }: { status: TrialStatus[]; exitH
         <SectionHeader title="Time trials" />
         <p className="kp-meta" id="trial-pick">
           One section against the clock. Round one gives you 1.25 times the real SAT time. Every
-          round you hold your accuracy, the clock gets 5% tighter, down to 0.75.
+          round you keep your usual accuracy, the clock gets 5% tighter, down to 0.75. Your bar
+          comes from your own untimed accuracy in that section, so going faster never costs you
+          points.
         </p>
         <div>
-          {status.map(({ section, standing, open, last }) => (
+          {status.map(({ section, start, open, last }) => (
             <Row
               key={section}
               title={trialSectionTitle(section)}
-              sub={`Round ${standing.round}: ${formatClock(trialSeconds(section, standing.multiplier))} for ${TRIAL_MODULE[section].questions} questions, ${formatMultiplier(standing.multiplier)} the SAT time${last ? `. Last round ${last.correct} of ${last.questions}` : ""}`}
+              sub={`Round ${start.round}: ${formatClock(trialSeconds(section, start.multiplier))} for ${TRIAL_MODULE[section].questions} questions, ${formatMultiplier(start.multiplier)} the SAT time. Keep at least ${formatPercent(accuracyBar(start.baseline))} right${last ? `. Last round ${last.correct} of ${last.questions}` : ""}`}
               href={`${TIME_TRIAL.path}?section=${section}`}
               right={open ? "Resume" : "Start"}
             />

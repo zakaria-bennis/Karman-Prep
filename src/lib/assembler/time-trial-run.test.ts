@@ -12,6 +12,8 @@ const m = vi.hoisted(() => ({
   updateRun: vi.fn(),
   loadAdmittedBank: vi.fn(),
   loadQuizAccess: vi.fn(),
+  skillAnswers: vi.fn(),
+  runAnswers: [] as { skill_id: string; is_correct: boolean; answered_at: string }[],
   inserts: [] as { table: string; row: Record<string, unknown> }[],
   updates: [] as { table: string; row: Record<string, unknown> }[],
   assigned: [] as { id: string }[],
@@ -38,6 +40,7 @@ vi.mock("./run-view", async (actual) => ({
   ...(await actual<typeof import("./run-view")>()),
   buildView: (r: RunRecord) => ({ id: r.id, sections: r.form.sections }),
 }));
+vi.mock("@/lib/student/skill-levels-server", () => ({ loadSkillAnswers: m.skillAnswers }));
 vi.mock("@/lib/supabase/server", () => ({
   createAdminClient: () => ({
     from(table: string) {
@@ -46,9 +49,15 @@ vi.mock("@/lib/supabase/server", () => ({
         eq: () => chain,
         is: () => chain,
         not: () => chain,
+        in: () => chain,
+        gte: () => chain,
         lte: () => chain,
         order: () => chain,
-        limit: () => Promise.resolve({ data: m.assigned, error: null }),
+        limit: () =>
+          Promise.resolve({
+            data: table === "quiz_run_responses" ? m.runAnswers : m.assigned,
+            error: null,
+          }),
         insert: (row: Record<string, unknown>) => {
           m.inserts.push({ table, row });
           return Promise.resolve({ error: null });
@@ -63,6 +72,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { PlanLimitError } from "./plan-gate";
 import { finishTimeTrial, loadTrialStatus, startTimeTrial, trialRoundOf } from "./time-trial-run";
 
@@ -91,7 +101,7 @@ const run = (over: Partial<RunRecord> = {}): RunRecord => ({
   form: {
     title: "Time trial",
     grading: "end",
-    trial: { round: 2, multiplier: 1.2, referenceAccuracy: 0.7 },
+    trial: { round: 2, multiplier: 1.2, baseline: { accuracy: 0.8, basis: "default", sample: 0 } },
     sections: [
       {
         key: "rw1",
@@ -130,6 +140,8 @@ beforeEach(() => {
   m.inserts.length = 0;
   m.updates.length = 0;
   m.assigned = [];
+  m.runAnswers = [];
+  m.skillAnswers.mockResolvedValue([]);
   m.findOpenRun.mockResolvedValue(null);
   m.latestFinishedRun.mockResolvedValue(null);
   m.answeredInRuns.mockResolvedValue(new Map());
@@ -151,7 +163,11 @@ describe("startTimeTrial", () => {
     const view = await startTimeTrial("student-1", "reading");
     const input = m.insertRun.mock.calls[0][0];
     expect(input).toMatchObject({ kind: "time-trial", scope: "reading" });
-    expect(input.form.trial).toEqual({ round: 1, multiplier: 1.25, referenceAccuracy: null });
+    expect(input.form.trial).toEqual({
+      round: 1,
+      multiplier: 1.25,
+      baseline: { accuracy: 0.8, basis: "default", sample: 0 },
+    });
     expect(input.form.grading).toBe("end");
     expect(input.form.sections[0].questionIds).toHaveLength(27);
     expect(input.form.sections[0].seconds).toBe(2400);
@@ -171,11 +187,11 @@ describe("startTimeTrial", () => {
       tokens: 0,
       trial: trialRoundOf(done, [], 0)!,
     };
-    done.result.trial = { ...done.result.trial!, nextMultiplier: 1.15, nextReferenceAccuracy: 0.9 };
+    done.result.trial = { ...done.result.trial!, nextMultiplier: 1.15 };
     m.latestFinishedRun.mockResolvedValue(done);
     await startTimeTrial("student-1", "reading");
     const input = m.insertRun.mock.calls[0][0];
-    expect(input.form.trial).toEqual({ round: 3, multiplier: 1.15, referenceAccuracy: 0.9 });
+    expect(input.form.trial).toMatchObject({ round: 3, multiplier: 1.15 });
     expect(input.form.sections[0].seconds).toBe(2208);
   });
 
@@ -201,15 +217,65 @@ describe("startTimeTrial", () => {
   });
 });
 
+describe("the accuracy baseline", () => {
+  const skill = (subject: string) =>
+    CATALOG_SKILLS.find((s) => (subject === "math") === (s.subject === "math"))!.id;
+  it("freezes the student's own untimed accuracy in that section into the round", async () => {
+    const recent = new Date(Date.now() - 86_400_000).toISOString();
+    // 20 run answers and 20 catalog answers in Reading and Writing, 24 right; Math is ignored.
+    m.runAnswers = [
+      ...Array.from({ length: 20 }, (_, i) => ({
+        skill_id: skill("reading"),
+        is_correct: i < 12,
+        answered_at: recent,
+      })),
+      ...Array.from({ length: 50 }, () => ({
+        skill_id: skill("math"),
+        is_correct: true,
+        answered_at: recent,
+      })),
+    ];
+    m.skillAnswers.mockResolvedValue(
+      Array.from({ length: 20 }, (_, i) => ({
+        skillId: skill("reading"),
+        correct: i < 12,
+        at: recent,
+      }))
+    );
+    await startTimeTrial("student-1", "reading");
+    const trial = m.insertRun.mock.calls[0][0].form.trial;
+    expect(trial.baseline).toEqual({ accuracy: 0.6, basis: "history", sample: 40 });
+  });
+
+  it("judges the round by the frozen baseline minus 5 points", async () => {
+    const r = run({
+      completedAt: "2026-11-12T08:40:00.000Z",
+      result: { right: 6, total: 10, sections: [], skills: [], tokens: 0 },
+    });
+    r.form.trial = {
+      round: 2,
+      multiplier: 1.2,
+      baseline: { accuracy: 0.6, basis: "history", sample: 40 },
+    };
+    const ids = r.form.sections[0].questionIds;
+    const at = (n: number) =>
+      trialRoundOf(
+        r,
+        ids.map((id, i) => answer(id, i < n)),
+        600
+      )!;
+    expect(at(6)).toMatchObject({ bar: 0.55, held: true, nextMultiplier: 1.15 });
+    expect(at(5)).toMatchObject({ held: false, nextMultiplier: 1.2 });
+  });
+});
+
 describe("loadTrialStatus", () => {
   it("shows round one for both sections with no history", async () => {
     const status = await loadTrialStatus("student-1");
-    expect(status.map((s) => [s.section, s.standing.round, s.standing.multiplier, s.open])).toEqual(
-      [
-        ["reading", 1, 1.25, false],
-        ["math", 1, 1.25, false],
-      ]
-    );
+    expect(status.map((s) => [s.section, s.start.round, s.start.multiplier, s.open])).toEqual([
+      ["reading", 1, 1.25, false],
+      ["math", 1, 1.25, false],
+    ]);
   });
 });
 

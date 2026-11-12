@@ -36,7 +36,7 @@ export default async function TimeTrialPage({ searchParams }: Props) {
       key={`${picked.section}:${again ?? ""}`}
       user={user}
       section={picked.section}
-      standing={picked.standing}
+      start={picked.start}
       resumable={picked.open}
       exitHref={EXIT}
     />
