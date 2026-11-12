@@ -9,6 +9,7 @@ import "./styles/home.css";
 import "./styles/painted.css";
 import "./styles/foot.css";
 import "./styles/program.css";
+import "./styles/audience.css";
 import "./styles/inner.css";
 import "./styles/pricing.css";
 import "./styles/photos.css";
