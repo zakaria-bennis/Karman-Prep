@@ -112,14 +112,14 @@
 /* ---------- 5. bare type: no cards, large prices on the landscape ---------- */
 .ks .pz[data-look="bare"] .pz-cards { width: min(100%, calc(var(--n) * 400px)); gap: 0; }
 .ks .pz[data-look="bare"] .pz-card { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border-radius: 0; padding: 8px clamp(18px, 2.6vw, 38px) 12px; translate: none; }
-.ks .pz[data-look="bare"] .pz-card + .pz-card { border-left: 2px solid color-mix(in srgb, currentColor 22%, transparent); }
+.ks .pz[data-look="bare"] .pz-card + .pz-card { border-left: 1px solid color-mix(in srgb, currentColor 26%, transparent); }
 .ks.lit .pz[data-look="bare"] .pz-price .num { font-size: clamp(60px, 6.4vw, 100px); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -.02em; }
 .ks .pz[data-look="bare"] .pz-card[data-best] .num { color: var(--a); }
 .ks .pz[data-look="bare"] .pz-head { order: 2; }
 .ks .pz[data-look="bare"] .pz-price { order: 1; }
 .ks .pz[data-look="bare"] .pz-award { order: 0; }
 .ks .pz[data-look="bare"] :is(.pz-when, .pz-list, .pz-go) { order: 3; }
-@media (max-width: 900px) { .ks .pz[data-look="bare"] .pz-card + .pz-card { border-left: 0; border-top: 2px solid color-mix(in srgb, currentColor 22%, transparent); padding-top: 22px; } .ks .pz[data-look="bare"] .pz-cards { gap: 14px; } }
+@media (max-width: 900px) { .ks .pz[data-look="bare"] .pz-card + .pz-card { border-left: 0; border-top: 1px solid color-mix(in srgb, currentColor 26%, transparent); padding-top: 22px; } .ks .pz[data-look="bare"] .pz-cards { gap: 14px; } }
 
 /* the layout switch, on the dev server only */
 .ks .pz-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 4px 0 0; }
