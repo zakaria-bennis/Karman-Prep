@@ -1,0 +1,22 @@
+[
+  {
+    "label": "Home",
+    "path": "/",
+    "file": "recordings/home.webm"
+  },
+  {
+    "label": "Schools, with the partner map",
+    "path": "/schools#partners",
+    "file": "recordings/schools-with-the-partner-map.webm"
+  },
+  {
+    "label": "Program",
+    "path": "/program",
+    "file": "recordings/program.webm"
+  },
+  {
+    "label": "Pricing",
+    "path": "/pricing",
+    "file": "recordings/pricing.webm"
+  }
+]

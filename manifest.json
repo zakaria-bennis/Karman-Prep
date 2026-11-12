@@ -1,0 +1,471 @@
+[
+  {
+    "section": "Site",
+    "label": "Home",
+    "path": "/",
+    "file": "site/001-home-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Program",
+    "path": "/program",
+    "file": "site/002-program-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Private tutoring",
+    "path": "/private-tutoring",
+    "file": "site/003-private-tutoring-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Pricing",
+    "path": "/pricing",
+    "file": "site/004-pricing-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Guarantee",
+    "path": "/guarantee",
+    "file": "site/005-guarantee-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "About",
+    "path": "/about",
+    "file": "site/006-about-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "FAQ",
+    "path": "/faq",
+    "file": "site/007-faq-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Research",
+    "path": "/research",
+    "file": "site/008-research-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Schools",
+    "path": "/schools",
+    "file": "site/009-schools-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "For tutors",
+    "path": "/for-tutors",
+    "file": "site/010-for-tutors-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Free practice test",
+    "path": "/free-practice-test",
+    "file": "site/011-free-practice-test-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Terms",
+    "path": "/terms",
+    "file": "site/012-terms-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Refunds",
+    "path": "/refunds",
+    "file": "site/013-refunds-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Privacy",
+    "path": "/privacy",
+    "file": "site/014-privacy-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Cookies",
+    "path": "/cookies",
+    "file": "site/015-cookies-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Home",
+    "path": "/",
+    "file": "site/016-home-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Pricing",
+    "path": "/pricing",
+    "file": "site/017-pricing-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Site",
+    "label": "Home",
+    "path": "/",
+    "file": "site/018-home-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Site",
+    "label": "Program",
+    "path": "/program",
+    "file": "site/019-program-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Site",
+    "label": "Pricing",
+    "path": "/pricing",
+    "file": "site/020-pricing-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Site",
+    "label": "Cookie note (EU visitor)",
+    "path": "/about",
+    "file": "site/021-cookie-note-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Today",
+    "path": "/dashboard/student",
+    "file": "student-portal/022-today-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Progress",
+    "path": "/dashboard/student/progress",
+    "file": "student-portal/023-progress-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Library",
+    "path": "/dashboard/student/library",
+    "file": "student-portal/024-library-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Rewards",
+    "path": "/dashboard/student/rewards",
+    "file": "student-portal/025-rewards-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Homework",
+    "path": "/dashboard/student/homework",
+    "file": "student-portal/026-homework-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Schedule",
+    "path": "/dashboard/student/schedule",
+    "file": "student-portal/027-schedule-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Settings",
+    "path": "/dashboard/student/settings",
+    "file": "student-portal/028-settings-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Daily 10",
+    "path": "/learn/daily-ten",
+    "file": "student-portal/029-daily-10-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Time trial",
+    "path": "/learn/time-trial",
+    "file": "student-portal/030-time-trial-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Diagnostic",
+    "path": "/learn/diagnostic",
+    "file": "student-portal/031-diagnostic-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Today",
+    "path": "/dashboard/student",
+    "file": "student-portal/032-today-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Progress",
+    "path": "/dashboard/student/progress",
+    "file": "student-portal/033-progress-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Student portal",
+    "label": "Today",
+    "path": "/dashboard/student",
+    "file": "student-portal/034-today-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Student portal",
+    "label": "Library",
+    "path": "/dashboard/student/library",
+    "file": "student-portal/035-library-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Parent portal",
+    "label": "The week",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c",
+    "file": "parent-portal/036-the-week-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Daily report",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/report",
+    "file": "parent-portal/037-daily-report-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Messages",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/messages",
+    "file": "parent-portal/038-messages-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Messages: move a session",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/messages",
+    "file": "parent-portal/039-messages-move-a-session-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Progress",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/progress",
+    "file": "parent-portal/040-progress-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Sessions",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/sessions",
+    "file": "parent-portal/041-sessions-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Billing",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/billing",
+    "file": "parent-portal/042-billing-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Settings",
+    "path": "/dashboard/parent/settings",
+    "file": "parent-portal/043-settings-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Daily report",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/report",
+    "file": "parent-portal/044-daily-report-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Messages",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/messages",
+    "file": "parent-portal/045-messages-dark-desktop.jpg",
+    "mode": "dark desktop"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Daily report",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/report",
+    "file": "parent-portal/046-daily-report-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Parent portal",
+    "label": "Messages",
+    "path": "/dashboard/parent/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c/messages",
+    "file": "parent-portal/047-messages-light-phone.jpg",
+    "mode": "light phone"
+  },
+  {
+    "section": "Tutor portal",
+    "label": "Your students",
+    "path": "/tutor",
+    "file": "tutor-portal/048-your-students-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Tutor portal",
+    "label": "One student",
+    "path": "/tutor/dev_seed_cohort_mate_1",
+    "file": "tutor-portal/049-one-student-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Tutor portal",
+    "label": "Session briefing",
+    "path": "/tutor/dev_seed_cohort_mate_1/briefing",
+    "file": "tutor-portal/050-session-briefing-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "School portal",
+    "label": "School home",
+    "path": "/school",
+    "file": "school-portal/051-school-home-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "School portal",
+    "label": "Class: Period 3",
+    "path": "/school/classes/5c400000-0000-4000-8000-000000000003",
+    "file": "school-portal/052-class-period-3-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "School portal",
+    "label": "Billing",
+    "path": "/school/billing",
+    "file": "school-portal/053-billing-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Home",
+    "path": "/admin",
+    "file": "admin/054-home-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Users",
+    "path": "/admin/users",
+    "file": "admin/055-users-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Revenue",
+    "path": "/admin/revenue",
+    "file": "admin/056-revenue-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Revenue (sample data)",
+    "path": "/admin/revenue",
+    "file": "admin/057-revenue-sample-data-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "CRM list",
+    "path": "/admin/crm",
+    "file": "admin/058-crm-list-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "CRM pipeline",
+    "path": "/admin/crm",
+    "file": "admin/059-crm-pipeline-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Analytics",
+    "path": "/admin/analytics",
+    "file": "admin/060-analytics-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Analytics (sample data)",
+    "path": "/admin/analytics",
+    "file": "admin/061-analytics-sample-data-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Plans",
+    "path": "/admin/plans",
+    "file": "admin/062-plans-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Schools",
+    "path": "/admin/schools",
+    "file": "admin/063-schools-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Messages from families",
+    "path": "/admin/messages",
+    "file": "admin/064-messages-from-families-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "One family's conversation and the drafted reply",
+    "path": "/admin/messages/9ecb8287-b247-4e97-8a62-4e38047040ba/92ed698f-6023-40e6-b9bc-3bf4ead1ea0c",
+    "file": "admin/065-one-family-s-conversation-and-the-drafted-reply-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "CRM contact",
+    "path": "/admin/crm/u-cfe63aa7-979c-4e4f-8a88-af73f200e937",
+    "file": "admin/066-crm-contact-light-desktop.jpg",
+    "mode": "light desktop"
+  },
+  {
+    "section": "Admin",
+    "label": "Revenue",
+    "path": "/admin/revenue",
+    "file": "admin/067-revenue-dark-desktop.jpg",
+    "mode": "dark desktop"
+  }
+]
