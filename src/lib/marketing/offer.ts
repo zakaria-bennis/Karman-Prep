@@ -326,14 +326,16 @@ export const DIAGNOSTIC = {
  *   re-read the targets.
  */
 export const GUARANTEE = {
-  /** A starting score at or above this carries no guarantee. */
+  /** From this starting score there is no points target. The promise is that the score rises; if it does
+   *  not, the student gets `highStartProMonths` months of Pro free (founder, 2026-11-11; cohort and private). */
   noGuaranteeFrom: 1460,
+  highStartProMonths: 3,
   /** Starting score up to `upTo`: points promised on each track. */
   bands: [
     { upTo: 1200, private: 200, cohort: 150 },
-    { upTo: 1300, private: 150, cohort: 100 },
-    { upTo: 1400, private: 100, cohort: 70 },
-    { upTo: 1450, private: 50, cohort: 40 },
+    { upTo: 1300, private: 160, cohort: 120 },
+    { upTo: 1400, private: 120, cohort: 80 },
+    { upTo: 1450, private: 60, cohort: 40 },
   ],
   /** Which track each plan is on. */
   trackOf: { cohort: "cohort", "private-10": "cohort", "private-20": "private" },
@@ -346,11 +348,15 @@ export const GUARANTEE = {
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
-  satWithinDays: 60,
+  /** A cohort student sits the SAT their cohort ends on (founder, 2026-11-11), and may make up one test a
+   *  week late and one missed class at a workshop. One of each, no more. */
+  lateTestsAllowed: 1,
+  classMakeUpsAllowed: 1,
   /** How recent an SAT or PSAT score must be to serve as the baseline. */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
-  claimDays: 30,
+  /** Days after sitting the SAT to send the score (founder, 2026-11-11; it was 30 days after scores came out). */
+  claimDays: 60,
   baseline:
     "an SAT or PSAT score from the last 6 months, or, for a student with no score yet, a placement test proctored live by Karman",
   /** What the family gets, by SAT result. The family chooses money or a seat. */
