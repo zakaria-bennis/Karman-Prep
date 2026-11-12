@@ -78,6 +78,15 @@ export function TestReport({
         </ul>
       </Card>
       <SkillsMoved skills={result.skills} title="Skills in this test" />
+      <SectionReviews run={run} />
+    </FlowFrame>
+  );
+}
+
+/** Every question of each section, folded: the student's answer, the right one and the method. */
+export function SectionReviews({ run }: { run: RunView }) {
+  return (
+    <>
       {run.sections
         .filter((section) => section.questions.length)
         .map((section) => (
@@ -138,6 +147,6 @@ export function TestReport({
             </details>
           </Card>
         ))}
-    </FlowFrame>
+    </>
   );
 }

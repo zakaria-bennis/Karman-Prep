@@ -8,6 +8,7 @@ import { AnswerShapes, LevelBanner, LevelChanges, type LevelChange } from "./Lev
 import { DailyTenEnd } from "./DailyTenEnd";
 import { FlowFrame } from "./FlowFrame";
 import { TestReport } from "./TestReport";
+import { TrialEnd } from "./TrialEnd";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
 
@@ -116,6 +117,8 @@ export function RunEnd({
   if (run.kind === "daily-ten") return <DailyTenEnd user={user} run={run} changes={changes} />;
   if (run.kind === "full-test" || run.kind === "diagnostic")
     return <TestReport user={user} run={run} exitHref={exitHref} />;
+  if (run.kind === "time-trial")
+    return <TrialEnd user={user} run={run} exitHref={exitHref} nextHref={againHref ?? exitHref} />;
   const next = weakestSkill(result.skills);
   const set = run.kind === "practice-set" ? result.skills[0] : null;
   const leveled = set ? set.to > set.from && set.to >= 2 : result.skills.some((k) => k.to > k.from);

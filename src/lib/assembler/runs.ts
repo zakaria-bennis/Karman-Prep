@@ -1,8 +1,9 @@
 /*
  * Server only. The quiz-run service: every flow (Daily 10, practice set, Domain quiz,
- * full-length test, diagnostic) starts here from sealed catalog snapshots, saves first answers,
- * moves skill levels and writes the result. Answers are graded on the server against the
- * snapshot frozen at start; the browser never sees a key before its answer is saved.
+ * full-length test, diagnostic; time trials start in time-trial-run.ts) starts here from sealed
+ * catalog snapshots, saves first answers, moves skill levels and writes the result. Answers are
+ * graded on the server against the snapshot frozen at start; the browser never sees a key before
+ * its answer is saved.
  */
 import { z } from "zod";
 import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
@@ -41,6 +42,7 @@ import {
 } from "./forms";
 import { PlanLimitError, loadQuizAccess } from "./plan-gate";
 import { practiceSetPool } from "./set-pool";
+import { finishTimeTrial } from "./time-trial-run";
 import { masteryBySkill } from "./mastery-by-skill";
 import { nextDiagnosticRun, recordDiagnosticResult } from "./diagnostic-record";
 import {
@@ -589,8 +591,10 @@ export async function submitSection(
     await updateRun(run.id, clerkId, { form: run.form });
   }
   const done = new Set(all.map((r) => r.questionId));
-  if (run.form.sections.every((_, i) => isSectionDone(run!, i, done)))
+  if (run.form.sections.every((_, i) => isSectionDone(run!, i, done))) {
     run = await finishRun(run, all);
+    if (run.kind === "time-trial") run = await finishTimeTrial(run, all, input.seconds);
+  }
   return buildView(run, all);
 }
 

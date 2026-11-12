@@ -10,7 +10,7 @@
  *
  * The quiz-flows session (branch claude/overnight-quiz-7856ae, merging into claude/overnight-ship)
  * built the Daily 10, practice sets, Domain quizzes and full-length tests at the paths below.
- * Time trials are not built yet.
+ * Time trials followed on 2026-11-12 (branch claude/mvp-student-trials).
  */
 
 export interface QuizRoute {
@@ -36,8 +36,9 @@ export const domainQuiz = (domainId: string): QuizRoute => ({
   ready: true,
 });
 
-/** Time trials: shorter than a full test, at real SAT pace. */
-export const TIME_TRIAL: QuizRoute = { path: "/learn/time-trial", ready: false };
+/** Time trials: one section against the clock, from 1.25 times the real SAT time down to 0.75.
+ *  `?section=reading` or `?section=math` goes straight to that section's next round. */
+export const TIME_TRIAL: QuizRoute = { path: "/learn/time-trial", ready: true };
 
 /** Full-length tests (the assembler builds four forms). */
 export const fullLengthTest = (form: number): QuizRoute => ({

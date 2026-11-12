@@ -25,3 +25,20 @@ describe("student dashboard migration", () => {
     expect(sql).toMatch(/column_name = 'skill_id'/);
   });
 });
+
+describe("time trial run kind migration", () => {
+  const widen = readFileSync("supabase/migrations/20261112090000_quiz_runs_time_trial.sql", "utf8");
+  it("only widens quiz_runs.kind, keeping every existing kind", () => {
+    expect(widen).toMatch(/DROP CONSTRAINT IF EXISTS quiz_runs_kind_check/);
+    for (const kind of [
+      "daily-ten",
+      "practice-set",
+      "domain-quiz",
+      "full-test",
+      "diagnostic",
+      "time-trial",
+    ])
+      expect(widen).toContain(`'${kind}'`);
+    expect(widen).not.toMatch(/DROP (TABLE|COLUMN)|ADD COLUMN|CREATE TABLE/i);
+  });
+});
