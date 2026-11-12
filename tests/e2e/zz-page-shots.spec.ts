@@ -26,6 +26,25 @@ async function settle(page: Page) {
   // Hide the Next.js dev badge so it doesn't sit on top of the pictures.
   await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }).catch(() => {});
   await page.waitForTimeout(2500);
+  // A full-page picture never scrolls, so sections that fade in as they scroll into view
+  // would stay blank: show them all, as a visitor scrolling down would see them.
+  await page
+    .evaluate(() => document.querySelectorAll(".rv").forEach((el) => el.classList.add("on")))
+    .catch(() => {});
+  // Let the typed page title finish before the picture.
+  if (
+    await page
+      .locator(".kp-caret")
+      .count()
+      .catch(() => 0)
+  ) {
+    await page
+      .locator(".kp-caret[data-done]")
+      .first()
+      .waitFor({ timeout: 10_000 })
+      .catch(() => {});
+  }
+  await page.waitForTimeout(800);
 }
 
 let n = 0;
@@ -227,8 +246,21 @@ test("parent portal", async ({ page }) => {
 test("tutor portal", async ({ page }) => {
   await impersonate(page, "david@karman.local");
   await shoot(page, "Tutor portal", "Your students", "/tutor");
-  const student = page.locator('a[href^="/tutor/"]:not([href^="/tutor/cohort"])').first();
-  const href = await student.getAttribute("href").catch(() => null);
+  // A student's own page (/tutor/<their id>), not Briefing, Schedule or the other tabs.
+  const href = await page
+    .evaluate(
+      () =>
+        [...document.querySelectorAll<HTMLAnchorElement>("a[href^='/tutor/']")]
+          .map((a) => a.getAttribute("href") ?? "")
+          .find(
+            (h) =>
+              /^\/tutor\/[^/?#]+$/.test(h) &&
+              !/^\/tutor\/(briefing|schedule|earnings|payouts|settings|cohort|sessions|billing)$/.test(
+                h
+              )
+          ) ?? null
+    )
+    .catch(() => null);
   if (href) {
     await shoot(page, "Tutor portal", "One student", href);
     await shoot(page, "Tutor portal", "Session briefing", `${href}/briefing`);
