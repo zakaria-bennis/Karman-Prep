@@ -25,6 +25,7 @@ const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
   {
     title: "People and money",
     links: [
+      ["/admin/crm", "CRM: every lead, family, school and tutor"],
       ["/admin/users", "People and roles"],
       ["/admin/students", "Students, as their tutor sees them"],
       ["/admin/tutors", "Tutors and their students"],
