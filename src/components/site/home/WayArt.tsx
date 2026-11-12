@@ -4,6 +4,7 @@
 // Every label is passed in from site-copy.ts. No numbers are shown except ones that are true for every
 // student: three in a row, days 2, 7 and 21, and the pace steps 1.25, 1 and 0.75.
 import type { CSSProperties, ReactNode } from "react";
+import { list } from "@/lib/marketing/site-copy";
 
 export interface ArtWords {
   today: string;
@@ -20,6 +21,42 @@ export interface ArtWords {
   reading: string;
   math: string;
   turn: string;
+}
+
+/** The pictures' labels, from the "art words" line of site-copy section 6, in their order there. */
+export function artWords(line: string | undefined): ArtWords {
+  const [
+    today,
+    day2,
+    day7,
+    day21,
+    row,
+    right,
+    wrong,
+    slip,
+    pace,
+    accuracy,
+    score,
+    reading,
+    math,
+    turn,
+  ] = list(line);
+  return {
+    today,
+    day2,
+    day7,
+    day21,
+    row,
+    right,
+    wrong,
+    slip,
+    pace,
+    accuracy,
+    score,
+    reading,
+    math,
+    turn,
+  };
 }
 
 const at = (s: number): CSSProperties => ({ animationDelay: `${s}s` });

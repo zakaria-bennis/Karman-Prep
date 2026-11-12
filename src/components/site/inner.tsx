@@ -149,26 +149,6 @@ export function Rows({
   );
 }
 
-/** A heading and text, with an optional proof line and a card beside them. */
-export function TextCard({ n, children }: { n: number; children?: ReactNode }) {
-  const f = section(n);
-  return (
-    <section className="i-sec" data-light id={`s-${n}`}>
-      <div className="in i-split">
-        <Head f={f}>{f.proof ? <p className="i-proof rv">{f.proof}</p> : null}</Head>
-        {f["card title"] ? (
-          <aside className="i-card rv" style={delay(0.12)}>
-            <Icon name="plus" />
-            <b>{f["card title"]}</b>
-            <p>{f["card text"]}</p>
-          </aside>
-        ) : null}
-        {children}
-      </div>
-    </section>
-  );
-}
-
 /** A list of plain statements; "no" marks the things we refuse. */
 export function Statements({ n, mark = "check" }: { n: number; mark?: "check" | "no" }) {
   const f = section(n);
