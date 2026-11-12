@@ -8,7 +8,7 @@
 .ks.lit .pv-hero h1 { font-size: clamp(38px, 5.4vw, 88px); line-height: 1.06; max-width: 15em; text-align: center; }
 .ks .pv-hero h1 span { display: inline-block; white-space: pre; animation: pv-word .9s var(--spring) both; animation-delay: calc(.1s + var(--i) * .06s); }
 .ks .pv-hero h1 span[data-num] { color: var(--a); }
-@keyframes pv-word { from { opacity: 0; translate: 0 .6em; rotate: 4deg; filter: blur(8px); } }
+@keyframes pv-word { from { opacity: 0; translate: 0 .6em; rotate: 4deg; } }
 .ks .pv-hero .pg-close { justify-items: center; animation: pg-rise .9s var(--spring) .9s both; }
 .ks .pv-hero .go-row { justify-content: center; }
 .ks .pv-hero .more { min-height: 44px; display: inline-flex; align-items: center; }
