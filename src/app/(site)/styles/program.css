@@ -98,33 +98,6 @@
 @keyframes pg-fade { to { opacity: 1; } }
 @keyframes pg-grow { from { transform: scaleX(0); } }
 
-/* ---------- 2. the comparison: our column stands out; rows arrive one by one ---------- */
-.ks .pg-cmp { --a: #2449b8; width: min(100%, 1060px); border-collapse: separate; border-spacing: 0; text-align: left; table-layout: fixed; }
-.ks .pg-cmp th, .ks .pg-cmp td { padding: 15px 18px; vertical-align: top; font-size: clamp(15px, 1.2vw, 17px); line-height: 1.35; }
-.ks .pg-cmp thead th { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(18px, 1.6vw, 23px); line-height: 1.15; padding-bottom: 18px; }
-.ks .pg-cmp tbody th { font-weight: 800; }
-.ks .pg-cmp tbody td { font-weight: 600; border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); }
-.ks .pg-cmp tbody th { border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); }
-.ks .pg-cmp :is(th, td):nth-child(2) { background: var(--cream); color: var(--ink); font-weight: 800; border-color: var(--line); box-shadow: -1px 0 0 rgba(29, 26, 34, .06), 1px 0 0 rgba(29, 26, 34, .06); }
-.ks .pg-cmp thead th:nth-child(2) { border-radius: 26px 26px 0 0; }
-.ks .pg-cmp tbody tr:last-child td:nth-child(2) { border-radius: 0 0 26px 26px; padding-bottom: 22px; }
-.ks .pg-cmp td:nth-child(2) { display: table-cell; }
-.ks .pg-cmp td .pg-tick { display: inline-block; vertical-align: -5px; margin-right: 9px; }
-.ks .pg-cmp td:nth-child(n + 3) { color: var(--ink2); }
-.ks .pg-in.rv .pg-cmp tbody tr { opacity: 0; transform: translateY(14px); transition: opacity .6s var(--out), transform .7s var(--spring); transition-delay: calc(.15s + var(--i) * .09s); }
-.ks .pg-in.rv.on .pg-cmp tbody tr { opacity: 1; transform: none; }
-@media (max-width: 760px) {
-  .ks .pg-cmp, .ks .pg-cmp tbody, .ks .pg-cmp tr, .ks .pg-cmp th, .ks .pg-cmp td { display: block; }
-  .ks .pg-cmp thead { display: none; }
-  .ks .pg-cmp tbody tr { margin-bottom: 12px; padding: 14px 16px 16px; border-radius: 22px; background: var(--cream); color: var(--ink); box-shadow: 0 18px 36px -28px rgba(29, 26, 34, .7); }
-  .ks .pg-cmp tbody th, .ks .pg-cmp tbody td { padding: 0; border: 0; background: none; box-shadow: none; }
-  .ks .pg-cmp tbody th { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: 21px; margin-bottom: 8px; }
-  .ks .pg-cmp td { margin-top: 6px; }
-  .ks .pg-cmp td:nth-child(n + 3) { font-size: 14.5px; }
-  .ks .pg-cmp td:nth-child(n + 3)::before { content: attr(data-col) ": "; font-weight: 800; }
-  .ks .pg-cmp tbody tr:last-child td:nth-child(2) { padding-bottom: 0; }
-}
-
 /* ---------- 3. the loop: a marker travels the ring; each move lights as it passes; the list of missed
    skills in the middle gets shorter ---------- */
 .ks .pg-wheel { --a: #2449b8; --turn: 16s; width: 100%; display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: clamp(24px, 5vw, 70px); align-items: center; justify-content: center; text-align: left; }
@@ -214,11 +187,9 @@
 
 /* night */
 .ks.lit[data-mode="dark"] :is(.pg-portal, .pg-start, .pg-node) { --a: #8fb0ff; background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 26px 50px -32px rgba(0, 0, 0, .9); }
-.ks.lit[data-mode="dark"] :is(.pg-wheel, .pg-cmp) { --a: #8fb0ff; }
+.ks.lit[data-mode="dark"] .pg-wheel { --a: #8fb0ff; }
 .ks.lit[data-mode="dark"] :is(.pg-tabs, .pg-todo li, .pg-letter, .pg-start form > div, .pg-start .pg-days) { background: rgba(255, 250, 243, .09); }
-.ks.lit[data-mode="dark"] :is(.pg-cap, .pg-chart p, .pg-cmp td:nth-child(n + 3)) { color: #cdc7d6; }
-.ks.lit[data-mode="dark"] .pg-cmp :is(th, td):nth-child(2) { background: rgb(24, 22, 30); color: var(--cream); box-shadow: -1px 0 0 rgba(255, 250, 243, .14), 1px 0 0 rgba(255, 250, 243, .14); }
-.ks.lit[data-mode="dark"] .pg-cmp tbody :is(th, td) { border-color: rgba(255, 250, 243, .18); }
+.ks.lit[data-mode="dark"] :is(.pg-cap, .pg-chart p) { color: #cdc7d6; }
 .ks.lit[data-mode="dark"] .pg-tabs::before { background: var(--cream); }
 .ks.lit[data-mode="dark"] .pg-tabs button[aria-selected="true"] { color: var(--ink); }
 .ks.lit[data-mode="dark"] .pg-core u { background: var(--cream); }
@@ -227,7 +198,6 @@
 @keyframes pg-say-night { 0%, 24%, 100% { background: transparent; } 3%, 20% { background: rgba(255, 250, 243, .1); } }
 .ks.lit[data-mode="dark"] .pg-start form button { background: var(--cream); color: var(--ink); }
 .ks.lit[data-mode="dark"] .pg-bad { color: #ffb4a1; }
-@media (max-width: 760px) { .ks.lit[data-mode="dark"] .pg-cmp tbody tr { background: rgb(24, 22, 30); color: var(--cream); } .ks.lit[data-mode="dark"] .pg-cmp :is(th, td):nth-child(2) { background: none; box-shadow: none; } }
 .ks.still-motion :is(.pg-orbit, .pg-node, .pg-core u, .pg-moves li, .pg-stack svg *) { animation: none !important; }
 
 @keyframes pg-show { from { opacity: 0; transform: translateY(16px) scale(.8); } to { opacity: 1; transform: none; } }
@@ -255,3 +225,43 @@
 .ks.lit[data-mode="dark"] .pg-deal .pg-theirs { --a: #7fd3ad; }
 .ks.lit[data-mode="dark"] .pg-ends li { background: var(--cream); color: var(--ink); }
 .ks.lit[data-mode="dark"] .pg-ends b { color: var(--ink2); }
+
+/* ---------- four screens, in the home page's language: big serif headings on the left, the picture beside
+   them; every section is one screen tall on a desktop ---------- */
+.ks .pg-hero, .ks .pg-sect { min-height: 100svh; display: grid; align-content: center; justify-items: center; padding: clamp(96px, 12svh, 120px) var(--gutter) clamp(36px, 6svh, 64px); }
+.ks .pg-in { width: min(1240px, 100%); justify-items: stretch; text-align: left; }
+.ks .pg-in.pg-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.ks.lit .pg-hero h1 { font-size: clamp(38px, 4.2vw, 66px); line-height: 1.14; max-width: none; text-wrap: balance; }
+.ks.lit .pg-sect h2 { font-size: clamp(32px, 3.5vw, 54px); line-height: 1.14; max-width: none; text-wrap: balance; }
+.ks .pg-h3 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(24px, 2.3vw, 34px); line-height: 1.15; }
+.ks .pg-hero .lede, .ks .pg-sect .lede { text-align: left; }
+.ks .pg-say { justify-items: stretch; }
+.ks .pg-say > :is(h1, h2, .lede, .more, .pg-note) { justify-self: start; }
+.ks .pg-close { justify-items: start; }
+.ks .pg-close .go-row, .ks .pg-dates { justify-content: flex-start; }
+.ks .pg-promise { justify-items: stretch; }
+.ks .pg-asking { text-align: left; }
+.ks .pg-seg { width: 100%; }
+.ks .pg-gain { justify-items: start; text-align: left; }
+.ks .pg-wheel { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+.ks .pg-ring { width: min(100%, 440px); }
+.ks .pg-moves li { padding: 9px 16px 10px; margin-left: -16px; }
+.ks .pg-stack { width: 100%; }
+.ks .pg-stack li { padding: 7px 18px 8px 14px; }
+.ks .pg-stack span { font-size: 14px; }
+.ks .pg-deal { width: 100%; }
+.ks .pg-deal .pg-terms { padding: 18px 20px 20px; gap: 10px; }
+.ks .pg-terms h3 { font-size: clamp(20px, 1.8vw, 25px); }
+.ks .pg-terms li { font-size: 15px; }
+.ks .pg-ends { width: 100%; gap: 10px; }
+.ks .pg-ends li { padding: 13px 15px 15px; border-radius: 20px; }
+.ks .pg-ends span { font-size: clamp(16px, 1.4vw, 19px); }
+.ks .pg-start { width: 100%; justify-items: stretch; text-align: left; }
+.ks .pg-start .pg-close, .ks .pg-start .pg-answer { justify-items: start; }
+.ks .pg-bonus { max-width: none; }
+@media (max-width: 960px) { .ks .pg-in.pg-two { grid-template-columns: minmax(0, 1fr); } .ks .pg-hero, .ks .pg-sect { min-height: 0; padding-top: clamp(96px, 12svh, 120px); padding-bottom: 56px; } }
+/* cards lift a little under the pointer, as the home page's do */
+@media (hover: hover) and (pointer: fine) { .ks :is(.pg-terms, .pg-portal, .pg-start, .pg-ends li) { transition: transform .5s var(--spring), box-shadow .3s var(--out); } .ks :is(.pg-terms, .pg-portal, .pg-start, .pg-ends li):hover { transform: translateY(-4px); } .ks .pg-in.rv.on .pg-stack li:hover { translate: 8px 0; } }
+/* the heading of each screen arrives first, then what is beside it */
+.ks .pg-in.rv > :last-child { transition: opacity .8s var(--out) .2s, transform .9s var(--spring) .2s; }
+.ks .pg-in.rv:not(.on) > :last-child { opacity: 0; transform: translateX(40px); }

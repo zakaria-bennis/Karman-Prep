@@ -204,8 +204,7 @@ center: Skills still missed
 note: Nothing is missed or forgotten.
 
 ## 23 Program: the portal
-headline: You see what the tutor sees.
-text: A report lands in your inbox every day, and the parent portal is open whenever you want to look.
+headline: And you see what the tutor sees.
 tabs: Score | Skills | Homework | Notes
 sample: Example
 score caption: The predicted score, updated as your student works.
@@ -218,12 +217,6 @@ homework caption: What was assigned, and whether it was done.
 note: Good focus in class today. Two misses on punctuation, both the same comma rule, so I've added a short set on it. Pacing is better: the math module was done with four minutes to spare.
 note from: Your student's tutor
 notes caption: A few sentences from the tutor, every day.
-
-## 28 Program: compare
-headline: The same goal. A very different nine weeks.
-columns: The Karman cohort | A typical course | A private tutor
-rows: The class = ${W(CLASS)} students at one starting score ; Often a dozen, at every level ; One student | Full practice tests = ${W(MP.fullLengthTests)}, one a week ; A few ; Up to the tutor | Homework = Built from each student's mistakes ; The same for everyone ; Up to the tutor | Your tutor = One, from start to finish ; Whoever teaches that class ; One | Report to parents = Every day ; Rarely ; When you ask | The promise = A set number of points, in writing ; Varies, with conditions ; Rarely any | The cost = The price of a class ; The price of a class ; Several times more
-note: "A typical course" means large national courses in general. Check the details of any course you are weighing.
 
 ## 24 Program: the promise
 headline: A promise with two sides.
@@ -259,8 +252,6 @@ headline: ${$(MP.price)}, or ${SPLIT}.
 text: The same price for every cohort, and the deposit is part of it. Nothing is added later: no materials fee, no platform fee.
 
 ## 27 Program: close
-headline: The real cost is another test date with the same score.
-text: Each class has ${w(CLASS)} seats and is built by starting score, so the right one for your student can fill first.
 bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to use before class begins.
 later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 ask: What did your student score last time?

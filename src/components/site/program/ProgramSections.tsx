@@ -1,8 +1,8 @@
-// The SAT Program page, section by section (founder's picks, 2026-11-11): the opening (the outcome and the
-// starting-score switch, his pick), the comparison table, the
-// weekly loop, the stack, the parent portal, the promise and the close with its "start here" box. Centred
-// sections, deliberately not the home page's look. Words: site-copy.ts, sections 21 to 24, 27 and 28. Only
-// the small interactive pieces run in the browser, and they get their facts and words as props.
+// The SAT Program page (founder, 2026-11-11): four screens on a desktop, in the home page's design language
+// (big serif headings on the left, on mist, with the picture beside them). 1: the outcome and the
+// starting-score switch. 2: how a week works, as a loop. 3: what the seat holds, beside the parent portal.
+// 4: the promise's two sides, beside the "start here" box. Words: site-copy.ts, sections 21 to 24 and 27.
+// Only the small interactive pieces run in the browser, and they get their facts and words as props.
 import { Arrow, Btn } from "@/components/site/parts";
 import DaysLeft from "./DaysLeft";
 import ProgramPortal from "./ProgramPortal";
@@ -116,17 +116,18 @@ export default function ProgramSections() {
   const portal = section(23);
   const promise = section(24);
   const close = section(27);
-  const cmp = section(28);
-  const cols = list(cmp.columns);
   const steps = pairs(loop.steps);
   return (
     <>
       {/* 1. The outcome, and the switch: a starting score in, the promised points out */}
       <section className="pg-hero" id="top">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in">
-          <h1>{open.headline}</h1>
-          <p className="lede">{open.lede}</p>
+        <div className="pg-in pg-two">
+          <div className="pg-say">
+            <h1>{open.headline}</h1>
+            <p className="lede">{open.lede}</p>
+            <Actions />
+          </div>
           <ProgramPromise
             ask={promise.ask}
             bands={list(promise.bands)}
@@ -135,49 +136,25 @@ export default function ProgramSections() {
             highTitle={promise["high title"]}
             high={promise.high}
           />
-          <Actions />
         </div>
       </section>
 
-      {/* 2. Against the usual prep */}
-      <section className="sect pg-sect" id="compare" aria-labelledby="compare-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv">
-          <h2 id="compare-h">{cmp.headline}</h2>
-          <table className="pg-cmp">
-            <thead>
-              <tr>
-                <td />
-                {cols.map((c) => (
-                  <th key={c} scope="col">
-                    {c}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pairs(cmp.rows).map(([label, cells], i) => (
-                <tr key={label} style={{ "--i": i } as React.CSSProperties}>
-                  <th scope="row">{label}</th>
-                  {cells.split(";").map((c, j) => (
-                    <td key={j} data-col={cols[j]}>
-                      {j === 0 ? <Tick /> : null}
-                      {c.trim()}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="pg-small">{cmp.note}</p>
-        </div>
-      </section>
-
-      {/* 3. How a week works: the loop */}
+      {/* 2. How a week works: the loop */}
       <section className="sect pg-sect" id="week" aria-labelledby="week-h">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv">
-          <h2 id="week-h">{loop.headline}</h2>
+        <div className="pg-in pg-two rv">
+          <div className="pg-say">
+            <h2 id="week-h">{loop.headline}</h2>
+            <ol className="pg-moves">
+              {steps.map(([k, v], i) => (
+                <li key={k} style={{ "--i": i } as React.CSSProperties}>
+                  <b>{k}</b>
+                  <span>{v}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="pg-note">{loop.note}</p>
+          </div>
           <div className="pg-wheel">
             <div className="pg-ring" aria-hidden="true">
               <svg viewBox="0 0 200 200">
@@ -198,136 +175,115 @@ export default function ProgramSections() {
                 ))}
               </div>
             </div>
-            <ol className="pg-moves">
-              {steps.map(([k, v], i) => (
+          </div>
+        </div>
+      </section>
+
+      {/* 3. What the seat holds, beside what the parent sees */}
+      <section className="sect pg-sect" id="seat" aria-labelledby="seat-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="pg-in pg-two rv">
+          <div className="pg-say">
+            <h2 id="seat-h">{open["stack headline"]}</h2>
+            <ol className="pg-stack">
+              {pairs(open.stack).map(([title, line], i) => (
+                <li key={title} style={{ "--i": i } as React.CSSProperties}>
+                  <svg viewBox="0 0 48 48" aria-hidden="true">
+                    {ICONS[i]}
+                  </svg>
+                  <p>
+                    <b>{title}</b>
+                    <span>{line}</span>
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="pg-say">
+            <h3 className="pg-h3">{portal.headline}</h3>
+            <ProgramPortal
+              w={{
+                tabs: list(portal.tabs),
+                sample: portal.sample,
+                captions: [
+                  portal["score caption"],
+                  portal["skills caption"],
+                  portal["homework caption"],
+                  portal["notes caption"],
+                ],
+                weeks: list(portal["score weeks"]),
+                skills: list(portal.skills),
+                levels: list(portal.levels),
+                homework: list(portal.homework),
+                note: portal.note,
+                noteFrom: portal["note from"],
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 4. The promise's two sides, beside the place to start */}
+      <section className="sect pg-sect pg-end" id="promise" aria-labelledby="promise-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="pg-in pg-two rv">
+          <div className="pg-say">
+            <h2 id="promise-h">{promise.headline}</h2>
+            <div className="pg-deal">
+              <article className="pg-terms">
+                <h3>{promise["ours title"]}</h3>
+                <ul>
+                  {list(promise.ours).map((x) => (
+                    <li key={x}>
+                      <Tick />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+              <article className="pg-terms pg-theirs">
+                <h3>{promise["terms title"]}</h3>
+                <ul>
+                  {list(promise.terms).map((x) => (
+                    <li key={x}>
+                      <Tick />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+            <ol className="pg-ends">
+              {pairs(promise.ends).map(([k, v], i) => (
                 <li key={k} style={{ "--i": i } as React.CSSProperties}>
                   <b>{k}</b>
                   <span>{v}</span>
                 </li>
               ))}
             </ol>
+            <a className="more" href={ROUTES.guarantee}>
+              {promise.link}
+              <Arrow />
+            </a>
           </div>
-          <p className="pg-note">{loop.note}</p>
-        </div>
-      </section>
-
-      {/* 4. Everything in the seat: the stack */}
-      <section className="sect pg-sect" id="seat" aria-labelledby="seat-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv">
-          <h2 id="seat-h">{open["stack headline"]}</h2>
-          <ol className="pg-stack">
-            {pairs(open.stack).map(([title, line], i) => (
-              <li key={title} style={{ "--i": i } as React.CSSProperties}>
-                <svg viewBox="0 0 48 48" aria-hidden="true">
-                  {ICONS[i]}
-                </svg>
-                <p>
-                  <b>{title}</b>
-                  <span>{line}</span>
-                </p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* 5. What the parent sees: the portal */}
-      <section className="sect pg-sect" id="portal" aria-labelledby="portal-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv pg-two">
-          <div className="pg-say">
-            <h2 id="portal-h">{portal.headline}</h2>
-            <p className="lede">{portal.text}</p>
+          <div className="pg-say" id="reserve">
+            <ProgramStart
+              ask={close.ask}
+              field={close.field}
+              show={close.show}
+              bad={close.bad}
+              klass={close.class}
+              classBands={[...MP.scoreBands]}
+              bandTops={G.bands.map((b) => b.upTo)}
+              gains={G.bands.map((b) => b.cohort)}
+              promise={promise.promise}
+              high={promise.high}
+              noScore={close["no score"]}
+              action={<Actions />}
+            />
+            <p className="pg-bonus">{close.bonus}</p>
+            <p className="pg-small">{close.later}</p>
           </div>
-          <ProgramPortal
-            w={{
-              tabs: list(portal.tabs),
-              sample: portal.sample,
-              captions: [
-                portal["score caption"],
-                portal["skills caption"],
-                portal["homework caption"],
-                portal["notes caption"],
-              ],
-              weeks: list(portal["score weeks"]),
-              skills: list(portal.skills),
-              levels: list(portal.levels),
-              homework: list(portal.homework),
-              note: portal.note,
-              noteFrom: portal["note from"],
-            }}
-          />
-        </div>
-      </section>
-
-      {/* 6. The promise's two sides, and what happens either way */}
-      <section className="sect pg-sect" id="promise" aria-labelledby="promise-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv">
-          <h2 id="promise-h">{promise.headline}</h2>
-          <div className="pg-deal">
-            <article className="pg-terms">
-              <h3>{promise["ours title"]}</h3>
-              <ul>
-                {list(promise.ours).map((x) => (
-                  <li key={x}>
-                    <Tick />
-                    {x}
-                  </li>
-                ))}
-              </ul>
-            </article>
-            <article className="pg-terms pg-theirs">
-              <h3>{promise["terms title"]}</h3>
-              <ul>
-                {list(promise.terms).map((x) => (
-                  <li key={x}>
-                    <Tick />
-                    {x}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          </div>
-          <ol className="pg-ends">
-            {pairs(promise.ends).map(([k, v], i) => (
-              <li key={k} style={{ "--i": i } as React.CSSProperties}>
-                <b>{k}</b>
-                <span>{v}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="pg-small">{promise.high}</p>
-          <a className="more" href={ROUTES.guarantee}>
-            {promise.link}
-            <Arrow />
-          </a>
-        </div>
-      </section>
-
-      {/* 7. The close: start here */}
-      <section className="sect pg-sect pg-end" id="reserve" aria-labelledby="reserve-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in rv">
-          <h2 id="reserve-h">{close.headline}</h2>
-          <p className="lede">{close.text}</p>
-          <ProgramStart
-            ask={close.ask}
-            field={close.field}
-            show={close.show}
-            bad={close.bad}
-            klass={close.class}
-            classBands={[...MP.scoreBands]}
-            bandTops={G.bands.map((b) => b.upTo)}
-            gains={G.bands.map((b) => b.cohort)}
-            promise={promise.promise}
-            high={promise.high}
-            noScore={close["no score"]}
-            action={<Actions />}
-          />
-          <p className="pg-bonus">{close.bonus}</p>
-          <p className="pg-small">{close.later}</p>
         </div>
       </section>
     </>
