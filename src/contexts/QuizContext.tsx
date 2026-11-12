@@ -14,6 +14,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 import type {
@@ -35,6 +36,7 @@ import {
 import { actionFlagForTutor } from "@/app/learn/saved-question-actions";
 import type { Subject } from "@/data/curriculum";
 import * as Sentry from "@sentry/nextjs";
+import { isPlanLimit } from "@/lib/assembler/plan-limit";
 
 // ── State / events ───────────────────────────────────────────
 
@@ -310,6 +312,8 @@ function reducer(state: QuizState, action: Action): QuizState {
 
 interface QuizContextValue {
   state: QuizState;
+  /** Set when the Free plan's 100 questions are used: the engine shows the upgrade prompt. */
+  planLimit: string | null;
   startQuiz: (nodeId: string, subject: Subject, resumeAttemptId?: string) => Promise<void>;
   selectAnswer: (answer: string) => void;
   submitAnswer: () => Promise<void>;
@@ -337,6 +341,7 @@ export function useOptionalQuizState(): QuizState | null {
 
 export function QuizProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [planLimit, setPlanLimit] = useState<string | null>(null);
   const completionInFlightRef = useRef(false);
   const submissionInFlightRef = useRef(false);
   const advancedQuestionRef = useRef<string | null>(null);
@@ -389,6 +394,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
         student_answer: state.selectedAnswer,
         response_time_seconds: responseTimeSeconds,
       });
+      if (isPlanLimit(review)) {
+        setPlanLimit(review.message);
+        return;
+      }
       dispatch({ type: "SUBMIT_ANSWER", review, responseTimeSeconds });
       if (!review.isCorrect && state.consecutiveWrong + 1 >= 3) {
         setTimeout(() => dispatch({ type: "SHOW_VIDEO_PROMPT" }), 600);
@@ -480,6 +489,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const value = useMemo<QuizContextValue>(
     () => ({
       state,
+      planLimit,
       startQuiz,
       selectAnswer,
       submitAnswer,
@@ -491,6 +501,7 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      planLimit,
       startQuiz,
       selectAnswer,
       submitAnswer,

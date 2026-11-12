@@ -1,13 +1,18 @@
 "use client";
 
 // ============================================================
-// QuizHistoryTab — every quiz attempt by this student, expandable
-// to show the adaptive path and individual question responses.
+// QuizHistoryTab — every quiz attempt by this student, opening
+// in place to show the adaptive path and individual question
+// responses. Each attempt's score is a ring (portal rule: progress
+// is a ring); the path reads at a glance as one square per question.
+// Portal look: student-detail.css.
 // ============================================================
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Check, X as XIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Check, X as XIcon } from "lucide-react";
+import { Num } from "@/components/portal/primitives";
+import { Ring } from "@/components/portal/Ring";
+import { Chevron } from "@/components/portal/icons";
 import type { QuizAttempt, QuestionResponse, ConfidenceBand } from "@/types/quiz";
 import { CONFIDENCE_COLORS } from "@/types/quiz";
 import { getNode } from "@/data/curriculum";
@@ -15,6 +20,11 @@ import { getNode } from "@/data/curriculum";
 interface Props {
   attempts: QuizAttempt[];
   responsesByAttempt: Record<string, QuestionResponse[]>;
+}
+
+/** The ring's colour for a score: good from 80, amber from 60, late below. */
+function scoreColor(score: number) {
+  return score >= 80 ? "var(--good)" : score >= 60 ? "var(--kp-st-warn)" : "var(--late)";
 }
 
 export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) {
@@ -26,15 +36,11 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
   );
 
   if (sorted.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed border-[color:var(--line)] p-10 text-center">
-        <p className="text-sm text-[color:var(--mute)]">No quiz attempts yet.</p>
-      </div>
-    );
+    return <p className="kp-st-empty">No quiz attempts yet.</p>;
   }
 
   return (
-    <div className="space-y-3">
+    <ul className="kp-st-attempts">
       {sorted.map((a) => {
         const node = getNode("reading", a.node_id) ?? getNode("math", a.node_id) ?? null;
         const nodeTopic = node?.topic ?? a.node_id;
@@ -53,119 +59,101 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
         // Adaptive path difficulty distribution summary
         const diffs = a.adaptive_path.map((s) => s.difficulty);
         const distinct = Array.from(new Set(diffs));
+        const panelId = `attempt-${a.id}`;
 
         return (
-          <article
-            key={a.id}
-            className="rounded-lg border border-[color:var(--line)] bg-[color:var(--card)]"
-          >
-            <header
-              className="flex cursor-pointer items-center gap-4 p-4 hover:bg-[color:var(--card)]"
+          <li key={a.id} className="kp-st-attempt" data-open={isOpen ? "" : undefined}>
+            <button
+              type="button"
+              aria-expanded={isOpen}
+              aria-controls={panelId}
               onClick={() => setOpenId(isOpen ? null : a.id)}
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate font-semibold text-[color:var(--ink)]">{nodeTopic}</h3>
-                  <span className="text-xs text-[color:var(--mute)]">#{a.attempt_number}</span>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--mute)]">
-                  <span>{new Date(a.started_at).toLocaleString()}</span>
+              {a.score !== null ? (
+                <Ring
+                  value={a.score / 100}
+                  label={`Score ${a.score}%`}
+                  size={52}
+                  color={scoreColor(a.score)}
+                >
+                  <Num>{a.score}%</Num>
+                </Ring>
+              ) : (
+                <Ring value={0} label="Incomplete" size={52}>
+                  –
+                </Ring>
+              )}
+              <span>
+                <b>
+                  {nodeTopic} <span className="kp-meta">#{a.attempt_number}</span>
+                </b>
+                <small>
+                  {new Date(a.started_at).toLocaleString()}
                   {timeTaken !== null && (
                     <>
-                      <span>•</span>
-                      <span>
-                        {Math.floor(timeTaken / 60)}m {timeTaken % 60}s
-                      </span>
+                      {" · "}
+                      {Math.floor(timeTaken / 60)}m {timeTaken % 60}s
                     </>
                   )}
-                  <span>•</span>
-                  <span>Reached: {distinct.join(" → ") || "—"}</span>
-                </div>
-              </div>
-              <div className="shrink-0 text-right">
-                {a.score !== null ? (
-                  <>
-                    <div
-                      className={cn(
-                        "text-2xl font-extrabold tabular-nums",
-                        (a.score ?? 0) >= 80
-                          ? "text-[color:var(--good)]"
-                          : (a.score ?? 0) >= 60
-                            ? "text-[color:var(--warn)]"
-                            : "text-[color:var(--late)]"
-                      )}
-                    >
-                      {a.score}%
-                    </div>
-                    {bandStyle && (
-                      <span
-                        className={cn(
-                          "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                          bandStyle.bg,
-                          bandStyle.text
-                        )}
-                      >
-                        {bandStyle.label}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-xs text-[color:var(--mute)]">Incomplete</span>
+                  {" · "}Reached: {distinct.join(" → ") || "—"}
+                  {a.score === null && " · Incomplete"}
+                </small>
+                {bandStyle && band && (
+                  <span className="kp-st-band" data-band={band}>
+                    {bandStyle.label}
+                  </span>
                 )}
-              </div>
-              {isOpen ? (
-                <ChevronUp className="h-4 w-4 text-[color:var(--mute)]" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-[color:var(--mute)]" />
-              )}
-            </header>
+              </span>
+              <Chevron />
+            </button>
 
             {isOpen && (
-              <div className="border-t border-[color:var(--line)] bg-[color:var(--card)] p-4">
-                <h4 className="mb-2 text-xs font-bold text-[color:var(--mute)]">Adaptive path</h4>
+              <div className="kp-st-path" id={panelId}>
+                <h4 className="kp-meta">Adaptive path</h4>
                 {a.adaptive_path.length === 0 ? (
-                  <p className="text-xs text-[color:var(--mute)]">No steps recorded.</p>
+                  <p className="kp-meta">No steps recorded.</p>
                 ) : (
-                  <ol className="space-y-1.5">
-                    {a.adaptive_path.map((step, i) => {
-                      const r = responses.find((x) => x.question_id === step.question_id);
-                      return (
-                        <li key={i} className="flex items-center gap-3 text-xs">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--card)] text-[10px] font-bold text-[color:var(--mute)]">
-                            {i + 1}
-                          </span>
-                          <span
-                            className={cn(
-                              "flex h-5 w-5 items-center justify-center rounded",
-                              step.was_correct
-                                ? "bg-[color-mix(in_srgb,var(--good)_28%,transparent)] text-[color:var(--ink)]"
-                                : "bg-[color-mix(in_srgb,var(--late)_28%,transparent)] text-[color:var(--ink)]"
-                            )}
-                          >
-                            {step.was_correct ? (
-                              <Check className="h-3 w-3" />
-                            ) : (
-                              <XIcon className="h-3 w-3" />
-                            )}
-                          </span>
-                          <span className="font-semibold text-[color:var(--ink)]">
-                            {step.difficulty}
-                          </span>
-                          {r && (
-                            <span className="text-[color:var(--mute)]">
-                              — chose {r.student_answer} in {r.response_time_seconds}s
+                  <>
+                    <div className="kp-st-trail" aria-hidden="true">
+                      {a.adaptive_path.map((step, i) => (
+                        <i key={i} data-right={step.was_correct ? "" : undefined} />
+                      ))}
+                    </div>
+                    <ol className="kp-st-steps">
+                      {a.adaptive_path.map((step, i) => {
+                        const r = responses.find((x) => x.question_id === step.question_id);
+                        return (
+                          <li key={i}>
+                            <span>{i + 1}</span>
+                            <span
+                              className="kp-st-mark"
+                              data-right={step.was_correct ? "" : undefined}
+                            >
+                              {step.was_correct ? (
+                                <Check aria-label="Right" />
+                              ) : (
+                                <XIcon aria-label="Wrong" />
+                              )}
                             </span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ol>
+                            <b>{step.difficulty}</b>
+                            {r ? (
+                              <span className="kp-meta">
+                                — chose {r.student_answer} in {r.response_time_seconds}s
+                              </span>
+                            ) : (
+                              <span />
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </>
                 )}
               </div>
             )}
-          </article>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

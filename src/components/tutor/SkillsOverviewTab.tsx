@@ -2,11 +2,15 @@
 
 // ============================================================
 // SkillsOverviewTab — sortable + filterable table of every node.
-// Color-coded rows by confidence band.
+// Color-coded rows by confidence band, under a ring for each band
+// showing how many of the student's skills sit there. Portal look:
+// student-detail.css and the portal forms (forms.css).
 // ============================================================
 
 import { useMemo, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
+import { Num } from "@/components/portal/primitives";
+import { Ring } from "@/components/portal/Ring";
 import type { NodeStatusSnapshot } from "@/lib/supabase/queries/tutor";
 import type { ConfidenceBand } from "@/types/quiz";
 import { CONFIDENCE_COLORS } from "@/types/quiz";
@@ -18,7 +22,13 @@ import {
   type Subject,
   type Tier,
 } from "@/data/curriculum";
-import { cn } from "@/lib/utils";
+
+const BANDS: [ConfidenceBand, string][] = [
+  ["struggling", "var(--late)"],
+  ["developing", "var(--kp-st-warn)"],
+  ["proficient", "var(--good)"],
+  ["mastered", "var(--accent)"],
+];
 
 interface Row extends CurriculumNode {
   status: string;
@@ -113,10 +123,38 @@ export default function SkillsOverviewTab({ statuses }: Props) {
     };
   }
 
+  const rated = allRows.filter((r) => r.confidence_band).length;
+
   return (
-    <div>
+    <div className="kp-st">
+      {/* How the skills spread across the four bands */}
+      <div className="kp-st-spread" aria-label="Skills by band">
+        {BANDS.map(([band, color]) => {
+          const n = allRows.filter((r) => r.confidence_band === band).length;
+          return (
+            <div key={band}>
+              <Ring
+                value={allRows.length ? n / allRows.length : 0}
+                label={`${CONFIDENCE_COLORS[band].label}: ${n} of ${allRows.length} skills`}
+                size={48}
+                color={color}
+              >
+                <Num>{n}</Num>
+              </Ring>
+              <span>
+                <b>{CONFIDENCE_COLORS[band].label}</b>
+                <small className="kp-meta">of {allRows.length} skills</small>
+              </span>
+            </div>
+          );
+        })}
+        <p className="kp-meta">
+          <Num>{allRows.length - rated}</Num> not yet rated
+        </p>
+      </div>
+
       {/* Filters */}
-      <div className="mb-4 flex flex-wrap gap-3 text-sm">
+      <div className="kp-st-filters">
         <Select
           label="Subject"
           value={fSubject}
@@ -169,76 +207,68 @@ export default function SkillsOverviewTab({ statuses }: Props) {
           onChange={setFCluster}
           options={[["all", "All"], ...clusters.map((c) => [c, c] as [string, string])]}
         />
-        <span className="ml-auto self-end text-xs text-[color:var(--mute)]">
-          {sorted.length} rows
+        <span className="kp-meta">
+          <Num>{sorted.length}</Num> rows
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-[color:var(--line)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[color:var(--card)]">
-            <tr className="text-left text-[11px] font-semibold text-[color:var(--mute)]">
-              <Th onClick={h("topic")}>Skill</Th>
-              <th className="px-3 py-2">Subject</th>
-              <Th onClick={h("tier")}>Tier</Th>
-              <Th onClick={h("cluster")}>Topic</Th>
-              <Th onClick={h("status")}>Status</Th>
-              <Th onClick={h("best")} className="text-right">
+      <div className="kp-st-scroll">
+        <table className="kp-st-table">
+          <thead>
+            <tr>
+              <Th sort={sortKey === "topic" ? sortAsc : null} onClick={h("topic")}>
+                Skill
+              </Th>
+              <th scope="col">Subject</th>
+              <Th sort={sortKey === "tier" ? sortAsc : null} onClick={h("tier")}>
+                Tier
+              </Th>
+              <Th sort={sortKey === "cluster" ? sortAsc : null} onClick={h("cluster")}>
+                Topic
+              </Th>
+              <Th sort={sortKey === "status" ? sortAsc : null} onClick={h("status")}>
+                Status
+              </Th>
+              <Th sort={sortKey === "best" ? sortAsc : null} onClick={h("best")} num>
                 Best
               </Th>
-              <Th onClick={h("attempts")} className="text-right">
+              <Th sort={sortKey === "attempts" ? sortAsc : null} onClick={h("attempts")} num>
                 Attempts
               </Th>
-              <Th onClick={h("watch")} className="text-right">
+              <Th sort={sortKey === "watch" ? sortAsc : null} onClick={h("watch")} num>
                 Watched
               </Th>
-              <Th onClick={h("band")}>Band</Th>
+              <Th sort={sortKey === "band" ? sortAsc : null} onClick={h("band")}>
+                Band
+              </Th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((r) => {
               const band = r.confidence_band;
-              const bandBg =
-                band === "struggling"
-                  ? "bg-[color-mix(in_srgb,var(--late)_10%,transparent)]"
-                  : band === "developing"
-                    ? "bg-[color-mix(in_srgb,var(--warn)_10%,transparent)]"
-                    : band === "proficient"
-                      ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
-                      : band === "mastered"
-                        ? "bg-[color-mix(in_srgb,var(--good)_10%,transparent)]"
-                        : "";
               return (
-                <tr key={r.id} className={cn("border-t border-[color:var(--line)]", bandBg)}>
-                  <td className="px-3 py-2 text-[color:var(--ink)]">{r.topic}</td>
-                  <td className="px-3 py-2 capitalize text-[color:var(--mute)]">{r.subject}</td>
-                  <td className="px-3 py-2 text-[color:var(--mute)]">{TIER_LABELS[r.tier]}</td>
-                  <td className="max-w-[16rem] truncate px-3 py-2 text-[color:var(--mute)]">
-                    {r.topic_cluster}
+                <tr key={r.id} data-band={band ?? undefined}>
+                  <td>{r.topic}</td>
+                  <td>
+                    <small>{r.subject === "math" ? "Math" : "Reading"}</small>
                   </td>
-                  <td className="px-3 py-2 text-xs font-semibold text-[color:var(--ink)]">
-                    {r.status.replace(/_/g, " ")}
+                  <td>
+                    <small>{TIER_LABELS[r.tier]}</small>
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.best_quiz_score ?? "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--mute)]">
-                    {r.attempts}
+                  <td>
+                    <small>{r.topic_cluster}</small>
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--mute)]">
-                    {r.watch_percentage ?? 0}%
-                  </td>
-                  <td className="px-3 py-2">
+                  <td>{r.status.replace(/_/g, " ")}</td>
+                  <td data-num="">{r.best_quiz_score ?? "—"}</td>
+                  <td data-num="">{r.attempts}</td>
+                  <td data-num="">{r.watch_percentage ?? 0}%</td>
+                  <td>
                     {band ? (
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                          CONFIDENCE_COLORS[band].bg,
-                          CONFIDENCE_COLORS[band].text
-                        )}
-                      >
+                      <span className="kp-st-band" data-band={band}>
                         {CONFIDENCE_COLORS[band].label}
                       </span>
                     ) : (
-                      <span className="text-xs text-[color:var(--mute)]">—</span>
+                      <span className="kp-meta">—</span>
                     )}
                   </td>
                 </tr>
@@ -254,21 +284,25 @@ export default function SkillsOverviewTab({ statuses }: Props) {
 function Th({
   children,
   onClick,
-  className,
+  sort,
+  num,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
-  className?: string;
+  onClick: () => void;
+  /** true: sorted up by this column; false: down; null: not sorted by it. */
+  sort: boolean | null;
+  num?: boolean;
 }) {
   return (
     <th
-      onClick={onClick}
-      className={cn("cursor-pointer select-none px-3 py-2 hover:bg-[color:var(--card)]", className)}
+      scope="col"
+      data-num={num ? "" : undefined}
+      aria-sort={sort === null ? undefined : sort ? "ascending" : "descending"}
     >
-      <span className="inline-flex items-center gap-1">
+      <button type="button" className="kp-st-sort" onClick={onClick}>
         {children}
-        {onClick && <ArrowUpDown className="h-3 w-3 opacity-40" />}
-      </span>
+        <ArrowUpDown size={12} aria-hidden="true" opacity={sort === null ? 0.4 : 0.9} />
+      </button>
     </th>
   );
 }
@@ -285,13 +319,9 @@ function Select({
   options: [string, string][];
 }) {
   return (
-    <label className="flex items-center gap-1.5 text-xs text-[color:var(--mute)]">
-      <span className="font-semibold">{label}:</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-[color:var(--line)] px-2 py-1 text-xs"
-      >
+    <label className="kp-field">
+      <span>{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="kp-select">
         {options.map(([v, l]) => (
           <option key={v} value={v}>
             {l}

@@ -90,19 +90,24 @@ const TABLES: Record<string, Row[]> = {
     { id: "rr6", run_id: "r6", question_id: "q8" },
     { id: "rr7", run_id: "r7", question_id: "q9" },
   ],
+  daily_challenge_answers: [
+    { day: "2026-11-08", student_id: ME, question_id: "q10" },
+    { day: "2026-11-08", student_id: OTHER, question_id: "q10" },
+  ],
 };
 
 describe("Free plan usage from the database", () => {
   const source = supabasePlanDataSource(fakeClient(TABLES));
 
   it("counts distinct questions across skill practice, node quizzes and quiz runs", async () => {
-    // q1-q3 from practice and node quizzes, q4 (Daily 10), q5 (set), q1 again (Domain quiz).
-    expect(await source.answeredQuestionCount(ME)).toBe(5);
+    // q1-q3 from practice and node quizzes, q4 (Daily 10), q5 (set), q1 again (Domain quiz),
+    // q10 (Daily Challenge).
+    expect(await source.answeredQuestionCount(ME)).toBe(6);
   });
 
   it("leaves the full-length tests, the diagnostic and other students out of the 100", async () => {
     const other = await source.answeredQuestionCount(OTHER);
-    expect(other).toBe(1);
+    expect(other).toBe(2);
     const onlyTests = supabasePlanDataSource(
       fakeClient({
         quiz_runs: TABLES.quiz_runs.filter(
@@ -122,7 +127,7 @@ describe("Free plan usage from the database", () => {
   it("closes Free's full-length test once one is finished, not when one is only started", async () => {
     const free = { entitlements: PLAN_ENTITLEMENTS.free };
     const usage = await getUsage(ME, source);
-    expect(usage).toEqual({ questionsAnswered: 5, fullLengthTestsCompleted: 1 });
+    expect(usage).toEqual({ questionsAnswered: 6, fullLengthTestsCompleted: 1 });
     expect(canAccess(free, "full-length-test:new", usage)).toBe(false);
     const startedOnly = supabasePlanDataSource(
       fakeClient({ ...TABLES, quiz_runs: TABLES.quiz_runs.filter((r) => r.id !== "r4") })

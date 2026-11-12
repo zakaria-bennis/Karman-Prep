@@ -4,6 +4,7 @@
  */
 import type { Metadata } from "next";
 import { Card, Cta, Num, Panel, Row, SectionHeader } from "@/components/portal";
+import { FreeYearRow } from "@/components/school/FreeYear";
 import { ActionMessage, SchoolShell } from "@/components/school/SchoolShell";
 import { requireSchoolContext } from "@/lib/school/access";
 import { schoolStudentCount } from "@/lib/school/roster";
@@ -48,6 +49,7 @@ export default async function SchoolBillingPage({
             Then ${SCHOOL_TERMS.pricePerStudentPerYear} per student a year. Every student gets a
             Practice plan of their own.
           </p>
+          <FreeYearRow freeUntil={ctx.school.freeUntil} sub={null} />
           {isAdmin ? (
             <form action={renewalSet ? openSchoolBillingAction : startRenewalAction}>
               <Cta type="submit">{renewalSet ? "Manage billing in Stripe" : "Set up renewal"}</Cta>

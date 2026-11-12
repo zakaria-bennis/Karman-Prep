@@ -54,7 +54,7 @@ beforeEach(() => {
 
 describe("daily challenge from the live catalog pools", () => {
   it("is empty when no skill has a hard question", async () => {
-    expect(await loadDailySlot("math", new Date("2026-11-08T12:00:00Z"))).toEqual({
+    expect(await loadDailySlot("math", 7, new Date("2026-11-08T12:00:00Z"))).toEqual({
       state: "empty",
     });
     expect(mock.pool).toHaveBeenCalledWith({
@@ -66,19 +66,19 @@ describe("daily challenge from the live catalog pools", () => {
 
   it("finds the one skill with a hard question and serves it key-free", async () => {
     mock.pools.set(catalogSkillId, [hard(id(1))]);
-    const slot = await loadDailySlot("math", new Date());
+    const slot = await loadDailySlot("math", 7, new Date());
     expect(slot.state).toBe("ready");
     if (slot.state !== "ready") return;
     expect(slot.value.question.id).toBe(id(1));
     expect(JSON.stringify(slot.value.question)).not.toContain("correct_answer");
     expect(JSON.stringify(slot.value.question)).not.toContain("reviewed explanation");
-    const review = await reviewDailyAnswer("math", slot.value.day, id(1), "A");
+    const review = await reviewDailyAnswer("math", slot.value.day, id(1), "A", 7);
     expect(review).toMatchObject({ correct_answer: "A", isCorrect: true });
-    await expect(reviewDailyAnswer("math", slot.value.day, id(2), "A")).rejects.toThrow(
+    await expect(reviewDailyAnswer("math", slot.value.day, id(2), "A", 7)).rejects.toThrow(
       "no longer available"
     );
     const award = vi.fn(async () => 15 as const);
-    const signedIn = await reviewDailyAnswer("math", slot.value.day, id(1), "A", {
+    const signedIn = await reviewDailyAnswer("math", slot.value.day, id(1), "A", 7, {
       clerkId: "user_s",
       award,
     });
@@ -98,24 +98,45 @@ describe("daily challenge from the live catalog pools", () => {
     mock.pools.set(catalogSkillId, [...pool, hard(id(99), 4)]);
     const served = new Set<string>();
     for (let day = 1; day <= 20; day++) {
-      const slot = await loadDailySlot("math", new Date(Date.UTC(2026, 10, day, 12)));
+      const slot = await loadDailySlot("math", 7, new Date(Date.UTC(2026, 10, day, 12)));
       if (slot.state === "ready") served.add(slot.value.question.id);
     }
     expect(served.size).toBeGreaterThan(8);
     expect(served.has(id(99))).toBe(false);
   });
 
+  it("serves core plans difficulty 5 only and mastery plans up to 7", async () => {
+    mock.pools.set(catalogSkillId, [hard(id(1), 6), hard(id(2), 7)]);
+    const day = new Date("2026-11-08T12:00:00Z");
+    expect((await loadDailySlot("math", 5, day)).state).toBe("empty");
+    expect(mock.pool).toHaveBeenCalledWith({
+      skillId: expect.any(String),
+      minimumDifficulty: 5,
+      maximumDifficulty: 5,
+    });
+    mock.pools.set(catalogSkillId, [hard(id(1), 6), hard(id(2), 7), hard(id(3), 5)]);
+    const core = await loadDailySlot("math", 5, day);
+    expect(core.state === "ready" && core.value.question.id).toBe(id(3));
+    const mastery = await loadDailySlot("math", 7, day);
+    expect(mastery.state).toBe("ready");
+    // A core student cannot answer a mastery question served to someone else.
+    if (mastery.state === "ready" && mastery.value.question.id !== id(3))
+      await expect(
+        reviewDailyAnswer("math", mastery.value.day, mastery.value.question.id, "A", 5)
+      ).rejects.toThrow("no longer available");
+  });
+
   it("skips a re-sealed row instead of failing the day", async () => {
     const changed = hard(id(1));
     changed.question_text = "Edited after review";
     mock.pools.set(catalogSkillId, [changed, hard(id(2))]);
-    const slot = await loadDailySlot("math", new Date("2026-11-08T12:00:00Z"));
+    const slot = await loadDailySlot("math", 7, new Date("2026-11-08T12:00:00Z"));
     expect(slot.state === "ready" && slot.value.question.id).toBe(id(2));
   });
 
   it("is unavailable, not broken, when the bank read fails", async () => {
     mock.pool.mockRejectedValue(new Error("synthetic failure"));
-    expect(await loadDailySlot("reading", new Date("2026-11-08T12:00:00Z"))).toEqual({
+    expect(await loadDailySlot("reading", 7, new Date("2026-11-08T12:00:00Z"))).toEqual({
       state: "unavailable",
     });
   });

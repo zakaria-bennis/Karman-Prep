@@ -10,6 +10,14 @@
 // Schedule: every 5 minutes via Cloudflare Worker cron (paired with
 // the existing ingest-csv-inbox slot — both are short, idempotent,
 // and read tiny batches).
+//
+// The same tick also runs the parent daily email (src/lib/parent/
+// daily-email-run.ts): it only works on the first tick of each half
+// hour, and it is a dry run (counts logged, nothing sent or written)
+// unless DAILY_PARENT_EMAIL=on. It also runs the instant parent
+// alerts (hourly, a dry run unless PARENT_ALERTS=on) and the message
+// assistant's catch-up (off unless MESSAGE_ASSISTANT=on; it drafts,
+// never sends).
 // ============================================================
 
 import { NextResponse } from "next/server";
@@ -26,6 +34,9 @@ import {
 } from "@/lib/integrations/resend/booking-emails";
 import { updateBooking } from "@/lib/supabase/queries/bookings";
 import { withCronInstrumentation } from "@/lib/observability/cron";
+import { runDailyParentEmailsNow } from "@/lib/parent/daily-email-cron";
+import { runParentAlertsNow } from "@/lib/parent/alerts-cron";
+import { runAssistantSweepNow } from "@/lib/message-assistant/sweep-cron";
 
 export const runtime = "nodejs";
 
@@ -36,6 +47,11 @@ export const POST = withCronInstrumentation("retry-failed-emails", async (req: R
   if (!process.env.CRON_SECRET || req.headers.get("authorization") !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Never throws; a dry run unless DAILY_PARENT_EMAIL=on.
+  await runDailyParentEmailsNow();
+  // Never throw: a dry run unless PARENT_ALERTS=on; off unless MESSAGE_ASSISTANT=on.
+  await Promise.all([runParentAlertsNow(), runAssistantSweepNow()]);
 
   const pending = await listPendingFailedEmails(BATCH_SIZE);
   if (pending.length === 0) {

@@ -1,0 +1,137 @@
+/* About, FAQ and Research, in the home page's world (.lit), built on the SAT Program page's frame (program.css:
+   pg-hero, pg-sect, pg-in, pg-two, pg-say, pg-close, pg-terms, pg-moves, pg-tick). Words straight on the mist,
+   rounded cream cards that turn near-black at night, cobalt actions by day and soft gold at night.
+   One rule to a line; never run Prettier on this. */
+
+/* ---------- the shared frame ---------- */
+.ks .co-in { width: min(1240px, 100%); }
+.ks .co-stack { display: grid; gap: clamp(24px, 3vw, 40px); justify-items: stretch; }
+.ks .co-stack > * { min-width: 0; max-width: 100%; }
+.ks .co-card { --a: #2449b8; position: relative; min-width: 0; display: grid; gap: 14px; padding: clamp(20px, 2.4vw, 32px); border-radius: 30px; background: var(--cream); color: var(--ink); box-shadow: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
+.ks .co-card > * { min-width: 0; }
+.ks.lit[data-mode="dark"] .co-card { --a: #e7cf9a; background: rgb(24, 22, 30); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14), 0 24px 46px -30px rgba(0, 0, 0, .9); }
+.ks.lit[data-mode="dark"] .co-card .pg-small { color: #cdc7d6; }
+/* a section taller than a screen: the mist reaches full strength a fixed distance in, not a share of the height */
+.ks .co-tall { min-height: 0; }
+.ks .co-tall > .mist { -webkit-mask-image: linear-gradient(transparent, #000 150px, #000 calc(100% - 150px), transparent); mask-image: linear-gradient(transparent, #000 150px, #000 calc(100% - 150px), transparent); }
+/* the close: one centred band */
+.ks .co-end { min-height: 0; padding-top: clamp(96px, 16svh, 160px); padding-bottom: clamp(96px, 16svh, 160px); }
+.ks .co-centre { display: grid; gap: clamp(16px, 2vw, 26px); justify-items: center; text-align: center; }
+.ks .pg-sect .co-centre .lede { text-align: center; }
+.ks.lit .pg-sect .co-centre h2 { max-width: 20em; }
+.ks .co-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; }
+
+/* ---------- About: 1. the track record, as one big number that counts up, with its source ---------- */
+.ks .ab-stat { margin: 0; justify-items: start; align-content: center; gap: 8px; min-height: clamp(240px, 28vw, 360px); overflow: hidden; }
+.ks.lit .ab-stat .num { font-size: clamp(92px, 11vw, 168px); line-height: .9; letter-spacing: -.05em; animation: pg-pop .8s cubic-bezier(.2, 1.5, .4, 1) .3s both; }
+/* the gain counts up as it pops in: the number climbing is the picture (CountUp, .cu in audience.css) */
+.ks.lit .ab-stat .num.cu { animation: pg-pop .8s cubic-bezier(.2, 1.5, .4, 1) .3s both, cu-n 1.4s cubic-bezier(.16, 1, .3, 1) .3s backwards; }
+.ks .ab-stat figcaption { display: grid; gap: 6px; }
+.ks .ab-stat figcaption span { font-size: clamp(19px, 1.7vw, 24px); font-weight: 700; line-height: 1.3; }
+.ks .ab-stat figcaption small { font-size: 14.5px; font-weight: 700; color: var(--ink2); }
+.ks.lit[data-mode="dark"] .ab-stat figcaption small { color: #cdc7d6; }
+
+/* 2. three things we refuse to do: each title is struck through, card by card, as the section arrives */
+.ks .ab-refuse { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.ks .ab-refuse li { --a: #d8664a; align-content: start; transition: opacity .6s var(--out), transform .8s var(--spring); transition-delay: calc(.15s + var(--k) * .12s); }
+.ks .pg-in.rv:not(.on) .ab-refuse li { opacity: 0; transform: translateY(40px) scale(.96); }
+.ks .ab-refuse h3 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -.012em; font-size: clamp(24px, 2.2vw, 32px); line-height: 1.15; }
+.ks .ab-refuse s { text-decoration: none; background: linear-gradient(var(--a), var(--a)) 0 58% / 0 5px no-repeat; -webkit-box-decoration-break: slice; box-decoration-break: slice; transition: background-size .9s var(--out); transition-delay: calc(.7s + var(--k) * .3s); }
+.ks .pg-in.rv.on .ab-refuse s { background-size: 100% 5px; }
+.ks .ab-refuse p { margin: 0; font-size: clamp(16px, 1.3vw, 18px); font-weight: 600; line-height: 1.45; }
+.ks.lit[data-mode="dark"] .ab-refuse li { --a: #ee8a72; }
+@media (max-width: 900px) { .ks .ab-refuse { grid-template-columns: minmax(0, 1fr); } }
+
+/* 3. how we teach: four steps in a card, with a dotted path that runs from the last back to the first */
+.ks .ab-loop { padding-left: clamp(58px, 6vw, 74px); }
+.ks .ab-loop > svg { position: absolute; left: clamp(14px, 1.6vw, 22px); top: 44px; width: 34px; height: calc(100% - 108px); overflow: visible; }
+.ks .ab-loop > svg path { fill: none; stroke: var(--a); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1 9; vector-effect: non-scaling-stroke; animation: ab-march 1.6s linear infinite; }
+@keyframes ab-march { to { stroke-dashoffset: -20; } }
+.ks .ab-loop .pg-moves { gap: 18px; }
+
+/* 4. the rules: the program page's terms card, one rule to a line */
+.ks .ab-rules { --a: #2f8f6b; width: 100%; }
+.ks .ab-rules ul { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.ks .ab-rules li { font-size: clamp(16px, 1.35vw, 18.5px); }
+.ks.lit[data-mode="dark"] .ab-rules { --a: #7fd3ad; }
+
+/* ---------- FAQ: 1. the heading over the home page's question clouds (Doubts.tsx; its styles are in
+   painted.css). Twenty questions instead of nine, so each trip up the sky takes longer, at the same speed. ---------- */
+.ks .fq-hero { align-content: start; }
+.ks .fq-in { display: grid; gap: clamp(8px, 2vw, 28px); }
+.ks .fq-in > * { min-width: 0; max-width: 100%; }
+.ks .fq-in .lede { max-width: 36em; }
+.ks .fq-hero .sky { --dur: calc(var(--n) * 2.9s); }
+@media (max-width: 860px) { .ks .fq-hero .cloud { max-width: 100%; white-space: normal; } }
+
+/* 2. every answer, by topic: four cards of questions that open in place */
+.ks .fq-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+.ks .fq-group { gap: 4px; }
+.ks .fq-group.rv { transition: opacity .7s var(--out), transform .9s var(--spring); }
+.ks .fq-group h3 { margin: 0 0 8px; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -.012em; font-size: clamp(24px, 2.2vw, 32px); line-height: 1.1; }
+.ks .fq-group details { border-top: 1px dashed color-mix(in srgb, currentColor 24%, transparent); }
+.ks .fq-group summary { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr) 30px; gap: 14px; align-items: center; min-height: 54px; padding: 12px 0; font-size: clamp(16px, 1.3vw, 18px); font-weight: 800; line-height: 1.3; cursor: pointer; }
+.ks .fq-group summary::-webkit-details-marker { display: none; }
+.ks .fq-group summary i { position: relative; width: 30px; height: 30px; border-radius: 50%; background: var(--a); transition: rotate .45s var(--spring), scale .3s var(--out); }
+.ks .fq-group summary i::before, .ks .fq-group summary i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2.5px; margin: -1.25px 0 0 -6px; border-radius: 2px; background: var(--cream); }
+.ks .fq-group summary i::after { rotate: 90deg; }
+.ks .fq-group details[open] summary i { rotate: 45deg; }
+@media (hover: hover) and (pointer: fine) { .ks .fq-group summary:hover i { scale: 1.1; } }
+.ks .fq-group details p { margin: 0 0 18px; max-width: 60ch; font-size: 16px; font-weight: 600; line-height: 1.5; color: var(--ink2); }
+.ks .fq-group details[open] p { animation: fq-open .5s var(--out) both; }
+@keyframes fq-open { from { opacity: 0; transform: translateY(-8px); } }
+.ks.lit[data-mode="dark"] .fq-group summary i::before, .ks.lit[data-mode="dark"] .fq-group summary i::after { background: var(--ink); }
+.ks.lit[data-mode="dark"] .fq-group details p { color: #cdc7d6; }
+@media (max-width: 900px) { .ks .fq-groups { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Research: 1. the reading list, as a shelf of six books; each book opens its study ---------- */
+.ks .rs-shelf { gap: 12px; }
+.ks.lit .rs-shelf h2 { font-size: clamp(24px, 2.3vw, 34px); line-height: 1.15; max-width: none; }
+.ks .rs-books { --tall: clamp(190px, 21vw, 270px); list-style: none; margin: 8px 0 0; padding: 0 clamp(4px, 1vw, 12px); display: flex; align-items: flex-end; gap: clamp(6px, 1vw, 12px); min-height: var(--tall); }
+.ks .rs-books li { flex: 1 1 0; min-width: 0; display: flex; align-items: flex-end; }
+.ks .rs-books li:nth-child(1) { --b: #2f6e4c; --h: .92; }
+.ks .rs-books li:nth-child(2) { --b: #2d5a96; --h: .8; }
+.ks .rs-books li:nth-child(3) { --b: #8a5a12; --h: 1; }
+.ks .rs-books li:nth-child(4) { --b: #a8442e; --h: .86; }
+.ks .rs-books li:nth-child(5) { --b: #5a4797; --h: .95; }
+.ks .rs-books li:nth-child(6) { --b: #1f6f74; --h: .78; }
+.ks .rs-books a { width: 100%; height: calc(var(--tall) * var(--h)); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 0; overflow: hidden; border-radius: 8px; background: var(--b); color: #fffaf3; writing-mode: vertical-rl; transform: rotate(180deg); text-decoration: none; box-shadow: inset -5px 0 0 rgba(255, 255, 255, .16), inset 6px 0 0 rgba(0, 0, 0, .14); transition: translate .5s var(--spring); animation: rs-book .8s var(--spring) backwards; animation-delay: calc(.25s + var(--k) * .09s); }
+@keyframes rs-book { from { opacity: 0; translate: 0 -30px; } }
+.ks .rs-books em { min-width: 0; min-height: 0; overflow: hidden; white-space: nowrap; font-family: var(--font-young-serif), Georgia, serif; font-style: normal; font-size: clamp(15px, 1.4vw, 19px); line-height: 1; }
+.ks .rs-books small { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; opacity: .85; }
+@media (hover: hover) and (pointer: fine) { .ks .rs-books a:hover { translate: 0 -14px; } }
+.ks .rs-books a:focus-visible { translate: 0 -14px; outline-offset: 3px; }
+.ks .rs-plank { height: 12px; margin-top: -12px; border-radius: 999px; background: #6b4a33; box-shadow: 0 12px 18px -10px rgba(29, 26, 34, .6); }
+.ks.lit[data-mode="dark"] .rs-plank { background: #a07c5c; }
+
+/* 2. the seven ways: the home page's cards (.ways in painted.css), laid out as one row per way, with the
+   picture, the reason and the studies side by side */
+.ks .ways.rs-ways { grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 2vw, 24px); }
+.ks .ways.rs-ways li, .ks .ways.rs-ways li:nth-child(n) { grid-column: 1 / -1; grid-template-columns: minmax(0, 300px) minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(16px, 2.2vw, 30px); align-items: start; padding: clamp(12px, 1.4vw, 18px); border-radius: 28px; }
+.ks .rs-ways .way-art svg { height: auto; aspect-ratio: 320 / 220; }
+.ks .rs-say { display: grid; gap: 8px; padding: 6px 0; }
+.ks .rs-say h3 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -.012em; font-size: clamp(24px, 2.3vw, 32px); line-height: 1.1; }
+.ks .rs-line { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: color-mix(in srgb, var(--i) 82%, transparent); }
+.ks .rs-why { margin: 4px 0 0; font-size: clamp(16.5px, 1.35vw, 19px); font-weight: 800; line-height: 1.4; }
+.ks .rs-studies { display: grid; gap: 10px; }
+.ks .rs-label { margin: 6px 0 0; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: color-mix(in srgb, var(--a) 55%, var(--i)); }
+.ks .rs-study { display: grid; gap: 6px; padding: 14px 16px 10px; border-radius: 18px; background: color-mix(in srgb, var(--a) 10%, var(--p)); }
+.ks .rs-study h4 { margin: 0; font-size: 17px; font-weight: 800; line-height: 1.25; }
+.ks .rs-study p { margin: 0; font-size: 15px; line-height: 1.45; }
+.ks .rs-src { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 14px; }
+.ks .rs-src cite { font-style: normal; font-size: 13.5px; font-weight: 700; line-height: 1.35; color: color-mix(in srgb, var(--i) 74%, transparent); }
+.ks .rs-src a { display: inline-flex; align-items: center; gap: 6px; min-height: 46px; font-size: 14.5px; font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: color-mix(in srgb, var(--a) 70%, var(--i)); }
+.ks .rs-src a svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .4s var(--spring); }
+@media (hover: hover) and (pointer: fine) { .ks .rs-src a:hover svg { transform: translate(2px, -2px); } }
+@media (max-width: 1100px) { .ks .ways.rs-ways li, .ks .ways.rs-ways li:nth-child(n) { grid-template-columns: minmax(0, 260px) minmax(0, 1fr); } .ks .rs-studies { grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); } .ks .rs-label { grid-column: 1 / -1; } }
+@media (max-width: 640px) { .ks .ways.rs-ways li, .ks .ways.rs-ways li:nth-child(n) { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- held still, or reduced motion: everything rests finished ---------- */
+.ks.still-motion :is(.ab-stat, .ab-loop, .rs-books) *, .ks.still-motion .fq-group details p { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .ks :is(.ab-stat, .ab-loop, .rs-books) *, .ks .fq-group details p { animation: none !important; }
+  .ks .ab-refuse li, .ks .ab-refuse s, .ks .rs-books a, .ks .fq-group summary i { transition: none !important; }
+  .ks .pg-in.rv:not(.on) .ab-refuse li { opacity: 1; transform: none; }
+  .ks .ab-refuse s { background-size: 100% 5px; }
+}
+@media (max-width: 420px) { .ks .rs-books { gap: 2px; padding: 0; } }

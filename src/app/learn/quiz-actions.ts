@@ -6,6 +6,8 @@
 // ============================================================
 
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { assertQuestionsLeft } from "@/lib/assembler/plan-gate";
+import { withPlanLimit, type PlanLimitResult } from "@/lib/assembler/plan-limit";
 import { awardForAnswer } from "@/lib/quiz/points";
 import { revalidatePath } from "next/cache";
 import {
@@ -101,6 +103,15 @@ export async function actionRecordResponse(input: {
    *  string (e.g. "42", "1/2") for SAT math grid-ins. */
   student_answer: string;
   response_time_seconds: number;
+}): Promise<StudentQuizReview | PlanLimitResult> {
+  return withPlanLimit(() => recordResponse(input));
+}
+
+async function recordResponse(input: {
+  attempt_id: string;
+  question_id: string;
+  student_answer: string;
+  response_time_seconds: number;
 }): Promise<StudentQuizReview> {
   const { userId } = await safeAuth();
   if (!userId) throw new Error("Not authenticated");
@@ -114,6 +125,7 @@ export async function actionRecordResponse(input: {
   if (!responses.some((response) => response.question_id === input.question_id)) {
     const plan = prepareQuizSession(questions, responses);
     if (plan.next?.id !== input.question_id) throw new Error("Question is not next in this quiz");
+    await assertQuestionsLeft(userId);
   }
   const stored = await recordQuestionResponse({
     ...input,

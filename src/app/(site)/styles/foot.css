@@ -11,7 +11,7 @@
 .ks.lit .ft .mark { display: block; margin-bottom: clamp(30px, 5vh, 56px); color: var(--cream); font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: min(19vw, 300px); line-height: .9; letter-spacing: -.02em; text-align: center; white-space: nowrap; text-shadow: 0 4px 60px rgba(8, 10, 30, .5); }
 .ks.lit .ft nav { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 26px clamp(24px, 4vw, 60px); }
 .ks.lit .ft .col .h { color: var(--cream); font-size: 16px; }
-.ks.lit .ft .col a { min-height: 34px; color: color-mix(in srgb, var(--cream) 86%, transparent); font-size: 16px; font-weight: 600; }
+.ks.lit .ft .col a { min-height: 44px; color: color-mix(in srgb, var(--cream) 86%, transparent); font-size: 16px; font-weight: 600; }
 .ks.lit .ft .ft-base { margin-top: 22px; padding-top: 14px; border-top-color: color-mix(in srgb, var(--cream) 26%, transparent); }
 .ks.lit .ft .ft-base a, .ks.lit .ft .credit .motion { color: var(--cream); }
 .ks.lit .ft .ft-fine { margin-top: 6px; color: color-mix(in srgb, var(--cream) 74%, transparent); }
@@ -21,7 +21,7 @@
 .ks.lit .ft :focus-visible { outline-color: var(--cream); }
 @media (max-width: 760px) {
   .ks.lit .ft nav { grid-template-columns: 1fr 1fr; }
-  .ks.lit .ft .col a { min-height: 40px; }
+  .ks.lit .ft .col a { min-height: 44px; }
   .ks.lit .ft::before { -webkit-mask-image: linear-gradient(transparent 6%, #000 26%); mask-image: linear-gradient(transparent 6%, #000 26%); }
 }
 /* the name rises letter by letter as the footer comes into view, and a sunrise climbs through it */

@@ -5,7 +5,7 @@
 .ks.page-inner .hd { color: var(--ink); }
 .ks.page-inner main { background: var(--paper); }
 /* no film behind the inner pages: a panel (the guarantee) is a card on the paper, squared, with a hairline */
-:is(.ks.page-inner, .ks.page-pricing) .panel { max-width: var(--max); margin: 0 auto var(--gap); width: calc(100% - 2 * var(--gutter)); background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ks.page-inner .panel { max-width: var(--max); margin: 0 auto var(--gap); width: calc(100% - 2 * var(--gutter)); background: var(--card); border: 1px solid var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---------- the opening: words on one side, the drawing at the outer edge ---------- */
 .ks .i-hero { padding: clamp(130px, 14vw, 190px) var(--gutter) clamp(50px, 6vw, 90px); overflow: hidden; }
@@ -77,10 +77,6 @@
 .ks .i-split { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(30px, 5vw, 90px); align-items: start; }
 @media (max-width: 900px) { .ks .i-split { grid-template-columns: 1fr; } }
 .ks .i-proof { font-size: 15px; font-weight: 700; color: var(--marigold-ink); }
-.ks .i-card { display: grid; gap: 8px; padding: 26px; border-radius: var(--r-panel); background: var(--soft); }
-.ks .i-card .k-ico { color: var(--marigold-ink); }
-.ks .i-card b { font-size: 19px; letter-spacing: -0.01em; }
-.ks .i-card p { color: var(--ink2); }
 .ks .i-more { align-self: end; }
 .ks .i-more .lk { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 999px; border: 1.5px solid var(--ink); font-weight: 800; text-decoration: none; transition: background-color .25s var(--ease), color .25s var(--ease), transform .45s var(--spring); }
 .ks .i-more .lk svg { width: 15px; height: 15px; }
@@ -146,12 +142,6 @@
 @media (max-width: 900px) { .ks .i-big { order: 0; } }
 
 /* About: three refusals, as rows: the icon, the refusal struck through, then what we do instead */
-.ks .i-refuse { margin-top: clamp(30px, 4vw, 50px); display: grid; }
-.ks .i-refuse article { display: grid; grid-template-columns: 44px minmax(0, 5fr) minmax(0, 7fr); gap: 18px 28px; align-items: baseline; padding: clamp(22px, 2.6vw, 34px) 0; border-top: 1px solid var(--line); }
-.ks .i-refuse .k-ico { width: 30px; height: 30px; color: var(--marigold-ink); align-self: start; }
-.ks .i-refuse h3 { font-size: clamp(22px, 2.2vw, 34px); text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--marigold); }
-.ks .i-refuse p { color: var(--ink2); font-size: 17px; max-width: 52ch; }
-@media (max-width: 760px) { .ks .i-refuse article { grid-template-columns: 36px 1fr; } .ks .i-refuse p { grid-column: 2; } }
 
 /* the guarantee: four worked examples */
 .ks .i-ex { margin-top: clamp(30px, 4vw, 50px); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -160,17 +150,6 @@
 .ks .i-ex .arrow { width: 18px; height: 18px; color: var(--marigold-ink); }
 .ks .i-ex .out { color: var(--ink2); font-size: 16.5px; }
 @media (max-width: 760px) { .ks .i-ex { grid-template-columns: 1fr; } }
-
-/* FAQ */
-.ks .i-faq { display: grid; max-width: 900px; }
-.ks .i-faq details { border-top: 1px solid var(--line); }
-.ks .i-faq details:last-child { border-bottom: 1px solid var(--line); }
-.ks .i-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 72px; padding: 14px 0; font-weight: 800; font-size: clamp(18px, 1.5vw, 22px); letter-spacing: -0.015em; }
-.ks .i-faq summary::-webkit-details-marker { display: none; }
-.ks .i-faq summary .k-ico { transition: transform .4s var(--spring); color: var(--marigold-ink); }
-.ks .i-faq details[open] summary .k-ico { transform: rotate(45deg); }
-.ks .i-faq .ans { overflow: hidden; }
-.ks .i-faq .ans p { padding: 0 0 22px; color: var(--ink2); font-size: 17px; max-width: 64ch; }
 
 /* forms in cards */
 .ks .i-formcard { padding: clamp(24px, 2.6vw, 36px); border-radius: var(--r-panel); background: var(--card); box-shadow: 0 0 0 1px var(--line); width: 100%; max-width: 480px; justify-self: end; }
@@ -236,7 +215,3 @@
 .ks .i-sided { align-items: center; }
 .ks .rs-top { align-items: end; margin-bottom: clamp(28px, 4vw, 56px); }
 
-/* the 404 and error pages ((site)/not-found.tsx, (site)/error.tsx): the opening, with its links as pills */
-.ks .i-lost { min-height: 72svh; }
-.ks .i-lostlinks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
-.ks .i-lostlinks button.lk { background: none; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }

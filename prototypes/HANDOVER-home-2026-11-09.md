@@ -159,7 +159,7 @@ diagrams, specific to each method, no people, ink and cream plus one accent colo
 layouts he picked the dashboard wall: tiles of different sizes, all moving. `WayArt.tsx` draws the seven
 pictures; their labels are `art words` in site-copy section 6. The seventh method is time trials (one
 section, starting at 1.25 times the real SAT time and tightening to 0.75 while accuracy holds;
-`TIME_TRIAL.ready` is still false in the student portal). The Challenge has no leaderboard: its picture
+open in the student portal at `/learn/time-trial` since 2026-11-12). The Challenge has no leaderboard: its picture
 shows how everyone did, with no made-up numbers. He wants to be asked before any creative direction is
 taken on his behalf.
 
@@ -260,3 +260,13 @@ sections 21 to 24 and 27. It leads with the outcome, then the offer as a stack, 
 student's side beside the parent's, the promise by starting score, and the close. Its Reserve button goes
 to the pricing page until the registration form is built. The founder's product facts and copy rules for
 it are in the memory notes (cohort product facts, subpages plan).
+
+## Private tutoring page (12 Nov 2026)
+
+Rebuilt in the home page's world, on the Program page's frame: `src/components/site/private/PrivateSections.tsx`,
+styles in `private.css`, words in `site-copy.ts` sections 31 to 33, 35 and 36. Four desktop screens: the
+outcome with the promise by starting score; a session beside a week of open slots with one being booked;
+the two packages side by side; the promise's two sides beside the free-call form (the site's existing lead
+form). Private facts set on 2026-11-12 are in `offer.ts` (`GUARANTEE.private`): a test every week, half back
+or free sessions on a miss, Private 10's one-a-week cap, $149.50 for a session past the package. The
+Guarantee and Terms pages still state the older private remedy and test counts.

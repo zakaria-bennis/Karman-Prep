@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { syncUserBodySchema } from "../schemas";
+import { trackServer } from "@/lib/analytics/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,6 +82,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // The intake is done (OnboardingClient calls this at its end): the funnel's next step.
+    await trackServer("onboarding_done", userId, { role: existing?.role ?? role ?? "student" });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[sync-user] Error:", error);

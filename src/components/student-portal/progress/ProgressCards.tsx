@@ -19,6 +19,7 @@ import {
   SkillSquares,
   levelName,
 } from "@/components/portal";
+import type { CSSProperties } from "react";
 import { practiceHref } from "@/lib/student/course";
 import { levelCounts, strongCount, type SkillLevel } from "@/lib/student/levels";
 import {
@@ -52,6 +53,8 @@ function ScoreTrend({ history }: { history: ScorePoint[] }) {
     >
       {g.points.length > 1 && (
         <polyline
+          className={styles.line}
+          pathLength={1}
           points={g.path}
           fill="none"
           stroke="currentColor"
@@ -61,8 +64,19 @@ function ScoreTrend({ history }: { history: ScorePoint[] }) {
         />
       )}
       {g.points.map((p, i) => (
-        <g key={i}>
-          <circle className={styles.dot} cx={p.x} cy={p.y} r={4.5} />
+        // The line draws left to right; each score lands as the line reaches it.
+        <g
+          key={i}
+          className={styles.point}
+          style={{ "--at": g.points.length > 1 ? i / (g.points.length - 1) : 0 } as CSSProperties}
+        >
+          <circle
+            className={styles.dot}
+            cx={p.x}
+            cy={p.y}
+            r={4.5}
+            style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+          />
           <text className={styles.value} x={p.x} y={p.y - 10} textAnchor="middle">
             {p.score}
           </text>
@@ -112,7 +126,8 @@ export function SkillsCard({ levels, href }: { levels: SkillLevel[]; href: strin
         title="Skills"
         note={
           <>
-            <Num>{strongCount(levels)}</Num> of <Num>{levels.length}</Num> at Understanding or above
+            <Num count>{strongCount(levels)}</Num> of <Num>{levels.length}</Num> at Understanding or
+            above
           </>
         }
       />
@@ -188,8 +203,12 @@ export function TimeCard({
     <Card>
       <SectionHeader title="Time and effort" note="Last 7 days" />
       <ul className={styles.days}>
-        {days.map((d) => (
-          <li key={d.day} aria-label={`${d.label}: ${formatEffort(d.seconds)} of active time`}>
+        {days.map((d, i) => (
+          <li
+            key={d.day}
+            style={{ "--i": i } as CSSProperties}
+            aria-label={`${d.label}: ${formatEffort(d.seconds)} of active time`}
+          >
             <span className={styles.amount}>
               <Num>{d.seconds > 0 ? formatEffort(d.seconds) : "–"}</Num>
             </span>
@@ -207,7 +226,7 @@ export function TimeCard({
       <div className={styles.stats}>
         <div>
           <b>
-            <Num>{questions}</Num>
+            <Num count>{questions}</Num>
           </b>
           <span>{questions === 1 ? "question" : "questions"} this month</span>
         </div>
@@ -232,13 +251,29 @@ export function BestsCard({ bests }: { bests: PersonalBest[] }) {
         {bests.map((b) => (
           <div key={b.key}>
             <b>
-              <Num>{b.value}</Num>
+              <Num count>{b.value}</Num>
             </b>
             <span>{b.label}</span>
           </div>
         ))}
       </div>
     </Card>
+  );
+}
+
+/** The streak's flame: it catches as the count lands, flickers a moment, then burns still. */
+function Flame() {
+  return (
+    <svg className={styles.flame} viewBox="0 0 24 30" aria-hidden="true">
+      <path
+        className={styles.flameOuter}
+        d="M12 1.5c1.2 4.6 6.8 8 8.6 13.4 2 6-1.9 13.6-8.6 13.6S1.4 21.6 3.6 15.4c1.1-3.1 3.5-4.6 4.2-7.7.9 2 1.2 3.6 2.7 4.8C11.8 9.6 11 5.4 12 1.5Z"
+      />
+      <path
+        className={styles.flameInner}
+        d="M12 13.2c.6 2.6 4.4 4.6 4.4 8.6 0 3-2 5-4.4 5s-4.4-2-4.4-5c0-2.3 1.4-3.3 2-5 .6 1 .9 1.9 1.7 2.4.4-2 .2-4 .7-6Z"
+      />
+    </svg>
   );
 }
 
@@ -265,14 +300,15 @@ export function RewardsCard({
         <SectionHeader title="Streak and rewards" />
         <div className={styles.streaks}>
           <div>
-            <b>
-              <Num>{current}</Num>
+            <b className={styles.streakNow}>
+              <Num count>{current}</Num>
+              {current > 0 && <Flame />}
             </b>
             <span>{current === 1 ? "day" : "days"} in a row</span>
           </div>
           <div>
             <b>
-              <Num>{longest}</Num>
+              <Num count>{longest}</Num>
             </b>
             <span>longest streak</span>
           </div>
@@ -294,6 +330,7 @@ export function RewardsCard({
             </small>
           </span>
         </div>
+        <MoreLink href="/dashboard/student/rewards">Open Rewards</MoreLink>
         <div className={styles.reward}>
           <Fox size={48} />
           <span>

@@ -1,0 +1,313 @@
+/*
+ * Motion in the portals (founder, 2026-11-12: "motion and liveliness first … realistic and lively
+ * and fun", every motion carrying meaning). Pure CSS, so it starts with the first paint and needs
+ * no script:
+ *
+ * - Cards arrive in a short cascade on a spring when a page opens (the page change itself).
+ * - Rings fill from empty to their value and settle with a little overshoot, like a gauge.
+ * - The level ring sweeps round to show how the skills split.
+ * - Skill squares pop in one after another, each to its level's shade.
+ * - Numbers count up to their value (`Num`: big scores, numbers in rings, and `count`).
+ *
+ * Reduced motion (the device setting, or Settings > Reduce motion, which sets data-kp-still on
+ * the root) shows everything finished and still. The springs are written as linear() curves
+ * sampled from a damped spring; browsers without linear() keep the cubic-bezier before them.
+ */
+
+@property --kp-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --kp-sweep {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+@property --kp-n {
+  syntax: "<integer>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* ---------- Cards arrive: a short cascade, firm spring (peak 1.4%) ---------- */
+.kp-p-main > *,
+.kp-p-side > *,
+.kp-staff > *,
+.kp-admin > .wb > * {
+  animation: kp-card-in 0.62s cubic-bezier(0.2, 0.9, 0.3, 1.04) backwards;
+  animation: kp-card-in 0.62s
+    linear(
+      0,
+      0.086,
+      0.265,
+      0.461,
+      0.635,
+      0.772,
+      0.871,
+      0.937,
+      0.977,
+      1,
+      1.01,
+      1.014,
+      1.013,
+      1.011,
+      1.008,
+      1.006,
+      1.004,
+      1.002,
+      1.001,
+      1
+    )
+    backwards;
+  animation-delay: 40ms;
+}
+.kp-p-main > :nth-child(2),
+.kp-staff > :nth-child(2),
+.kp-admin > .wb > :nth-child(2) {
+  animation-delay: 95ms;
+}
+.kp-p-main > :nth-child(3),
+.kp-staff > :nth-child(3),
+.kp-admin > .wb > :nth-child(3) {
+  animation-delay: 150ms;
+}
+.kp-p-main > :nth-child(4),
+.kp-staff > :nth-child(4),
+.kp-admin > .wb > :nth-child(4) {
+  animation-delay: 205ms;
+}
+.kp-p-main > :nth-child(n + 5),
+.kp-staff > :nth-child(n + 5),
+.kp-admin > .wb > :nth-child(n + 5) {
+  animation-delay: 260ms;
+}
+.kp-p-side > :nth-child(1) {
+  animation-delay: 120ms;
+}
+.kp-p-side > :nth-child(2) {
+  animation-delay: 175ms;
+}
+.kp-p-side > :nth-child(3) {
+  animation-delay: 230ms;
+}
+.kp-p-side > :nth-child(n + 4) {
+  animation-delay: 285ms;
+}
+/*
+ * The staff screens (tutor and admin) wrap each page in one block, so a cascade on the box alone would
+ * bring the whole page in as one lump. The block holds still and its own parts cascade instead: the
+ * heading, the numbers, the filters, then each table or card. That block scrolls sideways for wide
+ * tables, so a part must never reach past its own edges while it arrives (a scroll bar would flicker):
+ * it grows down from its top edge to full size, with no overshoot.
+ */
+.kp-p-main > :is(.kp-staff, .kp-admin) {
+  animation: none;
+}
+.kp-staff > *,
+.kp-admin > .wb > * {
+  animation-name: kp-part-in;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  transform-origin: 50% 0;
+}
+@keyframes kp-part-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes kp-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+/* On the first open of a session the box waits for the painting; so do its cards. */
+:root[data-paint-opening] :is(.kp-p-main, .kp-p-side, .kp-staff, .kp-admin > .wb) > * {
+  animation-play-state: paused;
+}
+
+/* ---------- Rings fill to their value: soft spring (peak 8.7%) ---------- */
+.kp-ring {
+  --kp-wait: 0.22s;
+  animation: kp-ring-fill 1.05s cubic-bezier(0.22, 1.25, 0.36, 1) var(--kp-wait) backwards;
+  animation: kp-ring-fill 1.05s
+    linear(
+      0,
+      0.07,
+      0.232,
+      0.429,
+      0.623,
+      0.788,
+      0.916,
+      1.005,
+      1.058,
+      1.082,
+      1.087,
+      1.078,
+      1.063,
+      1.046,
+      1.029,
+      1.015,
+      1.005,
+      0.998,
+      0.994,
+      0.993,
+      0.995,
+      0.998,
+      1
+    )
+    var(--kp-wait) backwards;
+}
+@keyframes kp-ring-fill {
+  from {
+    --kp-p: 0;
+  }
+}
+/* A ring split by level has no single value: it sweeps round from twelve o'clock instead. */
+.kp-ring[data-split] {
+  animation-name: kp-ring-sweep;
+  animation-duration: 0.95s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.kp-ring[data-split]::before {
+  -webkit-mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--w)),
+      #000 calc(100% - var(--w) + 0.5px)
+    ),
+    conic-gradient(#000 calc(var(--kp-sweep) * 1turn), transparent 0);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--w)),
+      #000 calc(100% - var(--w) + 0.5px)
+    ),
+    conic-gradient(#000 calc(var(--kp-sweep) * 1turn), transparent 0);
+  mask-composite: intersect;
+}
+@keyframes kp-ring-sweep {
+  from {
+    --kp-sweep: 0;
+  }
+}
+
+/* ---------- Skill squares pop in, one after another ---------- */
+.kp-sqs > .kp-sq {
+  animation: kp-sq-in 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+  animation: kp-sq-in 0.55s
+    linear(
+      0,
+      0.07,
+      0.232,
+      0.429,
+      0.623,
+      0.788,
+      0.916,
+      1.005,
+      1.058,
+      1.082,
+      1.087,
+      1.078,
+      1.063,
+      1.046,
+      1.029,
+      1.015,
+      1.005,
+      0.998,
+      1
+    )
+    backwards;
+  animation-delay: calc(0.18s + min(var(--i, 0) * 24ms, 0.6s));
+}
+@keyframes kp-sq-in {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+}
+
+/* ---------- Numbers count up to their value ---------- */
+/*
+ * Num renders the real number (what is read, copied and shown without motion) and, while the
+ * count runs, hides it under a counter that climbs from 0 on the same digits, then hands back.
+ */
+.kp-count {
+  position: relative;
+  display: inline-block;
+  --kp-n: var(--to);
+}
+.kp-count::after {
+  counter-reset: kp-n var(--kp-n);
+  content: attr(data-pre) counter(kp-n) attr(data-post);
+  position: absolute;
+  inset: 0;
+  text-align: right;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+.kp-big.kp-count,
+.kp-ring .kp-count,
+.kp-count[data-go] {
+  --kp-count-for: 0.95s;
+  animation: kp-count var(--kp-count-for) cubic-bezier(0.16, 1, 0.3, 1) var(--kp-wait, 0.22s)
+    backwards;
+}
+.kp-big.kp-count {
+  --kp-count-for: 1.25s;
+}
+:is(.kp-big.kp-count, .kp-ring .kp-count, .kp-count[data-go]) > span {
+  animation: kp-count-hide var(--kp-count-for) linear var(--kp-wait, 0.22s) backwards;
+}
+:is(.kp-big.kp-count, .kp-ring .kp-count, .kp-count[data-go])::after {
+  animation: kp-count-show var(--kp-count-for) linear var(--kp-wait, 0.22s) backwards;
+}
+@keyframes kp-count {
+  from {
+    --kp-n: 0;
+  }
+}
+@keyframes kp-count-hide {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+@keyframes kp-count-show {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Still: the device asks for it, or Settings > Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .kp-p-main > *,
+  .kp-p-side > *,
+  .kp-staff > *,
+  .kp-admin > .wb > *,
+  .kp-ring,
+  .kp-sqs > .kp-sq,
+  .kp-count,
+  .kp-count > span,
+  .kp-count::after {
+    animation: none !important;
+  }
+}
+:root[data-kp-still]
+  :is(
+    .kp-p-main > *,
+    .kp-p-side > *,
+    .kp-staff > *,
+    .kp-admin > .wb > *,
+    .kp-ring,
+    .kp-sqs > .kp-sq,
+    .kp-count
+  ),
+:root[data-kp-still] .kp-count > span,
+:root[data-kp-still] .kp-count::after {
+  animation: none !important;
+}

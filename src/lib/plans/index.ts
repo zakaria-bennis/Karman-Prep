@@ -62,6 +62,7 @@ export {
   canSponsorMore,
   canManageStudent,
   resolvePlan,
+  COUNTED_RUN_KINDS,
   supabasePlanDataSource,
   PlanGrantError,
   GRANT_SOURCES,

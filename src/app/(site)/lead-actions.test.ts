@@ -66,9 +66,15 @@ describe("submitLead", () => {
     expect(db.upsert).not.toHaveBeenCalled();
   });
 
-  it("only accepts the dates the form offers", async () => {
-    const r = await submitLead("call", { email: "a@b.co", latest: "", date: "Tomorrow" });
+  it("only accepts a call time in the form's own shape", async () => {
+    const r = await submitLead("call", {
+      email: "a@b.co",
+      name: "Dana",
+      phone: "512 555 0142",
+      slot: "Tomorrow",
+    });
     expect(r.ok).toBe(false);
+    expect(Object.keys((r as { fields: object }).fields)).toEqual(["slot"]);
   });
 
   it("answers a filled bot trap like a person, and keeps nothing", async () => {
