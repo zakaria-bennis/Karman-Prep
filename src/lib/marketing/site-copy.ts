@@ -267,6 +267,13 @@ later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks
 headline: A higher SAT score, on your calendar.
 button: Schedule a free call
 second button: See the two packages
+facts: One tutor = Matched to your student, start to finish | Your hours = You pick every session from open times | In writing = ${UP_TO.private}, or half your money back
+bands title: What we promise, by starting score
+student title: For your student
+student: One tutor who knows how they think | Sessions on the questions they missed | Homework built from their own mistakes
+parent title: For you
+parent: A note after every session | A private text line to the tutor | The promise in writing before you pay
+kicker headline: One tutor. Your hours. A score in writing.
 note: ${CALL_MINUTES} minutes with you, your student and ${FOUNDER.firstName}. No charge, no pressure.
 ask: Their latest SAT score
 promise: points with ${P20.name}, or half your money back.
@@ -282,6 +289,15 @@ open: Open
 yours: Yours
 picked: Thursday, 6:00 pm. Booked.
 move: Need to move it? Give us ${G.private.cancelHours} hours.
+pick day: Pick a day
+pick time: Pick a time
+zone: Central Time
+length: 60 minutes, one-on-one
+with: with Zeeshawn
+confirm: Confirm session
+booked: Booked
+taken: Taken
+none: No open times this day
 
 ## 33 Private: packages
 headline: Two ways to work one-on-one.
@@ -319,6 +335,11 @@ grace: Moving a session with ${G.private.cancelHours} hours' notice never counts
 link: The guarantee, in full
 
 ## 36 Private: close
+calm: Twenty minutes. No charge. No pressure.
+next title: What happens next
+next: You pick a time = Any open slot this week. | We talk = You, your student and ${FOUNDER.firstName}: the goal, the test date, the hours you have. | You decide = We tell you which package fits, or that neither does.
+doubts: Is the call a sales pitch? = No. If private tutoring isn't right, we say so. | Do we pay on the call? = No. You pay only if you choose a package afterwards. | What should we bring? = Their latest SAT score, and the date they plan to test.
+assure: No card needed | We reply within a day | Cancel the call any time
 headline: Schedule a free call.
 text: You, your student and ${FOUNDER.firstName}, Karman's founder, on one video call. We talk about the target, the test date and how much time your student has each week. Then we tell you honestly whether private tutoring fits, how many hours make sense, and when a tutor is free.
 form email: Your email
