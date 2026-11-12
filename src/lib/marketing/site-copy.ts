@@ -35,7 +35,6 @@ import {
   INTAKE,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
-  NEXT_PROGRAMS_ENROLLMENT_LABEL,
   PLAN_RENEWAL,
   PRACTICE_PLAN as PP,
   PRIVATE_PACKAGES,
@@ -105,10 +104,6 @@ const TOP = G.bands[G.bands.length - 1];
 const PROOF = `Karman's 1:1 students gained ${TR.averageGain} points on average. ${TR.sourceLabel}.`;
 const SPLIT = `a ${$(MP.depositAmount)} deposit and ${w(MP.installments.count)} payments of ${$(MP.installments.amount)}`;
 const PRIVATE_BONUS = G.private.packages;
-const ENROLL_LATER = NEXT_PROGRAMS_ENROLLMENT_LABEL.replace(
-  /^Enrollment opens/,
-  "Enrollment for both opens"
-);
 
 export const SITE_COPY = `
 ## 1 Opening
@@ -116,7 +111,7 @@ headline: Our average student gains ${TR.averageGain} points. Yours doesn't have
 text: We built the SAT prep we wish we'd had: overqualified tutors, a portal that knows exactly what your student gets wrong, and a guarantee with our money on the line.
 button: Start free
 button note: ${FREE.questionLimit} practice questions and a full-length practice test. No card. No catch.
-second button: See pricing
+second button: How the promise works
 
 ## 2 Live classes
 headline: ${W(CLASS)} students, so nobody hides in the back row.
@@ -192,27 +187,40 @@ sample note: Sample rows for now. Real students, and the texts they really sent,
 
 ## 21 Program: opening
 text: Classes grouped by score band (${MP.scoreBands.join(", ")}), ${w(MP.fullLengthTests)} full-length tests, and the guarantee printed in full. Classes start ${START_DAY}.
+headline: A higher SAT score in ${w(MP.weeks)} weeks. We put the number in writing.
+lede: Your student sits a full test every week. We find what they got wrong, and fix it before the next one.
 button: Reserve a seat
-second button: See pricing
+second button: How the promise works
 closes: Registration closes ${CLOSES}
 days left: days left to register
 starts: Classes start ${START_DAY}.
-headline: One seat. Everything it takes to raise a score.
-stack: ${MP.totalClasses} live classes, ${w(CLASS)} students = Grouped by starting score, so nobody waits and nobody drowns. | Practice built from their own mistakes = Ten questions a day, pulled from what your student got wrong. | ${W(MP.fullLengthTests)} full-length practice tests, one a week = Timed like the real thing. Every miss comes back until it sticks. | A report for you, every day = The work done, the predicted score and a note from the tutor. | Everything in ${PRO.name} = The whole question bank, every explanation, every daily tool. | ${UP_TO.cohort}, or your money back = The promise is written down before you pay.
+stack: ${MP.totalClasses} live classes, in a group of ${w(CLASS)} = Five classmates who start where your student starts, so the pace fits. | ${W(MP.fullLengthTests)} full-length tests, one a week = We know what to fix within seven days, not at the end. | Homework built for one student = Ten questions a day from their own mistakes, and time trials if the clock is the problem. | One tutor, from the first class to test day = Matched to what your student struggles with. You never explain your child twice. | A report for you, every day = The work done, the predicted score and a note from the tutor. | ${QB.verifiedCount} questions, none written by AI = Written by people who have written real exams, and checked by 1550+ scorers. | ${UP_TO.cohort}, or your money back = You see the exact number before you pay.
 
-## 22 Program: a week
-headline: What a week looks like.
-rows: Twice a week = A live class, ${MP.classMinutes} minutes | Once a week = The live session: test mechanics, or a workshop on the skills students miss most | Every day = The Daily 10, about ten minutes | Every day, for you = Your report: the work done, the predicted score and a note from the tutor
+## 22 Program: the loop
+headline: Every week runs the same way. That is how a score goes up.
+steps: Test = A full practice test, timed like the real one. | Class = The tutor walks in knowing what the group missed, and teaches that. | Homework = Each student gets work built from their own mistakes. | Back again = A skill still missed is assigned next week, until it is mastered.
+note: Nothing is missed or forgotten.
 
-## 23 Program: the nine weeks
-headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks.
-rows: Every week = A full-length practice test, in one timed sitting, between that week's classes | In class = The tutor goes over what the group missed on it | After week ${MP.weeks} = A last review, a test-day guide and one more practice test before the real SAT
+## 23 Program: both sides
+headline: Your student does the work. You see all of it.
+student title: Your student
+student: A class of ${w(CLASS)} at their own level | A tutor who knows how they think by week two | Homework no classmate shares, because no classmate has their mistakes | A tutor in the cohort chat every day, 9am to 9pm Central | Optional workshops on the skills they find hardest
+parent title: You
+parent: A report in your inbox every day | A few sentences from the tutor, signed with their name | A portal with the predicted score, every skill and every assignment | Nothing to chase: you can see the work for yourself | One person to talk to about your child
+today: Today | Live class | Daily 10 | Back from last week
+report: Today's report | Class attended | Daily 10 done | Predicted score | A note from the tutor
+sample: Example
 
-## 24 Program: who it's for
-headline: Built for an 11th grader with room to grow.
-text: It fits a student with a score they want to raise and a few months before their SAT. If your student is already at ${INTAKE.scoreFrom}, or their SAT is less than ${w(INTAKE.minWeeks)} weeks away, we'll say so before you pay: a program probably isn't the best use of your money.
-card title: A ${$(SCH.amount)} scholarship in every cohort.
-card text: The student with the top SAT score in each cohort gets ${$(SCH.amount)}: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
+## 24 Program: the promise
+headline: The gain we promise depends on where your student starts.
+ask: Their latest SAT or PSAT score
+bands: ${G.bands.map((b, i) => (i === 0 ? `Up to ${b.upTo}` : `${G.bands[i - 1].upTo + 10} to ${b.upTo}`)).join(" | ")} | ${G.noGuaranteeFrom} and up
+promise: points in ${w(MP.weeks)} weeks, or your money back.
+high title: It goes up
+high: From ${G.noGuaranteeFrom}, we promise the score rises. If it doesn't, your student gets three months of ${PRO.name} free.
+terms title: Your student's side of it
+terms: At least ${G.minClassesAttended} of the ${MP.totalClasses} live classes | All ${w(MP.fullLengthTests)} tests, each in its own week | ${G.practicePct}% of the weekly practice | The SAT within ${G.satWithinDays} days of the last class
+link: The guarantee, in full
 
 ## 25 Program: how to join
 headline: Every family starts with a call with ${FOUNDER.firstName}.
@@ -233,9 +241,11 @@ form done text: We'll email you to set up the ${CALL_MINUTES}-minute call with $
 headline: ${$(MP.price)}, or ${SPLIT}.
 text: The same price for every cohort, and the deposit is part of it. Nothing is added later: no materials fee, no platform fee.
 
-## 27 Program: later dates
-headline: Can't start in ${monthOf(MP.startDate)}? ${MAY.startShort} or ${JUNE.startShort}.
-text: The next cohorts start ${MAY.startLabel} and ${JUNE.startLabel}. ${ENROLL_LATER}
+## 27 Program: close
+headline: The real cost is another test date with the same score.
+text: Each class has ${w(CLASS)} seats and is built by starting score, so the right one for your student can fill first.
+bonus: Reserve now and your student gets ${PRO.name} and a personal prep plan to use before class begins.
+later: Can't start in ${monthOf(MP.startDate)}? The next cohorts start the weeks of ${MAY.startShort} and ${JUNE.startShort}.
 
 ## 31 Private: opening
 headline: One student, one tutor, every mistake worked through.

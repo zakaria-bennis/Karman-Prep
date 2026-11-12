@@ -249,3 +249,14 @@ built from `offer.ts`; he will supply more questions and answers of his own.
   speed changes still need the founder's own phone to confirm.
 - Subpages still have their old top bar; they get this one when each is rebuilt.
 
+
+## Subpages in the home page's world (from 11 Nov 2026)
+
+`SitePage kind="lit"` gives a subpage the home page's top bar, menu, footer, typefaces and live landscape;
+`route={[from, to]}` picks the stretch of the route it flies. Each page passes `litFonts` itself (importing
+them in `SitePage.tsx` grows the student app's bundle). The SAT Program page is the first:
+`src/components/site/program/ProgramSections.tsx`, styles in `program.css`, words in `site-copy.ts`
+sections 21 to 24 and 27. It leads with the outcome, then the offer as a stack, the weekly loop, the
+student's side beside the parent's, the promise by starting score, and the close. Its Reserve button goes
+to the pricing page until the registration form is built. The founder's product facts and copy rules for
+it are in the memory notes (cohort product facts, subpages plan).
