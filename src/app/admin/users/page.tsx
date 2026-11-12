@@ -7,7 +7,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchAdminCohortsLite, fetchAdminUsersList } from "@/lib/supabase/queries/users";
-import { WbPage, WbStats } from "@/components/admin/workbench";
+import { WbMix, WbPage, WbStats } from "@/components/admin/workbench";
 import UsersClient from "./UsersClient";
 
 export const metadata: Metadata = { title: "Admin — People | Karman" };
@@ -39,6 +39,17 @@ export default async function AdminUsersPage() {
           { label: "Parents", value: countRole("parent") },
           { label: "Tutors", value: countRole("tutor") + countRole("affiliate_tutor") },
           { label: "On a paid plan", value: users.filter((u) => u.plan_id).length },
+        ]}
+      />
+      <WbMix
+        title="Who is on Karman"
+        note={`${users.length} accounts by role`}
+        parts={[
+          { label: "Students", value: countRole("student") },
+          { label: "Parents", value: countRole("parent") },
+          { label: "Tutors", value: countRole("tutor") },
+          { label: "Affiliate tutors", value: countRole("affiliate_tutor") },
+          { label: "Admins", value: countRole("admin") },
         ]}
       />
       <UsersClient users={users} cohorts={cohorts} />
