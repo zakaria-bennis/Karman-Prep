@@ -194,7 +194,6 @@ closes: Registration closes ${CLOSES}.
 starts: Classes start ${START_DAY}.
 clock label: Registration closes in
 clock: days | hours | min | sec
-clock sentence: left to register
 
 ## 22 Program: the climb
 headline: ${W(MP.fullLengthTests)} tests in ${w(MP.weeks)} weeks. Each one shows us what to fix next.
@@ -223,7 +222,7 @@ score goal: Promised
 days: M | T | W | T | F | S | S
 time: this week
 note: Good focus in class today. Two misses on punctuation, both the same comma rule, so I've added a short set on it. Pacing is better: the math module was done with four minutes to spare.
-note from: Zeeshan, tutor
+note from: Zeeshawn, tutor
 student: Amira
 initials: A
 

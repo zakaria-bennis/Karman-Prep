@@ -5,7 +5,7 @@
 // sides, beside the "start here" box. Words: site-copy.ts, sections 21 to 24, 27 and 29. Only the small
 // interactive pieces run in the browser, and they get their facts and words as props.
 import { Arrow, Btn } from "@/components/site/parts";
-import ClockOptions from "./ClockOptions";
+import TimeLeft from "./TimeLeft";
 import ScoreClimb from "./ScoreClimb";
 import PortalDeck from "./PortalDeck";
 import ProgramPromise from "./ProgramPromise";
@@ -40,9 +40,6 @@ function Tick() {
     </svg>
   );
 }
-
-/** When registration opened, for the countdown designs that show how much of the window is left. */
-const MP_OPENS = "2026-11-01";
 
 /** The student whose portal the deck shows (founder: a 1370 start), and the cohort's promise for that start. */
 const PARENT_START = 1370;
@@ -204,12 +201,10 @@ export default function ProgramSections() {
           </div>
           <div className="pg-say" id="reserve">
             <div className="pg-start">
-              <ClockOptions
+              <TimeLeft
                 until={MP.enrollmentCloses}
-                opens={MP_OPENS}
                 label={open["clock label"]}
                 units={list(open.clock)}
-                sentence={open["clock sentence"]}
               />
               <p className="lede">{open.starts}</p>
               <div className="go-row">
