@@ -86,6 +86,19 @@ test.describe("cookie note", () => {
   });
 });
 
+test.describe("cookie page", () => {
+  test("the choice can be changed later on /cookies", async ({ page, context }) => {
+    await page.goto("/cookies");
+    const choice = page.locator(".consent-choice");
+    await choice.getByRole("button", { name: "Essentials only" }).click();
+    await expect(choice).toContainText("You chose Essentials only.");
+    await choice.getByRole("button", { name: "Allow all" }).click();
+    await expect(choice).toContainText("You chose Allow all.");
+    const cookies = await context.cookies();
+    expect(cookies.find((c) => c.name === "karman_replay_consent")?.value).toBe("yes");
+  });
+});
+
 test.describe("student portal", () => {
   test("Today, Progress, Library, time trials and Settings open", async ({ page }) => {
     const errors = watchErrors(page);

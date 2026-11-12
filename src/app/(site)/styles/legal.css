@@ -49,3 +49,14 @@
 @media (hover: hover) and (pointer: fine) { .ks.rl-lost .lost-links .lk:hover { background: var(--solid); color: var(--on-solid); } .ks.rl-lost .lost-links .lk:hover svg { transform: translateX(4px); } }
 .ks.rl-lost .lost-links .lk:active { transform: scale(.96); transition-duration: .08s; }
 @media (prefers-reduced-motion: reduce) { .ks.rl-lost .lost-links .lk, .ks.rl-lost .lost-links .lk svg { transition: none; } }
+/* The cookie page's choice switch (ConsentChoice): two pills, the current choice filled. */
+.ks.rl-legal .consent-choice { display: grid; gap: 10px; margin-top: 6px; }
+.ks.rl-legal .consent-choice p { margin: 0; font-weight: 600; }
+.ks.rl-legal .consent-choice div { display: flex; flex-wrap: wrap; gap: 8px; }
+.ks.rl-legal .consent-choice button { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid currentColor; background: none; color: inherit; font: inherit; font-weight: 700; cursor: pointer; transition: transform .3s cubic-bezier(.3, 1.5, .5, 1); }
+.ks.rl-legal .consent-choice button:hover:not(:disabled) { transform: translateY(-2px); }
+.ks.rl-legal .consent-choice button[aria-pressed="true"] { background: var(--ink); color: #fffaf3; border-color: var(--ink); cursor: default; }
+.ks.rl-legal[data-mode="dark"] .consent-choice button[aria-pressed="true"] { background: #fffaf3; color: rgb(20, 19, 28); border-color: #fffaf3; }
+.ks.rl-legal .consent-choice button:disabled:not([aria-pressed="true"]) { opacity: .6; cursor: progress; }
+.ks.rl-legal .consent-choice button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .ks.rl-legal .consent-choice button { transition: none; } }

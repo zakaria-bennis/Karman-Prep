@@ -40,6 +40,7 @@ const SECTIONS = [
           "Practice quiz responses and concept progress",
           "Session attendance and scheduling history",
           "Login timestamps and session duration",
+          "How you use your account: pages opened, time spent, buttons pressed, questions viewed and the calculator opened. This is product-essential: it paces your practice and shows you, your parent and your tutor how practice is going.",
         ],
       },
       {
@@ -60,10 +61,11 @@ const SECTIONS = [
       {
         subtitle: "Automatically collected data",
         items: [
-          "Browser type, operating system, and IP address",
-          "Pages visited and features used within the platform",
-          "Error logs (via Sentry) to identify and fix technical issues",
-          "Product analytics (via PostHog) to understand how features are used — no personally identifiable information is included in these analytics reports",
+          "Browser type, operating system and device size (phone, tablet or desktop)",
+          "Your IP address, used to deliver pages, keep the service secure and tell which cookie rules apply where you are. Our usage records never store it.",
+          "Website visits: pages opened, time on each page, sign-up steps, the site that sent you and campaign tags. We keep our own record in our own database; no outside analytics or advertising company receives it.",
+          "On the public website we record visits only if you choose Allow all in our cookie note, where we show one. If your browser sends Do Not Track or Global Privacy Control, we record nothing on the public website.",
+          "Error logs (via Sentry) to identify and fix technical issues, and, only if you choose Allow all, a replay of a session with everything you type hidden",
         ],
       },
     ],
@@ -80,7 +82,9 @@ const SECTIONS = [
       "Send marketing emails (only if you opted in — unsubscribe at any time)",
       "Process payments and manage your subscription via Stripe",
       "Monitor platform performance and fix technical issues",
-      "Analyze how the platform is used to improve it for all students",
+      "Analyze how the platform is used to improve it for all students, including the algorithms that choose questions and pace timed practice",
+      "Show a student's parent and tutor how practice is going",
+      "Keep a record of the families, students and schools we talk to, so we can answer questions and follow up",
       "Comply with legal obligations",
     ],
   },
@@ -116,27 +120,35 @@ const SECTIONS = [
         purpose: "Error monitoring — captures anonymized crash reports to fix platform bugs",
         link: "https://sentry.io/privacy/",
       },
-      {
-        service: "PostHog",
-        purpose: "Product analytics — aggregated, non-personally-identifiable usage data",
-        link: "https://posthog.com/privacy",
-      },
+    ],
+  },
+  {
+    id: "records",
+    title: "5. Our Records of Families and Schools",
+    content: null,
+    list: [
+      "We keep a record of everyone who contacts us, signs up or buys from us: name, email, what they asked about, the answers on our forms, their plan and payments, and notes our staff write to follow up.",
+      "We use it only to answer questions, run our programs and follow up with families. Only Karman administrators can see it.",
+      "For students we keep only what we need to run their account and contact their family.",
+      "We never sell personal data, never share it for advertising and never track you on other websites.",
     ],
   },
   {
     id: "data-retention",
-    title: "5. Data Retention",
+    title: "6. Data Retention",
     content: null,
     list: [
       "Account and progress data is retained for as long as your subscription is active.",
       "After cancellation, your data is retained for 90 days to allow reactivation, then deleted.",
       "Payment records are retained for 7 years as required by financial regulations.",
+      "Raw usage records (pages, time and buttons) are deleted after 13 months.",
+      "Our records of families and schools are kept while you are a customer or in touch with us, and deleted within [Founder to confirm: number of months] after you ask us to or after our last contact.",
       "You may request earlier deletion at any time — see Your Rights below.",
     ],
   },
   {
     id: "your-rights",
-    title: "6. Your Rights",
+    title: "7. Your Rights",
     content: "You have the following rights regarding your personal information:",
     list: [
       "Access: request a copy of the personal data we hold about you",
@@ -149,22 +161,22 @@ const SECTIONS = [
   },
   {
     id: "children",
-    title: "7. Children's Privacy",
+    title: "8. Children's Privacy",
     content: `The Karman platform is designed for students age 13 and older. We do not knowingly collect personal information from children under 13. If a parent or guardian believes their child under 13 has created an account, please contact us at privacy@karmanprep.com and we will promptly delete the account. For students between 13–17, we encourage parental involvement and offer parent dashboard accounts.`,
   },
   {
     id: "security",
-    title: "8. Security",
+    title: "9. Security",
     content: `We use industry-standard security measures including encrypted data transmission (HTTPS/TLS), encrypted data storage via Supabase, row-level security policies that ensure users can only access their own data, and third-party authentication management via Clerk. No system is 100% secure. If you believe your account has been compromised, contact privacy@karmanprep.com immediately.`,
   },
   {
     id: "changes",
-    title: "9. Changes to This Policy",
+    title: "10. Changes to This Policy",
     content: `We may update this Privacy Policy from time to time. We will notify you by email at least 14 days before any material changes take effect. Continued use of the platform after that date constitutes acceptance of the updated policy.`,
   },
   {
     id: "contact",
-    title: "10. Contact",
+    title: "11. Contact",
     content: `For any privacy-related questions, requests, or concerns, email privacy@karmanprep.com. We respond within 5 business days.`,
   },
 ];
@@ -178,7 +190,7 @@ export default function PrivacyPage() {
           <div>
             <h1>Privacy Policy</h1>
             <p>
-              Effective April 2025 · Questions:{" "}
+              Updated November 2026 · Questions:{" "}
               <a href="mailto:privacy@karmanprep.com">privacy@karmanprep.com</a>
             </p>
           </div>
