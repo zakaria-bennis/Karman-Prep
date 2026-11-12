@@ -1,4 +1,5 @@
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import ProgramStack from "@/components/site/program/ProgramStack";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
@@ -42,7 +43,7 @@ const COURSE = {
    the mountain valleys of the route, in full daylight. So far: the opening (the stack). */
 export default function ProgramPage() {
   return (
-    <SitePage kind="lit" route={[0.2, 0.56]}>
+    <SitePage kind="lit" route={[0.2, 0.56]} className={litFonts}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(COURSE)} />
       <ProgramStack />
     </SitePage>

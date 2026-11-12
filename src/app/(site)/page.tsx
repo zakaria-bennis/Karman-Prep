@@ -8,6 +8,7 @@ import Receipts from "@/components/site/home/Receipts";
 import Ways from "@/components/site/home/Ways";
 import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import { jsonLd, pageMeta } from "@/components/site/meta";
 import { Arrow, Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
@@ -98,7 +99,7 @@ export default function HomePage() {
   /* while the rows are samples, the section says so under its heading (receipts.ts) */
   const receipts = section(14);
   return (
-    <SitePage kind="home">
+    <SitePage kind="home" className={litFonts}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
       {/* a visitor who has already watched the headline arrive this visit sees it at once */}
       <script dangerouslySetInnerHTML={{ __html: CLAIM_BOOT }} />

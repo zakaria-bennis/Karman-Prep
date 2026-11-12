@@ -11,7 +11,6 @@ import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
 import SiteFlight from "./SiteFlight";
 import SiteTouches from "./SiteTouches";
-import { litFonts } from "./home/fonts";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -174,14 +173,16 @@ export default function SitePage({
   /** In the landscape world: the stretch of the route this page flies, as [from, to] between 0 and 1. The
    *  home page flies all of it. */
   route?: [number, number];
-  /** Extra classes for the page's root. */
+  /** Extra classes for the page's root. A page in the landscape world passes `litFonts` here: importing
+   *  those typefaces in this file would bundle the marketing site's whole font list into the student app
+   *  (the build's bundle guard catches it). */
   className?: string;
 }) {
   const lit = kind === "home" || kind === "lit";
   return (
     <div
       id="ks"
-      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${lit ? `lit ${litFonts}` : ""} ${className}`}
+      className={`ks ${hanken.variable} ${impact.variable} page-${kind} ${lit ? "lit" : ""} ${className}`}
       data-mode="dark"
       suppressHydrationWarning
     >
