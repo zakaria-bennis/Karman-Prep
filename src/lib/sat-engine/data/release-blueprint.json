@@ -1,0 +1,287 @@
+{
+  "measured_from": "nov-rows.json",
+  "sections": {
+    "reading": {
+      "exams": [
+        "202611asiav1",
+        "202611asiav2",
+        "202611asiav4",
+        "202611asiav5",
+        "202611asiav6",
+        "202611usv1",
+        "202611usv2",
+        "202611usv3"
+      ],
+      "modules_seen": {
+        "module1": 9,
+        "harder": 8,
+        "easier": 1
+      },
+      "domain_order": ["craft_structure", "info_ideas", "conventions", "expression_ideas"],
+      "domain_counts": {
+        "module1": {
+          "craft_structure": 8.56,
+          "info_ideas": 7.11,
+          "conventions": 5.22,
+          "expression_ideas": 6.11
+        },
+        "harder": {
+          "craft_structure": 7.12,
+          "info_ideas": 8.25,
+          "conventions": 6.12,
+          "expression_ideas": 5.5
+        },
+        "easier": {
+          "craft_structure": 8.56,
+          "info_ideas": 7.11,
+          "conventions": 5.22,
+          "expression_ideas": 6.11
+        }
+      },
+      "skill_share": {
+        "rw-skill-central-ideas-and-details": {
+          "domain": "info_ideas",
+          "share": 0.2,
+          "seen": 27
+        },
+        "rw-skill-colons-and-dashes-introducing-explanations-or-lists": {
+          "domain": "conventions",
+          "share": 0.0198,
+          "seen": 2
+        },
+        "rw-skill-command-of-evidence": {
+          "domain": "info_ideas",
+          "share": 0.5111,
+          "seen": 69
+        },
+        "rw-skill-cross-text-connections": {
+          "domain": "craft_structure",
+          "share": 0.1074,
+          "seen": 16
+        },
+        "rw-skill-essential-versus-nonessential-information-including-names-and-titles": {
+          "domain": "conventions",
+          "share": 0.1188,
+          "seen": 12
+        },
+        "rw-skill-finite-versus-nonfinite-verb-forms": {
+          "domain": "conventions",
+          "share": 0.1782,
+          "seen": 18
+        },
+        "rw-skill-inferences": {
+          "domain": "info_ideas",
+          "share": 0.2889,
+          "seen": 39
+        },
+        "rw-skill-joining-main-and-dependent-clauses": {
+          "domain": "conventions",
+          "share": 0.0099,
+          "seen": 1
+        },
+        "rw-skill-lists-and-series": {
+          "domain": "conventions",
+          "share": 0.0198,
+          "seen": 2
+        },
+        "rw-skill-modifier-placement": {
+          "domain": "conventions",
+          "share": 0.0396,
+          "seen": 4
+        },
+        "rw-skill-plurals-possessives-and-contractions": {
+          "domain": "conventions",
+          "share": 0.0594,
+          "seen": 6
+        },
+        "rw-skill-pronoun-antecedent-agreement": {
+          "domain": "conventions",
+          "share": 0.0099,
+          "seen": 1
+        },
+        "rw-skill-rhetorical-synthesis": {
+          "domain": "expression_ideas",
+          "share": 0.3663,
+          "seen": 37
+        },
+        "rw-skill-sentence-boundaries-and-joining-independent-clauses": {
+          "domain": "conventions",
+          "share": 0.2079,
+          "seen": 21
+        },
+        "rw-skill-subject-verb-agreement": {
+          "domain": "conventions",
+          "share": 0.2079,
+          "seen": 21
+        },
+        "rw-skill-text-structure-and-purpose": {
+          "domain": "craft_structure",
+          "share": 0.3691,
+          "seen": 55
+        },
+        "rw-skill-transitions": {
+          "domain": "expression_ideas",
+          "share": 0.6337,
+          "seen": 64
+        },
+        "rw-skill-unnecessary-punctuation-within-a-sentence": {
+          "domain": "conventions",
+          "share": 0.1089,
+          "seen": 11
+        },
+        "rw-skill-verb-tense-and-aspect": {
+          "domain": "conventions",
+          "share": 0.0198,
+          "seen": 2
+        },
+        "rw-skill-words-in-context": {
+          "domain": "craft_structure",
+          "share": 0.5235,
+          "seen": 78
+        }
+      },
+      "difficulty_mix": {
+        "module1": [0.0617, 0.2058, 0.3292, 0.2181, 0.1523, 0.0288, 0.0041],
+        "harder": [0.0139, 0.0972, 0.1991, 0.2454, 0.2037, 0.2315, 0.0093],
+        "easier": [0.1398, 0.3098, 0.3291, 0.1448, 0.0672, 0.0084, 0.0008]
+      },
+      "easier_mix_derived": true
+    },
+    "math": {
+      "exams": [
+        "202611asiav1",
+        "202611asiav2",
+        "202611asiav4",
+        "202611asiav5",
+        "202611asiav6",
+        "202611usv1",
+        "202611usv2",
+        "202611usv3"
+      ],
+      "modules_seen": {
+        "module1": 9,
+        "harder": 9,
+        "easier": 0
+      },
+      "domain_order": ["algebra", "advanced_math", "data_analysis", "geometry"],
+      "domain_counts": {
+        "module1": {
+          "algebra": 7.11,
+          "advanced_math": 8.0,
+          "data_analysis": 3.67,
+          "geometry": 3.22
+        },
+        "harder": {
+          "algebra": 7.0,
+          "advanced_math": 8.33,
+          "data_analysis": 3.0,
+          "geometry": 3.56
+        },
+        "easier": {
+          "algebra": 7.11,
+          "advanced_math": 8.0,
+          "data_analysis": 3.67,
+          "geometry": 3.22
+        }
+      },
+      "skill_share": {
+        "ma-skill-area-and-volume": {
+          "domain": "geometry",
+          "share": 0.2131,
+          "seen": 13
+        },
+        "ma-skill-circles": {
+          "domain": "geometry",
+          "share": 0.2787,
+          "seen": 17
+        },
+        "ma-skill-equivalent-expressions": {
+          "domain": "advanced_math",
+          "share": 0.1905,
+          "seen": 28
+        },
+        "ma-skill-inference-from-sample-statistics-and-margin-of-error": {
+          "domain": "data_analysis",
+          "share": 0.05,
+          "seen": 3
+        },
+        "ma-skill-linear-equations-in-one-variable": {
+          "domain": "algebra",
+          "share": 0.1732,
+          "seen": 22
+        },
+        "ma-skill-linear-equations-in-two-variables": {
+          "domain": "algebra",
+          "share": 0.2362,
+          "seen": 30
+        },
+        "ma-skill-linear-functions": {
+          "domain": "algebra",
+          "share": 0.2835,
+          "seen": 36
+        },
+        "ma-skill-linear-inequalities-in-one-or-two-variables": {
+          "domain": "algebra",
+          "share": 0.1417,
+          "seen": 18
+        },
+        "ma-skill-lines-angles-and-triangles": {
+          "domain": "geometry",
+          "share": 0.3443,
+          "seen": 21
+        },
+        "ma-skill-nonlinear-equations-in-one-variable-and-systems-of-equations-in-two-variables": {
+          "domain": "advanced_math",
+          "share": 0.3265,
+          "seen": 48
+        },
+        "ma-skill-nonlinear-functions": {
+          "domain": "advanced_math",
+          "share": 0.483,
+          "seen": 71
+        },
+        "ma-skill-one-variable-data-distributions-and-measures-of-center-and-spread": {
+          "domain": "data_analysis",
+          "share": 0.2667,
+          "seen": 16
+        },
+        "ma-skill-percentages": {
+          "domain": "data_analysis",
+          "share": 0.25,
+          "seen": 15
+        },
+        "ma-skill-probability-and-conditional-probability": {
+          "domain": "data_analysis",
+          "share": 0.1667,
+          "seen": 10
+        },
+        "ma-skill-ratios-rates-proportional-relationships-and-units": {
+          "domain": "data_analysis",
+          "share": 0.15,
+          "seen": 9
+        },
+        "ma-skill-right-triangles-and-trigonometry": {
+          "domain": "geometry",
+          "share": 0.1639,
+          "seen": 10
+        },
+        "ma-skill-systems-of-two-linear-equations-in-two-variables": {
+          "domain": "algebra",
+          "share": 0.1654,
+          "seen": 21
+        },
+        "ma-skill-two-variable-data-models-and-scatterplots": {
+          "domain": "data_analysis",
+          "share": 0.1167,
+          "seen": 7
+        }
+      },
+      "difficulty_mix": {
+        "module1": [0.2475, 0.3636, 0.2121, 0.1061, 0.0606, 0.0101, 0.0],
+        "harder": [0.0355, 0.1371, 0.3503, 0.1878, 0.1929, 0.0863, 0.0102],
+        "easier": [0.5208, 0.3547, 0.0959, 0.0222, 0.0059, 0.0005, 0.0]
+      },
+      "easier_mix_derived": true
+    }
+  }
+}

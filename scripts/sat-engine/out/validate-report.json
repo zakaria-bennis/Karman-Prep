@@ -1,0 +1,150 @@
+[
+ {
+  "form": 1,
+  "level": "standard",
+  "section": "reading",
+  "routingCut": {
+   "theta": -0.56,
+   "module1NumberRight": 15
+  },
+  "moduleSizes": [
+   25,
+   25,
+   25
+  ],
+  "shortfall": 0,
+  "coldStart": {
+   "meanAbsError": 26.6,
+   "rmse": 34.4,
+   "bias": -5.8,
+   "within30": 0.719
+  },
+  "afterCalibration": {
+   "students": 1500,
+   "meanAbsError": 24.6,
+   "rmse": 32.5,
+   "bias": -1,
+   "within30": 0.747
+  },
+  "trueParameters": {
+   "meanAbsError": 25,
+   "rmse": 32.9,
+   "bias": 1.1,
+   "within30": 0.736
+  },
+  "routingMatchesTrueAbility": 0.889,
+  "shareInsideReportedRange": 0.758,
+  "highestEasierPathScore": 600
+ },
+ {
+  "form": 1,
+  "level": "standard",
+  "section": "math",
+  "routingCut": {
+   "theta": -1.03,
+   "module1NumberRight": 13
+  },
+  "moduleSizes": [
+   20,
+   20,
+   20
+  ],
+  "shortfall": 0,
+  "coldStart": {
+   "meanAbsError": 25.5,
+   "rmse": 33.7,
+   "bias": -8.8,
+   "within30": 0.72
+  },
+  "afterCalibration": {
+   "students": 1500,
+   "meanAbsError": 23.2,
+   "rmse": 31,
+   "bias": 3.5,
+   "within30": 0.77
+  },
+  "trueParameters": {
+   "meanAbsError": 23.1,
+   "rmse": 31,
+   "bias": 0.4,
+   "within30": 0.767
+  },
+  "routingMatchesTrueAbility": 0.944,
+  "shareInsideReportedRange": 0.754,
+  "highestEasierPathScore": 570
+ },
+ {
+  "form": 2,
+  "level": "hard",
+  "section": "reading",
+  "routingCut": {
+   "theta": -0.56,
+   "module1NumberRight": 14
+  },
+  "moduleSizes": [
+   25,
+   25,
+   25
+  ],
+  "shortfall": 0,
+  "coldStart": {
+   "meanAbsError": 25.9,
+   "rmse": 34.2,
+   "bias": -4.8,
+   "within30": 0.73
+  },
+  "afterCalibration": {
+   "students": 1500,
+   "meanAbsError": 25,
+   "rmse": 32.6,
+   "bias": -1.9,
+   "within30": 0.749
+  },
+  "trueParameters": {
+   "meanAbsError": 24,
+   "rmse": 31.8,
+   "bias": 1.1,
+   "within30": 0.755
+  },
+  "routingMatchesTrueAbility": 0.898,
+  "shareInsideReportedRange": 0.747,
+  "highestEasierPathScore": 580
+ },
+ {
+  "form": 2,
+  "level": "hard",
+  "section": "math",
+  "routingCut": {
+   "theta": -1.03,
+   "module1NumberRight": 11
+  },
+  "moduleSizes": [
+   20,
+   20,
+   20
+  ],
+  "shortfall": 0,
+  "coldStart": {
+   "meanAbsError": 28.4,
+   "rmse": 37.5,
+   "bias": -13.8,
+   "within30": 0.664
+  },
+  "afterCalibration": {
+   "students": 1500,
+   "meanAbsError": 23.2,
+   "rmse": 31.4,
+   "bias": 2,
+   "within30": 0.749
+  },
+  "trueParameters": {
+   "meanAbsError": 23,
+   "rmse": 31,
+   "bias": -0.9,
+   "within30": 0.763
+  },
+  "routingMatchesTrueAbility": 0.935,
+  "shareInsideReportedRange": 0.75,
+  "highestEasierPathScore": 580
+ }
+]
