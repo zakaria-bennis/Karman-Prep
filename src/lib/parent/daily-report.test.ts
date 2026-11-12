@@ -213,19 +213,23 @@ describe("daily report email", () => {
     portalUrl: "http://localhost:3201/dashboard/parent/x/report",
   };
 
-  it("says the day in counts, the score and the note", () => {
+  it("is a short brief: headline counts, the score, the note and a link", () => {
     expect(dailySubject(input)).toBe("Maya's Thursday at Karman");
     const lines = dailyLines(input);
-    expect(lines).toContain("Practice: 2 minutes, 2 questions, 50% right.");
-    expect(lines).toContain("Due today: Practice: Percentages.");
-    expect(lines).toContain("Predicted score: 1210.");
+    expect(lines).toEqual([
+      "2 minutes of practice, 2 questions, 50% right.",
+      "Homework: 1 due soon.",
+      "Predicted score: 1210.",
+    ]);
     const html = dailyHtml(input);
     expect(html).toContain("Keep going &lt;3");
+    expect(html).toContain("See the full report");
+    expect(html).toContain("/dashboard/parent/x/report");
     expect(html).not.toMatch(/question_id|student_answer|is_correct/);
   });
 
   it("says a quiet day in one line", () => {
     const quiet = { ...input, report: build(rows(), "2026-11-10") };
-    expect(dailyLines(quiet)).toEqual(["Maya didn't practice on this day."]);
+    expect(dailyLines(quiet)).toEqual(["Maya didn't practice that day."]);
   });
 });

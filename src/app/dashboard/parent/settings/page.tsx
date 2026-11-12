@@ -1,25 +1,39 @@
 /*
  * The parent's Settings, opened from the fox's account menu. It matches the student's: Sound and
- * motion, Appearance, Account, and billing for each linked student. The weekly email has its own
- * page (in the menu); there are no other notification settings in code, so there is no such
- * section.
+ * motion, Appearance, Account, and billing for each linked student, plus when the daily email
+ * arrives (founder, 2026-11-12). The weekly email has its own page (in the menu).
  */
 import type { Metadata } from "next";
 import { Panel, PortalShell, Row } from "@/components/portal";
+import { DailyEmailSetting } from "@/components/parent/DailyEmailSetting";
 import { PARENT_SETTINGS, parentNav } from "@/components/parent/ParentShell";
+import { ActionMessage } from "@/components/school/SchoolShell";
 import Appearance from "@/components/portal-extras/Appearance";
 import ManageSignIn from "@/components/portal-extras/ManageSignIn";
 import SettingsCard from "@/components/student-portal/settings/SettingsCard";
 import SoundMotion from "@/components/student-portal/settings/SoundMotion";
 import s from "@/components/student-portal/settings/settings.module.css";
+import { safeTimeZone } from "@/lib/daily-ten/day";
+import { parentTimeZone } from "@/lib/parent/daily-report";
+import { readDailyEmailChoice } from "@/lib/parent/daily-email-settings";
 import { requireParentContext } from "@/lib/parent/server";
+import { untypedAdmin } from "@/lib/school/db";
 
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
 
-export default async function ParentSettingsPage() {
+export default async function ParentSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ done?: string; error?: string }>;
+}) {
   const ctx = await requireParentContext();
   const first = ctx.children[0];
+  const [{ done, error }, choice, zone] = await Promise.all([
+    searchParams,
+    readDailyEmailChoice(ctx.viewer.userId),
+    parentTimeZone(untypedAdmin(), ctx.viewer.userId),
+  ]);
 
   return (
     <PortalShell
@@ -65,6 +79,10 @@ export default async function ParentSettingsPage() {
           </>
         }
       >
+        <ActionMessage done={done} error={error} />
+        <SettingsCard id="daily-email" title="Daily email">
+          <DailyEmailSetting choice={choice} timeZone={safeTimeZone(zone)} />
+        </SettingsCard>
         <SettingsCard id="sound" title="Sound and motion">
           <SoundMotion quizSounds={false} />
         </SettingsCard>

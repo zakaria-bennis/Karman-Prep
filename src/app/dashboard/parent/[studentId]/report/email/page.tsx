@@ -38,7 +38,7 @@ export default async function ParentDailyEmailPage({
   }
 
   const { day } = await searchParams;
-  const { report } = await loadDailyReport(ctx, child, day);
+  const { report } = await loadDailyReport(ctx.viewer.userId, child, day);
   const reportHref = `${base}/report${report.isToday ? "" : `?day=${report.day}`}`;
   const input = {
     childFirstName: child.firstName,

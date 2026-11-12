@@ -27,14 +27,17 @@ import {
   type ReportHomeworkRow,
   type ReportNoteRow,
 } from "./daily-report-build";
-import type { Child, ParentContext } from "./server";
+import type { Child } from "./server";
 
 export * from "./daily-report-build";
 
 type One<T> = T | T[] | null;
 const pick = <T>(v: One<T>): T | null => (Array.isArray(v) ? (v[0] ?? null) : v);
 
-async function parentTimeZone(supabase: UntypedAdmin, userId: string): Promise<string | null> {
+export async function parentTimeZone(
+  supabase: UntypedAdmin,
+  userId: string
+): Promise<string | null> {
   const { data, error } = await supabase
     .from("users")
     .select("time_zone")
@@ -105,14 +108,15 @@ export interface DailyReportPage {
   today: string;
 }
 
+/** One day's report for `child`, in the parent's time zone (`parentUserId` is users.id). */
 export async function loadDailyReport(
-  ctx: ParentContext,
+  parentUserId: string,
   child: Child,
   requestedDay: string | null | undefined,
   now: Date = new Date()
 ): Promise<DailyReportPage> {
   const supabase = untypedAdmin();
-  const zone = await parentTimeZone(supabase, ctx.viewer.userId);
+  const zone = await parentTimeZone(supabase, parentUserId);
   const { day, today, timeZone } = resolveReportDay(requestedDay, zone, now);
   const [practice, runs, scores, school, tutorItems, notes] = await Promise.all([
     loadSkillAnswers(child.clerkId),

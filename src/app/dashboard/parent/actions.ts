@@ -13,6 +13,8 @@ import {
   isPlaceholderCustomer,
   mayCreateTestCustomer,
 } from "@/lib/billing-portal/stripe";
+import { DAILY_EMAIL_TIMES } from "@/lib/parent/daily-email-schedule";
+import { saveDailyEmailChoice } from "@/lib/parent/daily-email-settings";
 import { acceptInvite, LINK_CODE_PATTERN, normalizeLinkCode } from "@/lib/parent/invites";
 import { recapHtml, recapSubject } from "@/lib/parent/recap";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
@@ -129,4 +131,28 @@ export async function linkStudentWithCodeAction(formData: FormData) {
         : "That code didn't work. Check it, or ask your student for a new one: each code works once."
     );
   redirect(`/dashboard/parent/${result.studentId}`);
+}
+
+const SETTINGS_PAGE = "/dashboard/parent/settings";
+const dailyEmailSchema = z.object({ time: z.union([z.enum(DAILY_EMAIL_TIMES), z.literal("off")]) });
+
+/** The parent picks when the daily email arrives (their own time zone), or turns it off. */
+export async function saveDailyEmailTimeAction(formData: FormData) {
+  const ctx = await requireParentContext();
+  const parsed = dailyEmailSchema.safeParse({ time: formData.get("time") });
+  if (!parsed.success) back(SETTINGS_PAGE, "error", "Pick a time from the list.");
+  try {
+    await saveDailyEmailChoice(
+      ctx.viewer.userId,
+      parsed.data.time === "off" ? null : parsed.data.time
+    );
+  } catch (error) {
+    console.error("[parent] daily email time could not be saved", error);
+    back(SETTINGS_PAGE, "error", "That didn't save. Try again in a minute.");
+  }
+  back(
+    SETTINGS_PAGE,
+    "done",
+    parsed.data.time === "off" ? "Daily email turned off." : "Daily email time saved."
+  );
 }

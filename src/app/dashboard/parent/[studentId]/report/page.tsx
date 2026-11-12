@@ -17,6 +17,7 @@ import {
   Ring,
   Row,
   SectionHeader,
+  SkillSquares,
   TutorNote,
 } from "@/components/portal";
 import { ParentShell } from "@/components/parent/ParentShell";
@@ -58,7 +59,7 @@ export default async function ParentReportPage({
   }
 
   const { day: requested } = await searchParams;
-  const { report: r, today } = await loadDailyReport(ctx, child, requested);
+  const { report: r, today } = await loadDailyReport(ctx.viewer.userId, child, requested);
   const name = child.firstName;
   const hw = r.homework;
   const anyHomework =
@@ -149,6 +150,12 @@ export default async function ParentReportPage({
             {r.skills.map((s) => (
               <Row
                 key={s.id}
+                leading={
+                  <SkillSquares
+                    skills={[{ level: s.level, name: s.label }]}
+                    label={`${s.label}: ${levelName(s.level)}`}
+                  />
+                }
                 title={s.label}
                 sub={
                   s.levelUp
