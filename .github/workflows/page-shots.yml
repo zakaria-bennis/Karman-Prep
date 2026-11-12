@@ -14,7 +14,7 @@ permissions:
 jobs:
   shots:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     env:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_cGxhY2Vob2xkZXIuY2xlcmsuYWNjb3VudHMuZGV2JA
@@ -51,6 +51,8 @@ jobs:
           done
       - run: npx playwright install --with-deps chromium
       - name: Take the pictures
+        timeout-minutes: 100
+        continue-on-error: true
         run: npx playwright test --project=e2e tests/e2e/zz-page-shots.spec.ts --retries=0 || true
       - name: Publish the pictures
         run: |
