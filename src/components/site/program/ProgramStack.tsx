@@ -1,31 +1,15 @@
-"use client";
-
 // The SAT Program page's opening (founder's pick, 2026-11-11: "the stack"): what one seat holds, as six
 // layers dropped one on another, with the promise as the base. Centred, and deliberately not the home page's
 // opening. He wants more work on it; the words are in site-copy.ts, section 21.
-import { useEffect, useState } from "react";
 import { Arrow, Btn } from "@/components/site/parts";
+import DaysLeft from "./DaysLeft";
 import { ROUTES } from "@/components/site/routes";
 import { MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { pairs, section } from "@/lib/marketing/site-copy";
 
-/** Whole days until registration closes; never below zero. The server's count is shown first. */
-function useDaysLeft() {
-  const count = () =>
-    Math.max(0, Math.ceil((Date.parse(`${MP.enrollmentCloses}T23:59:59`) - Date.now()) / 864e5));
-  const [days, setDays] = useState(count);
-  useEffect(() => {
-    setDays(count());
-    const t = setInterval(() => setDays(count()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-  return days;
-}
-
 /** The two actions and the dates, the same under every option. */
 function Close() {
   const s = section(21);
-  const days = useDaysLeft();
   return (
     <div className="pg-close">
       <div className="go-row">
@@ -36,8 +20,8 @@ function Close() {
         </a>
       </div>
       <p className="fine pg-dates">
-        <span className="pg-days" suppressHydrationWarning>
-          <b className="num">{days}</b> {s["days left"]}
+        <span className="pg-days">
+          <DaysLeft until={MP.enrollmentCloses} /> {s["days left"]}
         </span>
         <span>
           {s.closes}. {s.starts}
