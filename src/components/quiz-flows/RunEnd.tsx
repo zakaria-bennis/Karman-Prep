@@ -1,16 +1,20 @@
 "use client";
 // Result screens in the painting style, one per kind of run. Tokens show only here.
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, Cta, Num, Ring, SectionHeader, SkillSquares, levelName } from "@/components/portal";
 import type { RunView, SkillMove } from "@/lib/assembler/run-types";
 import { AnswerShapes, LevelBanner, LevelChanges, type LevelChange } from "./LevelBanner";
-import { DailyTenEnd } from "./DailyTenEnd";
 import { FlowFrame } from "./FlowFrame";
 import { TestReport } from "./TestReport";
 import { TrialEnd } from "./TrialEnd";
 import type { ShellUser } from "./types";
 import s from "./flows.module.css";
+
+// The Daily 10 ending carries the companion engine and the box's sounds; load it only when a Daily
+// 10 ends, so the diagnostic and other runs that share this file stay light.
+const DailyTenEnd = dynamic(() => import("./DailyTenEnd").then((m) => m.DailyTenEnd));
 
 export function answersOf(run: RunView) {
   return run.sections.flatMap((section) =>
