@@ -196,14 +196,14 @@ for (const [size, width, height, mode] of [
     await page.mouse.click(4, Math.round(height * 0.6));
     say(await page.locator("#menu").isHidden(), "phone: a tap outside closes the menu");
     const bar = await page.evaluate(() =>
-      [".hd .cta", ".hd .theme", ".hd .menu"].map((sel) => {
+      [".hd .cta", ".hd .menu"].map((sel) => {
         const b = document.querySelector(sel).getBoundingClientRect();
         return [Math.round(b.left), Math.round(b.height)];
       })
     );
     say(
-      bar.every(([, h]) => h > 30 && h < 52) && bar[0][0] < bar[1][0] && bar[1][0] < bar[2][0],
-      "phone: Start free (one line), the switch and the menu sit in the bar in that order"
+      bar.every(([, h]) => h > 30 && h < 52) && bar[0][0] < bar[1][0],
+      "phone: Start free (one line) and the menu sit in the bar in that order"
     );
   }
   if (size === "desktop") {
@@ -213,7 +213,7 @@ for (const [size, width, height, mode] of [
     );
     await page.waitForTimeout(1500);
     const before = await page.evaluate(() => scrollY);
-    await page.locator(".hd .theme").click();
+    await page.locator("#ks > .theme").click();
     await page.waitForTimeout(1900);
     const after = await page.evaluate(() => ({
       y: scrollY,
@@ -223,7 +223,7 @@ for (const [size, width, height, mode] of [
       after.mode !== mode && Math.abs(after.y - before) < 2 && before > 500,
       `${name}: the switch flips the mode and the page stays put (${before} to ${after.y})`
     );
-    await page.locator(".hd .theme").click();
+    await page.locator("#ks > .theme").click();
     await page.waitForTimeout(400);
   }
   if (size === "desktop" && mode === "light") {

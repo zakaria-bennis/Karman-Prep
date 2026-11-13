@@ -11,7 +11,7 @@ import TutorArc from "@/components/site/home/TutorArc";
 import SitePage from "@/components/site/SitePage";
 import { litFonts } from "@/components/site/home/fonts";
 import { jsonLd, pageMeta } from "@/components/site/meta";
-import { Arrow, Btn, TextLink } from "@/components/site/parts";
+import { Btn, TextLink } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { CONTACT, GUARANTEE, TRACK_RECORD } from "@/lib/marketing/offer";
 import { siteOrigin } from "@/lib/marketing/public-pages";
@@ -93,10 +93,6 @@ export default function HomePage() {
           <p className="lede">{claim.text}</p>
           <div className="go-row">
             <Btn label={claim.button} href={ROUTES.signUp} />
-            <a className="more" href={ROUTES.pricing}>
-              {claim["second button"]}
-              <Arrow />
-            </a>
           </div>
           <p className="fine">{claim["button note"]}</p>
         </div>

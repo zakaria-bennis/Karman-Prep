@@ -101,22 +101,17 @@ const SOCIAL_MARK: Record<keyof typeof SOCIALS, ReactNode> = {
   ),
 };
 
-function ThemeButton({ labeled = false }: { labeled?: boolean }) {
+/** The light and dark switch: one round button pinned to the bottom right corner of every page. */
+function ThemeButton() {
   return (
     <button
-      className={`theme ${labeled ? "labeled" : ""}`}
+      className="theme"
       type="button"
       aria-label={SITE["dark mode"]}
       title={SITE["dark mode"]}
     >
       {MOON}
       {SUN}
-      {labeled ? (
-        <>
-          <span className="to-dark">{SITE["dark mode"]}</span>
-          <span className="to-light">{SITE["light mode"]}</span>
-        </>
-      ) : null}
     </button>
   );
 }
@@ -221,7 +216,6 @@ export default function SitePage({
           <a className="cta" href={ROUTES.signUp}>
             {SITE["start free"]}
           </a>
-          <ThemeButton />
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
             <span>{SITE.menu}</span>
             <i aria-hidden="true" />
@@ -236,12 +230,12 @@ export default function SitePage({
             </a>
           ))}
         </nav>
-        <ThemeButton labeled />
         <Btn label={SITE["start free"]} href={ROUTES.signUp} />
       </div>
       {lit ? <SiteFlight route={route} /> : null}
       {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
+      <ThemeButton />
       <footer className="ft">
         <div className="ft-in">
           <div className="cols">

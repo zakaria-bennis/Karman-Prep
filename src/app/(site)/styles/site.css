@@ -6,8 +6,8 @@ html:has(#ks) { background: #0e0d0c; }
 .ks .scr-host, .ks .k-icon-wrap, .ks .k-arrow-wrap { display: contents; }
 .ks .k-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 /* the theme switch shows the moon in light mode and the sun in dark mode, before any script runs */
-.ks .theme .sun, .ks[data-mode="dark"] .theme .moon, .ks .theme .to-light, .ks[data-mode="dark"] .theme .to-dark { display: none; }
-.ks[data-mode="dark"] .theme .sun, .ks[data-mode="dark"] .theme .to-light { display: inline; }
+.ks .theme .sun, .ks[data-mode="dark"] .theme .moon { display: none; }
+.ks[data-mode="dark"] .theme .sun { display: inline; }
 .ks .theme .sun, .ks .theme .moon { width: 20px; height: 20px; }
 
 /* the app's floating theme toggle stays off any page drawn with the site's frame (the 404 and error pages
