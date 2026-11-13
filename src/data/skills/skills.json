@@ -1,0 +1,1746 @@
+{
+  "schema_version": 1,
+  "approved": "2026-11-08 by founder (as drafted)",
+  "skills": [
+    {
+      "id": "ma-solve-linear-equation",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Solve a linear equation",
+      "method": "Undo operations in order (distribute, combine like terms, move x to one side) until x stands alone.",
+      "recognize": "One equation, x only to the first power, and the question asks for x.",
+      "includes": [
+        "distributing and combining like terms",
+        "fractions and decimals in a linear equation",
+        "solving f(x)=k when f is a simple linear rule"
+      ],
+      "excludes": [
+        "asks for an expression like 2(x-3), not x: Find an expression without solving for x (ma-solve-for-expression)",
+        "word problem you must first turn into an equation: Turn a story into an equation (ma-equation-from-words)"
+      ],
+      "order": 1
+    },
+    {
+      "id": "ma-solve-for-expression",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Find an expression without solving for x",
+      "method": "Treat the repeated chunk (like x-12 or 2x+7) as one block and solve for the block directly, or scale the given equation.",
+      "recognize": "The question asks for the value of an expression such as 4x+10, 9x or (x-33)^2 rather than x itself.",
+      "includes": [
+        "repeated-chunk equations like 4(2x+7)=2(2x+7)+58",
+        "scaling: if 3x=6, find 9x",
+        "given (x+2)^2=18, find x^2+4x"
+      ],
+      "excludes": [
+        "asks for x itself: Solve a linear equation (ma-solve-linear-equation)",
+        "target is a combination of x and y from a system: Solve a system of linear equations (ma-solve-linear-system)"
+      ],
+      "order": 2
+    },
+    {
+      "id": "ma-equation-from-words",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Turn a story into an equation",
+      "method": "Name the unknown, translate each phrase into math, and solve the single equation.",
+      "recognize": "A short story with one unknown amount (boxes, votes, sides) and a total, and no equation given.",
+      "includes": [
+        "one-unknown totals (33 ten-pound boxes plus x five-pound boxes = 440)",
+        "phrases like \"49 more than twice x\"",
+        "writing an expression for a described quantity"
+      ],
+      "excludes": [
+        "two unknown quantities with a combined total: Write equations for two unknowns (ma-two-quantity-equations)",
+        "a fixed start plus a rate per unit: Build a model from a start and a rate (ma-linear-model-rate-start)"
+      ],
+      "order": 3
+    },
+    {
+      "id": "ma-linear-solution-count",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "No, one or infinitely many solutions",
+      "method": "Put both sides (or both lines) in the same form and compare: same slope, different intercept means none; same slope and intercept means infinitely many; different slopes means one.",
+      "recognize": "The question says \"no solution\", \"infinitely many solutions\" or \"exactly one solution\", or asks how many solutions a linear equation or linear system has.",
+      "includes": [
+        "one-variable equations with a constant to choose",
+        "two-line systems: parallel, same line, or crossing",
+        "finding the constant that makes a system have no solution",
+        "which second equation makes infinitely many solutions"
+      ],
+      "excludes": [
+        "quadratic equations with 0, 1 or 2 real solutions: Count solutions with the discriminant (ma-discriminant)"
+      ],
+      "order": 4
+    },
+    {
+      "id": "ma-evaluate-function",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Evaluate a function or model",
+      "method": "Substitute the given input into the rule and compute, or set the rule equal to the given output and solve for the input.",
+      "recognize": "You see f(x)= or a model equation and are asked for f(5), the value when x is something, the x that gives a certain output, or a constant from a point the graph passes through.",
+      "includes": [
+        "f(5), f(z-4), y-intercepts by plugging in x=0",
+        "plugging a value into a context model (savings after 10 weeks)",
+        "finding a constant k from a point or a table row on the graph",
+        "works for linear, quadratic, exponential and rational rules"
+      ],
+      "excludes": [
+        "asks what a number in the model means: Explain slope and intercept in context (ma-interpret-linear) or Explain a nonlinear model in context (ma-interpret-nonlinear)",
+        "function shifted by g(x)+7 or h(x-26): Shift and stretch graphs (ma-transformations)"
+      ],
+      "order": 5
+    },
+    {
+      "id": "ma-slope-intercepts",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Find slope and intercepts",
+      "method": "Read slope and intercepts off y=mx+b, or set x=0 or y=0 in any form (including standard form) to find the intercepts.",
+      "recognize": "A line is given by an equation or graph and the question asks for its slope, x-intercept or y-intercept.",
+      "includes": [
+        "slope from standard form Ax+By=C",
+        "x-intercept by setting y=0",
+        "reading an intercept from a graphed line",
+        "x-intercept of a combined linear function"
+      ],
+      "excludes": [
+        "you must build the equation from points first: Write a line from points or a table (ma-line-from-points)",
+        "asks what the slope means in a story: Explain slope and intercept in context (ma-interpret-linear)"
+      ],
+      "order": 6
+    },
+    {
+      "id": "ma-line-from-points",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Write a line from points or a table",
+      "method": "Find the slope from two points (rise over run), then use one point to get the intercept.",
+      "recognize": "You are given two points, a slope and a point, or a table of x and y values, and asked for the equation or another value on the line.",
+      "includes": [
+        "slope and one point to an equation",
+        "table of values to an equation",
+        "a context with two data points (population in 1992 and 2016)",
+        "vertical lines from two points"
+      ],
+      "excludes": [
+        "line must be parallel or perpendicular to another line: Parallel and perpendicular lines (ma-parallel-perpendicular)",
+        "a start value plus a rate in words: Build a model from a start and a rate (ma-linear-model-rate-start)"
+      ],
+      "order": 7
+    },
+    {
+      "id": "ma-parallel-perpendicular",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Parallel and perpendicular lines",
+      "method": "Parallel lines share a slope; perpendicular slopes are negative reciprocals. Use that slope with a point.",
+      "recognize": "The question mentions a line parallel or perpendicular to another line, or a line tangent to a circle at a point.",
+      "includes": [
+        "slope of a parallel line",
+        "perpendicular line through a point, and where it meets another line",
+        "tangent to a circle is perpendicular to the radius (slope trick)"
+      ],
+      "excludes": [
+        "parallel lines cut by a transversal and angle measures: Angles in lines and triangles (ma-angles)",
+        "parallel lines as a no-solution system: No, one or infinitely many solutions (ma-linear-solution-count)"
+      ],
+      "order": 8
+    },
+    {
+      "id": "ma-linear-model-rate-start",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Build a model from a start and a rate",
+      "method": "Write output = starting amount + rate x number of units, adjusting for \"first 3 hours\" or \"each additional day\".",
+      "recognize": "A story gives a fixed fee or starting amount plus a constant amount per unit, and asks which equation or function models it.",
+      "includes": [
+        "flat fee then per-unit charge",
+        "\"$64 for the first day and $32 for each additional day\"",
+        "amount remaining after using a rate (gas, bees, wax)",
+        "cost to cover an area given coverage per gallon"
+      ],
+      "excludes": [
+        "two different items adding to one total (ax+by=c): Write equations for two unknowns (ma-two-quantity-equations)",
+        "percent growth each period: Write an exponential model (ma-exponential-model)"
+      ],
+      "order": 9
+    },
+    {
+      "id": "ma-two-quantity-equations",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Write equations for two unknowns",
+      "method": "Give each unknown a letter, multiply each by its rate or price, and set the sum equal to the total; write a second equation if there is a second total.",
+      "recognize": "A story with two kinds of things (hardcover and paperback, rain and snow, walking and running) and a combined total, asking which equation or system represents it.",
+      "includes": [
+        "ax+by=c from prices, weights or rates",
+        "systems from word problems (total count and total cost)",
+        "mixtures written as two-unknown equations"
+      ],
+      "excludes": [
+        "actually solving a given system: Solve a system of linear equations (ma-solve-linear-system)",
+        "one unknown only: Turn a story into an equation (ma-equation-from-words)"
+      ],
+      "order": 10
+    },
+    {
+      "id": "ma-interpret-linear",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Explain slope and intercept in context",
+      "method": "Match each number in the linear model to its units: the multiplier is the change per one unit, the constant is the starting value.",
+      "recognize": "A linear equation in a story and the question asks \"what is the best interpretation of 20\" or what a point or intercept means.",
+      "includes": [
+        "meaning of slope, y-intercept or coefficient",
+        "meaning of a solution point (x, y) in context",
+        "difference of two coefficients as a price difference",
+        "reading unit price from intercepts of ax+by=c"
+      ],
+      "excludes": [
+        "exponential or quadratic models: Explain a nonlinear model in context (ma-interpret-nonlinear)",
+        "slope of a line of best fit on a scatterplot: Use lines of best fit and models (ma-scatterplot-models)"
+      ],
+      "order": 11
+    },
+    {
+      "id": "ma-solve-linear-system",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Solve a system of linear equations",
+      "method": "Eliminate a variable by adding or subtracting the equations (or substitute one into the other), then solve; for a target like 7x+9y, combine the equations directly.",
+      "recognize": "Two linear equations are given and the question asks for x, y, the point (x, y), or an expression like x+y or 8y.",
+      "includes": [
+        "elimination and substitution",
+        "target expressions without finding x and y separately",
+        "reading the intersection point from a graph"
+      ],
+      "excludes": [
+        "asks whether there are zero or infinitely many solutions: No, one or infinitely many solutions (ma-linear-solution-count)",
+        "one equation has x squared: Solve a line-and-curve system (ma-line-curve-system)"
+      ],
+      "order": 12
+    },
+    {
+      "id": "ma-write-inequality",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Write an inequality from words",
+      "method": "Translate \"at least\", \"no more than\", \"between\" into the right sign and build the expression on each side.",
+      "recognize": "A story with a limit, goal or range and answer choices that are inequalities.",
+      "includes": [
+        "\"at least\" and \"at most\" goals and limits",
+        "compound ranges like 40 <= s <= 65",
+        "rate ranges times time (moves 24 to 32 cm a day)",
+        "triangle inequality for a third side"
+      ],
+      "excludes": [
+        "asks for a single greatest or least number: Solve an inequality for a limit (ma-inequality-limit)"
+      ],
+      "order": 13
+    },
+    {
+      "id": "ma-inequality-limit",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Solve an inequality for a limit",
+      "method": "Set up the inequality, solve it like an equation (flip the sign when multiplying by a negative), then round to the allowed whole number.",
+      "recognize": "The question asks for the greatest, least, maximum or minimum number that still works.",
+      "includes": [
+        "budget and profit-goal problems that end with rounding down or up",
+        "consecutive-integer inequalities",
+        "solving for the x-range of a system of inequalities"
+      ],
+      "excludes": [
+        "only writing the inequality: Write an inequality from words (ma-write-inequality)",
+        "checking given points or tables: Check solutions to inequalities (ma-inequality-points)"
+      ],
+      "order": 14
+    },
+    {
+      "id": "ma-inequality-points",
+      "subject": "math",
+      "kind": "math",
+      "domain": "algebra",
+      "label": "Check solutions to inequalities",
+      "method": "Plug each candidate point or table row into the inequality (or read the shaded side of a graph) and keep what makes it true.",
+      "recognize": "Answer choices are points, tables or regions, or a shaded graph of an inequality is shown.",
+      "includes": [
+        "which point satisfies an inequality or system",
+        "which table has all rows as solutions",
+        "reading the boundary line and constants from a shaded graph",
+        "regions with no solutions"
+      ],
+      "excludes": [
+        "a word problem asking for the largest count: Solve an inequality for a limit (ma-inequality-limit)"
+      ],
+      "order": 15
+    },
+    {
+      "id": "ma-expand-combine",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Expand and combine polynomials",
+      "method": "Distribute every term, then add or subtract like terms carefully, minding signs.",
+      "recognize": "Which expression is equivalent to a product or sum of polynomials, or find a+b+c after expanding.",
+      "includes": [
+        "distributing and FOIL",
+        "adding and subtracting polynomials",
+        "expanding squared binomials and collecting coefficients"
+      ],
+      "excludes": [
+        "pulling a factor out instead: Factor expressions (ma-factor)",
+        "powers and roots: Use exponent and root rules (ma-exponent-rules)"
+      ],
+      "order": 16
+    },
+    {
+      "id": "ma-factor",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Factor expressions",
+      "method": "Pull out the greatest common factor first, then look for a trinomial, difference of squares or common binomial.",
+      "recognize": "Which expression is equivalent to (or is a factor of) a given polynomial.",
+      "includes": [
+        "greatest common factor",
+        "trinomials and difference of squares",
+        "common binomial factors and cancelling in a fraction",
+        "dividing by a known factor"
+      ],
+      "excludes": [
+        "picking the form that shows intercepts or a vertex: Pick the form that shows a feature (ma-feature-form)"
+      ],
+      "order": 17
+    },
+    {
+      "id": "ma-exponent-rules",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Use exponent and root rules",
+      "method": "Rewrite roots as fractional exponents, then add, subtract or multiply exponents.",
+      "recognize": "Powers, roots or fractional exponents with a question about an equivalent form or the value of an exponent.",
+      "includes": [
+        "product, quotient and power rules",
+        "radicals as fractional exponents",
+        "solving for an unknown exponent"
+      ],
+      "excludes": ["exponential growth models: Write an exponential model (ma-exponential-model)"],
+      "order": 18
+    },
+    {
+      "id": "ma-rearrange-formula",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Solve a formula for a variable",
+      "method": "Use inverse operations to get the requested letter alone, treating the other letters as numbers.",
+      "recognize": "An equation with several letters and the question asks for one of them \"in terms of\" the others.",
+      "includes": [
+        "isolating a variable in a formula",
+        "letters in fractions (clear denominators first)",
+        "factoring out the target letter when it appears twice"
+      ],
+      "excludes": ["numbers only, solve for x: Solve a linear equation (ma-solve-linear-equation)"],
+      "order": 19
+    },
+    {
+      "id": "ma-feature-form",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Pick the form that shows a feature",
+      "method": "Know which form shows what: factored form shows zeros, vertex form shows the max or min, a(b)^x shows the start value.",
+      "recognize": "Answer choices are equivalent forms and the question asks which one \"displays\" the x-intercepts, zeros, vertex or maximum as a constant.",
+      "includes": [
+        "factored form for x-intercepts",
+        "vertex form for the minimum or maximum",
+        "exponential form showing initial value"
+      ],
+      "excludes": [
+        "just factoring without a feature: Factor expressions (ma-factor)",
+        "computing the vertex coordinates: Find the vertex of a parabola (ma-vertex)"
+      ],
+      "order": 20
+    },
+    {
+      "id": "ma-solve-quadratic",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Solve a quadratic equation",
+      "method": "Factor and use zero product, take square roots, or use the quadratic formula; the sum of solutions is -b/a and the product is c/a.",
+      "recognize": "An equation with x squared (and no second variable) asking for its solutions, a solution, or their sum or product.",
+      "includes": [
+        "zero product property",
+        "square-root method for (x-h)^2=k",
+        "quadratic formula and the form (7 +/- sqrt k)/2",
+        "substitution to reduce to a quadratic",
+        "sum and product of solutions"
+      ],
+      "excludes": [
+        "only asks how many real solutions: Count solutions with the discriminant (ma-discriminant)",
+        "a second equation that is a line: Solve a line-and-curve system (ma-line-curve-system)"
+      ],
+      "order": 21
+    },
+    {
+      "id": "ma-discriminant",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Count solutions with the discriminant",
+      "method": "Compute b^2 - 4ac: positive means two real solutions, zero means one, negative means none.",
+      "recognize": "A quadratic with a constant and the words \"exactly one solution\" or \"no real solution\".",
+      "includes": [
+        "finding a constant that gives one or no real solution",
+        "largest integer that gives no real solution"
+      ],
+      "excludes": [
+        "linear equations and systems: No, one or infinitely many solutions (ma-linear-solution-count)"
+      ],
+      "order": 22
+    },
+    {
+      "id": "ma-radical-rational-equations",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Solve root and fraction equations",
+      "method": "Isolate the root and square both sides (or clear the denominators), solve, then check for false solutions.",
+      "recognize": "x sits under a square root or in a denominator.",
+      "includes": [
+        "radical equations and extraneous solutions",
+        "rational equations",
+        "x-intercept of a rational function (numerator equals zero)"
+      ],
+      "excludes": ["absolute value bars: Solve absolute value equations (ma-absolute-value)"],
+      "order": 23
+    },
+    {
+      "id": "ma-absolute-value",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Solve absolute value equations",
+      "method": "Isolate the absolute value, then split into the positive and negative cases.",
+      "recognize": "The equation contains |...|.",
+      "includes": [
+        "two-case splitting",
+        "sum of solutions",
+        "sqrt(x^2) read as |x|",
+        "absolute value functions"
+      ],
+      "excludes": [
+        "square roots of other expressions: Solve root and fraction equations (ma-radical-rational-equations)"
+      ],
+      "order": 24
+    },
+    {
+      "id": "ma-line-curve-system",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Solve a line-and-curve system",
+      "method": "Substitute the line into the curve (or set them equal) and solve the resulting quadratic.",
+      "recognize": "Two equations, at least one with x squared, asking where the graphs intersect.",
+      "includes": [
+        "line and parabola intersections",
+        "substitute a solved x into the other equation"
+      ],
+      "excludes": [
+        "two linear equations: Solve a system of linear equations (ma-solve-linear-system)",
+        "line and circle with a circle equation focus: Circle equations (ma-circle-equations)"
+      ],
+      "order": 25
+    },
+    {
+      "id": "ma-vertex",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Find the vertex of a parabola",
+      "method": "Read the vertex from vertex form, or use x = -b/(2a) (or the midpoint of the zeros), then plug in for the max or min value.",
+      "recognize": "The question asks for a maximum, minimum, vertex, or the x where a quadratic peaks.",
+      "includes": [
+        "vertex from vertex form or standard form",
+        "max and min values in context",
+        "axis of symmetry from the zeros"
+      ],
+      "excludes": [
+        "picking which form displays it: Pick the form that shows a feature (ma-feature-form)"
+      ],
+      "order": 26
+    },
+    {
+      "id": "ma-polynomial-zeros",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Use zeros and factors of polynomials",
+      "method": "Turn each zero r into a factor (x - r) and back; use factored form to find constants, intercepts or signs.",
+      "recognize": "A polynomial in factored form, a graph with x-intercepts, or a table showing where the output is zero.",
+      "includes": [
+        "zeros to factors and back",
+        "x-intercepts from a graph or table",
+        "constants from a known zero",
+        "sign of a factored polynomial between zeros"
+      ],
+      "excludes": [
+        "solving a given quadratic equation: Solve a quadratic equation (ma-solve-quadratic)"
+      ],
+      "order": 27
+    },
+    {
+      "id": "ma-transformations",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Shift and stretch graphs",
+      "method": "Adding outside f moves the graph up or down; replacing x with x - h moves it right by h. Track what happens to points and intercepts.",
+      "recognize": "You see g(x)+7, f(x-26), or \"shifted 3 units left\", and the question asks for the new equation or intercept.",
+      "includes": [
+        "vertical and horizontal shifts of any function",
+        "intercepts of a shifted graph",
+        "shifted circles (alongside circle equations)"
+      ],
+      "excludes": [
+        "no shift, just evaluating: Evaluate a function or model (ma-evaluate-function)"
+      ],
+      "order": 28
+    },
+    {
+      "id": "ma-exponential-model",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Write an exponential model",
+      "method": "Start value times (1 + r) or (1 - r) raised to the number of periods; decide whether growth is linear (add) or exponential (multiply).",
+      "recognize": "A story with a percent increase or decrease each period, doubling or halving, asking for the model or a time.",
+      "includes": [
+        "writing a(1+r)^t from words or a table",
+        "doubling and half-life models",
+        "deciding linear versus exponential change"
+      ],
+      "excludes": [
+        "the model is given and you must find the percent: Read the rate in an exponential (ma-exponential-rate)"
+      ],
+      "order": 29
+    },
+    {
+      "id": "ma-exponential-rate",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Read the rate in an exponential",
+      "method": "Turn the base into a percent (0.81 is 19% less, 1.012 is 1.2% more) and rescale the exponent when the time unit changes.",
+      "recognize": "An exponential is given and the question asks for the percent increase or decrease, or what a base or exponent means.",
+      "includes": [
+        "base to percent change and back",
+        "time-unit changes (x/12, 2x, m/4)",
+        "meaning of (1.003)^(2x) in a bank model"
+      ],
+      "excludes": [
+        "building the model from words: Write an exponential model (ma-exponential-model)"
+      ],
+      "order": 30
+    },
+    {
+      "id": "ma-interpret-nonlinear",
+      "subject": "math",
+      "kind": "math",
+      "domain": "advanced_math",
+      "label": "Explain a nonlinear model in context",
+      "method": "Translate the statement f(a)=b or a constant into words using the input and output units of the story.",
+      "recognize": "A quadratic or exponential model in context and the question asks what f(58)=32, the y-intercept or a constant means.",
+      "includes": [
+        "meaning of f(a)=b",
+        "initial value of an exponential or starting height of a quadratic",
+        "meaning of a coefficient in a nonlinear model"
+      ],
+      "excludes": [
+        "percent rate in an exponential: Read the rate in an exponential (ma-exponential-rate)",
+        "linear models: Explain slope and intercept in context (ma-interpret-linear)"
+      ],
+      "order": 31
+    },
+    {
+      "id": "ma-ratios-proportions",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Solve ratios and proportions",
+      "method": "Set two equal ratios side by side and cross-multiply.",
+      "recognize": "Words like \"ratio\", \"proportional\", \"to\" between two numbers, or a scale on a map.",
+      "includes": [
+        "cross-multiplying",
+        "ratio changes in recipes and rectangles",
+        "map scales",
+        "ratio equations with letters"
+      ],
+      "excludes": [
+        "changing units or using speed and density: Use rates and convert units (ma-rates-units)"
+      ],
+      "order": 32
+    },
+    {
+      "id": "ma-rates-units",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Use rates and convert units",
+      "method": "Multiply by rates and conversion factors so unwanted units cancel.",
+      "recognize": "Units appear in the question (per hour, per acre, feet to yards, grams per cubic centimeter).",
+      "includes": [
+        "unit conversions including squared and per-second-squared units",
+        "speed, distance and time",
+        "density and other per-unit rates",
+        "rounding up to whole packages"
+      ],
+      "excludes": [
+        "ratio of two quantities with no units changing: Solve ratios and proportions (ma-ratios-proportions)"
+      ],
+      "order": 33
+    },
+    {
+      "id": "ma-percent-of",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Find a percent, part or whole",
+      "method": "Use part = percent x whole, solving for whichever piece is missing.",
+      "recognize": "A single percent relationship: \"what is 5% of 640\", \"45 is p% of 125\", \"30% are pencils, 280 are markers\".",
+      "includes": [
+        "percent of a number",
+        "what percent one number is of another",
+        "finding the whole from a part",
+        "percents of a remainder"
+      ],
+      "excludes": [
+        "increases, decreases or several percents in a row: Percent increase, decrease and chains (ma-percent-change)"
+      ],
+      "order": 34
+    },
+    {
+      "id": "ma-percent-change",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Percent increase, decrease and chains",
+      "method": "Turn each change into a multiplier (up 17% is 1.17, down 90% is 0.10) and multiply them in order.",
+      "recognize": "Words like \"increased by\", \"decreased by\", \"percent greater than\", or one percent built on another.",
+      "includes": [
+        "percent increase and decrease from old and new values",
+        "discount then tax",
+        "chains: a is 438% of b and b is 84% of c",
+        "reversing an increase to find the original"
+      ],
+      "excludes": [
+        "repeated growth over many periods as a function: Write an exponential model (ma-exponential-model)"
+      ],
+      "order": 35
+    },
+    {
+      "id": "ma-read-data",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Read tables and graphs",
+      "method": "Find the right row, bar or point and read its value carefully, using the scale and labels.",
+      "recognize": "A table, bar graph, line graph or scatterplot and a question that only needs a value read off it.",
+      "includes": [
+        "bar graphs and frequency tables",
+        "line graphs and tables in context",
+        "adding a few read values"
+      ],
+      "excludes": [
+        "predicting from a line of best fit: Use lines of best fit and models (ma-scatterplot-models)",
+        "computing a mean or median: Find mean, median and range (ma-mean-median)"
+      ],
+      "order": 36
+    },
+    {
+      "id": "ma-mean-median",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Find mean, median and range",
+      "method": "Mean is sum over count; median is the middle value of the ordered list; range is max minus min.",
+      "recognize": "A list, frequency table, dot plot or histogram with a question about the average, middle value or range.",
+      "includes": [
+        "mean, median and range from lists, tables and plots",
+        "weighted mean of two groups",
+        "comparing means or medians of two data sets",
+        "solving for unknown values from given statistics"
+      ],
+      "excludes": [
+        "how adding or removing a value changes the stats, or standard deviation: How changes affect the data (ma-data-changes)"
+      ],
+      "order": 37
+    },
+    {
+      "id": "ma-data-changes",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "How changes affect the data",
+      "method": "Reason about how an added outlier or removed value moves the mean, median and spread, and judge standard deviation by how spread out values are.",
+      "recognize": "A value is added or removed, or the question compares standard deviations.",
+      "includes": [
+        "outliers and the mean versus the median",
+        "comparing standard deviation from tables or dot plots",
+        "shifting all values leaves the standard deviation unchanged"
+      ],
+      "excludes": [
+        "computing a mean or median directly: Find mean, median and range (ma-mean-median)"
+      ],
+      "order": 38
+    },
+    {
+      "id": "ma-scatterplot-models",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Use lines of best fit and models",
+      "method": "Read the line or curve of best fit: estimate its slope and intercept, predict values, compare points to it, and pick the right model type.",
+      "recognize": "A scatterplot with a line or curve of best fit, or a question about which equation models the data.",
+      "includes": [
+        "slope and y-intercept of a line of best fit",
+        "predicting from the fit line",
+        "points above or below the line",
+        "choosing a linear, quadratic or exponential model",
+        "effect of moving or rescaling data on the model"
+      ],
+      "excludes": ["plain value reading with no model: Read tables and graphs (ma-read-data)"],
+      "order": 39
+    },
+    {
+      "id": "ma-probability",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Find a simple probability",
+      "method": "Divide the favourable count by the total count; use 1 minus a probability for the complement.",
+      "recognize": "Picking one item at random from a group, die or table, with no \"given that\" condition.",
+      "includes": [
+        "favourable over total",
+        "one cell over the grand total of a table",
+        "complement and finding a count from a probability"
+      ],
+      "excludes": [
+        "\"given that\" or a restricted group: Probability from a two-way table (ma-conditional-probability)"
+      ],
+      "order": 40
+    },
+    {
+      "id": "ma-conditional-probability",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Probability from a two-way table",
+      "method": "Restrict to the \"given\" row or column first, then divide the cell by that row or column total.",
+      "recognize": "A two-way table and words like \"given that\", \"if the person is\", or \"of those who\".",
+      "includes": ["conditional probability from a table", "fractions of a subgroup"],
+      "excludes": ["no condition: Find a simple probability (ma-probability)"],
+      "order": 41
+    },
+    {
+      "id": "ma-sample-estimate",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "Estimate from a sample",
+      "method": "Scale the sample result to the population, and build the plausible range as estimate plus or minus the margin of error.",
+      "recognize": "A random sample with a margin of error or a proportion to scale up to a whole population.",
+      "includes": [
+        "plausible intervals from a margin of error",
+        "larger samples give smaller margins of error",
+        "scaling a sample proportion to a population count"
+      ],
+      "excludes": [
+        "what population a result generalizes to, or cause and effect: What a study can conclude (ma-study-design)"
+      ],
+      "order": 42
+    },
+    {
+      "id": "ma-study-design",
+      "subject": "math",
+      "kind": "math",
+      "domain": "data_analysis",
+      "label": "What a study can conclude",
+      "method": "Random sampling lets results generalize to the sampled population; random assignment lets you claim cause and effect.",
+      "recognize": "A study or survey is described and the answers are conclusions about who it applies to or whether one thing causes another.",
+      "includes": [
+        "random assignment and causation",
+        "random sampling and generalizing",
+        "the largest population results apply to"
+      ],
+      "excludes": ["numerical margin of error: Estimate from a sample (ma-sample-estimate)"],
+      "order": 43
+    },
+    {
+      "id": "ma-area-perimeter",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Area and perimeter of flat shapes",
+      "method": "Use the area or perimeter formula, or work backward from it to a missing side.",
+      "recognize": "Rectangles, triangles and squares with a question about area, perimeter or a missing side.",
+      "includes": [
+        "area and perimeter formulas forwards and backwards",
+        "adding or removing areas",
+        "perimeter minus known sides"
+      ],
+      "excludes": [
+        "3D shapes: Volume and surface area (ma-volume-surface)",
+        "circles: Circle area, arcs and radians (ma-circle-measures)"
+      ],
+      "order": 44
+    },
+    {
+      "id": "ma-volume-surface",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Volume and surface area",
+      "method": "Use the volume or surface area formula (most are on the reference sheet) and solve for what is missing.",
+      "recognize": "Prisms, cylinders, cones, spheres or pyramids.",
+      "includes": [
+        "volume of prisms, cylinders, cones and spheres",
+        "surface area as a sum of faces",
+        "pyramids and cones that need a slant height",
+        "mass from volume and density"
+      ],
+      "excludes": [
+        "similar solids with a scale factor: Scale factors for area and volume (ma-scale-factor)"
+      ],
+      "order": 45
+    },
+    {
+      "id": "ma-scale-factor",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Scale factors for area and volume",
+      "method": "If lengths scale by k, areas scale by k^2 and volumes by k^3.",
+      "recognize": "Two similar shapes or solids, or a side multiplied by k, and a question about area or volume.",
+      "includes": [
+        "similar rectangles and circles",
+        "similar prisms from a surface-area ratio",
+        "scale factors for side lengths"
+      ],
+      "excludes": [
+        "finding side lengths in similar triangles: Similar and congruent triangles (ma-similar-congruent)"
+      ],
+      "order": 46
+    },
+    {
+      "id": "ma-angles",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Angles in lines and triangles",
+      "method": "Use triangle angles sum to 180, straight angles sum to 180, vertical angles are equal, and parallel lines make equal or supplementary angles.",
+      "recognize": "A figure with intersecting or parallel lines, or a triangle, and a question about an angle measure or angle expression.",
+      "includes": [
+        "triangle angle sum",
+        "vertical and supplementary angles",
+        "parallel lines cut by a transversal",
+        "which information proves lines parallel"
+      ],
+      "excludes": [
+        "angles in similar triangles: Similar and congruent triangles (ma-similar-congruent)"
+      ],
+      "order": 47
+    },
+    {
+      "id": "ma-similar-congruent",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Similar and congruent triangles",
+      "method": "Match corresponding parts, then set up a proportion between matching sides (or use matching angles).",
+      "recognize": "Two triangles called similar or congruent, nested triangles with a parallel side, or an altitude drawn to a hypotenuse.",
+      "includes": [
+        "side proportions and matching angles",
+        "which information proves similarity or congruence",
+        "altitude to the hypotenuse",
+        "chords that form similar triangles in a circle"
+      ],
+      "excludes": [
+        "trig ratio asked from similar triangles: Sine, cosine and tangent (ma-trig-ratios)",
+        "area or volume of similar shapes: Scale factors for area and volume (ma-scale-factor)"
+      ],
+      "order": 48
+    },
+    {
+      "id": "ma-right-triangle-sides",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Pythagorean theorem and special triangles",
+      "method": "Use a^2 + b^2 = c^2, or the 45-45-90 and 30-60-90 side patterns.",
+      "recognize": "A right triangle (or a diagonal, height or radius that makes one) with a missing side length.",
+      "includes": [
+        "Pythagorean theorem",
+        "45-45-90 and 30-60-90 ratios",
+        "equilateral triangle heights",
+        "squares and rectangles inscribed in circles"
+      ],
+      "excludes": ["a trig ratio is given or asked: Sine, cosine and tangent (ma-trig-ratios)"],
+      "order": 49
+    },
+    {
+      "id": "ma-trig-ratios",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Sine, cosine and tangent",
+      "method": "Label opposite, adjacent and hypotenuse and use SOH-CAH-TOA; sin x equals cos(90 - x).",
+      "recognize": "sin, cos or tan appears, either asked or given.",
+      "includes": [
+        "SOH-CAH-TOA",
+        "sin x = cos(90 - x) for complementary angles",
+        "equal trig ratios in similar triangles",
+        "cosine of special radian angles"
+      ],
+      "excludes": [
+        "side lengths with no trig: Pythagorean theorem and special triangles (ma-right-triangle-sides)"
+      ],
+      "order": 50
+    },
+    {
+      "id": "ma-circle-measures",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Circle area, arcs and radians",
+      "method": "Use area pi r^2, circumference 2 pi r, and arc length as a fraction of the circle; convert radians and degrees.",
+      "recognize": "A circle drawn or described with a question about area, circumference, radius, arc or an angle in radians.",
+      "includes": [
+        "area and circumference",
+        "arc length as a fraction of the circumference",
+        "radians to degrees"
+      ],
+      "excludes": [
+        "the circle is given by an xy-plane equation: Circle equations (ma-circle-equations)"
+      ],
+      "order": 51
+    },
+    {
+      "id": "ma-circle-equations",
+      "subject": "math",
+      "kind": "math",
+      "domain": "geometry",
+      "label": "Circle equations",
+      "method": "Read center (h, k) and radius r from (x-h)^2 + (y-k)^2 = r^2, completing the square first if needed.",
+      "recognize": "A circle equation in the xy-plane.",
+      "includes": [
+        "center and radius from the equation",
+        "writing the equation from center and radius or a point",
+        "completing the square",
+        "points on a circle",
+        "shifting or resizing a circle"
+      ],
+      "excludes": [
+        "tangent line slope: Parallel and perpendicular lines (ma-parallel-perpendicular)"
+      ],
+      "order": 52
+    },
+    {
+      "id": "rw-g-join-two-sentences",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Join two full sentences",
+      "method": "When both sides could stand alone as sentences, join them with a period, a semicolon, or a comma plus and/but/so (FANBOYS). A comma alone (comma splice) or nothing at all (run-on) is wrong.",
+      "recognize": "Choices differ only in period / semicolon / comma / comma + and / nothing at the blank. Cover the blank and test: does each side have its own subject and verb?",
+      "example": "Right: The museum opened in 1990; it now draws a million visitors. Wrong: The museum opened in 1990, it now draws a million visitors.",
+      "excludes": [
+        "Where the next sentence starts (rw-g-where-sentence-starts): there the hard part is deciding which clause a phrase belongs to, not which joiner to use.",
+        "Transition-word punctuation: however/for instance add a second decision about where the word goes.",
+        "Colon after a full sentence: a colon can also join clauses, but only when the second explains the first."
+      ],
+      "order": 53
+    },
+    {
+      "id": "rw-g-where-sentence-starts",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Spot where the next sentence starts",
+      "method": "When a phrase sits between two sentences (like 'Used to record area,' or 'Compared to South Korea,' or a long '-ing'/'That...' subject), work out which sentence it belongs to and put the period before it if it opens the second sentence.",
+      "recognize": "The blank is followed by a phrase and then a comma and a new subject + verb. Choices move a period or comma before or after that phrase.",
+      "example": "Right: The units fell out of use. Used for centuries, they were once common. Wrong: The units fell out of use, used for centuries, they were once common.",
+      "excludes": [
+        "Join two full sentences: there both clauses are already clear and only the joiner is in question.",
+        "Comma before an added phrase: there the phrase trails the sentence and has no clause of its own after it."
+      ],
+      "order": 54
+    },
+    {
+      "id": "rw-g-transition-word-punctuation",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Punctuate however, therefore, for instance",
+      "method": "A transition word like however, therefore, for instance or though belongs to one clause. Put the strong break (period, semicolon or colon) where the two clauses meet, and set the transition word off with commas.",
+      "recognize": "Choices shuffle a semicolon and commas around the same transition word. Read each side of the word to see which clause it belongs to.",
+      "example": "Right: Many works are lost; however, this one survives. Wrong: Many works are lost, however, this one survives.",
+      "excludes": [
+        "Join two full sentences: same strong-break idea, but no movable transition word.",
+        "Colon after a full sentence: some items pair a colon with however/though; the deciding step is still placing the transition word."
+      ],
+      "order": 55
+    },
+    {
+      "id": "rw-g-question-or-statement",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Question mark or period?",
+      "method": "A direct question (verb before subject: 'Where did it come from?') ends with a question mark. A statement that reports a question ('...asked what her favorite book was.') keeps normal word order and ends with a period.",
+      "recognize": "Choices mix word order (did the word come / the word came) with ? and . at the end. Check whether the sentence asks or reports.",
+      "example": "Right: She asked what his favorite book was. Wrong: She asked what was his favorite book?",
+      "excludes": [
+        "Join two full sentences: the question mark items also end a sentence, but the decision is about word order, not joining."
+      ],
+      "order": 56
+    },
+    {
+      "id": "rw-g-comma-after-opener",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Comma after an opening clause or phrase",
+      "method": "When a sentence opens with a dependent clause or long phrase ('Though it was named STS-56,' / 'By supplying grain,'), put a comma before the main clause. Not a period or semicolon, since the opener cannot stand alone.",
+      "recognize": "The blank sits between an opener that starts with though/when/by/with and the main subject. Choices: comma / period / semicolon / nothing / comma + and.",
+      "example": "Right: Though the words are synonyms, they mean different things in art. Wrong: Though the words are synonyms. They mean different things in art.",
+      "excludes": [
+        "Dangling modifier: there the opener is fine, but the subject after it is wrong.",
+        "Where the next sentence starts: there a previous sentence comes before the opener."
+      ],
+      "order": 57
+    },
+    {
+      "id": "rw-g-comma-before-added-phrase",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Comma before an added phrase",
+      "method": "A phrase with no main verb of its own ('the former establishing a group,' 'among them Palau,' 'each member pledging to help') can be added to a full sentence with a comma. A semicolon or period would leave it as a fragment, and a full verb in it would make a comma splice.",
+      "recognize": "After a complete sentence comes a noun followed by an -ing word or 'among them'. Choices swap comma/semicolon/period, or swap the -ing verb for a full verb (pledges/pledging).",
+      "example": "Right: NATO members share a duty, each member pledging to defend the others. Wrong: NATO members share a duty, each member pledges to defend the others.",
+      "excludes": [
+        "One main verb: the same -ing check, but there the phrase sits inside the sentence rather than after the comma.",
+        "Join two full sentences: there the second part is a full sentence."
+      ],
+      "order": 58
+    },
+    {
+      "id": "rw-g-colon-after-full-sentence",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Colon after a full sentence",
+      "method": "A colon can introduce a list, an example, a name or an explanation, but only after a complete sentence. Never put a colon right after a verb or preposition.",
+      "recognize": "The words before the blank already make a full sentence and the words after explain or list ('...one of its highest honors ___ the Congressional Gold Medal'). Choices: colon / semicolon / comma / nothing.",
+      "example": "Right: Congress gave them its highest honor: the Gold Medal. Wrong: Congress gave them: the Gold Medal.",
+      "excludes": [
+        "Semicolons in a list: when list items contain commas, the deciding point is the semicolons, not the colon.",
+        "No punctuation in the core: a colon between a verb and its object is that rule."
+      ],
+      "order": 59
+    },
+    {
+      "id": "rw-g-list-commas",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Commas in a list",
+      "method": "Put a comma after each item in a list of three or more, including before 'and'. Don't add a comma after 'and' or between a word and its own parentheses.",
+      "recognize": "The blank holds two list items; choices drop or add commas, or swap in semicolons and colons.",
+      "example": "Right: libraries, train stations, and public squares. Wrong: libraries train stations, and public squares.",
+      "excludes": ["Semicolons in a list: used only when items already contain commas."],
+      "order": 60
+    },
+    {
+      "id": "rw-g-list-semicolons",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Semicolons in a list with commas",
+      "method": "When list items already contain commas ('COBOL, developed by Hopper in 1959'), separate the items with semicolons so the reader can tell where one item ends.",
+      "recognize": "Each list item has a description after a comma. Choices put semicolons and commas in different places; the semicolons must fall between whole items.",
+      "example": "Right: Lima, Peru; Quito, Ecuador; and Bogota, Colombia. Wrong: Lima, Peru, Quito, Ecuador, and Bogota, Colombia.",
+      "excludes": ["Commas in a list: plain items need only commas."],
+      "order": 61
+    },
+    {
+      "id": "rw-g-extra-info-matching-pair",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Close extra information with a matching mark",
+      "method": "Information you could remove without breaking the sentence must be set off on both sides with the same mark: two commas, two dashes or two parentheses. If it opened with a dash, it closes with a dash.",
+      "recognize": "Look left of the blank for an opening comma, dash or parenthesis. The blank is where the extra information ends.",
+      "example": "Right: The governor—the first woman in that role—took office in 1987. Wrong: The governor—the first woman in that role, took office in 1987.",
+      "excludes": [
+        "No commas between a title and a name: there the information is essential, so it takes no marks at all.",
+        "No commas around a defining clause: 'that' clauses are essential."
+      ],
+      "order": 62
+    },
+    {
+      "id": "rw-g-no-commas-title-and-name",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "No commas between a title and name",
+      "method": "A label right before a name, with no 'the' or 'a' making it a full phrase on its own (biologist Dr. Purnima Barman, the novel Mexican Gothic, OECD nation Spain), takes no commas. The name is essential to the sentence.",
+      "recognize": "Choices put commas, a colon or nothing between a job title or category word and the name that follows.",
+      "example": "Right: wildlife biologist Dr. Purnima Barman is leading the work. Wrong: wildlife biologist, Dr. Purnima Barman, is leading the work.",
+      "excludes": [
+        "Close extra information with a matching mark: 'Barman, a biologist,' is extra information and does take paired commas."
+      ],
+      "order": 63
+    },
+    {
+      "id": "rw-g-no-commas-defining-clause",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "No commas around a defining clause",
+      "method": "A clause that tells you which one ('the people who live in Cyprus,' 'a study that compared eggs') is essential and takes no commas. 'That' clauses never take a comma.",
+      "recognize": "A noun is followed by that/who/which; choices add or remove commas around the clause.",
+      "example": "Right: The study that compared eggs found a pattern. Wrong: The study, that compared eggs, found a pattern.",
+      "excludes": [
+        "Close extra information with a matching mark: 'which' clauses that add extra detail do take paired commas.",
+        "No punctuation in the core: covers essential phrases that are not clauses."
+      ],
+      "order": 64
+    },
+    {
+      "id": "rw-g-no-punctuation-in-core",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "No punctuation inside the sentence's core",
+      "method": "Don't put any punctuation between a subject and its verb, a verb and its object, or a preposition and its object (Brown of Connecticut played; named after her; drive their cars).",
+      "recognize": "The blank falls between two words that belong together, and every choice but one adds a comma, colon, semicolon or dash.",
+      "example": "Right: The smoke point of corn oil is around 450 degrees. Wrong: The smoke point of corn oil is, around 450 degrees.",
+      "excludes": [
+        "No commas between a title and name: a separate, very common pattern with its own recognition cue.",
+        "Commas in a list: commas between items are required."
+      ],
+      "order": 65
+    },
+    {
+      "id": "rw-g-one-main-verb",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Every sentence needs one main verb",
+      "method": "Each sentence or clause needs a full verb (oversees, led). If the sentence already has its main verb, the blank must be a describing form instead (-ing, -ed, or to + verb).",
+      "recognize": "Choices are one verb in four forms (oversees / overseeing / to oversee / having overseen). Find the subject, then check whether a main verb already exists somewhere else.",
+      "example": "Right: Interpol oversees offices in 200 cities. Wrong: Interpol overseeing offices in 200 cities.",
+      "excludes": [
+        "Comma before an added phrase: the '-ing after a comma' case is taught there with sentence boundaries.",
+        "Tense time clues: once a full verb is needed, picking its tense is a separate check.",
+        "Verbs that take 'to': idiom, not sentence structure."
+      ],
+      "order": 66
+    },
+    {
+      "id": "rw-g-to-verb-form",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Verbs that take 'to' + verb",
+      "method": "Some words must be followed by 'to' + verb: decided to include, coined to characterize (purpose), one of many to appear.",
+      "recognize": "Choices: include / to include / included / including after a verb like decide, or after a sentence that is already complete.",
+      "example": "Right: The curator decided to include the painting. Wrong: The curator decided including the painting.",
+      "excludes": ["One main verb: there the question is whether a full verb is needed at all."],
+      "order": 67
+    },
+    {
+      "id": "rw-g-subject-verb-agreement",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Verb matches its true subject",
+      "method": "A verb must match its real subject in number. Skip over phrases in between (of..., which..., along with..., such as...). 'Each' and 'one' are singular, an -ing activity is singular, and in 'there were forests' the subject comes after the verb.",
+      "recognize": "Choices are singular vs plural forms (is/are, ranks/rank). Cross out everything between the subject and the blank.",
+      "example": "Right: The collection of paintings remains popular. Wrong: The collection of paintings remain popular.",
+      "excludes": ["Pronoun number: same singular/plural idea, but for pronouns, not verbs."],
+      "order": 68
+    },
+    {
+      "id": "rw-g-pronoun-number",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Pronouns match singular or plural",
+      "method": "A pronoun or pointing word must match the noun it stands for: it/its for one thing, they/their for more than one; this/that with a singular noun, these/those with a plural one.",
+      "recognize": "Choices are it / they / this / these / them. Find the noun the blank refers to and count it.",
+      "example": "Right: Nelson painted Daily News and showed it in 1983. Wrong: Nelson painted Daily News and showed them in 1983.",
+      "excludes": [
+        "Its/their apostrophes: when choices include it's or they're, that skill covers the apostrophe decision too."
+      ],
+      "order": 69
+    },
+    {
+      "id": "rw-g-its-their-apostrophes",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "its/it's, their/they're/there",
+      "method": "its and their show ownership with no apostrophe. it's means 'it is' and they're means 'they are'. there is a place. Pick the one that fits, matching singular or plural.",
+      "recognize": "Choices are its / it's / their / they're (or there). Expand any contraction to 'it is' or 'they are' and read it back.",
+      "example": "Right: The poem is old, but its story still grips readers. Wrong: The poem is old, but it's story still grips readers.",
+      "excludes": [
+        "Plural vs possessive: apostrophes on nouns follow a different rule.",
+        "Pronoun number: the it/they choice without apostrophes."
+      ],
+      "order": 70
+    },
+    {
+      "id": "rw-g-plural-vs-possessive",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Plural or possessive?",
+      "method": "Add -s for more than one (rocks). Add 's to show one owner (the object's path), and s' for plural owners (astronomers' models). No apostrophe unless something is owned.",
+      "recognize": "Choices are the same nouns with apostrophes moved around. For each noun, ask: is it owning the next word?",
+      "example": "Right: the astronomers' modeling of the object's path. Wrong: the astronomer's modeling of the objects path.",
+      "excludes": ["its/it's, their/they're: pronouns never use an apostrophe for ownership."],
+      "order": 71
+    },
+    {
+      "id": "rw-g-tense-time-clues",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Match the tense to time clues",
+      "method": "Pick the tense that fits the time clues and the other verbs around it: past for dated events (in 2013), present for facts and current states (currently, today), future for what is coming, and the same tense as a verb it is paired with.",
+      "recognize": "Choices are one verb in different tenses. Underline time words and the other verbs in the sentence.",
+      "example": "Right: In 2014, the paper published a profile. Wrong: In 2014, the paper publishes a profile.",
+      "excludes": [
+        "had/has tenses: for one past event before another, or for something running from then until now."
+      ],
+      "order": 72
+    },
+    {
+      "id": "rw-g-had-has-tenses",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Use had, has, and was -ing tenses",
+      "method": "Use had + verb for something finished before another past moment (By 2023, she had become...), has/have + verb for something running from the past to now (Since 1948, it has been publishing), and was + -ing for something in progress at a past moment.",
+      "recognize": "Look for 'by [past date]', 'since', 'before that', or two past events in one sentence.",
+      "example": "Right: When Atlantis landed, it had spent ten days in space. Wrong: When Atlantis landed, it spends ten days in space.",
+      "excludes": ["Match the tense to time clues: simple past/present/future choices."],
+      "order": 73
+    },
+    {
+      "id": "rw-g-dangling-modifier",
+      "subject": "reading",
+      "kind": "grammar",
+      "domain": "conventions",
+      "label": "Opening phrase must describe the subject",
+      "method": "An opening describing phrase ('Having 16,024 feet of prominence,') describes whatever comes right after the comma. Make that the person or thing the phrase is really about.",
+      "recognize": "The blank starts right after an opening phrase and the choices are whole rewrites with different subjects. Ask: who or what is the phrase about?",
+      "example": "Right: Home to 710,000 people, Riga holds a third of Latvia's population. Wrong: Home to 710,000 people, a third of Latvia's population lives in Riga.",
+      "excludes": [
+        "Comma after an opening clause or phrase: that is about punctuation after the opener, not who it describes."
+      ],
+      "order": 74
+    },
+    {
+      "id": "rw-r-main-idea-social-studies-and-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "main-idea",
+      "passage_type": "social-studies-and-arts",
+      "label": "Main idea: social studies and arts texts",
+      "method": "Sum the text up in your own words in one sentence before looking; pick the choice that covers the whole text, not one detail; follow the scholar's or critic's claim and what supports it.",
+      "recognize": "Which choice best states the main idea of the text?",
+      "order": 75
+    },
+    {
+      "id": "rw-r-main-idea-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "main-idea",
+      "passage_type": "science",
+      "label": "Main idea: science texts",
+      "method": "Sum the text up in your own words in one sentence before looking; pick the choice that covers the whole text, not one detail; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice best states the main idea of the text?",
+      "order": 76
+    },
+    {
+      "id": "rw-r-main-idea-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "main-idea",
+      "passage_type": "literature",
+      "label": "Main idea: literature",
+      "method": "Sum the text up in your own words in one sentence before looking; pick the choice that covers the whole text, not one detail; in literature, track who is speaking and what they feel; old wording often hides a simple point.",
+      "recognize": "Which choice best states the main idea of the text?",
+      "order": 77
+    },
+    {
+      "id": "rw-r-detail-science-and-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "detail",
+      "passage_type": "science-and-social-studies",
+      "label": "Details: science and social studies texts",
+      "method": "Find the line that answers it and pick the choice that restates that line; reject anything the text never says; separate the researchers' finding from their claim, and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "According to the text... / Based on the text, what is... / Which choice best describes how X is presented?",
+      "order": 78
+    },
+    {
+      "id": "rw-r-detail-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "detail",
+      "passage_type": "literature",
+      "label": "Details: literature",
+      "method": "Find the line that answers it and pick the choice that restates that line; reject anything the text never says; in literature, track who is speaking and what they feel; old wording often hides a simple point.",
+      "recognize": "According to the text... / Based on the text, what is... / Which choice best describes how X is presented?",
+      "order": 79
+    },
+    {
+      "id": "rw-r-detail-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "detail",
+      "passage_type": "humanities-arts",
+      "label": "Details: arts and humanities texts",
+      "method": "Find the line that answers it and pick the choice that restates that line; reject anything the text never says; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "According to the text... / Based on the text, what is... / Which choice best describes how X is presented?",
+      "order": 80
+    },
+    {
+      "id": "rw-r-inference-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "inference",
+      "passage_type": "science",
+      "label": "Inferences: science texts",
+      "method": "Find the evidence the blank builds on, say what it must lead to, and pick the choice that follows without adding anything new; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice most logically completes the text? (blank at the end) / What does the text most strongly imply?",
+      "order": 81
+    },
+    {
+      "id": "rw-r-inference-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "inference",
+      "passage_type": "history-social-studies",
+      "label": "Inferences: history and social studies texts",
+      "method": "Find the evidence the blank builds on, say what it must lead to, and pick the choice that follows without adding anything new; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which choice most logically completes the text? (blank at the end) / What does the text most strongly imply?",
+      "order": 82
+    },
+    {
+      "id": "rw-r-inference-arts-and-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "inference",
+      "passage_type": "arts-and-literature",
+      "label": "Inferences: arts and literature texts",
+      "method": "Find the evidence the blank builds on, say what it must lead to, and pick the choice that follows without adding anything new; separate what the work shows from what a critic or narrator thinks of it.",
+      "recognize": "Which choice most logically completes the text? (blank at the end) / What does the text most strongly imply?",
+      "order": 83
+    },
+    {
+      "id": "rw-r-evidence-quote-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-quote",
+      "passage_type": "literature",
+      "label": "Best quotation: literature",
+      "method": "Put the claim in your own words, then pick the quote that shows exactly that, not just the topic; in literature, track who is speaking and what they feel; old wording often hides a simple point.",
+      "recognize": "Which quotation from ... most effectively illustrates the claim?",
+      "order": 84
+    },
+    {
+      "id": "rw-r-evidence-quote-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-quote",
+      "passage_type": "humanities-arts",
+      "label": "Best quotation: arts and humanities texts",
+      "method": "Put the claim in your own words, then pick the quote that shows exactly that, not just the topic; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which quotation from ... most effectively illustrates the claim?",
+      "order": 85
+    },
+    {
+      "id": "rw-r-evidence-data-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-data",
+      "passage_type": "history-social-studies",
+      "label": "Tables and graphs: history and social studies texts",
+      "method": "Read what the sentence needs (which item, which comparison), then check each choice against the figure and the claim; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which choice most effectively uses data from the table/graph...?",
+      "order": 86
+    },
+    {
+      "id": "rw-r-evidence-data-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-data",
+      "passage_type": "science",
+      "label": "Tables and graphs: science texts",
+      "method": "Read what the sentence needs (which item, which comparison), then check each choice against the figure and the claim; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice most effectively uses data from the table/graph...?",
+      "order": 87
+    },
+    {
+      "id": "rw-r-evidence-support-weaken-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-support-weaken",
+      "passage_type": "science",
+      "label": "Support or weaken a claim: science texts",
+      "method": "State the claim exactly, then pick the finding that bears on that exact claim in the asked direction; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which finding, if true, would most directly support/weaken...?",
+      "order": 88
+    },
+    {
+      "id": "rw-r-evidence-support-weaken-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-support-weaken",
+      "passage_type": "history-social-studies",
+      "label": "Support or weaken a claim: history and social studies texts",
+      "method": "State the claim exactly, then pick the finding that bears on that exact claim in the asked direction; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which finding, if true, would most directly support/weaken...?",
+      "order": 89
+    },
+    {
+      "id": "rw-r-evidence-support-weaken-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "info_ideas",
+      "question_type": "evidence-support-weaken",
+      "passage_type": "humanities-arts",
+      "label": "Support or weaken a claim: arts and humanities texts",
+      "method": "State the claim exactly, then pick the finding that bears on that exact claim in the asked direction; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which finding, if true, would most directly support/weaken...?",
+      "order": 90
+    },
+    {
+      "id": "rw-r-words-in-context-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "words-in-context",
+      "passage_type": "science",
+      "label": "Words in context: science texts",
+      "method": "Predict your own word from the clues around the blank, then pick the choice closest to it; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice completes the text with the most logical and precise word or phrase? / As used in the text, what does the word most nearly mean?",
+      "order": 91
+    },
+    {
+      "id": "rw-r-words-in-context-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "words-in-context",
+      "passage_type": "humanities-arts",
+      "label": "Words in context: arts and humanities texts",
+      "method": "Predict your own word from the clues around the blank, then pick the choice closest to it; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which choice completes the text with the most logical and precise word or phrase? / As used in the text, what does the word most nearly mean?",
+      "order": 92
+    },
+    {
+      "id": "rw-r-words-in-context-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "words-in-context",
+      "passage_type": "history-social-studies",
+      "label": "Words in context: history and social studies texts",
+      "method": "Predict your own word from the clues around the blank, then pick the choice closest to it; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which choice completes the text with the most logical and precise word or phrase? / As used in the text, what does the word most nearly mean?",
+      "order": 93
+    },
+    {
+      "id": "rw-r-words-in-context-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "words-in-context",
+      "passage_type": "literature",
+      "label": "Words in context: literature",
+      "method": "Predict your own word from the clues around the blank, then pick the choice closest to it; in literature, track who is speaking and what they feel; old wording often hides a simple point.",
+      "recognize": "Which choice completes the text with the most logical and precise word or phrase? / As used in the text, what does the word most nearly mean?",
+      "order": 94
+    },
+    {
+      "id": "rw-r-overall-purpose-science-and-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "overall-purpose",
+      "passage_type": "science-and-social-studies",
+      "label": "Main purpose: science and social studies texts",
+      "method": "Ask what the author is doing (describing, arguing, explaining, noting a problem), then match the verb and the object; separate the researchers' finding from their claim, and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice best states the main purpose of the text?",
+      "order": 95
+    },
+    {
+      "id": "rw-r-overall-purpose-arts-and-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "overall-purpose",
+      "passage_type": "arts-and-literature",
+      "label": "Main purpose: arts and literature texts",
+      "method": "Ask what the author is doing (describing, arguing, explaining, noting a problem), then match the verb and the object; separate what the work shows from what a critic or narrator thinks of it.",
+      "recognize": "Which choice best states the main purpose of the text?",
+      "order": 96
+    },
+    {
+      "id": "rw-r-sentence-function-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "sentence-function",
+      "passage_type": "science",
+      "label": "Function of a sentence: science texts",
+      "method": "Read the sentences before and after it and name its job (example, claim, contrast, evidence) before reading the choices; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice best describes the function of the underlined sentence/portion?",
+      "order": 97
+    },
+    {
+      "id": "rw-r-sentence-function-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "sentence-function",
+      "passage_type": "humanities-arts",
+      "label": "Function of a sentence: arts and humanities texts",
+      "method": "Read the sentences before and after it and name its job (example, claim, contrast, evidence) before reading the choices; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which choice best describes the function of the underlined sentence/portion?",
+      "order": 98
+    },
+    {
+      "id": "rw-r-sentence-function-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "sentence-function",
+      "passage_type": "history-social-studies",
+      "label": "Function of a sentence: history and social studies texts",
+      "method": "Read the sentences before and after it and name its job (example, claim, contrast, evidence) before reading the choices; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which choice best describes the function of the underlined sentence/portion?",
+      "order": 99
+    },
+    {
+      "id": "rw-r-sentence-function-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "sentence-function",
+      "passage_type": "literature",
+      "label": "Function of a sentence: literature",
+      "method": "Read the sentences before and after it and name its job (example, claim, contrast, evidence) before reading the choices; in literature, track who is speaking and what they feel; old wording often hides a simple point.",
+      "recognize": "Which choice best describes the function of the underlined sentence/portion?",
+      "order": 100
+    },
+    {
+      "id": "rw-r-text-structure-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "text-structure",
+      "passage_type": "science",
+      "label": "Overall structure: science texts",
+      "method": "Label each sentence in a few words, then pick the choice that lists those moves in order; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice best describes the overall structure of the text?",
+      "order": 101
+    },
+    {
+      "id": "rw-r-text-structure-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "text-structure",
+      "passage_type": "humanities-arts",
+      "label": "Overall structure: arts and humanities texts",
+      "method": "Label each sentence in a few words, then pick the choice that lists those moves in order; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which choice best describes the overall structure of the text?",
+      "order": 102
+    },
+    {
+      "id": "rw-r-cross-text-science-and-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "cross-text",
+      "passage_type": "science-and-social-studies",
+      "label": "Two texts: science and social studies texts",
+      "method": "Write one line for each text's main claim, then answer from Text 2's own view without going further; separate the researchers' finding from their claim, and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Text 1 and Text 2 / How would the author of Text 2 most likely respond...?",
+      "order": 103
+    },
+    {
+      "id": "rw-r-cross-text-arts-and-literature",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "craft_structure",
+      "question_type": "cross-text",
+      "passage_type": "arts-and-literature",
+      "label": "Two texts: arts and literature texts",
+      "method": "Write one line for each text's main claim, then answer from Text 2's own view without going further; separate what the work shows from what a critic or narrator thinks of it.",
+      "recognize": "Text 1 and Text 2 / How would the author of Text 2 most likely respond...?",
+      "order": 104
+    },
+    {
+      "id": "rw-r-transition-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "transition",
+      "passage_type": "science",
+      "label": "Transitions: science texts",
+      "method": "Cover the blank, decide the relationship (contrast, cause, addition, example, sequence), then pick the word that names it; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Which choice completes the text with the most logical transition?",
+      "order": 105
+    },
+    {
+      "id": "rw-r-transition-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "transition",
+      "passage_type": "history-social-studies",
+      "label": "Transitions: history and social studies texts",
+      "method": "Cover the blank, decide the relationship (contrast, cause, addition, example, sequence), then pick the word that names it; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Which choice completes the text with the most logical transition?",
+      "order": 106
+    },
+    {
+      "id": "rw-r-transition-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "transition",
+      "passage_type": "humanities-arts",
+      "label": "Transitions: arts and humanities texts",
+      "method": "Cover the blank, decide the relationship (contrast, cause, addition, example, sequence), then pick the word that names it; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Which choice completes the text with the most logical transition?",
+      "order": 107
+    },
+    {
+      "id": "rw-r-synthesis-compare-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-compare",
+      "passage_type": "science",
+      "label": "Notes: compare and contrast: science texts",
+      "method": "Check the goal word (similarity or difference), then pick the choice that names both items and that relationship; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Bulleted notes; the student wants to emphasize a similarity/difference, contrast or compare.",
+      "order": 108
+    },
+    {
+      "id": "rw-r-synthesis-compare-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-compare",
+      "passage_type": "humanities-arts",
+      "label": "Notes: compare and contrast: arts and humanities texts",
+      "method": "Check the goal word (similarity or difference), then pick the choice that names both items and that relationship; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Bulleted notes; the student wants to emphasize a similarity/difference, contrast or compare.",
+      "order": 109
+    },
+    {
+      "id": "rw-r-synthesis-compare-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-compare",
+      "passage_type": "history-social-studies",
+      "label": "Notes: compare and contrast: history and social studies texts",
+      "method": "Check the goal word (similarity or difference), then pick the choice that names both items and that relationship; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Bulleted notes; the student wants to emphasize a similarity/difference, contrast or compare.",
+      "order": 110
+    },
+    {
+      "id": "rw-r-synthesis-goal-science",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-goal",
+      "passage_type": "science",
+      "label": "Notes: meet the goal: science texts",
+      "method": "Underline the goal, ignore the notes at first, and pick the only choice that does exactly that goal; in science texts, separate the finding from the hypothesis and watch hedges like \"may\" and \"suggests\".",
+      "recognize": "Bulleted notes; the student wants to explain/introduce/specify/provide an example...",
+      "order": 111
+    },
+    {
+      "id": "rw-r-synthesis-goal-history-social-studies",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-goal",
+      "passage_type": "history-social-studies",
+      "label": "Notes: meet the goal: history and social studies texts",
+      "method": "Underline the goal, ignore the notes at first, and pick the only choice that does exactly that goal; in social studies texts, follow the researcher's claim and the evidence for it.",
+      "recognize": "Bulleted notes; the student wants to explain/introduce/specify/provide an example...",
+      "order": 112
+    },
+    {
+      "id": "rw-r-synthesis-goal-humanities-arts",
+      "subject": "reading",
+      "kind": "reading",
+      "domain": "expression_ideas",
+      "question_type": "synthesis-goal",
+      "passage_type": "humanities-arts",
+      "label": "Notes: meet the goal: arts and humanities texts",
+      "method": "Underline the goal, ignore the notes at first, and pick the only choice that does exactly that goal; in arts texts, separate the artist's work from the critic's opinion of it.",
+      "recognize": "Bulleted notes; the student wants to explain/introduce/specify/provide an example...",
+      "order": 113
+    }
+  ]
+}

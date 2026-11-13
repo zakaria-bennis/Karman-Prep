@@ -1,0 +1,10 @@
+{
+  "name": "karman-skill-taxonomy-runner",
+  "private": true,
+  "type": "module",
+  "description": "Standalone runner for the skill taxonomy + explanation project. Kept out of the app's dependencies on purpose.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "zod": "^4.1.0"
+  }
+}
