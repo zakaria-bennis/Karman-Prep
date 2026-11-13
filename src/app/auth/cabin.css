@@ -144,14 +144,22 @@
   background: none !important;
   box-shadow: none !important;
 }
+/* Clerk sizes its card to its content; here every part fills the column, so each pill is the same width */
 .ks .cb .cl-card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
   gap: 14px;
   padding: 0;
 }
 .ks .cb .cl-main {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
   gap: 11px;
+}
+.ks .cb :is(.cl-socialButtonsRoot, .cl-socialButtons, .cl-form) {
+  width: 100%;
 }
 /* the first step needs no title (the greeting is above it); later steps keep Clerk's, so the visitor is told
    what to do with the emailed code */
