@@ -43,20 +43,12 @@ export default function ProgramSections() {
         headline={open.headline}
         primary={{ label: open.button, href: ROUTES.pricing }}
         secondary={{ label: open["second button"], href: "#promise" }}
-        w={heroWords("program")}
+        w={heroWords()}
         live={
           <TimeLeft
             until={MP.enrollmentCloses}
             label={open["clock label"]}
             units={list(open.clock)}
-          />
-        }
-        demo={
-          <ScoreClimb
-            start={G.bands[0].upTo - 50}
-            gain={G.bands[0].cohort}
-            weeks={MP.weeks}
-            words={{ start: climb.start, goal: climb.goal, test: climb.test, note: climb.note }}
           />
         }
       >

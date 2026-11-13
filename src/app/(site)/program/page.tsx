@@ -1,4 +1,5 @@
 import SitePage from "@/components/site/SitePage";
+import { fraunces } from "@/components/site/display-font";
 import { litFonts } from "@/components/site/home/fonts";
 import ProgramSections from "@/components/site/program/ProgramSections";
 import { jsonLd, pageMeta } from "@/components/site/meta";
@@ -43,7 +44,7 @@ const COURSE = {
    the mountain valleys of the route, in full daylight. Its sections are in ProgramSections.tsx. */
 export default function ProgramPage() {
   return (
-    <SitePage kind="lit" route={[0.2, 0.56]} className={litFonts}>
+    <SitePage kind="lit" route={[0.2, 0.56]} className={`${litFonts} ${fraunces.variable}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(COURSE)} />
       <ProgramSections />
     </SitePage>

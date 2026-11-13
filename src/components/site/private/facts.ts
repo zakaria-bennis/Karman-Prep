@@ -12,6 +12,6 @@ const each20 = P20.price / P20.hours;
 export const PRIVATE_FACTS = {
   small: { name: P10.name, price: formatPrice(P10.price), each: money(each10) },
   large: { name: P20.name, price: formatPrice(P20.price), each: money(each20) },
-  /** What a Private 20 session saves against a Private 10 session, rounded down: "16%". */
-  saved: `${Math.floor((1 - each20 / each10) * 100)}%`,
+  /** What Private 20 saves against buying its sessions at Private 10's price: "$495". */
+  saved: formatPrice(each10 * P20.hours - P20.price),
 } as const;

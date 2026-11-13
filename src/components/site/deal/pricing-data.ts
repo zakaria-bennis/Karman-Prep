@@ -86,7 +86,7 @@ export function pricingData(today: string): PriceProps {
   const each = (p: { price: number; hours: number }) => p.price / p.hours;
   const money = (n: number) =>
     Number.isInteger(n) ? $(n) : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
-  const saved = Math.floor((1 - each(P20) / each(P10)) * 100);
+  const saved = $(each(P10) * P20.hours - P20.price);
   const terms = (plan: { id: string; monthly: number; threeMonths: number }): PriceTerm[] => [
     {
       label: s["term three"],
@@ -200,7 +200,7 @@ export function pricingData(today: string): PriceProps {
         bullets: list(s["large bullets"]),
         cta: s["private button"],
         href: call,
-        ribbon: `${s.save} ${saved}%`,
+        ribbon: `${s.save} ${saved}`,
       },
     ],
   };

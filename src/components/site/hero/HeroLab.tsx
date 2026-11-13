@@ -1,221 +1,67 @@
 "use client";
 
-// TEMPORARY (2026-11-13): the opening of the SAT Program page and of the Private tutoring page in six
-// designs, for the founder to choose from. A row of buttons at the bottom of the hero switches between them
-// on the dev server only; everywhere else design 1 shows. Each idea comes from a hero found on Mobbin:
-//   1 Orbit     pieces of the product float round the headline and drift with the pointer (Uxcel)
-//   2 Fox       the fox sits inside the headline, blinks and watches the pointer (Phantom)
-//   3 Oversize  large drawn things tumble in and overlap the headline (Gumroad)
-//   4 Live      a number that is true this second, under the headline (Fresha)
-//   5 Demo      the product itself is the hero (Partiful)
-//   6 Sky       the landscape performs: a paper plane crosses and the headline arrives in its trail
-// Words arrive as props (site-copy.ts section 59 and the page's own opening). Styles: hero-lab.css.
+// TEMPORARY (2026-11-13): the opening of the SAT Program page and of the Private tutoring page, in the two
+// designs the founder kept from six. A row of buttons at the bottom of the hero switches between them on the
+// dev server only; everywhere else "Flock" shows.
+//   Flock  the landscape comes forward: its mist parts, its birds fly out of the valley past the reader, and
+//          the headline is blown in on their wings. One bird lands on the headline and stays. Click it and it
+//          takes off, circles and lands again.
+//   Live   a number that is true this second, under the headline: the countdown to enrollment closing on the
+//          Program page, the reader's own clock on the Private page.
+// Words arrive as props. Styles: hero-lab.css.
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { Fox } from "@/components/portal/Fox";
 import { Arrow } from "@/components/site/parts";
 
 const PICK = process.env.NODE_ENV !== "production";
-const NAMES = ["Orbit", "Fox", "Oversize", "Live", "Demo", "Sky"];
+const NAMES = ["Flock", "Live"] as const;
 
 export interface HeroWords {
-  /** "…{fox}…": where the fox sits in the headline. */
-  foxHeadline: string;
-  /** The floating pieces' words, by name. */
-  pieces: Record<string, string>;
-  sheets: string[];
-  sheetWord: string;
-  sheetsNote: string;
   clockLabel: string;
   clockLine: string;
 }
 
 const v = (o: Record<string, string | number>) => o as CSSProperties;
 
-function Words({ text, from = 0 }: { text: string; from?: number }) {
+/** One bird, seen from the front, as the landscape draws them: two wings that beat and a small body. */
+function Bird() {
   return (
-    <>
-      {text.split(" ").map((word, i) => (
-        <span
-          key={`${word}${i}`}
-          className="hx-w"
-          aria-hidden="true"
-          data-num={/\d/.test(word) || undefined}
-          style={v({ "--i": from + i })}
-        >
-          {word}{" "}
-        </span>
-      ))}
-    </>
-  );
-}
-
-function Check() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="10" />
-      <path d="M5.5 10.5l3 3 6-7" />
+    <svg viewBox="-32 -22 64 44" aria-hidden="true">
+      <path className="hx-wl" d="M0 1C-7-9-17-13-30-7c9 0 17 3 24 9z" />
+      <path className="hx-wr" d="M0 1C7-9 17-13 30-7c-9 0-17 3-24 9z" />
+      <ellipse className="hx-body" cx="0" cy="3" rx="5.500" ry="4" />
+      <path className="hx-beak" d="M-1.500 5.500L0 9l1.500-3.500z" />
     </svg>
   );
 }
 
-/** A score that counts up, over a small line that climbs unevenly. */
-function ScorePiece({ label, from, to }: { label: string; from: string; to: string }) {
-  const [n, setN] = useState(Number(from));
-  useEffect(() => {
-    const a = Number(from);
-    const b = Number(to);
-    let raf = 0;
-    const t0 = performance.now() + 900;
-    const step = (t: number) => {
-      const p = Math.min(1, Math.max(0, (t - t0) / 1800));
-      setN(Math.round((a + (b - a) * (1 - Math.pow(1 - p, 3))) / 10) * 10);
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [from, to]);
+/** The bird that lands on the headline, seen from the side: it beats one wing as it comes in, then sits. */
+function Perched() {
   return (
-    <div className="hx-p hx-score">
-      <small>{label}</small>
-      <b className="num">{n}</b>
-      <svg viewBox="0 0 120 40" aria-hidden="true">
-        <path d="M4 34l14-5 14 3 14-9 14-2 14 4 14-10 14-3 14-7" />
-      </svg>
-      <em>
-        +{Number(to) - Number(from)}
-      </em>
-    </div>
+    <svg viewBox="-26 -22 52 40" aria-hidden="true">
+      <path className="hx-tail" d="M-9 2l-15 5 3-9z" />
+      <ellipse className="hx-body" cx="0" cy="2" rx="12" ry="8" />
+      <circle className="hx-body" cx="11" cy="-6" r="6" />
+      <path className="hx-beak" d="M16 -7l8 2-8 3z" />
+      <circle className="hx-eye" cx="12.500" cy="-7.500" r="1.400" />
+      <path className="hx-wing" d="M-8 0c2-12 12-14 18-8-3 8-10 12-18 8z" />
+      <path className="hx-leg" d="M-2 9v7M4 9v7" />
+    </svg>
   );
 }
 
-/** Design 1: what floats round the headline. */
-function Orbit({ page, p }: { page: "program" | "private"; p: Record<string, string> }) {
-  const pieces: ReactNode[] =
-    page === "program"
-      ? [
-          <ScorePiece key="s" label={p["score label"]} from={p["score from"]} to={p["score to"]} />,
-          <div key="t" className="hx-p hx-sheet">
-            <small>{p.sheet}</small>
-            <i>
-              {Array.from({ length: 12 }, (_, i) => (
-                <u key={i} data-on={[0, 1, 3, 4, 5, 7, 8, 10, 11].includes(i) || undefined} />
-              ))}
-            </i>
-            <b className="num">{p["sheet score"]}</b>
-          </div>,
-          <div key="c" className="hx-p hx-class">
-            <i>
-              {["A", "J", "M", "S", "D", "L"].map((x, i) => (
-                <u key={x} style={v({ "--n": i })}>
-                  {x}
-                </u>
-              ))}
-            </i>
-            <b>{p.class}</b>
-            <small>{p["class sub"]}</small>
-          </div>,
-          <div key="l" className="hx-p hx-chip">
-            <span className="hx-dot" />
-            <b>{p.live}</b>
-            <small>{p["live sub"]}</small>
-          </div>,
-          <div key="r" className="hx-p hx-chip hx-report">
-            <Check />
-            <b>{p.report}</b>
-            <small>{p["report sub"]}</small>
-          </div>,
-        ]
-      : [
-          <div key="b" className="hx-p hx-chip hx-booked">
-            <Check />
-            <b>{p.booked}</b>
-            <small>{p["booked sub"]}</small>
-          </div>,
-          <div key="t" className="hx-p hx-text">
-            <small>{p["text from"]}</small>
-            <b>{p.text}</b>
-          </div>,
-          <div key="d" className="hx-p hx-day">
-            <small>{p["day top"]}</small>
-            <b className="num">{p.day}</b>
-          </div>,
-          <ScorePiece key="s" label={p["score label"]} from={p["score from"]} to={p["score to"]} />,
-          <div key="r" className="hx-p hx-chip hx-recap">
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <circle cx="10" cy="10" r="10" />
-              <path d="M8 6l6 4-6 4z" className="hx-play" />
-            </svg>
-            <b>{p.recap}</b>
-            <small>{p["recap sub"]}</small>
-          </div>,
-        ];
-  return (
-    <div className="hx-orbit" aria-hidden="true">
-      {pieces.map((piece, i) => (
-        <div key={i} className="hx-o" style={v({ "--n": i })}>
-          {piece}
-        </div>
-      ))}
-    </div>
-  );
-}
+/** Where each bird leaves the screen (in viewport units from the valley's vanishing point), how large it has
+ *  grown by then, and when it sets off. Worked out from the bird's number so nothing is random. */
+const FLOCK = Array.from({ length: 9 }, (_, i) => {
+  const side = i % 2 ? 1 : -1;
+  return {
+    x: side * (22 + ((i * 17) % 34)),
+    y: -8 + ((i * 23) % 46) - (i % 3) * 10,
+    s: 5 + ((i * 7) % 5),
+    d: 0.25 + i * 0.16,
+  };
+});
 
-/** Design 3: large drawn things that tumble in. The program's nine tests fan out; private gets a calendar
- *  page, a clock that runs and a message being typed. */
-function Oversize({ page, w }: { page: "program" | "private"; w: HeroWords }) {
-  if (page === "program")
-    return (
-      <div className="hx-fan" aria-hidden="true">
-        {w.sheets.map((score, i) => (
-          <div key={i} className="hx-leaf" style={v({ "--n": i, "--k": i - (w.sheets.length - 1) / 2 })}>
-            <small>
-              {w.sheetWord} {i + 1}
-            </small>
-            <b className="num">{score}</b>
-            <i>
-              {Array.from({ length: 10 }, (_, k) => (
-                <u key={k} data-on={(k * 7 + i * 3) % 4 !== 0 || undefined} />
-              ))}
-            </i>
-          </div>
-        ))}
-        <p>{w.sheetsNote}</p>
-      </div>
-    );
-  return (
-    <div className="hx-big" aria-hidden="true">
-      <div className="hx-cal">
-        <small>{w.pieces["day top"]}</small>
-        <b className="num">{w.pieces.day}</b>
-        <i>
-          {Array.from({ length: 6 }, (_, k) => (
-            <u key={k} data-on={k === 3 || undefined} />
-          ))}
-        </i>
-      </div>
-      <svg className="hx-clock" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="54" className="hx-face" />
-        {Array.from({ length: 12 }, (_, k) => (
-          <path key={k} d="M60 12v8" transform={`rotate(${k * 30} 60 60)`} className="hx-mark" />
-        ))}
-        <path d="M60 60V30" className="hx-hand hx-min" />
-        <path d="M60 60h20" className="hx-hand hx-hour" />
-        <circle cx="60" cy="60" r="5" className="hx-pin" />
-      </svg>
-      <div className="hx-bubble">
-        <small>{w.pieces["text from"]}</small>
-        <b>{w.pieces.text}</b>
-        <i>
-          <u />
-          <u />
-          <u />
-        </i>
-      </div>
-    </div>
-  );
-}
-
-/** Design 4, on the Private page: the visitor's own time, ticking. */
+/** The clock on the Private page: the reader's own time, ticking. */
 function LiveClock({ label, line }: { label: string; line: string }) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
@@ -237,21 +83,6 @@ function LiveClock({ label, line }: { label: string; line: string }) {
   );
 }
 
-/** Design 6: a paper plane crosses the valley; the headline arrives in its trail. */
-function Sky() {
-  const path = "M-80 440C170 400 290 130 640 128s560 90 900-80";
-  return (
-    <svg className="hx-sky" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <path d={path} className="hx-trail" pathLength={1} />
-      <g className="hx-plane">
-        <path d="M-22 -9L24 0-22 9-13 0z" className="hx-wing" />
-        <path d="M-13 0L24 0-22 9z" className="hx-fold" />
-        <animateMotion dur="3.4s" begin="0.35s" fill="freeze" rotate="auto" path={path} calcMode="spline" keyTimes="0;1" keySplines=".4 0 .3 1" />
-      </g>
-    </svg>
-  );
-}
-
 export default function HeroLab({
   page,
   headline,
@@ -259,7 +90,6 @@ export default function HeroLab({
   secondary,
   w,
   live,
-  demo,
   children,
 }: {
   page: "program" | "private";
@@ -267,63 +97,75 @@ export default function HeroLab({
   primary: { label: string; href: string };
   secondary: { label: string; href: string };
   w: HeroWords;
-  /** Design 4 on the Program page: the countdown to enrollment closing. */
+  /** "Live" on the Program page: the countdown to enrollment closing. */
   live?: ReactNode;
-  /** Design 5: the product piece that stands in as the hero. */
-  demo: ReactNode;
-  /** Shown under the buttons in every design (the Program page's promise switch). */
+  /** Shown under the buttons (the Program page's promise switch). */
   children?: ReactNode;
 }) {
-  const [n, setN] = useState(1);
-  const [hop, setHop] = useState(0);
+  const [look, setLook] = useState<(typeof NAMES)[number]>("Flock");
+  const [flight, setFlight] = useState(0);
   const root = useRef<HTMLElement>(null);
-
-  // the pointer's place in the hero, from -1 to 1, for the pieces that drift and the fox's eyes
-  useEffect(() => {
-    const el = root.current;
-    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const move = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      el.style.setProperty("--mx", String(((e.clientX - r.left) / r.width) * 2 - 1));
-      el.style.setProperty("--my", String(((e.clientY - r.top) / r.height) * 2 - 1));
-    };
-    el.addEventListener("pointermove", move);
-    return () => el.removeEventListener("pointermove", move);
-  }, []);
-
-  const [before, after] = w.foxHeadline.split("{fox}").map((x) => x.trim());
-  const title =
-    n === 2 ? (
-      <h1 aria-label={headline}>
-        <Words text={before} />
-        <button
-          className="hx-fox"
-          type="button"
-          tabIndex={-1}
-          aria-hidden="true"
-          data-hop={hop ? (hop % 2 ? 1 : 2) : undefined}
-          onClick={() => setHop((x) => x + 1)}
-        >
-          <Fox size={96} />
-        </button>{" "}
-        <Words text={after} from={before.split(" ").length + 2} />
-      </h1>
-    ) : (
-      <h1 aria-label={headline}>
-        <Words text={headline} />
-      </h1>
-    );
+  const flock = look === "Flock";
+  const words = headline.split(" ");
 
   return (
-    <section className="pg-hero hx" data-hero={n} data-page={page} id="top" ref={root} key={n}>
+    <section
+      className="pg-hero hx"
+      data-hero={flock ? "flock" : "live"}
+      data-page={page}
+      id="top"
+      ref={root}
+      key={look}
+    >
       <div className="mist" aria-hidden="true" />
-      {n === 6 ? <Sky /> : null}
-      {n === 1 ? <Orbit page={page} p={w.pieces} /> : null}
-      {n === 3 ? <Oversize page={page} w={w} /> : null}
-      <div className={`pg-in${n === 5 ? " pg-two" : ""}`}>
+      {flock ? (
+        <>
+          <div className="hx-veil" aria-hidden="true">
+            <i />
+            <i />
+          </div>
+          <div className="hx-flock" aria-hidden="true">
+            {FLOCK.map((b, i) => (
+              <span
+                key={i}
+                className="hx-bird"
+                style={v({ "--x": `${b.x}vw`, "--y": `${b.y}vh`, "--s": b.s, "--d": `${b.d}s` })}
+              >
+                <Bird />
+              </span>
+            ))}
+          </div>
+        </>
+      ) : null}
+      <div className="pg-in">
         <div className="hx-say">
-          {title}
-          {n === 4 ? (live ?? <LiveClock label={w.clockLabel} line={w.clockLine} />) : null}
+          <h1 aria-label={headline}>
+            {words.map((word, i) => (
+              <span
+                key={`${word}${i}`}
+                className="hx-w"
+                aria-hidden="true"
+                data-num={/\d/.test(word) || undefined}
+                style={v({ "--i": i })}
+              >
+                {word}{" "}
+              </span>
+            ))}
+            {flock ? (
+              <button
+                className="hx-perch"
+                type="button"
+                tabIndex={-1}
+                aria-hidden="true"
+                key={flight}
+                data-again={flight ? "" : undefined}
+                onClick={() => setFlight((n) => n + 1)}
+              >
+                <Perched />
+              </button>
+            ) : null}
+          </h1>
+          {flock ? null : (live ?? <LiveClock label={w.clockLabel} line={w.clockLine} />)}
           <div className="hx-go">
             <a className="btn" href={primary.href}>
               <span className="lb">{primary.label}</span>
@@ -335,15 +177,14 @@ export default function HeroLab({
               {secondary.label}
             </a>
           </div>
-          {n === 3 || n === 5 ? null : children}
+          {children}
         </div>
-        {n === 5 ? <div className="hx-demo">{demo}</div> : null}
       </div>
       {PICK ? (
         <p className="hx-pick">
-          {NAMES.map((name, i) => (
-            <button key={name} type="button" aria-pressed={n === i + 1} onClick={() => setN(i + 1)}>
-              {i + 1} {name}
+          {NAMES.map((name) => (
+            <button key={name} type="button" aria-pressed={look === name} onClick={() => setLook(name)}>
+              {name}
             </button>
           ))}
         </p>

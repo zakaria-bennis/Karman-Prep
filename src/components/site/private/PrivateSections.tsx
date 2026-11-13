@@ -33,10 +33,7 @@ export default function PrivateSections({ today }: { today: string }) {
         headline={top.headline}
         primary={{ label: top.button, href: "#call" }}
         secondary={{ label: top["second button"], href: "#packages" }}
-        w={heroWords("private")}
-        demo={
-          <SessionDemo today={today} w={{ ...slot, confirm: book.confirm, booked: book.booked }} />
-        }
+        w={heroWords()}
       />
 
       <section className="sect pg-sect pv-book" id="session" aria-labelledby="session-h">
