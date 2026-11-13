@@ -284,9 +284,9 @@ headline: Two ways to work one-on-one.
 small package: ${P10.name} = ${$(P10.price)}
 large package: ${P20.name} = ${$(P20.price)}
 small lead: Everything in ${PRO.name}
-small bullets: ${W(P10.hours)} 60-minute sessions, one a week | A tutor from our team of PhD and medical students | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | Session statuses sent within 24 hours after each class | A private text line to the tutor | ${UP_TO.cohort}, or half back / free sessions
+small bullets: ${W(P10.hours)} 60-minute sessions, once a week | A tutor from our team of PhD and medical students | Book and reschedule your own sessions | A full practice test every week | Personalized homework that adapts to their weak spots | Session recordings and recaps | Session statuses sent within 24 hours after each class | Direct iMessage or WhatsApp texting with your tutor | ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions
 large lead: Everything in ${P10.name}, plus
-large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
+large bullets: ${P20.hours} sessions | No limit on sessions a week | Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
 save: Save
 per: a session
 call: Schedule a free call
@@ -383,7 +383,7 @@ billed three: billed {total} every 3 months
 billed one: billed every month
 practice bullets: ${QB.practiceCount.toLocaleString("en-US")} questions covering every SAT skill | A written explanation for every question | The Daily 10: ten questions a day from the skills they miss | Full-length practice tests | One predicted SAT score, updated as they practice | The built-in graphing calculator | Progress for parents on their phone
 practice button: Start ${PP.name}
-pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")}+ more questions | The 1600 Set: our level 7 questions, the hardest we have | A video explanation, added as each is recorded
+pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")}+ more questions | The 1600 Set: our level 7 questions, the hardest we have | A video explanation for each
 pro button: Start ${PRO.name}
 cohort line: ${UP_TO.cohort}, or your money back.
 cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week
@@ -393,10 +393,10 @@ cohort button: Reserve a seat
 sat: Their SAT
 starts: Classes start
 closes: Enrollment closes
-small line: ${UP_TO.cohort}, or half back / free sessions.
-small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, one session a week | Book your own sessions | A full practice test every week
-large line: ${UP_TO.private}, our bonus guarantee.
-large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no weekly limit | A personalized study plan | Priority booking | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
+small line: ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions.
+small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, once a week | Book and reschedule your own sessions | A full practice test every week
+large line: Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)}.
+large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no limit on sessions a week | A personalized study plan | Priority booking | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
 save: Save
 a session: a session
 private button: Schedule a free call

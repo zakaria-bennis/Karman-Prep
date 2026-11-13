@@ -122,7 +122,7 @@ export default function ProgramSections() {
                 <span className="pg-was">
                   <s className="num">{value.total}</s>
                   <svg viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M3 21C22 9 34 24 52 13s26 11 40-1 16 6 25-3" />
+                    <path d="M3 17L117 13" />
                   </svg>
                 </span>
                 <span>

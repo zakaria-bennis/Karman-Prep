@@ -312,3 +312,21 @@
 .ks .pg-clock li::before { left: -2px; }
 .ks .pg-clock li::after { right: -2px; }
 .ks.lit[data-mode="dark"] .pg-clock li, .ks.lit[data-mode="dark"] .pg-clock li:last-child { background: linear-gradient(180deg, #fffaf3 0 49.5%, #cfc6b6 49.5% 50.5%, #f1e9dc 50.5%); color: #1d1a22; }
+
+/* 2026-11-13 (founder): no solid black or white cards. Every card is frosted glass with a quiet tint, so the
+   landscape still reads first, in day and in night. */
+.ks :is(.pg-terms, .pg-bill, .pg-start), .ks .pg-deal .pg-terms:first-child { --tint: #2449b8; background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 20%, transparent), color-mix(in srgb, var(--tint) 7%, transparent) 62%), rgba(255, 253, 248, .36); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); color: var(--ink); box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .7), inset 0 0 0 1px color-mix(in srgb, var(--tint) 26%, transparent), 0 24px 46px -30px rgba(29, 26, 34, .6); }
+.ks.lit[data-mode="dark"] :is(.pg-terms, .pg-bill, .pg-start), .ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child { background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 30%, transparent), color-mix(in srgb, var(--tint) 10%, transparent) 62%), rgba(20, 18, 26, .48); color: var(--cream); box-shadow: inset 0 1.5px 0 rgba(255, 250, 243, .2), inset 0 0 0 1px color-mix(in srgb, var(--tint) 34%, transparent), 0 24px 46px -30px rgba(0, 0, 0, .9); }
+.ks .pg-deal .pg-terms:first-child { --a: #2449b8; }
+.ks .pg-deal .pg-terms:first-child .pg-tick path, .ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child .pg-tick path { stroke: #fff; }
+.ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child { --a: #8fb0ff; }
+.ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child .pg-tick path { stroke: #17151c; }
+.ks .pg-deal .pg-theirs { --tint: #2f8f6b; }
+.ks .pg-start { --tint: #f07a2e; }
+/* the flap clock keeps dark flaps at night too, so it never flashes white */
+.ks.lit[data-mode="dark"] .pg-clock li, .ks.lit[data-mode="dark"] .pg-clock li:last-child { background: linear-gradient(180deg, #37333f 0 49.5%, #15131a 49.5% 50.5%, #262330 50.5%); color: #fffaf3; }
+/* the bonus for reserving now: a warm gold strip with a gift on it and a slow sheen */
+.ks .pg-bonus, .ks.lit[data-mode="dark"] .pg-bonus { position: relative; overflow: hidden; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 13px; align-items: center; padding: 15px 22px 16px 16px; border-radius: 24px; background: linear-gradient(110deg, #f6d27a, #ffe9ad 45%, #f0c25c); color: #3b2a05; font-weight: 800; box-shadow: 0 16px 26px -16px rgba(120, 80, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .7); }
+.ks .pg-bonus::before { content: ""; width: 30px; height: 30px; background: #8a5e06; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h18v4H3zM5 13h14v8H5zM11 9h2v12h-2zM12 9C9 9 6.500 7.500 7 5.500 7.600 3 11 4 12 9zM12 9c3 0 5.500-1.500 5-3.500C16.400 3 13 4 12 9z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h18v4H3zM5 13h14v8H5zM11 9h2v12h-2zM12 9C9 9 6.500 7.500 7 5.500 7.600 3 11 4 12 9zM12 9c3 0 5.500-1.500 5-3.500C16.400 3 13 4 12 9z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.ks .pg-bonus::after { content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 26%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .8), transparent); animation: rib-sheen 4.200s ease-in-out 1.200s infinite; }
+@media (prefers-reduced-motion: reduce) { .ks .pg-bonus::after { animation: none; } }

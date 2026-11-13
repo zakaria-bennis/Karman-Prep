@@ -13,7 +13,7 @@ import {
   PRO_PLAN as PRO,
   SAT_DATES,
 } from "@/lib/marketing/offer";
-import { list, section, SITE } from "@/lib/marketing/site-copy";
+import { list, section } from "@/lib/marketing/site-copy";
 
 export interface PriceAward {
   /** On the badge. */
@@ -73,8 +73,8 @@ export interface PriceProps {
   sides: { self: string; tutor: string };
   self: PricePlan[];
   tutor: PricePlan[];
-  words: { sat: string; starts: string; closes: string; freeNote: string; link: string };
-  links: { free: string; guarantee: string };
+  words: { sat: string; starts: string; closes: string; link: string };
+  links: { guarantee: string };
 }
 
 const DAY = 864e5;
@@ -130,10 +130,9 @@ export function pricingData(today: string): PriceProps {
       sat: s.sat,
       starts: s.starts,
       closes: s.closes,
-      freeNote: SITE["pricing free note"],
       link: s.link,
     },
-    links: { free: ROUTES.signUp, guarantee: ROUTES.guarantee },
+    links: { guarantee: ROUTES.guarantee },
     self: [
       {
         id: PP.id,

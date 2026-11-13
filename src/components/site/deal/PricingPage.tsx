@@ -26,8 +26,24 @@ function Check() {
 function Shield() {
   return (
     <svg className="pz-shield" viewBox="0 0 20 22" aria-hidden="true">
-      <path d="M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z" />
-      <path d="M6.200 10.800l2.700 2.700 5-5.400" className="pz-shield-tick" />
+      <defs>
+        <linearGradient id="pz-silver" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset=".45" stopColor="#c9d1de" />
+          <stop offset=".55" stopColor="#eef2f8" />
+          <stop offset="1" stopColor="#9aa6b8" />
+        </linearGradient>
+        <clipPath id="pz-shield-clip">
+          <path d="M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z" />
+        </clipPath>
+      </defs>
+      <path
+        className="pz-shield-body"
+        d="M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z"
+      />
+      <g clipPath="url(#pz-shield-clip)">
+        <path className="pz-shield-glint" d="M6 -2h4L4 24H0z" />
+      </g>
     </svg>
   );
 }
@@ -254,11 +270,7 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
           {plans.map(card)}
         </div>
         <p className="pz-foot">
-          {side === "self" ? (
-            <a href={links.free}>{words.freeNote}</a>
-          ) : (
-            <a href={links.guarantee}>{words.link}</a>
-          )}
+          {side === "tutor" ? <a href={links.guarantee}>{words.link}</a> : null}
         </p>
       </div>
       {pop ? <AwardCard a={pop} onClose={close} /> : null}
