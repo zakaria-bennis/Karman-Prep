@@ -6,7 +6,7 @@ import { litFonts } from "@/components/site/home/fonts";
 export default function SignInPage() {
   return (
     <SitePage kind="lit" route={[0.42, 0.42]} className={`${litFonts} sn-page`}>
-      <AuthStage mode="sign-in" headline="Welcome back." line="Pick up where you left off." />
+      <AuthStage mode="sign-in" headline="Sign in." line="Good to see you again." />
     </SitePage>
   );
 }

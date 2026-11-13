@@ -612,7 +612,7 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 ## Site
 logo: Karman
 free test link: Free practice test
-start free: Start free
+start free: Get started
 program link: The SAT Program
 private link: Private tutoring
 schools link: Schools

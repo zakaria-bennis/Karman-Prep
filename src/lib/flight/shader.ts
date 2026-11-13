@@ -8,7 +8,8 @@
 // switch. uTime moves the clouds, the water, the mist, the stars, the snow and the birds.
 // An opening (founder, 2026-11-13): a page may ask the landscape to perform as it arrives. uIntro runs from 0
 // to 1 while it plays and rests at 1: the sun starts behind the ridge and climbs to its place while the mist
-// lying in the valley drains away; at night the northern lights surge instead.
+// lying in the valley drains away, and the camera sinks a little to its place; at night the northern lights
+// surge instead.
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
 export const FRAG = `
@@ -229,6 +230,8 @@ void main() {
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
   float z = .2 + 8.45 * P;
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), .05 + 1.72 * pow(1. - P, 2.6) + .002 * sin(uTime * .33), z);
+  /* the opening: the camera starts a little higher and sinks to its place */
+  ro.y += .16 * left;
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
   float zt = z + 1.3;
   vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + mix(-.36, .05, smoothstep(0., .92, P)), zt);

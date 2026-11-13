@@ -168,7 +168,7 @@
 .ks .cf-field { display: grid; gap: 6px; }
 .ks .cf-pill { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 26px; border-radius: 999px; cursor: text; transition: box-shadow .25s, background .25s; }
 .ks .cf-pill span { flex: none; font-size: 15px; font-weight: 800; opacity: .78; }
-.ks .cf-pill input { flex: 1; min-width: 0; height: 64px; padding: 0; border: 0; outline: 0; background: none; color: inherit; font: inherit; font-size: 18px; font-weight: 700; text-align: right; }
+.ks .cf-pill input { flex: 1; min-width: 0; height: 64px; padding: 0; border: 0; outline: 0; background: none; color: inherit; font: inherit; font-size: 18px; font-weight: 700; text-align: left; }
 .ks.lit .cf .cf-pill input:is(:focus, :focus-visible) { outline: 0; box-shadow: none; border: 0; background: none; }
 .ks .cf-pill:focus-within { background: rgba(255, 253, 248, .55); box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2px var(--ink), 0 20px 40px -26px rgba(29, 26, 34, .55); }
 .ks .cf-pill[data-bad] { box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2px #a3271f, 0 20px 40px -26px rgba(29, 26, 34, .55); }

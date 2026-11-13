@@ -1,4 +1,4 @@
-// The sign-in and Start free pages wear the home page's look, so they load the site's styles and their own.
+// The sign-in and Get started pages wear the home page's look, so they load the site's styles and their own.
 import "@/app/(site)/site-styles";
 import "./auth.css";
 
