@@ -115,9 +115,9 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
         <div>
           <h2 id="replay-consent-title">Cookie Monster would be so disappointed.</h2>
           <p id="replay-consent-body">
-            Our cookies have zero chocolate chips. They count visits and help us squash bugs, so
-            Karman Prep gets better for all of us. We never share, lend or sell your data. No matter
-            what. <a href={privacyHref}>Details</a>
+            Ours have zero chocolate chips. They just help us make Karman Prep better for every
+            student. We never share, lend or sell your data. No matter what.{" "}
+            <a href={privacyHref}>Details</a>
           </p>
         </div>
       </div>
