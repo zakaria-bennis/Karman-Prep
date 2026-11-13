@@ -13,3 +13,7 @@ html:has(#ks) { background: #0e0d0c; }
 /* the app's floating theme toggle stays off any page drawn with the site's frame (the 404 and error pages
    too, whose addresses aren't in SITE_PAGES): the site header has its own switch */
 body:has(#ks) button.fixed[title="Toggle light and dark mode"] { display: none; }
+
+/* Leaving for the sign-in pages, the page blows away like a flurry and the cabin clearing settles in (the
+   moves themselves are in auth/cabin.css). Every other page change stays instant: ShellBehaviour skips it. */
+@view-transition { navigation: auto; }
