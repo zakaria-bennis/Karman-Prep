@@ -9,6 +9,7 @@
 // a stand-in with the same parts and the same class names takes its place. It signs nobody in.
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { SignIn, SignUp } from "@clerk/nextjs";
+import { AUTH_OPTIONS, type AuthOption } from "./auth-option-list";
 
 const DEV = process.env.NODE_ENV !== "production";
 
@@ -101,6 +102,7 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
             <input
               className="cl-formFieldInput"
               type="email"
+              placeholder="Email address"
               inputMode="email"
               autoComplete="email"
             />
@@ -124,14 +126,63 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
   );
 }
 
+const OPTION_NAME: Record<AuthOption, string> = {
+  now: "Live now",
+  a: "A",
+  b: "B",
+  "1": "1",
+  "2": "2",
+  "3": "3",
+  "4": "4",
+  "5": "5",
+};
+
+const TICK = (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M4.500 12.800l4.700 4.700L19.500 7"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+/** TEMPORARY: the strip that switches between the layouts on offer. */
+function OptionPicker({ mode, option }: { mode: "sign-in" | "sign-up"; option: AuthOption }) {
+  const other = mode === "sign-in" ? "sign-up" : "sign-in";
+  return (
+    <nav className="sn-pick" aria-label="Layouts to choose from">
+      {AUTH_OPTIONS.map((o) => (
+        <a key={o} href={`/auth/${mode}?o=${o}`} aria-current={o === option ? "page" : undefined}>
+          {OPTION_NAME[o]}
+        </a>
+      ))}
+      <a className="sn-pick-flip" href={`/auth/${other}?o=${option}`}>
+        {mode === "sign-in" ? "See Get started" : "See Sign in"}
+      </a>
+    </nav>
+  );
+}
+
 export default function AuthStage({
   mode,
   headline,
   line,
+  option = "now",
+  perks = [],
+  pitch = [],
 }: {
   mode: "sign-in" | "sign-up";
   headline: string;
   line: string;
+  option?: AuthOption;
+  /** Short facts under the headline (Get started only). */
+  perks?: string[];
+  /** Big lines set on the landscape in layout 5. */
+  pitch?: string[];
 }) {
   /** Dev server only: Clerk's form has not appeared, so the stand-in shows. */
   const [standIn, setStandIn] = useState(false);
@@ -148,10 +199,45 @@ export default function AuthStage({
   }, []);
 
   return (
-    <section className="sn" ref={root}>
+    <section className={`sn sn-o-${option} sn-${mode}`} ref={root}>
+      <OptionPicker mode={mode} option={option} />
+      <nav className="sn-seg" aria-label="Sign in or get started">
+        <a
+          href={`/auth/sign-in?o=${option}`}
+          aria-current={mode === "sign-in" ? "page" : undefined}
+        >
+          Sign in
+        </a>
+        <a
+          href={`/auth/sign-up?o=${option}`}
+          aria-current={mode === "sign-up" ? "page" : undefined}
+        >
+          Get started
+        </a>
+      </nav>
+      <p className="sn-mark" aria-hidden="true">
+        Karman
+      </p>
       <div className="sn-say">
         <h1>{headline}</h1>
         <p>{line}</p>
+        {perks.length ? (
+          <ul className="sn-perks">
+            {perks.map((t, i) => (
+              <li key={t} style={{ "--i": i } as CSSProperties}>
+                {TICK}
+                {t}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+      <div className="sn-pitch" aria-hidden={pitch.length ? undefined : true}>
+        {pitch.map((t, i) => (
+          <p key={t} style={{ "--i": i } as CSSProperties}>
+            {t}
+          </p>
+        ))}
       </div>
       <div className="sn-form">
         {standIn ? (

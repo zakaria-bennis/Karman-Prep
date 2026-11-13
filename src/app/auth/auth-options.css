@@ -1,0 +1,511 @@
+/* TEMPORARY: the sign-in layouts on offer (AuthStage.tsx, ?o=). Delete this file once the founder picks, and
+   fold the chosen layout into auth.css. */
+.ks .sn-mark,
+.ks .sn-perks,
+.ks .sn-pitch,
+.ks .sn-seg {
+  display: none;
+}
+
+/* the strip that switches layouts */
+.ks .sn-pick {
+  position: fixed;
+  z-index: 130;
+  top: 22px;
+  right: var(--gutter);
+  display: flex;
+  gap: 2px;
+  max-width: calc(100vw - 150px);
+  padding: 4px;
+  overflow-x: auto;
+  border-radius: 999px;
+  background: #1d1a22;
+  color: #fffaf3;
+  font:
+    800 14px/1 var(--font-hanken),
+    system-ui,
+    sans-serif;
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.6);
+}
+.ks .sn-pick a {
+  flex: none;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 11px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ks .sn-pick a[aria-current] {
+  background: #fffaf3;
+  color: #1d1a22;
+}
+.ks .sn-pick .sn-pick-flip {
+  margin-left: 6px;
+  color: #e7cf9a;
+}
+
+/* shared pieces */
+.ks .sn-perks {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  gap: 12px;
+  font-size: clamp(17px, 1.45vw, 21px);
+  font-weight: 800;
+  line-height: 1.25;
+}
+.ks .sn-perks li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  animation: pg-rise 0.8s var(--spring) both;
+  animation-delay: calc(0.55s + var(--i) * 0.12s);
+}
+.ks .sn-perks svg {
+  width: 24px;
+  height: 24px;
+  color: var(--a);
+}
+/* the panel without its glass: fields sit on a veil of mist */
+.ks .sn:is(.sn-o-b, .sn-o-1, .sn-o-2, .sn-o-4) .cl-cardBox {
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.ks .sn:is(.sn-o-b, .sn-o-1, .sn-o-2, .sn-o-4) .cl-card {
+  padding: 0;
+}
+.ks .sn:is(.sn-o-b, .sn-o-1, .sn-o-4) {
+  --fill: rgba(255, 253, 248, 0.84);
+}
+.ks.lit[data-mode="dark"] .sn:is(.sn-o-b, .sn-o-1, .sn-o-4) {
+  --fill: rgba(24, 22, 31, 0.74);
+}
+.ks .sn:is(.sn-o-b, .sn-o-1, .sn-o-4) .sn-form::before {
+  content: "";
+  position: absolute;
+  inset: -16% -24%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--mist) 72%, transparent),
+    color-mix(in srgb, var(--mist) 38%, transparent) 48%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.ks .sn:is(.sn-o-b, .sn-o-1, .sn-o-4) :is(.cl-socialButtonsBlockButton, .cl-formFieldInput) {
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 10%, transparent),
+    0 16px 26px -20px rgba(29, 26, 34, 0.7);
+}
+/* the three ways in as a row of logo buttons */
+.ks .sn:is(.sn-o-1, .sn-o-4, .sn-o-5) .cl-socialButtons {
+  display: flex;
+  gap: 12px;
+}
+.ks .sn:is(.sn-o-1, .sn-o-4, .sn-o-5) .cl-socialButtonsBlockButton {
+  flex: 1;
+  grid-template-columns: 22px;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0;
+}
+.ks .sn:is(.sn-o-1, .sn-o-4, .sn-o-5) .cl-socialButtonsBlockButtonText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* ---------- A: today's layout, with the free plan spelled out beside the form ---------- */
+/* ---------- B: the same, with no panel ---------- */
+@media (min-width: 900px) {
+  .ks .sn:is(.sn-o-a, .sn-o-b) .sn-perks {
+    display: grid;
+  }
+  .ks .sn:is(.sn-o-a, .sn-o-b).sn-sign-up .sn-say > p {
+    display: none;
+  }
+}
+
+/* ---------- 1: the horizon. The name stands on the skyline; the form is small and centred ---------- */
+.ks.sn-page-1 .hd .mark {
+  visibility: hidden;
+}
+.ks .sn.sn-o-1 {
+  grid-template-columns: minmax(0, 400px);
+  justify-content: center;
+  justify-items: center;
+  max-width: none;
+  gap: 14px;
+  padding-top: 56px;
+  padding-bottom: 40px;
+}
+.ks .sn.sn-o-1 .sn-mark {
+  display: block;
+  width: max-content;
+  margin: 0 0 6px;
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-size: clamp(92px, 16vw, 230px);
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  color: #1d1a22;
+  animation: pg-rise 1.2s var(--spring) both;
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-1 .sn-mark {
+  color: #fffaf3;
+}
+.ks .sn.sn-o-1 .sn-say {
+  justify-items: center;
+  text-align: center;
+}
+.ks.lit .sn.sn-o-1 h1 {
+  font-size: clamp(26px, 2.6vw, 34px);
+}
+.ks .sn.sn-o-1 .sn-say p {
+  font-size: 16.5px;
+}
+.ks .sn.sn-o-1 .sn-form {
+  animation: pg-rise 0.9s var(--spring) 0.3s both;
+}
+
+/* ---------- 2: the sheet. A sheet of paper holds the form; the landscape is the window beside it ---------- */
+.ks .sn.sn-o-2 {
+  --fill: rgba(29, 26, 34, 0.06);
+  --edge: transparent;
+  --pad: clamp(36px, 5.5vw, 88px);
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-2 {
+  --fill: rgba(255, 250, 243, 0.09);
+}
+.ks .sn.sn-o-2::before {
+  content: "";
+  position: absolute;
+  inset: 150px 0 0;
+  border-radius: 34px 34px 0 0;
+  background: #fffaf3;
+  box-shadow: 0 -30px 70px -40px rgba(29, 26, 34, 0.7);
+  animation: sn-sheet-up 1s var(--spring) both;
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-2::before {
+  background: #17151d;
+}
+.ks .sn.sn-o-2 {
+  align-content: start;
+  padding-top: 182px;
+}
+.ks .sn.sn-o-2 .sn-say::before {
+  display: none;
+}
+.ks .sn.sn-o-2 :is(.sn-say, .sn-form) {
+  z-index: 1;
+}
+@keyframes sn-sheet-up {
+  from {
+    opacity: 0;
+    translate: 0 80px;
+  }
+}
+@keyframes sn-sheet-in {
+  from {
+    opacity: 0;
+    translate: -80px 0;
+  }
+}
+@media (min-width: 900px) {
+  .ks .sn.sn-o-2 {
+    max-width: none;
+    margin: 0;
+    grid-template-columns: minmax(0, 420px);
+    justify-content: start;
+    justify-items: stretch;
+    align-content: center;
+    gap: 24px;
+    padding: 104px 0 44px var(--pad);
+  }
+  .ks .sn.sn-o-2::before {
+    inset: 0 auto 0 0;
+    width: calc(var(--pad) * 2 + 420px);
+    border-radius: 0 48px 48px 0;
+    box-shadow: 40px 0 90px -50px rgba(29, 26, 34, 0.75);
+    animation-name: sn-sheet-in;
+  }
+  .ks.lit .sn.sn-o-2 h1 {
+    font-size: clamp(44px, 4.2vw, 62px);
+  }
+  .ks .sn.sn-o-2 .sn-form {
+    animation: pg-rise 0.9s var(--spring) 0.3s both;
+  }
+  .ks .sn.sn-o-2 .sn-pitch {
+    position: absolute;
+    right: clamp(32px, 5vw, 80px);
+    bottom: clamp(56px, 9svh, 110px);
+    display: grid;
+    gap: 4px;
+    justify-items: end;
+    text-align: right;
+    font-family: var(--font-young-serif), Georgia, serif;
+    font-size: clamp(30px, 3.3vw, 54px);
+    line-height: 1.1;
+    color: #fffaf3;
+    text-shadow: 0 2px 26px rgba(29, 26, 34, 0.7);
+  }
+  .ks .sn.sn-o-2.sn-sign-up .sn-say > p {
+    display: none;
+  }
+  .ks .sn.sn-o-2 .sn-pitch p {
+    margin: 0;
+    animation: pg-rise 0.9s var(--spring) both;
+    animation-delay: calc(0.7s + var(--i) * 0.16s);
+  }
+}
+
+/* ---------- 3: the dock. The headline owns the sky; the form is one wide bar along the bottom ---------- */
+.ks .sn.sn-o-3 {
+  --glass: rgba(255, 253, 248, 0.58);
+  align-content: space-between;
+  justify-items: stretch;
+  padding-bottom: 0;
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-3 {
+  --glass: rgba(20, 18, 26, 0.64);
+}
+.ks .sn.sn-o-3 .sn-form {
+  width: auto;
+  margin: 0 calc(var(--gutter) * -1);
+  animation: sn-sheet-up 1s var(--spring) 0.2s both;
+}
+.ks .sn.sn-o-3 .cl-cardBox {
+  border-radius: 34px 34px 0 0;
+}
+.ks .sn.sn-o-3 .cl-socialButtons {
+  display: flex;
+  gap: 10px;
+}
+.ks .sn.sn-o-3 .cl-socialButtonsBlockButton {
+  flex: 1;
+  grid-template-columns: 22px;
+  justify-content: center;
+  padding: 0;
+}
+.ks .sn.sn-o-3 .cl-socialButtonsBlockButtonText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (min-width: 900px) {
+  .ks .sn.sn-o-3 {
+    max-width: none;
+    margin: 0;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    padding: clamp(120px, 20svh, 190px) var(--gutter) 28px;
+  }
+  .ks .sn.sn-o-3 .sn-say {
+    justify-items: start;
+    text-align: left;
+  }
+  .ks .sn.sn-o-3 .sn-form {
+    width: min(100%, 1080px);
+    margin: 0;
+    justify-self: center;
+  }
+  .ks .sn.sn-o-3 .cl-cardBox {
+    border-radius: 36px;
+  }
+  .ks .sn.sn-o-3 .cl-card {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    align-items: end;
+    gap: 14px;
+    padding: 22px 24px 4px;
+  }
+  .ks .sn.sn-o-3 :is(.cl-socialButtons, .sn-or) {
+    grid-column: 1 / -1;
+  }
+  .ks .sn.sn-o-3 .cl-socialButtonsBlockButton {
+    grid-template-columns: 22px auto;
+    padding: 0 20px;
+  }
+  .ks .sn.sn-o-3 .cl-socialButtonsBlockButtonText {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+  }
+  .ks .sn.sn-o-3 .cl-footerAction {
+    padding: 10px 0 14px;
+  }
+}
+
+/* ---------- 4: one question. No panel: a big line to type on, then the other ways in as small logos ---------- */
+.ks .sn.sn-o-4 {
+  justify-items: stretch;
+  gap: 26px;
+}
+.ks .sn.sn-o-4 .sn-say {
+  justify-items: start;
+  text-align: left;
+}
+.ks .sn.sn-o-4 .sn-form {
+  width: 100%;
+  animation: pg-rise 0.9s var(--spring) 0.3s both;
+}
+.ks .sn.sn-o-4 .cl-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 20px 14px;
+}
+.ks .sn.sn-o-4 .sn-standin label {
+  order: 1;
+  gap: 0;
+  font-size: 0;
+}
+.ks .sn.sn-o-4 .cl-formFieldInput {
+  min-height: 66px;
+  padding: 0 2px;
+  border-radius: 0;
+  background: none;
+  font-size: clamp(22px, 2.5vw, 32px);
+  box-shadow: inset 0 -2.5px 0 currentColor;
+}
+.ks .sn.sn-o-4 .cl-formFieldInput::placeholder {
+  color: currentColor;
+  opacity: 0.6;
+}
+.ks .sn.sn-o-4 .cl-formFieldInput:focus {
+  outline: none;
+  box-shadow: inset 0 -4px 0 var(--a);
+}
+.ks .sn.sn-o-4 .cl-formButtonPrimary {
+  order: 2;
+  min-width: 132px;
+  padding: 0 26px;
+}
+.ks .sn.sn-o-4 .sn-or {
+  order: 3;
+  grid-column: 1 / -1;
+}
+.ks .sn.sn-o-4 .cl-socialButtons {
+  order: 4;
+  grid-column: 1 / -1;
+}
+.ks .sn.sn-o-4 .cl-socialButtonsBlockButton {
+  flex: none;
+  width: 64px;
+  min-height: 58px;
+}
+.ks .sn.sn-o-4 .cl-footerActionText {
+  font-weight: 700;
+}
+.ks .sn.sn-o-4 .cl-footerAction {
+  justify-content: flex-start;
+  padding-top: 20px;
+}
+@media (min-width: 900px) {
+  .ks .sn.sn-o-4 {
+    grid-template-columns: minmax(0, 600px);
+    justify-content: start;
+  }
+}
+
+/* ---------- 5: two doors. One centred card, with the springy switch between Sign in and Get started ---------- */
+.ks .sn.sn-o-5 {
+  grid-template-columns: minmax(0, 420px);
+  justify-content: center;
+  justify-items: center;
+  max-width: none;
+  gap: 16px;
+  padding-top: 96px;
+  padding-bottom: 40px;
+}
+.ks .sn.sn-o-5 .sn-seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 330px);
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    0 20px 34px -24px rgba(29, 26, 34, 0.7);
+  font-size: 16px;
+  font-weight: 800;
+  animation: pg-rise 0.9s var(--spring) both;
+}
+.ks .sn.sn-o-5 .sn-seg a {
+  position: relative;
+  z-index: 1;
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.ks .sn.sn-o-5 .sn-seg a[aria-current] {
+  color: #fffaf3;
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-5 .sn-seg a[aria-current] {
+  color: #1d1a22;
+}
+.ks .sn.sn-o-5 .sn-seg::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc(50% - 5px);
+  border-radius: 999px;
+  background: #1d1a22;
+  animation: sn-seg-to-left 0.75s var(--spring) 0.3s both;
+}
+.ks.lit[data-mode="dark"] .sn.sn-o-5 .sn-seg::before {
+  background: #fffaf3;
+}
+.ks .sn.sn-o-5.sn-sign-up .sn-seg::before {
+  translate: 100% 0;
+  animation-name: sn-seg-to-right;
+}
+@keyframes sn-seg-to-left {
+  from {
+    translate: 100% 0;
+  }
+}
+@keyframes sn-seg-to-right {
+  from {
+    translate: 0 0;
+  }
+}
+.ks .sn.sn-o-5 .sn-say {
+  justify-items: center;
+  text-align: center;
+}
+.ks.lit .sn.sn-o-5 h1 {
+  font-size: clamp(34px, 3.4vw, 46px);
+}
+.ks .sn.sn-o-5 .sn-say p {
+  font-size: 16.5px;
+}
+.ks .sn.sn-o-5 .sn-form {
+  animation: pg-rise 0.9s var(--spring) 0.3s both;
+}
+.ks .sn.sn-o-5 .cl-footer {
+  display: none;
+}
