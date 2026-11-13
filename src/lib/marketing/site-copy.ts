@@ -603,7 +603,6 @@ private alt: A tutor at home, mid-explanation to a student on a video call, one 
 test alt: A student at a kitchen table, chin on his hand, working through a timed practice test on a laptop.
 guarantee alt: A parent on the sofa in the evening, reading on a phone, a cup of tea beside them.
 about alt: Three teammates on a gym bench during a break at practice, one showing another something on her phone.
-pricing alt: A parent and her daughter at a kitchen counter, looking at a laptop together, the daughter pointing at something.
 lin alt: A tutor at her desk at home, mid-explanation on a video call, one hand open as she makes a point.
 daily alt: A runner on the bleachers after practice, answering questions on his phone, a towel beside him.
 start alt: A student just home from school, backpack still on one shoulder, opening her laptop at the kitchen counter.
@@ -661,35 +660,8 @@ form error slot: Pick a day and a time for the call.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again
-pricing headline: The full price, before you talk to anyone.
-pricing text: Nothing is added later: no materials fee, no platform fee.
-pricing date question: When does your student want to start?
-pricing other date: Another time
-pricing guarantee headline: What you get back, by score.
-pricing badge: ${UP_TO.cohort}, or money back or the next cohort free.
-pricing private badge: ${P10.name}: up to +${guaranteeMax("cohort")}. ${P20.name}: up to +${guaranteeMax("private")}.
-pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Every rule is listed below.
-pricing compare title: What each option includes
-pricing compare open: Compare everything, line by line
-pricing program button: Apply for a seat
-pricing program deposit: Apply, then a ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}, your student and you. If there's a seat and it fits, a ${$(MP.depositAmount)} refundable deposit holds it. It counts toward the ${$(MP.price)}.
-pricing plans title: ${PP.name} and ${PRO.name}
 pricing practice button: Start ${PP.name}
 pricing pro button: Start ${PRO.name}
-pricing plans note: No guarantee: it covers the cohort and private tutoring, where a tutor teaches every week.
-pricing renewal: ${PLAN_RENEWAL}
-pricing free note: Or start free: ${FREE.questionLimit} questions and ${w(FREE.fullLengthTests)} full-length test, no card.
-pricing private button: Book a call with ${FOUNDER.firstName}
-pricing other note: ${PP.name}, ${PRO.name} and private tutoring start any day.
-pricing full: Pay in full
-pricing split: ${MP.installments.count} payments
-pricing split note: After the ${$(MP.depositAmount)} deposit
-pricing more: Schools and tutors
-pricing schools: ${SCHOOL.name} = Free for the first year, then ${$(SCHOOL.pricePerStudentPerYear)} per student a year. Every student gets a ${PP.name} plan of their own.
-pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA.maxStudents} of your students ${PP.name}, free while you subscribe.
-pricing guarantee link: The guarantee, with worked examples
-pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
-pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
 `;
 
 /* ---------- reading the copy ---------- */

@@ -8,12 +8,11 @@ import {
   PRIVATE_PACKAGES,
   PRO_PLAN,
 } from "@/lib/marketing/offer";
-import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { list, pairs, section } from "@/lib/marketing/site-copy";
 import { placeExample } from "./ExampleTrack";
 import GuaranteeSections, { targetBands } from "./GuaranteeSections";
 import { pricingData } from "./pricing-data";
 import PricingPage from "./PricingPage";
-import { usd } from "./RefundSteps";
 
 const text = (html: string) =>
   html

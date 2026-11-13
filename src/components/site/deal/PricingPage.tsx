@@ -53,7 +53,10 @@ function Medal() {
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M6 1.5h8l-2.2 6H8.2z" opacity=".55" />
       <circle cx="10" cy="12.5" r="5.5" />
-      <path d="M10 9.6l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.400 2-.3z" className="pz-star" />
+      <path
+        d="M10 9.6l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.400 2-.3z"
+        className="pz-star"
+      />
     </svg>
   );
 }
