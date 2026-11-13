@@ -48,11 +48,10 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
           },
         });
         if (!flight.start()) return;
-        /* a page's opening (HeroLab.tsx names it in data-intro): the landscape performs, and the page is
-           told the moment it begins so its headline can arrive in step */
+        /* a page's opening (HeroLab.tsx asks for it with data-intro): the landscape performs, and the page
+           is told the moment it begins so its headline can arrive in step */
         const open = () => {
-          const kind = Number(ks.dataset.intro ?? 0);
-          if (kind && flight.open(kind)) document.dispatchEvent(new Event("karman:opened"));
+          if (ks.dataset.intro && flight.open()) document.dispatchEvent(new Event("karman:opened"));
         };
         open();
         document.addEventListener("karman:intro", open);

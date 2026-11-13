@@ -2,9 +2,10 @@
 
 // A day and a time, picked the way a booking page does it: a row of dates you flick through, then the open
 // times for that day. The Private tutoring page uses it twice: in the session demo (SessionDemo.tsx) and in
-// the free-call form (CallForm.tsx). Dates run from tomorrow; which hours are open is worked out from the
-// date, so the server and the browser draw the same thing.
-import { useEffect, useMemo, useRef } from "react";
+// the free-call form (CallForm.tsx). Dates run from today to thirty days on; the arrows page through them.
+// Which hours are open is worked out from the date, so the server and the browser draw the same thing; once
+// the page is up, hours that have already passed today are taken off.
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const DAY = 864e5;
 export const fmtTime = (h: number) => `${h > 12 ? h - 12 : h}:00 ${h >= 12 ? "pm" : "am"}`;
@@ -31,12 +32,39 @@ export function openHours(d: Date, kind: Hours): number[] {
   );
 }
 
-/** The days on offer, from tomorrow. */
-export function useDays(today: string, count = 21) {
+/** The days on offer: today and the thirty days after it. */
+export function useDays(today: string, count = 31) {
   return useMemo(() => {
     const start = new Date(`${today}T12:00:00Z`).getTime();
-    return Array.from({ length: count }, (_, i) => new Date(start + (i + 1) * DAY));
+    return Array.from({ length: count }, (_, i) => new Date(start + i * DAY));
   }, [today, count]);
+}
+
+/** The hour it is now in Central Time, where the hours are kept. Null until the page is up. */
+export function useCentralHour(): number | null {
+  const [hour, setHour] = useState<number | null>(null);
+  useEffect(() => {
+    const read = () =>
+      setHour(
+        Number(
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/Chicago",
+            hour: "numeric",
+            hourCycle: "h23",
+          }).format(new Date())
+        )
+      );
+    read();
+    const t = setInterval(read, 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return hour;
+}
+
+/** The hours still open on a day: all of them, except that today loses the ones already gone. */
+export function hoursLeft(d: Date, kind: Hours, first: Date, nowHour: number | null): number[] {
+  const all = openHours(d, kind);
+  return nowHour !== null && dayKey(d) === dayKey(first) ? all.filter((h) => h > nowHour) : all;
 }
 
 export interface SlotWords {
@@ -71,7 +99,9 @@ export default function SlotPicker({
   timeLabel?: (d: Date, h: number) => string;
 }) {
   const strip = useRef<HTMLDivElement>(null);
-  const open = openHours(day, kind);
+  const nowHour = useCentralHour();
+  const open = hoursLeft(day, kind, days[0], nowHour);
+  const [edge, setEdge] = useState({ start: true, end: false });
   const month = day.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
@@ -87,20 +117,43 @@ export default function SlotPicker({
     el.scrollTo({ left, behavior: "smooth" });
   }, [day]);
 
-  const flick = (dir: 1 | -1) =>
-    strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.8, behavior: "smooth" });
+  // the arrows page a week at a time and go quiet at either end
+  const flick = (dir: 1 | -1) => {
+    const el = strip.current;
+    const one = el?.querySelector<HTMLElement>("button");
+    if (!el || !one) return;
+    const step = one.offsetWidth + 8;
+    el.scrollBy({ left: dir * step * 7, behavior: "smooth" });
+  };
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const read = () =>
+      setEdge({
+        start: el.scrollLeft < 4,
+        end: el.scrollLeft + el.clientWidth > el.scrollWidth - 4,
+      });
+    read();
+    el.addEventListener("scroll", read, { passive: true });
+    return () => el.removeEventListener("scroll", read);
+  }, [days]);
 
   return (
     <div className="sp">
       <div className="sp-top">
         <b>{month}</b>
         <span>
-          <button type="button" aria-label={w.earlier} onClick={() => flick(-1)}>
+          <button
+            type="button"
+            aria-label={w.earlier}
+            disabled={edge.start}
+            onClick={() => flick(-1)}
+          >
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="M12 4.5 6.5 10l5.5 5.5" />
             </svg>
           </button>
-          <button type="button" aria-label={w.later} onClick={() => flick(1)}>
+          <button type="button" aria-label={w.later} disabled={edge.end} onClick={() => flick(1)}>
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="M8 4.5 13.5 10 8 15.5" />
             </svg>
@@ -110,7 +163,7 @@ export default function SlotPicker({
       <div className="sp-days" role="radiogroup" aria-label={w.pickDay} ref={strip}>
         {days.map((d) => {
           const on = dayKey(d) === dayKey(day);
-          const n = openHours(d, kind).length;
+          const n = hoursLeft(d, kind, days[0], nowHour).length;
           return (
             <button
               key={dayKey(d)}

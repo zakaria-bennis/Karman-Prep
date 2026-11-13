@@ -1,6 +1,6 @@
-/* TEMPORARY (2026-11-13): the opening of the SAT Program and Private tutoring pages (HeroLab.tsx). The live
-   landscape performs it (lib/flight/shader.ts); these rules only bring the headline in, in step with it. Four
-   versions, by data-hero, for the founder to choose from. One rule to a line; never run Prettier on this. */
+/* The opening of the SAT Program and Private tutoring pages (HeroLab.tsx). The live landscape performs it
+   (lib/flight/shader.ts); these rules bring the headline out of the fog in step with it. One rule to a line;
+   never run Prettier on this. */
 .ks .hx { --a: #2449b8; --hg: rgba(255, 253, 248, .46); --he: rgba(255, 255, 255, .75); --hi: var(--ink); position: relative; overflow: clip; }
 .ks.lit[data-mode="dark"] .hx { --a: #8fb0ff; --hg: rgba(22, 20, 28, .56); --he: rgba(255, 250, 243, .2); --hi: var(--cream); }
 .ks .hx .pg-in { position: relative; z-index: 2; justify-items: center; text-align: center; }
@@ -16,23 +16,26 @@
 .ks .hx:not([data-go]) :is(.hx-w, .hx-go, .pg-promise) { opacity: 0; }
 .ks .hx:not([data-go]) .mist { opacity: 0; }
 /* the page's own veil, which keeps words readable over the landscape, comes in late so the scene shows first */
-.ks .hx[data-go] .mist { animation: hx-veil 1.6s ease 2.3s both; }
+.ks .hx[data-go] .mist { animation: hx-veil 1.6s ease 2s both; }
 @keyframes hx-veil { from { opacity: 0; } }
-.ks .hx[data-go] .hx-go { animation: pg-rise .9s var(--spring) 3.1s both; }
-.ks .hx[data-go] .hx-say > .pg-promise { animation: pg-rise .9s var(--spring) 3.4s both; }
+.ks .hx[data-go] .hx-go { animation: pg-rise .9s var(--spring) 2.3s both; }
+.ks .hx[data-go] .hx-say > .pg-promise { animation: pg-rise .9s var(--spring) 2.6s both; }
 
-/* 1 Descent: the headline condenses out of the cloud the camera is sinking through */
-.ks .hx[data-hero="1"][data-go] .hx-w { animation: hx-condense 1.7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(1.7s + var(--i) * .05s); }
-@keyframes hx-condense { from { opacity: 0; scale: 1.35; filter: blur(22px); letter-spacing: .08em; } 60% { opacity: 1; } to { opacity: 1; scale: 1; filter: blur(0); letter-spacing: 0; } }
-/* 2 Sunrise: each word is lit as the light reaches it, warm first, then its own colour */
-.ks .hx[data-hero="2"][data-go] .hx-w { animation: hx-lit 1.5s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(1.25s + var(--i) * .08s); }
-@keyframes hx-lit { 0% { opacity: 0; translate: 0 .35em; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } 35% { opacity: 1; text-shadow: 0 0 34px rgba(255, 170, 80, .95), 0 0 80px rgba(255, 140, 60, .6); } 100% { opacity: 1; translate: 0 0; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } }
-/* 3 Flock: the headline is blown in on the birds' wings; each word leans with the gust */
-.ks .hx[data-hero="3"][data-go] .hx-w { transform-origin: 50% 100%; animation: hx-gust 1.1s cubic-bezier(.2, .9, .3, 1) both; animation-delay: calc(1.3s + var(--i) * .1s); }
-@keyframes hx-gust { 0% { opacity: 0; scale: .5; translate: 0 -.9em; rotate: -9deg; filter: blur(6px); } 55% { opacity: 1; filter: blur(0); rotate: 3deg; } 100% { opacity: 1; scale: 1; translate: 0 0; rotate: 0deg; filter: blur(0); } }
-/* 4 Mist: the headline surfaces slowly as the mist drains */
-.ks .hx[data-hero="4"][data-go] .hx-w { animation: hx-surface 2.1s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(1.2s + var(--i) * .12s); }
-@keyframes hx-surface { from { opacity: 0; translate: 0 .5em; filter: blur(20px); } 50% { opacity: .8; } to { opacity: 1; translate: 0 0; filter: blur(0); } }
+/* the words are there as the fog lifts; each one warms as the light reaches it */
+.ks .hx[data-go] .hx-w { animation: hx-lit 1.6s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(.35s + var(--i) * .07s); }
+@keyframes hx-lit { 0% { opacity: 0; translate: 0 .3em; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } 40% { opacity: 1; text-shadow: 0 0 34px rgba(255, 170, 80, .9), 0 0 80px rgba(255, 140, 60, .55); } 100% { opacity: 1; translate: 0 0; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } }
+.ks.lit[data-mode="dark"] .hx[data-go] .hx-w { animation-name: hx-lit-night; }
+@keyframes hx-lit-night { 0% { opacity: 0; translate: 0 .3em; text-shadow: 0 0 0 rgba(120, 255, 190, 0); } 40% { opacity: 1; text-shadow: 0 0 34px rgba(120, 255, 190, .6), 0 0 80px rgba(150, 120, 255, .45); } 100% { opacity: 1; translate: 0 0; text-shadow: 0 0 0 rgba(120, 255, 190, 0); } }
+/* the fog over the headline: two banks that part, one to each side, thinning as they go */
+.ks .hx-fogs { position: absolute; inset: -90% -40% -100%; z-index: 3; pointer-events: none; -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 42%, transparent 72%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 42%, transparent 72%); }
+.ks .hx-fog { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.ks .hx-fog-ink { flood-color: rgb(255, 247, 238); }
+.ks.lit[data-mode="dark"] .hx-fog-ink { flood-color: rgb(46, 54, 84); }
+.ks .hx:not([data-go]) .hx-fog { opacity: 1; }
+.ks .hx[data-go] .hx-fog { animation: hx-fog-l 2.3s cubic-bezier(.45, 0, .25, 1) .15s both; }
+.ks .hx[data-go] .hx-fog + .hx-fog { animation-name: hx-fog-r; animation-duration: 2.7s; }
+@keyframes hx-fog-l { 0% { opacity: 1; translate: 0 0; scale: 1; } 100% { opacity: 0; translate: -38% -6%; scale: 1.35; } }
+@keyframes hx-fog-r { 0% { opacity: 1; translate: 0 0; scale: 1; } 100% { opacity: 0; translate: 38% 4%; scale: 1.4; } }
 
 /* the Program page's promise: the number set like a title, the guarantee beside a shield, never plain text */
 .ks .hx-say > .pg-promise { width: min(100%, 720px); justify-items: center; gap: 8px; }
@@ -43,8 +46,4 @@
 .ks .hx-say > .pg-promise .pg-gain span { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: center; max-width: 15em; padding: 12px 20px 13px 14px; border-radius: 24px; background: var(--hg); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: inset 0 1.5px 0 var(--he), 0 20px 34px -24px rgba(29, 26, 34, .6); color: var(--hi); font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(19px, 1.7vw, 24px); font-weight: 400; line-height: 1.2; }
 .ks .hx-say > .pg-promise .pg-gain span::before { content: ""; width: 30px; height: 33px; background: linear-gradient(135deg, #fff, #c9d1de 45%, #eef2f8 55%, #9aa6b8); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--a) 60%, transparent)); }
 
-/* the version switch, on the dev server only */
-.ks .hx-pick { position: absolute; left: 0; right: 0; bottom: 10px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0; }
-.ks .hx-pick button { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: var(--cream); font-size: 13px; font-weight: 800; opacity: .5; }
-.ks .hx-pick button[aria-pressed="true"] { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .ks .hx * { animation: none !important; transition: none !important; opacity: 1 !important; } }
+@media (prefers-reduced-motion: reduce) { .ks .hx * { animation: none !important; transition: none !important; opacity: 1 !important; } .ks .hx .hx-fogs { display: none; } }

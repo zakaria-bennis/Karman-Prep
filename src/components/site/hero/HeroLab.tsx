@@ -1,23 +1,32 @@
 "use client";
 
-// TEMPORARY (2026-11-13): the opening of the SAT Program page and of the Private tutoring page. The live
-// landscape behind the page performs it (lib/flight: the same scene, light and detail, nothing drawn on top),
-// and the headline arrives in step. Four versions for the founder to choose from; a row of buttons at the
-// bottom of the hero switches between them on the dev server only. Everywhere else the first one plays.
-//   1 Descent  the camera sinks out of the sky, through the cloud deck, into the valley; the headline
-//              condenses out of the cloud
-//   2 Sunrise  the sun climbs over the ridge and light floods the valley (at night the northern lights
-//              surge); the headline is lit as the light reaches it
-//   3 Flock    the valley's own birds fly out of the distance and past the reader; the headline is blown in
-//   4 Mist     the valley lies under thick mist that drains away down the water; the headline surfaces
-// This component names the opening it wants in data-intro on the page (SiteFlight.tsx starts it) and waits a
+// The opening of the SAT Program page and of the Private tutoring page (founder's pick, 2026-11-13).
+// The live landscape behind the page performs it (lib/flight): the sun climbs over the ridge and the mist in
+// the valley drains away; at night the northern lights surge. The headline starts hidden in fog, which
+// clears off it to either side in about two seconds, and each word warms as the light reaches it. The fog
+// takes the colour of the hour: warm white by day, blue-grey by night.
+// This component asks for the opening with data-intro on the page (SiteFlight.tsx starts it) and waits a
 // moment for the landscape to say it has begun, so both move together. If the landscape cannot draw, or
 // motion is reduced, the headline simply arrives.
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Arrow } from "@/components/site/parts";
 
-const PICK = process.env.NODE_ENV !== "production";
-const NAMES = ["Descent", "Sunrise", "Flock", "Mist"];
+/** One bank of fog: soft noise, coloured by the page's mode (hero.css sets flood-color). */
+function Fog({ seed }: { seed: number }) {
+  const id = `hx-fog-${seed}`;
+  return (
+    <svg className="hx-fog" aria-hidden="true">
+      <filter id={id} x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.007 0.013" numOctaves="5" seed={seed} />
+        <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3.4 0 0 0 -0.5" result="shape" />
+        <feFlood className="hx-fog-ink" />
+        <feComposite in2="shape" operator="in" />
+        <feGaussianBlur stdDeviation="9" />
+      </filter>
+      <rect width="100%" height="100%" filter={`url(#${id})`} />
+    </svg>
+  );
+}
 
 export default function HeroLab({
   page,
@@ -33,18 +42,17 @@ export default function HeroLab({
   /** Shown under the buttons (the Program page's promise switch). */
   children?: ReactNode;
 }) {
-  const [kind, setKind] = useState(1);
-  /** Counts each time the opening starts; the headline is re-keyed so its entrance replays. */
-  const [go, setGo] = useState(0);
+  /** Set once the opening starts; until then the words wait unseen. */
+  const [go, setGo] = useState(false);
 
   useEffect(() => {
     const ks = document.getElementById("ks");
     if (!ks) return;
-    ks.dataset.intro = String(kind);
+    ks.dataset.intro = "1";
     let begun = false;
     const begin = () => {
       begun = true;
-      setGo((n) => n + 1);
+      setGo(true);
     };
     document.addEventListener("karman:opened", begin);
     // the landscape may be slow, missing or held still: the headline does not wait long for it
@@ -55,18 +63,12 @@ export default function HeroLab({
       document.removeEventListener("karman:opened", begin);
       delete ks.dataset.intro;
     };
-  }, [kind]);
+  }, []);
 
   return (
-    <section
-      className="pg-hero hx"
-      data-hero={kind}
-      data-page={page}
-      data-go={go || undefined}
-      id="top"
-    >
+    <section className="pg-hero hx" data-page={page} data-go={go || undefined} id="top">
       <div className="mist" aria-hidden="true" />
-      <div className="pg-in" key={go}>
+      <div className="pg-in">
         <div className="hx-say">
           <h1 aria-label={headline}>
             {headline.split(" ").map((word, i) => (
@@ -80,6 +82,10 @@ export default function HeroLab({
                 {word}{" "}
               </span>
             ))}
+            <span className="hx-fogs" aria-hidden="true">
+              <Fog seed={4} />
+              <Fog seed={11} />
+            </span>
           </h1>
           <div className="hx-go">
             <a className="btn" href={primary.href}>
@@ -95,22 +101,6 @@ export default function HeroLab({
           {children}
         </div>
       </div>
-      {PICK ? (
-        <p className="hx-pick">
-          {NAMES.map((name, i) => (
-            <button
-              key={name}
-              type="button"
-              aria-pressed={kind === i + 1}
-              onClick={() =>
-                kind === i + 1 ? document.dispatchEvent(new Event("karman:intro")) : setKind(i + 1)
-              }
-            >
-              {i + 1} {name}
-            </button>
-          ))}
-        </p>
-      ) : null}
     </section>
   );
 }

@@ -4,7 +4,9 @@
 /* ---------- the opening's frame: centred, on a full band of mist (this page flies
    over rock and grass, so the words need more mist than the home page's sky does) ---------- */
 .ks .pg-hero { position: relative; min-height: 100svh; display: grid; align-content: center; justify-items: center; padding: clamp(104px, 13svh, 132px) var(--gutter) clamp(56px, 8svh, 90px); }
-.ks .pg-hero .mist { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, color-mix(in srgb, var(--mist) 84%, transparent), color-mix(in srgb, var(--mist) 78%, transparent) 88%, transparent); }
+/* the veil behind the words is the home page's: light, and only where the words are, so the landscape
+   shows as bright and as detailed as it does there (founder, 2026-11-13; it was a flat 80% wash) */
+.ks .pg-hero .mist { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 58% 52% at 50% 50%, color-mix(in srgb, var(--mist) 58%, transparent), color-mix(in srgb, var(--mist) 34%, transparent) 55%, transparent 80%); }
 .ks.lit .pg-hero h1 { font-size: clamp(32px, 3.5vw, 54px); line-height: 1.12; max-width: 19em; text-wrap: balance; }
 .ks .pg-close { display: grid; gap: 14px; justify-items: center; }
 .ks .pg-close .go-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; }
@@ -14,7 +16,7 @@
 
 /* ---------- the rest of the page: centred sections on the same band of mist ---------- */
 .ks .pg-hero .lede, .ks .pg-sect .lede { text-align: center; max-width: 34em; }
-.ks .pg-sect > .mist { background: color-mix(in srgb, var(--mist) 80%, transparent); }
+.ks .pg-sect > .mist { background: radial-gradient(ellipse 72% 60% at 50% 50%, color-mix(in srgb, var(--mist) 60%, transparent), color-mix(in srgb, var(--mist) 38%, transparent) 60%, transparent 86%); -webkit-mask-image: none; mask-image: none; }
 .ks .pg-sect { display: grid; justify-items: center; }
 .ks.lit .pg-sect h2 { font-size: clamp(28px, 3.2vw, 48px); line-height: 1.14; max-width: 20em; text-wrap: balance; }
 .ks .pg-in.rv { transition: opacity .8s var(--out), transform .9s var(--spring); }

@@ -50,6 +50,7 @@
 .ks .pz .pl-rib { --rib-hi: #f6d776; --rib: #d9a520; --rib-lo: #a87608; }
 .ks .pz .pl-rib span { animation: rib-pull .85s cubic-bezier(.3, .9, .3, 1) calc(.75s + var(--i) * .12s) both; }
 /* the saving, as a ribbon pulled across the corner once the card has landed (shape: private.css .pl-rib) */
+.ks .pz .pl-rib span::after { animation: rib-sheen 3.8s ease-in-out 2s infinite; }
 .ks .pz-card:has(.pl-rib) .pz-promise { margin-right: 92px; }
 /* 3 months or monthly: one pill in the card's top corner, its highlight slides */
 .ks .pz-term { position: absolute; right: 16px; top: 16px; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: color-mix(in srgb, currentColor 10%, transparent); }

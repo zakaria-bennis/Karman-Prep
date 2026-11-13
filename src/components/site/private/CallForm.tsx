@@ -16,6 +16,7 @@ import SlotPicker, {
   fmtTime,
   longDay,
   openHours,
+  useCentralHour,
   useDays,
   type SlotWords,
 } from "./SlotPicker";
@@ -66,8 +67,10 @@ function centralInstant(d: Date, h: number): Date {
 }
 
 export default function CallForm({ w, today }: { w: CallWords; today: string }) {
-  const days = useDays(today, 14);
-  const first = days.find((d) => openHours(d, "calls").length) ?? days[0];
+  const days = useDays(today);
+  const nowHour = useCentralHour();
+  // open on tomorrow: today's hours are only known once the page is up, and may all be gone
+  const first = days.slice(1).find((d) => openHours(d, "calls").length) ?? days[1];
   const [day, setDay] = useState(first);
   const [hour, setHour] = useState<number | null>(null);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
@@ -116,7 +119,8 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     );
     const found: Record<string, string> = {};
     for (const k of FIELDS) if (!OK[k](data[k] ?? "")) found[k] = w.errors[k];
-    if (hour === null) found.slot = w.errors.slot;
+    if (hour === null || (nowHour !== null && dayKey(day) === dayKey(days[0]) && hour <= nowHour))
+      found.slot = w.errors.slot;
     setErrors(found);
     const bad = FIELDS.find((k) => found[k]);
     if (bad) return form.current.querySelector<HTMLElement>(`[name="${bad}"]`)?.focus();

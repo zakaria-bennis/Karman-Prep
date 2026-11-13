@@ -25,7 +25,7 @@ const PICK = process.env.NODE_ENV !== "production";
 
 export default function SessionDemo({ w, today }: { w: DemoWords; today: string }) {
   const days = useDays(today);
-  const first = days.find((d) => openHours(d, "sessions").length > 2) ?? days[0];
+  const first = days.slice(1).find((d) => openHours(d, "sessions").length > 2) ?? days[1];
   const [day, setDay] = useState(first);
   const [hour, setHour] = useState<number | null>(null);
   const [done, setDone] = useState(false);
@@ -46,7 +46,7 @@ export default function SessionDemo({ w, today }: { w: DemoWords; today: string 
     const el = box.current;
     if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // the demo's day: the third bookable one, and its second open time
-    const able = days.filter((d) => openHours(d, "sessions").length > 2);
+    const able = days.slice(1).filter((d) => openHours(d, "sessions").length > 2);
     const target = able[2] ?? able[0] ?? days[0];
     const time = openHours(target, "sessions")[1];
     const at = (ms: number, fn: () => void) => timers.current.push(setTimeout(fn, ms));
