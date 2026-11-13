@@ -1,22 +1,23 @@
-// What moves in the cabin scene (scene.ts): the fire and its embers, chimney smoke, the light in the windows,
-// deer crossing behind the cabin, birds, and falling snow.
+// What moves in the cabin scene (scene.ts): chimney smoke, the light in the windows and the lantern, drifting
+// fog, twinkling stars, deer crossing behind the cabin, birds, and falling snow.
 import { rng, type CabinMode, type Place } from "./scene";
-import { windows } from "./shapes";
+import { cabinParts } from "./shapes";
 
 type Flake = { x: number; y: number; s: number; v: number; sway: number; ph: number; near: 0 | 1 };
-type Ember = { x: number; y: number; vx: number; vy: number; age: number; life: number };
 type Puff = { x: number; y: number; r: number; age: number; life: number };
 type Deer = { off: number; size: number; antlers: boolean; ph: number };
+type Bank = { band: 0 | 1 | 2; x: number; dy: number; wide: number; v: number; a: number };
+type Twinkle = { x: number; y: number; s: number; v: number; ph: number };
 type Bird = { dx: number; dy: number; ph: number; s: number };
 
 export type Life = {
   flakes: Flake[];
-  embers: Ember[];
   puffs: Puff[];
   deer: Deer[];
   birds: Bird[];
+  banks: Bank[];
+  twinkles: Twinkle[];
   rand: () => number;
-  emberDebt: number;
   puffDebt: number;
 };
 
@@ -55,7 +56,6 @@ export function makeLife(pl: Place): Life {
   }
   return {
     flakes,
-    embers: [],
     puffs: [],
     deer: [
       { off: 0, size: 1, antlers: true, ph: 0 },
@@ -68,8 +68,25 @@ export function makeLife(pl: Place): Life {
       ph: r() * 7,
       s: 0.8 + r() * 0.5,
     })),
+    banks: Array.from({ length: 15 }, (_, i) => {
+      const band = (i % 3) as 0 | 1 | 2;
+      return {
+        band,
+        x: r(),
+        dy: (r() - 0.5) * 50,
+        wide: 620 + r() * 760,
+        v: (6 + r() * 12) * (r() > 0.5 ? 1 : -1),
+        a: [0.2, 0.24, 0.17][band] * (0.6 + r() * 0.5),
+      };
+    }),
+    twinkles: Array.from({ length: 16 }, () => ({
+      x: r(),
+      y: r(),
+      s: r() * 0.9,
+      v: 0.5 + r() * 1.1,
+      ph: r() * 7,
+    })),
     rand: r,
-    emberDebt: 0,
     puffDebt: 0,
   };
 }
@@ -271,138 +288,91 @@ export function drawSmoke(
   c.globalAlpha = 1;
 }
 
-/** The campfire, its glow on the snow and the cabin, the windows' light, and embers rising. */
-export function drawFire(
+/** The warm light: each window glows and spills onto the snow, and the lantern by the door burns steady. All
+ *  of it breathes slowly, like a fire you cannot see inside. */
+export function drawGlow(c: CanvasRenderingContext2D, pl: Place, t: number, mode: CabinMode) {
+  const { u } = pl;
+  const night = mode === "night";
+  const parts = cabinParts(pl);
+  const breath = 0.84 + 0.1 * Math.sin(t * 1.3) + 0.06 * Math.sin(t * 5.7 + 1);
+  c.save();
+  c.globalCompositeOperation = "lighter";
+  for (const wx of parts.windows) {
+    const wy = parts.windowY + 26 * u;
+    const g = c.createRadialGradient(wx, wy, 6 * u, wx, wy, 150 * u);
+    g.addColorStop(0, `rgba(255, 190, 96, ${(night ? 0.55 : 0.3) * breath})`);
+    g.addColorStop(1, "rgba(255, 170, 80, 0)");
+    c.fillStyle = g;
+    c.fillRect(wx - 150 * u, wy - 150 * u, 300 * u, 300 * u);
+    // the pool of light on the snow under the window, flattened to lie on the ground
+    const gy = pl.cabinY + 30 * u;
+    c.save();
+    c.translate(wx, gy);
+    c.scale(1, 0.3);
+    const sp = c.createRadialGradient(0, 0, 0, 0, 0, 130 * u);
+    sp.addColorStop(0, `rgba(255, 176, 90, ${(night ? 0.42 : 0.24) * breath})`);
+    sp.addColorStop(1, "rgba(255, 170, 80, 0)");
+    c.fillStyle = sp;
+    c.fillRect(-130 * u, -130 * u, 260 * u, 260 * u);
+    c.restore();
+  }
+  const ln = parts.lantern;
+  const lg = c.createRadialGradient(ln.x, ln.y, 0, ln.x, ln.y, 70 * u);
+  lg.addColorStop(0, `rgba(255, 214, 140, ${(night ? 0.7 : 0.4) * breath})`);
+  lg.addColorStop(0.25, `rgba(255, 170, 80, ${(night ? 0.3 : 0.16) * breath})`);
+  lg.addColorStop(1, "rgba(255, 170, 80, 0)");
+  c.fillStyle = lg;
+  c.fillRect(ln.x - 70 * u, ln.y - 70 * u, 140 * u, 140 * u);
+  c.restore();
+}
+
+/** Fog lying in the hollows: long soft banks that drift sideways, each at its own pace. `band` 0 lies at the
+ *  foot of the mountains, 1 among the far trees, 2 low over the snow. */
+export function drawFog(
   c: CanvasRenderingContext2D,
   pl: Place,
   life: Life,
   t: number,
-  dt: number,
-  fire: number,
+  thick: number,
+  band: 0 | 1 | 2
+) {
+  const { w, u, horizon } = pl;
+  const y0 = horizon + [-40, 14, 74][band] * u;
+  const tall = [120, 90, 110][band] * u;
+  const span = w + 900 * u;
+  for (const b of life.banks) {
+    if (b.band !== band) continue;
+    const x = ((b.x * span + t * b.v * u) % span) - 450 * u;
+    const wide = b.wide * u;
+    c.globalAlpha = thick * b.a * (0.8 + 0.2 * Math.sin(t * 0.2 + b.x * 9));
+    c.drawImage(soft(), x - wide / 2, y0 + b.dy * u - tall / 2, wide, tall);
+  }
+  c.globalAlpha = 1;
+}
+
+/** A handful of stars that brighten and dim, so the sky is not a still picture. */
+export function drawTwinkle(
+  c: CanvasRenderingContext2D,
+  pl: Place,
+  life: Life,
+  t: number,
   mode: CabinMode
 ) {
-  const { u, fireX: x, fireY: y } = pl;
-  const flick = 0.86 + 0.09 * Math.sin(t * 9.1) + 0.05 * Math.sin(t * 23.3 + 1);
-  const night = mode === "night";
-
-  // the windows glow and spill onto the snow, steady, with a slow breath
-  const breath = 0.85 + 0.15 * Math.sin(t * 1.3);
-  c.save();
-  c.globalCompositeOperation = "lighter";
-  for (const wx of windows(pl)) {
-    const wy = pl.cabinY - 70 * u;
-    const g = c.createRadialGradient(wx, wy, 6 * u, wx, wy, 120 * u);
-    g.addColorStop(0, `rgba(255, 190, 96, ${(night ? 0.5 : 0.3) * breath})`);
-    g.addColorStop(1, "rgba(255, 170, 80, 0)");
-    c.fillStyle = g;
-    c.fillRect(wx - 120 * u, wy - 120 * u, 240 * u, 240 * u);
-    const sp = c.createRadialGradient(wx, pl.cabinY + 26 * u, 0, wx, pl.cabinY + 26 * u, 90 * u);
-    sp.addColorStop(0, `rgba(255, 176, 90, ${(night ? 0.3 : 0.2) * breath})`);
-    sp.addColorStop(1, "rgba(255, 170, 80, 0)");
-    c.fillStyle = sp;
-    c.save();
-    c.translate(wx, pl.cabinY + 26 * u);
-    c.scale(1, 0.34);
-    c.translate(-wx, -(pl.cabinY + 26 * u));
-    c.fillRect(wx - 90 * u, pl.cabinY - 64 * u, 180 * u, 180 * u);
-    c.restore();
-  }
-  // the fire's glow: wide on the snow, warm on everything near it
-  if (fire > 0.01) {
-    const R = (250 + 30 * flick) * u * Math.min(1.25, 0.4 + fire * 0.7);
-    const g = c.createRadialGradient(x, y - 14 * u, 4 * u, x, y - 14 * u, R);
-    const a = Math.min(1, fire) * flick * (night ? 0.62 : 0.4);
-    g.addColorStop(0, `rgba(255, 170, 70, ${a})`);
-    g.addColorStop(0.3, `rgba(255, 120, 50, ${a * 0.42})`);
-    g.addColorStop(1, "rgba(255, 90, 40, 0)");
-    c.fillStyle = g;
-    c.fillRect(x - R, y - R, R * 2, R * 2);
-  }
-  c.restore();
-
-  // stones and logs
-  c.fillStyle = night ? "#2c2a45" : "#6a6480";
-  for (let i = 0; i < 9; i++) {
-    const a = (i / 9) * Math.PI * 2;
+  const { w, u, horizon } = pl;
+  c.fillStyle = "#ffffff";
+  for (const s of life.twinkles) {
+    const a = Math.max(0, Math.sin(t * s.v + s.ph)) ** 3 * (mode === "night" ? 0.95 : 0.5);
+    if (a < 0.03) continue;
+    const x = s.x * w;
+    const y = s.y * horizon * 0.7;
+    const r = (1.2 + s.s) * Math.max(0.8, u);
+    c.globalAlpha = a;
     c.beginPath();
-    c.ellipse(x + Math.cos(a) * 30 * u, y + Math.sin(a) * 9 * u + 2 * u, 8 * u, 5.5 * u, 0, 0, 7);
+    c.arc(x, y, r, 0, 7);
     c.fill();
+    // a small four-point glint on the brightest
+    c.fillRect(x - r * 3, y - 0.4, r * 6, 0.8);
+    c.fillRect(x - 0.4, y - r * 3, 0.8, r * 6);
   }
-  c.strokeStyle = night ? "#2b1a14" : "#4a2d20";
-  c.lineCap = "round";
-  c.lineWidth = 9 * u;
-  for (const [a, b] of [
-    [-22, 20],
-    [22, -19],
-    [-4, 6],
-  ]) {
-    c.beginPath();
-    c.moveTo(x + a * u, y + 1 * u);
-    c.lineTo(x + b * u, y - 12 * u);
-    c.stroke();
-  }
-  if (fire <= 0.01) return;
-
-  // flames: three tongues inside each other, each licking on its own beat
-  const tongue = (wide: number, tall: number, sway: number, col: string, beat: number) => {
-    const hgt = tall * u * Math.min(1.5, fire) * (0.82 + 0.18 * Math.sin(t * beat + sway));
-    const wd = wide * u * Math.min(1.2, 0.5 + fire * 0.5);
-    const tip = Math.sin(t * (beat * 0.6) + sway * 2) * wd * 0.5;
-    c.fillStyle = col;
-    c.beginPath();
-    c.moveTo(x - wd, y - 4 * u);
-    c.bezierCurveTo(
-      x - wd * 1.7,
-      y - hgt * 0.3,
-      x - wd * 0.05 + tip,
-      y - hgt * 0.62,
-      x + tip,
-      y - hgt
-    );
-    c.bezierCurveTo(
-      x + wd * 0.5 + tip,
-      y - hgt * 0.6,
-      x + wd * 1.6,
-      y - hgt * 0.26,
-      x + wd,
-      y - 4 * u
-    );
-    c.quadraticCurveTo(x, y + 7 * u, x - wd, y - 4 * u);
-    c.fill();
-  };
-  c.save();
-  // by night the flames add their light; at dusk the snow is bright, so they are painted as they are
-  if (night) c.globalCompositeOperation = "lighter";
-  tongue(19, 70, 0, night ? "rgba(255, 96, 32, 0.85)" : "#ee5a24", 7.3);
-  tongue(13, 52, 1.7, night ? "rgba(255, 168, 48, 0.9)" : "#ff9a2e", 9.1);
-  tongue(7, 32, 3.1, night ? "rgba(255, 238, 170, 0.95)" : "#ffe9a6", 11.7);
-  c.globalCompositeOperation = "lighter";
-
-  // embers
-  life.emberDebt += dt * 16 * Math.min(1.6, fire);
-  while (life.emberDebt > 1) {
-    life.emberDebt -= 1;
-    life.embers.push({
-      x: x + (life.rand() - 0.5) * 22 * u,
-      y: y - 20 * u,
-      vx: (life.rand() - 0.5) * 26 * u,
-      vy: -(34 + life.rand() * 52) * u,
-      age: 0,
-      life: 1.6 + life.rand() * 2.4,
-    });
-  }
-  life.embers = life.embers.filter((e) => e.age < e.life);
-  for (const e of life.embers) {
-    e.age += dt;
-    e.x += (e.vx + Math.sin(t * 3 + e.life * 20) * 16 * u) * dt;
-    e.y += e.vy * dt;
-    e.vy *= 1 - 0.25 * dt;
-    const k = e.age / e.life;
-    c.globalAlpha = (1 - k) ** 1.4;
-    c.fillStyle = k < 0.4 ? "#ffd98a" : "#ff8a3c";
-    c.beginPath();
-    c.arc(e.x, e.y, Math.max(0.9, (2.1 - k * 1.2) * u), 0, 7);
-    c.fill();
-  }
-  c.restore();
+  c.globalAlpha = 1;
 }

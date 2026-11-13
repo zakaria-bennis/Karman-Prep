@@ -1,8 +1,8 @@
 "use client";
 
 // The canvas behind the sign-in pages: the snowy cabin (src/lib/cabin/). It follows the page's light or dark
-// mode (dusk or night), leans a little with the pointer, lets the pointer stir the snow, and warms the fire
-// when the pointer comes near it. With reduced motion it paints one still picture, fire already lit.
+// mode (sunrise or foggy night), leans a little with the pointer and lets the pointer stir the snow. With
+// reduced motion it paints one still picture.
 import { useEffect, useRef } from "react";
 import { buildScene, paint, type CabinMode, type Pointer, type Scene } from "@/lib/cabin/scene";
 
@@ -16,14 +16,14 @@ export default function CabinScene() {
     const c = cv.getContext("2d");
     if (!c) return;
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const ptr: Pointer = { x: -9999, y: -9999, px: 0, py: 0, wind: 0, warm: 0 };
+    const ptr: Pointer = { px: 0, py: 0, wind: 0 };
     const aim = { px: 0, py: 0, wind: 0 };
     let scene: Scene | null = null;
     let raf = 0;
     let last = 0;
     let start = 0;
 
-    const mode = (): CabinMode => (ks.dataset.mode === "dark" ? "night" : "dusk");
+    const mode = (): CabinMode => (ks.dataset.mode === "dark" ? "night" : "dawn");
     const build = () => {
       const w = innerWidth;
       const h = innerHeight;
@@ -46,9 +46,6 @@ export default function CabinScene() {
       ptr.py += (aim.py - ptr.py) * Math.min(1, dt * 2.2);
       ptr.wind += (aim.wind - ptr.wind) * Math.min(1, dt * 3);
       aim.wind *= 1 - Math.min(1, dt * 1.6);
-      const near =
-        Math.hypot(ptr.x - scene.place.fireX, ptr.y - scene.place.fireY) < 150 * scene.place.u;
-      ptr.warm += ((near ? 1 : 0) - ptr.warm) * Math.min(1, dt * 2.5);
       paint(c, scene, (now - start) / 1000, dt, ptr);
     };
     const move = (e: PointerEvent) => {
@@ -56,8 +53,6 @@ export default function CabinScene() {
       aim.px = (e.clientX / innerWidth) * 2 - 1;
       aim.py = (e.clientY / innerHeight) * 2 - 1;
       aim.wind = Math.max(-1.2, Math.min(1.2, aim.wind + e.movementX / 160));
-      ptr.x = e.clientX;
-      ptr.y = e.clientY;
     };
     const pause = () => {
       cancelAnimationFrame(raf);

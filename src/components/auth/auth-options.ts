@@ -43,18 +43,17 @@ export const CABIN = {
   "sign-in": {
     greetings: [
       "Welcome back. We missed you.",
-      "There you are. The fire's still going.",
-      "Come in from the cold.",
-      "Good to see you again. Your seat's still warm.",
+      "There you are. Come on in.",
+      "Good to see you again.",
       "Welcome back. Pick up right where you left off.",
+      "Come in. It's warm inside.",
     ],
   },
   "sign-up": {
     greetings: [
-      "Come in. There's room by the fire.",
-      "New here? Pull up a chair.",
-      "Welcome. Stay as long as you like.",
+      "Welcome. Come on in.",
+      "New here? Make yourself at home.",
+      "Come in from the cold.",
     ],
-    note: `Free to start: ${FREE_PLAN.questionLimit} practice questions and a full-length practice test. No card.`,
   },
 } as const;

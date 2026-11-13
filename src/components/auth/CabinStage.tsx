@@ -85,12 +85,9 @@ function Typed({ pool }: { pool: readonly string[] }) {
 export default function CabinStage({
   mode,
   greetings,
-  note,
 }: {
   mode: "sign-in" | "sign-up";
   greetings: readonly string[];
-  /** A small line under the greeting (Get started says what is free). */
-  note?: string;
 }) {
   const [email, setEmail] = useState(false);
   const up = mode === "sign-up";
@@ -99,7 +96,6 @@ export default function CabinStage({
       <CabinScene />
       <div className="cb-in">
         <Typed pool={greetings} />
-        {note ? <p className="cb-note">{note}</p> : null}
         <div className="cb-pills">
           <button type="button" className="cb-pill">
             {LOGO.google}
