@@ -3,6 +3,7 @@ Colour classes: i ink, a accent (cobalt / soft gold at night), g warm gold, s so
 A class ending in -s strokes instead of fills. Motion classes: tw (twinkle), bob (float), sway (rock)."""
 import math, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'tools'))  # lib.py and svgbuild.py from round one
 
 
 def star(cx, cy, r, k=0.2, cls="g", extra=""):
