@@ -1,86 +1,135 @@
-// What the simple Pricing page shows, worked out on the server from offer.ts (numbers) and site-copy.ts
-// section 58 (words), then handed to PricingLab.tsx.
+// What the Pricing page shows, worked out on the server from offer.ts (numbers) and site-copy.ts section 58
+// (words), then handed to PricingPage.tsx.
 // Each plan is written the way the trade writes them (Princeton Review, PrepScholar): how it is taught, its
 // name, the result it promises, the price, the button, then the facts with numbers in them.
 import { ROUTES } from "@/components/site/routes";
 import {
   COHORT_SCHOLARSHIP as AWARD,
   formatPrice as $,
-  guaranteeMax,
   MARCH_PROGRAM as MP,
   NEXT_PROGRAMS,
   PRACTICE_PLAN as PP,
   PRIVATE_PACKAGES,
   PRO_PLAN as PRO,
+  SAT_DATES,
 } from "@/lib/marketing/offer";
 import { list, section, SITE } from "@/lib/marketing/site-copy";
 
-export interface LabAward {
-  /** On the badge: "$1,500 scholarship" and "January cohort only". */
+export interface PriceAward {
+  /** On the badge. */
   badge: string;
-  only: string;
-  /** In the pop-up. */
-  title: string;
-  who: string;
+  badgeSub: string;
+  /** In the placard. */
+  name: string;
+  sub: string;
   parts: { amount: string; label: string }[];
   how: string[];
   close: string;
 }
 
-export interface LabPlan {
+/** One way to pay for a self-study plan. */
+export interface PriceTerm {
+  label: string;
+  price: string;
+  unit: string;
+  note: string;
+  href: string;
+}
+
+/** One cohort, named by the SAT it ends on. */
+export interface PriceCohort {
+  sat: string;
+  starts: string;
+  closes: string;
+  /** The scholarship is offered for this cohort. */
+  award: boolean;
+}
+
+export interface PricePlan {
   id: string;
-  /** How it is taught: "Self-paced", "Live class", "One-on-one". */
-  tag: string;
+  /** How it is taught: "Live class", "One-on-one". Self-study plans carry none. */
+  tag?: string;
   name: string;
   /** The result it promises, or what it is. */
   line: string;
   /** The line is a guarantee: it gets the seal. */
   sealed?: boolean;
-  price: string;
-  unit: string;
+  price?: string;
+  unit?: string;
   note?: string;
+  /** Self-study: 3 months first (the default), then monthly. */
+  terms?: PriceTerm[];
   bullets: string[];
   cta: string;
   href: string;
-  /** The plan we recommend on its side of the switch. */
+  /** The plan we most want chosen on its side of the switch. */
   best?: boolean;
-  /** For the side-by-side table. */
-  teach: string;
-  promise: string;
-  /** The cohort only: its start dates, and the scholarship. */
-  cohorts?: { starts: string; closes: string }[];
-  award?: LabAward;
+  /** A small badge by the name: "Save 16%". */
+  chip?: string;
+  cohorts?: PriceCohort[];
+  award?: PriceAward;
 }
 
-export interface LabProps {
+export interface PriceProps {
   headline: string;
   sides: { self: string; tutor: string };
-  self: LabPlan[];
-  tutor: LabPlan[];
-  rows: string[];
-  words: { starts: string; closes: string; freeNote: string; link: string };
+  self: PricePlan[];
+  tutor: PricePlan[];
+  words: { sat: string; starts: string; closes: string; freeNote: string; link: string };
   links: { free: string; guarantee: string };
 }
 
-export function pricingLabData(): LabProps {
+const DAY = 864e5;
+
+/** `today` is YYYY-MM-DD: a cohort whose enrollment has closed is left out. */
+export function pricingData(today: string): PriceProps {
   const s = section(58);
   const [P10, P20] = PRIVATE_PACKAGES;
   const each = (p: { price: number; hours: number }) => p.price / p.hours;
   const money = (n: number) =>
     Number.isInteger(n) ? $(n) : `$${n.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
   const saved = Math.floor((1 - each(P20) / each(P10)) * 100);
-  const term = (monthly: number, three: number) => ({
-    price: $(monthly),
-    unit: s.month,
-    note: `${s.or} ${$(three)} ${s["three months"]}`,
-  });
+  const terms = (plan: { id: string; monthly: number; threeMonths: number }): PriceTerm[] => [
+    {
+      label: s["term three"],
+      price: money(Math.round((plan.threeMonths / 3) * 100) / 100),
+      unit: s.month,
+      note: s["billed three"].replace("{total}", $(plan.threeMonths)),
+      href: `${ROUTES.checkout}?plan=${plan.id}&term=quarter`,
+    },
+    {
+      label: s["term one"],
+      price: $(plan.monthly),
+      unit: s.month,
+      note: s["billed one"],
+      href: `${ROUTES.checkout}?plan=${plan.id}&term=month`,
+    },
+  ];
   const call = `${ROUTES.private}#call`;
-  const points = (track: "cohort" | "private") => `+${guaranteeMax(track)} ${s.points}`;
+  // every cohort, with the SAT it ends on and the day its enrollment closes
+  const cohorts = [
+    {
+      starts: MP.startShort,
+      closesOn: MP.enrollmentCloses,
+      closes: MP.enrollmentClosesLabel.replace(/, \d{4}$/, ""),
+    },
+    ...NEXT_PROGRAMS.map((p) => ({
+      starts: p.startShort,
+      closesOn: new Date(new Date(`${p.startDate}T12:00:00Z`).getTime() - 7 * DAY)
+        .toISOString()
+        .slice(0, 10),
+      closes: p.enrollmentClosesLabel,
+    })),
+  ]
+    .map((c, i) => ({ ...c, sat: SAT_DATES[i] ?? c.starts, award: i === 0 }))
+    .filter((c) => c.closesOn >= today)
+    .map(({ sat, starts, closes, award }) => ({ sat, starts, closes, award }));
+
   return {
     headline: s.headline,
     sides: { self: s.self, tutor: s.tutor },
-    rows: list(s.rows),
     words: {
+      sat: s.sat,
       starts: s.starts,
       closes: s.closes,
       freeNote: SITE["pricing free note"],
@@ -90,28 +139,22 @@ export function pricingLabData(): LabProps {
     self: [
       {
         id: PP.id,
-        tag: s["tag self"],
         name: PP.name,
         line: s["practice line"],
-        ...term(PP.monthly, PP.threeMonths),
+        terms: terms(PP),
         bullets: list(s["practice bullets"]),
         cta: s["practice button"],
-        href: `${ROUTES.checkout}?plan=${PP.id}&term=month`,
-        teach: s["teach none"],
-        promise: s["promise none"],
+        href: `${ROUTES.checkout}?plan=${PP.id}&term=quarter`,
       },
       {
         id: PRO.id,
-        tag: s["tag self"],
         name: PRO.name,
         line: s["pro line"],
-        ...term(PRO.monthly, PRO.threeMonths),
+        terms: terms(PRO),
         bullets: list(s["pro bullets"]),
         cta: s["pro button"],
-        href: `${ROUTES.checkout}?plan=${PRO.id}&term=month`,
+        href: `${ROUTES.checkout}?plan=${PRO.id}&term=quarter`,
         best: true,
-        teach: s["teach none"],
-        promise: s["promise none"],
       },
     ],
     tutor: [
@@ -127,24 +170,18 @@ export function pricingLabData(): LabProps {
         bullets: list(s["cohort bullets"]),
         cta: s["cohort button"],
         href: ROUTES.program,
-        teach: s["teach group"],
-        promise: points("cohort"),
-        cohorts: [
-          { starts: MP.startShort, closes: MP.enrollmentClosesLabel.replace(/, \d{4}$/, "") },
-          ...NEXT_PROGRAMS.map((p) => ({ starts: p.startShort, closes: p.enrollmentClosesLabel })),
-        ],
+        best: true,
+        cohorts,
         award: {
           badge: `${$(AWARD.amount)} ${s["award badge"]}`,
-          only: s["award only"],
-          title: s["award title"].replace("{amount}", $(AWARD.amount)),
-          who: s["award who"],
+          badgeSub: s["award badge sub"],
+          name: s["award name"],
+          sub: s["award sub"].replace("{amount}", $(AWARD.amount)),
           parts: [
             { amount: $(AWARD.refund), label: s["award refund"] },
             { amount: $(AWARD.meritBonus), label: s["award bonus"] },
           ],
-          how: list(s["award how"]).map((x) =>
-            x.replace("{weeks}", AWARD.claimDays === 14 ? "two" : String(AWARD.claimDays / 7))
-          ),
+          how: list(s["award how"]),
           close: s["award close"],
         },
       },
@@ -159,8 +196,6 @@ export function pricingLabData(): LabProps {
         bullets: list(s["small bullets"]),
         cta: s["private button"],
         href: call,
-        teach: s["teach one"],
-        promise: points("cohort"),
       },
       {
         id: P20.id,
@@ -170,12 +205,10 @@ export function pricingLabData(): LabProps {
         sealed: true,
         price: $(P20.price),
         unit: `${money(each(P20))} ${s["a session"]}`,
-        bullets: [...list(s["large bullets"]), `${s.save} ${saved}% ${s["a session"]}`],
+        bullets: list(s["large bullets"]),
         cta: s["private button"],
         href: call,
-        best: true,
-        teach: s["teach one"],
-        promise: points("private"),
+        chip: `${s.save} ${saved}%`,
       },
     ],
   };

@@ -447,8 +447,8 @@ export const COHORT_SCHOLARSHIP = {
   meritBonus: Math.max(0, 1500 - MARCH_PROGRAM.price),
   /** The official SAT must be taken on or after the first class and within this many days of the last. */
   satWithinDays: 60,
-  /** Days after official scores come out to send the score report (founder, 2026-11-13: two weeks; it was 30). */
-  claimDays: 14,
+  /** Days after official scores come out to send the score report (founder, 2026-11-13: one month). */
+  claimDays: 30,
   /** Days after approval to pay. */
   payWithinDays: 30,
 } as const;

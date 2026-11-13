@@ -13,7 +13,7 @@ import "./styles/audience.css";
 import "./styles/school-call.css";
 import "./styles/company.css";
 import "./styles/deal.css";
-import "./styles/pricing-lab.css";
+import "./styles/pricing.css";
 import "./styles/private.css";
 import "./styles/inner.css";
 import "./styles/photos.css";

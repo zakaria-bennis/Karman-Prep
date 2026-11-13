@@ -370,50 +370,46 @@ button: Take the free practice test
 headline: The target, by starting score.
 rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
 
-## 58 Pricing: simple
+## 58 Pricing
 headline: Pick how your student preps.
 self: Self-study
 tutor: With a tutor
-tag self: Self-paced
 tag class: Live class
 tag one: One-on-one
 month: a month
-three months: for 3 months
-or: or
-practice line: Every core question, explained in writing.
-practice bullets: All 39 SAT skills | Written explanations | The Daily 10 | Full-length practice tests
+term three: 3 months
+term one: Monthly
+billed three: billed {total} every 3 months
+billed one: billed every month
+practice line: The core question bank, explained in writing.
+practice bullets: Core questions covering every SAT skill | A written explanation for every question | Full-length practice tests | The Daily 10
 practice button: Start ${PP.name}
-pro line: The hard questions too, explained on video.
-pro bullets: Everything in ${PP.name} | The hard mastery questions | Video explanations
+pro line: Every question we have, explained on video.
+pro bullets: Everything in ${PP.name} | ${QB.verifiedCount} questions, the hardest included | Video explanations
 pro button: Start ${PRO.name}
 cohort line: ${UP_TO.cohort}, or your money back.
-cohort bullets: A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week | Everything in ${PRO.name}
+cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week
 cohort unit: ${w(MP.weeks)} weeks
 cohort note: or ${SPLIT}
 cohort button: Reserve a seat
-starts: Starts
+sat: Their SAT
+starts: Classes start
 closes: Enrollment closes
 small line: ${UP_TO.cohort}, or half back / free sessions.
-small bullets: ${P10.hours} hours one-on-one, one session a week | Book your own sessions | A full practice test every week | Everything in ${PRO.name}
+small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, one session a week | Book your own sessions | A full practice test every week
 large line: ${UP_TO.private}, our bonus guarantee.
-large bullets: ${P20.hours} hours one-on-one, no weekly limit | Everything in ${P10.name}
+large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no weekly limit | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
 save: Save
 a session: a session
 private button: Schedule a free call
-rows: Price | Teaching | Promise
-teach none: Self-paced
-teach group: A class of ${w(CLASS)}
-teach one: One-on-one
-promise none: No guarantee
-points: points
 link: The guarantee, in full
 award badge: scholarship
-award only: ${MP.shortName} only
-award title: The {amount} scholarship
-award who: One winner in every ${MP.shortName}: the student with the top SAT score.
-award refund: Your full program fee, refunded
+award badge sub: One student per cohort wins it
+award name: The Summit Scholarship
+award sub: {amount} awarded to the top student of every cohort.
+award refund: Your full program, refunded
 award bonus: Extra, for your student's hard work
-award how: Send us the score within {weeks} weeks of the College Board releasing it. | Both amounts go straight to the parent's bank account within the month.
+award how: Send us the score report within one month of scores coming out. | Both amounts are paid straight to the parent's bank account one month after scores come out. | Open to the ${MP.shortName}.
 award close: Close
 
 ## 61 About: opening
