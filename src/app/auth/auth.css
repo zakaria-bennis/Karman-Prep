@@ -205,10 +205,12 @@
   gap: 10px;
 }
 .ks .sn :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton) {
-  display: flex;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 22px;
   align-items: center;
-  justify-content: center;
   gap: 12px;
+  padding: 0 22px;
+  text-align: center;
   min-height: 54px;
   border: 0;
   border-radius: 999px;

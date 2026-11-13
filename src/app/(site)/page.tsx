@@ -22,7 +22,7 @@ import { pairs, section, SITE } from "@/lib/marketing/site-copy";
 
 export const metadata = pageMeta(
   ROUTES.home,
-  "Karman Prep: SAT tutors who see every answer",
+  "Karman Prep: SAT prep with a score guarantee",
   "SAT prep taught by PhD students, medical students and university professors, with a score guarantee and tutors who see every answer. Start free: the student portal opens the moment you sign up."
 );
 

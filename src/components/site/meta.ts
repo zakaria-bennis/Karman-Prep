@@ -1,5 +1,5 @@
 // Search and share details for each marketing page: a unique title, description and canonical address,
-// and the opening frame of the home film as the share image.
+// and the share picture: the site's own landscape with the Karman name on it (public/site/share.jpg).
 import type { Metadata } from "next";
 
 export function pageMeta(path: string, title: string, description: string): Metadata {
@@ -13,9 +13,9 @@ export function pageMeta(path: string, title: string, description: string): Meta
       url: path,
       title,
       description,
-      images: [{ url: "/site/film/day.jpg", width: 1440, height: 810, alt: "Karman Prep" }],
+      images: [{ url: "/site/share.jpg", width: 1200, height: 630, alt: "Karman Prep" }],
     },
-    twitter: { card: "summary_large_image", title, description, images: ["/site/film/day.jpg"] },
+    twitter: { card: "summary_large_image", title, description, images: ["/site/share.jpg"] },
     /* The site draws its own light and dark. "darkreader-lock" tells the Dark Reader extension to leave
        the page alone, and declaring both colour schemes stops a browser's forced dark mode from
        inverting the painting (founder, 2026-11-11). */

@@ -89,34 +89,9 @@
 .ks.lit[data-mode="dark"] :is(.bk, .cf) .sp { --on-ink: #17151c; }
 .ks.lit[data-mode="dark"] .bk-go { color: #17151c; }
 
-/* motion designs (TEMPORARY: the founder picks one; SessionDemo.tsx) */
-.ks .bk-doodle, .ks .bk-tix { position: absolute; pointer-events: none; }
-.ks .bkw[data-fx="1"] .sp-times button { animation-name: bk-bounce; animation-duration: .6s; }
+/* the times bounce in */
+.ks .bk .sp-times button { animation-name: bk-bounce; animation-duration: .6s; }
 @keyframes bk-bounce { 0% { opacity: 0; scale: .5; } 60% { scale: 1.08; } }
-.ks .bk-doodle { inset: -44px; width: calc(100% + 88px); height: calc(100% + 88px); overflow: visible; fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; display: none; }
-.ks .bkw[data-fx="2"] .bk-doodle { display: block; }
-.ks .bk-doodle path { stroke: var(--a); stroke-dasharray: 400; stroke-dashoffset: 400; }
-.ks .bk-doodle path:nth-child(3) { stroke: #e2a23b; }
-.ks .bk-doodle path:nth-child(4) { stroke: #2e9e6b; }
-.ks .bk-doodle path:nth-child(5) { stroke: #d9614a; }
-.ks .pg-in.rv.on .bk-doodle path { animation: bk-pen 1s cubic-bezier(.5, 0, .2, 1) forwards, bk-wig 3s ease-in-out 1.6s infinite alternate; animation-delay: calc(.5s + var(--k, 0) * .25s), 1.8s; }
-.ks .bk-doodle path:nth-child(2) { --k: 1; }
-.ks .bk-doodle path:nth-child(3) { --k: 2; }
-.ks .bk-doodle path:nth-child(4) { --k: 3; }
-.ks .bk-doodle path:nth-child(5) { --k: 4; }
-@keyframes bk-pen { to { stroke-dashoffset: 0; } }
-@keyframes bk-wig { to { translate: 2px -3px; rotate: 1.5deg; } }
-.ks .bk-tix { inset: -30px -46px; display: none; }
-.ks .bkw[data-fx="3"] .bk-tix { display: block; }
-.ks .bk-tix span { position: absolute; left: calc(var(--n) * 22% - 2%); top: calc(8% + var(--n) * 19%); padding: 7px 13px 8px; border-radius: 999px; background: hsl(calc(var(--n) * 61 + 215) 70% 52%); color: #fff; font-size: 13.5px; font-weight: 800; white-space: nowrap; rotate: calc((var(--n) - 2) * 5deg); box-shadow: 0 12px 20px -12px rgba(29, 26, 34, .7); animation: bk-drift calc(5s + var(--n) * .7s) ease-in-out infinite alternate; }
-.ks .bk-tix span:nth-child(even) { left: auto; right: calc(var(--n) * 4% - 6%); }
-@keyframes bk-drift { to { translate: calc((var(--n) - 2) * 6px) -16px; } }
-.ks .bkw[data-fx="3"][data-done] .bk-tix span:first-child { animation: bk-land .8s var(--spring) both; }
-@keyframes bk-land { to { left: 50%; top: 78%; translate: -50% 0; rotate: 0deg; scale: 1.25; background: var(--a); } }
-@media (max-width: 960px) { .ks .bk-tix { inset: -22px -8px; } .ks .bk-doodle { inset: -30px -10px; width: calc(100% + 20px); height: calc(100% + 60px); } }
-.ks .bk-pick { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 800; }
-.ks .bk-pick button { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--cream); font-weight: 800; opacity: .45; }
-.ks .bk-pick button[aria-pressed="true"] { opacity: 1; }
 
 /* ---------- 3. two plans, the same size: black and blue, both shimmering ---------- */
 .ks .pv-packs .pg-in { justify-items: center; text-align: center; }
@@ -185,4 +160,3 @@
 .ks.lit[data-mode="dark"] .cf-pill:focus-within { background: rgba(20, 18, 26, .7); box-shadow: inset 0 0 0 2px var(--cream); }
 .ks.lit[data-mode="dark"] .cf-msg { color: #ffb4ab; }
 
-@media (prefers-reduced-motion: reduce) { .ks :is(.pv-hero, .pv-book, .pv-packs, .pv-close) * { animation: none !important; transition: none !important; } .ks .bk-doodle path { stroke-dashoffset: 0; } .ks .cft { display: none; } }

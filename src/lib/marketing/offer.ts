@@ -47,13 +47,15 @@ export const QUESTION_BANK = {
   /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
   skills: 39,
   difficultyLevels: 7,
-  /** What each self-study plan holds (founder, 2026-11-13): Practice is a fixed set of 5,000 questions from
-   *  levels 1 to 6; Pro adds every other question, level 7 included. Counted in the live bank on 2026-11-13
-   *  (read-only): 10,588 live, 9,935 at levels 1 to 6 and 653 at level 7, so Pro adds 5,588. The site says
-   *  "5,500+". The plan gate in src/lib/plans still splits at level 5 and has no 5,000 cap: it must be
-   *  changed to match before this claim goes live. */
-  practiceCount: 5000,
-  proExtraCount: 5500,
+  /** What each self-study plan holds (founder, 2026-11-13): Practice has every question at levels 1 to 5,
+   *  Pro has every question. Counted in the live bank on 2026-11-13 (read-only): 10,588 live, 8,846 at
+   *  levels 1 to 5 and 1,742 at levels 6 and 7. The site rounds down. This is how the plan gate already
+   *  splits them (CORE_MAX_DIFFICULTY in src/lib/plans/catalog.ts). */
+  practiceCount: 8800,
+  proExtraCount: 1700,
+  /** Full-length practice tests in each plan (founder, 2026-11-13). The app does not yet enforce these. */
+  practiceTests: 5,
+  proTests: 20,
 } as const;
 
 export type ProgramInclusion = { title: string; detail: string };

@@ -20,12 +20,12 @@ export const longDay = (d: Date) =>
 
 export type Hours = "sessions" | "calls";
 
-/** The open hours on a date. Sessions: after school, a different mix each day. Calls: the working day. */
+/** The open hours on a date. Sessions: after school, a different mix each day. Calls: 8am to midnight. */
 export function openHours(d: Date, kind: Hours): number[] {
+  // calls: the founder's hours, 8am to midnight Central, every day (2026-11-13); the last call starts at 11pm
+  if (kind === "calls") return Array.from({ length: 16 }, (_, i) => 8 + i);
   const dow = d.getUTCDay();
   if (dow === 0) return [];
-  if (kind === "calls")
-    return dow === 6 ? [10, 11, 12, 13] : [10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
   const seed = d.getUTCDate() * 7 + dow * 3;
   return [15, 16, 17, 18, 19, 20].filter(
     (h, i) => (seed + i * 5) % 3 !== 0 && !(dow === 6 && h > 17)
