@@ -5,12 +5,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
-import {
-  IBM_Plex_Serif,
-  IBM_Plex_Sans,
-  IBM_Plex_Mono,
-  Atkinson_Hyperlegible,
-} from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { karmanClerkAppearance } from "@/lib/clerkAppearance";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
@@ -68,28 +62,48 @@ const figureSerif = localFont({
 // brand brief — only request what's actually used.
 // `display: swap` shows the fallback immediately and swaps when
 // the webfont loads; LCP-friendly.
-const plexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
+const plexSerif = localFont({
+  src: [
+    { path: "./fonts/web/ibm-plex-serif-latin-300-normal.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/web/ibm-plex-serif-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/web/ibm-plex-serif-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/web/ibm-plex-serif-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-plex-serif",
-  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
+const plexSans = localFont({
+  src: [
+    { path: "./fonts/web/ibm-plex-sans-latin-300-normal.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/web/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/web/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/web/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-plex-sans",
-  weight: ["300", "400", "500", "600"],
   display: "swap",
 });
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
+const plexMono = localFont({
+  src: [
+    { path: "./fonts/web/ibm-plex-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/web/ibm-plex-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-plex-mono",
-  weight: ["400", "500"],
   display: "swap",
 });
-const atkinson = Atkinson_Hyperlegible({
-  subsets: ["latin"],
+const atkinson = localFont({
+  src: [
+    {
+      path: "./fonts/web/atkinson-hyperlegible-latin-400-normal.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/web/atkinson-hyperlegible-latin-700-normal.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-atkinson",
-  weight: ["400", "700"], // Atkinson only ships Regular + Bold
   display: "swap",
 });
 

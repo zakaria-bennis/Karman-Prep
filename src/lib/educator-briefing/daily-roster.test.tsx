@@ -3,10 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 // The pages render inside the painted portal, which loads next/font (not available in tests).
-vi.mock("next/font/google", () => {
-  const font = () => ({ className: "", variable: "", style: { fontFamily: "" } });
-  return { Caveat: font, Hanken_Grotesk: font, Young_Serif: font };
-});
+vi.mock("next/font/local", () => ({
+  default: () => ({ className: "", variable: "", style: { fontFamily: "" } }),
+}));
 vi.mock("./access", () => ({ requireBriefingEducator: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createAdminClient: vi.fn() }));
 

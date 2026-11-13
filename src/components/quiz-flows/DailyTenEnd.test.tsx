@@ -7,10 +7,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RunView } from "@/lib/assembler/run-types";
 import type { RewardState } from "@/lib/rewards/economy";
 
-vi.mock("next/font/google", () => {
-  const font = () => ({ className: "", variable: "", style: { fontFamily: "" } });
-  return { Caveat: font, Hanken_Grotesk: font, Young_Serif: font };
-});
+vi.mock("next/font/local", () => ({
+  default: () => ({ className: "", variable: "", style: { fontFamily: "" } }),
+}));
 vi.mock("./FlowFrame", () => ({
   FlowFrame: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
 }));
