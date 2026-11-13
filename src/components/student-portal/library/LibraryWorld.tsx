@@ -95,6 +95,7 @@ export default function LibraryWorld({
   reduce,
   onActive,
   onChoose,
+  jump = false,
 }: {
   courses: StageCourse[];
   /** True once the Challenge moment and the day's painting are out of the way. */
@@ -113,6 +114,8 @@ export default function LibraryWorld({
     slug: Slug,
     from: { x: number; y: number; name: DOMRect | null; line: number }
   ) => void;
+  /** An opening animation (`?intro=N`) has already brought the camera down: land at once. */
+  jump?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const cv = useRef<Canvases>({});
@@ -427,7 +430,7 @@ export default function LibraryWorld({
       data-pick={pick ?? undefined}
       data-active={(!pick && active) || undefined}
       data-still={still || undefined}
-      data-instant={instant || undefined}
+      data-instant={instant || jump || undefined}
       data-layout={layout}
     >
       <div className={`${styles.layer} ${styles.skyLayer}`}>
