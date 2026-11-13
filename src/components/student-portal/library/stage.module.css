@@ -390,3 +390,18 @@
     white-space: nowrap;
   }
 }
+
+/* An opening animation (`?intro=N`): full screen over the world, under the rail and header. It
+   fades out once it has landed on the ground, which the world then shows underneath. */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: auto;
+  transition: opacity 0.35s ease 0.45s;
+}
+.intro[data-leaving] {
+  opacity: 0;
+  pointer-events: none;
+}
