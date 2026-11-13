@@ -206,11 +206,11 @@
 }
 .ks .sn :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton) {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 22px;
+  grid-template-columns: 22px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  padding: 0 22px;
-  text-align: center;
+  gap: 14px;
+  padding: 0 24px;
+  text-align: left;
   min-height: 54px;
   border: 0;
   border-radius: 999px;

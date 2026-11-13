@@ -90,7 +90,8 @@ export default function PrivateSections({ today }: { today: string }) {
             today={today}
             w={{
               ...slot,
-              name: close["form name"],
+              first: close["form first"],
+              last: close["form last"],
               phone: close["form phone"],
               email: close["form email"],
               button: close["form button"],
@@ -98,7 +99,8 @@ export default function PrivateSections({ today }: { today: string }) {
               doneTitle: close["form done title"],
               doneText: close["form done text"],
               errors: {
-                name: SITE["form error your name"],
+                first: SITE["form error your name"],
+                last: SITE["form error your name"],
                 phone: SITE["form error phone"],
                 email: SITE["form error email"],
                 slot: SITE["form error slot"],

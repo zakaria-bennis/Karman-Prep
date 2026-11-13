@@ -283,7 +283,7 @@ none: No open times this day
 headline: Two ways to work one-on-one.
 small package: ${P10.name} = ${$(P10.price)}
 large package: ${P20.name} = ${$(P20.price)}
-small lead: Everything in ${PRO.name}
+small lead: Everything in ${PRO.name}, plus
 small bullets: ${W(P10.hours)} 60-minute sessions, once a week | A tutor from our team of PhD and medical students | Book and reschedule your own sessions | A full practice test every week | Personalized homework that adapts to their weak spots | Session recordings and recaps | Session statuses sent within 24 hours after each class | Direct iMessage or WhatsApp texting with your tutor | ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions
 large lead: Everything in ${P10.name}, plus
 large bullets: ${P20.hours} sessions | No limit on sessions per week | Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
@@ -294,7 +294,8 @@ link: The guarantee, in full
 
 ## 36 Private: close
 headline: Schedule a free call.
-form name: Your name
+form first: First name
+form last: Last name
 form phone: Phone
 form email: Email
 form button: Schedule my call

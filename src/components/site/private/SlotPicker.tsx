@@ -102,7 +102,9 @@ export default function SlotPicker({
   const nowHour = useCentralHour();
   const open = hoursLeft(day, kind, days[0], nowHour);
   const [edge, setEdge] = useState({ start: true, end: false });
-  const month = day.toLocaleDateString("en-US", {
+  /** The day in the middle of the strip: the month label follows it as the dates are flicked through. */
+  const [mid, setMid] = useState<string | null>(null);
+  const month = new Date(`${mid ?? dayKey(day)}T12:00:00Z`).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
     timeZone: "UTC",
@@ -128,11 +130,17 @@ export default function SlotPicker({
   useEffect(() => {
     const el = strip.current;
     if (!el) return;
-    const read = () =>
+    const read = () => {
       setEdge({
         start: el.scrollLeft < 4,
         end: el.scrollLeft + el.clientWidth > el.scrollWidth - 4,
       });
+      const centre = el.getBoundingClientRect().left + el.clientWidth / 2;
+      const at = [...el.querySelectorAll<HTMLElement>("button")].find(
+        (b) => b.getBoundingClientRect().right >= centre
+      );
+      setMid(at?.dataset.day ?? null);
+    };
     read();
     el.addEventListener("scroll", read, { passive: true });
     return () => el.removeEventListener("scroll", read);
@@ -141,7 +149,9 @@ export default function SlotPicker({
   return (
     <div className="sp">
       <div className="sp-top">
-        <b>{month}</b>
+        <b key={month} className="sp-month">
+          {month}
+        </b>
         <span>
           <button
             type="button"
@@ -171,6 +181,7 @@ export default function SlotPicker({
               role="radio"
               aria-checked={on}
               aria-label={longDay(d)}
+              data-day={dayKey(d)}
               disabled={!n}
               data-tap={(on && tap === "day") || undefined}
               onClick={() => onDay(d)}

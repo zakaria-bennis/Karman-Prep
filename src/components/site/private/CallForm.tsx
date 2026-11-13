@@ -21,10 +21,11 @@ import SlotPicker, {
   type SlotWords,
 } from "./SlotPicker";
 
-type Field = "name" | "phone" | "email";
+type Field = "first" | "last" | "phone" | "email";
 
 export interface CallWords extends SlotWords {
-  name: string;
+  first: string;
+  last: string;
   phone: string;
   email: string;
   button: string;
@@ -35,13 +36,15 @@ export interface CallWords extends SlotWords {
 }
 
 const OK: Record<Field, (v: string) => boolean> = {
-  name: (v) => v.trim().length > 0,
+  first: (v) => v.trim().length > 0,
+  last: (v) => v.trim().length > 0,
   phone: okPhone,
   email: okEmail,
 };
 const INPUT: Record<Field, Record<string, string | number>> = {
-  name: { type: "text", autoComplete: "name", autoCapitalize: "words", maxLength: 60 },
-  phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 24 },
+  first: { type: "text", autoComplete: "given-name", autoCapitalize: "words", maxLength: 30 },
+  last: { type: "text", autoComplete: "family-name", autoCapitalize: "words", maxLength: 29 },
+  phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 17 },
   email: {
     type: "email",
     inputMode: "email",
@@ -51,7 +54,20 @@ const INPUT: Record<Field, Record<string, string | number>> = {
     maxLength: 254,
   },
 };
-const FIELDS: Field[] = ["name", "phone", "email"];
+const FIELDS: Field[] = ["first", "last", "phone", "email"];
+
+/** A phone number as it is typed: digits only, set out as (512) 555-0142. A number that starts with + is
+ *  kept as + and digits, for families abroad. */
+function formatPhone(v: string): string {
+  if (v.trim().startsWith("+")) return `+${v.replace(/\D/g, "").slice(0, 15)}`;
+  const d = v
+    .replace(/\D/g, "")
+    .replace(/^1(?=\d{10})/, "")
+    .slice(0, 10);
+  if (d.length < 4) return d;
+  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
 
 /** The moment a Central-Time hour on a date happens, daylight saving included. */
 function centralInstant(d: Date, h: number): Date {
@@ -129,8 +145,10 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     setSending(true);
     let result: Awaited<ReturnType<typeof submitLead>> | null = null;
     try {
+      const { first, last, ...rest } = data;
       result = await submitLead("call", {
-        ...data,
+        ...rest,
+        name: `${first.trim()} ${last.trim()}`,
         slot: `${dayKey(day)} ${fmtTime(hour as number)}`,
         zone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
         plan: plan.current,
@@ -141,7 +159,10 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     setSending(false);
     if (!result) return setBanner(navigator.onLine ? w.errors.server : w.errors.network);
     if (!result.ok) {
-      if ("fields" in result) return setErrors(result.fields);
+      if ("fields" in result) {
+        const { name, ...others } = result.fields;
+        return setErrors(name ? { ...others, first: name } : others);
+      }
       return setBanner(w.errors.server);
     }
     setDone(true);
@@ -161,26 +182,34 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   return (
     <form className="cf" id="call" noValidate ref={form} onSubmit={onSubmit}>
       <div className="cf-fields">
-        {FIELDS.map((k) => (
-          <div className="cf-field" key={k}>
-            <label className="cf-pill" data-bad={errors[k] ? true : undefined}>
-              <span>{w[k]}</span>
-              <input
-                name={k}
-                aria-invalid={errors[k] ? true : undefined}
-                aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
-                onBlur={(e) => e.target.value && check(k, e.target.value)}
-                onChange={(e) => errors[k] && check(k, e.target.value)}
-                {...INPUT[k]}
-              />
-            </label>
-            {errors[k] ? (
-              <p className="cf-msg" id={`call-${k}-msg`}>
-                {errors[k]}
-              </p>
-            ) : null}
-          </div>
-        ))}
+        {FIELDS.map((k) => {
+          const half = k === "first" || k === "last";
+          return (
+            <div className="cf-field" data-half={half || undefined} key={k}>
+              <label className="cf-pill" data-bad={errors[k] ? true : undefined}>
+                {half ? null : <span>{w[k]}</span>}
+                <input
+                  name={k}
+                  placeholder={half ? w[k] : undefined}
+                  aria-label={half ? w[k] : undefined}
+                  aria-invalid={errors[k] ? true : undefined}
+                  aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
+                  onBlur={(e) => e.target.value && check(k, e.target.value)}
+                  onChange={(e) => {
+                    if (k === "phone") e.target.value = formatPhone(e.target.value);
+                    if (errors[k]) check(k, e.target.value);
+                  }}
+                  {...INPUT[k]}
+                />
+              </label>
+              {errors[k] ? (
+                <p className="cf-msg" id={`call-${k}-msg`}>
+                  {errors[k]}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
       <div className="cf-when">
         <SlotPicker
