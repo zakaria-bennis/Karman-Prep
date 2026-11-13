@@ -72,6 +72,8 @@
    it is always at hand and the bar stays clear (founder, 2026-11-13) */
 .ks .theme { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 110; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; padding: 0; border-radius: 50%; color: #1d1a22; background: rgba(255, 250, 243, .78); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2), 0 6px 18px rgba(0, 0, 0, .16); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer; }
 .ks[data-mode="dark"] .theme { color: #fffaf3; background: rgba(29, 26, 34, .66); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3), 0 6px 18px rgba(0, 0, 0, .3); }
+/* on a phone the cookie note fills the bottom of the screen: the switch waits until the note is answered */
+@media (max-width: 480px) { body:has(.kc) .ks .theme { visibility: hidden; } }
 .ks.theming, .ks.theming * { transition: background-color .5s var(--ease), color .5s var(--ease), border-color .5s var(--ease) !important; }
 .ks .hd .menu { display: none; border: 1.5px solid currentColor; font-weight: 700; }
 .ks .hd .menu i { display: none; }
