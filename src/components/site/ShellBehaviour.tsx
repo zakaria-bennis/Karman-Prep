@@ -21,6 +21,21 @@ export default function ShellBehaviour() {
       addEventListener(type, fn, { passive: true, signal });
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    /* ---------- page change: only the walk into the sign-in pages is animated (site.css, auth/cabin.css) ---------- */
+    addEventListener(
+      "pageswap",
+      (e) => {
+        const swap = e as Event & {
+          viewTransition?: { skipTransition(): void } | null;
+          activation?: { entry?: { url?: string | null } } | null;
+        };
+        const to = swap.activation?.entry?.url ?? "";
+        if (!to || !new URL(to).pathname.startsWith("/auth/"))
+          swap.viewTransition?.skipTransition();
+      },
+      { signal }
+    );
+
     /* ---------- light and dark: the device's setting until the visitor picks one, then remembered ---------- */
     const themes = [...ks.querySelectorAll<HTMLButtonElement>(".theme")];
     const paintTheme = () => {

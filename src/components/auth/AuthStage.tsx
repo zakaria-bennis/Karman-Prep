@@ -135,6 +135,7 @@ const OPTION_NAME: Record<AuthOption, string> = {
   "3": "3",
   "4": "4",
   "5": "5",
+  cabin: "Cabin",
 };
 
 const TICK = (
@@ -151,7 +152,13 @@ const TICK = (
 );
 
 /** TEMPORARY: the strip that switches between the layouts on offer. */
-function OptionPicker({ mode, option }: { mode: "sign-in" | "sign-up"; option: AuthOption }) {
+export function OptionPicker({
+  mode,
+  option,
+}: {
+  mode: "sign-in" | "sign-up";
+  option: AuthOption;
+}) {
   const other = mode === "sign-in" ? "sign-up" : "sign-in";
   return (
     <nav className="sn-pick" aria-label="Layouts to choose from">

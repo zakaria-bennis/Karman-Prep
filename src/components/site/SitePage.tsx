@@ -172,6 +172,7 @@ export default function SitePage({
   kind,
   children,
   route,
+  flight = true,
   className = "",
 }: {
   kind: SiteKind;
@@ -179,6 +180,8 @@ export default function SitePage({
   /** In the landscape world: the stretch of the route this page flies, as [from, to] between 0 and 1. The
    *  home page flies all of it. */
   route?: [number, number];
+  /** False when the page brings its own world in place of the landscape (the sign-in pages' cabin). */
+  flight?: boolean;
   /** Extra classes for the page's root. A page in the landscape world passes `litFonts` here: importing
    *  those typefaces in this file would bundle the marketing site's whole font list into the student app
    *  (the build's bundle guard catches it). */
@@ -239,7 +242,7 @@ export default function SitePage({
         <ThemeButton labeled />
         <Btn label={SITE["start free"]} href={ROUTES.signUp} />
       </div>
-      {lit ? <SiteFlight route={route} /> : null}
+      {lit && flight ? <SiteFlight route={route} /> : null}
       {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
       <footer className="ft">

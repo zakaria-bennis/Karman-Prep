@@ -4,7 +4,8 @@ import { FREE_PLAN } from "@/lib/marketing/offer";
 import { AUTH_OPTIONS, type AuthOption } from "./auth-option-list";
 
 export function readOption(o: string | undefined): AuthOption {
-  return (AUTH_OPTIONS as readonly string[]).includes(o ?? "") ? (o as AuthOption) : "now";
+  // with nothing asked for, the cabin shows, so the walk in from the home page can be seen
+  return (AUTH_OPTIONS as readonly string[]).includes(o ?? "") ? (o as AuthOption) : "cabin";
 }
 
 const PERKS = [
@@ -36,3 +37,24 @@ export function authCopy(mode: "sign-in" | "sign-up", option: AuthOption) {
     ],
   };
 }
+
+/** The warm cabin page: greetings that type themselves in, one picked at random on each visit. */
+export const CABIN = {
+  "sign-in": {
+    greetings: [
+      "Welcome back. We missed you.",
+      "There you are. The fire's still going.",
+      "Come in from the cold.",
+      "Good to see you again. Your seat's still warm.",
+      "Welcome back. Pick up right where you left off.",
+    ],
+  },
+  "sign-up": {
+    greetings: [
+      "Come in. There's room by the fire.",
+      "New here? Pull up a chair.",
+      "Welcome. Stay as long as you like.",
+    ],
+    note: `Free to start: ${FREE_PLAN.questionLimit} practice questions and a full-length practice test. No card.`,
+  },
+} as const;

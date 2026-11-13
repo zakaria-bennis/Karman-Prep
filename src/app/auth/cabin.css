@@ -1,0 +1,312 @@
+/* The warm sign-in (CabinStage.tsx): a snowy cabin drawn on a canvas, a greeting that types itself in, three
+   pills and a quiet single sign-on link. The scene is dusk in light mode and night in dark mode; both are
+   dark enough for cream words, so the words keep one colour. */
+/* behind the canvas while it comes into focus: pale flurry by day, deep blue by night */
+.ks.cb-page {
+  background: #d8cad8;
+}
+.ks.cb-page[data-mode="dark"] {
+  background: #0b0f26;
+}
+.ks.cb-page .hd::before {
+  display: none;
+}
+.ks.cb-page .hd .mark {
+  color: #fff3df;
+  text-shadow: 0 2px 22px rgba(10, 8, 30, 0.6);
+}
+.ks .cb {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  padding: 96px var(--gutter) max(26px, env(safe-area-inset-bottom));
+  color: #fff3df;
+}
+.ks .cb-scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* arriving: the clearing comes into focus out of the flurry */
+  animation: cb-arrive 2.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes cb-arrive {
+  from {
+    opacity: 0;
+    scale: 1.12;
+    filter: blur(14px) brightness(1.5);
+  }
+}
+.ks .cb-in {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 400px);
+  display: grid;
+  gap: 13px;
+  justify-items: stretch;
+}
+/* a soft dusk shadow behind the words only, so they read on the trees */
+.ks .cb-in::before {
+  content: "";
+  position: absolute;
+  inset: -30% -34%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 50% 52%,
+    rgba(22, 16, 46, 0.6),
+    rgba(22, 16, 46, 0.46) 42%,
+    rgba(22, 16, 46, 0) 74%
+  );
+  pointer-events: none;
+}
+.ks.lit[data-mode="dark"] .cb-in::before {
+  opacity: 0.6;
+}
+.ks.lit .cb .cb-hello {
+  margin: 0;
+  min-height: 2.3em;
+  display: grid;
+  align-content: end;
+  font-family: var(--font-fraunces), var(--font-young-serif), Georgia, serif;
+  font-style: italic;
+  font-weight: 380;
+  font-size: clamp(28px, 7.6vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-align: center;
+  color: #fff1da;
+  text-shadow:
+    0 0 34px rgba(255, 170, 90, 0.35),
+    0 2px 18px rgba(10, 8, 30, 0.7);
+}
+.ks .cb-caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 4px;
+  vertical-align: -0.08em;
+  border-radius: 2px;
+  background: #ffc98a;
+  animation: cb-blink 1.1s steps(1) infinite;
+}
+.ks .cb-caret[data-idle] {
+  visibility: hidden;
+}
+.ks .cb-caret[data-done] {
+  animation:
+    cb-blink 1.1s steps(1) 3,
+    cb-gone 0.6s 3.3s forwards;
+}
+@keyframes cb-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes cb-gone {
+  to {
+    opacity: 0;
+  }
+}
+.ks .cb-note {
+  margin: -6px 0 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  color: #ffe6c4;
+  text-shadow: 0 1px 14px rgba(10, 8, 30, 0.8);
+  animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 2.2s both;
+}
+.ks .cb-pills {
+  display: grid;
+  gap: 11px;
+}
+.ks .cb-pill,
+.ks .cb-email {
+  min-height: 54px;
+  border-radius: 999px;
+  animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ks .cb-pill {
+  display: grid;
+  grid-template-columns: 22px auto;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  background: linear-gradient(#fff6e8, #ffe9cf);
+  color: #2a1c16;
+  font-size: 16.5px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    0 16px 30px -16px rgba(10, 6, 24, 0.85),
+    0 0 0 0 rgba(255, 176, 96, 0);
+  transition:
+    translate 0.45s cubic-bezier(0.3, 1.5, 0.5, 1),
+    box-shadow 0.35s;
+}
+.ks .cb-pill:nth-child(1) {
+  animation-delay: 1.5s;
+}
+.ks .cb-pill:nth-child(2) {
+  animation-delay: 1.62s;
+}
+.ks .cb-pills > :nth-child(3) {
+  animation-delay: 1.74s;
+}
+.ks .cb-pill svg {
+  width: 22px;
+  height: 22px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ks .cb-pill:hover {
+    translate: 0 -2px;
+    box-shadow:
+      inset 0 1.5px 0 #ffffff,
+      0 20px 34px -16px rgba(10, 6, 24, 0.9),
+      0 0 34px 2px rgba(255, 176, 96, 0.42);
+  }
+}
+.ks .cb-pill:active {
+  translate: 0 1px;
+  transition-duration: 0.08s;
+}
+.ks .cb-pill:focus-visible,
+.ks .cb-email:focus-within,
+.ks .cb-sso:focus-visible,
+.ks .cb-foot a:focus-visible {
+  outline: 3px solid #ffc98a;
+  outline-offset: 3px;
+}
+.ks .cb-email {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 5px 5px 5px 22px;
+  background: linear-gradient(#fff6e8, #ffe9cf);
+  box-shadow:
+    inset 0 1.5px 0 #ffffff,
+    0 16px 30px -16px rgba(10, 6, 24, 0.85);
+  animation-duration: 0.5s;
+}
+.ks .cb-pills > .cb-email {
+  animation-delay: 0s;
+}
+.ks .cb-email input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: #2a1c16;
+  caret-color: #c2571c;
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.ks .cb .cb-email input:is(:focus, :focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+.ks .cb-email input::placeholder {
+  color: #6f574b;
+}
+.ks .cb-email button {
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #2a1c16;
+  color: #fff3df;
+  font-weight: 800;
+  font-size: 15.5px;
+}
+.ks .cb-foot {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f1dcc4;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+  animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.9s both;
+}
+.ks .cb-sso {
+  min-height: 44px;
+  padding: 0 10px;
+  color: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(241, 220, 196, 0.5);
+}
+.ks .cb-foot a {
+  display: inline-block;
+  padding: 12px 2px;
+  color: #ffc98a;
+  font-weight: 800;
+}
+.ks .cb ::selection {
+  background: #ffc98a;
+  color: #2a1c16;
+}
+@keyframes cb-rise {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}
+@media (min-width: 760px) {
+  .ks .cb {
+    align-content: center;
+    justify-items: end;
+    padding: 110px clamp(40px, 9vw, 150px) 60px;
+  }
+  .ks.lit .cb .cb-hello {
+    font-size: clamp(36px, 3.3vw, 50px);
+  }
+  .ks .cb-pill,
+  .ks .cb-email {
+    min-height: 58px;
+  }
+}
+/* stepping from another page into the clearing: the old page blows away as a flurry, the new one settles */
+@view-transition {
+  navigation: auto;
+}
+.ks.cb-page {
+  view-transition-name: none;
+}
+html:has(.cb-page)::view-transition-old(root) {
+  animation: cb-leave 0.7s cubic-bezier(0.5, 0, 0.8, 0.4) both;
+}
+html:has(.cb-page)::view-transition-new(root) {
+  animation: cb-enter 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+@keyframes cb-leave {
+  to {
+    opacity: 0;
+    scale: 1.16;
+    filter: blur(18px) brightness(1.6);
+  }
+}
+@keyframes cb-enter {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .cb *,
+  .ks .cb-scene {
+    animation: none !important;
+    transition: none !important;
+  }
+  html:has(.cb-page)::view-transition-old(root),
+  html:has(.cb-page)::view-transition-new(root) {
+    animation: none;
+  }
+}
