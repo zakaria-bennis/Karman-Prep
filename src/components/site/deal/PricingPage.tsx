@@ -1,11 +1,13 @@
 "use client";
 
 // The Pricing page: one headline, one switch (self-study or with a tutor), the plans on that side as
-// frosted glass cards, each in its own colour, and a link to the guarantee.
-//   Self-study plans carry a 3 months / Monthly choice; 3 months is the default and shows its price a month.
+// frosted glass cards, each in its own colour, and a link to the guarantee. The cards drop into place.
+//   A plan with a guarantee shows it at the top of the card, beside a shield.
+//   Self-study plans carry one sliding pill in the top corner: 3 months (the default) or Monthly.
+//   Private 20's saving is a ribbon that is pulled across its corner.
 //   The cohort card holds the choice of SAT (each cohort ends on one) and the scholarship badge. Pressing
 //   the badge dims the page and opens a small placard about the scholarship; it closes on a click anywhere,
-//   its X, or Escape.
+//   its X, or Escape. Tapping the fox in it sets off a small celebration instead.
 // Words and numbers arrive as props from pricing-data.ts. Styles: pricing.css.
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Fox } from "@/components/portal/Fox";
@@ -21,11 +23,11 @@ function Check() {
   );
 }
 
-function Seal() {
+function Shield() {
   return (
-    <svg className="pz-seal" viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="9" />
-      <path d="M6.2 10.3l2.500 2.500 5-5.300" className="pz-seal-tick" />
+    <svg className="pz-shield" viewBox="0 0 20 22" aria-hidden="true">
+      <path d="M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z" />
+      <path d="M6.200 10.800l2.700 2.700 5-5.400" className="pz-shield-tick" />
     </svg>
   );
 }
@@ -40,25 +42,36 @@ function Medal() {
   );
 }
 
-/** The fox with the medal on: its ribbon runs round the neck and the medal rests on the chest. */
+/** The fox's head with the medal hanging under its chin. Tapping it sets off a little party. */
 function FoxWithMedal() {
+  const [party, setParty] = useState(0);
   return (
-    <div className="fxc pz-foxy">
-      <Fox size={112} />
-      <svg className="pz-torso" viewBox="0 0 120 76" aria-hidden="true">
-        <path d="M8 76C8 40 32 12 60 12s52 28 52 64z" fill="#E89A2C" />
-        <path d="M40 76c0-26 9-48 20-48s20 22 20 48z" fill="#FFF8EE" />
-        <path d="M30 22l12-7 22 34-9 6z" fill="#2449b8" />
-        <path d="M90 22l-12-7-22 34 9 6z" fill="#1a37a0" />
+    <button
+      className="pz-foxy"
+      type="button"
+      tabIndex={-1}
+      data-party={party ? party % 2 || 2 : undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        setParty((n) => n + 1);
+      }}
+    >
+      <Confetti key={party} />
+      <span className="fxc">
+        <Fox size={104} />
+      </span>
+      <svg className="pz-medal" viewBox="0 0 60 50" aria-hidden="true">
+        <path d="M17 0h11l6 20H24z" fill="#2449b8" />
+        <path d="M43 0H32l-6 20h10z" fill="#1a37a0" />
         <g className="pz-gold">
-          <circle cx="60" cy="56" r="13" fill="#f0c25c" stroke="#b98a1c" strokeWidth="2.5" />
+          <circle cx="30" cy="32" r="15" fill="#f0c25c" stroke="#b98a1c" strokeWidth="2.5" />
           <path
-            d="M60 47.500l2.600 5.300 5.800.8-4.200 4.100 1 5.800-5.200-2.700-5.200 2.700 1-5.800-4.200-4.100 5.800-.8z"
+            d="M30 22.500l3 6 6.600.9-4.800 4.700 1.200 6.600-6-3.100-6 3.100 1.200-6.600-4.800-4.700 6.600-.9z"
             fill="#fff6d8"
           />
         </g>
       </svg>
-    </div>
+    </button>
   );
 }
 
@@ -94,8 +107,7 @@ function AwardCard({ a, onClose }: { a: PriceAward; onClose: () => void }) {
             <li key={h}>{h}</li>
           ))}
         </ul>
-        <div className="pz-fox" aria-hidden="true">
-          <Confetti />
+        <div className="pz-fox">
           <FoxWithMedal />
         </div>
       </div>
@@ -116,7 +128,8 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
   };
 
   const card = (p: PricePlan, i: number) => {
-    const t = p.terms?.[term[p.id] ?? 0];
+    const picked = term[p.id] ?? 0;
+    const t = p.terms?.[picked];
     const cohort = p.cohorts?.[Math.min(when, p.cohorts.length - 1)];
     return (
       <article
@@ -126,6 +139,27 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
         data-best={p.best || undefined}
         style={{ "--i": i } as CSSProperties}
       >
+        {p.ribbon ? (
+          <em className="pl-rib">
+            <span>{p.ribbon}</span>
+          </em>
+        ) : null}
+        {p.terms ? (
+          <div className="pz-term" role="radiogroup" aria-label={p.name} data-on={picked}>
+            <i aria-hidden="true" />
+            {p.terms.map((x, k) => (
+              <button
+                key={x.label}
+                type="button"
+                role="radio"
+                aria-checked={picked === k}
+                onClick={() => setTerm((m) => ({ ...m, [p.id]: k }))}
+              >
+                {x.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         {p.award && cohort?.award ? (
           <button
             className="pz-award"
@@ -143,32 +177,16 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
             </span>
           </button>
         ) : null}
+        {p.promise ? (
+          <p className="pz-promise">
+            <Shield />
+            {p.promise}
+          </p>
+        ) : null}
         <div className="pz-head">
           {p.tag ? <p className="pz-tag">{p.tag}</p> : null}
-          <h2>
-            {p.name}
-            {p.chip ? <em className="pz-chip">{p.chip}</em> : null}
-          </h2>
-          <p className="pz-line" data-sealed={p.sealed || undefined}>
-            {p.sealed ? <Seal /> : null}
-            {p.line}
-          </p>
+          <h2>{p.name}</h2>
         </div>
-        {p.terms ? (
-          <div className="pz-term" role="radiogroup" aria-label={p.name}>
-            {p.terms.map((x, k) => (
-              <button
-                key={x.label}
-                type="button"
-                role="radio"
-                aria-checked={(term[p.id] ?? 0) === k}
-                onClick={() => setTerm((m) => ({ ...m, [p.id]: k }))}
-              >
-                {x.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
         <p className="pz-price" key={t?.label} aria-live="polite">
           <b className="num">{t?.price ?? p.price}</b>
           <span>{t?.unit ?? p.unit}</span>

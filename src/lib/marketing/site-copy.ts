@@ -381,11 +381,9 @@ term three: 3 months
 term one: Monthly
 billed three: billed {total} every 3 months
 billed one: billed every month
-practice line: The core question bank, explained in writing.
-practice bullets: Core questions covering every SAT skill | A written explanation for every question | Full-length practice tests | The Daily 10
+practice bullets: Core questions covering every SAT skill | A written explanation for every question | The Daily 10: ten questions a day from the skills they miss | Full-length practice tests | One predicted SAT score, updated as they practice | The built-in graphing calculator | Progress for parents on their phone
 practice button: Start ${PP.name}
-pro line: Every question we have, explained on video.
-pro bullets: Everything in ${PP.name} | ${QB.verifiedCount} questions, the hardest included | Video explanations
+pro bullets: Everything in ${PP.name} | Every question we have: ${QB.verifiedCount} | The 1600 Set: our hardest questions | A video explanation, added as each is recorded
 pro button: Start ${PRO.name}
 cohort line: ${UP_TO.cohort}, or your money back.
 cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week
@@ -398,7 +396,7 @@ closes: Enrollment closes
 small line: ${UP_TO.cohort}, or half back / free sessions.
 small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, one session a week | Book your own sessions | A full practice test every week
 large line: ${UP_TO.private}, our bonus guarantee.
-large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no weekly limit | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
+large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no weekly limit | A personalized study plan | Priority booking | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
 save: Save
 a session: a session
 private button: Schedule a free call

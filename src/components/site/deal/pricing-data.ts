@@ -50,10 +50,8 @@ export interface PricePlan {
   /** How it is taught: "Live class", "One-on-one". Self-study plans carry none. */
   tag?: string;
   name: string;
-  /** The result it promises, or what it is. */
-  line: string;
-  /** The line is a guarantee: it gets the seal. */
-  sealed?: boolean;
+  /** The guarantee, shown with a shield at the top of the card. Self-study plans carry none. */
+  promise?: string;
   price?: string;
   unit?: string;
   note?: string;
@@ -64,8 +62,8 @@ export interface PricePlan {
   href: string;
   /** The plan we most want chosen on its side of the switch. */
   best?: boolean;
-  /** A small badge by the name: "Save 16%". */
-  chip?: string;
+  /** A ribbon across the card's corner: "Save 16%". */
+  ribbon?: string;
   cohorts?: PriceCohort[];
   award?: PriceAward;
 }
@@ -92,7 +90,7 @@ export function pricingData(today: string): PriceProps {
   const terms = (plan: { id: string; monthly: number; threeMonths: number }): PriceTerm[] => [
     {
       label: s["term three"],
-      price: money(Math.round((plan.threeMonths / 3) * 100) / 100),
+      price: $(Math.round(plan.threeMonths / 3)),
       unit: s.month,
       note: s["billed three"].replace("{total}", $(plan.threeMonths)),
       href: `${ROUTES.checkout}?plan=${plan.id}&term=quarter`,
@@ -140,7 +138,6 @@ export function pricingData(today: string): PriceProps {
       {
         id: PP.id,
         name: PP.name,
-        line: s["practice line"],
         terms: terms(PP),
         bullets: list(s["practice bullets"]),
         cta: s["practice button"],
@@ -149,7 +146,6 @@ export function pricingData(today: string): PriceProps {
       {
         id: PRO.id,
         name: PRO.name,
-        line: s["pro line"],
         terms: terms(PRO),
         bullets: list(s["pro bullets"]),
         cta: s["pro button"],
@@ -162,8 +158,7 @@ export function pricingData(today: string): PriceProps {
         id: "cohort",
         tag: s["tag class"],
         name: MP.planName,
-        line: s["cohort line"],
-        sealed: true,
+        promise: s["cohort line"],
         price: $(MP.price),
         unit: s["cohort unit"],
         note: s["cohort note"],
@@ -189,8 +184,7 @@ export function pricingData(today: string): PriceProps {
         id: P10.id,
         tag: s["tag one"],
         name: P10.name,
-        line: s["small line"],
-        sealed: true,
+        promise: s["small line"],
         price: $(P10.price),
         unit: `${money(each(P10))} ${s["a session"]}`,
         bullets: list(s["small bullets"]),
@@ -201,14 +195,13 @@ export function pricingData(today: string): PriceProps {
         id: P20.id,
         tag: s["tag one"],
         name: P20.name,
-        line: s["large line"],
-        sealed: true,
+        promise: s["large line"],
         price: $(P20.price),
         unit: `${money(each(P20))} ${s["a session"]}`,
         bullets: list(s["large bullets"]),
         cta: s["private button"],
         href: call,
-        chip: `${s.save} ${saved}%`,
+        ribbon: `${s.save} ${saved}%`,
       },
     ],
   };

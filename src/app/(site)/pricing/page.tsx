@@ -2,6 +2,7 @@ import SitePage from "@/components/site/SitePage";
 import PricingPage from "@/components/site/deal/PricingPage";
 import { pricingData } from "@/components/site/deal/pricing-data";
 import { litFonts } from "@/components/site/home/fonts";
+import { Fraunces } from "next/font/google";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -20,12 +21,21 @@ export const metadata = pageMeta(
 
 /* In the home page's world, on the SAT Program page's frame (founder, 2026-11-12). The landscape keeps
    travelling: pricing flies the stretch after About's. */
+/* The plan names on the cards are set in Fraunces italic; it is loaded for this page only. */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: "italic",
+  weight: "600",
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
 /* Read per request, so a cohort whose enrollment has closed drops off the card the next day. */
 export const dynamic = "force-dynamic";
 
 export default function Pricing() {
   return (
-    <SitePage kind="lit" route={[0.56, 0.72]} className={litFonts}>
+    <SitePage kind="lit" route={[0.56, 0.72]} className={`${litFonts} ${fraunces.variable}`}>
       <PricingPage {...pricingData(new Date().toISOString().slice(0, 10))} />
     </SitePage>
   );
