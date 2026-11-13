@@ -1,8 +1,10 @@
 // What the simple Pricing page shows, worked out on the server from offer.ts (numbers) and site-copy.ts
 // section 58 (words), then handed to PricingLab.tsx.
+// Each plan is written the way the trade writes them (Princeton Review, PrepScholar): how it is taught, its
+// name, the result it promises, the price, the button, then the facts with numbers in them.
 import { ROUTES } from "@/components/site/routes";
 import {
-  COHORT_SCHOLARSHIP,
+  COHORT_SCHOLARSHIP as AWARD,
   formatPrice as $,
   guaranteeMax,
   MARCH_PROGRAM as MP,
@@ -13,10 +15,27 @@ import {
 } from "@/lib/marketing/offer";
 import { list, section, SITE } from "@/lib/marketing/site-copy";
 
+export interface LabAward {
+  /** On the badge: "$1,500 scholarship" and "January cohort only". */
+  badge: string;
+  only: string;
+  /** In the pop-up. */
+  title: string;
+  who: string;
+  parts: { amount: string; label: string }[];
+  how: string[];
+  close: string;
+}
+
 export interface LabPlan {
   id: string;
+  /** How it is taught: "Self-paced", "Live class", "One-on-one". */
+  tag: string;
   name: string;
+  /** The result it promises, or what it is. */
   line: string;
+  /** The line is a guarantee: it gets the seal. */
+  sealed?: boolean;
   price: string;
   unit: string;
   note?: string;
@@ -28,9 +47,9 @@ export interface LabPlan {
   /** For the side-by-side table. */
   teach: string;
   promise: string;
-  /** The cohort only: its start dates, and the scholarship badge. */
+  /** The cohort only: its start dates, and the scholarship. */
   cohorts?: { starts: string; closes: string }[];
-  award?: string;
+  award?: LabAward;
 }
 
 export interface LabProps {
@@ -55,8 +74,8 @@ export function pricingLabData(): LabProps {
     unit: s.month,
     note: `${s.or} ${$(three)} ${s["three months"]}`,
   });
-  const s2 = s.points;
   const call = `${ROUTES.private}#call`;
+  const points = (track: "cohort" | "private") => `+${guaranteeMax(track)} ${s.points}`;
   return {
     headline: s.headline,
     sides: { self: s.self, tutor: s.tutor },
@@ -71,6 +90,7 @@ export function pricingLabData(): LabProps {
     self: [
       {
         id: PP.id,
+        tag: s["tag self"],
         name: PP.name,
         line: s["practice line"],
         ...term(PP.monthly, PP.threeMonths),
@@ -82,6 +102,7 @@ export function pricingLabData(): LabProps {
       },
       {
         id: PRO.id,
+        tag: s["tag self"],
         name: PRO.name,
         line: s["pro line"],
         ...term(PRO.monthly, PRO.threeMonths),
@@ -96,37 +117,57 @@ export function pricingLabData(): LabProps {
     tutor: [
       {
         id: "cohort",
+        tag: s["tag class"],
         name: MP.planName,
         line: s["cohort line"],
+        sealed: true,
         price: $(MP.price),
         unit: s["cohort unit"],
+        note: s["cohort note"],
         bullets: list(s["cohort bullets"]),
         cta: s["cohort button"],
         href: ROUTES.program,
         teach: s["teach group"],
-        promise: `+${guaranteeMax("cohort")} ${s2}`,
+        promise: points("cohort"),
         cohorts: [
           { starts: MP.startShort, closes: MP.enrollmentClosesLabel.replace(/, \d{4}$/, "") },
           ...NEXT_PROGRAMS.map((p) => ({ starts: p.startShort, closes: p.enrollmentClosesLabel })),
         ],
-        award: `${$(COHORT_SCHOLARSHIP.amount)} ${s.award}`,
+        award: {
+          badge: `${$(AWARD.amount)} ${s["award badge"]}`,
+          only: s["award only"],
+          title: s["award title"].replace("{amount}", $(AWARD.amount)),
+          who: s["award who"],
+          parts: [
+            { amount: $(AWARD.refund), label: s["award refund"] },
+            { amount: $(AWARD.meritBonus), label: s["award bonus"] },
+          ],
+          how: list(s["award how"]).map((x) =>
+            x.replace("{weeks}", AWARD.claimDays === 14 ? "two" : String(AWARD.claimDays / 7))
+          ),
+          close: s["award close"],
+        },
       },
       {
         id: P10.id,
+        tag: s["tag one"],
         name: P10.name,
         line: s["small line"],
+        sealed: true,
         price: $(P10.price),
         unit: `${money(each(P10))} ${s["a session"]}`,
         bullets: list(s["small bullets"]),
         cta: s["private button"],
         href: call,
         teach: s["teach one"],
-        promise: `+${guaranteeMax("cohort")} ${s2}`,
+        promise: points("cohort"),
       },
       {
         id: P20.id,
+        tag: s["tag one"],
         name: P20.name,
         line: s["large line"],
+        sealed: true,
         price: $(P20.price),
         unit: `${money(each(P20))} ${s["a session"]}`,
         bullets: [...list(s["large bullets"]), `${s.save} ${saved}% ${s["a session"]}`],
@@ -134,7 +175,7 @@ export function pricingLabData(): LabProps {
         href: call,
         best: true,
         teach: s["teach one"],
-        promise: `+${guaranteeMax("private")} ${s2}`,
+        promise: points("private"),
       },
     ],
   };

@@ -374,6 +374,9 @@ rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +
 headline: Pick how your student preps.
 self: Self-study
 tutor: With a tutor
+tag self: Self-paced
+tag class: Live class
+tag one: One-on-one
 month: a month
 three months: for 3 months
 or: or
@@ -383,17 +386,17 @@ practice button: Start ${PP.name}
 pro line: The hard questions too, explained on video.
 pro bullets: Everything in ${PP.name} | The hard mastery questions | Video explanations
 pro button: Start ${PRO.name}
-cohort line: Two live classes a week, in a group of ${w(CLASS)}.
-cohort bullets: A full practice test every week | Everything in ${PRO.name} | ${UP_TO.cohort}, or your money back
+cohort line: ${UP_TO.cohort}, or your money back.
+cohort bullets: A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week | Everything in ${PRO.name}
 cohort unit: ${w(MP.weeks)} weeks
+cohort note: or ${SPLIT}
 cohort button: Reserve a seat
 starts: Starts
 closes: Enrollment closes
-award: scholarship for each cohort's top scorer
-small line: ${W(P10.hours)} one-on-one sessions, one a week.
-small bullets: Book your own sessions | A full practice test every week | ${UP_TO.cohort}, or half back / free sessions
-large line: ${W(P20.hours)} one-on-one sessions, as many a week as you want.
-large bullets: Everything in ${P10.name} | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)}
+small line: ${UP_TO.cohort}, or half back / free sessions.
+small bullets: ${P10.hours} hours one-on-one, one session a week | Book your own sessions | A full practice test every week | Everything in ${PRO.name}
+large line: ${UP_TO.private}, our bonus guarantee.
+large bullets: ${P20.hours} hours one-on-one, no weekly limit | Everything in ${P10.name}
 save: Save
 a session: a session
 private button: Schedule a free call
@@ -404,6 +407,14 @@ teach one: One-on-one
 promise none: No guarantee
 points: points
 link: The guarantee, in full
+award badge: scholarship
+award only: ${MP.shortName} only
+award title: The {amount} scholarship
+award who: One winner in every ${MP.shortName}: the student with the top SAT score.
+award refund: Your full program fee, refunded
+award bonus: Extra, for your student's hard work
+award how: Send us the score within {weeks} weeks of the College Board releasing it. | Both amounts go straight to the parent's bank account within the month.
+award close: Close
 
 ## 61 About: opening
 headline: We show our work. All of it.

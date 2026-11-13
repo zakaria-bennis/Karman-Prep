@@ -1,7 +1,9 @@
 "use client";
 
 // The simple Pricing page: one headline, one switch (self-study or with a tutor), the plans on that side,
-// and a link to the guarantee. The cohort card holds its own start-date choice and the scholarship badge.
+// and a link to the guarantee. The cohort card holds its own start-date choice and the scholarship badge;
+// pressing the badge dims the page and opens a small placard that explains the scholarship. The placard
+// closes on a click anywhere, its X, or Escape.
 //
 // TEMPORARY (2026-11-13): five layouts for the founder to choose from, switched by the small row at the
 // bottom on the dev server only (pricing-lab.css):
@@ -10,9 +12,10 @@
 //   3 Spotlight       plan names as tabs, one plan shown large
 //   4 Side by side    a small table: price, teaching, promise
 //   5 Bare type       no cards; large prices set straight on the landscape
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Arrow } from "@/components/site/parts";
-import type { LabPlan, LabProps } from "./pricing-lab-data";
+import FoxCheer, { Confetti } from "@/components/site/private/FoxCheer";
+import type { LabAward, LabPlan, LabProps } from "./pricing-lab-data";
 
 const PICK = process.env.NODE_ENV !== "production";
 const LOOKS = ["cards", "list", "spot", "table", "bare"] as const;
@@ -26,13 +29,69 @@ function Check() {
   );
 }
 
+function Seal() {
+  return (
+    <svg className="pz-seal" viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 1.6l2.1 1.5 2.6-.1.8 2.500 2.100 1.500-.8 2.500.8 2.500-2.100 1.500-.8 2.500-2.600-.1L10 18.400l-2.100-1.500-2.600.1-.8-2.500-2.100-1.500.8-2.500-.8-2.500 2.100-1.500.8-2.500 2.600.1z" />
+      <path d="M6.600 10.200l2.300 2.300 4.500-4.800" className="pz-seal-tick" />
+    </svg>
+  );
+}
+
 function Medal() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M6 1.5h8l-2.2 6H8.2z" opacity=".55" />
       <circle cx="10" cy="12.5" r="5.5" />
-      <path d="M10 9.6l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" className="pz-star" />
+      <path d="M10 9.6l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.400 2-.3z" className="pz-star" />
     </svg>
+  );
+}
+
+/** The scholarship placard: what is paid, to whom, and how. */
+function AwardCard({ a, onClose }: { a: LabAward; onClose: () => void }) {
+  const x = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    x.current?.focus();
+    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [onClose]);
+  return (
+    <div className="pz-dim" onClick={onClose}>
+      <div className="pz-pop" role="dialog" aria-modal="true" aria-labelledby="pz-pop-h">
+        <button className="pz-x" type="button" aria-label={a.close} ref={x} onClick={onClose}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5 5l10 10M15 5L5 15" />
+          </svg>
+        </button>
+        <p className="pz-only">{a.only}</p>
+        <h2 id="pz-pop-h">{a.title}</h2>
+        <p className="pz-who">{a.who}</p>
+        <div className="pz-parts">
+          {a.parts.map((p, i) => (
+            <p key={p.amount} style={{ "--i": i } as CSSProperties}>
+              <b className="num">{p.amount}</b>
+              <span>{p.label}</span>
+            </p>
+          ))}
+        </div>
+        <ul className="pz-how">
+          {a.how.map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
+        <div className="pz-fox" aria-hidden="true">
+          <Confetti />
+          <FoxCheer />
+          <svg className="pz-ribbon" viewBox="0 0 60 44">
+            <path d="M18 0l8 20h8l8-20z" />
+            <circle cx="30" cy="28" r="14" />
+            <path d="M30 20l2.400 5 5.400.7-4 3.800 1 5.400-4.800-2.600-4.800 2.600 1-5.400-4-3.800 5.400-.7z" />
+          </svg>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -41,8 +100,14 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
   const [look, setLook] = useState(0);
   const [when, setWhen] = useState(0);
   const [focus, setFocus] = useState<Record<string, string>>({});
+  const [pop, setPop] = useState<LabAward | null>(null);
+  const opener = useRef<HTMLButtonElement | null>(null);
   const plans = side === "self" ? self : tutor;
   const shown = plans.find((p) => p.id === focus[side]) ?? plans.find((p) => p.best) ?? plans[0];
+  const close = () => {
+    setPop(null);
+    opener.current?.focus();
+  };
 
   const cohortPick = (p: LabPlan) =>
     p.cohorts ? (
@@ -68,10 +133,21 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
     ) : null;
   const award = (p: LabPlan) =>
     p.award ? (
-      <p className="pz-award">
+      <button
+        className="pz-award"
+        type="button"
+        aria-haspopup="dialog"
+        onClick={(e) => {
+          opener.current = e.currentTarget;
+          setPop(p.award ?? null);
+        }}
+      >
         <Medal />
-        {p.award}
-      </p>
+        <span>
+          <b>{p.award.badge}</b>
+          <i>{p.award.only}</i>
+        </span>
+      </button>
     ) : null;
   const go = (p: LabPlan) => (
     <a className="btn pz-go" href={p.href}>
@@ -98,6 +174,16 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
       ))}
     </ul>
   );
+  const head = (p: LabPlan) => (
+    <div className="pz-head">
+      <p className="pz-tag">{p.tag}</p>
+      <h2>{p.name}</h2>
+      <p className="pz-line" data-sealed={p.sealed || undefined}>
+        {p.sealed ? <Seal /> : null}
+        {p.line}
+      </p>
+    </div>
+  );
   const card = (p: LabPlan, i: number) => (
     <article
       className="pz-card"
@@ -107,14 +193,11 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
       style={{ "--i": i } as CSSProperties}
     >
       {award(p)}
-      <div className="pz-head">
-        <h2>{p.name}</h2>
-        <p className="pz-line">{p.line}</p>
-      </div>
+      {head(p)}
       {price(p)}
       {cohortPick(p)}
-      {bullets(p)}
       {go(p)}
+      {bullets(p)}
     </article>
   );
 
@@ -162,6 +245,7 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
             style={{ "--i": i } as CSSProperties}
           >
             <div className="pz-head">
+              <p className="pz-tag">{p.tag}</p>
               <h2>{p.name}</h2>
               {award(p)}
               {cohortPick(p)}
@@ -225,6 +309,7 @@ export default function PricingLab({ headline, sides, self, tutor, rows, words, 
           </p>
         ) : null}
       </div>
+      {pop ? <AwardCard a={pop} onClose={close} /> : null}
     </section>
   );
 }
