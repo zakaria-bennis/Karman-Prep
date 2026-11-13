@@ -64,7 +64,7 @@ test.describe("cookie note", () => {
 
   test("Essentials only saves a no and the note leaves", async ({ page, context }) => {
     await page.goto("/about");
-    const note = page.getByRole("dialog").filter({ hasText: "Cookies?" });
+    const note = page.getByRole("dialog").filter({ hasText: "Cookie Monster" });
     await expect(note).toBeVisible();
     await expect(note.getByRole("button", { name: "Allow all" })).toBeVisible();
     await note.getByRole("button", { name: "Essentials only" }).click();
@@ -75,7 +75,7 @@ test.describe("cookie note", () => {
 
   test("Allow all saves a yes", async ({ page, context }) => {
     await page.goto("/faq");
-    const note = page.getByRole("dialog").filter({ hasText: "Cookies?" });
+    const note = page.getByRole("dialog").filter({ hasText: "Cookie Monster" });
     await note.getByRole("button", { name: "Allow all" }).click();
     await expect(note).toHaveCount(0);
     const cookies = await context.cookies();

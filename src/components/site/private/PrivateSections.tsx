@@ -4,9 +4,10 @@
 //   3 The two packages, the same size: Private 10 in black, Private 20 in blue with its badges
 //   4 The free-call form: a name, a number, an email and a time
 // Words: site-copy.ts sections 31, 32, 33 and 36; numbers: facts.ts.
-import { Arrow, Btn } from "@/components/site/parts";
+import { Arrow } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import HeroLab from "@/components/site/hero/HeroLab";
 import CallForm from "./CallForm";
 import { PRIVATE_FACTS as F } from "./facts";
 import PlanPicker from "./PlanPicker";
@@ -26,39 +27,18 @@ export default function PrivateSections({ today }: { today: string }) {
   };
   return (
     <>
-      <section className="pg-hero pv-hero" id="top">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in">
-          <h1 aria-label={top.headline}>
-            {top.headline.split(" ").map((word, i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                data-num={/\d/.test(word) || undefined}
-                style={{ "--i": i } as React.CSSProperties}
-              >
-                {word}{" "}
-              </span>
-            ))}
-          </h1>
-          <div className="pg-close">
-            <div className="go-row">
-              <Btn label={top.button} href="#call" />
-              <a className="more" href="#packages">
-                {top["second button"]}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroLab
+        page="private"
+        headline={top.headline}
+        primary={{ label: top.button, href: "#call" }}
+        secondary={{ label: top["second button"], href: "#packages" }}
+      />
 
       <section className="sect pg-sect pv-book" id="session" aria-labelledby="session-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in pg-two rv">
           <div className="pg-say">
-            <h2 id="session-h">
-              <span>{book.headline}</span>
-            </h2>
+            <h2 id="session-h">{book.headline}</h2>
             <ul className="pv-points">
               {pairs(book.points).map(([k, v]) => (
                 <li key={k}>
@@ -90,7 +70,7 @@ export default function PrivateSections({ today }: { today: string }) {
               each: F.large.each,
               lead: packs["large lead"],
               bullets: list(packs["large bullets"]),
-              badges: [packs.best, `${packs.save} ${F.saved}`, packs["no limit"]],
+              badge: `${packs.save} ${F.saved}`,
             }}
             per={packs.per}
             call={packs.call}
@@ -110,7 +90,8 @@ export default function PrivateSections({ today }: { today: string }) {
             today={today}
             w={{
               ...slot,
-              name: close["form name"],
+              first: close["form first"],
+              last: close["form last"],
               phone: close["form phone"],
               email: close["form email"],
               button: close["form button"],
@@ -118,7 +99,8 @@ export default function PrivateSections({ today }: { today: string }) {
               doneTitle: close["form done title"],
               doneText: close["form done text"],
               errors: {
-                name: SITE["form error your name"],
+                first: SITE["form error your name"],
+                last: SITE["form error your name"],
                 phone: SITE["form error phone"],
                 email: SITE["form error email"],
                 slot: SITE["form error slot"],

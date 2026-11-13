@@ -8,11 +8,11 @@ import {
   PRIVATE_PACKAGES,
   PRO_PLAN,
 } from "@/lib/marketing/offer";
-import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import { list, pairs, section } from "@/lib/marketing/site-copy";
 import { placeExample } from "./ExampleTrack";
 import GuaranteeSections, { targetBands } from "./GuaranteeSections";
-import PricingSections from "./PricingSections";
-import { usd } from "./RefundSteps";
+import { pricingData } from "./pricing-data";
+import PricingPage from "./PricingPage";
 
 const text = (html: string) =>
   html
@@ -22,38 +22,35 @@ const text = (html: string) =>
     .replace(/&amp;/g, "&")
     .replace(/\s+/g, " ");
 
-describe("pricing, on the SAT Program page's frame", () => {
-  const html = renderToStaticMarkup(<PricingSections />);
+describe("the pricing page", () => {
+  const html = renderToStaticMarkup(<PricingPage {...pricingData("2026-11-13")} />);
   const words = text(html);
 
-  it("is built from the rebuilt pages' sections, with none of the older markup", () => {
-    expect(html).toContain('class="pg-hero dl-hero"');
-    expect(html.match(/class="sect pg-sect/g)?.length).toBeGreaterThanOrEqual(3);
-    expect(html).not.toMatch(/class="(p-hero|plans|gx|i-sec|panel guarantee)/);
+  it("opens on the tutor side with the cohort first, and nothing undefined", () => {
+    expect(html).toContain('class="pg-hero pz"');
+    expect(html.indexOf('data-plan="cohort"')).toBeLessThan(html.indexOf('data-plan="private-10"'));
     expect(words).not.toMatch(/undefined|NaN/);
   });
 
-  it("keeps every price and term from offer.ts", () => {
-    for (const p of [PRACTICE_PLAN, PRO_PLAN]) {
-      expect(words).toContain(formatPrice(p.monthly));
-      expect(words).toContain(formatPrice(p.threeMonths));
-    }
+  it("keeps the prices from offer.ts", () => {
     expect(words).toContain(formatPrice(MP.price));
-    expect(words).toContain(formatPrice(PRIVATE_PACKAGES[0].price));
-    expect(words).toContain(usd(MP.price / 2));
-    expect(words).toContain(SITE["pricing honest note"]);
-    expect(words).toContain(SITE["pricing scholarship"]);
-    expect(words).toContain(SITE["pricing renewal"]);
-    // the guarantee's whole deal is on the page, as the pricing text promises
-    for (const x of [...list(section(8)["we do"]), ...list(section(8)["you do"])])
-      expect(words).toContain(x);
-    for (const x of list(section(8).covers)) expect(words).toContain(x);
-    expect(words).toContain(section(8).claim);
+    for (const p of PRIVATE_PACKAGES) expect(words).toContain(formatPrice(p.price));
   });
 
-  it("links the badges to the guarantee section it renders", () => {
-    expect(html).toContain('href="#guarantee"');
-    expect(html).toContain('id="guarantee"');
+  it("offers a cohort only while its enrollment is open", () => {
+    const open = pricingData("2026-11-13").tutor[0].cohorts ?? [];
+    const later = pricingData("2027-01-10").tutor[0].cohorts ?? [];
+    expect(open).toHaveLength(3);
+    expect(open[0].award).toBe(true);
+    expect(later).toHaveLength(2);
+    expect(later[0].award).toBe(false);
+  });
+
+  it("prices self-study by the month, three months first", () => {
+    const [practice, pro] = pricingData("2026-11-13").self;
+    expect(practice.terms?.[0].note).toContain(formatPrice(PRACTICE_PLAN.threeMonths));
+    expect(practice.terms?.[1].price).toBe(formatPrice(PRACTICE_PLAN.monthly));
+    expect(pro.terms?.[1].price).toBe(formatPrice(PRO_PLAN.monthly));
   });
 });
 

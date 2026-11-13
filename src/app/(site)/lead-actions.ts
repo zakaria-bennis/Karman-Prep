@@ -18,6 +18,7 @@ import {
 import {
   FREE_PRACTICE_TEST,
   MARCH_PROGRAM,
+  CALL_MINUTES,
   NEXT_PROGRAMS,
   PRIVATE_PACKAGES,
   type LeadSource,
@@ -179,6 +180,59 @@ export async function submitLead(
   return { ok: true };
 }
 
+/** "2026-11-19 5:00 pm" in Central Time, as a moment. Null if it cannot be read. */
+function callStart(slot: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):00 (am|pm)$/.exec(slot);
+  if (!m) return null;
+  const hour = (Number(m[4]) % 12) + (m[5] === "pm" ? 12 : 0);
+  const noon = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12));
+  const central = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      hour: "numeric",
+      hourCycle: "h23",
+    }).format(noon)
+  );
+  return new Date(noon.getTime() + (hour - central) * 36e5);
+}
+
+/** A calendar invite for the free call, so opening the email puts it on the founder's calendar. */
+function callInvite(start: Date, data: Record<string, string | undefined>, to: string): string {
+  const stamp = (d: Date) =>
+    d
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
+  const clean = (v: string) =>
+    v
+      .replace(/[\\;,]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const end = new Date(start.getTime() + CALL_MINUTES * 60_000);
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Karman Prep//Free call//EN",
+    "METHOD:REQUEST",
+    "BEGIN:VEVENT",
+    `UID:call-${stamp(start)}-${clean(data.email ?? "").replace(/[^a-z0-9]/gi, "")}@karmanprep.com`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(start)}`,
+    `DTEND:${stamp(end)}`,
+    `SUMMARY:Karman free call: ${clean(data.name ?? "")}`,
+    `DESCRIPTION:Phone ${clean(data.phone ?? "")} · ${clean(data.email ?? "")}${data.plan ? ` · ${clean(data.plan)}` : ""}`,
+    `ORGANIZER;CN=Karman Prep:mailto:${to}`,
+    `ATTENDEE;CN=Karman Prep;RSVP=TRUE:mailto:${to}`,
+    "BEGIN:VALARM",
+    "TRIGGER:-PT15M",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Karman free call",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
 /** Sends the lead to the admin inbox. Returns whether it was accepted for delivery. */
 async function notifyAdmin(
   form: LeadForm,
@@ -196,10 +250,22 @@ async function notifyAdmin(
     data.name ? `${form === "call" ? "Name" : "Student's first name"}: ${data.name}` : "",
     ...Object.entries(details).map(([k, v]) => `${k}: ${v}`),
   ].filter(Boolean);
+  const start = form === "call" && data.slot ? callStart(data.slot) : null;
   const { error } = await resend.emails.send({
     from: FROM,
     to,
     replyTo: data.email,
+    ...(start
+      ? {
+          attachments: [
+            {
+              filename: "karman-call.ics",
+              content: Buffer.from(callInvite(start, data, to)).toString("base64"),
+              contentType: "text/calendar; method=REQUEST; charset=utf-8",
+            },
+          ],
+        }
+      : {}),
     subject: `New ${LABELS[form]}`,
     text: `${LABELS[form]} from karmanprep.com\n\n${lines.join("\n")}\n`,
   });

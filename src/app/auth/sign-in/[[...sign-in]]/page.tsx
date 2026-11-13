@@ -1,22 +1,12 @@
-// ============================================================
-// Clerk-powered Sign In — branded backdrop
-// ============================================================
-
-import { ThemedSignIn as SignIn } from "@/components/shared/ThemedClerkWidgets";
-import Link from "next/link";
-import { KarmanLogo } from "@/components/shared/KarmanLogo";
-import AuthBackdrop from "@/components/shared/AuthBackdrop";
+// Sign in, in the home page's world (AuthStage.tsx). Clerk still does the signing in.
+import AuthStage from "@/components/auth/AuthStage";
+import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 
 export default function SignInPage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <AuthBackdrop />
-
-      <Link href="/" className="relative z-10 mb-8" aria-label="Karman home">
-        <KarmanLogo size={64} variant="stacked" />
-      </Link>
-
-      <SignIn routing="path" path="/auth/sign-in" signUpUrl="/auth/sign-up" />
-    </div>
+    <SitePage kind="lit" route={[0.42, 0.42]} className={`${litFonts} sn-page`}>
+      <AuthStage mode="sign-in" headline="Sign in." line="Good to see you again." />
+    </SitePage>
   );
 }

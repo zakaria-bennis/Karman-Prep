@@ -1,6 +1,8 @@
 import SitePage from "@/components/site/SitePage";
-import PricingSections from "@/components/site/deal/PricingSections";
+import PricingPage from "@/components/site/deal/PricingPage";
+import { pricingData } from "@/components/site/deal/pricing-data";
 import { litFonts } from "@/components/site/home/fonts";
+import { fraunces } from "@/components/site/display-font";
 import { pageMeta } from "@/components/site/meta";
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -19,10 +21,13 @@ export const metadata = pageMeta(
 
 /* In the home page's world, on the SAT Program page's frame (founder, 2026-11-12). The landscape keeps
    travelling: pricing flies the stretch after About's. */
-export default function PricingPage() {
+/* Read per request, so a cohort whose enrollment has closed drops off the card the next day. */
+export const dynamic = "force-dynamic";
+
+export default function Pricing() {
   return (
-    <SitePage kind="lit" route={[0.56, 0.72]} className={litFonts}>
-      <PricingSections />
+    <SitePage kind="lit" route={[0.56, 0.72]} className={`${litFonts} ${fraunces.variable}`}>
+      <PricingPage {...pricingData(new Date().toISOString().slice(0, 10))} />
     </SitePage>
   );
 }

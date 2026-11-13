@@ -23,6 +23,7 @@
 // reads the cookie and skips the banner entirely.
 // ============================================================
 
+import { Fox } from "@/components/portal/Fox";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import "./consent.css";
@@ -98,25 +99,22 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
       data-leaving={leaving ? "" : undefined}
     >
       <div className="kc-top">
-        <svg className="kc-cookie" viewBox="0 0 48 48" aria-hidden="true">
-          <circle className="crumb" cx="24" cy="25" r="20" />
-          <circle className="dough" cx="24" cy="24" r="19" />
-          <circle className="chip" cx="16" cy="18" r="2.6" />
-          <circle className="chip" cx="28" cy="15" r="2.2" />
-          <circle className="chip" cx="31" cy="28" r="2.8" />
-          <circle className="chip" cx="19" cy="31" r="2.3" />
-          <circle className="chip" cx="24" cy="23" r="1.6" />
-          <g className="bite">
-            <circle cx="40" cy="6" r="7" />
-            <circle cx="45" cy="13" r="6" />
-            <circle cx="33" cy="3" r="6" />
-          </g>
-        </svg>
+        {/* the fox works through a plate of cookies, one bite after another */}
+        <span className="kc-eat" aria-hidden="true">
+          <Fox size={46} />
+          {[0, 1, 2].map((i) => (
+            <i key={i} style={{ "--n": i } as React.CSSProperties} />
+          ))}
+          {[0, 1, 2, 3].map((i) => (
+            <b key={i} style={{ "--n": i } as React.CSSProperties} />
+          ))}
+        </span>
         <div>
-          <h2 id="replay-consent-title">Cookies? Just the boring kind.</h2>
+          <h2 id="replay-consent-title">Cookie Monster would be so disappointed.</h2>
           <p id="replay-consent-body">
-            Allow all and we can count visits (just us, no ads) and replay a session to squash bugs.
-            Anything you type stays hidden. <a href={privacyHref}>Details</a>
+            Ours have zero chocolate chips. They just help us make Karman Prep better for every
+            student. We never share, lend or sell your data. No matter what.{" "}
+            <a href={privacyHref}>Details</a>
           </p>
         </div>
       </div>

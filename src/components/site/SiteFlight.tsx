@@ -48,6 +48,13 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
           },
         });
         if (!flight.start()) return;
+        /* a page's opening (HeroLab.tsx asks for it with data-intro): the landscape performs, and the page
+           is told the moment it begins so its headline can arrive in step */
+        const open = () => {
+          if (ks.dataset.intro && flight.open()) document.dispatchEvent(new Event("karman:opened"));
+        };
+        open();
+        document.addEventListener("karman:intro", open);
         const onChange = () => {
           mark();
           flight.wake();
@@ -59,6 +66,7 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
         dispose = () => {
           mode.disconnect();
           document.removeEventListener("karman:motion", onChange);
+          document.removeEventListener("karman:intro", open);
           reduce.removeEventListener("change", onChange);
           flight.dispose();
         };

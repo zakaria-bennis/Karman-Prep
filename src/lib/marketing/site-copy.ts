@@ -283,20 +283,19 @@ none: No open times this day
 headline: Two ways to work one-on-one.
 small package: ${P10.name} = ${$(P10.price)}
 large package: ${P20.name} = ${$(P20.price)}
-small lead: Everything in ${PRO.name}
-small bullets: ${W(P10.hours)} 60-minute sessions, one a week | A tutor from our team of PhD and medical students | Book and move your own sessions | A full practice test every week | Homework built from their own mistakes | Every session recorded | Session statuses sent within 24 hours after each class | A private text line to the tutor | ${UP_TO.cohort}, or half back / free sessions
+small lead: Everything in ${PRO.name}, plus
+small bullets: ${W(P10.hours)} 60-minute sessions, once a week | A tutor from our team of PhD and medical students | Book and reschedule your own sessions | A full practice test every week | Personalized homework that adapts to their weak spots | Session recordings and recaps | Session statuses sent within 24 hours after each class | Direct iMessage or WhatsApp texting with your tutor | ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions
 large lead: Everything in ${P10.name}, plus
-large bullets: ${W(P20.hours)} sessions, ${usd(P20.price / P20.hours)} each | No limit on sessions a week | The bonus guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${W(PRIVATE_BONUS[P20.id].freeSessions)} free sessions if we miss
-best: Most families pick this
+large bullets: ${P20.hours} sessions | No limit on sessions per week | Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
 save: Save
-no limit: No limit on sessions a week
 per: a session
 call: Schedule a free call
 link: The guarantee, in full
 
 ## 36 Private: close
 headline: Schedule a free call.
-form name: Your name
+form first: First name
+form last: Last name
 form phone: Phone
 form email: Email
 form button: Schedule my call
@@ -371,6 +370,46 @@ button: Take the free practice test
 ## 56 Guarantee: targets
 headline: The target, by starting score.
 rows: ${BAND_LABELS[0]} = +${G.bands[0].cohort} on the cohort and ${P10.name}. +${G.bands[0].private} on ${P20.name} | ${BAND_LABELS[1]} = +${G.bands[1].cohort} on the cohort and ${P10.name}. +${G.bands[1].private} on ${P20.name} | ${BAND_LABELS[2]} = +${G.bands[2].cohort} on the cohort and ${P10.name}. +${G.bands[2].private} on ${P20.name} | ${BAND_LABELS[3]} = +${G.bands[3].cohort} on the cohort and ${P10.name}. +${G.bands[3].private} on ${P20.name} | ${G.noGuaranteeFrom} or higher = No guarantee. We tell you before you pay
+
+## 58 Pricing
+headline: Pick how your student preps.
+self: Self-study
+tutor: With a tutor
+tag class: Live class
+tag one: One-on-one
+month: a month
+term three: 3 months
+term one: Monthly
+billed three: billed {total} every 3 months
+billed one: billed every month
+practice bullets: ${QB.practiceCount.toLocaleString("en-US")}+ questions covering every SAT skill | ${W(QB.practiceTests)} full-length practice tests | A written explanation for every question | The Daily 10: ten questions a day from the skills they miss | One predicted SAT score, updated as they practice | The built-in graphing calculator | Progress for parents on their phone
+practice button: Start ${PP.name}
+pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")}+ more questions, the two hardest levels | ${W(QB.proTests)} full-length practice tests | Workshops and live office hours every week
+pro button: Start ${PRO.name}
+cohort line: ${UP_TO.cohort}, or your money back.
+cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week
+cohort unit: ${w(MP.weeks)} weeks
+cohort note: or ${SPLIT}
+cohort button: Reserve a seat
+sat: Their SAT
+starts: Classes start
+closes: Enrollment closes
+small line: ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions.
+small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, once a week | Book and reschedule your own sessions | A full practice test every week
+large line: Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)}.
+large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no limit on sessions per week | A personalized study plan | Priority booking | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
+save: Save
+a session: a session
+private button: Schedule a free call
+link: The guarantee, in full
+award badge: scholarship
+award badge sub: One student per cohort wins it
+award name: The Summit Scholarship
+award sub: {amount} awarded to the top student of every cohort.
+award refund: Your full program, refunded
+award bonus: Extra, for your student's hard work
+award how: Send us the score report within one month of scores coming out. | Both amounts are paid straight to the parent's bank account one month after scores come out. | Open to the ${MP.shortName}.
+award close: Close
 
 ## 61 About: opening
 headline: We show our work. All of it.
@@ -565,7 +604,6 @@ private alt: A tutor at home, mid-explanation to a student on a video call, one 
 test alt: A student at a kitchen table, chin on his hand, working through a timed practice test on a laptop.
 guarantee alt: A parent on the sofa in the evening, reading on a phone, a cup of tea beside them.
 about alt: Three teammates on a gym bench during a break at practice, one showing another something on her phone.
-pricing alt: A parent and her daughter at a kitchen counter, looking at a laptop together, the daughter pointing at something.
 lin alt: A tutor at her desk at home, mid-explanation on a video call, one hand open as she makes a point.
 daily alt: A runner on the bleachers after practice, answering questions on his phone, a towel beside him.
 start alt: A student just home from school, backpack still on one shoulder, opening her laptop at the kitchen counter.
@@ -575,7 +613,7 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 ## Site
 logo: Karman
 free test link: Free practice test
-start free: Start free
+start free: Get started
 program link: The SAT Program
 private link: Private tutoring
 schools link: Schools
@@ -623,35 +661,8 @@ form error slot: Pick a day and a time for the call.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
 form retry: Try again
-pricing headline: The full price, before you talk to anyone.
-pricing text: Nothing is added later: no materials fee, no platform fee.
-pricing date question: When does your student want to start?
-pricing other date: Another time
-pricing guarantee headline: What you get back, by score.
-pricing badge: ${UP_TO.cohort}, or money back or the next cohort free.
-pricing private badge: ${P10.name}: up to +${guaranteeMax("cohort")}. ${P20.name}: up to +${guaranteeMax("private")}.
-pricing guarantee text: Half or all of the price back, or the next cohort free, depending on the score. You choose. Every rule is listed below.
-pricing compare title: What each option includes
-pricing compare open: Compare everything, line by line
-pricing program button: Apply for a seat
-pricing program deposit: Apply, then a ${CALL_MINUTES}-minute call with ${FOUNDER.firstName}, your student and you. If there's a seat and it fits, a ${$(MP.depositAmount)} refundable deposit holds it. It counts toward the ${$(MP.price)}.
-pricing plans title: ${PP.name} and ${PRO.name}
 pricing practice button: Start ${PP.name}
 pricing pro button: Start ${PRO.name}
-pricing plans note: No guarantee: it covers the cohort and private tutoring, where a tutor teaches every week.
-pricing renewal: ${PLAN_RENEWAL}
-pricing free note: Or start free: ${FREE.questionLimit} questions and ${w(FREE.fullLengthTests)} full-length test, no card.
-pricing private button: Book a call with ${FOUNDER.firstName}
-pricing other note: ${PP.name}, ${PRO.name} and private tutoring start any day.
-pricing full: Pay in full
-pricing split: ${MP.installments.count} payments
-pricing split note: After the ${$(MP.depositAmount)} deposit
-pricing more: Schools and tutors
-pricing schools: ${SCHOOL.name} = Free for the first year, then ${$(SCHOOL.pricePerStudentPerYear)} per student a year. Every student gets a ${PP.name} plan of their own.
-pricing tutors: ${TA.name} = ${$(TA.monthly)} a month. One code gives up to ${TA.maxStudents} of your students ${PP.name}, free while you subscribe.
-pricing guarantee link: The guarantee, with worked examples
-pricing honest note: If you're already scoring ${INTAKE.scoreFrom} or higher, or your test is less than ${w(INTAKE.minWeeks)} weeks away, we'll tell you honestly that a program probably isn't the best use of your money.
-pricing scholarship: The student with the top SAT score in every cohort gets a ${$(SCH.amount)} scholarship: the ${$(SCH.refund)} back, plus ${$(SCH.meritBonus)}.
 `;
 
 /* ---------- reading the copy ---------- */

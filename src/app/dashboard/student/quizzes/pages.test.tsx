@@ -20,10 +20,9 @@ vi.mock("@/lib/catalog-practice/history-server", () => ({
 vi.mock("@/components/student-portal/StudentPortal", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
-vi.mock("next/font/google", () => {
-  const font = () => ({ className: "", variable: "", style: { fontFamily: "" } });
-  return { Caveat: font, Hanken_Grotesk: font, Young_Serif: font };
-});
+vi.mock("next/font/local", () => ({
+  default: () => ({ className: "", variable: "", style: { fontFamily: "" } }),
+}));
 vi.mock("@/lib/student/context", () => ({ loadStudentContext: async () => ({}) }));
 vi.mock("@/components/learn/QuizReviewQuestion", () => ({
   default: () => <div>Reviewed question content</div>,

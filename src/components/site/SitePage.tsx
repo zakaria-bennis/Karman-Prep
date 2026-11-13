@@ -2,7 +2,7 @@
 // (ShellBehaviour). Ported from the approved mock's site.js (2026-10-25). Links are plain <a> on purpose:
 // each page is a full load, so the loaders follow the mock's rules exactly.
 import type { CSSProperties, ReactNode } from "react";
-import { Anton, Hanken_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
 import { TEXT_SIZE_BOOT } from "./text-size";
@@ -12,16 +12,16 @@ import ShellBehaviour from "./ShellBehaviour";
 import SiteFlight from "./SiteFlight";
 import SiteTouches from "./SiteTouches";
 
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const hanken = localFont({
+  src: "../../app/fonts/web/hanken-grotesk-latin-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-hanken",
   display: "swap",
 });
 
 /** The Impact-style headline face, on trial: only pages opened with ?type=impact use it (film.css). */
-const impact = Anton({
-  subsets: ["latin"],
+const impact = localFont({
+  src: "../../app/fonts/web/anton-latin-400-normal.woff2",
   weight: "400",
   variable: "--font-impact",
   display: "swap",

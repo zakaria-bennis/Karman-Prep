@@ -9,28 +9,10 @@ import TimeLeft from "./TimeLeft";
 import ScoreClimb from "./ScoreClimb";
 import PortalDeck from "./PortalDeck";
 import ProgramPromise from "./ProgramPromise";
+import HeroLab from "@/components/site/hero/HeroLab";
 import { ROUTES } from "@/components/site/routes";
 import { GUARANTEE as G, guaranteedGain, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
-
-/** The two actions and the dates. The seat is reserved on the pricing page for now. */
-function Actions() {
-  const s = section(21);
-  return (
-    <div className="pg-close">
-      <div className="go-row">
-        <Btn label={s.button} href={ROUTES.pricing} />
-        <a className="more" href="#promise">
-          {s["second button"]}
-          <Arrow />
-        </a>
-      </div>
-      <p className="fine">
-        {s.closes} {s.starts}
-      </p>
-    </div>
-  );
-}
 
 function Tick() {
   return (
@@ -55,23 +37,21 @@ export default function ProgramSections() {
   return (
     <>
       {/* 1. The outcome, and the switch: a starting score in, the promised points out */}
-      <section className="pg-hero" id="top">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in pg-two">
-          <div className="pg-say">
-            <h1>{open.headline}</h1>
-            <Actions />
-          </div>
-          <ProgramPromise
-            ask={promise.ask}
-            bands={list(promise.bands)}
-            gains={G.bands.map((b) => b.cohort)}
-            promise={promise.promise}
-            highTitle={promise["high title"]}
-            high={promise.high}
-          />
-        </div>
-      </section>
+      <HeroLab
+        page="program"
+        headline={open.headline}
+        primary={{ label: open.button, href: ROUTES.pricing }}
+        secondary={{ label: open["second button"], href: "#promise" }}
+      >
+        <ProgramPromise
+          ask={promise.ask}
+          bands={list(promise.bands)}
+          gains={G.bands.map((b) => b.cohort)}
+          promise={promise.promise}
+          highTitle={promise["high title"]}
+          high={promise.high}
+        />
+      </HeroLab>
 
       {/* 2. The nine weeks, as a climb */}
       <section className="sect pg-sect" id="week" aria-labelledby="week-h">
@@ -122,7 +102,7 @@ export default function ProgramSections() {
                 <span className="pg-was">
                   <s className="num">{value.total}</s>
                   <svg viewBox="0 0 120 30" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M3 21C22 9 34 24 52 13s26 11 40-1 16 6 25-3" />
+                    <path d="M3 17L117 13" />
                   </svg>
                 </span>
                 <span>

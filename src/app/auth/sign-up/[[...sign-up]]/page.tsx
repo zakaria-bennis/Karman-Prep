@@ -1,27 +1,17 @@
-// ============================================================
-// Clerk-powered Sign Up — branded backdrop
-// ============================================================
-
-import { ThemedSignUp as SignUp } from "@/components/shared/ThemedClerkWidgets";
-import Link from "next/link";
-import { KarmanLogo } from "@/components/shared/KarmanLogo";
-import AuthBackdrop from "@/components/shared/AuthBackdrop";
-import { FREE_PLAN } from "@/lib/marketing/offer";
-
-/** Every new account starts on the Free plan; paid plans are picked later in Billing. */
-const START_FREE = `Start free: ${FREE_PLAN.questionLimit} questions and one full-length test, no card.`;
+// Get started, in the home page's world (AuthStage.tsx). Clerk still makes the account.
+// Every new account starts on the Free plan; paid plans are picked later in Billing.
+import AuthStage from "@/components/auth/AuthStage";
+import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 
 export default function SignUpPage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      <AuthBackdrop />
-
-      <Link href="/" className="relative z-10 mb-4" aria-label="Karman home">
-        <KarmanLogo size={64} variant="stacked" />
-      </Link>
-      <p className="relative z-10 mb-6 max-w-sm text-center text-xs text-taupe">{START_FREE}</p>
-
-      <SignUp routing="path" path="/auth/sign-up" signInUrl="/auth/sign-in" />
-    </div>
+    <SitePage kind="lit" route={[0.3, 0.3]} className={`${litFonts} sn-page`}>
+      <AuthStage
+        mode="sign-up"
+        headline="Get started."
+        line="Make your account in under a minute."
+      />
+    </SitePage>
   );
 }

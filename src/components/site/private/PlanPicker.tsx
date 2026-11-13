@@ -1,9 +1,9 @@
 "use client";
 
 // The two private packages, side by side and the same size: Private 10 in shimmering black, Private 20 in
-// shimmering blue with its badges. The plan under the pointer (or holding the keyboard focus) lifts and
-// lights up a little. Either button goes to the free-call form at the bottom of the page, and tells it
-// which plan was chosen.
+// shimmering blue with one ribbon across its corner, what it saves. The plan under the pointer (or holding the keyboard focus)
+// lifts and lights up a little. Either button goes to the free-call form at the bottom of the page, and
+// tells it which plan was chosen.
 import { Arrow } from "@/components/site/parts";
 
 export interface Plan {
@@ -13,7 +13,8 @@ export interface Plan {
   /** The line under the price: "Everything in Pro", "Everything in Private 10, plus". */
   lead: string;
   bullets: string[];
-  badges?: string[];
+  /** "Save 16%" */
+  badge?: string;
 }
 
 function Tick() {
@@ -38,12 +39,10 @@ export default function PlanPicker({
 }) {
   const card = (k: "small" | "large", p: Plan) => (
     <article className="pl" data-plan={k}>
-      {p.badges ? (
-        <p className="pl-badges">
-          {p.badges.map((b) => (
-            <em key={b}>{b}</em>
-          ))}
-        </p>
+      {p.badge ? (
+        <em className="pl-rib">
+          <span>{p.badge}</span>
+        </em>
       ) : null}
       <h3>{p.name}</h3>
       <p className="pl-price">

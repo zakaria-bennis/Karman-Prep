@@ -1,27 +1,27 @@
 /*
  * The portal type: Young Serif for big headings, Hanken Grotesk for everything else (all
- * numbers included), Caveat for handwritten tutor notes. next/font serves them from our own
+ * numbers included), Caveat for handwritten tutor notes. They are kept in the project (src/app/fonts/web) and served from our own
  * domain with size-adjusted fallbacks, so text does not shift when the fonts arrive.
  */
-import { Caveat, Hanken_Grotesk, Young_Serif } from "next/font/google";
+import localFont from "next/font/local";
 
-export const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+export const hanken = localFont({
+  src: "../../app/fonts/web/hanken-grotesk-latin-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-hanken",
   display: "swap",
 });
 
-export const youngSerif = Young_Serif({
-  subsets: ["latin"],
+export const youngSerif = localFont({
+  src: "../../app/fonts/web/young-serif-latin-400-normal.woff2",
   weight: "400",
   variable: "--font-young-serif",
   display: "swap",
 });
 
-export const caveat = Caveat({
-  subsets: ["latin"],
-  weight: "500",
+export const caveat = localFont({
+  src: "../../app/fonts/web/caveat-latin-wght-normal.woff2",
+  weight: "400 700",
   variable: "--font-caveat",
   display: "swap",
   preload: false,

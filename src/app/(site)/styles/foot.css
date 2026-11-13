@@ -42,3 +42,7 @@
 .ks .ft .ft-social svg { width: 22px; height: 22px; }
 .ks .ft .credit { margin-left: auto; }
 @media (hover: hover) and (pointer: fine) { .ks .ft .ft-social a:hover { background: rgba(255, 250, 243, .24); transform: translateY(-3px); text-decoration: none; } }
+
+/* The wordmark's sunset glow belongs to the home page, whose landscape ends at sunset. On every other page in
+   this look it is plain cream (founder, 2026-11-13). */
+.ks.lit:not(.page-home) .ft .mark span { color: var(--cream); background: none; -webkit-background-clip: border-box; background-clip: border-box; }

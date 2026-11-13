@@ -4,7 +4,9 @@
 /* ---------- the opening's frame: centred, on a full band of mist (this page flies
    over rock and grass, so the words need more mist than the home page's sky does) ---------- */
 .ks .pg-hero { position: relative; min-height: 100svh; display: grid; align-content: center; justify-items: center; padding: clamp(104px, 13svh, 132px) var(--gutter) clamp(56px, 8svh, 90px); }
-.ks .pg-hero .mist { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, color-mix(in srgb, var(--mist) 84%, transparent), color-mix(in srgb, var(--mist) 78%, transparent) 88%, transparent); }
+/* the veil behind the words is the home page's: light, and only where the words are, so the landscape
+   shows as bright and as detailed as it does there (founder, 2026-11-13; it was a flat 80% wash) */
+.ks .pg-hero .mist { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 58% 52% at 50% 50%, color-mix(in srgb, var(--mist) 58%, transparent), color-mix(in srgb, var(--mist) 34%, transparent) 55%, transparent 80%); }
 .ks.lit .pg-hero h1 { font-size: clamp(32px, 3.5vw, 54px); line-height: 1.12; max-width: 19em; text-wrap: balance; }
 .ks .pg-close { display: grid; gap: 14px; justify-items: center; }
 .ks .pg-close .go-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; }
@@ -14,7 +16,7 @@
 
 /* ---------- the rest of the page: centred sections on the same band of mist ---------- */
 .ks .pg-hero .lede, .ks .pg-sect .lede { text-align: center; max-width: 34em; }
-.ks .pg-sect > .mist { background: color-mix(in srgb, var(--mist) 80%, transparent); }
+.ks .pg-sect > .mist { background: radial-gradient(ellipse 72% 60% at 50% 50%, color-mix(in srgb, var(--mist) 60%, transparent), color-mix(in srgb, var(--mist) 38%, transparent) 60%, transparent 86%); -webkit-mask-image: none; mask-image: none; }
 .ks .pg-sect { display: grid; justify-items: center; }
 .ks.lit .pg-sect h2 { font-size: clamp(28px, 3.2vw, 48px); line-height: 1.14; max-width: 20em; text-wrap: balance; }
 .ks .pg-in.rv { transition: opacity .8s var(--out), transform .9s var(--spring); }
@@ -168,7 +170,7 @@
 .ks .pg-was s { text-decoration: none; color: var(--ink2); }
 .ks .pg-was svg { position: absolute; left: -8%; top: 4%; width: 116%; height: 92%; fill: none; stroke: #d2452f; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
 .ks .pg-was path { stroke-dasharray: 170; stroke-dashoffset: 170; }
-.ks .pg-in.rv.on .pg-was path { animation: pg-draw .7s cubic-bezier(.5, 0, .2, 1) 1.1s forwards; }
+.ks .pg-in.rv.on .pg-was path { animation: pg-draw .35s cubic-bezier(.5, 0, .2, 1) 3.050s forwards; }
 
 .ks .pg-start { position: relative; display: grid; gap: 12px; justify-items: start; text-align: left; padding: clamp(24px, 2.6vw, 36px); border-radius: 30px; background: var(--cream); color: var(--ink); box-shadow: 0 26px 50px -32px rgba(29, 26, 34, .7), 0 0 0 1px rgba(29, 26, 34, .06); }
 .ks .pg-start .lede { font-size: clamp(16px, 1.3vw, 19px); }
@@ -312,3 +314,41 @@
 .ks .pg-clock li::before { left: -2px; }
 .ks .pg-clock li::after { right: -2px; }
 .ks.lit[data-mode="dark"] .pg-clock li, .ks.lit[data-mode="dark"] .pg-clock li:last-child { background: linear-gradient(180deg, #fffaf3 0 49.5%, #cfc6b6 49.5% 50.5%, #f1e9dc 50.5%); color: #1d1a22; }
+
+/* 2026-11-13 (founder): no solid black or white cards. Every card is frosted glass with a quiet tint, so the
+   landscape still reads first, in day and in night. */
+.ks :is(.pg-terms, .pg-bill, .pg-start), .ks .pg-deal .pg-terms:first-child { --tint: #2449b8; background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 20%, transparent), color-mix(in srgb, var(--tint) 7%, transparent) 62%), rgba(255, 253, 248, .36); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); color: var(--ink); box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .7), inset 0 0 0 1px color-mix(in srgb, var(--tint) 26%, transparent), 0 24px 46px -30px rgba(29, 26, 34, .6); }
+.ks.lit[data-mode="dark"] :is(.pg-terms, .pg-bill, .pg-start), .ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child { background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 30%, transparent), color-mix(in srgb, var(--tint) 10%, transparent) 62%), rgba(20, 18, 26, .48); color: var(--cream); box-shadow: inset 0 1.5px 0 rgba(255, 250, 243, .2), inset 0 0 0 1px color-mix(in srgb, var(--tint) 34%, transparent), 0 24px 46px -30px rgba(0, 0, 0, .9); }
+.ks .pg-deal .pg-terms:first-child { --a: #2449b8; }
+.ks .pg-deal .pg-terms:first-child .pg-tick path, .ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child .pg-tick path { stroke: #fff; }
+.ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child { --a: #8fb0ff; }
+.ks.lit[data-mode="dark"] .pg-deal .pg-terms:first-child .pg-tick path { stroke: #17151c; }
+.ks .pg-deal .pg-theirs { --tint: #2f8f6b; }
+.ks .pg-start { --tint: #f07a2e; }
+/* the flap clock keeps dark flaps at night too, so it never flashes white */
+.ks.lit[data-mode="dark"] .pg-clock li, .ks.lit[data-mode="dark"] .pg-clock li:last-child { background: linear-gradient(180deg, #37333f 0 49.5%, #15131a 49.5% 50.5%, #262330 50.5%); color: #fffaf3; }
+/* the bonus for reserving now: tinted frost like its neighbours, no gold. It is held back three seconds after
+   the screen arrives, then pops in and its gift gives a shake, to win the eye back once it has wandered. */
+.ks .pg-bonus, .ks.lit[data-mode="dark"] .pg-bonus { --tint: #f07a2e; position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 13px; align-items: center; padding: 15px 22px 16px 16px; border-radius: 24px; background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 30%, transparent), color-mix(in srgb, var(--tint) 12%, transparent) 62%), rgba(255, 253, 248, .36); -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); color: var(--ink); font-weight: 800; box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .7), inset 0 0 0 2px color-mix(in srgb, var(--tint) 60%, transparent), 0 20px 34px -22px color-mix(in srgb, var(--tint) 70%, rgba(29, 26, 34, .7)); }
+.ks.lit[data-mode="dark"] .pg-bonus { background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 36%, transparent), color-mix(in srgb, var(--tint) 12%, transparent) 62%), rgba(20, 18, 26, .48); color: var(--cream); box-shadow: inset 0 1.5px 0 rgba(255, 250, 243, .2), inset 0 0 0 2px color-mix(in srgb, var(--tint) 60%, transparent), 0 20px 34px -22px rgba(0, 0, 0, .9); }
+.ks .pg-bonus::before { content: ""; width: 30px; height: 30px; background: var(--tint); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h18v4H3zM5 13h14v8H5zM11 9h2v12h-2zM12 9C9 9 6.500 7.500 7 5.500 7.600 3 11 4 12 9zM12 9c3 0 5.500-1.500 5-3.500C16.400 3 13 4 12 9z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h18v4H3zM5 13h14v8H5zM11 9h2v12h-2zM12 9C9 9 6.500 7.500 7 5.500 7.600 3 11 4 12 9zM12 9c3 0 5.500-1.500 5-3.500C16.400 3 13 4 12 9z'/%3E%3C/svg%3E") center / contain no-repeat; transform-origin: 50% 90%; }
+.ks .pg-in.rv:not(.on) .pg-bonus { opacity: 0; }
+.ks .pg-in.rv.on .pg-bonus { animation: pg-gift .9s cubic-bezier(.3, 1.5, .5, 1) 3s both; }
+.ks .pg-in.rv.on .pg-bonus::before { animation: pg-shake 1.100s ease-in-out 3.900s 2; }
+@keyframes pg-gift { from { opacity: 0; scale: .8; translate: 0 22px; } }
+@keyframes pg-shake { 0%, 100% { rotate: 0deg; } 20% { rotate: -14deg; } 40% { rotate: 12deg; } 60% { rotate: -8deg; } 80% { rotate: 5deg; } }
+@media (prefers-reduced-motion: reduce) { .ks .pg-in.rv .pg-bonus, .ks .pg-in.rv .pg-bonus::before { animation: none !important; opacity: 1; } }
+/* The total (founder, 2026-11-13): for two seconds $2,840 stands as the price, large. Then $995 drops on it:
+   the old price is squashed, shrinks into its corner and is struck through, and the row shakes once. */
+.ks .pg-in.rv:not(.on) .pg-sum > span { opacity: 0; }
+.ks .pg-in.rv.on .pg-was { transform-origin: 100% 50%; animation: pg-reign 3.400s cubic-bezier(.3, .9, .3, 1) .5s both; }
+.ks .pg-in.rv.on .pg-was s { animation: pg-fade-ink 3.400s linear .5s both; }
+.ks .pg-in.rv.on .pg-sum > span:last-child { transform-origin: 100% 100%; animation: pg-smash .75s cubic-bezier(.3, 1.6, .5, 1) 2.550s both; }
+.ks .pg-in.rv.on .pg-sum { animation: pg-quake .5s ease-out 2.800s; }
+@keyframes pg-reign { 0% { opacity: 0; scale: 1.4; translate: 0 30px; } 7% { opacity: 1; scale: 2.300; translate: 0 34px; } 60% { scale: 2.300; translate: 0 34px; rotate: 0deg; } 64% { scale: 2.600 1.300; translate: 0 44px; rotate: 0deg; } 74% { scale: .8; translate: -6px -6px; rotate: -7deg; } 100% { opacity: 1; scale: 1; translate: 0 0; rotate: 0deg; } }
+@keyframes pg-fade-ink { 0%, 60% { color: var(--ink); } 100% { color: var(--ink2); } }
+.ks.lit[data-mode="dark"] .pg-in.rv.on .pg-was s { animation-name: pg-fade-cream; }
+@keyframes pg-fade-cream { 0%, 60% { color: var(--cream); } 100% { color: #cdc7d6; } }
+@keyframes pg-smash { 0% { opacity: 0; translate: 0 -170px; scale: 1.700; rotate: -5deg; } 55% { opacity: 1; translate: 0 6px; scale: 1.060 .9; rotate: 0deg; } 100% { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes pg-quake { 0%, 100% { translate: 0 0; } 20% { translate: -5px 3px; } 40% { translate: 4px -2px; } 60% { translate: -3px 2px; } 80% { translate: 2px 0; } }
+@media (prefers-reduced-motion: reduce) { .ks .pg-in.rv .pg-sum, .ks .pg-in.rv .pg-sum > span, .ks .pg-in.rv .pg-was s { animation: none !important; opacity: 1 !important; } }
