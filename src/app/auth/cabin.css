@@ -1,6 +1,16 @@
-/* The warm sign-in (CabinStage.tsx): a snowy cabin drawn on a canvas, a greeting that types itself in, three
-   pills and a quiet single sign-on link. The scene is sunrise in light mode and a foggy night in dark mode; a
-   soft shadow sits behind the words, so they stay cream in both. */
+/* The warm sign-in (CabinStage.tsx): a snowy cabin drawn on a canvas, a greeting that types itself in, and
+   Clerk's form restyled as warm pills by Clerk's own class names (.cl-...). The scene is sunrise in light mode
+   and a foggy night in dark mode; a soft shadow sits behind the words, so they stay cream in both. */
+
+/* the frame keeps only the name in the top bar: no menu, no footer */
+.ks.cb-page .hd nav,
+.ks.cb-page .hd .cta,
+.ks.cb-page .hd .si,
+.ks.cb-page .hd .menu,
+.ks.cb-page .ft,
+.ks.cb-page .hd::before {
+  display: none;
+}
 /* behind the canvas while it comes into focus: pale flurry by day, deep blue by night */
 .ks.cb-page {
   background: #d8cad8;
@@ -8,21 +18,22 @@
 .ks.cb-page[data-mode="dark"] {
   background: #0b0f26;
 }
-.ks.cb-page .hd::before {
-  display: none;
-}
 .ks.cb-page .hd .mark {
   color: #fff3df;
   text-shadow: 0 2px 22px rgba(10, 8, 30, 0.6);
 }
 .ks .cb {
+  --ink: #2a1c16;
+  --cream: #fff3df;
+  --amber: #ffc98a;
+  --pill: linear-gradient(#fff6e8, #ffe9cf);
   position: relative;
   min-height: 100svh;
   display: grid;
   align-content: end;
   justify-items: center;
   padding: 96px var(--gutter) max(26px, env(safe-area-inset-bottom));
-  color: #fff3df;
+  color: var(--cream);
 }
 .ks .cb-scene {
   position: fixed;
@@ -48,7 +59,7 @@
   gap: 13px;
   justify-items: stretch;
 }
-/* a soft dusk shadow behind the words only, so they read on the trees */
+/* a soft dusk shadow behind the words only, so they read on the snow and the trees */
 .ks .cb-in::before {
   content: "";
   position: absolute;
@@ -65,6 +76,8 @@
 .ks.lit[data-mode="dark"] .cb-in::before {
   opacity: 0.6;
 }
+
+/* ---------- the greeting ---------- */
 .ks.lit .cb .cb-hello {
   margin: 0;
   min-height: 2.3em;
@@ -91,7 +104,7 @@
   margin-left: 4px;
   vertical-align: -0.08em;
   border-radius: 2px;
-  background: #ffc98a;
+  background: var(--amber);
   animation: cb-blink 1.1s steps(1) infinite;
 }
 .ks .cb-caret[data-idle] {
@@ -112,27 +125,95 @@
     opacity: 0;
   }
 }
-.ks .cb-pills {
+
+/* ---------- Clerk's form ---------- */
+.ks .cb-form {
+  display: grid;
+  gap: 11px;
+  animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.5s both;
+}
+.ks .cb .cl-rootBox,
+.ks .cb .cl-cardBox,
+.ks .cb .cl-card {
+  width: 100%;
+  max-width: none;
+}
+.ks .cb :is(.cl-cardBox, .cl-card) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+.ks .cb .cl-card {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+}
+.ks .cb .cl-main {
   display: grid;
   gap: 11px;
 }
-.ks .cb-pill,
-.ks .cb-email {
-  min-height: 54px;
-  border-radius: 999px;
-  animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+/* the first step needs no title (the greeting is above it); later steps keep Clerk's, so the visitor is told
+   what to do with the emailed code */
+.ks .cb :is(.cl-signIn-start, .cl-signUp-start) .cl-header,
+.ks .cb .cl-dividerRow,
+.ks .cb .cl-footer {
+  display: none;
 }
-.ks .cb-pill {
+.ks .cb .cl-header {
+  text-align: center;
+}
+.ks .cb .cl-headerTitle {
+  color: var(--cream);
+  font-size: 20px;
+  font-weight: 800;
+}
+.ks
+  .cb
+  :is(
+    .cl-headerSubtitle,
+    .cl-formFieldLabel,
+    .cl-formFieldHintText,
+    .cl-identityPreviewText,
+    .cl-formHeaderTitle,
+    .cl-formHeaderSubtitle,
+    .cl-alternativeMethodsBlockButton
+  ) {
+  color: #f6e3cb;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+}
+.ks .cb .cl-formFieldLabel {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+/* the pills: Google first, then Apple, then any other way in that is switched on */
+.ks .cb .cl-socialButtons {
   display: grid;
-  grid-template-columns: 22px auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 11px;
+}
+.ks .cb .cl-socialButtonsBlockButton__google {
+  order: -2;
+}
+.ks .cb .cl-socialButtonsBlockButton__apple {
+  order: -1;
+}
+.ks .cb :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton, .cb-email-pill) {
+  display: flex;
   justify-content: center;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  min-height: 54px;
   padding: 0 24px;
-  background: linear-gradient(#fff6e8, #ffe9cf);
-  color: #2a1c16;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pill);
+  color: var(--ink);
   font-size: 16.5px;
   font-weight: 800;
+  text-shadow: none;
   box-shadow:
     inset 0 1.5px 0 #ffffff,
     0 16px 30px -16px rgba(10, 6, 24, 0.85),
@@ -141,109 +222,162 @@
     translate 0.45s cubic-bezier(0.3, 1.5, 0.5, 1),
     box-shadow 0.35s;
 }
-.ks .cb-pill:nth-child(1) {
-  animation-delay: 1.5s;
+.ks .cb .cl-socialButtonsBlockButton > span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
-.ks .cb-pill:nth-child(2) {
-  animation-delay: 1.62s;
+.ks .cb .cl-socialButtonsBlockButtonText {
+  flex: none;
+  color: var(--ink);
+  font-size: 16.5px;
+  font-weight: 800;
 }
-.ks .cb-pills > :nth-child(3) {
-  animation-delay: 1.74s;
-}
-.ks .cb-pill svg {
+.ks .cb :is(.cl-socialButtonsProviderIcon, .cl-socialButtonsProviderIcon svg, .cb-email-pill svg) {
+  flex: none;
   width: 22px;
   height: 22px;
+  filter: none;
 }
 @media (hover: hover) and (pointer: fine) {
-  .ks .cb-pill:hover {
+  .ks
+    .cb
+    :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton, .cb-email-pill):hover {
     translate: 0 -2px;
+    background: var(--pill);
     box-shadow:
       inset 0 1.5px 0 #ffffff,
       0 20px 34px -16px rgba(10, 6, 24, 0.9),
       0 0 34px 2px rgba(255, 176, 96, 0.42);
   }
 }
-.ks .cb-pill:active {
+.ks .cb :is(.cl-socialButtonsBlockButton, .cb-email-pill):active {
   translate: 0 1px;
   transition-duration: 0.08s;
 }
-.ks .cb-pill:focus-visible,
-.ks .cb-email:focus-within,
-.ks .cb-sso:focus-visible,
-.ks .cb-foot a:focus-visible {
-  outline: 3px solid #ffc98a;
-  outline-offset: 3px;
+/* email folds behind its own pill while Google or Apple is offered */
+.ks .cb .cb-form .cb-email-pill {
+  display: none;
 }
-.ks .cb-email {
+.ks .cb:not([data-email]) .cb-form:has(.cl-socialButtons) .cb-email-pill {
+  display: flex;
+}
+.ks .cb:not([data-email]) .cl-main:has(.cl-socialButtons) .cl-form {
+  display: none;
+}
+
+/* fields and the main button */
+.ks .cb .cl-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-  padding: 5px 5px 5px 22px;
-  background: linear-gradient(#fff6e8, #ffe9cf);
+  gap: 11px;
+}
+.ks .cb :is(.cl-formFieldInput, .cl-otpCodeFieldInput) {
+  min-height: 54px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pill);
+  color: var(--ink);
+  caret-color: #c2571c;
+  font-size: 16.5px;
+  font-weight: 700;
+  text-align: left;
   box-shadow:
     inset 0 1.5px 0 #ffffff,
     0 16px 30px -16px rgba(10, 6, 24, 0.85);
-  animation-duration: 0.5s;
 }
-.ks .cb-pills > .cb-email {
-  animation-delay: 0s;
-}
-.ks .cb-email input {
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: none;
-  color: #2a1c16;
-  caret-color: #c2571c;
-  font: inherit;
-  font-size: 16.5px;
-  font-weight: 700;
-}
-.ks .cb .cb-email input:is(:focus, :focus-visible) {
-  outline: none;
-  box-shadow: none;
-}
-.ks .cb-email input::placeholder {
+.ks .cb .cl-formFieldInput::placeholder {
   color: #6f574b;
 }
-.ks .cb-email button {
-  padding: 0 20px;
-  border-radius: 999px;
-  background: #2a1c16;
-  color: #fff3df;
-  font-weight: 800;
-  font-size: 15.5px;
+.ks .cb .cl-otpCodeFieldInput {
+  padding: 0;
+  border-radius: 16px;
+  text-align: center;
 }
-.ks .cb-foot {
+.ks .cb .cl-formField {
   display: grid;
-  gap: 4px;
-  justify-items: center;
+  gap: 7px;
+}
+.ks .cb .cl-formButtonPrimary {
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--amber);
+  color: var(--ink);
+  font-size: 16.5px;
+  font-weight: 800;
+  text-transform: none;
+  box-shadow: 0 16px 30px -16px rgba(10, 6, 24, 0.85);
+  transition:
+    scale 0.35s cubic-bezier(0.3, 1.5, 0.5, 1),
+    filter 0.25s;
+}
+.ks .cb .cl-formButtonPrimary::after {
+  display: none;
+}
+.ks .cb .cl-formButtonPrimary:hover {
+  background: var(--amber);
+  filter: brightness(1.06);
+}
+.ks .cb .cl-formButtonPrimary:active {
+  scale: 0.97;
+}
+.ks
+  .cb
+  :is(
+    .cl-formFieldAction,
+    .cl-formResendCodeLink,
+    .cl-identityPreviewEditButton,
+    .cl-footerActionLink,
+    .cl-backLink
+  ) {
+  color: var(--amber);
+  font-weight: 800;
+}
+.ks .cb .cl-formFieldInputShowPasswordButton {
+  margin-right: 8px;
+  color: var(--ink);
+  opacity: 0.7;
+}
+.ks .cb .cl-formFieldErrorText {
+  color: #ffb4ab;
+  font-weight: 800;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+}
+.ks
+  .cb
+  :is(
+    .cl-socialButtonsBlockButton,
+    .cb-email-pill,
+    .cl-formFieldInput,
+    .cl-otpCodeFieldInput,
+    .cl-formButtonPrimary,
+    .cb-foot a
+  ):focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 3px;
+}
+
+/* ---------- the way to the other page ---------- */
+.ks .cb-foot {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
+  text-align: center;
   color: #f1dcc4;
   text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
   animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.9s both;
 }
-.ks .cb-sso {
-  min-height: 44px;
-  padding: 0 10px;
-  color: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: rgba(241, 220, 196, 0.5);
-}
 .ks .cb-foot a {
   display: inline-block;
   padding: 12px 2px;
-  color: #ffc98a;
+  color: var(--amber);
   font-weight: 800;
 }
 .ks .cb ::selection {
-  background: #ffc98a;
-  color: #2a1c16;
+  background: var(--amber);
+  color: var(--ink);
 }
 @keyframes cb-rise {
   from {
@@ -261,17 +395,16 @@
     margin-inline: -70px;
     font-size: clamp(36px, 3.3vw, 50px);
   }
-  .ks .cb-pill,
-  .ks .cb-email {
+  .ks
+    .cb
+    :is(.cl-socialButtonsBlockButton, .cb-email-pill, .cl-formFieldInput, .cl-formButtonPrimary) {
     min-height: 58px;
   }
 }
+
 /* stepping from another page into the clearing: the old page blows away as a flurry, the new one settles */
 @view-transition {
   navigation: auto;
-}
-.ks.cb-page {
-  view-transition-name: none;
 }
 html:has(.cb-page)::view-transition-old(root) {
   animation: cb-leave 0.7s cubic-bezier(0.5, 0, 0.8, 0.4) both;
