@@ -47,10 +47,13 @@ export const QUESTION_BANK = {
   /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
   skills: 39,
   difficultyLevels: 7,
-  /** What each self-study plan holds (founder's figures, 2026-11-13). Not yet counted against the live
-   *  bank: on 2026-11-09 it had 9,993 questions visible to students. Count before this goes live. */
+  /** What each self-study plan holds (founder, 2026-11-13): Practice is a fixed set of 5,000 questions from
+   *  levels 1 to 6; Pro adds every other question, level 7 included. Counted in the live bank on 2026-11-13
+   *  (read-only): 10,588 live, 9,935 at levels 1 to 6 and 653 at level 7, so Pro adds 5,588. The site says
+   *  "5,500+". The plan gate in src/lib/plans still splits at level 5 and has no 5,000 cap: it must be
+   *  changed to match before this claim goes live. */
   practiceCount: 5000,
-  proExtraCount: 6000,
+  proExtraCount: 5500,
 } as const;
 
 export type ProgramInclusion = { title: string; detail: string };

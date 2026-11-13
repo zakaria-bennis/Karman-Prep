@@ -383,7 +383,7 @@ billed three: billed {total} every 3 months
 billed one: billed every month
 practice bullets: ${QB.practiceCount.toLocaleString("en-US")} questions covering every SAT skill | A written explanation for every question | The Daily 10: ten questions a day from the skills they miss | Full-length practice tests | One predicted SAT score, updated as they practice | The built-in graphing calculator | Progress for parents on their phone
 practice button: Start ${PP.name}
-pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")} more questions | The 1600 Set: the hardest of the hard | A video explanation, added as each is recorded
+pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")}+ more questions | The 1600 Set: our level 7 questions, the hardest we have | A video explanation, added as each is recorded
 pro button: Start ${PRO.name}
 cohort line: ${UP_TO.cohort}, or your money back.
 cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your student's level | ${MP.totalClasses} hours of live class | A full practice test every week
