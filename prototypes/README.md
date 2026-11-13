@@ -8,7 +8,7 @@ left out of lint, type checks and formatting.
 - `daily10-end/`: the approved Daily 10 end screen ("Box first", 2026-10-30). Open
   `daily10-end/index.html` in a browser. The pickers along the top switch device, tokens, companion, the
   student's choice and the 21st.dev layer.
-- `logo-concepts/`: 16 self-writing logo ideas and 9 first-visit intro screens (2026-11-12), for review.
+- `logo-concepts/`: 16 self-writing logo ideas and 9 first-visit intro screens (2026-11-12), and in `round-2/` 12 simpler marks in 4 versions each (2026-11-13), for review.
   Open `logo-concepts/index.html`. Nothing is wired into the site.
 
 The older portal, skeleton and painting prototypes were removed on 2026-11-09. The painting they explored
