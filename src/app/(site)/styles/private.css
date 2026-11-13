@@ -121,6 +121,10 @@
 .ks .pv-packs .pg-in { justify-items: center; text-align: center; }
 .ks .pls { margin-top: clamp(14px, 2vw, 26px); width: min(100%, 1080px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(16px, 2.2vw, 30px); align-items: stretch; }
 .ks .pl { --sheen: rgba(255, 255, 255, .13); position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: clamp(26px, 2.6vw, 36px) clamp(20px, 2.4vw, 32px) clamp(24px, 2.4vw, 32px); border-radius: 34px; background: linear-gradient(115deg, transparent 38%, var(--sheen) 50%, transparent 62%) 0 0 / 280% 100%, linear-gradient(160deg, #2b2833, #121016); color: #fffaf3; text-align: center; box-shadow: 0 34px 60px -36px rgba(29, 26, 34, .9), inset 0 0 0 1px rgba(255, 255, 255, .09); animation: pl-sheen 5.5s linear infinite; transition: translate .45s var(--spring), box-shadow .35s, filter .35s; }
+/* Private 10 follows the page's mode: brushed silver by day, dark by night (no black card in light mode) */
+.ks.lit:not([data-mode="dark"]) .pl[data-plan="small"] { --sheen: rgba(255, 255, 255, .95); background: linear-gradient(115deg, transparent 38%, var(--sheen) 50%, transparent 62%) 0 0 / 280% 100%, linear-gradient(160deg, #f4f5f8, #dfe3ea 52%, #cfd5df); color: #1d1a22; box-shadow: 0 34px 60px -36px rgba(29, 26, 34, .55), inset 0 0 0 1px rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(120, 130, 150, .35); }
+.ks.lit:not([data-mode="dark"]) .pl[data-plan="small"] .pg-tick circle { fill: #2449b8; }
+.ks.lit:not([data-mode="dark"]) .pl[data-plan="small"] .pg-tick path { stroke: #fff; }
 .ks .pl[data-plan="large"] { --sheen: rgba(255, 255, 255, .24); background: linear-gradient(115deg, transparent 38%, var(--sheen) 50%, transparent 62%) 0 0 / 280% 100%, linear-gradient(160deg, #3d68e6, #1a37a0); animation-delay: -2.2s; }
 @keyframes pl-sheen { from { background-position: 140% 0, 0 0; } to { background-position: -140% 0, 0 0; } }
 @media (hover: hover) and (pointer: fine) { .ks .pl:hover { translate: 0 -8px; filter: brightness(1.08); box-shadow: 0 44px 70px -34px rgba(29, 26, 34, .95), inset 0 0 0 2px rgba(255, 255, 255, .5); } }

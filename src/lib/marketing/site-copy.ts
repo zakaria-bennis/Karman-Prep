@@ -286,7 +286,7 @@ large package: ${P20.name} = ${$(P20.price)}
 small lead: Everything in ${PRO.name}
 small bullets: ${W(P10.hours)} 60-minute sessions, once a week | A tutor from our team of PhD and medical students | Book and reschedule your own sessions | A full practice test every week | Personalized homework that adapts to their weak spots | Session recordings and recaps | Session statuses sent within 24 hours after each class | Direct iMessage or WhatsApp texting with your tutor | ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions
 large lead: Everything in ${P10.name}, plus
-large bullets: ${P20.hours} sessions | No limit on sessions a week | Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
+large bullets: ${P20.hours} sessions | No limit on sessions per week | Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)} | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
 save: Save
 per: a session
 call: Schedule a free call
@@ -396,7 +396,7 @@ closes: Enrollment closes
 small line: ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions.
 small bullets: Everything in ${PRO.name} | ${P10.hours} hours one-on-one, once a week | Book and reschedule your own sessions | A full practice test every week
 large line: Our best guarantee: ${UP_TO.private.charAt(0).toLowerCase()}${UP_TO.private.slice(1)}.
-large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no limit on sessions a week | A personalized study plan | Priority booking | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
+large bullets: Everything in ${P10.name} | ${P20.hours} hours one-on-one, no limit on sessions per week | A personalized study plan | Priority booking | ${PRIVATE_BONUS[P20.id].freeSessions} free sessions if we miss
 save: Save
 a session: a session
 private button: Schedule a free call
