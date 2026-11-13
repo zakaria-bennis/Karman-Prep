@@ -1,0 +1,190 @@
+/* Intro 1, Sky to ground: the two skies on their diagonal, the halves, and the cloud bank the
+   camera falls through. The shared ground waits underneath, on the stage. */
+
+.world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.world[data-shown] {
+  opacity: 1;
+}
+.paint,
+.live {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* The camera: the sky rises away and a deep bank of cloud rushes up past the view. While the cloud
+   fills the screen, the sky goes (an opacity switch hidden in the cloud) and the shared ground,
+   already waiting underneath on the stage, shows through as the cloud clears. Transforms and
+   opacity only, as CSS transitions, so a click or Escape mid-way simply turns it round. */
+.layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+  transition:
+    transform 1.9s cubic-bezier(0.55, 0, 0.3, 1),
+    opacity 0.14s linear 0.84s;
+}
+.world[data-view="sky"] .layer {
+  transition:
+    transform 1.5s cubic-bezier(0.55, 0, 0.3, 1),
+    opacity 0.14s linear 0.62s;
+}
+.skyLayer {
+  transform: translate3d(0, 0, 0);
+}
+/* Three screens tall, solid cloud in its middle, soft at both ends. */
+.cloudLayer {
+  bottom: auto;
+  height: 300%;
+  transform: translate3d(0, 34%, 0);
+  -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(transparent, #000 20%, #000 80%, transparent);
+}
+.world[data-view="ground"] .skyLayer {
+  opacity: 0;
+  transform: translate3d(0, -100%, 0);
+}
+.world[data-view="ground"] .cloudLayer {
+  transform: translate3d(0, -100%, 0);
+}
+/* Reduced motion: no fall, the sky fades away over the ground. */
+.world[data-still] .layer {
+  transform: none;
+  transition: opacity 0.45s ease;
+}
+.world[data-still] .cloudLayer {
+  display: none;
+}
+.world[data-still][data-view="ground"] .skyLayer {
+  opacity: 0;
+}
+
+.paint {
+  transition: filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* The seam slides on a soft spring-like ease: a little lean on hover, and right off the screen
+   when a course is chosen, so its sky fills the view on the way down. */
+.paint[data-slug="reading-writing"] {
+  transition:
+    filter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    -webkit-mask-position 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+.world[data-still] .paint[data-slug="reading-writing"] {
+  transition: filter 0.3s ease;
+}
+
+/* Pointing at a half: it brightens, the other dims. */
+.world[data-active="math"] .paint[data-slug="math"],
+.world[data-active="reading-writing"] .paint[data-slug="reading-writing"] {
+  filter: brightness(1.12) saturate(1.06);
+}
+.world[data-active="math"] .paint[data-slug="reading-writing"],
+.world[data-active="reading-writing"] .paint[data-slug="math"] {
+  filter: brightness(0.78) saturate(0.88);
+}
+/* Reduced motion: a gentle brighten only. */
+.world[data-still][data-active="math"] .paint[data-slug="reading-writing"],
+.world[data-still][data-active="reading-writing"] .paint[data-slug="math"] {
+  filter: none;
+}
+.world[data-still][data-active="math"] .paint[data-slug="math"],
+.world[data-still][data-active="reading-writing"] .paint[data-slug="reading-writing"] {
+  filter: brightness(1.08);
+}
+
+/* Each half is a button cut to its side of the diagonal (clip-path set inline). */
+.halves {
+  position: absolute;
+  inset: 0;
+}
+.half {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.half:focus-visible {
+  outline: none;
+}
+.label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: min(40vw, 600px);
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 0.3s ease;
+  text-shadow:
+    0 2px 26px rgb(0 0 0 / 0.62),
+    0 1px 3px rgb(0 0 0 / 0.5);
+}
+.half[data-on] .label {
+  transform: translate(-50%, calc(-50% - 8px)) scale(1.04);
+}
+.world[data-still] .half[data-on] .label {
+  transform: translate(-50%, -50%);
+}
+.world[data-pick] .label {
+  opacity: 0;
+}
+.name {
+  font: 400 clamp(44px, 5.2vw, 88px) / 1 var(--font-serif);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+/* Keyboard focus: a white rule under the percent. */
+.pct::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 64px;
+  height: 3px;
+  margin-left: -32px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.half:focus-visible .pct::before {
+  opacity: 1;
+}
+.pct {
+  position: relative;
+  font: 650 15px / 20px var(--font-sans);
+  opacity: 0.92;
+}
+@media (max-width: 767px) {
+  .label {
+    max-width: 86vw;
+  }
+  .name {
+    font-size: clamp(40px, 11vw, 56px);
+  }
+}
+
+/* The name on its way into the toggle. */

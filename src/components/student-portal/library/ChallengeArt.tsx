@@ -4,7 +4,10 @@
  * The Challenge question's own painting (founder, 2026-11-08: "it has its own art, design and
  * animation"). Drawn in code, in the day painting's style: a sky in the painting's light (dawn,
  * day, sunset or night), the land in the painting's hue, a still lake, pines at the edges, and
- * two painted dots of light rising over the ridge, one for each of today's questions. Brush edges come
+ * two bright stars rising over the ridge, one for each of today's questions, twinkling softly
+ * among a few small background stars (founder, 2026-11-08: "it can be stars, but make them look
+ * nicer and cleaner, and I want them to twinkle"). Stars are round points of light with a soft
+ * halo, never four-point sparkle shapes. Reduced motion: no twinkle. Brush edges come
  * from an SVG displacement filter, so the shapes read as paint rather than vector.
  *
  * Everything moves only on entrance, then holds still (nothing moves behind text).
@@ -43,6 +46,20 @@ function grove(x0: number, x1: number, ground: (x: number) => number, base: numb
   }
   return d;
 }
+
+/** Small background stars: x, y, radius (viewBox units), all in the sky above the ridge. */
+const SMALL_STARS: [number, number, number][] = [
+  [140, 120, 7],
+  [262, 210, 5],
+  [380, 90, 6],
+  [560, 250, 5],
+  [760, 80, 7],
+  [1010, 120, 6],
+  [1100, 300, 5],
+  [300, 330, 4.5],
+  [820, 360, 4.5],
+  [60, 300, 5],
+];
 
 /** Loose sky strokes, Bob Ross style: start x, y, end x, width, how much each one bows. */
 const SKY_STROKES: [number, number, number, number, number][] = [
@@ -132,6 +149,13 @@ export default function ChallengeArt({ time, still }: { time: TimeOfDay; still: 
           <stop offset="0" className={styles.starGlowIn} />
           <stop offset="1" className={styles.starGlowOut} />
         </radialGradient>
+        {/* A star's halo: bright at the middle, falling off fast, like a real point of light. */}
+        <radialGradient id="ch-star-halo">
+          <stop offset="0" stopColor="#fffdf6" stopOpacity="1" />
+          <stop offset="0.18" stopColor="#fff6dc" stopOpacity="0.85" />
+          <stop offset="0.45" stopColor="#ffeec4" stopOpacity="0.25" />
+          <stop offset="1" stopColor="#ffeec4" stopOpacity="0" />
+        </radialGradient>
         {/* Ragged brush edges on every land shape. */}
         <filter id="ch-brush" x="-5%" y="-5%" width="110%" height="110%">
           <feTurbulence type="fractalNoise" baseFrequency="0.022 0.08" numOctaves="3" seed="7" />
@@ -166,16 +190,53 @@ export default function ChallengeArt({ time, still }: { time: TimeOfDay; still: 
         <motion.path d="M330 452 C360 330 400 250 470 190" {...draw(0.55)} />
         <motion.path d="M700 446 C690 330 660 220 640 140" {...draw(0.75)} />
       </g>
+      {/* A few small background stars, twinkling out of step. */}
+      <g aria-hidden="true">
+        {SMALL_STARS.map(([x, y, r], i) => (
+          <circle
+            key={`${x}-${y}`}
+            cx={x}
+            cy={y}
+            r={r}
+            fill="url(#ch-star-halo)"
+            className={styles.twinkle}
+            style={{
+              animationDelay: `${(i * 0.73) % 3.1}s`,
+              animationDuration: `${2.6 + (i % 4) * 0.7}s`,
+            }}
+          />
+        ))}
+      </g>
       {[
         { x: 470, y: 190, s: 1, d: 1.5 },
         { x: 640, y: 140, s: 1.25, d: 1.7 },
-      ].map((st) => (
+      ].map((st, i) => (
         <g key={st.x} transform={`translate(${st.x} ${st.y}) scale(${st.s})`}>
           <motion.g {...pop(st.d)}>
             <circle r="70" fill="url(#ch-star-glow)" />
-            {/* A dab of paint with a smaller dab beside it, ragged at the edge like the land. */}
-            <circle r="15" className={styles.light} filter="url(#ch-brush)" />
-            <circle cx="-5" cy="-5" r="6" className={styles.lightCore} />
+            {/* The star: a wide soft halo that breathes, a crisp round core, and two tiny round
+                glints that come and go beside it. */}
+            <circle
+              r="30"
+              fill="url(#ch-star-halo)"
+              className={styles.halo}
+              style={{ animationDelay: `${i * 1.1}s` }}
+            />
+            <circle r="5.5" className={styles.core} />
+            <circle
+              cx="13"
+              cy="-11"
+              r="1.8"
+              className={styles.glint}
+              style={{ animationDelay: `${0.4 + i * 0.9}s` }}
+            />
+            <circle
+              cx="-15"
+              cy="9"
+              r="1.4"
+              className={styles.glint}
+              style={{ animationDelay: `${1.6 + i * 0.7}s` }}
+            />
           </motion.g>
         </g>
       ))}

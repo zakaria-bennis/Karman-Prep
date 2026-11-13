@@ -4,8 +4,9 @@
  * then in brushwork by painterly.ts, meet on the diagonal (seam.ts). Below them sits a bank of
  * cloud the camera falls through on the way down to the ground scenes (scenes.ts).
  *
- * The hour sets the sky: by day a high, bright sky fading to deep blue at the top; at dawn and
- * sunset the glow low down and the first stars above; at night deep space.
+ * The hour sets the sky: by day a high, bright sky fading to deep blue at the top, with things
+ * that fly in it (sky-day.ts: a balloon and kites, a lettered kite and paper planes); at dawn and
+ * sunset the glow low down; only at night deep space:
  *
  * - Math: a ringed planet with its moons on perfect elliptical orbits, and constellations drawn
  *   as a triangle, a square and a hexagon.
@@ -17,6 +18,7 @@ import { mix, rgb, rng, type Color } from "../noise";
 import { Studio } from "../studio";
 import { hslColor } from "./motifs";
 import type { Tint } from "./scenes";
+import { dayMath, dayPlan, dayReading, type DayMath, type DayReading } from "./sky-day";
 import type { Layout, Slug } from "./seam";
 
 const TAU = Math.PI * 2;
@@ -33,12 +35,19 @@ export interface Planet {
 }
 
 export interface MathSky {
-  planet: Planet;
+  /** At night: the ringed planet and its orbits. */
+  planet?: Planet;
+  /** At night: the constellations. */
   figures: Pt[][];
+  /** By day: the balloon, kites and birds. */
+  day?: DayMath;
 }
 
 export interface ReadingSky {
+  /** At night the nebula; by day the kite. Letters drift away from its middle. */
   nebula: { x: number; y: number; r: number };
+  /** By day: the kite, its lettered tail and the paper planes. */
+  day?: DayReading;
   /** Points along the nebula's wisps (fractions), where letters drift from. */
   wisps: Pt[];
   figures: Pt[][];
@@ -80,8 +89,10 @@ const quillStars = (x: number, y: number, len: number, aspect: number): Pt[] => 
   return [d(0, 0), d(0.18, 0.32), d(0.36, 0.62), d(0.52, 0.95), d(0.28, 0.66), d(0.18, 0.32)];
 };
 
+type NightMath = { planet: Planet; figures: Pt[][] };
+
 interface SkyPlan {
-  math: MathSky;
+  math: NightMath;
   reading: Omit<ReadingSky, "wisps">;
 }
 
@@ -185,7 +196,8 @@ function paintSky(k: Studio, slug: Slug, seed: number): [number, number, number]
   /* Stars: many at night, a few high up at dawn and dusk, faint ones at the very top by day. */
   const r = rng(seed);
   const stars: [number, number, number][] = [];
-  const n = Math.round(starDensity * (L.dark > 0.5 ? 280 : L.dark > 0.1 ? 140 : 70));
+  /* Stars only at night, and a very few high up at dawn and dusk. Never in daylight. */
+  const n = Math.round(starDensity * (L.dark > 0.5 ? 280 : L.dark > 0.1 ? 24 : 0));
   for (let i = 0; i < n; i++) {
     const u = r();
     const v = Math.pow(r(), L.dark > 0.5 ? 1.1 : 2.2) * (L.dark > 0.5 ? 0.9 : 0.6);
@@ -202,7 +214,7 @@ function paintSky(k: Studio, slug: Slug, seed: number): [number, number, number]
   return stars;
 }
 
-function mathSky(k: Studio, accent: Color, p: MathSky) {
+function mathSky(k: Studio, accent: Color, p: NightMath) {
   const { g, W, H, C, L } = k;
   const night = L.dark > 0.5;
   const { planet } = p;
@@ -395,6 +407,20 @@ export function renderSky(
   const L = LIGHT[time] ?? LIGHT.day;
   const k = new Studio(w, h, { ...L, sunAt: [0.5, 1.4] }, 777);
   const stars = paintSky(k, slug, slug === "math" ? 11 : 13);
+  if (time !== "night") {
+    const d = dayPlan(layout, aspect);
+    if (slug === "math") {
+      dayMath(k, accent, d.math);
+      return { src: k.c, stars, math: { figures: [], day: d.math } };
+    }
+    const wisps = dayReading(k, accent, d.reading, font);
+    const [kx, ky, ks] = d.reading.kite;
+    return {
+      src: k.c,
+      stars,
+      reading: { nebula: { x: kx, y: ky, r: ks }, wisps, figures: [], day: d.reading },
+    };
+  }
   const p = plan(layout, aspect);
   if (slug === "math") {
     mathSky(k, accent, p.math);

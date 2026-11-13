@@ -1,0 +1,185 @@
+/* Intro 3, Library doors: the hall, the doors on their hinges, the light in the gap and the walk
+   through. The shared ground scene waits behind the hall, seen through the open doorway. */
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.root[data-shown] {
+  opacity: 1;
+}
+.hall {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.paint {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.door {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  perspective: 1100px;
+  -webkit-tap-highlight-color: transparent;
+}
+.door:focus-visible {
+  outline: none;
+}
+/* Warm lamplight behind the doors. */
+.glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #6b3d16, #ffd28c 50%, #6b3d16);
+  opacity: 0.85;
+  transition: opacity 0.5s ease;
+}
+.root[data-pick="math"] .door[data-slug="math"] .glow,
+.root[data-pick="reading-writing"] .door[data-slug="reading-writing"] .glow {
+  opacity: 0;
+}
+.leaves {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.leaf {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  display: block;
+  backface-visibility: hidden;
+  transition:
+    transform 0.6s cubic-bezier(0.34, 1.3, 0.64, 1),
+    filter 0.45s ease;
+}
+.leaf[data-side="left"] {
+  left: 0;
+  transform-origin: 0 50%;
+}
+.leaf[data-side="right"] {
+  right: 0;
+  transform-origin: 100% 50%;
+}
+/* Pointing at a door eases its leaves ajar; the light shows in the gap. */
+.door[data-on] .leaf[data-side="left"] {
+  transform: rotateY(-9deg);
+}
+.door[data-on] .leaf[data-side="right"] {
+  transform: rotateY(9deg);
+}
+.root[data-active] .door:not([data-on]) .leaf {
+  filter: brightness(0.72);
+}
+.door[data-on] .leaf {
+  filter: brightness(1.08);
+}
+/* Choosing: the leaves swing wide open. */
+.root[data-pick] .leaf {
+  transition: transform 0.9s cubic-bezier(0.45, 0, 0.2, 1);
+}
+.root[data-pick="math"] .door[data-slug="math"] .leaf[data-side="left"],
+.root[data-pick="reading-writing"] .door[data-slug="reading-writing"] .leaf[data-side="left"] {
+  transform: rotateY(-106deg);
+}
+.root[data-pick="math"] .door[data-slug="math"] .leaf[data-side="right"],
+.root[data-pick="reading-writing"] .door[data-slug="reading-writing"] .leaf[data-side="right"] {
+  transform: rotateY(106deg);
+}
+/* The light on the floor in front of the door being pointed at. */
+.spill {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgb(255 206 140 / 0.55), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.root[data-active="math"] .spill[data-door="math"],
+.root[data-active="reading-writing"] .spill[data-door="reading-writing"] {
+  opacity: 1;
+}
+/* Reduced motion: no swing or lean, a gentle brighten only. */
+.root[data-still] .leaf {
+  transition: filter 0.3s ease;
+  transform: none !important;
+}
+.root[data-still][data-active] .door:not([data-on]) .leaf {
+  filter: none;
+}
+.root[data-still] .spill {
+  display: none;
+}
+.label {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 150%;
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 0.3s ease;
+  text-shadow:
+    0 2px 22px rgb(0 0 0 / 0.75),
+    0 1px 3px rgb(0 0 0 / 0.6);
+}
+.door[data-on] .label {
+  transform: translate(-50%, calc(-50% - 6px)) scale(1.04);
+}
+.root[data-still] .door[data-on] .label {
+  transform: translate(-50%, -50%);
+}
+.root[data-pick] .label {
+  opacity: 0;
+}
+.name {
+  font: 400 clamp(32px, 3.4vw, 56px) / 1.02 var(--font-serif);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.pct {
+  position: relative;
+  font: 650 15px / 20px var(--font-sans);
+  opacity: 0.92;
+}
+.pct::before {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 56px;
+  height: 3px;
+  margin-left: -28px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.door:focus-visible .pct::before {
+  opacity: 1;
+}
+@media (max-width: 767px) {
+  .name {
+    font-size: clamp(24px, 7vw, 34px);
+  }
+  .label {
+    max-width: 110%;
+  }
+}
