@@ -47,6 +47,10 @@ export const QUESTION_BANK = {
   /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
   skills: 39,
   difficultyLevels: 7,
+  /** What each self-study plan holds (founder's figures, 2026-11-13). Not yet counted against the live
+   *  bank: on 2026-11-09 it had 9,993 questions visible to students. Count before this goes live. */
+  practiceCount: 5000,
+  proExtraCount: 6000,
 } as const;
 
 export type ProgramInclusion = { title: string; detail: string };

@@ -113,10 +113,11 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
           </g>
         </svg>
         <div>
-          <h2 id="replay-consent-title">Cookies? Just the boring kind.</h2>
+          <h2 id="replay-consent-title">Cookie Monster would be so disappointed.</h2>
           <p id="replay-consent-body">
-            Allow all and we can count visits (just us, no ads) and replay a session to squash bugs.
-            Anything you type stays hidden. <a href={privacyHref}>Details</a>
+            Our cookies have zero chocolate chips. They count visits and help us squash bugs, so
+            Karman Prep gets better for all of us. We never share, lend or sell your data. No matter
+            what. <a href={privacyHref}>Details</a>
           </p>
         </div>
       </div>
