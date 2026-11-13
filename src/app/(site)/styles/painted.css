@@ -38,25 +38,24 @@
 
 /* ---------- the top bar: words on the sky, and the one action. The sky is lighter behind the bar and fades
    out below it, with no edge and no shape (founder, 2026-11-10). ---------- */
-/* the bar travels with the page, so the light and dark switch is always at hand (founder, 2026-11-11) */
+/* the bar travels with the page (founder, 2026-11-11) */
 .ks.lit .hd { position: fixed; inset: 22px var(--gutter) auto; height: auto; padding: 0; background: none; border-radius: 0; gap: 12px; color: var(--ink); }
 .ks.lit .hd::before { content: ""; position: absolute; z-index: -1; inset: -22px calc(var(--gutter) * -1) -54px; pointer-events: none; background: linear-gradient(color-mix(in srgb, var(--mist) 86%, transparent), color-mix(in srgb, var(--mist) 55%, transparent) 46%, transparent); }
 .ks.lit .hd .mark { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(28px, 2.4vw, 34px); letter-spacing: -0.01em; transition: transform .5s var(--spring); }
 .ks.lit .hd nav { position: relative; gap: 4px; font-size: 17px; font-weight: 700; }
 .ks.lit .hd nav a, .ks.lit .hd nav button { position: relative; z-index: 1; min-height: 46px; padding: 0 16px; border-radius: 999px; transition: color .25s var(--out), transform .5s var(--spring); }
 .ks.lit .hd .nl::after { display: none; }
-/* the light and dark switch: one round button to the right of Start free (founder, 2026-11-11). It shows
+/* the light and dark switch, in the bottom right corner (film.css), on the landscape pages. It shows
    the sky as it is: the sun by day, the moon at night. Pressing it sets the sun below the button's rim
    while the moon rises from it, and the other way round. */
-.ks.lit .hd .theme { position: relative; flex: none; display: inline-block; width: 46px; min-height: 0; height: 46px; padding: 0; margin-left: 8px; border-radius: 50%; overflow: hidden; background: rgba(29, 26, 34, .09); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2); cursor: pointer; transition: background-color .6s var(--out), box-shadow .6s var(--out), transform .45s var(--spring); }
-.ks.lit .hd .theme:active { transform: scale(.92); transition-duration: .08s; }
-.ks.lit .hd .theme svg { display: block; position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; stroke-width: 2; transition: transform .8s var(--spring), opacity .45s var(--out); }
-.ks.lit .hd .theme .sun { color: #1d1a22; }
-.ks.lit .hd .theme .moon { color: #fffaf3; transform: translateY(34px) rotate(-70deg); opacity: 0; }
-.ks.lit[data-mode="dark"] .hd .theme { background-color: rgba(255, 250, 243, .13); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3); }
-.ks.lit[data-mode="dark"] .hd .theme .sun { transform: translateY(34px) rotate(70deg); opacity: 0; }
-.ks.lit[data-mode="dark"] .hd .theme .moon { transform: none; opacity: 1; }
-@media (hover: hover) and (pointer: fine) { .ks.lit .hd .theme:hover svg { transform: rotate(24deg); } .ks.lit[data-mode="dark"] .hd .theme:hover .sun { transform: translateY(34px) rotate(70deg); } .ks.lit:not([data-mode="dark"]) .hd .theme:hover .moon { transform: translateY(34px) rotate(-70deg); } }
+.ks.lit .theme { display: block; overflow: hidden; transition: background-color .6s var(--out), box-shadow .6s var(--out), transform .45s var(--spring); }
+.ks.lit .theme:active { transform: scale(.92); transition-duration: .08s; }
+.ks.lit .theme :is(svg.sun, svg.moon) { display: block; position: absolute; left: 12px; top: 12px; width: 22px; height: 22px; stroke-width: 2; transition: transform .8s var(--spring), opacity .45s var(--out); }
+.ks.lit .theme .sun { color: #1d1a22; }
+.ks.lit .theme .moon { color: #fffaf3; transform: translateY(34px) rotate(-70deg); opacity: 0; }
+.ks.lit[data-mode="dark"] .theme .sun { transform: translateY(34px) rotate(70deg); opacity: 0; }
+.ks.lit[data-mode="dark"] .theme .moon { transform: none; opacity: 1; }
+@media (hover: hover) and (pointer: fine) { .ks.lit .theme:hover svg { transform: rotate(24deg); } .ks.lit[data-mode="dark"] .theme:hover .sun { transform: translateY(34px) rotate(70deg); } .ks.lit:not([data-mode="dark"]) .theme:hover .moon { transform: translateY(34px) rotate(-70deg); } }
 .ks .nav-mark { position: absolute; z-index: 0; left: 0; top: 0; bottom: 0; border-radius: 999px; background: color-mix(in srgb, var(--ink) 11%, transparent); opacity: 0; pointer-events: none; transition: transform .4s var(--spring), width .4s var(--spring), opacity .2s var(--out); }
 .ks.lit .hd .cta { margin-left: 10px; border: 0; background: var(--go); color: var(--cream); padding: 0 24px; min-height: 48px; font-weight: 700; box-shadow: 0 10px 22px -12px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .3s var(--out), background-color .3s var(--out); }
 .ks.lit .hd .cta:active { transform: translateY(2px) scale(.97); box-shadow: 0 4px 10px -8px rgba(29, 26, 34, .7); transition-duration: .08s; }
@@ -87,8 +86,6 @@
   .ks.lit .hd .mark { font-size: 26px; }
   .ks.lit .hd .si { padding: 0 9px; }
   .ks.lit .hd .cta { margin-left: 2px; padding: 0 15px; min-height: 44px; }
-  .ks.lit .hd .theme { width: 44px; height: 44px; margin-left: 6px; }
-  .ks.lit .hd .theme svg { left: 11px; top: 11px; }
   .ks.lit .hd .menu { width: 44px; height: 44px; margin-left: 6px; }
 }
 @media (max-width: 410px) {
@@ -97,13 +94,11 @@
   .ks.lit .hd .mark { font-size: 23px; }
   .ks.lit .hd .si { padding: 0 7px; }
   .ks.lit .hd .cta { padding: 0 12px; }
-  .ks.lit .hd .theme, .ks.lit .hd .menu { width: 44px; margin-left: 2px; }
-  .ks.lit .hd .theme svg { left: 11px; }
+  .ks.lit .hd .menu { width: 44px; margin-left: 2px; }
 }
 @media (max-width: 372px) { .ks.lit .hd .si { display: none; } }
 /* the menu drops from its button (film.css); here it sits just under the home page's bar */
 .ks.lit .sheet { top: 78px; background: var(--cream); }
-.ks.lit .sheet .theme { display: none; }
 
 /* ---------- type ---------- */
 .ks.lit :is(h1, h2) { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; letter-spacing: -0.012em; line-height: 1.08; text-wrap: balance; }
@@ -642,7 +637,7 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks .ft .credit .motion[hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ks.lit, .ks .flight canvas, .ks.lit .btn, .ks .nav-mark, .ks.lit .hd .theme svg { transition: none; }
+  .ks.lit, .ks .flight canvas, .ks.lit .btn, .ks .nav-mark, .ks.lit .theme :is(svg.sun, svg.moon) { transition: none; }
   .ks .gua-sig path, .ks .gua-pic *, .ks .ways *, .ks .chat *, .ks .chat *::before, .ks .chat *::after, .ks .gua-stamp, .ks .gua-stamp::after, .ks .offer h2, .ks .arc-title b, .ks .arc-title span { animation: none !important; }
   .ks .sky { height: auto; overflow: visible; display: flex; flex-wrap: wrap; gap: 26px 14px; padding-top: 18px; -webkit-mask-image: none; mask-image: none; }
   .ks .sky { margin: 0; gap: 60px 50px; padding: 40px 30px; }

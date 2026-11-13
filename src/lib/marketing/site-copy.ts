@@ -111,7 +111,6 @@ headline: Our average student gains ${TR.averageGain} points. Yours doesn't have
 text: We built the SAT prep we wish we'd had: overqualified tutors, a portal that knows exactly what your student gets wrong, and a guarantee with our money on the line.
 button: Start free
 button note: ${FREE.questionLimit} practice questions and a full-length practice test. No card. No catch.
-second button: How the promise works
 
 ## 2 Live classes
 headline: ${W(CLASS)} students, so nobody hides in the back row.

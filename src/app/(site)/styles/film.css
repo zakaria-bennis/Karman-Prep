@@ -68,14 +68,14 @@
 .ks .hd .cta { border: 1.5px solid currentColor; margin-left: 8px; font-weight: 700; transition: background-color .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease), transform .45s var(--spring); }
 @media (hover: hover) and (pointer: fine) { .ks .hd .cta:hover { background: var(--marigold); border-color: var(--marigold); color: var(--on-mari); } }
 .ks .hd .cta:active { transform: scale(.95); transition-duration: .08s; }
-.ks .hd .theme { width: 44px; justify-content: center; padding: 0; margin-left: 2px; }
-.ks .hd .theme svg, .ks .sheet .theme svg { width: 20px; height: 20px; }
-.ks .sheet .theme { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1.5px solid var(--line); font-weight: 700; align-self: flex-start; }
+/* the light and dark switch: one round, frosted button pinned to the bottom right corner of every page, so
+   it is always at hand and the bar stays clear (founder, 2026-11-13) */
+.ks .theme { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 110; display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; padding: 0; border-radius: 50%; color: #1d1a22; background: rgba(255, 250, 243, .78); box-shadow: inset 0 0 0 1.5px rgba(29, 26, 34, .2), 0 6px 18px rgba(0, 0, 0, .16); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); cursor: pointer; }
+.ks[data-mode="dark"] .theme { color: #fffaf3; background: rgba(29, 26, 34, .66); box-shadow: inset 0 0 0 1.5px rgba(255, 250, 243, .3), 0 6px 18px rgba(0, 0, 0, .3); }
 .ks.theming, .ks.theming * { transition: background-color .5s var(--ease), color .5s var(--ease), border-color .5s var(--ease) !important; }
 .ks .hd .menu { display: none; border: 1.5px solid currentColor; font-weight: 700; }
 .ks .hd .menu i { display: none; }
 @media (max-width: 960px) { .ks .hd .nl { display: none; } .ks .hd .menu { display: inline-flex; } }
-@media (max-width: 960px) { .ks .hd .theme { display: none; } }
 @media (max-width: 440px) { .ks .hd .cta { display: none; } }
 
 /* phone menu */
