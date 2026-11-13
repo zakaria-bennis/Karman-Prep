@@ -46,7 +46,8 @@ concurrency:
 jobs:
   e2e:
     name: Playwright E2E
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest began serving 26.04, which this Playwright version has no Chromium build for.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     env:
