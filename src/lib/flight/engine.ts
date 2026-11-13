@@ -8,6 +8,8 @@
  *   a minute, and draws softer by itself on a slow device.
  * - Held still (reduced motion, or the footer's button): nothing drifts and the camera does not fly. The
  *   view steps between seven stops down the page and each change is a short fade.
+ * - A page may ask for an opening (open): the landscape performs once, over a few seconds, then rests.
+ *   Held still, it does not play.
  * - If the browser cannot draw it, start() says so and the page keeps its plain sky.
  */
 import { FRAG, VERT } from "./shader";
@@ -52,12 +54,19 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 
 export class Flight {
   private gl: WebGLRenderingContext | null = null;
-  private uniforms: Record<"uRes" | "uTime" | "uP" | "uNight", WebGLUniformLocation | null> = {
+  private uniforms: Record<
+    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uKind",
+    WebGLUniformLocation | null
+  > = {
     uRes: null,
     uTime: null,
     uP: null,
     uNight: null,
+    uIntro: null,
+    uKind: null,
   };
+  /** The opening now playing: which one, when it began, how long it runs. */
+  private opening: { kind: number; at: number; ms: number } | null = null;
   private stop = new AbortController();
   private raf = 0;
   private last = 0;
@@ -121,6 +130,23 @@ export class Flight {
       };
     }
     return true;
+  }
+
+  /** Plays an opening (shader.ts: 1 descent, 2 sunrise, 3 flock, 4 mist). False when held still. */
+  open(kind: number, ms = 4400): boolean {
+    if (!this.gl || this.o.still()) return false;
+    this.opening = { kind, at: performance.now(), ms };
+    this.wake();
+    return true;
+  }
+
+  /** Where the opening stands at `now`: its kind and how far through it is (1 once it is over). */
+  private stage(now: number): [number, number] {
+    const o = this.opening;
+    if (!o) return [0, 1];
+    const t = Math.min(1, Math.max(0, (now - o.at) / o.ms));
+    if (t >= 1) this.opening = null;
+    return [o.kind, t];
   }
 
   /** Something changed (the mode, the still button, the page): look again. */
@@ -188,7 +214,7 @@ export class Flight {
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    for (const name of ["uRes", "uTime", "uP", "uNight"] as const)
+    for (const name of ["uRes", "uTime", "uP", "uNight", "uIntro", "uKind"] as const)
       this.uniforms[name] = gl.getUniformLocation(prog, name);
     this.shown = { p: -1, night: -1 };
     return true;
@@ -209,7 +235,7 @@ export class Flight {
     }
   }
 
-  private draw(p: number, night: number, time: number) {
+  private draw(p: number, night: number, time: number, kind = 0, intro = 1) {
     const gl = this.gl;
     if (!gl || gl.isContextLost()) return;
     this.size();
@@ -217,6 +243,8 @@ export class Flight {
     gl.uniform1f(this.uniforms.uTime, time);
     gl.uniform1f(this.uniforms.uP, p);
     gl.uniform1f(this.uniforms.uNight, night);
+    gl.uniform1f(this.uniforms.uKind, kind);
+    gl.uniform1f(this.uniforms.uIntro, intro);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.shown = { p, night };
     if (!this.ready) {
@@ -226,11 +254,11 @@ export class Flight {
   }
 
   /** Every so often, time one picture and draw softer or sharper to suit the device. */
-  private pace(p: number, night: number, time: number) {
+  private pace(p: number, night: number, time: number, kind: number, intro: number) {
     const gl = this.gl;
     if (!gl) return;
     const t0 = performance.now();
-    this.draw(p, night, time);
+    this.draw(p, night, time, kind, intro);
     gl.finish();
     const ms = performance.now() - t0;
     const { min, max, slowMs, fastMs } = this.rate;
@@ -272,6 +300,7 @@ export class Flight {
       /* no flying and no drifting: step between the stops, each change a short fade */
       const stop = from + (Math.round(down * STOPS) / STOPS) * (to - from);
       this.turn = null;
+      this.opening = null;
       if (!this.fading && (stop !== this.shown.p || want !== this.shown.night)) {
         if (this.shown.p < 0) {
           this.draw(stop, want, STILL_TIME);
@@ -305,10 +334,13 @@ export class Flight {
         if (t >= 1) this.turn = null;
       }
       this.frames++;
-      if (this.frames % 24 === 8) this.pace(this.p, this.night, now / 1000);
-      else this.draw(this.p, this.night, now / 1000);
+      const [kind, intro] = this.stage(now);
+      /* an opening is not timed for pace: its clouds and mist are heavier than the resting view */
+      if (this.frames % 24 === 8 && intro >= 1)
+        this.pace(this.p, this.night, now / 1000, kind, intro);
+      else this.draw(this.p, this.night, now / 1000, kind, intro);
     }
-    const moving = this.turn !== null || this.p !== goal;
+    const moving = this.turn !== null || this.p !== goal || this.opening !== null;
     if (moving || now - this.touched < IDLE_MS) this.raf = requestAnimationFrame(this.frame);
   };
 }

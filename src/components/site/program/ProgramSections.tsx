@@ -10,7 +10,6 @@ import ScoreClimb from "./ScoreClimb";
 import PortalDeck from "./PortalDeck";
 import ProgramPromise from "./ProgramPromise";
 import HeroLab from "@/components/site/hero/HeroLab";
-import { heroWords } from "@/components/site/hero/hero-words";
 import { ROUTES } from "@/components/site/routes";
 import { GUARANTEE as G, guaranteedGain, MARCH_PROGRAM as MP } from "@/lib/marketing/offer";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
@@ -43,14 +42,6 @@ export default function ProgramSections() {
         headline={open.headline}
         primary={{ label: open.button, href: ROUTES.pricing }}
         secondary={{ label: open["second button"], href: "#promise" }}
-        w={heroWords()}
-        live={
-          <TimeLeft
-            until={MP.enrollmentCloses}
-            label={open["clock label"]}
-            units={list(open.clock)}
-          />
-        }
       >
         <ProgramPromise
           ask={promise.ask}

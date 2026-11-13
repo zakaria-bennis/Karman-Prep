@@ -8,7 +8,6 @@ import { Arrow } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
 import HeroLab from "@/components/site/hero/HeroLab";
-import { heroWords } from "@/components/site/hero/hero-words";
 import CallForm from "./CallForm";
 import { PRIVATE_FACTS as F } from "./facts";
 import PlanPicker from "./PlanPicker";
@@ -33,7 +32,6 @@ export default function PrivateSections({ today }: { today: string }) {
         headline={top.headline}
         primary={{ label: top.button, href: "#call" }}
         secondary={{ label: top["second button"], href: "#packages" }}
-        w={heroWords()}
       />
 
       <section className="sect pg-sect pv-book" id="session" aria-labelledby="session-h">

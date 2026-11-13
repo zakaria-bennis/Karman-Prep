@@ -6,19 +6,26 @@
 // after sunrise to just after sunset; dark is one night, from dusk through stars and northern lights to
 // sunrise. Between the two the sun really sets or rises, which is what the visitor sees when they flip the
 // switch. uTime moves the clouds, the water, the mist, the stars, the snow and the birds.
+// An opening (founder, 2026-11-13): a page may ask the landscape to perform as it arrives. uKind says
+// which, uIntro runs from 0 to 1 while it plays and rests at 1:
+//   1 the camera sinks out of the sky through the cloud deck into the valley
+//   2 the sun climbs over the ridge and light floods the valley (at night the northern lights surge)
+//   3 the valley's birds fly out of the distance and past the camera
+//   4 the valley lies under thick mist, which drains away down the water
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
 export const FRAG = `
 precision highp float;
 uniform vec2 uRes;
-uniform float uTime, uP, uNight;
+uniform float uTime, uP, uNight, uIntro, uKind;
 uniform sampler2D uNoise;
 
 const mat2 M2 = mat2(.8, -.6, .6, .8);
 const float CB = 1.05, CT = 1.3;   /* the cloud deck: bottom and top */
 
 vec3 SUN, MOON, KEY, SUNCOL, KEYCOL, AMB;
-float DAY, NIGHT, LOW, FINE;
+float DAY, NIGHT, LOW, FINE, XC, XM, XA;   /* XC, XM, XA: extra cloud, mist and aurora while an opening plays */
+#define KIND(n) (abs(uKind - n) < .5)
 
 float tx(vec2 p) { return texture2D(uNoise, (p + .5) / 256.).r; }
 float n2(vec2 x) { vec2 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f); return texture2D(uNoise, (i + f + .5) / 256.).r; }
@@ -110,7 +117,7 @@ vec3 sky(vec3 rd, float sharp) {
     float band = exp(-pow(dot(rd, normalize(vec3(.62, .25, -.74))) * 4.2, 2.));
     c += NIGHT * (vec3(.9, .95, 1.) * star + vec3(.5, .56, .8) * band * (.03 + .09 * fbm(g * .045)));
     float amt = smoothstep(.2, .34, uP) * smoothstep(.82, .62, uP);
-    c += NIGHT * amt * aurora(rd);
+    c += NIGHT * max(amt, XA) * (1. + 1.8 * XA) * aurora(rd);
     float mm = max(dot(rd, MOON), 0.);
     c += NIGHT * vec3(.95, .97, 1.) * (smoothstep(.99962, .99974, mm) * 2.2 + pow(mm, 900.) * .25);
   }
@@ -124,7 +131,7 @@ float cdens(vec3 p) {
   float prof = smoothstep(0., .22, hh) * smoothstep(1., .45, hh);
   vec2 q = p.xz * 1.15 + vec2(uTime * .016, uTime * .005);
   float f = fbm(q + p.y * .35) + .2 * n2(q * 7. + p.y * 4. + uTime * .02) - .1;
-  return clamp((f - (1. - cover(p.z))) * 4.5, 0., 1.) * prof;
+  return clamp((f - (1. - cover(p.z) - XC)) * 4.5, 0., 1.) * prof;
 }
 vec4 clouds(vec3 ro, vec3 rd, float tmax, float jit) {
   float ta = (CB - ro.y) / rd.y, tb = (CT - ro.y) / rd.y;
@@ -194,18 +201,26 @@ vec3 ground(vec3 p, float t) {
 
 vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
   vec3 fogc = skyBase(normalize(vec3(rd.x, .04 + max(rd.y, 0.) * .25, rd.z)));
-  col = mix(col, fogc, 1. - exp(-t * t * .013 - t * .02));
+  col = mix(col, fogc, 1. - exp((-t * t * .013 - t * .02) * (1. + 9. * XM)));
   /* mist that lies on the water and in the low ground, and drifts */
-  float mist = exp(-max(p.y, 0.) * 11.) * (1. - exp(-t * .9)) * (.35 + .65 * fbm(p.xz * 2.4 + vec2(uTime * .03, 0.)));
-  return mix(col, fogc * 1.08 + KEYCOL * .05, mist * mix(.38, .62, max(LOW, NIGHT)));
+  float mist = exp(-max(p.y, 0.) * mix(11., 1.7, XM)) * (1. - exp(-t * mix(.9, 5., XM))) * mix(.35 + .65 * fbm(p.xz * 2.4 + vec2(uTime * .03, 0.)), .75 + .25 * fbm(p.xz * 1.3 + vec2(uTime * .12, uTime * .05)), XM);
+  return mix(col, fogc * 1.08 + KEYCOL * .05, mist * mix(mix(.38, .62, max(LOW, NIGHT)), .985, XM));
 }
 
 void main() {
   float P = clamp(uP, 0., 1.);
+  /* an opening: e runs 0 to 1, eased; left = how much of it is still to play */
+  float e = clamp(uIntro, 0., 1.), es = e * e * (3. - 2. * e), left = 1. - es;
+  XC = KIND(1.) ? .36 * left : 0.;
+  XM = KIND(4.) ? left * left : 0.;
+  XA = KIND(2.) ? sin(3.14159 * e) : 0.;
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
   float eL = mix(mix(8., 44., smoothstep(0., .45, P)), -8., smoothstep(.5, .96, P));
   float eD = mix(mix(-4.5, -30., smoothstep(0., .22, P)), 1.4, smoothstep(.76, 1., P));
-  SUN = dirFrom(mix(eL, eD, uNight), mix(-26., 8., P));
+  float elev = mix(eL, eD, uNight);
+  /* opening 2: the sun starts behind the ridge and climbs to where this page keeps it */
+  if (KIND(2.)) elev = mix(min(elev, -6.5), elev, es);
+  SUN = dirFrom(elev, mix(-26., 8., P));
   MOON = dirFrom(36., mix(40., 22., P));
   DAY = smoothstep(-.12, .16, SUN.y);
   NIGHT = 1. - smoothstep(-.3, -.06, SUN.y);
@@ -219,9 +234,11 @@ void main() {
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
   float z = .2 + 8.45 * P;
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), .05 + 1.72 * pow(1. - P, 2.6) + .002 * sin(uTime * .33), z);
+  /* opening 1: the camera starts above the cloud deck and sinks to its place, looking down as it comes */
+  if (KIND(1.)) ro.y = mix(ro.y, 1.66, left);
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
   float zt = z + 1.3;
-  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + mix(-.36, .05, smoothstep(0., .92, P)), zt);
+  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + mix(-.36, .05, smoothstep(0., .92, P)) - (KIND(1.) ? .3 * left : 0.), zt);
   vec3 ww = normalize(ta - ro), uu = normalize(cross(vec3(0., 1., 0.), ww)), vv = cross(ww, uu);
   vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y;
   /* a tall phone sees the same width of land as a wide screen sees height */
@@ -308,6 +325,26 @@ void main() {
       }
     }
     col = mix(col, AMB * .12, ink * fly * .88);
+  }
+  /* opening 3: the valley's birds, drawn as the far flocks are, leave the distance and fly past the camera */
+  if (KIND(3.) && e < 1.) {
+    float ink = 0.;
+    for (int i = 0; i < 11; i++) {
+      float fi = float(i), r1 = tx(vec2(fi * 7.3, 3.)), r2 = tx(vec2(fi * 3.1, 19.));
+      float go = clamp((e - .03 - fi * .045) / .5, 0., 1.), near = go * go * go;
+      float ang = (mod(fi, 2.) * 2. - 1.) * (.5 + 1.1 * r1) + 1.5708;
+      vec2 c = vec2(pathX(z + 1.3) - pathX(z), .12) + vec2(cos(ang) * min(1.4, uRes.x / uRes.y), sin(ang) * .9 - .25 * r2) * near * 2.4;
+      float size = mix(.012, .5 + .3 * r2, near);
+      vec2 q = (uv - c) / size;
+      q.x = abs(q.x);
+      float beat = sin(uTime * (7. + 3. * r1) + fi * 1.9);
+      float lift = q.x * (1.3 - .9 * q.x) * (.25 + .6 * beat) + .22 * sin(min(q.x, 1.) * 3.14159);
+      float wing = abs(q.y - lift) - .13 * (1. - .85 * q.x);
+      float body = length(vec2(q.x * 2.2, q.y + .04)) - .2;
+      float soft = mix(.06, .16, near);
+      ink = max(ink, smoothstep(soft, -.04, min(wing, body)) * step(q.x, 1.) * step(mix(2.5, 0., smoothstep(0., .25, go)), tend) * smoothstep(0., .04, go) * (1. - smoothstep(.82, 1., go)));
+    }
+    col = mix(col, mix(AMB * .12, vec3(.34, .4, .56), NIGHT), ink * .92);
   }
   /* snow: falls around the high peaks, under the clouds, in three depths */
   float snowing = smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P));

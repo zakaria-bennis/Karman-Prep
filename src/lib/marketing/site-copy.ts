@@ -410,10 +410,6 @@ award bonus: Extra, for your student's hard work
 award how: Send us the score report within one month of scores coming out. | Both amounts are paid straight to the parent's bank account one month after scores come out. | Open to the ${MP.shortName}.
 award close: Close
 
-## 59 Hero lab
-clock label: Right now it's
-clock line: Pick an hour. Any hour your tutor has open.
-
 ## 61 About: opening
 headline: We show our work. All of it.
 text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives. No black box. No "just trust us."

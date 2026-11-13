@@ -1,20 +1,41 @@
-/* TEMPORARY (2026-11-13): two openings for the SAT Program and Private tutoring pages (HeroLab.tsx), kept
-   from six for the founder to choose between. One rule to a line; never run Prettier on this. */
-.ks .hx { --a: #2449b8; --hg: rgba(255, 253, 248, .46); --he: rgba(255, 255, 255, .75); --hi: var(--ink); --bird: #2b2733; position: relative; overflow: clip; }
-.ks.lit[data-mode="dark"] .hx { --a: #8fb0ff; --hg: rgba(22, 20, 28, .56); --he: rgba(255, 250, 243, .2); --hi: var(--cream); --bird: #e9e3f2; }
+/* TEMPORARY (2026-11-13): the opening of the SAT Program and Private tutoring pages (HeroLab.tsx). The live
+   landscape performs it (lib/flight/shader.ts); these rules only bring the headline in, in step with it. Four
+   versions, by data-hero, for the founder to choose from. One rule to a line; never run Prettier on this. */
+.ks .hx { --a: #2449b8; --hg: rgba(255, 253, 248, .46); --he: rgba(255, 255, 255, .75); --hi: var(--ink); position: relative; overflow: clip; }
+.ks.lit[data-mode="dark"] .hx { --a: #8fb0ff; --hg: rgba(22, 20, 28, .56); --he: rgba(255, 250, 243, .2); --hi: var(--cream); }
 .ks .hx .pg-in { position: relative; z-index: 2; justify-items: center; text-align: center; }
 .ks .hx-say { display: grid; gap: clamp(18px, 2.4vw, 30px); justify-items: center; min-width: 0; }
 .ks.lit .hx h1 { position: relative; font-size: clamp(38px, 5.2vw, 84px); line-height: 1.06; max-width: 15em; text-align: center; }
 .ks .hx[data-page="program"] .hx-say { gap: clamp(14px, 1.8vw, 22px); }
 .ks.lit .hx[data-page="program"] h1 { font-size: clamp(38px, 4.8vw, 76px); }
-.ks .hx-w { display: inline-block; white-space: pre; animation: hx-word .9s var(--spring) both; animation-delay: calc(.1s + var(--i) * .06s); }
+.ks .hx-w { display: inline-block; white-space: pre; }
 .ks .hx-w[data-num] { color: var(--a); }
-@keyframes hx-word { from { opacity: 0; translate: 0 .6em; rotate: 4deg; } }
-.ks .hx-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; animation: pg-rise .9s var(--spring) .8s both; }
+.ks .hx-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 28px; }
 .ks .hx-go .more { min-height: 44px; display: inline-flex; align-items: center; }
+/* until the landscape says its opening has begun, the words wait unseen (never longer than a moment) */
+.ks .hx:not([data-go]) :is(.hx-w, .hx-go, .pg-promise) { opacity: 0; }
+.ks .hx:not([data-go]) .mist { opacity: 0; }
+/* the page's own veil, which keeps words readable over the landscape, comes in late so the scene shows first */
+.ks .hx[data-go] .mist { animation: hx-veil 1.6s ease 2.3s both; }
+@keyframes hx-veil { from { opacity: 0; } }
+.ks .hx[data-go] .hx-go { animation: pg-rise .9s var(--spring) 3.1s both; }
+.ks .hx[data-go] .hx-say > .pg-promise { animation: pg-rise .9s var(--spring) 3.4s both; }
+
+/* 1 Descent: the headline condenses out of the cloud the camera is sinking through */
+.ks .hx[data-hero="1"][data-go] .hx-w { animation: hx-condense 1.7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(1.7s + var(--i) * .05s); }
+@keyframes hx-condense { from { opacity: 0; scale: 1.35; filter: blur(22px); letter-spacing: .08em; } 60% { opacity: 1; } to { opacity: 1; scale: 1; filter: blur(0); letter-spacing: 0; } }
+/* 2 Sunrise: each word is lit as the light reaches it, warm first, then its own colour */
+.ks .hx[data-hero="2"][data-go] .hx-w { animation: hx-lit 1.5s cubic-bezier(.2, .8, .3, 1) both; animation-delay: calc(1.25s + var(--i) * .08s); }
+@keyframes hx-lit { 0% { opacity: 0; translate: 0 .35em; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } 35% { opacity: 1; text-shadow: 0 0 34px rgba(255, 170, 80, .95), 0 0 80px rgba(255, 140, 60, .6); } 100% { opacity: 1; translate: 0 0; text-shadow: 0 0 0 rgba(255, 170, 80, 0); } }
+/* 3 Flock: the headline is blown in on the birds' wings; each word leans with the gust */
+.ks .hx[data-hero="3"][data-go] .hx-w { transform-origin: 50% 100%; animation: hx-gust 1.1s cubic-bezier(.2, .9, .3, 1) both; animation-delay: calc(1.3s + var(--i) * .1s); }
+@keyframes hx-gust { 0% { opacity: 0; scale: .5; translate: 0 -.9em; rotate: -9deg; filter: blur(6px); } 55% { opacity: 1; filter: blur(0); rotate: 3deg; } 100% { opacity: 1; scale: 1; translate: 0 0; rotate: 0deg; filter: blur(0); } }
+/* 4 Mist: the headline surfaces slowly as the mist drains */
+.ks .hx[data-hero="4"][data-go] .hx-w { animation: hx-surface 2.1s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(1.2s + var(--i) * .12s); }
+@keyframes hx-surface { from { opacity: 0; translate: 0 .5em; filter: blur(20px); } 50% { opacity: .8; } to { opacity: 1; translate: 0 0; filter: blur(0); } }
 
 /* the Program page's promise: the number set like a title, the guarantee beside a shield, never plain text */
-.ks .hx-say > .pg-promise { width: min(100%, 720px); justify-items: center; gap: 8px; animation: pg-rise .9s var(--spring) 1s both; }
+.ks .hx-say > .pg-promise { width: min(100%, 720px); justify-items: center; gap: 8px; }
 .ks .hx-say > .pg-promise .pg-asking { margin: 0; font-size: 15px; font-weight: 800; opacity: .8; }
 .ks .hx-say > .pg-promise .pg-gain { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px clamp(14px, 2vw, 26px); min-height: 0; margin: 4px 0 0; text-align: left; }
 .ks.lit .hx-say > .pg-promise .pg-gain .num { font-family: var(--font-fraunces), var(--font-young-serif), Georgia, serif; font-style: italic; font-weight: 600; font-size: clamp(78px, 8.4vw, 128px); line-height: .9; letter-spacing: -.03em; color: var(--a); text-shadow: 0 .04em 0 color-mix(in srgb, var(--a) 22%, transparent); }
@@ -22,54 +43,8 @@
 .ks .hx-say > .pg-promise .pg-gain span { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: center; max-width: 15em; padding: 12px 20px 13px 14px; border-radius: 24px; background: var(--hg); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: inset 0 1.5px 0 var(--he), 0 20px 34px -24px rgba(29, 26, 34, .6); color: var(--hi); font-family: var(--font-young-serif), Georgia, serif; font-size: clamp(19px, 1.7vw, 24px); font-weight: 400; line-height: 1.2; }
 .ks .hx-say > .pg-promise .pg-gain span::before { content: ""; width: 30px; height: 33px; background: linear-gradient(135deg, #fff, #c9d1de 45%, #eef2f8 55%, #9aa6b8); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 22'%3E%3Cpath d='M10 1l8 3v6.400c0 5-3.400 8.800-8 10.600-4.600-1.800-8-5.600-8-10.600V4z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--a) 60%, transparent)); }
 
-/* ---------- Flock: the landscape comes forward ---------- */
-/* its mist lies over the middle of the screen, then parts to either side */
-.ks .hx-veil { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.ks .hx-veil i { position: absolute; top: 12%; bottom: 18%; width: 78%; background: radial-gradient(60% 50% at 50% 50%, var(--mist, #fff8ee) 0%, color-mix(in srgb, var(--mist, #fff8ee) 82%, transparent) 45%, transparent 72%); filter: blur(14px); animation: hx-part-l 2.8s cubic-bezier(.5, 0, .3, 1) .15s both; }
-.ks .hx-veil i:first-child { left: -6%; }
-.ks .hx-veil i + i { right: -6%; animation-name: hx-part-r; }
-@keyframes hx-part-l { from { opacity: 1; translate: 14% 0; } to { opacity: 0; translate: -46% 0; } }
-@keyframes hx-part-r { from { opacity: 1; translate: -14% 0; } to { opacity: 0; translate: 46% 0; } }
-/* its birds leave the far end of the valley and fly past the reader, growing as they come */
-.ks .hx-flock { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
-.ks .hx-bird { position: absolute; left: 50%; top: 36%; width: 34px; margin: -12px 0 0 -17px; opacity: 0; animation: hx-come 2.5s cubic-bezier(.55, 0, .9, .5) var(--d) both; }
-.ks .hx :is(.hx-bird, .hx-perch) svg { display: block; width: 100%; overflow: visible; }
-.ks .hx-wl, .ks .hx-wr, .ks .hx-body { fill: var(--bird); }
-.ks .hx-beak { fill: #e2852b; }
-.ks .hx-wl { transform-origin: 0 2px; animation: hx-flap-l .26s ease-in-out infinite alternate; }
-.ks .hx-wr { transform-origin: 0 2px; animation: hx-flap-r .26s ease-in-out infinite alternate; }
-@keyframes hx-flap-l { from { rotate: -24deg; } to { rotate: 30deg; } }
-@keyframes hx-flap-r { from { rotate: 24deg; } to { rotate: -30deg; } }
-@keyframes hx-come { 0% { opacity: 0; translate: 0 0; scale: .1; filter: blur(0); } 12% { opacity: .85; } 78% { opacity: 1; filter: blur(0); } 100% { opacity: 0; translate: var(--x) var(--y); scale: var(--s); filter: blur(3px); } }
-/* the headline is blown in on their wings: each word arrives from the valley, leaning with the gust */
-.ks .hx[data-hero="flock"] .hx-w { transform-origin: 50% 100%; animation: hx-gust 1.1s cubic-bezier(.2, .9, .3, 1) both; animation-delay: calc(1.25s + var(--i) * .1s); }
-@keyframes hx-gust { 0% { opacity: 0; scale: .5; translate: 0 -.9em; rotate: -9deg; filter: blur(6px); } 55% { opacity: 1; filter: blur(0); rotate: 3deg; } 100% { opacity: 1; scale: 1; translate: 0 0; rotate: 0deg; filter: blur(0); } }
-.ks .hx[data-hero="flock"] .hx-go { animation-delay: 2.6s; }
-.ks .hx[data-hero="flock"] .hx-say > .pg-promise { animation-delay: 2.9s; }
-/* one bird glides in, lands on the headline and stays; it shuffles now and then */
-.ks .hx-perch { position: absolute; right: 10%; top: -.37em; width: .72em; padding: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; animation: hx-land 1.5s cubic-bezier(.3, .8, .3, 1) 3.1s both, hx-shuffle 6s ease-in-out 6s infinite; }
-.ks .hx-perch[data-again] { animation: hx-loop 2.2s cubic-bezier(.4, 0, .3, 1) both, hx-shuffle 6s ease-in-out 4s infinite; }
-@keyframes hx-land { 0% { opacity: 0; translate: 46vw -30vh; scale: 2.4; rotate: 24deg; } 20% { opacity: 1; } 78% { translate: 0 -.16em; scale: 1; rotate: -6deg; } 100% { opacity: 1; translate: 0 0; scale: 1; rotate: 0deg; } }
-@keyframes hx-loop { 0% { translate: 0 0; rotate: 0deg; } 30% { translate: -1.6em -1.3em; rotate: -24deg; scale: 1.2; } 60% { translate: 1.2em -1.7em; rotate: 20deg; scale: 1.25; } 88% { translate: 0 -.16em; rotate: -6deg; scale: 1; } 100% { translate: 0 0; rotate: 0deg; } }
-.ks .hx-tail, .ks .hx-wing { fill: color-mix(in srgb, var(--bird) 78%, #8a93a8); }
-.ks .hx-eye { fill: var(--mist, #fff8ee); }
-.ks .hx-leg { fill: none; stroke: #e2852b; stroke-width: 1.800; stroke-linecap: round; }
-.ks .hx-wing { transform-origin: -6px 0; animation: hx-beat .2s ease-in-out 3.100s 7 alternate; }
-.ks .hx-perch[data-again] .hx-wing { animation: hx-beat .18s ease-in-out 11 alternate; }
-@keyframes hx-beat { from { rotate: 0deg; scale: 1 1; } to { rotate: -58deg; scale: 1.250 1.500; } }
-@keyframes hx-shuffle { 0%, 86%, 100% { translate: 0 0; rotate: 0deg; } 89% { translate: -.05em -.07em; rotate: -8deg; } 93% { translate: .04em 0; rotate: 6deg; } }
-@media (max-width: 760px) { .ks .hx-perch { right: 4%; width: .9em; } .ks .hx-bird { width: 24px; } }
-
-/* ---------- Live ---------- */
-.ks .hx-live { display: grid; justify-items: center; gap: 2px; padding: 16px clamp(22px, 3vw, 40px) 18px; border-radius: 32px; background: var(--hg); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); color: var(--hi); box-shadow: inset 0 1.5px 0 var(--he), 0 26px 44px -26px rgba(29, 26, 34, .65); animation: pg-rise .9s var(--spring) .6s both; }
-.ks .hx-live small { font-size: 14.5px; font-weight: 800; opacity: .75; }
-.ks.lit .hx-live .num { font-size: clamp(50px, 6vw, 92px); line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; color: var(--a); }
-.ks .hx-live p { margin: 4px 0 0; font-size: clamp(16px, 1.4vw, 19px); font-weight: 700; }
-.ks .hx[data-hero="live"] .pg-clock { width: min(100%, 520px); justify-items: center; text-align: center; animation: pg-rise .9s var(--spring) .6s both; }
-.ks .hx[data-hero="live"] .pg-clock ol { width: 100%; }
-
-/* the design switch, on the dev server only */
+/* the version switch, on the dev server only */
 .ks .hx-pick { position: absolute; left: 0; right: 0; bottom: 10px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0; }
 .ks .hx-pick button { min-height: 40px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: var(--cream); font-size: 13px; font-weight: 800; opacity: .5; }
 .ks .hx-pick button[aria-pressed="true"] { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .ks .hx * { animation: none !important; transition: none !important; } .ks .hx-veil, .ks .hx-flock { display: none; } }
+@media (prefers-reduced-motion: reduce) { .ks .hx * { animation: none !important; transition: none !important; opacity: 1 !important; } }
