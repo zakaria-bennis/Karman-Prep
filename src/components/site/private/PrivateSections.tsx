@@ -4,9 +4,11 @@
 //   3 The two packages, the same size: Private 10 in black, Private 20 in blue with its badges
 //   4 The free-call form: a name, a number, an email and a time
 // Words: site-copy.ts sections 31, 32, 33 and 36; numbers: facts.ts.
-import { Arrow, Btn } from "@/components/site/parts";
+import { Arrow } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
+import HeroLab from "@/components/site/hero/HeroLab";
+import { heroWords } from "@/components/site/hero/hero-words";
 import CallForm from "./CallForm";
 import { PRIVATE_FACTS as F } from "./facts";
 import PlanPicker from "./PlanPicker";
@@ -26,31 +28,16 @@ export default function PrivateSections({ today }: { today: string }) {
   };
   return (
     <>
-      <section className="pg-hero pv-hero" id="top">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in">
-          <h1 aria-label={top.headline}>
-            {top.headline.split(" ").map((word, i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                data-num={/\d/.test(word) || undefined}
-                style={{ "--i": i } as React.CSSProperties}
-              >
-                {word}{" "}
-              </span>
-            ))}
-          </h1>
-          <div className="pg-close">
-            <div className="go-row">
-              <Btn label={top.button} href="#call" />
-              <a className="more" href="#packages">
-                {top["second button"]}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroLab
+        page="private"
+        headline={top.headline}
+        primary={{ label: top.button, href: "#call" }}
+        secondary={{ label: top["second button"], href: "#packages" }}
+        w={heroWords("private")}
+        demo={
+          <SessionDemo today={today} w={{ ...slot, confirm: book.confirm, booked: book.booked }} />
+        }
+      />
 
       <section className="sect pg-sect pv-book" id="session" aria-labelledby="session-h">
         <div className="mist" aria-hidden="true" />

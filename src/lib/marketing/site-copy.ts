@@ -410,6 +410,17 @@ award bonus: Extra, for your student's hard work
 award how: Send us the score report within one month of scores coming out. | Both amounts are paid straight to the parent's bank account one month after scores come out. | Open to the ${MP.shortName}.
 award close: Close
 
+## 59 Hero lab
+program fox headline: A higher {fox} SAT score in ${w(MP.weeks)} weeks.
+private fox headline: Up to {fox} ${guaranteeMax("private")} points higher, with a tutor who works around your week.
+program pieces: score label = Amira's score | score from = 1180 | score to = 1330 | sheet = Practice test 6 of 9 | sheet score = 1290 | class = A class of ${w(CLASS)} | class sub = 1200 to 1400 | live = Tue · 7:00 pm | live sub = Live class | report = Today: 42 questions | report sub = 86% right
+private pieces: booked = Thu · 5:00 pm | booked sub = Booked | text from = Zeeshawn | text = Send me question 14. I'll walk you through it. | day top = THU | day = 17 | score label = Amira's score | score from = 1340 | score to = 1540 | recap = Session recap | recap sub = 58 min
+sheets: 1150 | 1180 | 1170 | 1210 | 1240 | 1230 | 1270 | 1290 | 1300
+sheet word: Test
+sheets note: The plan for a start of 1150. Not a student's result.
+clock label: Right now it's
+clock line: Pick an hour. Any hour your tutor has open.
+
 ## 61 About: opening
 headline: We show our work. All of it.
 text: Karman prints every rule of its guarantee where you can read it, and shows parents and tutors every answer a student gives. No black box. No "just trust us."
