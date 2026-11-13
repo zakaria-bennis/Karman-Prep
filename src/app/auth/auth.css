@@ -1,0 +1,459 @@
+/* The sign-in and Start free pages (AuthStage.tsx), in the home page's world. Clerk's form is restyled here by
+   its own class names (.cl-...), so it follows the page's day and night. TEMPORARY: five layouts by data-look
+   for the founder to choose from. One rule to a line; never run Prettier on this. */
+.ks.sn-page .hd nav,
+.ks.sn-page .hd .cta,
+.ks.sn-page .hd .si,
+.ks.sn-page .hd .menu,
+.ks.sn-page .ft {
+  display: none;
+}
+.ks .sn {
+  --a: #2449b8;
+  --glass: rgba(255, 253, 248, 0.38);
+  --edge: rgba(255, 255, 255, 0.75);
+  --fill: rgba(255, 255, 255, 0.55);
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(18px, 2.4vw, 30px);
+  padding: clamp(104px, 13svh, 132px) var(--gutter) 84px;
+  color: var(--ink);
+}
+.ks.lit[data-mode="dark"] .sn {
+  --a: #8fb0ff;
+  --glass: rgba(20, 18, 26, 0.5);
+  --edge: rgba(255, 250, 243, 0.2);
+  --fill: rgba(255, 250, 243, 0.1);
+  color: var(--cream);
+}
+/* a light veil only behind the words, as on the home page */
+.ks .sn-say::before {
+  content: "";
+  position: absolute;
+  inset: -40% -30%;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    color-mix(in srgb, var(--mist) 62%, transparent),
+    color-mix(in srgb, var(--mist) 30%, transparent) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.ks .sn-standin {
+  display: grid;
+}
+.ks .sn-standin label {
+  display: grid;
+  gap: 7px;
+}
+.ks .sn-or {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.ks .sn-or i {
+  height: 1px;
+}
+.ks .sn .cl-footerAction {
+  display: flex;
+  gap: 8px;
+}
+.ks .sn-say {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  animation: pg-rise 0.9s var(--spring) 0.1s both;
+}
+.ks.lit .sn h1 {
+  margin: 0;
+  font-size: clamp(40px, 5vw, 76px);
+  line-height: 1.04;
+}
+.ks .sn-say p {
+  margin: 0;
+  max-width: 24em;
+  font-size: clamp(17px, 1.5vw, 20px);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.ks .sn-form {
+  position: relative;
+  width: min(100%, 440px);
+  animation: pg-rise 0.9s var(--spring) 0.25s both;
+}
+
+/* Clerk's form, as frosted glass with pill fields */
+.ks .sn .cl-rootBox,
+.ks .sn .cl-cardBox,
+.ks .sn .cl-card {
+  width: 100%;
+  max-width: none;
+}
+.ks .sn .cl-cardBox {
+  border: 0;
+  border-radius: 36px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 0 0 1px color-mix(in srgb, var(--edge) 55%, transparent),
+    0 34px 60px -32px rgba(29, 26, 34, 0.7);
+  overflow: hidden;
+}
+.ks .sn .cl-card {
+  gap: 18px;
+  padding: 28px 26px 22px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+.ks .sn .cl-header {
+  display: none;
+}
+.ks
+  .sn
+  :is(
+    .cl-formFieldLabel,
+    .cl-footerActionText,
+    .cl-dividerText,
+    .cl-formFieldHintText,
+    .cl-identityPreviewText,
+    .cl-formHeaderTitle,
+    .cl-formHeaderSubtitle,
+    .cl-otpCodeFieldInput,
+    .cl-formResendCodeLink,
+    .cl-alternativeMethodsBlockButton
+  ) {
+  color: inherit;
+}
+.ks .sn .cl-formFieldLabel {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+.ks .sn :is(.cl-formFieldInput, .cl-otpCodeFieldInput) {
+  min-height: 56px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill);
+  color: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+}
+.ks .sn .cl-otpCodeFieldInput {
+  padding: 0;
+  border-radius: 18px;
+}
+.ks .sn .cl-formFieldInput:focus {
+  box-shadow: inset 0 0 0 2.5px var(--a);
+}
+.ks .sn .cl-formButtonPrimary {
+  min-height: 58px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--a);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: none;
+  box-shadow: 0 18px 28px -16px var(--a);
+  transition:
+    scale 0.35s var(--spring),
+    filter 0.25s;
+}
+.ks.lit[data-mode="dark"] .sn .cl-formButtonPrimary {
+  color: #17151c;
+}
+.ks .sn .cl-formButtonPrimary:hover {
+  filter: brightness(1.08);
+}
+.ks .sn .cl-formButtonPrimary:active {
+  scale: 0.97;
+}
+.ks .sn .cl-formButtonPrimary::after {
+  display: none;
+}
+.ks .sn :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton) {
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill);
+  color: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent);
+}
+.ks .sn .cl-socialButtonsBlockButtonText {
+  color: inherit;
+  font-weight: 800;
+}
+.ks .sn .cl-dividerLine {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+.ks .sn .cl-footer {
+  background: none;
+}
+.ks .sn .cl-footer > *:not(.cl-footerAction) {
+  display: none;
+}
+.ks .sn .cl-footerAction {
+  padding: 14px 0 20px;
+  background: none;
+  border: 0;
+  justify-content: center;
+}
+.ks
+  .sn
+  :is(
+    .cl-footerActionLink,
+    .cl-formFieldAction,
+    .cl-formResendCodeLink,
+    .cl-identityPreviewEditButton
+  ) {
+  color: var(--a);
+  font-weight: 800;
+}
+.ks .sn .cl-formFieldInputShowPasswordButton {
+  color: inherit;
+  opacity: 0.7;
+  margin-right: 8px;
+}
+.ks .sn .cl-formFieldErrorText {
+  color: #a3271f;
+  font-weight: 800;
+}
+.ks.lit[data-mode="dark"] .sn .cl-formFieldErrorText {
+  color: #ffb4ab;
+}
+.ks .sn .cl-internal-1dauvpw,
+.ks .sn .cl-badge {
+  display: none;
+}
+
+/* ---------- 2. Split ---------- */
+@media (min-width: 900px) {
+  .ks .sn[data-look="2"] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+    justify-content: center;
+    column-gap: clamp(40px, 7vw, 120px);
+    align-items: center;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+  .ks .sn[data-look="2"] .sn-say {
+    justify-items: start;
+    text-align: left;
+  }
+  .ks.lit .sn[data-look="2"] h1 {
+    font-size: clamp(54px, 6.4vw, 104px);
+  }
+}
+/* ---------- 3. Pills: no card ---------- */
+.ks .sn[data-look="3"] .cl-cardBox {
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.ks .sn[data-look="3"] .cl-card {
+  padding: 0;
+}
+.ks .sn[data-look="3"] :is(.cl-formFieldInput, .cl-socialButtonsBlockButton) {
+  min-height: 64px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 0 0 1px color-mix(in srgb, var(--edge) 55%, transparent),
+    0 20px 40px -26px rgba(29, 26, 34, 0.55);
+}
+.ks .sn[data-look="3"] .cl-formFieldInput:focus {
+  box-shadow:
+    inset 0 0 0 2.5px var(--a),
+    0 20px 40px -26px rgba(29, 26, 34, 0.55);
+}
+.ks .sn[data-look="3"] .cl-formButtonPrimary {
+  min-height: 64px;
+}
+/* ---------- 4. Fox ---------- */
+.ks .sn[data-look="4"] .sn-form {
+  margin-top: 84px;
+}
+.ks .sn-fox {
+  position: absolute;
+  left: 50%;
+  top: -106px;
+  translate: -50% 0;
+  width: 120px;
+  z-index: 0;
+  animation: sn-peek 1s cubic-bezier(0.3, 1.5, 0.5, 1) 0.6s both;
+}
+.ks .sn-fox svg {
+  display: block;
+  overflow: visible;
+}
+.ks .sn-fox .m-eyes {
+  translate: calc(var(--mx, 0) * 3.5px) calc(var(--my, 0) * 3px + 1px);
+  transition: translate 0.18s ease-out;
+}
+.ks .sn-fox .m-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: sn-blink 4.6s infinite;
+}
+.ks .sn-fox .m-ear {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: sn-ear 5.4s ease-in-out infinite;
+}
+/* his paws: on the card's edge, or over his eyes while a password is typed */
+.ks .sn-fox i {
+  position: absolute;
+  top: 94px;
+  left: 10px;
+  width: 30px;
+  height: 22px;
+  border-radius: 14px 14px 10px 10px;
+  background: #e89a2c;
+  box-shadow: inset 0 -5px 0 #fff0da;
+  transition:
+    translate 0.45s var(--spring),
+    rotate 0.45s var(--spring);
+  z-index: 2;
+}
+.ks .sn-fox i + i {
+  left: auto;
+  right: 10px;
+}
+.ks .sn-fox[data-shy] i {
+  translate: 20px -22px;
+  rotate: 14deg;
+}
+.ks .sn-fox[data-shy] i + i {
+  translate: -20px -22px;
+  rotate: -14deg;
+}
+.ks .sn[data-look="4"] .cl-rootBox {
+  position: relative;
+  z-index: 1;
+}
+@keyframes sn-peek {
+  from {
+    translate: -50% 70px;
+  }
+}
+@keyframes sn-blink {
+  0%,
+  94%,
+  100% {
+    scale: 1 1;
+  }
+  96.500% {
+    scale: 1 0.08;
+  }
+}
+@keyframes sn-ear {
+  0%,
+  84%,
+  100% {
+    rotate: 0deg;
+  }
+  88% {
+    rotate: -12deg;
+  }
+  92% {
+    rotate: 8deg;
+  }
+}
+/* ---------- 5. Sheet ---------- */
+@media (min-width: 900px) {
+  .ks .sn[data-look="5"] {
+    grid-template-columns: minmax(0, 1fr) 500px;
+    padding: 0;
+    align-items: stretch;
+    justify-items: stretch;
+    gap: 0;
+  }
+  .ks .sn[data-look="5"] .sn-say {
+    align-content: end;
+    justify-items: start;
+    text-align: left;
+    padding: 0 var(--gutter) clamp(70px, 12svh, 130px);
+  }
+  .ks.lit .sn[data-look="5"] h1 {
+    font-size: clamp(60px, 7.4vw, 124px);
+  }
+  .ks .sn[data-look="5"] .sn-form {
+    width: 100%;
+    display: grid;
+    align-content: center;
+    padding: 100px 32px 60px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(30px) saturate(1.6);
+    backdrop-filter: blur(30px) saturate(1.6);
+    box-shadow:
+      inset 1.5px 0 0 var(--edge),
+      -30px 0 60px -40px rgba(29, 26, 34, 0.6);
+    animation: sn-slide 1s var(--spring) 0.2s both;
+  }
+  .ks .sn[data-look="5"] .cl-cardBox {
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}
+@keyframes sn-slide {
+  from {
+    opacity: 0;
+    translate: 80px 0;
+  }
+}
+
+.ks .sn-pick {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+}
+.ks .sn-pick button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.5;
+}
+.ks .sn-pick button[aria-pressed="true"] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .sn * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
