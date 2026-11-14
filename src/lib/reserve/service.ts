@@ -161,10 +161,9 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
       programId: s.programId,
       payment: s.payment,
       // Stripe fills in the session id, so the welcome page can confirm the payment itself
-      successUrl: `${appUrl()}/reserve/welcome?r=${r.claim_token}&s={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${appUrl()}/reserve?back=${r.id}`,
+      returnUrl: `${appUrl()}/reserve/welcome?r=${r.claim_token}&s={CHECKOUT_SESSION_ID}`,
     });
-    if (!session.url) return { ok: false, error: "server" };
+    if (!session.client_secret) return { ok: false, error: "server" };
     await db
       .from(TABLE)
       .update({
@@ -175,7 +174,8 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
         updated_at: new Date().toISOString(),
       })
       .eq("id", r.id);
-    return { ok: true, value: { url: session.url } };
+    // our own payment page, which opens this session's fields
+    return { ok: true, value: { url: `/reserve/pay?id=${r.id}` } };
   } catch (e) {
     console.error("[reserve] checkout could not start", e);
     return { ok: false, error: "server" };
@@ -251,6 +251,37 @@ export async function settleReservation(
   );
   await welcomeFamily(r);
   return "paid";
+}
+
+/** What the payment page (/reserve/pay) needs: the open checkout's client secret, and what is being
+ *  paid for. "paid" when the seat is already paid (the page then sends the family on to the welcome
+ *  page); null when there is nothing to pay (no such reservation, or its checkout ran out). */
+export async function paymentFor(
+  reservationId: string
+): Promise<
+  | { state: "open"; clientSecret: string; seat: Reservation }
+  | { state: "paid"; seat: Reservation }
+  | null
+> {
+  if (!/^[0-9a-f-]{36}$/i.test(reservationId)) return null;
+  const { data } = await createAdminClient()
+    .from(TABLE)
+    .select("*")
+    .eq("id", reservationId)
+    .maybeSingle();
+  const seat = data as Reservation | null;
+  if (!seat) return null;
+  if (seat.status === "paid" || seat.status === "placed") return { state: "paid", seat };
+  if (seat.status !== "started" || !seat.stripe_checkout_session_id) return null;
+  try {
+    const session = await stripe.checkout.sessions.retrieve(seat.stripe_checkout_session_id);
+    if (session.status === "complete") return { state: "paid", seat };
+    if (session.status !== "open" || !session.client_secret) return null;
+    return { state: "open", clientSecret: session.client_secret, seat };
+  } catch (e) {
+    console.error("[reserve] could not open the payment", e);
+    return null;
+  }
 }
 
 /** The welcome page's own check, for the seconds before Stripe's message arrives (or when it cannot

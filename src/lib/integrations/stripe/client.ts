@@ -153,30 +153,29 @@ export async function createCheckoutSession({
  * Checkout for a cohort seat reserved from the marketing site, before the student has an account
  * (src/lib/reserve). The same prices and payment methods as a signed-in cohort checkout; the metadata
  * carries the reservation instead of a user, and the webhook settles it by that id.
+ * The payment is taken on our own page (/reserve/pay): the session is made for Stripe's fields to be
+ * placed inside it (ui_mode "elements"), and its client secret is what that page opens them with.
  */
 export async function createReservationCheckoutSession({
   customerId,
   reservationId,
   programId,
   payment,
-  successUrl,
-  cancelUrl,
+  returnUrl,
 }: {
   customerId: string;
   reservationId: string;
   programId: string;
   payment: CohortPayment;
-  successUrl: string;
-  cancelUrl: string;
+  /** Where Stripe sends the family once the payment is made. */
+  returnUrl: string;
 }) {
   const metadata = { reservationId, planId: "cohort", term: payment, programId };
   const shared = {
     customer: customerId,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
+    ui_mode: "elements" as const,
+    return_url: returnUrl,
     metadata,
-    // if the family leaves the payment page, Stripe hands back a link that reopens it (docs/forms)
-    after_expiration: { recovery: { enabled: true } },
   };
   if (payment === "installments") {
     const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);

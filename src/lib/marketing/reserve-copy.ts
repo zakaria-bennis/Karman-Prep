@@ -44,9 +44,24 @@ export const RESERVE = {
     parts: "Deposit, then three payments",
     partsPrice: `${formatPrice(MP.depositAmount)} today`,
     partsNote: `Then ${MP.installments.count} monthly payments of ${formatPrice(MP.installments.amount)}, starting with the first class. The total is the same: ${formatPrice(MP.price)}.`,
-    button: "Continue to secure payment",
-    sending: "Opening secure payment",
+    button: "Continue to payment",
+    sending: "Opening payment",
     promise: `Covered by the guarantee: up to +${G.bands[0].cohort} points, or your money back.`,
+  },
+  /** Our own payment page (/reserve/pay). {name} is the student's first name. */
+  payPage: {
+    title: "{name}'s seat",
+    what: `The ${MP.weeks}-week SAT cohort, {month}`,
+    whatOpen: `The ${MP.weeks}-week SAT cohort`,
+    depositNote: "Deposit today. Then {count} monthly payments of {each}.",
+    other: "Pay another way",
+    pay: "Pay {amount}",
+    paying: "Paying",
+    loading: "Loading payment",
+    errors: {
+      load: "Payment didn't load. Refresh the page, or email hello@karmanprep.com.",
+      pay: "That payment didn't go through. Try again, or pay another way.",
+    },
   },
   errors: {
     email: "Enter an email address, like name@example.com.",
