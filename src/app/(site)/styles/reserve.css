@@ -43,7 +43,7 @@
 
 /* the two big choices on the first step */
 .ks .rs-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.ks .rs-pick button { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 196px; padding: 16px 14px 18px; border-radius: 26px; background: var(--glass); color: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); transition: translate .4s var(--spring), box-shadow .25s; }
+.ks .rs-pick button { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 240px; padding: 14px 12px 18px; border-radius: 26px; background: var(--glass); color: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); transition: translate .4s var(--spring), box-shadow .25s; }
 .ks .rs-pick button:active { translate: 0 2px; }
 .ks .rs-pick button[data-on] { box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2.5px var(--a); }
 .ks .rs-pick button:focus-visible, .ks .rs-back:focus-visible { outline: 3px solid var(--a); outline-offset: 3px; }
@@ -77,20 +77,21 @@
 }
 @media (prefers-reduced-motion: reduce) { .ks .rs * { animation: none !important; transition: none !important; } .ks .rs-confetti { display: none; } }
 .ks .rs-done .rs-why { margin-left: 0; }
-/* the two small drawings on the first step (RolePictures.tsx): each moves a little when its card is hovered or picked */
-.ks .rs-pic { width: min(100%, 150px); height: auto; overflow: visible; }
-.ks .rs-pic-line { fill: none; stroke: #2b2333; stroke-width: 1.4; stroke-linecap: round; }
-.ks .rs-pic-arm { fill: none; stroke-width: 7; stroke-linecap: round; }
-.ks .rs-pic :is(.rs-pic-child, .rs-pic-wave, .rs-pic-tassel, .rs-pic-heart) { transform-box: fill-box; transition: transform .5s var(--spring); }
+/* the two drawings on the first step (RolePictures.tsx): each moves a little when its card is hovered or picked */
+.ks .rs-pic { width: min(100%, 210px); height: auto; overflow: visible; }
+.ks .rs-pic :is(.rs-pic-child, .rs-pic-wave, .rs-pic-tassel, .rs-pic-lock, .rs-pic-nuzzle, .rs-pic-glint) { transform-box: fill-box; transition: transform .6s var(--spring); }
 .ks .rs-pic-child { transform-origin: 50% 100%; }
+.ks .rs-pic-nuzzle { transform-origin: 60% 100%; }
 .ks .rs-pic-wave { transform-origin: 0% 100%; }
-.ks .rs-pic-tassel { transform-origin: 0% 0%; }
-.ks .rs-pic-heart { transform-origin: 50% 100%; animation: rs-heart 2.4s ease-in-out infinite; }
-.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-child { transform: rotate(-5deg) translateX(-1.5px); }
-.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-wave { animation: rs-wave 1.1s ease-in-out infinite; }
-.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-tassel { transform: rotate(9deg); }
-@keyframes rs-heart { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18) translateY(-2px); } }
-@keyframes rs-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-9deg); } }
+.ks .rs-pic-tassel { transform-origin: 0% 0%; animation: rs-sway 3.6s ease-in-out infinite; }
+.ks .rs-pic-lock { transform-origin: 0% 0%; animation: rs-sway 4.4s ease-in-out infinite reverse; }
+.ks .rs-pic-glint { transform-origin: 50% 50%; animation: rs-glint 2.8s ease-in-out infinite; }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-child { transform: rotate(4deg) translateX(2px); }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-nuzzle { transform: rotate(-4deg); }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-wave { animation: rs-wave 1.2s ease-in-out infinite; }
+@keyframes rs-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg); } }
+@keyframes rs-glint { 0%, 100% { transform: scale(.7); opacity: .5; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes rs-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-7deg); } }
 @media (prefers-reduced-motion: reduce) { .ks .rs-pic * { animation: none !important; transition: none !important; } }
 /* the SAT months side by side, and "Not sure yet" across the full width under them */
 .ks .rs-dates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
