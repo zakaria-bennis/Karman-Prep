@@ -20,16 +20,12 @@ import {
 export const CARD_METHODS = ["card", "link"] as const;
 
 /**
- * Card, Link and buy now, pay later on one-payment checkouts (Cohort, Private 10, Private 20).
- * Founder, 2026-11-08. Checked on the Stripe test account on 8 Nov: Klarna, Affirm and
- * Afterpay all open on $995, $1,495 and $2,495. Each must also be on in live mode at launch.
+ * One-payment checkouts (Cohort, Private 10, Private 20) name no payment methods: Stripe offers
+ * whichever ones are switched on in the Dashboard's payment method settings and fit the payment
+ * (card, Link, wallets, and pay-later ways such as Klarna and Afterpay). Naming one that the
+ * account cannot use makes Stripe refuse the whole checkout, and on 2026-11-14 Affirm was
+ * "Ineligible" on the live account. Subscriptions and the deposit keep CARD_METHODS.
  */
-export const ONE_PAYMENT_METHODS = [
-  ...CARD_METHODS,
-  "klarna",
-  "affirm",
-  "afterpay_clearpay",
-] as const;
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -142,7 +138,7 @@ export async function createCheckoutSession({
   }
   return stripe.checkout.sessions.create({
     ...shared,
-    payment_method_types: [...ONE_PAYMENT_METHODS],
+    payment_method_types: undefined,
     mode: "payment",
     // The admin scholarship payout refunds the cohort price by cohort_id.
     payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },
@@ -193,7 +189,6 @@ export async function createReservationCheckoutSession({
   return stripe.checkout.sessions.create({
     ...shared,
     mode: "payment",
-    payment_method_types: [...ONE_PAYMENT_METHODS],
     line_items: [{ price: price.id, quantity: 1 }],
     payment_intent_data: { metadata },
   });

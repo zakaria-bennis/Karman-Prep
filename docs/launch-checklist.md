@@ -76,7 +76,7 @@ What the Next.js port of the approved mock covers. Site-wide items above stay op
 ## Payments and public contact details (founder, 2026-11-14)
 
 - [ ] Stripe live side: create the seven live prices (the lookup keys in `src/lib/integrations/stripe/prices.ts`), add the live webhook, and put the live keys in the Worker. Live had no products and no webhook on 2026-11-14.
-- [ ] Affirm is "Ineligible" on the live account, and the code asks for it by name (`ONE_PAYMENT_METHODS`). Fix before the first live payment.
+- [x] Affirm was "Ineligible" on the live account while the code asked for it by name. Fixed 2026-11-14: one-payment checkouts name no methods, so Stripe offers the ones switched on in the Dashboard.
 - [ ] Register every address that shows the payment page under Stripe's payment method domains, in live and in test mode (test mode keeps its own list).
 - [ ] After launch: a PO box or virtual address to replace the home address as Stripe's public support address.
 - [ ] After launch: a second phone number that rings the founder's phone, to replace his personal mobile as the public support number.
