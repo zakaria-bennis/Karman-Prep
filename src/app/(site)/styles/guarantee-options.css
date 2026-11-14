@@ -1,0 +1,162 @@
+/* TRIAL: five openings for the guarantee page (GuaranteeOpeners.tsx), for the founder to choose from.
+   Deleted, with the four he does not pick, once he has chosen. One rule to a line; never run Prettier on this. */
+
+.ks .go { --a: #2449b8; --glass: rgba(255, 253, 248, .36); --edge: rgba(255, 255, 255, .72); --leaf: #f6f0e2; --leaf-ink: #1d1a22; --rock-hi: #d9deef; --rock: #8f98c2; --rock-lo: #59618f; --land: #efe9da; --pine: #3c6b5c; }
+.ks.lit[data-mode="dark"] .go { --a: #9db9ff; --glass: rgba(20, 18, 26, .5); --edge: rgba(255, 250, 243, .2); --leaf: #23264a; --leaf-ink: #f3ecdf; --rock-hi: #8791c4; --rock: #4a5288; --rock-lo: #272c55; --land: #1b1e3a; --pine: #17332e; }
+.ks .go-in { position: relative; z-index: 1; width: min(100%, 1180px); display: grid; justify-items: center; gap: clamp(14px, 2.2svh, 24px); text-align: center; animation: go-in .7s var(--out) both; }
+@keyframes go-in { from { opacity: 0; transform: translateY(18px); } }
+.ks .go .num { font-variant-numeric: tabular-nums lining-nums; }
+
+/* the two controls every opening shares */
+.ks .go-slide { width: min(100%, 460px); display: grid; gap: 4px; font-size: 16px; font-weight: 800; }
+.ks .go-slide span { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ks.lit .go-slide span .num { font-size: 24px; line-height: 1; }
+.ks.lit .go h1 { max-width: 17em; }
+.ks .go-slide input { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: 0; background: none; cursor: grab; touch-action: pan-y; }
+.ks .go-slide input::-webkit-slider-runnable-track { height: 12px; border-radius: 99px; background: linear-gradient(to right, var(--a) calc(var(--p) * 100%), color-mix(in srgb, var(--ink) 18%, transparent) 0); }
+.ks .go-slide input::-moz-range-track { height: 12px; border-radius: 99px; background: linear-gradient(to right, var(--a) calc(var(--p) * 100%), color-mix(in srgb, var(--ink) 18%, transparent) 0); }
+.ks .go-slide input::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 34px; margin-top: -11px; border-radius: 50%; background: var(--cream); border: 4px solid var(--a); box-shadow: 0 8px 16px -6px rgba(29, 26, 34, .6); transition: scale .25s var(--spring); }
+.ks .go-slide input::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--cream); border: 4px solid var(--a); }
+.ks .go-slide input:active::-webkit-slider-thumb { scale: 1.18; }
+.ks .go-slide input:focus-visible { outline: 3px solid var(--a); outline-offset: 4px; border-radius: 99px; }
+.ks .go-plans { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 5px; border-radius: 999px; background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); box-shadow: inset 0 1.5px 0 var(--edge); }
+.ks .go-plans button { min-height: 44px; padding: 0 18px; border-radius: 999px; background: none; color: inherit; font-size: 15.5px; font-weight: 800; white-space: nowrap; transition: background .25s, color .25s, scale .3s var(--spring); }
+.ks .go-plans button[aria-checked="true"] { background: var(--ink); color: var(--cream); }
+.ks.lit[data-mode="dark"] .go-plans button[aria-checked="true"] { background: var(--cream); color: #17151c; }
+.ks .go-plans button:active { scale: .94; }
+.ks .go-miss { margin: 0; max-width: 33em; font-size: clamp(16px, 1.35vw, 18.5px); font-weight: 600; line-height: 1.45; text-wrap: balance; }
+.ks .go-miss b { font-weight: 800; }
+.ks .go-row { width: 100%; display: flex; flex-wrap: wrap; align-items: end; justify-content: center; gap: 12px 30px; }
+.ks .go-sig { width: clamp(150px, 16vw, 230px); overflow: visible; }
+.ks .go-sig path { fill: none; stroke: currentColor; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: go-pen 1.1s .5s ease-in-out forwards; }
+.ks .go-sig path + path { animation-duration: 1.6s; animation-delay: 1.1s; }
+@keyframes go-pen { to { stroke-dashoffset: 0; } }
+
+/* 1. the number */
+.ks .go1-num { margin: 0; display: grid; justify-items: center; }
+.ks.lit .go1-num .num { font-size: clamp(120px, 19vw, 280px); line-height: .84; letter-spacing: -.055em; color: var(--a); text-shadow: 0 18px 40px color-mix(in srgb, var(--a) 30%, transparent); }
+.ks .go1-up { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(84px, 13vw, 190px); line-height: .95; color: var(--a); }
+.ks .go1-num span { margin-top: 10px; font-size: clamp(18px, 1.7vw, 24px); font-weight: 800; }
+.ks.lit .go1 h1 { font-size: clamp(26px, 2.5vw, 38px); }
+
+/* 2. the cheque */
+.ks .go2 { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: clamp(20px, 4vw, 64px); text-align: left; justify-items: stretch; }
+.ks .go2-say { display: grid; gap: clamp(14px, 2svh, 22px); justify-items: start; }
+.ks .go2 .go-plans { justify-content: flex-start; }
+.ks .go2-stage { perspective: 1100px; }
+.ks .go2-chq { --rx: 0deg; --ry: 0deg; position: relative; display: grid; gap: clamp(8px, 1.2vw, 16px); padding: clamp(16px, 2.2vw, 30px) clamp(18px, 2.4vw, 34px) clamp(12px, 1.4vw, 18px); border-radius: 16px; color: var(--leaf-ink); background: repeating-radial-gradient(circle at 12% 120%, transparent 0 9px, color-mix(in srgb, var(--a) 7%, transparent) 9px 10px), repeating-radial-gradient(circle at 88% -20%, transparent 0 11px, color-mix(in srgb, var(--a) 6%, transparent) 11px 12px), linear-gradient(120deg, color-mix(in srgb, var(--a) 9%, var(--leaf)), var(--leaf) 55%, color-mix(in srgb, #23a065 9%, var(--leaf))); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--leaf-ink) 16%, transparent), inset 0 0 0 7px var(--leaf), inset 0 0 0 8px color-mix(in srgb, var(--a) 40%, transparent), 0 40px 60px -34px rgba(20, 18, 30, .8); transform: rotateX(var(--rx)) rotateY(var(--ry)) rotate(-2.4deg); transition: transform .3s var(--out); animation: go-slip 1s cubic-bezier(.2, 1.1, .3, 1) both; }
+@keyframes go-slip { from { opacity: 0; transform: translate(60px, 40px) rotate(7deg); } }
+.ks .go2-chq small { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.ks .go2-chq i { font-family: var(--font-young-serif), Georgia, serif; font-style: normal; font-size: clamp(17px, 1.9vw, 26px); line-height: 1.15; }
+.ks .go2-chq p { margin: 0; }
+.ks .go2-top { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
+.ks .go2-top b { font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(18px, 1.8vw, 24px); }
+.ks .go2-top span { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.ks .go2-top span i { font-size: clamp(14px, 1.3vw, 18px); text-transform: none; letter-spacing: 0; padding-bottom: 2px; border-bottom: 1.5px solid currentColor; }
+.ks .go2-to { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end; gap: 6px 12px; }
+.ks .go2-to i { padding-bottom: 3px; border-bottom: 1.5px solid currentColor; }
+.ks.lit .go2-to .num { padding: 6px 14px; border-radius: 10px; font-size: clamp(24px, 3vw, 44px); line-height: 1.05; background: color-mix(in srgb, var(--a) 12%, transparent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--leaf-ink) 70%, transparent); animation: go-ink .5s var(--spring) both; }
+@keyframes go-ink { from { opacity: 0; scale: .8; } }
+.ks .go2-words { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.ks .go2-words i { padding-bottom: 3px; border-bottom: 1.5px solid currentColor; animation: go-ink .5s var(--spring) both; transform-origin: left; }
+.ks .go2-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 18px; }
+.ks .go2-foot p { display: grid; gap: 2px; }
+.ks .go2-foot p i { font-size: clamp(14px, 1.35vw, 19px); padding-bottom: 3px; border-bottom: 1.5px solid currentColor; }
+.ks .go2-foot .go-sig { width: clamp(120px, 15vw, 210px); margin-bottom: -6px; }
+.ks .go2-micr { font-size: clamp(12px, 1.2vw, 16px); letter-spacing: .22em; opacity: .55; }
+.ks .go2-last { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.ks .go2-void { display: grid; justify-items: center; padding: 6px 16px 7px; border: 3.5px double var(--a); border-radius: 10px; color: var(--a); text-transform: uppercase; rotate: -13deg; mix-blend-mode: multiply; animation: go-stamp .45s 1.5s cubic-bezier(.3, 1.6, .5, 1) both; }
+.ks.lit[data-mode="dark"] .go2-void { mix-blend-mode: normal; }
+.ks .go2-void b { font-size: clamp(20px, 2.4vw, 34px); font-weight: 900; letter-spacing: .14em; line-height: 1; }
+.ks .go2-void span { font-size: clamp(11px, 1vw, 14px); font-weight: 800; letter-spacing: .1em; }
+@keyframes go-stamp { from { opacity: 0; scale: 2.2; } }
+
+/* 3. the pledge */
+.ks .go3 { gap: clamp(18px, 3svh, 34px); }
+.ks .go3-you { margin: 0; font-size: clamp(20px, 2.1vw, 30px); font-weight: 700; line-height: 1.9; }
+.ks .go3-chip { display: inline-flex; align-items: center; vertical-align: middle; gap: 2px; padding: 3px; border-radius: 999px; background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2px color-mix(in srgb, var(--a) 55%, transparent); }
+.ks .go3-chip button { width: 44px; height: 44px; border-radius: 50%; background: var(--ink); color: var(--cream); font-size: 24px; font-weight: 800; line-height: 1; transition: scale .25s var(--spring); }
+.ks .go3-chip button:active { scale: .88; }
+.ks .go3-chip input { width: 3.4em; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-family: var(--font-hanken), system-ui, sans-serif; font-weight: 800; text-align: center; }
+.ks .go3-chip select { -webkit-appearance: none; appearance: none; min-height: 44px; padding: 0 40px 0 20px; border: 0; border-radius: 999px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.500l5 5 5-5' fill='none' stroke='%237a7f95' stroke-width='2.200' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 16px center / 12px; color: inherit; font: inherit; font-weight: 800; cursor: pointer; }
+.ks .go3-chip :is(input, select):focus-visible { outline: 3px solid var(--a); outline-offset: 2px; border-radius: 999px; }
+.ks.lit .go3 h1 { font-size: clamp(34px, 4.7vw, 76px); line-height: 1.08; max-width: 15em; }
+.ks.lit .go3 h1 .num { color: var(--a); font-size: 1em; }
+
+/* 4. the climb */
+.ks.lit .go4 h1 { font-size: clamp(26px, 2.8vw, 42px); }
+.ks .go4-fig { position: relative; width: min(100%, 940px); aspect-ratio: 1000 / 440; margin: 0; border-radius: 34px; background: linear-gradient(180deg, color-mix(in srgb, var(--a) 14%, transparent), transparent 70%), var(--glass); -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5); box-shadow: inset 0 1.5px 0 var(--edge), 0 30px 50px -34px rgba(20, 18, 30, .8); }
+.ks .go4-fig { overflow: hidden; }
+.ks .go4-scene { position: absolute; left: 0; bottom: 0; width: 100%; aspect-ratio: 1000 / 440; }
+.ks .go4-fig svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ks .go4-fig .far { fill: color-mix(in srgb, var(--rock) 34%, transparent); }
+.ks .go4-fig .shade { fill: var(--rock-lo); }
+.ks .go4-fig .near { fill: color-mix(in srgb, var(--rock-lo) 62%, var(--rock-hi)); }
+.ks .go4-fig .sun { fill: #ffe6a8; opacity: .9; filter: drop-shadow(0 0 22px #ffd98a); }
+.ks.lit[data-mode="dark"] .go4-fig .sun { fill: #f4f1ff; filter: drop-shadow(0 0 18px #cfd6ff); }
+.ks .go4-fig .cloud { fill: #fff; opacity: .7; animation: go-drift 16s ease-in-out infinite alternate; }
+.ks.lit[data-mode="dark"] .go4-fig .cloud { opacity: .16; }
+@keyframes go-drift { to { transform: translateX(34px); } }
+.ks .go4-fig .crag { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
+.ks .go4-fig .gully { fill: none; stroke: #1d2146; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .28; }
+.ks .go4-fig .drift { fill: #fff; opacity: .5; }
+.ks.lit[data-mode="dark"] .go4-fig .drift { opacity: .08; }
+.ks .go4-fig .snow { fill: #fff; opacity: .94; }
+.ks .go4-fig .ground { fill: var(--land); }
+.ks .go4-fig .pine { fill: var(--pine); }
+.ks .go4-fig .trail { fill: none; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 2 12; }
+.ks .go4-fig .t1 { stroke: #fff; opacity: .95; }
+.ks .go4-fig .t2 { stroke: #ffd98a; }
+.ks .go4-fig .pole { stroke: #2a2530; stroke-width: 4; stroke-linecap: round; }
+.ks .go4-fig .flag { fill: #f07a2e; transform-origin: 0 -47px; animation: go-wave 2.4s ease-in-out infinite; }
+@keyframes go-wave { 50% { transform: skewY(-9deg) scaleX(.93); } }
+.ks .go4-fig .hut { fill: #fff6e6; stroke: #2a2530; stroke-width: 2.5; stroke-linejoin: round; }
+.ks .go4-fig .roof { fill: none; stroke: #b4502a; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.ks .go4-fig .tent { fill: #ffd98a; stroke: #2a2530; stroke-width: 2.5; stroke-linejoin: round; }
+.ks .go4-fig .tent-door { fill: #2a2530; }
+.ks .go4-tag { position: absolute; margin: 0; display: grid; gap: 1px; max-width: 15em; font-size: clamp(11.5px, 1.25vw, 16px); font-weight: 700; line-height: 1.25; white-space: nowrap; }
+.ks.lit .go4-tag .num { font-size: clamp(18px, 2.3vw, 32px); line-height: 1; }
+.ks .go4-tag.camp { translate: -50% 20px; text-align: center; justify-items: center; }
+.ks .go4-tag:is(.low, .hut) { translate: calc(-100% - 30px) -50%; text-align: right; justify-items: end; }
+.ks .go4-tag.top { translate: 76px -108%; text-align: left; }
+.ks .go4-tag.top .num { color: var(--a); font-size: clamp(26px, 3.6vw, 52px); }
+
+/* 5. the falling price */
+.ks .go5-paid { position: relative; margin: 0; display: grid; justify-items: center; }
+.ks .go5-paid small { font-size: clamp(15px, 1.3vw, 18px); font-weight: 800; }
+.ks.lit .go5-paid b { font-size: clamp(92px, 15vw, 220px); line-height: .9; letter-spacing: -.05em; color: var(--a); }
+.ks.lit .go5-paid s { position: absolute; right: -4px; top: 14%; translate: 100% 0; font-size: clamp(20px, 2.4vw, 36px); text-decoration: none; opacity: 0; transition: opacity .3s; background: linear-gradient(#d83a2e, #d83a2e) no-repeat left 54% / 0 3.5px; }
+.ks .go5-paid[data-cut] s { opacity: .8; background-size: 100% 3.5px; transition: opacity .3s, background-size .45s .1s var(--out); }
+.ks .go5-say { margin: 0; min-height: 1.4em; font-size: clamp(18px, 1.8vw, 26px); font-weight: 800; text-wrap: balance; }
+.ks .go5 > .go-slide { width: min(100%, 640px); }
+.ks .go5 .go-row .go-slide { width: min(100%, 300px); font-size: 14.5px; }
+.ks .go5 .go-row .go-slide span b { font-size: 17px; }
+
+/* the strip that switches between the five (trial only) */
+.ks .go-pick { position: fixed; z-index: 60; left: 50%; bottom: 12px; translate: -50% 0; max-width: calc(100vw - 96px); display: flex; gap: 4px; padding: 5px; overflow-x: auto; border-radius: 999px; background: rgba(18, 17, 22, .86); box-shadow: 0 16px 30px -14px rgba(0, 0, 0, .8); }
+.ks .go-pick button { min-height: 38px; padding: 0 14px; border-radius: 999px; background: none; color: #fff7ea; font-size: 13.5px; font-weight: 800; white-space: nowrap; }
+.ks .go-pick button[aria-pressed="true"] { background: #fff7ea; color: #17151c; }
+
+@media (max-width: 760px) {
+  .ks .go2 { grid-template-columns: minmax(0, 1fr); text-align: center; }
+  .ks .go2-say { justify-items: center; }
+  .ks .go2 .go-plans { justify-content: center; }
+  .ks .go2-stage { order: -1; }
+  .ks .go2-chq small, .ks .go2-top span { font-size: 9.5px; }
+  .ks .go-plans button { padding: 0 13px; font-size: 14.5px; }
+  .ks .go4-fig { aspect-ratio: 1000 / 800; border-radius: 24px; }
+  .ks .go4-scene { width: 138%; left: -14%; }
+  .ks .go4-tag { white-space: normal; max-width: 9em; font-size: 12.5px; }
+  .ks .go4-tag.top { translate: -50% calc(-100% - 40px); text-align: center; justify-items: center; }
+  .ks .go4-tag.low { translate: 22px -6%; text-align: left; justify-items: start; }
+  .ks .go4-tag.hut { translate: calc(-100% - 14px) -92%; }
+  .ks .go4-tag.camp { translate: -50% 10px; display: flex; align-items: baseline; gap: 6px; }
+  .ks .go2-chq i { font-size: 15px; }
+  .ks .go2-top b { font-size: 15px; white-space: nowrap; }
+  .ks .go2-top span i { font-size: 12px; white-space: nowrap; }
+  .ks .go2-foot p i { font-size: 12.5px; }
+  .ks .go2-foot .go-sig { width: 100px; }
+  .ks .go2-micr { font-size: 10px; letter-spacing: .12em; }
+  .ks.lit .go5-paid s { position: static; translate: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ks .go * { animation: none !important; transition: none !important; } .ks .go-sig path { stroke-dashoffset: 0; } }

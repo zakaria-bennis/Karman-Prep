@@ -1,4 +1,5 @@
 import SitePage from "@/components/site/SitePage";
+import GuaranteeOpeners from "@/components/site/deal/GuaranteeOpeners";
 import GuaranteeSections from "@/components/site/deal/GuaranteeSections";
 import { litFonts } from "@/components/site/home/fonts";
 import { pageMeta } from "@/components/site/meta";
@@ -15,6 +16,7 @@ export const metadata = pageMeta(
 export default function GuaranteePage() {
   return (
     <SitePage kind="lit" route={[0.72, 0.88]} className={litFonts}>
+      <GuaranteeOpeners />
       <GuaranteeSections />
     </SitePage>
   );
