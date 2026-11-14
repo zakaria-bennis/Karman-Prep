@@ -23,7 +23,8 @@ export function targetBands(): TargetBand[] {
   });
 }
 
-export default function GuaranteeSections() {
+/** `opening` is off while the trial openings stand in for the first section (GuaranteeOpeners.tsx). */
+export default function GuaranteeSections({ opening = true }: { opening?: boolean }) {
   const open = section(51);
   const deal = section(8);
   const examples = section(52);
@@ -35,32 +36,34 @@ export default function GuaranteeSections() {
   return (
     <>
       {/* 1. The promise, beside the target for each starting score */}
-      <section className="pg-hero" id="top">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in pg-two co-in">
-          <div className="pg-say">
-            <h1>{open.headline}</h1>
-            <p className="lede">{open.text}</p>
-            <div className="pg-close">
-              <div className="go-row">
-                <Btn label={claim.button} href={ROUTES.test} />
-                <a className="more" href="#examples">
-                  {deal.link}
-                  <Arrow />
-                </a>
+      {opening ? (
+        <section className="pg-hero" id="top">
+          <div className="mist" aria-hidden="true" />
+          <div className="pg-in pg-two co-in">
+            <div className="pg-say">
+              <h1>{open.headline}</h1>
+              <p className="lede">{open.text}</p>
+              <div className="pg-close">
+                <div className="go-row">
+                  <Btn label={claim.button} href={ROUTES.test} />
+                  <a className="more" href="#examples">
+                    {deal.link}
+                    <Arrow />
+                  </a>
+                </div>
               </div>
             </div>
+            <div className="pg-say">
+              <h2 className="pg-h3">{targets.headline}</h2>
+              <TargetChart
+                bands={targetBands()}
+                legend={[`The cohort and ${P10.name}`, P20.name]}
+                ask={section(24).ask}
+              />
+            </div>
           </div>
-          <div className="pg-say">
-            <h2 className="pg-h3">{targets.headline}</h2>
-            <TargetChart
-              bands={targetBands()}
-              legend={[`The cohort and ${P10.name}`, P20.name]}
-              ask={section(24).ask}
-            />
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* 2. What comes back, by score, then both sides of the deal */}
       <DealSection id="deal" headline={deal.headline} text={deal.text} />

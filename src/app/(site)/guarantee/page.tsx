@@ -17,7 +17,7 @@ export default function GuaranteePage() {
   return (
     <SitePage kind="lit" route={[0.72, 0.88]} className={litFonts}>
       <GuaranteeOpeners />
-      <GuaranteeSections />
+      <GuaranteeSections opening={false} />
     </SitePage>
   );
 }
