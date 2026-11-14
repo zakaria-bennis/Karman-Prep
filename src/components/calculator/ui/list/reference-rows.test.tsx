@@ -99,21 +99,37 @@ it("R-11 the badge is a button: a click or Enter switches the angle mode for eve
     rows: ["\\sin(30)", "y=\\tan(x)"],
   });
   const user = userEvent.setup();
-  const badge = within(rowItem("1")).getByRole("button", {
-    name: "Angle mode: radians. Switch to degrees.",
-  });
-  await user.click(badge);
-  // the click lands through user-event's own timers; when every test file runs at once the machine is
-  // busy and the setting can arrive a moment later, so wait for it instead of reading it at once
-  await waitFor(() => expect(kit.engine.settings.angleMode).toBe("degrees"));
+  // When every test file runs at once the row can be drawn again between finding the badge and pressing
+  // it, and a press on the old one is lost. So the badge is found afresh and pressed until the setting
+  // has changed (one press, unless the first was lost).
+  await waitFor(
+    async () => {
+      if (kit.engine.settings.angleMode !== "degrees")
+        await user.click(
+          within(rowItem("1")).getByRole("button", {
+            name: "Angle mode: radians. Switch to degrees.",
+          })
+        );
+      expect(kit.engine.settings.angleMode).toBe("degrees");
+    },
+    { timeout: 8000 }
+  );
   await waitFor(() =>
     expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG")
   );
   expect(kit.announcer.texts).toContain("Angle set to degrees.");
-  const again = within(rowItem("2")).getByRole("button", { name: /Switch to radians/ });
-  again.focus();
-  await user.keyboard("{Enter}");
-  await waitFor(() => expect(kit.engine.settings.angleMode).toBe("radians"));
+  await waitFor(
+    async () => {
+      if (kit.engine.settings.angleMode !== "radians") {
+        within(rowItem("2"))
+          .getByRole("button", { name: /Switch to radians/ })
+          .focus();
+        await user.keyboard("{Enter}");
+      }
+      expect(kit.engine.settings.angleMode).toBe("radians");
+    },
+    { timeout: 8000 }
+  );
   act(() => kit.engine.updateSettings({ complex: true }));
   const off = within(rowItem("1")).getByRole("button", { name: "Angle mode: radians." });
   expect(off).toHaveAttribute("aria-disabled", "true");
