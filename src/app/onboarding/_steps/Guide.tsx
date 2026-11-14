@@ -1,32 +1,76 @@
 "use client";
 
-import { Fox } from "@/components/portal/Fox";
+import { useEffect, useRef, useState } from "react";
+import { Pet, type PetHandle } from "@/components/rewards/companion/Pet";
+import type { AnimalId } from "@/lib/rewards/catalog";
+
+/** The companions by name. Karman the fox and Ollie the owl are the founder's names (2026-11-13); the
+ *  other four are suggestions until he confirms them. */
+export const CREW: [AnimalId, string][] = [
+  ["bunny", "Pip"],
+  ["cat", "Mochi"],
+  ["fox", "Karman"],
+  ["bear", "Bruno"],
+  ["wolf", "Scout"],
+];
 
 /**
- * The fox, guiding the intake: it says one short line in a speech bubble and hops a little each time the
- * line changes. Learned from Duolingo's onboarding (docs/forms/onboarding-notes.md): a guide that reacts to
- * each answer makes a list of questions feel like a conversation.
+ * Karman the fox, guiding the intake: he says one short line and gives a small cheer each time the line
+ * changes. On the intake's "moments" (the hello, the gap, the plan being made) he stands alone with a large
+ * line and no card.
  */
+/** True once the page is running in the browser. A companion draws itself differently for touch and for a
+ *  mouse, which the server cannot know, so each one is drawn only then. */
+function useMounted() {
+  const [on, setOn] = useState(false);
+  useEffect(() => setOn(true), []);
+  return on;
+}
+
 export function Guide({ say, big = false }: { say: string; big?: boolean }) {
+  const fox = useRef<PetHandle>(null);
+  const mounted = useMounted();
+  useEffect(() => {
+    fox.current?.cheer();
+  }, [say, mounted]);
   return (
-    <div className={big ? "flex flex-col items-center gap-4 text-center" : "flex items-end gap-3"}>
-      <div
-        key={say}
-        className="shrink-0 motion-safe:animate-[guide-hop_.45s_cubic-bezier(.3,1.5,.5,1)]"
-      >
-        <Fox size={big ? 112 : 56} />
+    <div className={big ? "ob-moment" : "ob-guide"}>
+      <div key={big ? "big" : say}>
+        {mounted ? (
+          <Pet ref={fox} animal="fox" size={big ? 132 : 64} />
+        ) : (
+          <span style={{ display: "block", width: big ? 132 : 64, height: big ? 141 : 68 }} />
+        )}
       </div>
-      <p
-        key={`${say}-line`}
-        aria-live="polite"
-        className={
-          big
-            ? "max-w-sm text-balance text-2xl font-extrabold leading-snug text-ivory motion-safe:animate-[guide-say_.3s_ease-out]"
-            : "mb-2 rounded-2xl rounded-bl-md border border-ivory/15 bg-surface/60 px-4 py-2.5 text-[15px] font-semibold leading-snug text-ivory motion-safe:animate-[guide-say_.3s_ease-out] dark:bg-surface-raised/60"
-        }
-      >
+      <p className="ob-say" key={say} aria-live="polite">
         {say}
       </p>
+    </div>
+  );
+}
+
+/** The whole crew, cheering when the plan is shown. */
+export function Crew() {
+  const pets = useRef<(PetHandle | null)[]>([]);
+  const mounted = useMounted();
+  useEffect(() => {
+    if (!mounted) return;
+    const timers = CREW.map((_, i) => setTimeout(() => pets.current[i]?.cheer(), 250 + i * 130));
+    return () => timers.forEach(clearTimeout);
+  }, [mounted]);
+  if (!mounted) return null;
+  return (
+    <div className="ob-crew" aria-hidden="true">
+      {CREW.map(([animal], i) => (
+        <Pet
+          key={animal}
+          ref={(p) => {
+            pets.current[i] = p;
+          }}
+          animal={animal}
+          size={animal === "fox" ? 64 : 48}
+        />
+      ))}
     </div>
   );
 }

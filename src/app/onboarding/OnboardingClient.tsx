@@ -23,14 +23,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Target, Compass, Gauge, History } from "lucide-react";
 import {
+  planSummary,
   recommendPlan,
   type Recommendation,
   type Independence,
   type LearningPace,
   type PriorPrepResult,
 } from "@/lib/onboarding/recommend-plan";
-import { COPY, GUIDE, gapLine, type Role } from "./_steps/shared";
-import { Guide } from "./_steps/Guide";
+import { COPY, GUIDE, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
+import { Crew, Guide } from "./_steps/Guide";
+import { Ollie } from "./_steps/Ollie";
 import { MinutesStep, hoursFromMinutes } from "./_steps/MinutesStep";
 import { RoleStep } from "./_steps/RoleStep";
 import { SatStep } from "./_steps/SatStep";
@@ -42,6 +44,7 @@ import type { TestType } from "@/components/student-portal/settings/test-dates";
 import { track } from "@/lib/analytics/client";
 
 const KEEP = "karman:intake";
+const planHref = (r: Recommendation) => planSummary(r.planId).href;
 const STEPS = [
   "hello",
   "role",
@@ -274,53 +277,64 @@ export default function OnboardingClient({
       : GUIDE[currentStep as keyof typeof GUIDE];
   const moment = currentStep === "hello" || currentStep === "gap" || currentStep === "building";
   const nextLabel =
-    currentStep === "hello" ? "Let's go" : currentStep === "minutes" ? "I'm committed" : "Continue";
+    currentStep === "hello"
+      ? "Take off"
+      : currentStep === "minutes"
+        ? "That's my pace"
+        : "Continue";
 
+  // The landscape flies forward with each answer; at the plan it reaches the country of the page the plan
+  // leads to, so the same landscape is there when the visitor arrives.
+  const landing =
+    isLast && recommendation ? (LANDING[planHref(recommendation)] ?? LANDING["/pricing"]) : null;
+  const flown = flownAt(step, totalSteps, landing);
+  useEffect(() => {
+    const ks = document.getElementById("ks");
+    if (ks) ks.dataset.flown = String(flown);
+    document.dispatchEvent(new CustomEvent("karman:fly", { detail: flown }));
+  }, [flown]);
+
+  const along = Math.max(0.06, (step + 1) / totalSteps);
   return (
-    <div className="flex min-h-[100svh] justify-center bg-gradient-to-br from-info/10 to-gold/10 px-4 pb-28 pt-6 dark:from-night dark:to-surface sm:items-center sm:pb-10 sm:pt-10">
-      <div className="w-full max-w-xl">
-        <div className="mb-5 flex items-center gap-3">
+    <div className="ob">
+      <div className="ob-in">
+        {/* the route: Ollie flies it as the answers come in */}
+        <div
+          className="ob-trail"
+          style={{ "--at": along } as React.CSSProperties}
+          role="progressbar"
+          aria-label="Progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(along * 100)}
+        >
           <button
             type="button"
+            className="ob-back"
             onClick={back}
             disabled={step === 0}
             aria-label="Back"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-taupe transition hover:text-ivory disabled:opacity-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          {/* the bar starts part-filled and never looks stuck: early progress that feels slow loses people */}
-          <div
-            className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface dark:bg-surface-raised"
-            role="progressbar"
-            aria-label="Progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(Math.max(0.1, (step + 1) / totalSteps) * 100)}
-          >
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-info to-gold transition-all duration-300"
-              style={{ width: `${Math.max(0.1, (step + 1) / totalSteps) * 100}%` }}
-            />
-          </div>
+          <i />
+          <Ollie size={70} />
         </div>
 
-        {moment ? null : (
-          <div className="mb-4 pr-14 sm:pr-0">
-            <Guide say={said} />
-          </div>
-        )}
+        {moment ? null : <Guide say={said} />}
 
         <div
           key={currentStep}
+          className={moment ? undefined : "ob-card"}
           style={{ "--guide-from": `${dir * 22}px` } as React.CSSProperties}
-          className="rounded-2xl border border-ivory/10 bg-surface/[0.04] p-6 shadow-2xl backdrop-blur-md motion-safe:animate-[guide-step_.26s_ease-out] dark:bg-surface/40 sm:p-8"
         >
           {moment ? (
-            <div className="py-6">
+            <div className="ob-sky">
+              <Ollie size={168} />
               <Guide say={said} big />
             </div>
           ) : null}
+          {isLast ? <Crew /> : null}
 
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 
@@ -416,15 +430,19 @@ export default function OnboardingClient({
 
         {/* the main button stays at the bottom of the screen on a phone, where the thumb is */}
         {!isLast && currentStep !== "building" ? (
-          <div className="fixed inset-x-0 bottom-0 z-10 border-t border-ivory/10 bg-night/80 px-4 py-3 backdrop-blur-md sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+          <div className="ob-go">
+            {/* the site dresses its buttons as the page starts, before React takes over: that is expected */}
             <button
               type="button"
+              className="btn"
               onClick={next}
               disabled={!canAdvance}
-              className="btn-primary w-full justify-center py-3.5 text-base active:scale-[.98] sm:ml-auto sm:w-auto"
+              suppressHydrationWarning
             >
-              {nextLabel}
-              <ArrowRight className="h-4 w-4" />
+              <span className="lb">{nextLabel}</span>
+              <span className="go">
+                <ArrowRight className="h-4 w-4" />
+              </span>
             </button>
           </div>
         ) : null}

@@ -49,17 +49,32 @@ upsell screens stacked after a lesson; Karman uses neither.
 
 ## How Karman's intake uses it (`src/app/onboarding`)
 
-| Duolingo                                  | Karman                                                                                        |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Questions before any account              | Get started opens the intake; the account is asked for at the end, to save the plan           |
-| The mascot guides and reacts              | The fox says how long it takes, speaks at each step and answers the scores with the gap       |
-| One question to a screen, bar part-filled | The same; the bar starts at 10%                                                               |
-| Level is self-described                   | "Where are you starting from? A rough idea is fine."                                          |
-| Small daily goals with names              | 10, 20, 30 or 45 minutes a day: Light, Steady, Serious, All in                                |
-| The button names the commitment           | "I'm committed" on the daily minutes                                                          |
-| A calm way out                            | "Later. Show me every plan and price"                                                         |
-| Button in thumb reach                     | The main button is fixed to the bottom of the screen on phones                                |
-| Answers are used                          | Every answer feeds the plan recommendation, and the reasons are listed on the last screen     |
-| First win, then the account               | The plan is the first win. A first practice question before sign-up is the next step to build |
+Founder, 2026-11-13: keep the direction, but make it ours. It must live in the home page's world (the
+ever-moving painted landscape), it must not read as a copy of Duolingo, and the companions are there to use.
+The fox is Karman. The owl is Ollie.
 
-Not built yet: a first practice question before the account, the reminder step, and sound or haptics.
+**The idea that is ours: the intake is a flight.** Ollie the owl flies the route across the live landscape,
+and every answer is a leg of it: the landscape itself moves forward each time (`karman:fly`, SiteFlight's
+`drive="steps"`). Progress is not a bar but a dotted trail that Ollie flies along. Karman the fox rides along
+and does the talking, in flight words: "Where are we taking off from?", "Where do you want to land?", "We've
+landed." When the plan is shown the whole crew cheers, and the landscape has reached the country of the page
+the plan leads to (Reserve a seat, the call, or Pricing), so the same view is there when the visitor arrives.
+
+| Learned from Duolingo                             | How Karman does it                                                                  |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Questions before any account                      | Get started opens the intake; the account is asked for at the end, to save the plan |
+| A guide that reacts                               | Karman speaks at each step and answers the scores with the distance to fly          |
+| One question to a screen, progress always visible | The same, on a frosted card over the landscape; the trail starts part-flown         |
+| Level is self-described                           | "Where are we taking off from? A rough idea is fine."                               |
+| Small daily goals with names                      | 10, 20, 30 or 45 minutes a day: Light, Steady, Serious, All in                      |
+| The button names the commitment                   | "That's my pace" (not Duolingo's wording)                                           |
+| A calm way out                                    | "Later. Show me every plan and price"                                               |
+| Button in thumb reach                             | The main button is fixed to the bottom of the screen on phones                      |
+| Answers are used                                  | Every answer feeds the plan, and the reasons are listed on the last screen          |
+
+**The companions** (`src/components/rewards/animals.ts`): Karman the fox and Ollie the owl are the founder's
+names. The other four have working names until he confirms them: Pip the bunny, Mochi the cat, Bruno the
+bear, Scout the wolf pup.
+
+Not built yet: a first practice question before the account, a reminder step, sound, and a moving hand-over
+between the intake and the next page (today the next page simply opens on the same stretch of landscape).

@@ -1,6 +1,261 @@
-/* The guided intake (OnboardingClient.tsx): the fox hops when it speaks, its line fades up, and each step
-   slides in from the side the visitor is heading to, in about a quarter of a second. Used through
-   Tailwind's animate-[...] classes, which run only when motion is allowed. */
+/* The guided intake, in the home page's world (OnboardingClient.tsx; founder, 2026-11-13). It sits on the
+   live landscape, which flies forward with each answer. The question steps were written with the app's
+   colour tokens, so those tokens are set here from the landscape's light or dark mode: the cards and the
+   words follow the mode, like every other page of the site. */
+
+.ks .ob {
+  --k-ivory: 29 26 34;
+  --k-taupe: 68 62 76;
+  --k-surface: 255 253 248;
+  --k-surface-raised: 255 250 243;
+  --k-bronze: 138 130 124;
+  --k-night: 255 250 243;
+  --k-info: 36 73 184;
+  --k-info-bright: 36 73 184;
+  --k-gold: 36 73 184;
+  --k-gold-bright: 36 73 184;
+  position: relative;
+  z-index: 1;
+  min-height: 100svh;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding: 92px var(--gutter) 120px;
+  color: rgb(var(--k-ivory));
+}
+.ks.lit[data-mode="dark"] .ob {
+  --k-ivory: 255 247 234;
+  --k-taupe: 206 198 186;
+  --k-surface: 24 24 44;
+  --k-surface-raised: 36 38 64;
+  --k-bronze: 92 92 124;
+  --k-night: 16 16 30;
+  --k-info: 157 185 255;
+  --k-info-bright: 190 208 255;
+  --k-gold: 231 207 154;
+  --k-gold-bright: 240 222 180;
+}
+.ks .ob-in {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 14px;
+}
+
+/* the route: a dotted trail across the top, flown by Ollie; the stretch behind him is drawn solid */
+.ks .ob-trail {
+  position: relative;
+  height: 58px;
+  margin: 0 8px 6px 44px;
+}
+.ks .ob-trail::before,
+.ks .ob-trail i {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 44px;
+  height: 4px;
+  border-radius: 2px;
+}
+.ks .ob-trail::before {
+  right: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(var(--k-ivory) / 0.45) 0 6px,
+    transparent 6px 14px
+  );
+}
+.ks .ob-trail i {
+  width: calc(var(--at) * 100%);
+  background: rgb(var(--k-info));
+  transition: width 0.7s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.ks .ob-trail .ob-ollie {
+  position: absolute;
+  left: calc(var(--at) * 100%);
+  top: 0;
+  translate: -50% 0;
+  rotate: 90deg;
+  transition: left 0.7s cubic-bezier(0.3, 0.8, 0.3, 1);
+  filter: drop-shadow(0 6px 6px rgb(20 18 30 / 0.3));
+}
+.ks .ob-back {
+  position: absolute;
+  left: -46px;
+  top: 24px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+}
+.ks .ob-back[disabled] {
+  opacity: 0;
+}
+.ks .ob-back:focus-visible {
+  outline: 3px solid rgb(var(--k-info));
+}
+
+/* Ollie's wings beat, and he rides the air a little */
+.ks .ob-wing {
+  transform-box: fill-box;
+  transform-origin: 100% 60%;
+  animation: ob-flap 0.62s ease-in-out infinite alternate;
+}
+.ks .ob-ollie-body {
+  animation: ob-ride 2.6s ease-in-out infinite alternate;
+}
+.ks .ob-ollie-shade {
+  fill: rgb(20 18 30 / 0.16);
+  display: none;
+}
+.ks .ob-moment .ob-ollie-shade {
+  display: block;
+}
+@keyframes ob-flap {
+  from {
+    scale: 1 1;
+  }
+  to {
+    scale: 0.62 1.08;
+  }
+}
+@keyframes ob-ride {
+  from {
+    translate: 0 -2px;
+  }
+  to {
+    translate: 0 3px;
+  }
+}
+
+/* Karman the fox and what he says */
+.ks .ob-guide {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-height: 74px;
+}
+.ks .ob-guide > div:first-child {
+  flex: none;
+  animation: guide-hop 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .ob-say {
+  margin: 0 0 8px;
+  padding: 10px 16px;
+  border-radius: 20px 20px 20px 6px;
+  background: rgb(var(--k-surface) / 0.78);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgb(var(--k-ivory) / 0.1);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  animation: guide-say 0.3s ease-out;
+}
+.ks .ob-moment {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 18px 0 8px;
+  text-align: center;
+}
+.ks .ob-moment .ob-say {
+  max-width: 22em;
+  margin: 0;
+  padding: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+.ks .ob-sky {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.ks .ob-sky > .ob-ollie {
+  filter: drop-shadow(0 26px 14px rgb(20 18 30 / 0.22));
+}
+.ks .ob-crew {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* the card each question sits on: frosted, following the mode */
+.ks .ob-card {
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: 30px;
+  background: rgb(var(--k-surface) / 0.66);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  box-shadow:
+    inset 0 1.5px 0 rgb(255 255 255 / 0.5),
+    0 26px 46px -32px rgb(20 18 30 / 0.7);
+  animation: guide-step 0.26s ease-out;
+}
+.ks.lit[data-mode="dark"] .ob-card {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 250 243 / 0.14),
+    0 26px 46px -30px rgb(0 0 0 / 0.9);
+}
+.ks .ob h2 {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* the main button: fixed in reach of the thumb on a phone */
+.ks .ob-go {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 5;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, rgb(var(--k-night) / 0.82) 40%);
+}
+.ks .ob-go .btn {
+  width: 100%;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+@media (max-width: 639px) {
+  /* clear of the round light and dark switch in the corner */
+  .ks .ob-go {
+    padding-right: 76px;
+  }
+}
+.ks .ob-go .btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (min-width: 640px) {
+  .ks .ob {
+    align-content: center;
+    padding-bottom: 60px;
+  }
+  .ks .ob-go {
+    position: static;
+    padding: 6px 0 0;
+    background: none;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .ks .ob-go .btn {
+    width: auto;
+  }
+}
+
 @keyframes guide-hop {
   0% {
     transform: translateY(0) scale(1);
@@ -23,4 +278,13 @@
     opacity: 0;
     transform: translateX(var(--guide-from, 22px));
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .ob * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.ks.still-motion .ob :is(.ob-wing, .ob-ollie-body) {
+  animation: none;
 }

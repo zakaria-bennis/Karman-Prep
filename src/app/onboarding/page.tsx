@@ -8,8 +8,9 @@ import { Suspense } from "react";
 import { dayKey } from "@/lib/student/streak";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
+import SitePage from "@/components/site/SitePage";
+import { litFonts } from "@/components/site/home/fonts";
 import OnboardingClient from "./OnboardingClient";
-import "./intake.css";
 
 export const dynamic = "force-dynamic";
 
@@ -25,15 +26,12 @@ export default async function OnboardingPage() {
     .then((a) => Boolean(a.userId))
     .catch(() => false);
   const satDates = ((data ?? []) as { test_date: string }[]).map((r) => r.test_date);
+  // In the home page's world, with nothing to wander off to: the landscape is flown by the steps.
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-info/40 border-t-transparent" />
-        </div>
-      }
-    >
-      <OnboardingClient satDates={satDates} today={today} signedIn={signedIn} />
-    </Suspense>
+    <SitePage kind="lit" bare drive="steps" className={litFonts}>
+      <Suspense fallback={null}>
+        <OnboardingClient satDates={satDates} today={today} signedIn={signedIn} />
+      </Suspense>
+    </SitePage>
   );
 }

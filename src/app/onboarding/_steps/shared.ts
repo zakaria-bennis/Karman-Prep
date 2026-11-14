@@ -25,26 +25,42 @@ export const COPY = {
   },
 } as const;
 
-/** What the fox says at each step (docs/forms/onboarding-notes.md). Short, kind, never guilt. */
+/** What Karman the fox says at each step (docs/forms/onboarding-notes.md). Short, kind, never guilt. The
+ *  intake is a flight: Ollie the owl flies the route, and each answer is a leg of it. */
 export const GUIDE = {
-  hello: "Hi! Eight quick questions, about a minute. Then I'll show you the plan that fits.",
-  role: "First, who am I talking to?",
-  sat: "Good. Which test, and when?",
-  baseline: "Where are you starting from? A rough idea is fine.",
-  goal: "Now the fun part. What score are you aiming for?",
-  minutes: "Small and steady beats big and rare. Pick what you'll really do.",
-  independence: "Be honest. There's no wrong answer here.",
-  pace: "This helps me pick how you're taught.",
-  prior: "Last one.",
-  building: "Putting your plan together...",
-  recommendation: "Here it is. This is the plan I'd pick for you.",
+  hello:
+    "I'm Karman. Ollie's flying us to your plan. Eight quick questions on the way, about a minute.",
+  role: "Before we take off: who's flying with us?",
+  sat: "Good. Where are we headed? Pick the test and the date.",
+  baseline: "Where are we taking off from? A rough idea is fine.",
+  goal: "And where do you want to land?",
+  minutes: "Little and often gets you there. Pick what you'll really do.",
+  independence: "Be honest. There's no wrong answer up here.",
+  pace: "This tells me how you like to be taught.",
+  prior: "Last one. We're nearly there.",
+  building: "Ollie can see it from here. Putting your plan together...",
+  recommendation: "We've landed. This is the plan I'd pick for you.",
 } as const;
 
-/** The fox's answer to the scores: the gap, said plainly, or encouragement when there is no starting score. */
+/** Karman's answer to the scores: the distance, said plainly, or encouragement when there is no starting
+ *  score. */
 export function gapLine(baseline: number | null, goal: number): string {
   if (baseline === null)
-    return `A ${goal}. Good target. We'll find your starting point first, then close the gap.`;
+    return `A ${goal}. Good place to land. We'll find where you're taking off from first.`;
   const gap = goal - baseline;
-  if (gap <= 0) return `You're already at ${baseline}. Let's hold it and push past ${goal}.`;
-  return `From ${baseline} to ${goal}. That's ${gap} points, and it's doable with steady work.`;
+  if (gap <= 0) return `You're already at ${baseline}. Let's hold it and climb past ${goal}.`;
+  return `From ${baseline} to ${goal}. That's ${gap} points to fly, and steady work covers it.`;
+}
+
+/** How far along the landscape's route the intake has flown, from 0 to 1. Each answer is a short leg; the
+ *  plan's own page starts where the last leg ends, so the landscape carries on when the visitor arrives
+ *  there (each page's stretch is set in its page.tsx). */
+export const LANDING: Record<string, number> = {
+  "/reserve": 0.3,
+  "/private-tutoring#call": 0.5,
+  "/pricing": 0.56,
+};
+export function flownAt(step: number, total: number, landing: number | null): number {
+  if (landing !== null) return landing;
+  return (step / (total - 1)) * 0.27;
 }
