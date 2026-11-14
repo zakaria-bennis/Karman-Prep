@@ -170,7 +170,14 @@ export async function createReservationCheckoutSession({
   cancelUrl: string;
 }) {
   const metadata = { reservationId, planId: "cohort", term: payment, programId };
-  const shared = { customer: customerId, success_url: successUrl, cancel_url: cancelUrl, metadata };
+  const shared = {
+    customer: customerId,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata,
+    // if the family leaves the payment page, Stripe hands back a link that reopens it (docs/forms)
+    after_expiration: { recovery: { enabled: true } },
+  };
   if (payment === "installments") {
     const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
     return stripe.checkout.sessions.create({

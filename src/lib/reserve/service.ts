@@ -1,6 +1,6 @@
 // Reserving a cohort seat from the marketing site (founder, 2026-11-13). Server only.
-//   1. startReservation: the family's contact details are saved the moment they are given, and the founder
-//      is told, so a reservation left unfinished can be followed up by call or email.
+//   1. startReservation: the email is saved the moment it is given, and the founder is told, so a
+//      reservation left unfinished can be followed up. saveDetails adds the names and the phone.
 //   2. checkoutReservation: the score, the cohort and the way of paying are added, and Stripe Checkout opens.
 //      No account is needed to pay.
 //   3. settleReservation: the Stripe webhook marks the seat paid and sends the family their next steps.
@@ -14,7 +14,7 @@ import { GUARANTEE, MARCH_PROGRAM as MP, formatPrice } from "@/lib/marketing/off
 import { recordPurchaseGrant } from "@/lib/plans/resolve";
 import { createAdminClient } from "@/lib/supabase/server";
 import { openPrograms } from "./programs";
-import { contactSchema, seatSchema } from "./schemas";
+import { detailsSchema, emailSchema, seatSchema } from "./schemas";
 
 export type ReserveResult<T> =
   | { ok: true; value: T }
@@ -23,10 +23,10 @@ export type ReserveResult<T> =
 export interface Reservation {
   id: string;
   status: "started" | "paid" | "placed" | "cancelled";
-  parent_name: string;
+  parent_name: string | null;
   parent_email: string;
-  parent_phone: string;
-  student_first_name: string;
+  parent_phone: string | null;
+  student_first_name: string | null;
   filled_by: "parent" | "student";
   start_score: number | null;
   program_id: string | null;
@@ -52,11 +52,15 @@ async function tellFounder(subject: string, lines: string[], replyTo?: string) {
   }
 }
 
+/** "A1B2C3D4": the short reference a family can quote. */
+export const referenceOf = (id: string) => id.slice(0, 8).toUpperCase();
+
 const describe = (r: Reservation) => [
-  `Parent: ${r.parent_name}`,
+  `Reference: ${referenceOf(r.id)}`,
+  `Parent: ${r.parent_name ?? "not given yet"}`,
   `Email: ${r.parent_email}`,
-  `Phone: ${r.parent_phone}`,
-  `Student: ${r.student_first_name}`,
+  `Phone: ${r.parent_phone ?? "not given"}`,
+  `Student: ${r.student_first_name ?? "not given yet"}`,
   `Filled in by: the ${r.filled_by}`,
   `Starting SAT score: ${r.start_score ?? "none yet (needs the placement test)"}`,
   `Cohort: ${r.program_id ?? "not chosen yet"}`,
@@ -64,20 +68,14 @@ const describe = (r: Reservation) => [
 ];
 
 export async function startReservation(input: unknown): Promise<ReserveResult<{ id: string }>> {
-  const parsed = contactSchema.safeParse(input);
+  const parsed = emailSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const c = parsed.data;
   // a bot filled the hidden field: answer as if it worked, and keep nothing
   if (c.company) return { ok: true, value: { id: crypto.randomUUID() } };
   const { data, error } = await createAdminClient()
     .from(TABLE)
-    .insert({
-      filled_by: c.filledBy,
-      parent_name: `${c.parentFirst} ${c.parentLast}`,
-      parent_email: c.parentEmail,
-      parent_phone: c.parentPhone,
-      student_first_name: c.studentFirst,
-    })
+    .insert({ filled_by: c.filledBy, parent_email: c.email })
     .select("*")
     .single();
   if (error || !data) {
@@ -85,10 +83,8 @@ export async function startReservation(input: unknown): Promise<ReserveResult<{ 
     // the founder still hears about it, so the family is not lost
     await tellFounder("Seat reservation started (NOT saved)", [
       "The database refused this reservation. This email is the only record.",
-      `Parent: ${c.parentFirst} ${c.parentLast}`,
-      `Email: ${c.parentEmail}`,
-      `Phone: ${c.parentPhone}`,
-      `Student: ${c.studentFirst}`,
+      `Email: ${c.email}`,
+      `Filled in by: the ${c.filledBy}`,
     ]);
     return { ok: false, error: "server" };
   }
@@ -96,13 +92,38 @@ export async function startReservation(input: unknown): Promise<ReserveResult<{ 
   await tellFounder(
     "Seat reservation started, not paid yet",
     [
-      "A family began reserving a cohort seat. If no payment follows, reach out.",
+      "A family began reserving a cohort seat. If no payment follows, reach out. Sooner is better.",
       "",
       ...describe(r),
     ],
     r.parent_email
   );
   return { ok: true, value: { id: r.id } };
+}
+
+/** The names step: added to the saved reservation, so a follow-up can use them. */
+export async function saveDetails(input: unknown): Promise<ReserveResult<null>> {
+  const parsed = detailsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const d = parsed.data;
+  const { data, error } = await createAdminClient()
+    .from(TABLE)
+    .update({
+      parent_name: d.parentName,
+      student_first_name: d.studentFirst,
+      parent_phone: d.phone || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", d.reservationId)
+    .eq("status", "started")
+    .select("id")
+    .maybeSingle();
+  if (error) {
+    console.error("[reserve] could not save the details", error);
+    return { ok: false, error: "server" };
+  }
+  // no row: the id came from the bot trap, or the seat is already paid; either way nothing to do
+  return data ? { ok: true, value: null } : { ok: false, error: "invalid" };
 }
 
 export async function checkoutReservation(input: unknown): Promise<ReserveResult<{ url: string }>> {
@@ -114,7 +135,8 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
   const db = createAdminClient();
   const { data: row } = await db.from(TABLE).select("*").eq("id", s.reservationId).maybeSingle();
   const r = row as Reservation | null;
-  if (!r || r.status !== "started") return { ok: false, error: "invalid" };
+  if (!r || r.status !== "started" || !r.parent_name || !r.student_first_name)
+    return { ok: false, error: "invalid" };
   try {
     const customerId =
       r.stripe_customer_id ??
@@ -122,7 +144,7 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
         await stripe.customers.create({
           email: r.parent_email,
           name: r.parent_name,
-          phone: r.parent_phone,
+          ...(r.parent_phone ? { phone: r.parent_phone } : {}),
           metadata: { reservationId: r.id },
         })
       ).id;
@@ -159,6 +181,7 @@ async function welcomeFamily(r: Reservation) {
   const link = `${appUrl()}/reserve/welcome?r=${r.claim_token}`;
   const lines = [
     `${r.student_first_name}'s seat is reserved. Thank you.`,
+    `Your reference is ${referenceOf(r.id)}.`,
     "",
     "What happens next:",
     `1. Create ${r.student_first_name}'s account here, so the platform opens today: ${link}`,
@@ -221,6 +244,29 @@ export async function settleReservation(
   );
   await welcomeFamily(r);
   return "paid";
+}
+
+/** The Stripe webhook's call when a reservation's checkout ran out unpaid: the founder gets the link
+ *  that reopens it, to send with a plain reminder. */
+export async function reservationExpired(
+  session: Pick<Stripe.Checkout.Session, "id" | "metadata" | "after_expiration">
+): Promise<void> {
+  const id = session.metadata?.reservationId;
+  if (!id) return;
+  const { data } = await createAdminClient().from(TABLE).select("*").eq("id", id).maybeSingle();
+  const r = data as Reservation | null;
+  if (!r || r.status !== "started") return;
+  await tellFounder(
+    `Payment not finished: ${r.student_first_name ?? r.parent_email}`,
+    [
+      "This family reached the payment page and left without paying.",
+      "A short, friendly reminder works better than a discount. This link reopens their payment for 30 days:",
+      session.after_expiration?.recovery?.url ?? `${appUrl()}/reserve`,
+      "",
+      ...describe(r),
+    ],
+    r.parent_email
+  );
 }
 
 export async function findReservation(token: string): Promise<Reservation | null> {

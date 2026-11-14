@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MARCH_PROGRAM, NEXT_PROGRAMS } from "@/lib/marketing/offer";
 import { openPrograms } from "./programs";
-import { contactSchema, seatSchema } from "./schemas";
+import { detailsSchema, emailSchema, seatSchema } from "./schemas";
 
 describe("the cohorts a family can reserve", () => {
   it("offers every cohort until a week before its first class", () => {
@@ -17,44 +17,38 @@ describe("the cohorts a family can reserve", () => {
 });
 
 describe("what the form may send", () => {
-  const contact = {
-    filledBy: "parent",
-    parentFirst: "Mari",
-    parentLast: "O'Neil",
-    parentEmail: " Parent@Example.com ",
-    parentPhone: "(512) 555-0142",
-    studentFirst: "Amira",
-  };
-  it("tidies a real family's details", () => {
-    const c = contactSchema.parse(contact);
-    expect(c.parentEmail).toBe("parent@example.com");
+  const id = "11111111-1111-4111-8111-111111111111";
+  it("takes the email alone first, tidied", () => {
+    const e = emailSchema.parse({ filledBy: "parent", email: " Parent@Example.com " });
+    expect(e.email).toBe("parent@example.com");
+    for (const bad of [{ email: "not-an-email" }, { filledBy: "tutor" }, { company: "bot" }])
+      expect(emailSchema.safeParse({ filledBy: "parent", email: "a@b.co", ...bad }).success).toBe(
+        false
+      );
   });
-  it("refuses digits and code in names, and bad contact details", () => {
+  it("takes one full name, a first name and an optional phone", () => {
+    const d = { reservationId: id, parentName: "Mari O'Neil", studentFirst: "Amira", phone: "" };
+    expect(detailsSchema.safeParse(d).success).toBe(true);
+    expect(detailsSchema.safeParse({ ...d, phone: "(512) 555-0142" }).success).toBe(true);
     for (const bad of [
-      { parentFirst: "Mari4" },
+      { parentName: "Mari4" },
       { studentFirst: "<script>" },
-      { parentLast: "x'); DROP TABLE seat_reservations;--" },
-      { parentEmail: "not-an-email" },
-      { parentPhone: "12" },
-      { filledBy: "tutor" },
+      { parentName: "x'); DROP TABLE seat_reservations;--" },
+      { phone: "12" },
+      { reservationId: "1" },
     ])
-      expect(contactSchema.safeParse({ ...contact, ...bad }).success).toBe(false);
+      expect(detailsSchema.safeParse({ ...d, ...bad }).success).toBe(false);
   });
   it("takes a real SAT score or none, and only the two ways of paying", () => {
     const seat = {
-      reservationId: "11111111-1111-4111-8111-111111111111",
+      reservationId: id,
       startScore: "1180",
       programId: MARCH_PROGRAM.id,
       payment: "full",
     };
     expect(seatSchema.safeParse(seat).success).toBe(true);
     expect(seatSchema.safeParse({ ...seat, startScore: "" }).success).toBe(true);
-    for (const bad of [
-      { startScore: "1185" },
-      { startScore: "2000" },
-      { payment: "free" },
-      { reservationId: "1" },
-    ])
+    for (const bad of [{ startScore: "1185" }, { startScore: "2000" }, { payment: "free" }])
       expect(seatSchema.safeParse({ ...seat, ...bad }).success).toBe(false);
   });
 });

@@ -3,7 +3,7 @@ import { litFonts } from "@/components/site/home/fonts";
 import { Btn } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
-import { findReservation } from "@/lib/reserve/service";
+import { findReservation, referenceOf } from "@/lib/reserve/service";
 
 export const metadata = { title: "Karman Prep: Your seat", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -31,6 +31,11 @@ export default async function ReserveWelcomePage({
           {paid ? <i className="rs-confetti" aria-hidden="true" /> : null}
           <h1>{!seat ? W.lostTitle : paid ? W.paidTitle : W.waitTitle}</h1>
           <p className="rs-note">{!seat ? W.lostText : paid ? W.paidText : W.waitText}</p>
+          {paid && seat ? (
+            <p className="rs-ref">
+              {W.reference} <b className="num">{referenceOf(seat.id)}</b>
+            </p>
+          ) : null}
           {paid ? (
             <>
               <ol className="rs-next">
@@ -52,6 +57,7 @@ export default async function ReserveWelcomePage({
               ) : (
                 <Btn label={W.button} href={claim} />
               )}
+              <p className="rs-why">{W.help}</p>
             </>
           ) : null}
         </div>

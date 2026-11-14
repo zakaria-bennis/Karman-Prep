@@ -6,6 +6,7 @@
 // Call times are kept in Central Time and shown in the visitor's own time zone, so nobody has to be told
 // which zone it is; the request carries the Central time and the visitor's zone.
 // If a plan's button was pressed above (PlanPicker.tsx), the plan's name goes along with the request.
+import { track } from "@/lib/analytics/client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
@@ -21,11 +22,12 @@ import SlotPicker, {
   type SlotWords,
 } from "./SlotPicker";
 
-type Field = "first" | "last" | "phone" | "email";
+type Field = "name" | "email" | "phone";
 
 export interface CallWords extends SlotWords {
-  first: string;
-  last: string;
+  name: string;
+  /** Why the phone is asked, shown under its field. */
+  phoneWhy: string;
   phone: string;
   email: string;
   button: string;
@@ -36,14 +38,19 @@ export interface CallWords extends SlotWords {
 }
 
 const OK: Record<Field, (v: string) => boolean> = {
-  first: okName,
-  last: okName,
+  name: okName,
   phone: okPhone,
   email: okEmail,
 };
 const INPUT: Record<Field, Record<string, string | number>> = {
-  first: { type: "text", autoComplete: "given-name", autoCapitalize: "words", maxLength: 30 },
-  last: { type: "text", autoComplete: "family-name", autoCapitalize: "words", maxLength: 29 },
+  name: {
+    type: "text",
+    autoComplete: "name",
+    autoCapitalize: "words",
+    autoCorrect: "off",
+    spellCheck: "false",
+    maxLength: 60,
+  },
   phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 17 },
   email: {
     type: "email",
@@ -54,7 +61,8 @@ const INPUT: Record<Field, Record<string, string | number>> = {
     maxLength: 254,
   },
 };
-const FIELDS: Field[] = ["first", "last", "phone", "email"];
+// the order research gives for a booking: name, then email, then the phone with its reason
+const FIELDS: Field[] = ["name", "email", "phone"];
 
 /** A phone number as it is typed: digits only, set out as (512) 555-0142. A number that starts with + is
  *  kept as + and digits, for families abroad. */
@@ -100,6 +108,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   const doneBox = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    track("form_step", { form: "call", step: "book", kind: "view" });
     setLocal(true);
     const on = (e: Event) => (plan.current = String((e as CustomEvent).detail ?? ""));
     window.addEventListener("karman:plan", on);
@@ -139,16 +148,16 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       found.slot = w.errors.slot;
     setErrors(found);
     const bad = FIELDS.find((k) => found[k]);
+    const gap = bad ?? (found.slot ? "slot" : null);
+    if (gap) track("form_step", { form: "call", step: "book", kind: "error", field: gap });
     if (bad) return form.current.querySelector<HTMLElement>(`[name="${bad}"]`)?.focus();
     if (found.slot) return;
     setBanner("");
     setSending(true);
     let result: Awaited<ReturnType<typeof submitLead>> | null = null;
     try {
-      const { first, last, ...rest } = data;
       result = await submitLead("call", {
-        ...rest,
-        name: `${first.trim()} ${last.trim()}`,
+        ...data,
         slot: `${dayKey(day)} ${fmtTime(hour as number)}`,
         zone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
         plan: plan.current,
@@ -160,11 +169,13 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     if (!result) return setBanner(navigator.onLine ? w.errors.server : w.errors.network);
     if (!result.ok) {
       if ("fields" in result) {
-        const { name, ...others } = result.fields;
-        return setErrors(name ? { ...others, first: name } : others);
+        for (const k of Object.keys(result.fields))
+          track("form_step", { form: "call", step: "book", kind: "error", field: k });
+        return setErrors(result.fields);
       }
       return setBanner(w.errors.server);
     }
+    track("form_step", { form: "call", step: "book", kind: "next" });
     setDone(true);
   }
 
@@ -182,34 +193,47 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   return (
     <form className="cf" id="call" noValidate ref={form} onSubmit={onSubmit}>
       <div className="cf-fields">
-        {FIELDS.map((k) => {
-          const half = k === "first" || k === "last";
-          return (
-            <div className="cf-field" data-half={half || undefined} key={k}>
-              <label className="cf-pill" data-bad={errors[k] ? true : undefined}>
-                <input
-                  name={k}
-                  placeholder={w[k]}
-                  aria-label={w[k]}
-                  aria-invalid={errors[k] ? true : undefined}
-                  aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
-                  onBlur={(e) => e.target.value && check(k, e.target.value)}
-                  onChange={(e) => {
-                    if (k === "phone") e.target.value = formatPhone(e.target.value);
-                    if (half) e.target.value = cleanName(e.target.value);
-                    if (errors[k]) check(k, e.target.value);
-                  }}
-                  {...INPUT[k]}
-                />
-              </label>
-              {errors[k] ? (
-                <p className="cf-msg" id={`call-${k}-msg`}>
-                  {errors[k]}
-                </p>
-              ) : null}
-            </div>
-          );
-        })}
+        {FIELDS.map((k) => (
+          <div className="cf-field" key={k}>
+            {/* the field's name sits inside the pill and rises as it is typed in, so it is never lost */}
+            <label className="cf-pill" data-bad={errors[k] ? true : undefined}>
+              <input
+                name={k}
+                placeholder=" "
+                aria-invalid={errors[k] ? true : undefined}
+                aria-describedby={
+                  [errors[k] ? `call-${k}-msg` : "", k === "phone" ? "call-phone-why" : ""]
+                    .join(" ")
+                    .trim() || undefined
+                }
+                onBlur={(e) => {
+                  if (!e.target.value) return;
+                  check(k, e.target.value);
+                  if (!OK[k](e.target.value))
+                    track("form_step", { form: "call", step: "book", kind: "error", field: k });
+                }}
+                onChange={(e) => {
+                  if (k === "phone") e.target.value = formatPhone(e.target.value);
+                  if (k === "name") e.target.value = cleanName(e.target.value);
+                  // a message goes the moment its field is put right; none appears while typing
+                  if (errors[k] && OK[k](e.target.value)) check(k, e.target.value);
+                }}
+                {...INPUT[k]}
+              />
+              <span>{w[k]}</span>
+            </label>
+            {errors[k] ? (
+              <p className="cf-msg" id={`call-${k}-msg`} role="alert">
+                {errors[k]}
+              </p>
+            ) : null}
+            {k === "phone" ? (
+              <p className="cf-why" id="call-phone-why">
+                {w.phoneWhy}
+              </p>
+            ) : null}
+          </div>
+        ))}
       </div>
       <div className="cf-when">
         <SlotPicker

@@ -1,6 +1,6 @@
 -- Seat reservations: a family reserves and pays for a cohort seat from the marketing site, before the
 -- student has an account (founder, 2026-11-13). One row per reservation. A row starts when the family's
--- contact details are in ("started"), so an unfinished reservation can be followed up; the Stripe webhook
+-- email is in ("started"), so an unfinished reservation can be followed up; the rest is added step by step; the Stripe webhook
 -- marks it "paid"; the student's account is linked when they create it with the claim link; the founder
 -- then places the student in a class by score ("placed"). Written only by the service role.
 
@@ -10,10 +10,11 @@ create table if not exists public.seat_reservations (
   updated_at timestamptz not null default now(),
   -- who filled the form in
   filled_by text not null check (filled_by in ('parent', 'student')),
-  parent_name text not null,
   parent_email text not null,
-  parent_phone text not null,
-  student_first_name text not null,
+  -- added on the next step; the phone is optional
+  parent_name text,
+  parent_phone text,
+  student_first_name text,
   -- the latest official SAT score; null means no SAT yet, so a placement test sets the start
   start_score smallint check (start_score is null or (start_score between 400 and 1600 and start_score % 10 = 0)),
   -- offer.ts program id, e.g. "cohort-march-2027"

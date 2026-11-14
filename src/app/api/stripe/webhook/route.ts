@@ -9,7 +9,7 @@
 // Stripe retries the event.
 // ============================================================
 
-import { settleReservation } from "@/lib/reserve/service";
+import { reservationExpired, settleReservation } from "@/lib/reserve/service";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
@@ -189,6 +189,12 @@ export const POST = withWebhookInstrumentation(
             const scheduleId = await scheduleCohortInstallments(session);
             console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
           }
+          break;
+        }
+
+        // ---- A reservation's payment page ran out unpaid ----
+        case "checkout.session.expired": {
+          await reservationExpired(event.data.object as Stripe.Checkout.Session);
           break;
         }
 
