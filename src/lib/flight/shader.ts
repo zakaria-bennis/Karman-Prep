@@ -61,13 +61,47 @@ vec2 treeAt(vec2 x) {
   float patchy = smoothstep(.3, .62, n2(x * 21.));
   return vec2(max(a.x, b.x * .7) * mix(.35, 1., patchy), a.x > b.x * .7 ? a.y : b.y);
 }
+/* settlements (founder, 2026-11-14): small villages on the low, level ground along the valley and the
+   fjord, each a cluster of houses with pitched roofs, and one observatory on a hill above the water */
+float townAt(vec2 x, float h) {
+  float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.44, .3, abs(x.x - pathX(x.y)));
+  return level * smoothstep(.5, .6, n2(x * 4.6 + 7.3)) * smoothstep(2.3, 2.7, x.y);
+}
+/* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
+   z = which house it is (0 to 1), w = 1 where a house stands */
+vec4 house(vec2 x) {
+  vec2 g = x * 62., id = floor(g);
+  float r = tx(id + 5.), r2 = tx(id + 23.);
+  vec2 f = fract(g) - .5 - (vec2(r, r2) - .5) * .28;
+  float an = tx(id + 61.) * 3.14159, c = cos(an), sn = sin(an);
+  f = vec2(c * f.x + sn * f.y, c * f.y - sn * f.x);
+  vec2 hs = vec2(.25 + .1 * r, .16 + .06 * r2);
+  vec2 d = abs(f) - hs;
+  float inside = max(d.x, d.y), on = step(.4, tx(id + 97.));
+  float wall = .0042 + .002 * r2, roof = .0036 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
+  return vec4((wall + roof) * smoothstep(.035, -.02, inside) * on, inside, r, on);
+}
+float domeOne(vec2 x, vec2 site) {
+  float d = length(x - vec2(pathX(site.y) + site.x, site.y)) / .03;
+  return d > 1. ? 0. : .012 * smoothstep(1., .93, d) + .023 * sqrt(max(0., 1. - d * d / .72)) * step(d, .85);
+}
+/* candidate sites while the right hill is being chosen */
+float domeAt(vec2 x) {
+  return max(max(domeOne(x, vec2(.3, 3.9)), domeOne(x, vec2(-.3, 4.3))), max(domeOne(x, vec2(.36, 5.)), domeOne(x, vec2(-.34, 5.6))));
+}
+float built(vec2 x, float h) {
+  float b = domeAt(x) * smoothstep(.02, .04, h) * smoothstep(.45, .4, h);
+  float town = townAt(x, h);
+  return town < .5 ? b : max(b, house(x).x);
+}
 float terrH(vec2 x) {
   float h = terrD(x);
   float low = smoothstep(1.2, 4.2, x.y);
   float band = smoothstep(mix(.74, .5, low), mix(.6, .36, low), h) * smoothstep(.004, .03, h);
   /* bare rock is cracked and ledged; the forest floor carries its trees */
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  return h + (band * .0056 * treeAt(x).x + (1. - band) * crag) * FINE;
+  float town = townAt(x, h);
+  return h + (band * (1. - town) * .0056 * treeAt(x).x + (1. - band) * crag) * FINE + built(x, h);
 }
 
 vec3 dirFrom(float elev, float az) { float e = radians(elev), a = radians(az); return vec3(sin(a) * cos(e), sin(e), cos(a) * cos(e)); }
@@ -189,11 +223,25 @@ vec3 ground(vec3 p, float t) {
   alb = mix(alb, grass, mead);
   alb = mix(alb, vec3(.36, .31, .22), smoothstep(.018, .004, h));
   alb = mix(alb, vec3(.78, .83, .9), snow);
+  /* the villages: plaster walls, roofs of tile or slate, trodden earth between the houses */
+  float hb = terrD(p.xz), town = step(.5, townAt(p.xz, hb));
+  vec4 hz = house(p.xz);
+  float isH = town * hz.w * smoothstep(.035, -.02, hz.y);
+  float roofy = smoothstep(.3, .55, n.y);
+  vec3 roofc = mix(mix(vec3(.4, .12, .06), vec3(.5, .2, .08), hz.z), vec3(.13, .16, .2), step(.72, hz.z));
+  alb = mix(alb, vec3(.3, .25, .17), town * .22 * (1. - snow));
+  alb = mix(alb, mix(vec3(.66, .6, .5), roofc * (.8 + .4 * r), roofy), isH);
+  float dm = domeAt(p.xz);
+  alb = mix(alb, mix(vec3(.55, .56, .58), vec3(.86, .88, .9), smoothstep(.012, .016, dm)), step(.0005, dm) * smoothstep(.02, .04, hb) * smoothstep(.45, .4, hb));
+  /* lamps: at night most houses have a window lit, and the light spills onto the ground around them */
+  float lamp = step(.45, hz.z) * town * hz.w;
+  vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
+  glow += NIGHT * vec3(.7, .85, 1.) * .5 * step(.0005, dm) * smoothstep(.0125, .0115, dm);
   float sh = shadow(p + n * .004);
   float dif = max(dot(n, KEY), 0.) * sh;
   float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
   vec3 lin = KEYCOL * dif * 2.6 + AMB * (.35 + .35 * n.y) * ao + KEYCOL * max(dot(n, normalize(vec3(-KEY.x, 0., -KEY.z))), 0.) * .1;
-  return alb * lin + snow * KEYCOL * pow(max(dot(reflect(-KEY, n), normalize(vec3(0., 1., 0.))), 0.), 6.) * .08 * sh;
+  return glow + alb * lin + snow * KEYCOL * pow(max(dot(reflect(-KEY, n), normalize(vec3(0., 1., 0.))), 0.), 6.) * .08 * sh;
 }
 
 vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
@@ -246,7 +294,8 @@ void main() {
   float lim = min(tmax, tw), t = .02, hit = -1.;
   for (int i = 0; i < 96; i++) {
     vec3 p = ro + rd * t;
-    float h = p.y - terrM(p.xz);
+    float tm = terrM(p.xz), h = p.y - tm;
+    if (h < .04) h -= built(p.xz, tm);
     if (h < .0012 * t) { hit = t; break; }
     t += h * .46 + .0008;
     if (t > lim || (p.y > 2.1 && rd.y > 0.)) break;
