@@ -26,10 +26,11 @@
   --ink: #2a1c16;
   --cream: #fff3df;
   --amber: #ffc98a;
-  /* frosted, not white (founder, 2026-11-13): the scene shows through, warmed a little */
+  /* frosted, not white (founder, 2026-11-13): a milky warm glass with the scene blurred behind it */
   --pill:
-    linear-gradient(rgba(255, 238, 214, 0.2), rgba(255, 226, 196, 0.13)), rgba(34, 24, 44, 0.3);
-  --pill-edge: rgba(255, 244, 228, 0.34);
+    linear-gradient(rgba(255, 240, 220, 0.44), rgba(255, 230, 204, 0.34)), rgba(40, 28, 52, 0.28);
+  --pill-edge: rgba(255, 246, 232, 0.5);
+  --frost: blur(28px) saturate(1.7) brightness(1.06);
   position: relative;
   min-height: 100svh;
   display: grid;
@@ -167,9 +168,29 @@
 /* the first step needs no title (the greeting is above it); later steps keep Clerk's, so the visitor is told
    what to do with the emailed code */
 .ks .cb :is(.cl-signIn-start, .cl-signUp-start) .cl-header,
-.ks .cb .cl-dividerRow,
-.ks .cb .cl-footer {
-  display: none;
+.ks .cb .cl-footer,
+.ks .cb [class*="cl-footer"],
+.ks .cb [class*="cl-poweredBy"] {
+  display: none !important;
+}
+/* a clear break between the accounts (Google, Microsoft) and email */
+.ks .cb .cl-dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 9px 6px;
+}
+.ks .cb .cl-dividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 243, 223, 0.42);
+}
+.ks .cb .cl-dividerText {
+  margin: 0;
+  color: var(--cream);
+  font-size: 14.5px;
+  font-weight: 800;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
 }
 .ks .cb .cl-header {
   text-align: center;
@@ -224,8 +245,8 @@
   border: 0;
   border-radius: 999px;
   background: var(--pill);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
   color: var(--cream);
   font-size: 16.5px;
   font-weight: 800;
@@ -297,8 +318,8 @@
   border-radius: 999px;
   width: 100%;
   background: var(--pill);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
   color: var(--cream);
   caret-color: var(--amber);
   font-size: 16.5px;
@@ -467,8 +488,8 @@
   gap: 8px;
   border-radius: 22px;
   background: var(--pill);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
   box-shadow: inset 0 0 0 1px var(--pill-edge);
   color: var(--cream);
   font-size: 14.5px;
@@ -482,39 +503,75 @@
 }
 .ks .cb .cb-pw li {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-columns: 20px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
+  transition: color 0.3s;
 }
-.ks .cb .cb-pw li i {
+.ks .cb .cb-pw svg {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px rgba(255, 243, 223, 0.7);
+  overflow: visible;
+}
+/* not met: an empty circle. Met: it fills green and the tick draws itself */
+.ks .cb .cb-pw circle {
+  fill: rgba(127, 217, 162, 0);
+  stroke: rgba(255, 243, 223, 0.75);
+  stroke-width: 1.5;
+  transform-origin: center;
   transition:
-    background 0.3s,
-    scale 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+    fill 0.3s,
+    stroke 0.3s,
+    scale 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
 }
-.ks .cb .cb-pw li[data-note] i {
-  scale: 0.3;
-  background: rgba(255, 243, 223, 0.7);
-  box-shadow: none;
+.ks .cb .cb-pw path {
+  fill: none;
+  stroke: #123222;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.2s;
 }
-.ks .cb .cb-pw li[data-ok] i {
-  scale: 1.1;
-  box-shadow: none;
-  background: #7fd9a2
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.500 10.500l3 3 6-7' fill='none' stroke='%23143322' stroke-width='2.400' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-    center / 20px;
+.ks .cb .cb-pw li[data-ok] circle {
+  fill: #7fd9a2;
+  stroke: #7fd9a2;
+  scale: 1.12;
 }
-.ks .cb .cb-pw li b {
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-  opacity: 0.85;
+.ks .cb .cb-pw li[data-ok] path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.32s 0.16s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
-.ks .cb .cb-pw li[data-ok] b {
-  color: #9fe6ba;
-  opacity: 1;
+.ks .cb .cb-pw li[data-ok] {
+  color: #c9f2d8;
+}
+/* Continue was pressed too soon: the rules still open shake their heads */
+.ks .cb .cb-pw[data-nudge] {
+  animation: none;
+}
+.ks .cb .cb-pw[data-nudge] li:not([data-ok]) {
+  color: #ffd0c4;
+  animation: cb-no 0.42s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.ks .cb .cb-pw[data-nudge] li:not([data-ok]) circle {
+  stroke: #ffb4ab;
+}
+@keyframes cb-no {
+  25% {
+    translate: -5px 0;
+  }
+  60% {
+    translate: 4px 0;
+  }
+}
+.ks .cb .cb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 /* our list says what Clerk's own line under the password would */
 .ks
@@ -549,6 +606,26 @@
   from {
     opacity: 0;
     translate: 0 18px;
+  }
+}
+/* phones: the greeting sits centred right under the header; the ways in stay low, in reach of the thumb */
+@media (max-width: 759px) {
+  .ks .cb {
+    align-content: stretch;
+    padding-top: 84px;
+  }
+  .ks .cb-in {
+    grid-template-rows: auto 1fr auto;
+  }
+  .ks.lit .cb .cb-hello {
+    min-height: 0;
+    align-content: start;
+  }
+  .ks .cb-form {
+    align-self: end;
+  }
+  .ks .cb-in::before {
+    inset: 34% -34% -8%;
   }
 }
 @media (min-width: 760px) {

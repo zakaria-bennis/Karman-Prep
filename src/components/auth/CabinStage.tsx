@@ -3,7 +3,7 @@
 // The warm sign-in (founder, 2026-11-13): the snowy cabin behind (CabinScene), a greeting that types itself
 // in, and Clerk's own form restyled as warm pills (cabin.css, by Clerk's class names). Clerk does all the
 // signing in, so every later step (the emailed code, a password, errors) is Clerk's too.
-// The ways in are whichever are switched on in Clerk. When Google or Apple is on, they show as pills, Google
+// The ways in are whichever are switched on in Clerk. When Google or Microsoft is on, they show as pills, Google
 // first, and email folds behind a third pill, "Continue with email". When neither is on, the email field
 // simply shows.
 // On this computer Clerk's form cannot draw (the live keys only work on karmanprep.com), so on the dev server
@@ -67,14 +67,6 @@ const LOGO = {
       <path fill="#ffb900" d="M12.500 12.500H22V22h-9.500z" />
     </svg>
   ),
-  Apple: (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M16.500 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9-.7 0-1.800-.8-3-.8-1.500 0-3 .9-3.700 2.300-1.600 2.800-.4 6.900 1.100 9.200.8 1.100 1.700 2.300 2.900 2.300 1.100 0 1.600-.7 3-.7s1.800.7 3 .7c1.200 0 2-1.100 2.800-2.200.9-1.300 1.200-2.500 1.300-2.600-.1 0-2.500-1-2.500-3.800zM14.200 5.800c.6-.8 1-1.800.9-2.800-.9 0-2 .6-2.600 1.400-.6.700-1.100 1.700-.9 2.700 1 .1 2-.5 2.600-1.300z"
-      />
-    </svg>
-  ),
 };
 
 const MAIL = (
@@ -105,7 +97,11 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
                 </button>
               ))}
             </div>
-            <div className="cl-dividerRow">or</div>
+            <div className="cl-dividerRow">
+              <div className="cl-dividerLine" />
+              <p className="cl-dividerText">or</p>
+              <div className="cl-dividerLine" />
+            </div>
             <form className="cl-form" onSubmit={(e) => e.preventDefault()}>
               <div className="cl-formField">
                 <label className="cl-formFieldLabel" htmlFor="standin-email">
