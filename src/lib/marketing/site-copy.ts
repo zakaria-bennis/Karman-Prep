@@ -291,7 +291,6 @@ link: The guarantee, in full
 headline: Schedule a free call.
 form first: First name
 form last: Last name
-form phone why: So we can reach you about the call.
 form phone: Phone
 form email: Email
 form button: Schedule my call

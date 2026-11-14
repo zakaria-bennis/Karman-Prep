@@ -27,8 +27,6 @@ type Field = "first" | "last" | "email" | "phone";
 export interface CallWords extends SlotWords {
   first: string;
   last: string;
-  /** Why the phone is asked, shown under its field. */
-  phoneWhy: string;
   phone: string;
   email: string;
   button: string;
@@ -215,11 +213,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
                 name={k}
                 placeholder=" "
                 aria-invalid={errors[k] ? true : undefined}
-                aria-describedby={
-                  [errors[k] ? `call-${k}-msg` : "", k === "phone" ? "call-phone-why" : ""]
-                    .join(" ")
-                    .trim() || undefined
-                }
+                aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
                 onBlur={(e) => {
                   if (!e.target.value) return;
                   check(k, e.target.value);
@@ -239,11 +233,6 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
             {errors[k] ? (
               <p className="cf-msg" id={`call-${k}-msg`} role="alert">
                 {errors[k]}
-              </p>
-            ) : null}
-            {k === "phone" ? (
-              <p className="cf-why" id="call-phone-why">
-                {w.phoneWhy}
               </p>
             ) : null}
           </div>

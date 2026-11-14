@@ -18,7 +18,6 @@ export const RESERVE = {
   email: {
     parent: { headline: "Where should we send the confirmation?", field: "Your email" },
     student: { headline: "What is your parent's email?", field: "Parent's email" },
-    note: "We save your place as you go. No spam, ever.",
   },
   names: {
     parent: {
@@ -32,7 +31,6 @@ export const RESERVE = {
       student: "Your first name",
     },
     phone: "Mobile phone",
-    phoneNote: "Only for class reminders, or if we need to reach you about this seat.",
   },
   score: {
     headline: "Which SAT is the goal?",
@@ -75,7 +73,6 @@ export const RESERVE = {
       none: "No SAT yet",
       noneNote:
         "No problem. Before the first class, {name} takes a first full-length test with us.",
-      why: "Typing it is fine for now. Before the first class we'll ask for the score report as a PDF.",
     },
     goal: {
       say: "And where do we land?",
@@ -107,7 +104,6 @@ export const RESERVE = {
       say: "Last one, and it's optional.",
       headline: "Anything the tutor should know?",
       field: "A sport season, a learning difference, a big week",
-      skip: "Leave it empty if there's nothing.",
     },
     next: "Continue",
     finish: "Finish",

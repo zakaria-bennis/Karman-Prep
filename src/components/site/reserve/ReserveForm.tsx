@@ -258,7 +258,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     },
   };
 
-  const field = (k: Field, label: string, opts: { optional?: boolean; note?: string } = {}) => (
+  const field = (k: Field, label: string, opts: { optional?: boolean } = {}) => (
     <div className="rs-field" key={k}>
       <label
         className="rs-pill"
@@ -274,10 +274,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
           name={k}
           value={v[k]}
           aria-invalid={bad[k] ? true : undefined}
-          aria-describedby={
-            [bad[k] ? `rs-${k}-msg` : "", opts.note ? `rs-${k}-note` : ""].join(" ").trim() ||
-            undefined
-          }
+          aria-describedby={bad[k] ? `rs-${k}-msg` : undefined}
           onChange={(e) => set(k, e.target.value)}
           onBlur={() => leave(k)}
           {...INPUT[k]}
@@ -286,11 +283,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
       {bad[k] ? (
         <p className="rs-msg" id={`rs-${k}-msg`} role="alert">
           {bad[k]}
-        </p>
-      ) : null}
-      {opts.note ? (
-        <p className="rs-why" id={`rs-${k}-note`}>
-          {opts.note}
         </p>
       ) : null}
     </div>
@@ -330,7 +322,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
           autoComplete="off"
           aria-hidden="true"
         />
-        <p className="rs-note">{W.email.note}</p>
       </>
     ),
     names: (
@@ -338,7 +329,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         <h1 tabIndex={-1}>{W.names[say].headline}</h1>
         {field("name", W.names[say].name)}
         {field("student", W.names[say].student)}
-        {field("phone", W.names.phone, { optional: true, note: W.names.phoneNote })}
+        {field("phone", W.names.phone, { optional: true })}
       </>
     ),
     date: (

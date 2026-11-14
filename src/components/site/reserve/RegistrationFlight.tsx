@@ -188,7 +188,7 @@ export default function RegistrationFlight({
           />
           <span>{W.score.none}</span>
         </label>
-        <p className="rs-why">{noScore ? say(W.score.noneNote) : W.score.why}</p>
+        {noScore ? <p className="rs-why">{say(W.score.noneNote)}</p> : null}
       </>
     ),
     goal: (
@@ -247,7 +247,6 @@ export default function RegistrationFlight({
             onChange={(e) => setNote(e.target.value)}
           />
         </label>
-        <p className="rs-why">{W.note.skip}</p>
       </>
     ),
   };

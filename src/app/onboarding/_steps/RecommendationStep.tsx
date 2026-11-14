@@ -41,7 +41,6 @@ export function RecommendationStep({
       >
         <span className="lb">{submitting ? W.busy : signedIn ? plan.action : W.save}</span>
       </button>
-      {signedIn ? null : <p className="rs-why">{W.saveNote}</p>}
       {other ? (
         <p className="ob-also">
           {W.also} <b>{planSummary(other.planId).name}</b>: {other.reason}

@@ -828,3 +828,9 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.lit[data-mode="dark"] .gua-pic { --pp: #18161e; --pg: #6cbf8d; --pr: #ee6e58; }
 /* signed in or not (SitePage.tsx, SIGNED_IN_BOOT): the header shows the portal button, or Sign in and Get started */
 .ks:not([data-in]) .when-in, .ks[data-in] .when-out { display: none !important; }
+/* the signed-in visitor's own picture, top right (AccountSpot.tsx): one press opens their portal */
+.ks .hd .acct { flex: none; width: 46px; height: 46px; min-height: 0; margin-left: 10px; padding: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--go, #2449b8); color: #fffaf3; font-weight: 800; font-size: 18px; box-shadow: 0 0 0 2.5px rgba(255, 250, 243, .9), 0 10px 20px -10px rgba(29, 26, 34, .7); transition: transform .45s var(--spring), box-shadow .25s; }
+.ks .hd .acct img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ks .hd .acct:active { transform: scale(.94); transition-duration: .08s; }
+.ks .hd .acct:focus-visible { outline: 3px solid var(--go, #2449b8); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .ks .hd .acct:hover { transform: translateY(-2px); box-shadow: 0 0 0 3.5px #fffaf3, 0 14px 24px -10px rgba(29, 26, 34, .8); } }

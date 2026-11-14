@@ -32,7 +32,6 @@ export function callWords(): CallWords {
     ...slotWords(),
     first: close["form first"],
     last: close["form last"],
-    phoneWhy: close["form phone why"],
     phone: close["form phone"],
     email: close["form email"],
     button: close["form button"],

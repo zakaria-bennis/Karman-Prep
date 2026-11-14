@@ -73,7 +73,6 @@ export const FINDER = {
     because: "From your answers",
     also: "Or",
     save: "Save my plan",
-    saveNote: "A free account keeps this plan. It takes a few seconds.",
     all: "See every plan",
     busy: "One moment",
   },

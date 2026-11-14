@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
 import { TEXT_SIZE_BOOT } from "./text-size";
+import AccountSpot from "./AccountSpot";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
@@ -36,8 +37,10 @@ const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="
  *  portal in place of "Sign in" and "Get started". Clerk keeps a small readable cookie that says a session
  *  exists (its value is a time, or 0 when signed out), so this is known before the page paints, with no
  *  Clerk code and no server work on the marketing pages. ShellBehaviour does the same for the page's other
- *  sign-up buttons. */
-const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie))document.getElementById("ks").dataset.in="1"}catch(e){}`;
+ *  sign-up buttons. The home page itself is for visitors: someone signed in who opens it goes straight to
+ *  their portal, and sees the home page again when they sign out (or with ?site in the address, to look
+ *  at it while signed in). */
+const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie)){document.getElementById("ks").dataset.in="1";if(location.pathname==="/"&&!/[?&]site(=|&|$)/.test(location.search))location.replace("${ROUTES.portal}")}}catch(e){}`;
 
 /** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
  *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
@@ -235,9 +238,7 @@ export default function SitePage({
             <a className="cta when-out" href={ROUTES.signUp}>
               {SITE["start free"]}
             </a>
-            <a className="cta when-in" href={ROUTES.portal}>
-              {SITE["portal link"]}
-            </a>
+            <AccountSpot label={SITE["portal link"]} />
             <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
               <span>{SITE.menu}</span>
               <i aria-hidden="true" />
