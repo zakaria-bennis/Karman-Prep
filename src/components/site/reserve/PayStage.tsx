@@ -106,14 +106,8 @@ export default function PayStage({
       actions.current = loaded.actions;
 
       // the one-tap ways, Link first
-      const one = checkout.createExpressCheckoutElement({
-        buttonHeight: 55,
-        buttonTheme: { applePay: dark ? "white" : "black", googlePay: dark ? "white" : "black" },
-        buttonType: { applePay: "plain", googlePay: "plain" },
-        layout: { maxColumns: 1, maxRows: 3, overflow: "never" },
-        paymentMethodOrder: ["link", "apple_pay", "google_pay"],
-        paymentMethods: { link: "auto", applePay: "auto", googlePay: "auto" },
-      });
+      // Stripe's own defaults: with options set, the buttons never reported back (checked 2026-11-14)
+      const one = checkout.createExpressCheckoutElement();
       let answered = false;
       const settle = (any: boolean) => {
         if (answered || !live) return;
@@ -123,7 +117,13 @@ export default function PayStage({
         if (!any) setMore(true);
         setReady(true);
       };
-      one.on("ready", (e) => settle(Object.values(e.availablePaymentMethods ?? {}).some(Boolean)));
+      // Stripe says which buttons it can show here, or nothing when there are none
+      // (the event is newer than the installed type definitions)
+      type Ways = { paymentMethods?: Record<string, boolean> | null };
+      (one as unknown as { on: (name: string, heard: (e: Ways) => void) => void }).on(
+        "availablepaymentmethodschange",
+        (e) => settle(Object.values(e.paymentMethods ?? {}).some(Boolean))
+      );
       one.on("confirm", async (event) => {
         setBusy(true);
         setBad("");
@@ -179,7 +179,7 @@ export default function PayStage({
       {note ? <p className="rs-note">{note}</p> : null}
 
       {ready ? null : <div className="rs-wait" role="status" aria-label={W.loading} />}
-      <div className="rs-express" ref={express} hidden={!oneTap} />
+      <div className="rs-express" ref={express} data-off={oneTap ? undefined : ""} />
       {oneTap && ready && !more ? (
         <button
           type="button"

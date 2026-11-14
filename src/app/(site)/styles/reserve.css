@@ -105,7 +105,7 @@
 .ks .rs-due { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; font-size: 17px; font-weight: 700; }
 .ks.lit .rs-due .num { font-size: clamp(30px, 4vw, 40px); line-height: 1; color: var(--a); }
 .ks .rs-express { min-height: 55px; }
-.ks .rs-express[hidden], .ks .rs-all[hidden] { display: none; }
+.ks .rs-paypage[data-ready] .rs-express[data-off], .ks .rs-all[hidden] { display: none; }
 .ks .rs-wait { height: 55px; border-radius: 999px; background: linear-gradient(100deg, color-mix(in srgb, var(--ink) 8%, transparent) 30%, color-mix(in srgb, var(--ink) 16%, transparent) 50%, color-mix(in srgb, var(--ink) 8%, transparent) 70%) 0 0 / 200% 100%; animation: rs-wait 1.3s linear infinite; }
 .ks .rs-paypage:not([data-ready]) :is(.rs-express, .rs-all) { position: absolute; opacity: 0; pointer-events: none; width: calc(100% - 2 * var(--rs-pad, 28px)); }
 @keyframes rs-wait { to { background-position: -200% 0; } }
