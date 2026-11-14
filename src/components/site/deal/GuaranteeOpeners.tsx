@@ -79,12 +79,14 @@ function Miss({ d }: { d: Deal }) {
     );
   return d.cohort ? (
     <p className="go-miss">
-      Miss by a little and <b>{usd(d.half)}</b> comes back. Miss by a lot and{" "}
-      <b>all {usd(d.price)}</b> comes back. Or take {d.orElse}. Your call, not ours.
+      If we come close, you get <b>{usd(d.half)}</b> back. If we don&rsquo;t, you get{" "}
+      <b>all {usd(d.price)}</b> back. Or take {d.orElse}. You choose. Either way, you&rsquo;re
+      covered.
     </p>
   ) : (
     <p className="go-miss">
-      Miss it and <b>{usd(d.half)}</b> comes back, or take {d.orElse}. Your call, not ours.
+      If we miss, you get <b>{usd(d.half)}</b> back, or {d.orElse}. You choose. Either way,
+      you&rsquo;re covered.
     </p>
   );
 }
@@ -102,16 +104,14 @@ function TheNumber({ d, start, setStart, plan, setPlan }: Props) {
   const shown = useRun(d.target ?? start);
   return (
     <div className="go-in go1">
-      <h1>Give us the score today. We&rsquo;ll give you the score we owe you.</h1>
+      <h1>Your student&rsquo;s score goes up, or your money comes back.</h1>
       <p className="go1-num" aria-live="polite">
         {d.target === null ? (
           <b className="go1-up">Higher</b>
         ) : (
           <b className="num">{Math.round(shown / 10) * 10}</b>
         )}
-        <span>
-          {d.gain === null ? "than today, or Pro is on us" : `+${d.gain} points, in writing`}
-        </span>
+        <span>{d.gain === null ? "than today. Guaranteed." : `+${d.gain} points, guaranteed`}</span>
       </p>
       <Slider value={start} set={setStart} label="Starting SAT score" />
       <Plans value={plan} set={setPlan} />
@@ -125,7 +125,7 @@ function TheCheque({ d, start, setStart, plan, setPlan }: Props) {
   return (
     <div className="go-in go2">
       <div className="go2-say">
-        <h1>Here&rsquo;s the refund check we plan on never sending.</h1>
+        <h1>If we miss the score, this check is yours.</h1>
         <Slider value={start} set={setStart} label="Starting SAT score" />
         <Plans value={plan} set={setPlan} />
         <Miss d={d} />
@@ -178,11 +178,12 @@ function ThePledge({ d, start, setStart, plan, setPlan }: Props) {
       <h1 aria-live="polite">
         {d.target === null ? (
           <>
-            Then the score goes up, or {G.highStartProMonths} months of {PRO.name} are on us.
+            Then we guarantee the score goes up. If it doesn&rsquo;t, {G.highStartProMonths} months
+            of {PRO.name} are free.
           </>
         ) : (
           <>
-            Then we owe you a <b className="num">{d.target}</b>. Miss it, and up to{" "}
+            Then we guarantee a <b className="num">{d.target}</b>. If we miss, up to{" "}
             <b className="num">{usd(d.most)}</b> comes back to you.
           </>
         )}
@@ -196,7 +197,7 @@ function ThePledge({ d, start, setStart, plan, setPlan }: Props) {
 function TheClimb({ d, start, setStart, plan, setPlan }: Props) {
   return (
     <div className="go-in go4">
-      <h1>The summit is in writing. Fall short and we pay for the trip.</h1>
+      <h1>We guarantee the score. If we fall short, your money comes back.</h1>
       <Climb d={d} />
       <div className="go-row">
         <Slider value={start} set={setStart} label="Starting SAT score" />
@@ -226,16 +227,16 @@ function ThePrice({ d, start, setStart, plan, setPlan }: Props) {
   const verdict =
     d.gain === null
       ? got > 0
-        ? "The score went up. Promise kept."
+        ? "The score went up. We kept our promise."
         : `No rise: ${G.highStartProMonths} months of ${PRO.name} free.`
       : paid === d.price
-        ? `+${got}. We hit the number. You paid full price, gladly.`
+        ? `+${got} points. We reached the score. You pay in full.`
         : paid === 0
-          ? `+${got}. We missed by a lot. You get every dollar back.`
-          : `+${got}. We missed. Half comes back to you.`;
+          ? `+${got} points. We fell well short. You get all of it back.`
+          : `+${got} points. ${d.cohort ? "We came close" : "We missed the score"}. You get half back.`;
   return (
     <div className="go-in go5">
-      <h1>You pay full price only if we hit the number.</h1>
+      <h1>You only pay in full if we reach the score.</h1>
       <p className="go5-paid" aria-live="polite" data-cut={paid < d.price ? "" : undefined}>
         <small>What it cost you</small>
         <b className="num">{usd(Math.round(shown * 100) / 100)}</b>

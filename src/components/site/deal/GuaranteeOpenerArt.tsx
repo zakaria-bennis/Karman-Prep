@@ -213,7 +213,7 @@ export function Climb({ d }: { d: Deal }) {
           <>
             <p className="go4-tag low" style={pct(on(0.22))}>
               <span>
-                Stop here: <b>all {usd(d.price)} back</b>
+                Under halfway: <b>all {usd(d.price)} back</b>
               </span>
             </p>
             <p className="go4-tag hut" style={pct(mid)}>
@@ -226,7 +226,7 @@ export function Climb({ d }: { d: Deal }) {
         ) : (
           <p className="go4-tag low" style={pct(on(0.4))}>
             <span>
-              Stop short: <b>{usd(d.half)} back</b>, or {d.orElse}
+              Short of the score: <b>{usd(d.half)} back</b>, or {d.orElse}
             </span>
           </p>
         )}
@@ -235,7 +235,7 @@ export function Climb({ d }: { d: Deal }) {
           <span>
             {high
               ? `Or ${G.highStartProMonths} months of ${PRO.name} free`
-              : `+${d.gain}. Promise kept`}
+              : `+${d.gain} points, guaranteed`}
           </span>
         </p>
       </div>
