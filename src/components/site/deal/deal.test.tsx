@@ -58,7 +58,8 @@ describe("the guarantee page", () => {
   const words = text(html);
 
   it("keeps every line of sections 51 to 56 word for word", () => {
-    for (const n of [51, 52, 53, 54, 55, 56]) expect(words).toContain(section(n).headline);
+    for (const n of [51, 52, 53, 55, 56]) expect(words).toContain(section(n).headline);
+    expect(words).toContain(section(55).sides);
     expect(words).toContain(section(51).text);
     for (const [a, b] of [
       ...pairs(section(52).high),

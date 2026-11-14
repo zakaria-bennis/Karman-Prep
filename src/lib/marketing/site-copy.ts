@@ -359,10 +359,8 @@ text: On the cohort:
 rows: Half the points or more = Half your money back | Less than half the points = All your money back
 note: Or take the next cohort free instead. You choose. On private tutoring, a miss means half your money back, or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions on ${P10.name} and ${w(PRIVATE_BONUS[P20.id].freeSessions)} on ${P20.name}.
 
-## 54 Guarantee: both sides
-headline: What we each do.
-
-## 55 Guarantee: in the open
+## 55 Guarantee: both sides, in the open
+sides: What we each do.
 headline: You can see where the guarantee stands, any day.
 text: The guarantee is there to serve you, and to keep your student on track. So nothing about it is hidden.
 points: Live in your parent portal = Classes attended, homework done and practice tests taken, next to what the guarantee asks for. | Updates by email = The same numbers come to your inbox, so you never have to ask. | No surprises = If your student falls behind on the guarantee, you hear it from us first, while there is still time to catch up.

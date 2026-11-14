@@ -1,7 +1,7 @@
 // The guarantee page (founder, 2026-11-13: clear, short and calm; nothing on it that is not the guarantee).
 // 1: the promise, under a seal. 2: the points we guarantee by starting score, beside what comes back if we
 // miss. 3: what each side does, and how a parent watches the guarantee in the open. 4: how to claim, in three
-// steps. Words: site-copy.ts sections 51 to 56, and section 8 for the two lists the home page also shows. Numbers: offer.ts. Styles: guarantee.css.
+// steps. Words: site-copy.ts sections 51 to 53, 55 and 56, and section 8 for the two lists the home page also shows. Numbers: offer.ts. Styles: guarantee.css.
 import { Arrow, Btn } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { Tick } from "@/components/site/company/parts";
@@ -30,7 +30,6 @@ export default function GuaranteeSections() {
   const open = section(51);
   const points = section(52);
   const miss = section(53);
-  const sides = section(54);
   const seen = section(55);
   const claim = section(56);
   const home = section(8);
@@ -105,7 +104,7 @@ export default function GuaranteeSections() {
       <section className="sect pg-sect gq" id="sides" aria-labelledby="sides-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in co-in gq-stack rv">
-          <h2 id="sides-h">{sides.headline}</h2>
+          <h2 id="sides-h">{seen.sides}</h2>
           <div className="gq-card gq-sides">
             {(
               [
