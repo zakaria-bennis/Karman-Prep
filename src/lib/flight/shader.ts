@@ -17,6 +17,10 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime, uP, uNight, uIntro;
 uniform sampler2D uNoise;
+/* the visitor's own sky (founder, 2026-11-14): uHour is their local hour, 0 to 24, or below 0 to keep the
+   page's own day; uWx is their weather: x cloud cover, y rain, z mist, w snow, each 0 to 1 */
+uniform float uHour;
+uniform vec4 uWx;
 
 const mat2 M2 = mat2(.8, -.6, .6, .8);
 const float CB = 1.05, CT = 1.3;   /* the cloud deck: bottom and top */
@@ -156,7 +160,7 @@ vec3 sky(vec3 rd, float sharp) {
 }
 
 /* clouds: a soft deck the camera starts above and sinks through */
-float cover(float z) { return mix(.6, .42, smoothstep(1.6, 3.2, z)) + .06 * smoothstep(6.5, 9., z); }
+float cover(float z) { return mix(mix(.6, .42, smoothstep(1.6, 3.2, z)) + .06 * smoothstep(6.5, 9., z), .97, uWx.x); }
 float cdens(vec3 p) {
   float hh = (p.y - CB) / (CT - CB);
   float prof = smoothstep(0., .22, hh) * smoothstep(1., .45, hh);
@@ -256,15 +260,21 @@ void main() {
   float P = clamp(uP, 0., 1.);
   /* an opening: e runs 0 to 1, eased; left = how much of it is still to play */
   float e = clamp(uIntro, 0., 1.), es = e * e * (3. - 2. * e), left = 1. - es;
-  XM = .8 * left * left;
+  XM = max(.8 * left * left, .5 * uWx.z);
   XA = sin(3.14159 * e);
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
   float eL = mix(mix(8., 44., smoothstep(0., .45, P)), -8., smoothstep(.5, .96, P));
   float eD = mix(mix(-4.5, -30., smoothstep(0., .22, P)), 1.4, smoothstep(.76, 1., P));
   float elev = mix(eL, eD, uNight);
   /* the opening: the sun starts behind the ridge and climbs to where this page keeps it */
+  float az = mix(-26., 8., P);
+  /* their own clock: up at six, highest at noon, down at six, and round to the east again by night */
+  if (uHour >= 0.) {
+    elev = 50. * sin((uHour - 6.) * .261799);
+    az = mix(-70., 70., clamp((uHour - 6.) / 12., 0., 1.));
+  }
   elev = mix(min(elev, -6.5), elev, es);
-  SUN = dirFrom(elev, mix(-26., 8., P));
+  SUN = dirFrom(elev, az);
   MOON = dirFrom(36., mix(40., 22., P));
   DAY = smoothstep(-.12, .16, SUN.y);
   NIGHT = 1. - smoothstep(-.3, -.06, SUN.y);
@@ -274,6 +284,10 @@ void main() {
   KEY = normalize(mix(MOON, SUN, sunW));
   KEYCOL = mix(vec3(.3, .4, .62) * .2, SUNCOL, sunW);
   AMB = mix(vec3(.012, .018, .04), vec3(.34, .48, .72), DAY) + vec3(.3, .12, .1) * LOW * .5;
+  /* under cloud or rain the sun is weak and the light is grey and even */
+  float dull = max(uWx.x, uWx.y);
+  KEYCOL *= 1. - .78 * dull;
+  AMB = mix(AMB, vec3(dot(AMB, vec3(.34))) * 1.15, .7 * dull);
 
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
   float z = .2 + 8.45 * P;
@@ -372,7 +386,7 @@ void main() {
     col = mix(col, AMB * .12, ink * fly * .88);
   }
   /* snow: falls around the high peaks, under the clouds, in three depths */
-  float snowing = smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P));
+  float snowing = max(smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P)), uWx.w);
   if (snowing > .01) {
     float fl = 0.;
     for (int k = 0; k < 3; k++) {
@@ -383,6 +397,18 @@ void main() {
       fl += smoothstep(.035 + .05 * big * big, .0, length(f * vec2(1., .72))) * step(.5, tx(id + 7. + fk * 31.)) * (.9 - .22 * fk);
     }
     col = mix(col, (AMB * .9 + KEYCOL * .55 + .04) * 1.25, clamp(fl, 0., 1.) * snowing * .8);
+  }
+  /* rain: slanting streaks in three depths, and the colour washed out a little */
+  if (uWx.y > .01) {
+    float rn = 0.;
+    for (int k = 0; k < 3; k++) {
+      float fk = float(k), sc = 26. + fk * 16.;
+      vec2 g = vec2((uv.x + uv.y * .12) * sc, uv.y * sc * .09 + uTime * (2.6 + fk * .7) + fk * 3.);
+      vec2 id = floor(g), f = fract(g) - .5;
+      rn += smoothstep(.06, .0, abs(f.x + (tx(id + fk * 7.) - .5) * .7)) * smoothstep(.5, .2, abs(f.y)) * step(.55, tx(id + 31.)) * (.5 - .12 * fk);
+    }
+    col = mix(col, AMB * 1.4 + .05, clamp(rn, 0., 1.) * uWx.y * .35);
+    col = mix(col, vec3(dot(col, vec3(.3, .59, .11))), .25 * uWx.y);
   }
   /* light spilling through the air around the sun */
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));

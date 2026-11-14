@@ -16,6 +16,15 @@ import { FRAG, VERT } from "./shader";
 
 export type FlightLight = "dawn" | "day" | "sunset" | "night";
 
+/** A sky to draw: the local hour (0 to 24) and how much cloud, rain, mist and snow, each from 0 to 1. */
+export interface FlightSky {
+  hour: number;
+  cloud: number;
+  rain: number;
+  mist: number;
+  snow: number;
+}
+
 export interface FlightOptions {
   /** True while nothing may move by itself. */
   still: () => boolean;
@@ -26,6 +35,9 @@ export interface FlightOptions {
   /** How far along its stretch the page is, from 0 to 1, when something other than scrolling flies the
    *  camera (the guided intake flies forward with each answer). Scrolling flies it if left out. */
   progress?: () => number;
+  /** The visitor's own sky, when the page follows it: their local hour and their weather. Left out, or
+   *  null, the page keeps its own day. */
+  sky?: () => FlightSky | null;
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -58,7 +70,7 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 export class Flight {
   private gl: WebGLRenderingContext | null = null;
   private uniforms: Record<
-    "uRes" | "uTime" | "uP" | "uNight" | "uIntro",
+    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uHour" | "uWx",
     WebGLUniformLocation | null
   > = {
     uRes: null,
@@ -66,6 +78,8 @@ export class Flight {
     uP: null,
     uNight: null,
     uIntro: null,
+    uHour: null,
+    uWx: null,
   };
   /** The opening now playing: when it began and how long it runs. */
   private opening: { at: number; ms: number } | null = null;
@@ -216,7 +230,7 @@ export class Flight {
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    for (const name of ["uRes", "uTime", "uP", "uNight", "uIntro"] as const)
+    for (const name of ["uRes", "uTime", "uP", "uNight", "uIntro", "uHour", "uWx"] as const)
       this.uniforms[name] = gl.getUniformLocation(prog, name);
     this.shown = { p: -1, night: -1 };
     return true;
@@ -246,6 +260,15 @@ export class Flight {
     gl.uniform1f(this.uniforms.uP, p);
     gl.uniform1f(this.uniforms.uNight, night);
     gl.uniform1f(this.uniforms.uIntro, intro);
+    const sky = this.o.sky?.() ?? null;
+    gl.uniform1f(this.uniforms.uHour, sky ? sky.hour : -1);
+    gl.uniform4f(
+      this.uniforms.uWx,
+      sky?.cloud ?? 0,
+      sky?.rain ?? 0,
+      sky?.mist ?? 0,
+      sky?.snow ?? 0
+    );
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.shown = { p, night };
     if (!this.ready) {

@@ -9,15 +9,27 @@
  * chunk after the page is up; a browser that cannot draw it keeps the plain sky behind.
  */
 import { useEffect, useRef } from "react";
+import type { FlightSky } from "@/lib/flight/engine";
 import { MOTION_EVENT, prefersStill } from "@/lib/painting/motion";
 
 /** The stretch every portal flies: late morning over the valleys, calm behind dense pages. */
 export const PORTAL_ROUTE: [number, number] = [0.3, 0.5];
 
-export default function PortalFlight({ route = PORTAL_ROUTE }: { route?: [number, number] }) {
+export default function PortalFlight({
+  route = PORTAL_ROUTE,
+  sky,
+}: {
+  route?: [number, number];
+  /** The visitor's own hour and weather, when the page follows them. */
+  sky?: () => FlightSky | null;
+}) {
   const [from, to] = route;
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  const skyNow = useRef(sky);
+  useEffect(() => {
+    skyNow.current = sky;
+  }, [sky]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -43,6 +55,7 @@ export default function PortalFlight({ route = PORTAL_ROUTE }: { route?: [number
           still: prefersStill,
           night: () => root.getAttribute("data-kp-mode") === "dark",
           route: [from, to],
+          sky: () => skyNow.current?.() ?? null,
           onReady: () => stage.setAttribute("data-painted", ""),
         });
         if (!flight.start()) return;

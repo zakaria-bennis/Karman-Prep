@@ -10,6 +10,14 @@ import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
 
+const WEATHER: Record<string, { cloud: number; rain: number; mist: number; snow: number }> = {
+  clear: { cloud: 0, rain: 0, mist: 0, snow: 0 },
+  cloudy: { cloud: 0.9, rain: 0, mist: 0, snow: 0 },
+  rain: { cloud: 0.95, rain: 1, mist: 0.25, snow: 0 },
+  mist: { cloud: 0.4, rain: 0, mist: 1, snow: 0 },
+  snow: { cloud: 0.8, rain: 0, mist: 0.2, snow: 1 },
+};
+
 function World() {
   const q = useSearchParams();
   const p = q.get("p");
@@ -19,9 +27,19 @@ function World() {
     document.documentElement.setAttribute("data-kp-look", "lit");
   }, [night]);
   const at = p === null ? null : Math.min(1, Math.max(0, Number(p) || 0));
+  // ?hour=17.5 sets the clock (the visitor's own clock if left out); ?wx=cloudy|rain|mist|snow sets the weather
+  const hourQ = q.get("hour");
+  const wx = WEATHER[q.get("wx") ?? ""] ?? WEATHER.clear;
+  const follow = hourQ !== null || q.get("wx") !== null || q.get("live") === "1";
+  const sky = follow
+    ? () => {
+        const d = new Date();
+        return { hour: hourQ !== null ? Number(hourQ) : d.getHours() + d.getMinutes() / 60, ...wx };
+      }
+    : undefined;
   return (
     <div className="kp-shell" style={{ minHeight: at === null ? "400vh" : "100dvh" }}>
-      <PortalFlight route={at === null ? undefined : [at, at]} />
+      <PortalFlight route={at === null ? undefined : [at, at]} sky={sky} />
     </div>
   );
 }
