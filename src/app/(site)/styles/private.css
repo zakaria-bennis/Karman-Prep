@@ -162,7 +162,6 @@
 .ks .cf .sp { --chip: rgba(255, 255, 255, .5); }
 .ks .cf-end { grid-column: 1 / -1; display: grid; justify-items: center; gap: 12px; margin-top: 6px; }
 .ks .cf-sum { margin: 0; min-height: 22px; font-size: 16.5px; font-weight: 800; text-align: center; }
-.ks .cf .btn[aria-busy] { opacity: .7; pointer-events: none; }
 .ks .cf-done { grid-template-columns: minmax(0, 1fr); width: min(100%, 520px); justify-items: center; gap: 10px; padding: 40px 28px 36px; border-radius: 40px; text-align: center; outline: 0; }
 @media (max-width: 820px) { .ks .cf { grid-template-columns: minmax(0, 1fr); } .ks .cf-when { order: -1; } .ks .cf-pill { padding: 0 22px; } .ks .cf-when { padding: 18px 14px 16px; border-radius: 30px; } }
 .ks.lit[data-mode="dark"] .cf { --glass: rgba(20, 18, 26, .5); --edge: rgba(255, 250, 243, .22); color: var(--cream); }

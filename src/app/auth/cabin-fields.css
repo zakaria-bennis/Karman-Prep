@@ -180,40 +180,39 @@
   font-size: 17px;
   text-align: left;
 }
-.ks .cb .cl-formField:has(.cl-phoneInputBox) .cl-formFieldLabelRow {
-  display: contents;
-}
+/* the rising name is drawn inside the pill, over the number (Clerk's own label sits outside the pill and
+   stays for screen readers) */
 .ks .cb .cl-formField:has(.cl-phoneInputBox) .cl-formFieldLabel {
   position: absolute;
-  z-index: 1;
-  left: 92px;
-  top: 22px;
-  width: auto;
-  height: auto;
-  overflow: visible;
-  clip-path: none;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ks .cb .cl-phoneInputBox > div {
+  position: relative;
+}
+.ks .cb .cl-phoneInputBox > div::before {
+  content: "Phone number";
+  position: absolute;
+  left: 0;
+  top: 14px;
   font-size: 12.5px;
   font-weight: 800;
   line-height: 1;
-  text-shadow: none;
+  white-space: nowrap;
   opacity: 0;
   pointer-events: none;
   transition:
     top 0.18s ease-out,
     opacity 0.18s;
 }
-.ks
-  .cb
-  .cl-formField:has(.cl-phoneInputBox):is(:focus-within, :has(input:not(:placeholder-shown)))
-  .cl-formFieldLabel {
-  top: 10px;
+.ks .cb .cl-phoneInputBox:is(:focus-within, :has(input:not(:placeholder-shown))) > div::before {
+  top: 2px;
   opacity: 0.85;
 }
-.ks
-  .cb
-  .cl-formField:has(.cl-phoneInputBox):is(:focus-within, :has(input:not(:placeholder-shown)))
-  .cl-phoneInputBox
-  > div {
+.ks .cb .cl-phoneInputBox:is(:focus-within, :has(input:not(:placeholder-shown))) > div {
   padding-top: 15px;
 }
 .ks .cb .cl-phoneInputBox input:focus::placeholder {

@@ -49,3 +49,7 @@
 /* lift: the primary button rises a hair as the cursor approaches, so the press feels expected */
 .ks .btn.near-lift { translate: 0 calc(var(--near, 0) * -2px); }
 .ks .wide.near-lean { transition: none; }
+/* a button at work (ShellBehaviour.tsx): it cannot be pressed twice, and the orb sits after its words */
+.ks .btn:is([data-busy], [aria-busy="true"]) { pointer-events: none; cursor: progress; }
+.ks .btn .btn-orb { flex: none; margin-left: 2px; }
+.ks .btn:is([data-busy], [aria-busy="true"]):has(.btn-orb) .go { display: none; }

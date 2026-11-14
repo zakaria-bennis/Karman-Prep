@@ -19,7 +19,7 @@
   background: #0b0f26;
 }
 .ks.cb-page .hd .mark {
-  color: #fff3df;
+  color: #ffffff;
   text-shadow: 0 2px 22px rgba(10, 8, 30, 0.6);
 }
 .ks .cb {
@@ -96,7 +96,7 @@
   letter-spacing: -0.01em;
   text-wrap: balance;
   text-align: center;
-  color: #fff1da;
+  color: #ffffff;
   text-shadow:
     0 0 34px rgba(255, 170, 90, 0.3),
     0 1px 3px rgba(30, 16, 60, 0.55),
@@ -605,7 +605,7 @@
   font-size: 15px;
   font-weight: 600;
   text-align: center;
-  color: #f1dcc4;
+  color: #ffffff;
   text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
   animation: cb-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.9s both;
 }
