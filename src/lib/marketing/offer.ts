@@ -358,7 +358,7 @@ export const GUARANTEE = {
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
-  /** A cohort student sits the SAT their cohort ends on (founder, 2026-11-11), and may make up one test a
+  /** A cohort student takes the SAT their cohort ends on (founder, 2026-11-11), and may make up one test a
    *  week late and one missed class at a workshop. One of each, no more. */
   lateTestsAllowed: 1,
   classMakeUpsAllowed: 1,
@@ -392,10 +392,10 @@ export const GUARANTEE = {
     },
   ],
   requirements: [
-    "Attend at least 16 of the 18 live classes, live.",
+    "Attend at least 16 of the 18 live classes.",
     "Take all nine full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
-    "Sit the SAT the cohort ends on.",
+    "Take the SAT the cohort ends on.",
   ],
   eligibility: [
     "A student's first Karman program, once per student.",
