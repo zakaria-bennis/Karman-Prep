@@ -1,4 +1,4 @@
-/* Pricing and the guarantee, in the home page's world (.lit), on the SAT Program page's frame (program.css:
+/* Pricing, in the home page's world (.lit), on the SAT Program page's frame (program.css:
    pg-hero, pg-sect, pg-in, pg-two, pg-say, pg-deal, pg-terms, pg-tick, pg-bonus) and About's cards
    (company.css: co-card, co-stack, ab-refuse). Words straight on the mist, rounded cream cards that turn
    near-black at night, cobalt by day and soft gold at night. Every chart arrives once and then holds still.
@@ -75,110 +75,6 @@
 @media (max-width: 1060px) { .ks .dl-plans { grid-template-columns: minmax(0, 1fr); max-width: 620px; } }
 @media (max-width: 480px) { .ks .dl-pick span { font-size: 14px; padding: 0 6px; white-space: normal; } }
 
-/* ---------- the guarantee, 1: what comes back, as a staircase of money (RefundSteps) ---------- */
-.ks .dl-steps { margin: 0; }
-.ks .dl-steps ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 18px); align-items: end; }
-.ks .dl-steps li { display: grid; grid-template-rows: auto auto auto 1fr; gap: 8px; align-self: stretch; }
-.ks .dl-steps li:nth-child(1) { --c: #d2452f; }
-.ks .dl-steps li:nth-child(2) { --c: #c98a1b; }
-.ks .dl-steps li:nth-child(3) { --c: #2f8f6b; }
-.ks .dl-amt { margin: 0; min-height: 38px; display: flex; align-items: end; }
-.ks.lit .dl-amt .num { font-size: clamp(24px, 2.4vw, 34px); line-height: 1; color: var(--c); }
-.ks .dl-kept { width: 34px; height: 34px; --a: var(--c); }
-.ks .dl-bar { position: relative; display: flex; align-items: end; height: clamp(120px, 13vw, 170px); border-bottom: 2px dashed color-mix(in srgb, var(--ink) 30%, transparent); }
-.ks .dl-bar i { width: 100%; height: calc(var(--v) * 100%); border-radius: 14px 14px 4px 4px; background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 55%, #fff)); transform-origin: bottom; transition: transform 1s var(--spring); transition-delay: calc(.3s + var(--k) * .18s); }
-.ks .rv:not(.on) .dl-bar i { transform: scaleY(0); }
-.ks .dl-steps h3 { margin: 0; font-size: clamp(15.5px, 1.3vw, 18px); font-weight: 800; line-height: 1.25; }
-.ks .dl-what { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.4; color: var(--ink2); }
-.ks.lit[data-mode="dark"] .dl-steps li:nth-child(1) { --c: #ff8f7e; }
-.ks.lit[data-mode="dark"] .dl-steps li:nth-child(2) { --c: #f0c060; }
-.ks.lit[data-mode="dark"] .dl-steps li:nth-child(3) { --c: #7fd3ad; }
-.ks.lit[data-mode="dark"] .dl-what { color: #cdc7d6; }
-.ks.lit[data-mode="dark"] .dl-bar { border-color: rgba(255, 250, 243, .3); }
-@media (max-width: 560px) {
-  .ks .dl-steps ol { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
-  .ks .dl-steps li { grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 14px; }
-  .ks .dl-steps .dl-bar { grid-column: 1; grid-row: 1 / span 3; height: 110px; }
-  .ks .dl-steps :is(.dl-amt, h3, .dl-what) { grid-column: 2; }
-  .ks .dl-amt { min-height: 0; }
-}
-
-/* 2. both sides of the deal, then who it covers */
-.ks .dl-terms { display: grid; gap: 16px; }
-.ks .dl-terms .pg-deal { width: 100%; }
-.ks .dl-covers { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
-.ks .dl-covers li { padding: 10px 16px; border-radius: 18px; background: color-mix(in srgb, var(--cream) 82%, transparent); color: var(--ink); font-size: 15px; font-weight: 700; line-height: 1.35; box-shadow: 0 12px 24px -20px rgba(29, 26, 34, .7); }
-.ks.lit[data-mode="dark"] .dl-covers li { background: rgba(24, 22, 30, .9); color: var(--cream); box-shadow: inset 0 0 0 1px rgba(255, 250, 243, .14); }
-
-/* ---------- the guarantee page, 1: the target by starting score, as bars you can point at (TargetChart) ---------- */
-.ks .dl-targets { --a: #2449b8; --p: #2f8f6b; margin: 0; gap: 18px; }
-.ks.lit[data-mode="dark"] .dl-targets { --a: #8fb0ff; --p: #7fd3ad; }
-.ks .dl-read { display: grid; gap: 8px; min-height: 120px; align-content: start; }
-.ks .dl-pair { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 28px; }
-.ks .dl-pair span { display: grid; gap: 2px; animation: pg-pop .55s cubic-bezier(.2, 1.5, .4, 1) both; }
-.ks .dl-pair .p { animation-delay: .08s; }
-.ks.lit .dl-pair .num { font-size: clamp(48px, 5vw, 72px); line-height: .95; letter-spacing: -.04em; }
-.ks .dl-pair .c .num { color: var(--a); }
-.ks .dl-pair .p .num { color: var(--p); }
-.ks .dl-pair small { font-size: 13.5px; font-weight: 800; color: var(--ink2); }
-.ks .dl-line { margin: 0; font-size: clamp(15.5px, 1.25vw, 17.5px); font-weight: 700; line-height: 1.4; animation: pd-cap .45s var(--out) both; }
-.ks .dl-bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(6px, 1vw, 12px); }
-.ks .dl-bars button { display: grid; grid-template-rows: auto auto; gap: 8px; padding: 8px 4px 6px; border: 0; border-radius: 16px; background: none; color: inherit; font: inherit; cursor: pointer; opacity: .5; transition: opacity .3s var(--out), background-color .3s var(--out); }
-.ks .dl-bars button[aria-checked="true"] { opacity: 1; background: color-mix(in srgb, var(--ink) 6%, transparent); }
-@media (hover: hover) and (pointer: fine) { .ks .dl-bars button:hover { opacity: .85; } }
-.ks .dl-bars button:focus-visible { outline: 3px solid var(--a); outline-offset: 2px; }
-.ks .dl-pairbars { display: flex; justify-content: center; align-items: end; gap: 5px; height: clamp(110px, 12vw, 160px); border-bottom: 2px solid color-mix(in srgb, var(--ink) 20%, transparent); }
-.ks .dl-pairbars i { width: min(40%, 26px); height: calc(var(--v) * 100%); border-radius: 8px 8px 2px 2px; transform-origin: bottom; animation: pd-up .9s cubic-bezier(.2, .9, .2, 1) both; animation-delay: calc(.4s + var(--k) * .12s); }
-.ks .dl-pairbars .c { background: linear-gradient(180deg, var(--a), color-mix(in srgb, var(--a) 60%, #fff)); }
-.ks .dl-pairbars .p { background: linear-gradient(180deg, var(--p), color-mix(in srgb, var(--p) 60%, #fff)); animation-delay: calc(.48s + var(--k) * .12s); }
-.ks .dl-pairbars .none { width: 60%; height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--ink) 35%, transparent) 0 6px, transparent 6px 10px); }
-.ks .dl-band { font-size: 12.5px; font-weight: 800; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
-.ks .dl-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13.5px; font-weight: 800; color: var(--ink2); }
-.ks .dl-legend span { display: inline-flex; align-items: center; gap: 8px; }
-.ks .dl-legend span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; background: var(--a); }
-.ks .dl-legend .p::before { background: var(--p); }
-.ks.lit[data-mode="dark"] :is(.dl-pair small, .dl-legend) { color: #cdc7d6; }
-.ks.lit[data-mode="dark"] .dl-bars button[aria-checked="true"] { background: rgba(255, 250, 243, .07); }
-.ks.lit[data-mode="dark"] .dl-pairbars { border-color: rgba(255, 250, 243, .24); }
-.ks.lit[data-mode="dark"] .dl-pairbars .none { background: repeating-linear-gradient(90deg, rgba(255, 250, 243, .4) 0 6px, transparent 6px 10px); }
-
-/* 3. the five students, each dot sliding to where the gain landed against the three endings */
-.ks .dl-track { --z1: #d2452f; --z2: #c98a1b; --z3: #2f8f6b; gap: 6px; }
-.ks.lit[data-mode="dark"] .dl-track { --z1: #ff8f7e; --z2: #f0c060; --z3: #7fd3ad; }
-.ks .dl-zones { margin: 0 0 0 auto; width: 54%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); font-size: 12.5px; font-weight: 800; line-height: 1.25; }
-.ks .dl-zones span { padding: 0 6px 8px; border-left: 2px solid color-mix(in srgb, var(--ink) 18%, transparent); }
-.ks .dl-zones span:nth-child(1) { color: var(--z1); }
-.ks .dl-zones span:nth-child(2) { color: var(--z2); }
-.ks .dl-zones span:nth-child(3) { color: var(--z3); }
-.ks .dl-track ol { list-style: none; margin: 0; padding: 0; display: grid; }
-.ks .dl-track li { display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr); align-items: center; padding: 14px 0; border-top: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); }
-.ks .dl-who { margin: 0; padding-right: clamp(14px, 2vw, 28px); display: grid; gap: 3px; }
-.ks .dl-who b { font-size: clamp(16px, 1.3vw, 18px); font-weight: 800; line-height: 1.25; }
-.ks .dl-who span { font-size: 14.5px; font-weight: 600; line-height: 1.4; color: var(--ink2); }
-.ks .dl-lane { position: relative; height: 16px; margin-top: 26px; border-radius: 8px; background: linear-gradient(90deg, color-mix(in srgb, var(--z1) 30%, transparent) 0 33.33%, color-mix(in srgb, var(--z2) 32%, transparent) 33.33% 66.66%, color-mix(in srgb, var(--z3) 32%, transparent) 66.66%); }
-.ks .dl-lane i { position: absolute; top: 50%; left: calc(var(--x) * 100%); width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px var(--cream), 0 6px 12px -6px rgba(29, 26, 34, .8); transition: left 1.3s cubic-bezier(.2, .9, .2, 1); transition-delay: calc(.3s + var(--k) * .15s); }
-.ks .rv:not(.on) .dl-lane i { left: 0; }
-.ks .dl-lane em { position: absolute; left: 50%; bottom: calc(100% + 8px); translate: -50% 0; font-style: normal; font-size: 15px; white-space: nowrap; }
-.ks.lit[data-mode="dark"] .dl-lane i { background: var(--cream); box-shadow: 0 0 0 4px var(--card-night); }
-.ks.lit[data-mode="dark"] :is(.dl-who span) { color: #cdc7d6; }
-.ks.lit[data-mode="dark"] :is(.dl-track li, .dl-zones span) { border-color: rgba(255, 250, 243, .22); }
-@media (max-width: 760px) { .ks .dl-zones { width: 100%; } .ks .dl-track li { grid-template-columns: minmax(0, 1fr); gap: 4px; } .ks .dl-who { padding-right: 0; } }
-
-/* 4. label = text rows on one card, arriving in turn */
-.ks .dl-rows { margin: 0; gap: 0; padding-top: 6px; padding-bottom: 6px; }
-.ks .dl-rows > div { display: grid; gap: 4px; padding: 14px 0; border-top: 1px dashed color-mix(in srgb, var(--ink) 22%, transparent); transition: opacity .5s var(--out), translate .6s var(--spring); transition-delay: calc(.2s + var(--i) * .1s); }
-.ks .dl-rows > div:first-child { border-top: 0; }
-.ks .rv:not(.on) .dl-rows > div { opacity: 0; translate: -18px 0; }
-.ks .dl-rows dt { font-size: clamp(17px, 1.4vw, 19.5px); font-weight: 800; line-height: 1.25; }
-.ks .dl-rows dt a { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.ks .dl-rows dd { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.45; color: var(--ink2); }
-.ks.lit[data-mode="dark"] .dl-rows dd { color: #cdc7d6; }
-.ks.lit[data-mode="dark"] .dl-rows > div { border-color: rgba(255, 250, 243, .22); }
-
-/* 5. what you won't find in our terms: About's struck cards, five of them */
-.ks .ab-refuse.dl-refuse { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-.ks .dl-refuse h3 { font-size: clamp(21px, 1.9vw, 27px); }
-
 /* ---------- pricing, 3: everything side by side ---------- */
 .ks .dl-compare { --a: #2449b8; padding: 0; gap: 0; overflow: hidden; }
 .ks.lit[data-mode="dark"] .dl-compare { --a: #e7cf9a; }
@@ -212,9 +108,7 @@
 .ks .dl-notes p { margin: 0; font-size: clamp(16px, 1.35vw, 19px); font-weight: 700; line-height: 1.45; }
 
 /* ---------- held still, or reduced motion: everything rests finished ---------- */
-.ks.still-motion :is(.dl-hero, .dl-targets, .dl-steps, .dl-track, .dl-rows) *, .ks.still-motion .dl-plan { animation: none !important; transition: none !important; }
-.ks.still-motion .rv:not(.on) :is(.dl-bar i, .dl-lane i, .dl-rows > div) { transform: none; left: calc(var(--x) * 100%); opacity: 1; translate: none; }
+.ks.still-motion :is(.dl-hero) *, .ks.still-motion .dl-plan { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  .ks :is(.dl-hero, .dl-targets, .dl-steps, .dl-track, .dl-rows, .dl-compare) *, .ks .dl-plan { animation: none !important; transition: none !important; }
-  .ks .rv:not(.on) :is(.dl-bar i, .dl-lane i, .dl-rows > div) { transform: none; left: calc(var(--x) * 100%); opacity: 1; translate: none; }
+  .ks :is(.dl-hero, .dl-compare) *, .ks .dl-plan { animation: none !important; transition: none !important; }
 }

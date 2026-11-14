@@ -24,7 +24,7 @@ describe("guaranteeFor", () => {
   });
 
   it("gives Private 10 the cohort's numbers", () => {
-    expect(guaranteeFor("private-10", [{ score: 1190 }])).toMatchObject({ needed: 150 });
+    expect(guaranteeFor("private-10", [{ score: 1190 }])).toMatchObject({ needed: 160 });
     expect(guaranteeFor("private-20", [{ score: 1190 }])).toMatchObject({ needed: 200 });
     expect(guaranteeFor("private", [{ score: 1250 }])).toMatchObject({ needed: 160 });
   });

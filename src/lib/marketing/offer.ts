@@ -341,7 +341,7 @@ export const GUARANTEE = {
   highStartProMonths: 3,
   /** Starting score up to `upTo`: points promised on each track. */
   bands: [
-    { upTo: 1200, private: 200, cohort: 150 },
+    { upTo: 1200, private: 200, cohort: 160 },
     { upTo: 1300, private: 160, cohort: 120 },
     { upTo: 1400, private: 120, cohort: 80 },
     { upTo: 1450, private: 60, cohort: 40 },
@@ -353,7 +353,8 @@ export const GUARANTEE = {
   /** Plans that carry it. */
   planIds: ["cohort", "private-10", "private-20"],
   /** Live classes the student must attend, out of MARCH_PROGRAM.totalClasses. */
-  minClassesAttended: 15,
+  /** 16 since 2026-11-13 (founder); it was 15. */
+  minClassesAttended: 16,
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
@@ -361,13 +362,23 @@ export const GUARANTEE = {
    *  week late and one missed class at a workshop. One of each, no more. */
   lateTestsAllowed: 1,
   classMakeUpsAllowed: 1,
-  /** How recent an SAT or PSAT score must be to serve as the baseline. */
+  /** How recent an SAT score must be to serve as the baseline. A PSAT never counts (founder, 2026-11-13). */
   baselineMonths: 6,
   /** Days after scores come out to send the claim. */
   /** Days after sitting the SAT to send the score (founder, 2026-11-11; it was 30 days after scores came out). */
   claimDays: 60,
   baseline:
-    "an SAT or PSAT score from the last 6 months, or, for a student with no score yet, a placement test proctored live by Karman",
+    "an official SAT score from the last 6 months, or, for a student with no SAT score yet, a placement test proctored live by Karman",
+  /** What we check before a claim is paid (founder agreed the premise of all seven, 2026-11-13). */
+  proof: [
+    "Both scores come from the official College Board score report, downloaded as a PDF from the student's own College Board account. Screenshots, PSAT scores, Bluebook practice scores and scores from other companies don't count.",
+    "The starting score is set before the first class and stays put. It is an SAT taken before enrolling, or our proctored placement test.",
+    "We may ask the student to open their College Board account on a short video call, so we can see the score there.",
+    "Every score report is checked for edits.",
+    "The name on each report matches the enrolled student, and the final score is from the SAT the program ends on.",
+    "Refunds go back to the original payment method, once per student.",
+    "The guarantee doesn't cover a test missed on purpose. If the SAT score is far below the student's Karman practice tests, we talk with the family first, and the remedy is the next cohort free.",
+  ],
   /** What the family gets, by SAT result. The family chooses money or a seat. */
   outcomes: [
     { result: "The target or more, or a 1600", remedy: "Nothing back. The promise was kept." },
@@ -381,17 +392,17 @@ export const GUARANTEE = {
     },
   ],
   requirements: [
-    "Attend at least 15 of the 18 live classes, live.",
-    "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
+    "Attend at least 16 of the 18 live classes, live.",
+    "Take all nine full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
-    "Sit the SAT within 60 days of the last class.",
+    "Sit the SAT the cohort ends on.",
   ],
   eligibility: [
     "A student's first Karman program, once per student.",
     "Paid in full, or every installment paid on time.",
   ],
   claim:
-    "Within 30 days of scores coming out, email the College Board score report to guarantee@karmanprep.com.",
+    "Within 60 days of the test, email the College Board score report to guarantee@karmanprep.com.",
   claimEmail: "guarantee@karmanprep.com",
   /** Private 10 and Private 20: their own targets, made good with money or free sessions. */
   private: {

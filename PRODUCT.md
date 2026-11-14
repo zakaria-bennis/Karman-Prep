@@ -29,10 +29,10 @@ at most six students, by score band), Private 10 ($1,495) and Private 20
 ($2,495), Schools ($8 per student a year, first year free) and a Tutor
 affiliate plan ($199 a month for up to 50 students). Only the Cohort and both
 Private packages carry the guarantee. It is tiered by starting score (founder,
-2026-11-09; `GUARANTEE` in `offer.ts`): Private 20 promises +200 up to a
-1200 start, +150 to 1300, +100 to 1400, +50 to 1450; the Cohort and Private 10
-promise +150, +100, +70 and +40 for the same bands; from 1460 there is no
-guarantee. Every other rule is the lawyer-reviewed one of 2026-11-08: under half the target, all the
+2026-11-13; `GUARANTEE` in `offer.ts`, which is the source to trust): Private 20 promises +200 up to a
+1200 start, +160 to 1300, +120 to 1400, +60 to 1450; the Cohort and Private 10
+promise +160, +120, +80 and +40 for the same bands; from 1460 the promise is a higher score, or three
+months of Pro free. Every other rule is the lawyer-reviewed one of 2026-11-08: under half the target, all the
 money comes back or the next cohort is free; half the target or more, half comes back (Private 20 gets up
 to six free hours first). Success is an SAT score that went up, and a family that understood what
 it was buying.

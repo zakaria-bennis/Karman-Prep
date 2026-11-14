@@ -1,121 +1,170 @@
-// The guarantee page, in the home page's world (founder, 2026-11-12: every page matches the home page), built
-// on the SAT Program page's frame (program.css: pg-hero, pg-sect, pg-two) like About and the FAQ.
-// 1: the promise, beside the target for every starting score as a chart you can point at (TargetChart).
-// 2: what comes back, as a staircase of money (RefundSteps), then both sides of the deal (GuaranteeTerms).
-// 3: five students, each placed on the three endings (ExampleTrack). 4: private tutoring and what isn't
-// covered. 5: what you won't find in our terms, struck out. 6: claiming. Words: site-copy.ts sections 8 and
-// 51 to 56, word for word; numbers: offer.ts. Styles: deal.css.
-import type { CSSProperties } from "react";
+// The guarantee page (founder, 2026-11-13: clear, short and calm; nothing on it that is not the guarantee).
+// 1: the promise, under a seal. 2: the points we guarantee by starting score, beside what comes back if we
+// miss. 3: what each side does, and how a parent watches the guarantee in the open. 4: how to claim, in three
+// steps. Words: site-copy.ts sections 51 to 53, 55 and 56, and section 8 for the two lists the home page also shows. Numbers: offer.ts. Styles: guarantee.css.
 import { Arrow, Btn } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { Close } from "@/components/site/company/parts";
-import { GUARANTEE as G, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
+import { Tick } from "@/components/site/company/parts";
+import { GUARANTEE as G, guaranteeBandLabel } from "@/lib/marketing/offer";
 import { list, pairs, section } from "@/lib/marketing/site-copy";
-import ExampleTrack from "./ExampleTrack";
-import { DealSection } from "./GuaranteeTerms";
-import TargetChart, { type TargetBand } from "./TargetChart";
 
-/** The bands of section 56, with the points each track promises from offer.ts. */
-export function targetBands(): TargetBand[] {
-  return pairs(section(56).rows).map(([label, text], i) => {
-    const b = G.bands[i];
-    return b ? { label, text, cohort: b.cohort, private: b.private } : { label, text };
-  });
+/** One line of the points table: the starting scores, then what each plan guarantees. */
+export function pointRows(): [string, string, string][] {
+  return G.bands.map((b, i) => [guaranteeBandLabel(i), `+${b.cohort}`, `+${b.private}`]);
+}
+
+/** The seal over the headline: a shield whose tick draws itself. */
+function Seal({ label }: { label: string }) {
+  return (
+    <p className="gq-seal">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path className="shield" d="M32 6l20 7v15c0 14-8.500 23-20 29-11.500-6-20-15-20-29V13z" />
+        <path className="tick" pathLength={1} d="M22 32.500l7.500 7.500L43 25" />
+      </svg>
+      {label}
+    </p>
+  );
 }
 
 export default function GuaranteeSections() {
   const open = section(51);
-  const deal = section(8);
-  const examples = section(52);
-  const refuse = section(53);
-  const priv = section(54);
-  const claim = section(55);
-  const targets = section(56);
-  const [P10, P20] = PRIVATE_PACKAGES;
+  const points = section(52);
+  const miss = section(53);
+  const seen = section(55);
+  const claim = section(56);
+  const home = section(8);
+  const cols = list(points.columns);
+  const [[highLabel, highText]] = pairs(points.high);
   return (
     <>
-      {/* 1. The promise, beside the target for each starting score */}
-      <section className="pg-hero" id="top">
+      <section className="pg-hero gq" id="top">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in pg-two co-in">
-          <div className="pg-say">
-            <h1>{open.headline}</h1>
-            <p className="lede">{open.text}</p>
-            <div className="pg-close">
-              <div className="go-row">
-                <Btn label={claim.button} href={ROUTES.test} />
-                <a className="more" href="#examples">
-                  {deal.link}
-                  <Arrow />
-                </a>
-              </div>
+        <div className="pg-in gq-open">
+          <Seal label={open.seal} />
+          <h1>{open.headline}</h1>
+          <p className="lede">{open.text}</p>
+          <div className="pg-close">
+            <div className="go-row">
+              <Btn label={open.button} href={ROUTES.pricing} />
+              <a className="more" href="#points">
+                {open.link}
+                <Arrow />
+              </a>
             </div>
           </div>
-          <div className="pg-say">
-            <h2 className="pg-h3">{targets.headline}</h2>
-            <TargetChart
-              bands={targetBands()}
-              legend={[`The cohort and ${P10.name}`, P20.name]}
-              ask={section(24).ask}
-            />
+        </div>
+      </section>
+
+      <section className="sect pg-sect gq" id="points" aria-labelledby="points-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="pg-in co-in gq-two rv">
+          <div className="gq-card">
+            <h2 id="points-h">{points.headline}</h2>
+            <table className="gq-table">
+              <thead>
+                <tr>
+                  {cols.map((c) => (
+                    <th scope="col" key={c}>
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pointRows().map(([label, cohort, priv]) => (
+                  <tr key={label}>
+                    <th scope="row">{label}</th>
+                    <td className="num">{cohort}</td>
+                    <td className="num">{priv}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <th scope="row">{highLabel}</th>
+                  <td colSpan={2}>{highText}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="gq-card">
+            <h2>{miss.headline}</h2>
+            <p className="gq-sub">{miss.text}</p>
+            <dl className="gq-back">
+              {pairs(miss.rows).map(([when, what]) => (
+                <div key={when}>
+                  <dt>{when}</dt>
+                  <dd>{what}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="gq-note">{miss.note}</p>
           </div>
         </div>
       </section>
 
-      {/* 2. What comes back, by score, then both sides of the deal */}
-      <DealSection id="deal" headline={deal.headline} text={deal.text} />
-
-      {/* 3. Five students, each placed on the three endings */}
-      <section className="sect pg-sect" id="examples" aria-labelledby="examples-h">
+      <section className="sect pg-sect gq" id="sides" aria-labelledby="sides-h">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in co-in co-stack rv">
-          <h2 id="examples-h">{examples.headline}</h2>
-          <ExampleTrack />
-        </div>
-      </section>
-
-      {/* 4. Private tutoring, and what isn't covered */}
-      <section className="sect pg-sect" id="private" aria-labelledby="private-h">
-        <div className="mist" aria-hidden="true" />
-        <div className="pg-in pg-two co-in rv">
-          <div className="pg-say">
-            <h2 id="private-h">{priv.headline}</h2>
-          </div>
-          <dl className="co-card dl-rows">
-            {pairs(priv.rows).map(([k, v], i) => (
-              <div key={k} style={{ "--i": i } as CSSProperties}>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
+        <div className="pg-in co-in gq-stack rv">
+          <h2 id="sides-h">{seen.sides}</h2>
+          <div className="gq-card gq-sides">
+            {(
+              [
+                [home["we do title"], home["we do"]],
+                [home["you do title"], home["you do"]],
+              ] as const
+            ).map(([title, items]) => (
+              <div key={title}>
+                <h3>{title}</h3>
+                <ul>
+                  {list(items).map((x) => (
+                    <li key={x}>
+                      <Tick />
+                      {x}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
-          </dl>
+          </div>
+          <div className="gq-seen">
+            <h3>{seen.headline}</h3>
+            <p className="gq-sub">{seen.text}</p>
+            <dl>
+              {pairs(seen.points).map(([name, line]) => (
+                <div key={name}>
+                  <dt>{name}</dt>
+                  <dd>{line}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       </section>
 
-      {/* 5. What you won't find in our terms: each one struck out as it arrives */}
-      <section className="sect pg-sect" id="refuse" aria-labelledby="refuse-h">
+      <section className="sect pg-sect gq" id="claim" aria-labelledby="claim-h">
         <div className="mist" aria-hidden="true" />
-        <div className="pg-in co-in co-stack rv">
-          <h2 id="refuse-h">{refuse.headline}</h2>
-          <ul className="ab-refuse dl-refuse">
-            {list(refuse.list).map((x, k) => (
-              <li className="co-card" key={x} style={{ "--k": k } as CSSProperties}>
-                <h3>
-                  <s>{x}</s>
-                </h3>
+        <div className="pg-in co-in gq-stack rv">
+          <h2 id="claim-h">{claim.headline}</h2>
+          <ol className="gq-steps">
+            {pairs(claim.steps).map(([when, what], i) => (
+              <li className="gq-card" key={when}>
+                <b className="num">{i + 1}</b>
+                <h3>{when}</h3>
+                <p>{what}</p>
               </li>
             ))}
-          </ul>
+          </ol>
+          <p className="gq-note">{claim.note}</p>
+          <details className="gq-card gq-proof">
+            <summary>{claim.proof}</summary>
+            <ol>
+              {G.proof.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ol>
+          </details>
+          <Btn label={open.button} href={ROUTES.pricing} />
         </div>
       </section>
-
-      <Close
-        id="claim"
-        headline={claim.headline}
-        text={claim.text}
-        button={claim.button}
-        href={ROUTES.test}
-      />
     </>
   );
 }
