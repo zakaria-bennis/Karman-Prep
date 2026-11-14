@@ -15,7 +15,8 @@ import { FROM, resend } from "@/lib/integrations/resend/client";
 import { GUARANTEE, MARCH_PROGRAM as MP, formatPrice } from "@/lib/marketing/offer";
 import { recordPurchaseGrant } from "@/lib/plans/resolve";
 import { createAdminClient } from "@/lib/supabase/server";
-import { openPrograms } from "./programs";
+import { UNDECIDED, openPrograms } from "./programs";
+import { ensureUserRow } from "@/lib/auth/ensure-user";
 import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 export type ReserveResult<T> =
@@ -67,7 +68,7 @@ const describe = (r: Reservation) => [
   `Student: ${r.student_first_name ?? "not given yet"}`,
   `Filled in by: the ${r.filled_by}`,
   `Starting SAT score: ${r.start_score ?? "none yet (needs the placement test)"}`,
-  `Cohort: ${r.program_id ?? "not chosen yet"}`,
+  `Cohort: ${r.program_id === UNDECIDED ? "NOT SURE of the SAT date: agree it with them" : (r.program_id ?? "not chosen yet")}`,
   `Paying: ${r.payment_option === "installments" ? "deposit and three payments" : r.payment_option === "full" ? "in full" : "not chosen yet"}`,
 ];
 
@@ -134,7 +135,7 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
   const parsed = seatSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const s = parsed.data;
-  if (!openPrograms(today()).some((p) => p.id === s.programId))
+  if (s.programId !== UNDECIDED && !openPrograms(today()).some((p) => p.id === s.programId))
     return { ok: false, error: "closed" };
   const db = createAdminClient();
   const { data: row } = await db.from(TABLE).select("*").eq("id", s.reservationId).maybeSingle();
@@ -187,11 +188,10 @@ async function welcomeFamily(r: Reservation) {
     `Your reference is ${referenceOf(r.id)}.`,
     "",
     "What happens next:",
-    `1. Create ${r.student_first_name}'s account here, so the platform opens today: ${link}`,
-    r.start_score
-      ? `2. Email ${r.student_first_name}'s official SAT score report (the PDF from the College Board account) to ${GUARANTEE.claimEmail}. That sets the starting score for the guarantee.`
-      : `2. We'll email you a time for ${r.student_first_name}'s placement test. It sets the starting score for the guarantee.`,
-    "3. We place your student in a class with others at the same score, and send the class times before the first week.",
+    `1. Open this page. It asks four quick questions, then gives you ${r.student_first_name}'s own link to set up the student account. The link works once, for one account: ${link}`,
+    `2. Before the first class, email ${r.student_first_name}'s official SAT score report (the PDF from the College Board account) to ${GUARANTEE.claimEmail}. No SAT yet? ${r.student_first_name} takes a first full-length test with us instead. Either one sets the starting score for the guarantee.`,
+    "3. Once the class is formed, we send a short form for session times and pick the hour most of the class can make.",
+    `4. When ${r.student_first_name}'s account is made, we email you the link to your own parent view.`,
     "",
     r.payment_option === "installments"
       ? `You paid the ${formatPrice(MP.depositAmount)} deposit today. The ${MP.installments.count} payments of ${formatPrice(MP.installments.amount)} follow monthly from the first class.`
@@ -281,7 +281,7 @@ export async function saveRegistration(input: unknown): Promise<ReserveResult<nu
     .from(TABLE)
     .update({
       start_score: a.startScore ? Number(a.startScore) : null,
-      details: { goalScore: Number(a.goalScore), hardest: a.hardest, times: a.times, note: a.note },
+      details: { goalScore: Number(a.goalScore), hardest: a.hardest, note: a.note },
       registered_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -303,7 +303,6 @@ export async function saveRegistration(input: unknown): Promise<ReserveResult<nu
       ...describe(r),
       `Goal score: ${a.goalScore}`,
       `Hardest right now: ${a.hardest}`,
-      `Can make classes: ${a.times.join(", ")}`,
       a.note ? `Note: ${a.note}` : "",
     ].filter((l, i) => l !== "" || i === 1),
     r.parent_email
@@ -319,6 +318,35 @@ export async function findReservation(token: string): Promise<Reservation | null
     .eq("claim_token", token)
     .maybeSingle();
   return (data as Reservation | null) ?? null;
+}
+
+/** Once the student's account holds the seat, the parent gets their own link by email: it opens the
+ *  parent portal already linked to this student (parent/invites.ts; it works once and lasts 14 days).
+ *  Never fails the claim: if it cannot be sent, the student can still invite a parent from the account menu. */
+async function inviteParent(r: Reservation, clerkUserId: string) {
+  try {
+    const studentId = await ensureUserRow(clerkUserId);
+    if (!studentId || !process.env.RESEND_API_KEY) return;
+    // loaded here, not at the top: it is server-only, and this file is also read by the webhook's tests
+    const { createInvite } = await import("@/lib/parent/invites");
+    const invite = await createInvite(studentId);
+    await resend.emails.send({
+      from: FROM,
+      to: r.parent_email,
+      subject: `${r.student_first_name}'s account is ready. Here is your parent view`,
+      text: [
+        `${r.student_first_name} has set up the student account, and the seat is attached to it.`,
+        "",
+        `Your own parent view is here: ${appUrl()}/join/parent/${invite.token}`,
+        `It shows ${r.student_first_name}'s attendance, homework, practice test scores and where the guarantee stands.`,
+        "The link works once and lasts 14 days. You make your own sign-in; you never need your student's password.",
+        "",
+        "Reply to this email with any question. A person answers.",
+      ].join("\n"),
+    });
+  } catch (e) {
+    console.error("[reserve] parent invite failed", e);
+  }
 }
 
 /** Attaches a paid seat to the student's new account and opens the platform. One account per seat. */
@@ -343,6 +371,7 @@ export async function claimReservation(
     planId: "cohort",
     checkoutSessionId: r.stripe_checkout_session_id ?? `reservation:${r.id}`,
   });
+  await inviteParent(r, clerkUserId);
   await tellFounder(`Account created for ${r.student_first_name}`, [
     "The student's account now holds the paid seat. Place them in a class in Admin, Cohorts.",
     "",

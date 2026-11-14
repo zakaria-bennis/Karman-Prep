@@ -27,7 +27,7 @@ export default function AboutSections() {
             <p className="lede">{open.text}</p>
             <div className="pg-close">
               <div className="go-row">
-                <Btn label={open.button} href={ROUTES.start} />
+                <Btn label={open.button} href={ROUTES.signUp} />
                 <a className="more" href="#how">
                   {open["second button"]}
                   <Arrow />

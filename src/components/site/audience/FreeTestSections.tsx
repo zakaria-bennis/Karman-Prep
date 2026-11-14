@@ -114,7 +114,7 @@ export default function FreeTestSections() {
             <p className="lede">{open.text}</p>
             <div className="pg-close">
               <div className="go-row">
-                <Btn label={open.button} href={ROUTES.start} />
+                <Btn label={open.button} href={ROUTES.signUp} />
                 <a className="more" href="#seat">
                   {open["second button"]}
                   <Arrow />
@@ -157,7 +157,7 @@ export default function FreeTestSections() {
             <h2 id="close-h">{note.headline}</h2>
             <p className="lede">{note.text}</p>
             <div className="go-row">
-              <Btn label={note.button} href={ROUTES.start} />
+              <Btn label={note.button} href={ROUTES.signUp} />
             </div>
             <p className="fine">{note["button note"]}</p>
           </div>

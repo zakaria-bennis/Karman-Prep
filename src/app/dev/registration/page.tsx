@@ -1,7 +1,8 @@
 // ============================================================
 // /dev/registration: a dev-only page showing the registration flight a family sees right after paying
 // (RegistrationFlight), with a made-up student and no saved seat, so its look and its steps can be checked
-// on phone and desktop without a payment. Its last step cannot save here. Production builds return 404
+// on phone and desktop without a payment. Its last step cannot save here. ?as=student shows the student's
+// own version; ?landed=1 opens on the landing. Production builds return 404
 // (NODE_ENV is fixed at build time).
 // ============================================================
 
@@ -18,13 +19,21 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function RegistrationDevPage() {
+export default async function RegistrationDevPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ as?: string; landed?: string }>;
+}) {
   if (process.env.NODE_ENV === "production") notFound();
+  const q = await searchParams;
   return (
     <SitePage kind="lit" bare drive="steps" className={litFonts}>
-      <RegistrationFlight token="00000000-0000-4000-8000-000000000000" name="Amira">
-        <p className="rs-note">The next steps and the account button appear here.</p>
-      </RegistrationFlight>
+      <RegistrationFlight
+        token="00000000-0000-4000-8000-000000000000"
+        name="Amira"
+        filledBy={q.as === "student" ? "student" : "parent"}
+        landed={q.landed === "1"}
+      />
     </SitePage>
   );
 }

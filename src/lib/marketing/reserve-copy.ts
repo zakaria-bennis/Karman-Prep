@@ -38,7 +38,9 @@ export const RESERVE = {
     headline: "Which SAT is the goal?",
     starts: "Classes start",
     closed:
-      "Registration for the next cohorts is closed. Email hello@karmanprep.com and we'll find a seat.",
+      "The next cohort isn't open yet. Choose Not sure and we'll hold your seat for the right one.",
+    notSure: "Not sure yet",
+    notSureNote: "We'll hold the seat and agree the date with you.",
   },
   pay: {
     headline: "How would you like to pay?",
@@ -50,7 +52,6 @@ export const RESERVE = {
     partsNote: `Then ${MP.installments.count} monthly payments of ${formatPrice(MP.installments.amount)}, starting with the first class. The total is the same: ${formatPrice(MP.price)}.`,
     button: "Continue to secure payment",
     sending: "Opening secure payment",
-    safe: "You pay on Stripe's secure page. We never see your card.",
     promise: `Covered by the guarantee: up to +${G.bands[0].cohort} points, or your money back.`,
   },
   errors: {
@@ -65,23 +66,24 @@ export const RESERVE = {
    *  over the landscape (RegistrationFlight.tsx). {name} is the student's first name. */
   start: {
     hello:
-      "The seat is reserved. I'm Karman, and this is Ollie. Five quick questions and {name} is ready for day one.",
+      "The seat is reserved. I'm Karman. Four quick questions and {name} is ready for day one.",
     helloButton: "Take off",
     score: {
       say: "Where is {name} taking off from?",
       headline: "Latest SAT score",
       field: "SAT score",
       none: "No SAT yet",
-      noneNote: "No problem. A placement test with us sets the starting point.",
-      why: "It sets the starting point for the guarantee.",
+      noneNote:
+        "No problem. Before the first class, {name} takes a first full-length test with us.",
+      why: "Typing it is fine for now. Before the first class we'll ask for the score report as a PDF.",
     },
     goal: {
       say: "And where do we land?",
       headline: "The score {name} is aiming for",
       field: "Goal score",
     },
-    gap: "From {from} to {to}. That's {gap} points to fly, and steady work covers it.",
-    gapNoStart: "A {to}. Good place to land. We'll find the starting point first.",
+    gap: `From {from} to {to}. That's {gap} points, with ${MP.weeks} weeks, ${MP.totalClasses} live classes and ${MP.fullLengthTests} practice tests to get there.`,
+    gapNoStart: `A {to}. Good place to land. ${MP.weeks} weeks, ${MP.totalClasses} live classes and ${MP.fullLengthTests} practice tests to get there.`,
     hardest: {
       say: "This tells the tutor where to start.",
       headline: "What feels hardest right now?",
@@ -90,15 +92,6 @@ export const RESERVE = {
         reading: "Reading and Writing",
         both: "Both about the same",
         timing: "Running out of time",
-      },
-    },
-    times: {
-      say: "Pick every time that could work. We place the class from these.",
-      headline: "When can {name} make live classes?",
-      options: {
-        "weekday-evenings": "Weekday evenings",
-        saturday: "Saturdays",
-        sunday: "Sundays",
       },
     },
     note: {
@@ -110,35 +103,47 @@ export const RESERVE = {
     next: "Continue",
     finish: "Finish",
     saving: "Saving",
-    done: "We've landed. {name} is all set.",
-    doneNote: "Thank you. A copy of everything is in your inbox.",
+    done: "We've landed at the observatory. Welcome, {name}.",
     errors: {
       score: "Enter a score from 400 to 1600 that ends in 0.",
-      times: "Pick at least one time.",
       server: "That didn't save. Check your connection and try again.",
+    },
+    /** The landing: what the family does next. {name} is the student's first name. */
+    land: {
+      studentTitle: "{name}'s own link",
+      studentText:
+        "It opens {name}'s account with this seat attached. It works once, for one account only.",
+      share: "Send {name} the link",
+      copied: "Link copied",
+      here: "{name} is here with me",
+      mine: "Create my account",
+      mineTitle: "Your seat is waiting.",
+      mineText: "Your account opens the full platform today, with this seat attached.",
+      shareText: "Here's your link to set up your Karman account. It only works once:",
+      then: "What happens after",
+      steps: [
+        ["Today", "{name}'s account opens the full platform, before the first class."],
+        [
+          "Before the first class",
+          "We ask for the SAT score report as a PDF, or run the first full-length test.",
+        ],
+        [
+          "Once the class is formed",
+          "We send a short form for session times and pick the hour most of the class can make.",
+        ],
+        [
+          "The parent portal",
+          "When {name}'s account is made, we email you the link to your own parent view.",
+        ],
+      ] as [string, string][],
+      help: "Questions? Email hello@karmanprep.com. A person answers.",
     },
   },
   welcome: {
-    paidTitle: "The seat is reserved.",
-    paidText: "Thank you. A copy of this is in your inbox. Here is what happens next.",
-    reference: "Your reference",
-    help: "Questions? Email hello@karmanprep.com. A person answers.",
     waitTitle: "Your payment is on its way.",
     waitText: "This page updates as soon as the payment clears. It usually takes a few seconds.",
     lostTitle: "We can't find that reservation.",
     lostText: "Open the link from your confirmation email, or email hello@karmanprep.com.",
-    steps: [
-      ["Create the student's account", "It opens the full platform today, before the first class."],
-      [
-        "Send the score report",
-        `Email the official SAT score report (the PDF) to ${G.claimEmail}, for the guarantee. No SAT yet? We'll email a time for the placement test.`,
-      ],
-      [
-        "Get the class times",
-        "We place your student with others at the same score, and send the schedule before the first week.",
-      ],
-    ] as [string, string][],
-    button: "Create the student's account",
     claimed: "The student's account is set up. Sign in to start.",
     signIn: "Sign in",
   },

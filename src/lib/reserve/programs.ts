@@ -13,7 +13,12 @@ export interface OpenProgram {
 
 const DAY = 864e5;
 
-/** Registration closes one week before the first class (founder, 2026-11-11). */
+/** The answer for a family that has not settled on an SAT date: the seat is held and the date is agreed
+ *  with them afterwards. */
+export const UNDECIDED = "undecided";
+
+/** Registration closes one week before the first class (founder, 2026-11-11), and only cohorts that start
+ *  within the next three months are offered (founder, 2026-11-13: the whole year opens in January). */
 export function openPrograms(today: string): OpenProgram[] {
   const now = Date.parse(`${today}T00:00:00Z`);
   return [MARCH_PROGRAM, ...NEXT_PROGRAMS]
@@ -23,5 +28,8 @@ export function openPrograms(today: string): OpenProgram[] {
       starts: p.startLabel,
       startDate: p.startDate,
     }))
-    .filter((p) => Date.parse(`${p.startDate}T00:00:00Z`) - 7 * DAY >= now);
+    .filter((p) => {
+      const start = Date.parse(`${p.startDate}T00:00:00Z`);
+      return start - 7 * DAY >= now && start <= now + 92 * DAY;
+    });
 }

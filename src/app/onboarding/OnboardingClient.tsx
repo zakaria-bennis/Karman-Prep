@@ -32,7 +32,7 @@ import {
   type PriorPrepResult,
 } from "@/lib/onboarding/recommend-plan";
 import { COPY, GUIDE, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
-import { Crew, Guide } from "./_steps/Guide";
+import { Guide } from "./_steps/Guide";
 import { MinutesStep, hoursFromMinutes } from "./_steps/MinutesStep";
 import { RoleStep } from "./_steps/RoleStep";
 import { SatStep } from "./_steps/SatStep";
@@ -329,7 +329,6 @@ export default function OnboardingClient({
           style={{ "--guide-from": `${dir * 22}px` } as React.CSSProperties}
         >
           {moment ? <Guide say={said} big /> : null}
-          {isLast ? <Crew /> : null}
 
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
 

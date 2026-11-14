@@ -152,13 +152,6 @@
   line-height: 1.2;
   text-wrap: balance;
 }
-.ks .ob-crew {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 4px;
-}
-
 /* the card each question sits on: frosted, following the mode */
 .ks .ob-card {
   padding: clamp(20px, 3vw, 32px);
@@ -310,15 +303,231 @@
   height: 24px;
   accent-color: rgb(var(--k-info));
 }
-.ks .ob .rs-done {
-  display: grid;
-  gap: 16px;
-  margin-top: 14px;
-  text-align: left;
-}
 .ks.lit .ob .rs-pill input:is(:focus, :focus-visible) {
   outline: 0;
   box-shadow: none;
   border: 0;
   background: none;
+}
+
+/* the flight's number fields: taller than the site's pills, so a typed score never touches its label */
+.ks .ob .rs-pill {
+  min-height: 76px;
+}
+.ks .ob .rs-pill input {
+  height: 76px;
+  padding-top: 28px;
+  font-size: 21px;
+}
+.ks .ob .rs-pill:is([data-filled], :focus-within) span {
+  top: 19px;
+}
+
+/* the landing: the observatory rises into view, and the two cards sit above it */
+.ks .obs {
+  --obs-far-hi: #b9cfc4;
+  --obs-far: #86ab8c;
+  --obs-hill-hi: #8db67e;
+  --obs-hill: #4c7f52;
+  --obs-near-hi: #5f9160;
+  --obs-near: #2f5f40;
+  --obs-pine: #2f5a44;
+  --obs-path: #e9dcbc;
+  --obs-stone: #f6efe0;
+  --obs-shade: #d9cdb6;
+  --obs-roof: #8a6a58;
+  --obs-dome: #b9c4cf;
+  --obs-dome-hi: #f2f5f8;
+  --obs-win: #5d6f86;
+  --obs-dark: #2b3142;
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 0;
+  width: 100%;
+  height: min(62svh, 560px);
+  pointer-events: none;
+  animation: obs-rise 1.5s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+.ks.lit[data-mode="dark"] .obs {
+  --obs-far-hi: #34406a;
+  --obs-far: #202a48;
+  --obs-hill-hi: #2a3a5c;
+  --obs-hill: #141f34;
+  --obs-near-hi: #1a2740;
+  --obs-near: #0c1424;
+  --obs-pine: #0c1524;
+  --obs-path: #58608a;
+  --obs-stone: #6f7596;
+  --obs-shade: #50567a;
+  --obs-roof: #3a3550;
+  --obs-dome: #7c86ac;
+  --obs-dome-hi: #c9d2ee;
+  --obs-win: #ffd98a;
+  --obs-dark: #0b0f1c;
+}
+.ks .obs-far {
+  fill: url(#obs-g-far);
+}
+.ks .obs-hill {
+  fill: url(#obs-g-hill);
+}
+.ks .obs-near {
+  fill: url(#obs-g-near);
+}
+.ks .obs-pine {
+  fill: var(--obs-pine);
+}
+.ks .obs-path {
+  stroke: var(--obs-path);
+  stroke-width: 9;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.ks .obs-drum,
+.ks .obs-wing {
+  fill: var(--obs-stone);
+}
+.ks .obs-drum-shade {
+  fill: var(--obs-shade);
+  opacity: 0.6;
+}
+.ks .obs-roof {
+  fill: var(--obs-roof);
+}
+.ks .obs-band {
+  fill: var(--obs-shade);
+}
+.ks .obs-rib {
+  stroke: var(--obs-dark);
+  stroke-width: 1.5;
+  opacity: 0.22;
+}
+.ks .obs-win {
+  fill: var(--obs-win);
+}
+.ks :is(.obs-door, .obs-slit, .obs-scope) {
+  fill: var(--obs-dark);
+}
+.ks .obs-shadow {
+  fill: var(--obs-dark);
+  opacity: 0.18;
+}
+.ks :is(.obs-stars, .obs-light) {
+  opacity: 0;
+}
+.ks .obs-stars {
+  fill: #fff7e4;
+}
+.ks.lit[data-mode="dark"] .obs-stars {
+  opacity: 0.9;
+  animation: obs-twinkle 3.6s ease-in-out infinite alternate;
+}
+.ks.lit[data-mode="dark"] .obs-light {
+  opacity: 0.55;
+}
+@keyframes obs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(46%) scale(1.5);
+  }
+}
+@keyframes obs-twinkle {
+  to {
+    opacity: 0.45;
+  }
+}
+.ks .ob[data-landed] {
+  align-content: start;
+  padding-top: 76px;
+  /* room under the cards, so the observatory is seen whole at the end of the page */
+  padding-bottom: 48svh;
+}
+@media (min-width: 1100px) {
+  /* wide screens: the words stand to the left and the observatory keeps the right of the view */
+  .ks .ob[data-landed] {
+    justify-items: start;
+    padding-left: max(var(--gutter), 7vw);
+    padding-bottom: 60px;
+  }
+  .ks .ob[data-landed] .ob-in {
+    width: min(100%, 500px);
+  }
+  .ks .ob[data-landed] .ob-moment {
+    justify-items: start;
+    text-align: left;
+  }
+  /* the welcome line stands on the mountainside here, so it gets the cards' frost to stay readable */
+  .ks .ob[data-landed] .ob-moment .ob-say {
+    padding: 16px 22px;
+    border-radius: 26px;
+    background: rgb(var(--k-surface) / 0.66);
+    -webkit-backdrop-filter: blur(22px) saturate(1.6);
+    backdrop-filter: blur(22px) saturate(1.6);
+  }
+  .ks .obs {
+    left: 16vw;
+    height: min(70svh, 640px);
+  }
+}
+.ks .ob-land {
+  display: grid;
+  gap: 14px;
+  animation: guide-say 0.5s 0.5s ease-out both;
+}
+.ks .ob-land h2 {
+  margin: 0 0 6px;
+  font-size: 23px;
+  line-height: 1.15;
+}
+.ks .ob-land p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.ks .ob-link .btn {
+  margin-top: 16px;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+.ks .ob-link-go {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 22px;
+}
+.ks .ob-quiet {
+  margin-top: 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.ks .ob-after ol {
+  list-style: none;
+  margin: 8px 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.ks .ob-after li {
+  display: grid;
+  gap: 1px;
+  padding-left: 16px;
+  border-left: 3px solid rgb(var(--k-info) / 0.55);
+  font-size: 15.5px;
+  line-height: 1.4;
+}
+.ks .ob-after li b {
+  font-weight: 800;
+}
+.ks .ob-after .rs-why {
+  margin-left: 0;
 }

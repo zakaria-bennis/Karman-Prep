@@ -72,11 +72,6 @@
 
 /* after paying */
 .ks .rs-done { justify-items: start; overflow: hidden; }
-.ks .rs-next { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.ks .rs-next li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
-.ks.lit .rs-next .num { font-size: 30px; line-height: 1; color: var(--a); }
-.ks .rs-next h2 { margin: 0; font-family: var(--font-hanken), system-ui, sans-serif; font-size: 18px; font-weight: 800; line-height: 1.25; }
-.ks .rs-next p { margin: 2px 0 0; font-size: 15.5px; font-weight: 600; line-height: 1.42; }
 /* confetti, once, when the seat is paid: small paper pieces falling through the card */
 .ks .rs-confetti { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle, #f07a2e 0 3px, transparent 3.5px), radial-gradient(circle, #2449b8 0 3px, transparent 3.5px), radial-gradient(circle, #23a065 0 2.5px, transparent 3px), radial-gradient(circle, #e7b93a 0 3px, transparent 3.5px), radial-gradient(circle, #7d4fd6 0 2.5px, transparent 3px); background-size: 97px 131px, 113px 149px, 79px 167px, 127px 113px, 89px 139px; background-position: 12px -40px, 60px -90px, 30px -20px, 90px -70px, 5px -110px; opacity: 0; animation: rs-confetti 2.6s cubic-bezier(.2, .6, .4, 1) .2s both; }
 @keyframes rs-confetti { 0% { opacity: 0; background-position: 12px -140px, 60px -190px, 30px -120px, 90px -170px, 5px -210px; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; background-position: 30px 240px, 40px 280px, 44px 300px, 70px 220px, 22px 260px; } }
@@ -89,6 +84,4 @@
   .ks .rs-nav .btn { flex: 1; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .ks .rs * { animation: none !important; transition: none !important; } .ks .rs-confetti { display: none; } }
-.ks .rs-ref { margin: 0; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--a) 12%, transparent); font-size: 15px; font-weight: 800; }
-.ks.lit .rs-ref .num { font-size: 17px; letter-spacing: .04em; }
 .ks .rs-done .rs-why { margin-left: 0; }

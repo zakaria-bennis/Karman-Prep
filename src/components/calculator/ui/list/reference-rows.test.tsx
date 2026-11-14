@@ -3,7 +3,7 @@
 // under the math of a row with undefined names (R-6; owner, 2026-10-22, Desmos's own), the DEG/RAD
 // badge, no fraction toggle on a regression parameter, the point row's Label line (EL-15), the
 // Edit list mode rows (EL-44, EL-45), the hover tooltips (PM-29) and the list resizer (EL-4).
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { clampListWidth, ListResizer } from "../layout/ListResizer";
@@ -103,13 +103,17 @@ it("R-11 the badge is a button: a click or Enter switches the angle mode for eve
     name: "Angle mode: radians. Switch to degrees.",
   });
   await user.click(badge);
-  expect(kit.engine.settings.angleMode).toBe("degrees");
-  expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG");
+  // the click lands through user-event's own timers; when every test file runs at once the machine is
+  // busy and the setting can arrive a moment later, so wait for it instead of reading it at once
+  await waitFor(() => expect(kit.engine.settings.angleMode).toBe("degrees"));
+  await waitFor(() =>
+    expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG")
+  );
   expect(kit.announcer.texts).toContain("Angle set to degrees.");
   const again = within(rowItem("2")).getByRole("button", { name: /Switch to radians/ });
   again.focus();
   await user.keyboard("{Enter}");
-  expect(kit.engine.settings.angleMode).toBe("radians");
+  await waitFor(() => expect(kit.engine.settings.angleMode).toBe("radians"));
   act(() => kit.engine.updateSettings({ complex: true }));
   const off = within(rowItem("1")).getByRole("button", { name: "Angle mode: radians." });
   expect(off).toHaveAttribute("aria-disabled", "true");

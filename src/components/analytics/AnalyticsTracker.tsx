@@ -30,8 +30,7 @@ function ctaTarget(href: string): "sign_up" | "checkout" | "sign_in" | null {
   } catch {
     return null;
   }
-  // Get started opens the intake first; the account comes at its end
-  if (path.startsWith("/auth/sign-up") || path === "/onboarding") return "sign_up";
+  if (path.startsWith("/auth/sign-up")) return "sign_up";
   if (path.startsWith("/checkout/start")) return "checkout";
   if (path.startsWith("/auth/sign-in")) return "sign_in";
   return null;

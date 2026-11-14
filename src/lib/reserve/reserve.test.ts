@@ -4,10 +4,12 @@ import { openPrograms } from "./programs";
 import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 describe("the cohorts a family can reserve", () => {
-  it("offers every cohort until a week before its first class", () => {
-    expect(openPrograms("2026-11-13").map((p) => p.id)).toEqual([
+  it("offers a cohort from three months before its first class until a week before it", () => {
+    // only cohorts starting within three months are offered
+    expect(openPrograms("2026-11-13").map((p) => p.id)).toEqual([MARCH_PROGRAM.id]);
+    expect(openPrograms("2026-12-20").map((p) => p.id)).toEqual([
       MARCH_PROGRAM.id,
-      ...NEXT_PROGRAMS.map((p) => p.id),
+      NEXT_PROGRAMS[0].id,
     ]);
     // registration for the first cohort closes one week before it starts
     expect(openPrograms("2026-12-28").map((p) => p.id)).toContain(MARCH_PROGRAM.id);
@@ -51,7 +53,6 @@ describe("what the form may send", () => {
       startScore: "1180",
       goalScore: "1400",
       hardest: "math",
-      times: ["saturday"],
       note: "Soccer on Tuesdays",
     };
     expect(registrationSchema.safeParse(answers).success).toBe(true);
@@ -60,7 +61,6 @@ describe("what the form may send", () => {
       { startScore: "1185" },
       { goalScore: "" },
       { hardest: "everything" },
-      { times: [] },
       { note: "x".repeat(500) },
     ])
       expect(registrationSchema.safeParse({ ...answers, ...bad }).success).toBe(false);

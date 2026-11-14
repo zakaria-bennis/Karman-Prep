@@ -17,7 +17,7 @@ import { payForSeat, saveEmail, saveNames } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import { RESERVE as W } from "@/lib/marketing/reserve-copy";
-import type { OpenProgram } from "@/lib/reserve/programs";
+import { UNDECIDED, type OpenProgram } from "@/lib/reserve/programs";
 
 type Who = "parent" | "student";
 type Field = "email" | "name" | "student" | "phone";
@@ -127,7 +127,8 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         setWho(kept.who);
         setV(kept.v);
         setId(kept.id);
-        if (programs.some((p) => p.id === kept.program)) setProgram(kept.program);
+        if (kept.program === UNDECIDED || programs.some((p) => p.id === kept.program))
+          setProgram(kept.program);
         setPay(kept.pay);
         setStep(Math.min(kept.step, kept.id ? STEPS.length - 1 : 1));
       }
@@ -240,7 +241,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
       });
     },
     date: () => {
-      if (programs.length) go(4);
+      if (program) go(4);
     },
     pay: () => {
       if (!id) return;
@@ -363,6 +364,16 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
           ) : (
             <p className="rs-note">{W.score.closed}</p>
           )}
+          <label data-on={program === UNDECIDED || undefined}>
+            <input
+              type="radio"
+              name="program"
+              checked={program === UNDECIDED}
+              onChange={() => setProgram(UNDECIDED)}
+            />
+            <b>{W.score.notSure}</b>
+            <span>{W.score.notSureNote}</span>
+          </label>
         </fieldset>
       </>
     ),
@@ -423,14 +434,13 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
             <button
               type="submit"
               className="btn"
-              aria-disabled={busy || (name === "date" && !programs.length) || undefined}
+              aria-disabled={busy || undefined}
               data-busy={busy || undefined}
             >
               <span className="lb">{last ? (busy ? W.pay.sending : W.pay.button) : W.next}</span>
             </button>
           </div>
         ) : null}
-        {last ? <p className="rs-safe">{W.pay.safe}</p> : null}
       </form>
       {bad.form ? (
         <p className="rs-msg rs-form-msg" role="alert">

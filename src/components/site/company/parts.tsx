@@ -18,7 +18,7 @@ export function Close({
   headline,
   text,
   button,
-  href = ROUTES.start,
+  href = ROUTES.signUp,
   second,
 }: {
   id: string;

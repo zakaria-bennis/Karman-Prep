@@ -28,8 +28,7 @@ export const COPY = {
 /** What Karman the fox says at each step (docs/forms/onboarding-notes.md). Short, kind, never guilt. The
  *  intake is a flight seen through a bird's eyes, and each answer is a leg of it. */
 export const GUIDE = {
-  hello:
-    "I'm Karman, and this is Ollie. Enjoy the view: eight quick questions on the way, about a minute.",
+  hello: "I'm Karman. Enjoy the view: eight quick questions on the way, about a minute.",
   role: "Before we take off: who's flying with us?",
   sat: "Good. Where are we headed? Pick the test and the date.",
   baseline: "Where are we taking off from? A rough idea is fine.",
@@ -38,7 +37,7 @@ export const GUIDE = {
   independence: "Be honest. There's no wrong answer up here.",
   pace: "This tells me how you like to be taught.",
   prior: "Last one. We're nearly there.",
-  building: "Ollie can see it from here. Putting your plan together...",
+  building: "I can see it from here. Putting your plan together...",
   recommendation: "We've landed. This is the plan I'd pick for you.",
 } as const;
 
@@ -49,7 +48,7 @@ export function gapLine(baseline: number | null, goal: number): string {
     return `A ${goal}. Good place to land. We'll find where you're taking off from first.`;
   const gap = goal - baseline;
   if (gap <= 0) return `You're already at ${baseline}. Let's hold it and climb past ${goal}.`;
-  return `From ${baseline} to ${goal}. That's ${gap} points to fly, and steady work covers it.`;
+  return `From ${baseline} to ${goal}. That's ${gap} points to gain.`;
 }
 
 /** How far along the landscape's route the intake has flown, from 0 to 1. Each answer is a short leg; the

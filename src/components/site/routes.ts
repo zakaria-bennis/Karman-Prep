@@ -19,8 +19,6 @@ export const ROUTES = {
   privacy: "/privacy",
   refunds: "/refunds",
   cookies: "/cookies",
-  /** Get started: the guided intake comes first, and the account is asked for at its end. */
-  start: "/onboarding",
   signIn: "/auth/sign-in",
   signUp: "/auth/sign-up",
   billing: "/billing",
