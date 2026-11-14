@@ -9,6 +9,9 @@
 // On this computer Clerk's form cannot draw (the live keys only work on karmanprep.com), so on the dev server
 // a stand-in with the same parts and the same class names takes its place. It signs nobody in.
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import type { CountryCode } from "libphonenumber-js";
+import { orb } from "@/components/site/live/kit";
 import { SignIn, SignUp } from "@clerk/nextjs";
 import CabinScene from "./CabinScene";
 import PasswordHelp from "./PasswordHelp";
@@ -27,11 +30,11 @@ const APPEARANCE = {
     socialButtonsPlacement: "top" as const,
   },
   variables: {
-    colorPrimary: "#ffc98a",
-    colorTextOnPrimaryBackground: "#2a1c16",
+    colorPrimary: "#2449b8",
+    colorTextOnPrimaryBackground: "#fffaf3",
     colorBackground: "transparent",
-    colorText: "#fff3df",
-    colorTextSecondary: "#f1dcc4",
+    colorText: "#ffffff",
+    colorTextSecondary: "#ffffff",
     colorInputBackground: "#fff6e8",
     colorInputText: "#2a1c16",
     colorDanger: "#ffb4ab",
@@ -224,6 +227,69 @@ export default function CabinStage({
   const form = useRef<HTMLDivElement>(null);
   const up = mode === "sign-up";
 
+  const path = usePathname() ?? "";
+
+  // While Clerk works (a button was pressed and it is waiting on the network), it draws its own spinner in
+  // the button. The site's loader is the orb (live/kit.ts), so the orb is drawn there instead; the button
+  // itself is held by cabin-fields.css so it cannot be pressed twice.
+  useEffect(() => {
+    const root = form.current;
+    if (!root) return;
+    const stops = new Map<Element, () => void>();
+    const sync = () => {
+      for (const spinner of root.querySelectorAll(".cl-spinner")) {
+        const home = spinner.parentElement;
+        if (!home || home.querySelector(".cb-orb")) continue;
+        const c = document.createElement("canvas");
+        c.className = "cb-orb";
+        home.append(c);
+        stops.set(c, orb(c, { size: 22, dark: true }));
+      }
+      for (const [c, stop] of stops)
+        if (!c.parentElement?.querySelector(".cl-spinner")) {
+          stop();
+          c.remove();
+          stops.delete(c);
+        }
+    };
+    const watch = new MutationObserver(sync);
+    watch.observe(root, { childList: true, subtree: true });
+    return () => {
+      watch.disconnect();
+      for (const stop of stops.values()) stop();
+    };
+  }, []);
+
+  // A phone number cannot be typed longer than its country allows (10 digits in the United States, 9 in
+  // Morocco, and so on: libphonenumber's own table). The country is the one on the field's button.
+  useEffect(() => {
+    const root = form.current;
+    if (!root) return;
+    let tooLong: ((digits: string, country: string) => boolean) | null = null;
+    void import("libphonenumber-js/max").then((lib) => {
+      tooLong = (digits, country) =>
+        lib.validatePhoneNumberLength(digits, country as CountryCode) === "TOO_LONG";
+    });
+    const hold = (e: Event) => {
+      const ev = e as InputEvent;
+      const input = ev.target as HTMLInputElement;
+      const box = input.closest?.(".cl-phoneInputBox");
+      if (!box || !tooLong || !ev.data || !ev.inputType.startsWith("insert")) return;
+      const country = (box.querySelector(".cl-selectButton")?.textContent ?? "")
+        .trim()
+        .toUpperCase();
+      const from = input.selectionStart ?? input.value.length;
+      const to = input.selectionEnd ?? from;
+      const next = (input.value.slice(0, from) + ev.data + input.value.slice(to)).replace(
+        /\D/g,
+        ""
+      );
+      if (/^[A-Z]{2}$/.test(country) && tooLong(next, country)) e.preventDefault();
+    };
+    root.addEventListener("beforeinput", hold, true);
+    return () => root.removeEventListener("beforeinput", hold, true);
+  }, []);
+
   // Clerk writes a country's flag in front of the phone number a code was sent to. The line is plain text
   // in the site's type (founder, 2026-11-14), so the flag is taken out wherever Clerk draws it.
   useEffect(() => {
@@ -271,7 +337,11 @@ export default function CabinStage({
   }, [email]);
 
   return (
-    <section className="cb" data-email={email ? "" : undefined}>
+    <section
+      className="cb"
+      data-email={email ? "" : undefined}
+      data-step={path.includes("/continue") ? "continue" : undefined}
+    >
       <CabinScene />
       <div className="cb-in">
         <Typed pool={greetings} />

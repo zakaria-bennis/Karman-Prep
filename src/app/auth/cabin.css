@@ -24,8 +24,9 @@
 }
 .ks .cb {
   --ink: #2a1c16;
-  --cream: #fff3df;
-  --amber: #ffc98a;
+  /* white, not cream or gold (founder, 2026-11-14): gold is for nothing here, and the button is the site's blue */
+  --cream: #ffffff;
+  --amber: #ffffff;
   /* frosted, not white (founder, 2026-11-13): a dusky warm glass with the scene blurred behind it */
   --pill:
     linear-gradient(rgba(255, 236, 214, 0.16), rgba(255, 226, 200, 0.08)), rgba(26, 18, 40, 0.56);
@@ -214,12 +215,14 @@
     .cl-formHeaderSubtitle,
     .cl-alternativeMethodsBlockButton
   ) {
-  color: #f6e3cb;
+  color: #ffffff;
   text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
 }
 .ks .cb .cl-formFieldLabel {
   font-size: 14.5px;
   font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* the pills: Google first, then Apple, then any other way in that is switched on */
@@ -422,30 +425,6 @@
 }
 .ks .cb .cl-formFieldLabelRow:not(:has(> :not(.cl-formFieldLabel))) {
   display: contents;
-}
-.ks .cb .cl-formButtonPrimary {
-  min-height: 54px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--amber);
-  color: var(--ink);
-  font-size: 16.5px;
-  font-weight: 800;
-  text-transform: none;
-  box-shadow: 0 16px 30px -16px rgba(10, 6, 24, 0.85);
-  transition:
-    scale 0.35s cubic-bezier(0.3, 1.5, 0.5, 1),
-    filter 0.25s;
-}
-.ks .cb .cl-formButtonPrimary::after {
-  display: none;
-}
-.ks .cb .cl-formButtonPrimary:hover {
-  background: var(--amber);
-  filter: brightness(1.06);
-}
-.ks .cb .cl-formButtonPrimary:active {
-  scale: 0.97;
 }
 .ks
   .cb
