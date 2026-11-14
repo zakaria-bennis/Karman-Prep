@@ -61,7 +61,12 @@
 }
 /* working: the button cannot be pressed twice, and Clerk's spinner gives way to the site's orb
    (CabinStage.tsx puts it there) */
-.ks .cb :is(.cl-formButtonPrimary, .cl-socialButtonsBlockButton):is([disabled], [data-loading]) {
+.ks
+  .cb
+  :is(.cl-formButtonPrimary, .cl-socialButtonsBlockButton, .cl-socialButtonsIconButton):is(
+    [disabled],
+    [data-loading]
+  ) {
   pointer-events: none;
   cursor: progress;
 }

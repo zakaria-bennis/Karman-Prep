@@ -8,12 +8,14 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { visitorOrigin } from "@/lib/checkout/origin";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { ensureUserRow } from "@/lib/auth/ensure-user";
 import { claimGuestPurchase, donePath, guestPurchase, sessionIdSchema } from "@/lib/checkout/guest";
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = req.nextUrl;
+  const { searchParams } = req.nextUrl;
+  const origin = visitorOrigin(req);
   const to = (path: string) => NextResponse.redirect(new URL(path, origin), 303);
   const id = sessionIdSchema.safeParse(searchParams.get("s"));
   if (!id.success) return to("/pricing");
