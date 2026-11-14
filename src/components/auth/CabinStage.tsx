@@ -15,6 +15,9 @@ import PasswordHelp from "./PasswordHelp";
 
 const DEV = process.env.NODE_ENV !== "production";
 
+/** How long a folded-away email form keeps what was typed. */
+const KEEP_TYPED_MS = 30 * 60 * 1000;
+
 /** Clerk works out its own colours from these, so the steps this file does not restyle still read well on
  *  the night scene. Everything on the first step is then set in cabin.css. */
 const APPEARANCE = {
@@ -227,6 +230,20 @@ export default function CabinStage({
     return () => clearTimeout(wait);
   }, []);
 
+  // Folding the email fields away keeps what was typed, so coming back to email costs nothing. It is kept on
+  // this page only, never stored, and wiped after half an hour away (founder, 2026-11-13).
+  useEffect(() => {
+    if (email) return;
+    const wipe = setTimeout(() => {
+      form.current?.querySelectorAll<HTMLInputElement>(".cl-form input").forEach((el) => {
+        if (!el.value) return;
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(el, "");
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    }, KEEP_TYPED_MS);
+    return () => clearTimeout(wipe);
+  }, [email]);
+
   // once the email field is unfolded, the cursor goes straight into it
   useEffect(() => {
     if (email) form.current?.querySelector<HTMLInputElement>(".cl-formFieldInput")?.focus();
@@ -255,6 +272,12 @@ export default function CabinStage({
               appearance={APPEARANCE}
             />
           )}
+          <button type="button" className="cb-back" onClick={() => setEmail(false)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M9.5 3.5L5 8l4.5 4.5" />
+            </svg>
+            Back to all sign-in options
+          </button>
           <button type="button" className="cb-email-pill" onClick={() => setEmail(true)}>
             {MAIL}
             Continue with email

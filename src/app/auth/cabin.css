@@ -26,8 +26,7 @@
   --ink: #2a1c16;
   --cream: #fff3df;
   --amber: #ffc98a;
-  /* frosted, not white (founder, 2026-11-13): a dusky warm glass with the scene blurred behind it,
-     dark enough that the Google and Microsoft marks stand out */
+  /* frosted, not white (founder, 2026-11-13): a dusky warm glass with the scene blurred behind it */
   --pill:
     linear-gradient(rgba(255, 236, 214, 0.16), rgba(255, 226, 200, 0.08)), rgba(26, 18, 40, 0.56);
   --pill-edge: rgba(255, 246, 232, 0.5);
@@ -272,17 +271,6 @@
   font-size: 16.5px;
   font-weight: 800;
 }
-/* each mark sits on its own small light disc, so its colours read on the glass */
-.ks .cb .cl-socialButtonsBlockButton :is(span, div):has(> .cl-socialButtonsProviderIcon) {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #fffaf2;
-  box-shadow: 0 2px 8px rgba(10, 6, 24, 0.35);
-}
 .ks .cb :is(.cl-socialButtonsProviderIcon, .cl-socialButtonsProviderIcon svg, .cb-email-pill svg) {
   flex: none;
   width: 22px;
@@ -305,7 +293,45 @@
   translate: 0 1px;
   transition-duration: 0.08s;
 }
-/* email folds behind its own pill while Google or Apple is offered */
+/* the way back from the email form to the three pills; shown only on the first step, with email open */
+.ks .cb .cb-form .cb-back {
+  display: none;
+  justify-self: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  background: none;
+  color: var(--cream);
+  font-size: 15px;
+  font-weight: 800;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+}
+.ks .cb .cb-back svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: translate 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .cb .cb-back:hover svg {
+  translate: -3px 0;
+}
+.ks .cb .cb-back:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+.ks
+  .cb[data-email]
+  .cb-form:has(:is(.cl-signIn-start, .cl-signUp-start) .cl-socialButtons)
+  .cb-back {
+  display: inline-flex;
+}
+/* email folds behind its own pill while Google or Microsoft is offered */
 .ks .cb .cb-form .cb-email-pill {
   display: none;
 }
