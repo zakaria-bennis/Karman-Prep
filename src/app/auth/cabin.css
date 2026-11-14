@@ -26,7 +26,10 @@
   --ink: #2a1c16;
   --cream: #fff3df;
   --amber: #ffc98a;
-  --pill: linear-gradient(#fff6e8, #ffe9cf);
+  /* frosted, not white (founder, 2026-11-13): the scene shows through, warmed a little */
+  --pill:
+    linear-gradient(rgba(255, 238, 214, 0.2), rgba(255, 226, 196, 0.13)), rgba(34, 24, 44, 0.3);
+  --pill-edge: rgba(255, 244, 228, 0.34);
   position: relative;
   min-height: 100svh;
   display: grid;
@@ -221,13 +224,15 @@
   border: 0;
   border-radius: 999px;
   background: var(--pill);
-  color: var(--ink);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  color: var(--cream);
   font-size: 16.5px;
   font-weight: 800;
   text-shadow: none;
   box-shadow:
-    inset 0 1.5px 0 #ffffff,
-    0 16px 30px -16px rgba(10, 6, 24, 0.85),
+    inset 0 0 0 1px var(--pill-edge),
+    0 16px 30px -18px rgba(10, 6, 24, 0.8),
     0 0 0 0 rgba(255, 176, 96, 0);
   transition:
     translate 0.45s cubic-bezier(0.3, 1.5, 0.5, 1),
@@ -241,7 +246,7 @@
 }
 .ks .cb .cl-socialButtonsBlockButtonText {
   flex: none;
-  color: var(--ink);
+  color: var(--cream);
   font-size: 16.5px;
   font-weight: 800;
 }
@@ -258,9 +263,9 @@
     translate: 0 -2px;
     background: var(--pill);
     box-shadow:
-      inset 0 1.5px 0 #ffffff,
+      inset 0 0 0 1px rgba(255, 244, 228, 0.6),
       0 20px 34px -16px rgba(10, 6, 24, 0.9),
-      0 0 34px 2px rgba(255, 176, 96, 0.42);
+      0 0 30px 0 rgba(255, 176, 96, 0.3);
   }
 }
 .ks .cb :is(.cl-socialButtonsBlockButton, .cb-email-pill):active {
@@ -281,6 +286,8 @@
 /* fields and the main button */
 .ks .cb .cl-form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
   gap: 11px;
 }
 .ks .cb :is(.cl-formFieldInput, .cl-otpCodeFieldInput) {
@@ -288,18 +295,60 @@
   padding: 0 22px;
   border: 0;
   border-radius: 999px;
+  width: 100%;
   background: var(--pill);
-  color: var(--ink);
-  caret-color: #c2571c;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  color: var(--cream);
+  caret-color: var(--amber);
   font-size: 16.5px;
   font-weight: 700;
-  text-align: left;
+  text-align: center;
   box-shadow:
-    inset 0 1.5px 0 #ffffff,
-    0 16px 30px -16px rgba(10, 6, 24, 0.85);
+    inset 0 0 0 1px var(--pill-edge),
+    0 16px 30px -18px rgba(10, 6, 24, 0.8);
 }
+/* the field's name is inside its pill, as the placeholder; the label stays for screen readers */
 .ks .cb .cl-formFieldInput::placeholder {
-  color: #6f574b;
+  color: var(--cream);
+  opacity: 0.92;
+  font-weight: 800;
+}
+.ks .cb .cl-formFieldInput:focus::placeholder {
+  opacity: 0.45;
+}
+.ks .cb :is(.cl-signIn-start, .cl-signUp-start) .cl-formFieldLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* a browser's own fill for a saved email must not turn the pill white */
+.ks .cb .cl-formFieldInput:is(:-webkit-autofill, :autofill) {
+  -webkit-text-fill-color: var(--cream);
+  transition: background-color 99999s;
+}
+/* every field is as wide as the pills above it, and sits as close to its neighbours as they do */
+.ks .cb .cl-form > div,
+.ks .cb .cl-form > div > div {
+  width: 100%;
+}
+.ks .cb .cl-form > div:not(:has(> .cl-formButtonPrimary)) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 11px;
+}
+.ks .cb :is(.cl-formFieldRow, .cl-formField, .cl-formField > div, .cl-formFieldInputGroup) {
+  width: 100%;
+  margin: 0;
+}
+.ks .cb .cl-formFieldInputGroup {
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  box-shadow: none;
 }
 .ks .cb .cl-otpCodeFieldInput {
   padding: 0;
@@ -307,8 +356,13 @@
   text-align: center;
 }
 .ks .cb .cl-formField {
+  position: relative;
   display: grid;
-  gap: 7px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.ks .cb .cl-formFieldLabelRow:not(:has(> :not(.cl-formFieldLabel))) {
+  display: contents;
 }
 .ks .cb .cl-formButtonPrimary {
   min-height: 54px;
@@ -348,10 +402,11 @@
 }
 .ks .cb .cl-formFieldInputShowPasswordButton {
   margin-right: 8px;
-  color: var(--ink);
-  opacity: 0.7;
+  color: var(--cream);
+  opacity: 0.85;
 }
 .ks .cb .cl-formFieldErrorText {
+  margin-top: 6px;
   color: #ffb4ab;
   font-weight: 800;
   text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
@@ -370,21 +425,104 @@
   outline-offset: 3px;
 }
 
-/* the password rule, said up front on Get started, only while the password field is on screen */
-.ks .cb .cb-tip {
-  display: none;
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
-  text-wrap: balance;
-  color: #f6e3cb;
-  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+/* the password rules on Get started (PasswordHelp.tsx): an "i" in the pill, and a list that ticks itself */
+.ks .cb .cb-pw-i {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  height: 54px;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  background: none;
+  color: var(--cream);
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 700;
 }
-.ks .cb[data-email] .cb-form:has(.cl-signUp-start) .cb-tip,
-.ks .cb .cb-form:has(.cl-signUp-start):not(:has(.cl-socialButtons)) .cb-tip {
-  display: block;
+.ks .cb .cb-pw-i::before {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  opacity: 0.8;
+  transition: scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .cb .cb-pw-i:active::before {
+  scale: 0.88;
+}
+.ks .cb .cb-pw-i:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: -8px;
+  border-radius: 999px;
+}
+.ks .cb .cb-pw {
+  list-style: none;
+  margin: 9px 0 0;
+  padding: 12px 16px;
+  display: grid;
+  gap: 8px;
+  border-radius: 22px;
+  background: var(--pill);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px var(--pill-edge);
+  color: var(--cream);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+  animation: cb-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ks .cb .cb-pw[hidden] {
+  display: none;
+}
+.ks .cb .cb-pw li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.ks .cb .cb-pw li i {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 243, 223, 0.7);
+  transition:
+    background 0.3s,
+    scale 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.ks .cb .cb-pw li[data-note] i {
+  scale: 0.3;
+  background: rgba(255, 243, 223, 0.7);
+  box-shadow: none;
+}
+.ks .cb .cb-pw li[data-ok] i {
+  scale: 1.1;
+  box-shadow: none;
+  background: #7fd9a2
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.500 10.500l3 3 6-7' fill='none' stroke='%23143322' stroke-width='2.400' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 20px;
+}
+.ks .cb .cb-pw li b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  opacity: 0.85;
+}
+.ks .cb .cb-pw li[data-ok] b {
+  color: #9fe6ba;
+  opacity: 1;
+}
+/* our list says what Clerk's own line under the password would */
+.ks
+  .cb
+  .cl-signUp-start
+  .cl-formField__password
+  :is(.cl-formFieldInfoText, .cl-formFieldSuccessText, .cl-formFieldWarningText) {
+  display: none;
 }
 
 /* ---------- the way to the other page ---------- */
@@ -427,6 +565,9 @@
     .cb
     :is(.cl-socialButtonsBlockButton, .cb-email-pill, .cl-formFieldInput, .cl-formButtonPrimary) {
     min-height: 58px;
+  }
+  .ks .cb .cb-pw-i {
+    height: 58px;
   }
 }
 
