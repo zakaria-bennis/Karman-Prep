@@ -40,6 +40,8 @@ export interface Reservation {
   stripe_customer_id: string | null;
   stripe_checkout_session_id: string | null;
   clerk_user_id: string | null;
+  parent_token: string;
+  parent_clerk_ids: string[];
 }
 
 const TABLE = "seat_reservations";
@@ -183,15 +185,16 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
 async function welcomeFamily(r: Reservation) {
   if (!process.env.RESEND_API_KEY) return;
   const link = `${appUrl()}/reserve/welcome?r=${r.claim_token}`;
+  const portal = `${appUrl()}/reserve/parent?p=${r.parent_token}`;
   const lines = [
-    `${r.student_first_name}'s seat is reserved. Thank you.`,
+    `${r.student_first_name}'s seat is reserved. Welcome to Karman.`,
     `Your reference is ${referenceOf(r.id)}.`,
     "",
-    "What happens next:",
-    `1. Open this page. It asks four quick questions, then gives you ${r.student_first_name}'s own link to set up the student account. The link works once, for one account: ${link}`,
-    `2. Before the first class, email ${r.student_first_name}'s official SAT score report (the PDF from the College Board account) to ${GUARANTEE.claimEmail}. No SAT yet? ${r.student_first_name} takes a first full-length test with us instead. Either one sets the starting score for the guarantee.`,
-    "3. Once the class is formed, we send a short form for session times and pick the hour most of the class can make.",
-    `4. When ${r.student_first_name}'s account is made, we email you the link to your own parent view.`,
+    "Get started, in this order:",
+    `1. Answer five quick questions about ${r.student_first_name}. At the end you get ${r.student_first_name}'s own link to send. ${r.student_first_name} opens it to set up the student account, and it works once, for one account: ${link}`,
+    `2. Open your parent portal. It shows attendance, homework, practice test scores and where the guarantee stands. You make your own sign-in: ${portal}`,
+    "3. Add a second parent, if you like: forward them the parent portal link above. It opens for two parent accounts, yours and theirs.",
+    `4. Before the first class, email ${r.student_first_name}'s official SAT score report (the PDF from the College Board account) to ${GUARANTEE.claimEmail}. No SAT yet? ${r.student_first_name} takes a first full-length test with us instead. Either one sets the starting score for the guarantee.`,
     "",
     r.payment_option === "installments"
       ? `You paid the ${formatPrice(MP.depositAmount)} deposit today. The ${MP.installments.count} payments of ${formatPrice(MP.installments.amount)} follow monthly from the first class.`
@@ -281,7 +284,12 @@ export async function saveRegistration(input: unknown): Promise<ReserveResult<nu
     .from(TABLE)
     .update({
       start_score: a.startScore ? Number(a.startScore) : null,
-      details: { goalScore: Number(a.goalScore), hardest: a.hardest, note: a.note },
+      details: {
+        goalScore: Number(a.goalScore),
+        hardest: a.hardest,
+        times: a.times,
+        note: a.note,
+      },
       registered_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -303,6 +311,7 @@ export async function saveRegistration(input: unknown): Promise<ReserveResult<nu
       ...describe(r),
       `Goal score: ${a.goalScore}`,
       `Hardest right now: ${a.hardest}`,
+      `Can make classes: ${a.times.join(", ")}`,
       a.note ? `Note: ${a.note}` : "",
     ].filter((l, i) => l !== "" || i === 1),
     r.parent_email
@@ -320,42 +329,91 @@ export async function findReservation(token: string): Promise<Reservation | null
   return (data as Reservation | null) ?? null;
 }
 
-/** Once the student's account holds the seat, the parent gets their own link by email: it opens the
- *  parent portal already linked to this student (parent/invites.ts; it works once and lasts 14 days).
- *  Never fails the claim: if it cannot be sent, the student can still invite a parent from the account menu. */
-async function inviteParent(r: Reservation, clerkUserId: string) {
+const userIdOf = async (clerkId: string) =>
+  (await createAdminClient().from("users").select("id").eq("clerk_id", clerkId).maybeSingle()).data
+    ?.id ?? null;
+
+/** Joins a parent account to a student account in the parent portal (the same table an invite fills). */
+async function linkParent(parentUserId: string, studentUserId: string) {
+  const { untypedAdmin } = await import("@/lib/school/db");
+  const { error } = await untypedAdmin()
+    .from("parent_student_links")
+    .upsert(
+      { parent_user_id: parentUserId, student_user_id: studentUserId },
+      { onConflict: "parent_user_id,student_user_id", ignoreDuplicates: true }
+    );
+  if (error) throw error;
+}
+
+/** Once the student's account holds the seat: the parents who already have their portal are joined to
+ *  it, and the buyer is told by email. Never fails the claim. */
+async function tellParents(r: Reservation, clerkUserId: string) {
   try {
     const studentId = await ensureUserRow(clerkUserId);
-    if (!studentId || !process.env.RESEND_API_KEY) return;
-    // loaded here, not at the top: it is server-only, and this file is also read by the webhook's tests
-    const { createInvite } = await import("@/lib/parent/invites");
-    const invite = await createInvite(studentId);
+    if (studentId)
+      for (const parent of r.parent_clerk_ids) {
+        const parentId = await userIdOf(parent);
+        if (parentId) await linkParent(parentId, studentId);
+      }
+    if (!process.env.RESEND_API_KEY) return;
     await resend.emails.send({
       from: FROM,
       to: r.parent_email,
-      subject: `${r.student_first_name}'s account is ready. Here is your parent view`,
+      subject: `${r.student_first_name}'s account is ready`,
       text: [
         `${r.student_first_name} has set up the student account, and the seat is attached to it.`,
         "",
-        `Your own parent view is here: ${appUrl()}/join/parent/${invite.token}`,
+        `Your parent portal: ${appUrl()}/reserve/parent?p=${r.parent_token}`,
         `It shows ${r.student_first_name}'s attendance, homework, practice test scores and where the guarantee stands.`,
-        "The link works once and lasts 14 days. You make your own sign-in; you never need your student's password.",
+        "To add a second parent, forward them that link. It opens for two parent accounts.",
         "",
         "Reply to this email with any question. A person answers.",
       ].join("\n"),
     });
   } catch (e) {
-    console.error("[reserve] parent invite failed", e);
+    console.error("[reserve] telling the parents failed", e);
   }
+}
+
+/** The parents' link (/reserve/parent): turns a new account into a parent account, keeps it on the seat
+ *  (two at most), and joins it to the student once the student's account exists. */
+export async function joinAsParent(
+  parentToken: string,
+  clerkUserId: string
+): Promise<"joined" | "full" | "not-a-parent" | "unpaid" | "missing"> {
+  if (!/^[0-9a-f-]{36}$/i.test(parentToken)) return "missing";
+  const db = createAdminClient();
+  const { data } = await db.from(TABLE).select("*").eq("parent_token", parentToken).maybeSingle();
+  const r = data as Reservation | null;
+  if (!r) return "missing";
+  if (r.status !== "paid" && r.status !== "placed") return "unpaid";
+  if (r.clerk_user_id === clerkUserId) return "not-a-parent";
+  const known = r.parent_clerk_ids.includes(clerkUserId);
+  if (!known && r.parent_clerk_ids.length >= 2) return "full";
+  const { becomeParent } = await import("@/lib/parent/account");
+  const parent = await becomeParent(clerkUserId);
+  if (!parent.ok) return "not-a-parent";
+  if (!known) {
+    const { error } = await db
+      .from(TABLE)
+      .update({ parent_clerk_ids: [...r.parent_clerk_ids, clerkUserId] })
+      .eq("id", r.id);
+    if (error) throw error;
+  }
+  const studentId = r.clerk_user_id ? await userIdOf(r.clerk_user_id) : null;
+  if (studentId) await linkParent(parent.userId, studentId);
+  return "joined";
 }
 
 /** Attaches a paid seat to the student's new account and opens the platform. One account per seat. */
 export async function claimReservation(
   token: string,
   clerkUserId: string
-): Promise<"claimed" | "yours" | "taken" | "unpaid" | "missing"> {
+): Promise<"claimed" | "yours" | "taken" | "unpaid" | "missing" | "parent"> {
   const r = await findReservation(token);
   if (!r) return "missing";
+  // a parent opened the student's link while signed in to the parent account: the seat stays unclaimed
+  if (r.parent_clerk_ids.includes(clerkUserId)) return "parent";
   if (r.clerk_user_id) return r.clerk_user_id === clerkUserId ? "yours" : "taken";
   if (r.status !== "paid" && r.status !== "placed") return "unpaid";
   const { data } = await createAdminClient()
@@ -371,7 +429,7 @@ export async function claimReservation(
     planId: "cohort",
     checkoutSessionId: r.stripe_checkout_session_id ?? `reservation:${r.id}`,
   });
-  await inviteParent(r, clerkUserId);
+  await tellParents(r, clerkUserId);
   await tellFounder(`Account created for ${r.student_first_name}`, [
     "The student's account now holds the paid seat. Place them in a class in Admin, Cohorts.",
     "",

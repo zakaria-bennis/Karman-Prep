@@ -30,6 +30,7 @@ export default async function RegistrationDevPage({
     <SitePage kind="lit" bare drive="steps" className={litFonts}>
       <RegistrationFlight
         token="00000000-0000-4000-8000-000000000000"
+        parentToken="00000000-0000-4000-8000-000000000001"
         name="Amira"
         filledBy={q.as === "student" ? "student" : "parent"}
         landed={q.landed === "1"}

@@ -66,7 +66,7 @@ export const RESERVE = {
    *  over the landscape (RegistrationFlight.tsx). {name} is the student's first name. */
   start: {
     hello:
-      "The seat is reserved. I'm Karman. Four quick questions and {name} is ready for day one.",
+      "The seat is reserved. I'm Karman. Five quick questions and {name} is ready for day one.",
     helloButton: "Take off",
     score: {
       say: "Where is {name} taking off from?",
@@ -94,6 +94,15 @@ export const RESERVE = {
         timing: "Running out of time",
       },
     },
+    times: {
+      say: "Pick every time that could work. We place the class from these.",
+      headline: "When can {name} make live classes?",
+      options: {
+        "weekday-evenings": "Weekday evenings",
+        saturday: "Saturdays",
+        sunday: "Sundays",
+      },
+    },
     note: {
       say: "Last one, and it's optional.",
       headline: "Anything the tutor should know?",
@@ -106,6 +115,7 @@ export const RESERVE = {
     done: "We've landed at the observatory. Welcome, {name}.",
     errors: {
       score: "Enter a score from 400 to 1600 that ends in 0.",
+      times: "Pick at least one time.",
       server: "That didn't save. Check your connection and try again.",
     },
     /** The landing: what the family does next. {name} is the student's first name. */
@@ -115,11 +125,14 @@ export const RESERVE = {
         "It opens {name}'s account with this seat attached. It works once, for one account only.",
       share: "Send {name} the link",
       copied: "Link copied",
-      here: "{name} is here with me",
       mine: "Create my account",
       mineTitle: "Your seat is waiting.",
       mineText: "Your account opens the full platform today, with this seat attached.",
       shareText: "Here's your link to set up your Karman account. It only works once:",
+      parentTitle: "Your parent portal",
+      parentText:
+        "Attendance, homework, practice test scores and where the guarantee stands. You make your own sign-in, and a second parent can be added.",
+      parentButton: "Open my parent portal",
       then: "What happens after",
       steps: [
         ["Today", "{name}'s account opens the full platform, before the first class."],
@@ -129,11 +142,7 @@ export const RESERVE = {
         ],
         [
           "Once the class is formed",
-          "We send a short form for session times and pick the hour most of the class can make.",
-        ],
-        [
-          "The parent portal",
-          "When {name}'s account is made, we email you the link to your own parent view.",
+          "We place {name} with others at the same score, at an hour from the times you picked, and send the schedule.",
         ],
       ] as [string, string][],
       help: "Questions? Email hello@karmanprep.com. A person answers.",

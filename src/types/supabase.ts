@@ -2259,9 +2259,11 @@ export type Database = {
           filled_by: string;
           id: string;
           paid_at: string | null;
+          parent_clerk_ids: string[];
           parent_email: string;
           parent_name: string | null;
           parent_phone: string | null;
+          parent_token: string;
           payment_option: string | null;
           program_id: string | null;
           registered_at: string | null;
@@ -2281,9 +2283,11 @@ export type Database = {
           filled_by: string;
           id?: string;
           paid_at?: string | null;
+          parent_clerk_ids?: string[];
           parent_email: string;
           parent_name?: string | null;
           parent_phone?: string | null;
+          parent_token?: string;
           payment_option?: string | null;
           program_id?: string | null;
           registered_at?: string | null;
@@ -2303,9 +2307,11 @@ export type Database = {
           filled_by?: string;
           id?: string;
           paid_at?: string | null;
+          parent_clerk_ids?: string[];
           parent_email?: string;
           parent_name?: string | null;
           parent_phone?: string | null;
+          parent_token?: string;
           payment_option?: string | null;
           program_id?: string | null;
           registered_at?: string | null;

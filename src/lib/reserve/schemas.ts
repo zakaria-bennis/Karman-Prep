@@ -42,6 +42,7 @@ export const seatSchema = z.object({
 });
 
 export const HARDEST = ["math", "reading", "both", "timing"] as const;
+export const CLASS_TIMES = ["weekday-evenings", "saturday", "sunday"] as const;
 
 /** Right after paying: what gets the student started. Every answer is a choice or a short line. */
 export const registrationSchema = z.object({
@@ -56,6 +57,8 @@ export const registrationSchema = z.object({
     .trim()
     .refine((v) => okScore(v, 400)),
   hardest: z.enum(HARDEST),
+  /** Every time that could work for live classes. */
+  times: z.array(z.enum(CLASS_TIMES)).min(1).max(CLASS_TIMES.length),
   /** Anything the tutor should know. Optional, one short paragraph, kept as plain text. */
   note: z
     .string()

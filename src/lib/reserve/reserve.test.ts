@@ -53,6 +53,7 @@ describe("what the form may send", () => {
       startScore: "1180",
       goalScore: "1400",
       hardest: "math",
+      times: ["saturday"],
       note: "Soccer on Tuesdays",
     };
     expect(registrationSchema.safeParse(answers).success).toBe(true);
@@ -61,6 +62,8 @@ describe("what the form may send", () => {
       { startScore: "1185" },
       { goalScore: "" },
       { hardest: "everything" },
+      { times: [] },
+      { times: ["midnight"] },
       { note: "x".repeat(500) },
     ])
       expect(registrationSchema.safeParse({ ...answers, ...bad }).success).toBe(false);

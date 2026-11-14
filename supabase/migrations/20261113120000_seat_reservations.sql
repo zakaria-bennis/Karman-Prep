@@ -33,7 +33,11 @@ create table if not exists public.seat_reservations (
   registered_at timestamptz,
   -- the student's Clerk id, once the account is created and linked
   clerk_user_id text,
-  claimed_at timestamptz
+  claimed_at timestamptz,
+  -- the parents' own link, to the parent portal: a second secret, so the student's link never opens a
+  -- parent account and the parents' link never takes the seat. It opens for two parent accounts.
+  parent_token uuid not null default gen_random_uuid() unique,
+  parent_clerk_ids text[] not null default '{}'
 );
 
 alter table public.seat_reservations enable row level security;

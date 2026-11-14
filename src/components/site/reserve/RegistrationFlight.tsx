@@ -14,27 +14,31 @@ import { saveStart } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { okScore } from "@/lib/marketing/lead-rules";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
-import { HARDEST } from "@/lib/reserve/schemas";
+import { CLASS_TIMES, HARDEST } from "@/lib/reserve/schemas";
 import { Observatory } from "./Observatory";
 
 const W = RESERVE.start;
-const STEPS = ["hello", "score", "goal", "gap", "hardest", "note", "done"] as const;
+const STEPS = ["hello", "score", "goal", "gap", "hardest", "times", "note", "done"] as const;
 type Step = (typeof STEPS)[number];
 type Hardest = (typeof HARDEST)[number];
+type Time = (typeof CLASS_TIMES)[number];
 const digits = (v: string) => v.replace(/\D/g, "").slice(0, 4);
 /** Where each step is along the landscape's route: from above the clouds (0) down into the valley. */
-const LEG = 0.075;
+const LEG = 0.065;
 /** How far the view may drift on by itself while a question is on screen. */
 const DRIFT = 0.04;
 
 export default function RegistrationFlight({
   token,
+  parentToken,
   name,
   filledBy,
   claimed = false,
   landed = false,
 }: {
   token: string;
+  /** Opens the parent portal for this seat (the parents' own link). */
+  parentToken: string;
   /** The student's first name. */
   name: string;
   /** Who filled in the reservation: the landing offers a link to send, or the account button itself. */
@@ -50,6 +54,7 @@ export default function RegistrationFlight({
   const [noScore, setNoScore] = useState(false);
   const [goal, setGoal] = useState("");
   const [hardest, setHardest] = useState<Hardest | null>(null);
+  const [times, setTimes] = useState<Time[]>([]);
   const [note, setNote] = useState("");
   const [bad, setBad] = useState("");
   const [copied, setCopied] = useState(false);
@@ -99,6 +104,7 @@ export default function RegistrationFlight({
     if (at === "score" && !noScore && !okScore(score, 400)) return fail(W.errors.score);
     if (at === "goal" && !okScore(goal, 400)) return fail(W.errors.score);
     if (at === "hardest" && !hardest) return;
+    if (at === "times" && !times.length) return setBad(W.errors.times);
     if (at !== "note") return go(step + 1);
     start(async () => {
       const res = await saveStart({
@@ -106,6 +112,7 @@ export default function RegistrationFlight({
         startScore: noScore ? "" : score,
         goalScore: goal,
         hardest,
+        times,
         note,
       });
       if (!res.ok) return setBad(W.errors.server);
@@ -126,6 +133,7 @@ export default function RegistrationFlight({
     goal: W.goal.say,
     gap: gap(),
     hardest: W.hardest.say,
+    times: W.times.say,
     note: W.note.say,
     done: say(W.done),
   };
@@ -152,7 +160,7 @@ export default function RegistrationFlight({
 
   const number = (value: string, set: (v: string) => void, label: string, off = false) => (
     <label
-      className="rs-pill"
+      className="rs-pill ob-num"
       data-bad={bad ? true : undefined}
       data-filled={value ? true : undefined}
     >
@@ -216,6 +224,26 @@ export default function RegistrationFlight({
         </div>
       </>
     ),
+    times: (
+      <>
+        <h1>{say(W.times.headline)}</h1>
+        <div className="ob-opts" role="group" aria-label={say(W.times.headline)}>
+          {CLASS_TIMES.map((k) => (
+            <button
+              type="button"
+              aria-pressed={times.includes(k)}
+              key={k}
+              onClick={() => {
+                setTimes((t) => (t.includes(k) ? t.filter((x) => x !== k) : [...t, k]));
+                setBad("");
+              }}
+            >
+              {W.times.options[k]}
+            </button>
+          ))}
+        </div>
+      </>
+    ),
     note: (
       <>
         <h1>{W.note.headline}</h1>
@@ -256,28 +284,38 @@ export default function RegistrationFlight({
           <>
             <h2>{say(W.land.studentTitle)}</h2>
             <p>{say(W.land.studentText)}</p>
-            <div className="ob-link-go">
-              <button type="button" className="btn" onClick={send} suppressHydrationWarning>
-                <span className="lb">{copied ? W.land.copied : say(W.land.share)}</span>
-              </button>
-              <a className="ob-quiet" href={claim}>
-                {say(W.land.here)}
-              </a>
-            </div>
+            <button type="button" className="btn" onClick={send} suppressHydrationWarning>
+              <span className="lb">{copied ? W.land.copied : say(W.land.share)}</span>
+            </button>
           </>
         )}
       </section>
+      {filledBy === "parent" ? (
+        <section className="ob-card ob-link">
+          <h2>{W.land.parentTitle}</h2>
+          <p>{W.land.parentText}</p>
+          <a
+            className="btn"
+            href={`/reserve/parent?p=${encodeURIComponent(parentToken)}`}
+            suppressHydrationWarning
+          >
+            <span className="lb">{W.land.parentButton}</span>
+          </a>
+        </section>
+      ) : null}
       <section className="ob-card ob-after">
         <h2>{W.land.then}</h2>
         <ol>
-          {W.land.steps
-            .filter(([when]) => filledBy === "parent" || when !== "The parent portal")
-            .map(([when, what]) => (
-              <li key={when}>
-                <b>{when}</b>
-                <span>{filledBy === "student" ? what.replace("{name}'s", "Your") : say(what)}</span>
-              </li>
-            ))}
+          {W.land.steps.map(([when, what]) => (
+            <li key={when}>
+              <b>{when}</b>
+              <span>
+                {filledBy === "student"
+                  ? what.replace("{name}'s", "Your").replace("{name}", "you")
+                  : say(what)}
+              </span>
+            </li>
+          ))}
         </ol>
         <p className="rs-why">{W.land.help}</p>
       </section>

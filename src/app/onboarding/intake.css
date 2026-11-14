@@ -310,17 +310,18 @@
   background: none;
 }
 
-/* the flight's number fields: taller than the site's pills, so a typed score never touches its label */
-.ks .ob .rs-pill {
-  min-height: 76px;
+/* the flight's score fields (founder, 2026-11-13): the label is a placeholder. It stands in the field
+   until a score is typed, then gives way to it, so the two are never seen together */
+.ks .ob .ob-num:is([data-filled], :focus-within) span {
+  top: 50%;
+  scale: 1;
 }
-.ks .ob .rs-pill input {
-  height: 76px;
-  padding-top: 28px;
-  font-size: 21px;
+.ks .ob .ob-num[data-filled] span {
+  opacity: 0;
 }
-.ks .ob .rs-pill:is([data-filled], :focus-within) span {
-  top: 19px;
+.ks .ob .ob-num input {
+  padding-top: 0;
+  font-size: 22px;
 }
 
 /* the landing: the observatory rises into view, and the two cards sit above it */
@@ -492,23 +493,6 @@
   cursor: pointer;
   font: inherit;
   font-weight: 800;
-}
-.ks .ob-link-go {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 22px;
-}
-.ks .ob-quiet {
-  margin-top: 16px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  color: inherit;
-  font-size: 16px;
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 .ks .ob-after ol {
   list-style: none;

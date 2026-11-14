@@ -27,6 +27,7 @@ export default async function ReserveWelcomePage({
       <SitePage kind="lit" bare drive="steps" className={litFonts}>
         <RegistrationFlight
           token={token}
+          parentToken={seat.parent_token}
           name={seat.student_first_name ?? "your student"}
           filledBy={seat.filled_by}
           claimed={!!seat.clerk_user_id}
