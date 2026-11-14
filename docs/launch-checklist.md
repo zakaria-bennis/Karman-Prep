@@ -72,3 +72,13 @@ What the Next.js port of the approved mock covers. Site-wide items above stay op
 - Light and dark on every marketing page, with a switch in the header and the phone menu, remembered per visitor. Dark is the default (founder, 2026-10-26), light is one tap away. AA contrast in both modes still needs the calculated check.
 - Every link, redirect and form on the 11 pages clicked through in a browser at 1440 px and 375 px, light and dark; no sideways scroll at 375 px; one H1, a canonical tag, a title and a description per page; JSON-LD for the organisation, the program (Course), the FAQ and the free test (Event).
 - Not done here: a Content Security Policy header, server-side caching (the root layout reads cookies, so every page renders per request), a Cookie Policy page, Lighthouse runs.
+
+## Payments and public contact details (founder, 2026-11-14)
+
+- [ ] Stripe live side: create the seven live prices (the lookup keys in `src/lib/integrations/stripe/prices.ts`), add the live webhook, and put the live keys in the Worker. Live had no products and no webhook on 2026-11-14.
+- [ ] Affirm is "Ineligible" on the live account, and the code asks for it by name (`ONE_PAYMENT_METHODS`). Fix before the first live payment.
+- [ ] Register every address that shows the payment page under Stripe's payment method domains, in live and in test mode (test mode keeps its own list).
+- [ ] After launch: a PO box or virtual address to replace the home address as Stripe's public support address.
+- [ ] After launch: a second phone number that rings the founder's phone, to replace his personal mobile as the public support number.
+- [ ] A logo and an icon, then upload both to Stripe's branding (empty on 2026-11-14).
+- [ ] Stripe phone verification by text message (founder only).

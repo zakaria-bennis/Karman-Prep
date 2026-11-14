@@ -10,7 +10,15 @@
 import { useEffect, useRef } from "react";
 import { motionPaused } from "./live/motion";
 
-export default function SiteFlight({ route = [0, 1] }: { route?: [number, number] }) {
+export default function SiteFlight({
+  route = [0, 1],
+  drive = "scroll",
+}: {
+  route?: [number, number];
+  /** "steps": the page flies the camera itself, by sending `karman:fly` events with a number from 0 to 1
+   *  (the guided intake moves forward with each answer). */
+  drive?: "scroll" | "steps";
+}) {
   const [from, to] = route;
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -38,8 +46,10 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
       try {
         const { Flight } = await import("@/lib/flight/engine");
         if (disposed) return;
+        let flown = 0;
         const flight = new Flight(el, {
           still,
+          ...(drive === "steps" ? { progress: () => flown } : {}),
           night: () => ks.dataset.mode === "dark",
           route: [from, to],
           onReady: () => stage.setAttribute("data-painted", ""),
@@ -55,6 +65,15 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
         };
         open();
         document.addEventListener("karman:intro", open);
+        const fly = (e: Event) => {
+          flown = Number((e as CustomEvent).detail) || 0;
+          flight.wake();
+        };
+        if (drive === "steps") {
+          document.addEventListener("karman:fly", fly);
+          // the page may have said where it is before the landscape was ready
+          flown = Number(ks.dataset.flown) || 0;
+        }
         const onChange = () => {
           mark();
           flight.wake();
@@ -67,6 +86,7 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
           mode.disconnect();
           document.removeEventListener("karman:motion", onChange);
           document.removeEventListener("karman:intro", open);
+          document.removeEventListener("karman:fly", fly);
           reduce.removeEventListener("change", onChange);
           flight.dispose();
         };
@@ -78,7 +98,7 @@ export default function SiteFlight({ route = [0, 1] }: { route?: [number, number
       disposed = true;
       dispose?.();
     };
-  }, [from, to]);
+  }, [from, to, drive]);
 
   return (
     <div ref={host} className="stage flight" aria-hidden="true">

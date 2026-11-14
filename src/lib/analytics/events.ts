@@ -50,7 +50,7 @@ export const CLIENT_EVENTS = {
    *  its check; `leave` the page was left with the form unfinished; `choice` an option was picked. */
   form_step: z
     .object({
-      form: z.enum(["reserve", "call"]),
+      form: z.enum(["reserve", "call", "onboarding"]),
       step: slug,
       kind: z.enum(["view", "next", "back", "error", "leave", "choice"]),
       field: slug.optional(),

@@ -3,7 +3,7 @@
 // under the math of a row with undefined names (R-6; owner, 2026-10-22, Desmos's own), the DEG/RAD
 // badge, no fraction toggle on a regression parameter, the point row's Label line (EL-15), the
 // Edit list mode rows (EL-44, EL-45), the hover tooltips (PM-29) and the list resizer (EL-4).
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { clampListWidth, ListResizer } from "../layout/ListResizer";
@@ -99,23 +99,44 @@ it("R-11 the badge is a button: a click or Enter switches the angle mode for eve
     rows: ["\\sin(30)", "y=\\tan(x)"],
   });
   const user = userEvent.setup();
-  const badge = within(rowItem("1")).getByRole("button", {
-    name: "Angle mode: radians. Switch to degrees.",
-  });
-  await user.click(badge);
-  expect(kit.engine.settings.angleMode).toBe("degrees");
-  expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG");
+  // When every test file runs at once the row can be drawn again between finding the badge and pressing
+  // it, and a press on the old one is lost. So the badge is found afresh and pressed until the setting
+  // has changed (one press, unless the first was lost).
+  await waitFor(
+    async () => {
+      if (kit.engine.settings.angleMode !== "degrees")
+        await user.click(
+          within(rowItem("1")).getByRole("button", {
+            name: "Angle mode: radians. Switch to degrees.",
+          })
+        );
+      expect(kit.engine.settings.angleMode).toBe("degrees");
+    },
+    { timeout: 8000 }
+  );
+  await waitFor(() =>
+    expect(rowItem("2").querySelector(".kc-angle-badge")).toHaveTextContent("DEG")
+  );
   expect(kit.announcer.texts).toContain("Angle set to degrees.");
-  const again = within(rowItem("2")).getByRole("button", { name: /Switch to radians/ });
-  again.focus();
-  await user.keyboard("{Enter}");
-  expect(kit.engine.settings.angleMode).toBe("radians");
+  await waitFor(
+    async () => {
+      if (kit.engine.settings.angleMode !== "radians") {
+        within(rowItem("2"))
+          .getByRole("button", { name: /Switch to radians/ })
+          .focus();
+        await user.keyboard("{Enter}");
+      }
+      expect(kit.engine.settings.angleMode).toBe("radians");
+    },
+    { timeout: 8000 }
+  );
   act(() => kit.engine.updateSettings({ complex: true }));
   const off = within(rowItem("1")).getByRole("button", { name: "Angle mode: radians." });
   expect(off).toHaveAttribute("aria-disabled", "true");
   await user.click(off);
   expect(kit.engine.settings.angleMode).toBe("radians");
-});
+  // several real clicks and key presses: slow when every test file runs at once, so it gets more time
+}, 20_000);
 
 it("R-5 a regression parameter row offers no decimal/fraction toggle", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {

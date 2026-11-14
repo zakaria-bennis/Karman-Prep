@@ -3,24 +3,27 @@
 // Reserve a seat, built to docs/forms/form-rules.md (founder, 2026-11-13). Five short steps:
 //   1. who is reserving (one tap, and it words the rest);
 //   2. the email, alone: on Continue the lead is saved, so a family who stops here can be followed up;
-//   3. the names, and an optional phone that says why it is asked;
-//   4. the SAT date, and the score with its reason (it can be left empty);
+//   3. the names and a mobile phone;
+//   4. the SAT date the cohort ends on;
 //   5. how to pay, with the total and the guarantee on screen, then Stripe's own payment page.
+// Nothing else is asked before payment: a buyer who has decided should reach the payment page fast, and the
+// questions that get the student started come right after it (RegistrationFlight.tsx).
 // The price is in view from the first step. Each field keeps its name while it is typed in, is checked when
 // it is left, and says how to fix what is wrong. Buttons are never greyed out: a press shows every gap and
 // puts the cursor in the first. Answers survive Back, a refresh and a return from the payment page.
 // Steps are measured with form_step events (never what was typed). Words: reserve-copy.ts. Styles: reserve.css.
+import { ParentPicture, StudentPicture } from "./RolePictures";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { payForSeat, saveEmail, saveNames } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
-import { cleanName, okEmail, okName, okPhone, okScore } from "@/lib/marketing/lead-rules";
+import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import { RESERVE as W } from "@/lib/marketing/reserve-copy";
-import type { OpenProgram } from "@/lib/reserve/programs";
+import { UNDECIDED, type OpenProgram } from "@/lib/reserve/programs";
 
 type Who = "parent" | "student";
-type Field = "email" | "name" | "student" | "phone" | "score";
+type Field = "email" | "name" | "student" | "phone";
 type Pay = "full" | "installments";
-const STEPS = ["who", "email", "names", "score", "pay"] as const;
+const STEPS = ["who", "email", "names", "date", "pay"] as const;
 const KEEP = "karman:reserve";
 
 /** A phone number as it is typed: (512) 555-0142, or + and digits for a number abroad. */
@@ -35,26 +38,23 @@ function formatPhone(v: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-/** Whether a field's answer will do. The phone and the score may be left empty. */
+/** Whether a field's answer will do. */
 const OK: Record<Field, (v: string) => boolean> = {
   email: okEmail,
   name: okName,
   student: okName,
-  phone: (v) => v.trim() === "" || okPhone(v),
-  score: (v) => v.trim() === "" || okScore(v, 400),
+  phone: okPhone,
 };
 const WRONG: Record<Field, string> = {
   email: W.errors.email,
   name: W.errors.name,
   student: W.errors.name,
   phone: W.errors.phone,
-  score: W.errors.score,
 };
 const TIDY: Partial<Record<Field, (v: string) => string>> = {
   name: cleanName,
   student: cleanName,
   phone: formatPhone,
-  score: (v) => v.replace(/\D/g, "").slice(0, 4),
 };
 const INPUT: Record<Field, Record<string, string | number | boolean>> = {
   email: {
@@ -83,7 +83,6 @@ const INPUT: Record<Field, Record<string, string | number | boolean>> = {
     maxLength: 40,
   },
   phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 17 },
-  score: { type: "text", inputMode: "numeric", autoComplete: "off", maxLength: 4 },
 };
 
 interface Saved {
@@ -104,7 +103,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     name: "",
     student: "",
     phone: "",
-    score: "",
   });
   const [bad, setBad] = useState<Partial<Record<Field | "form", string>>>({});
   const [id, setId] = useState<string | null>(null);
@@ -130,7 +128,8 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         setWho(kept.who);
         setV(kept.v);
         setId(kept.id);
-        if (programs.some((p) => p.id === kept.program)) setProgram(kept.program);
+        if (kept.program === UNDECIDED || programs.some((p) => p.id === kept.program))
+          setProgram(kept.program);
         setPay(kept.pay);
         setStep(Math.min(kept.step, kept.id ? STEPS.length - 1 : 1));
       }
@@ -230,7 +229,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
       });
     },
     names: () => {
-      if (!check(["name", "student", "phone"], ["name", "student"]) || !id) return;
+      if (!check(["name", "student", "phone"], ["name", "student", "phone"]) || !id) return;
       start(async () => {
         const res = await saveNames({
           reservationId: id,
@@ -242,8 +241,8 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         go(3);
       });
     },
-    score: () => {
-      if (programs.length && check(["score"], [])) go(4);
+    date: () => {
+      if (program) go(4);
     },
     pay: () => {
       if (!id) return;
@@ -251,7 +250,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         track("form_step", { form: "reserve", step: "pay", kind: "choice", value: pay });
         const res = await payForSeat({
           reservationId: id,
-          startScore: v.score,
           programId: program,
           payment: pay,
         });
@@ -261,7 +259,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     },
   };
 
-  const field = (k: Field, label: string, opts: { optional?: boolean; note?: string } = {}) => (
+  const field = (k: Field, label: string, opts: { optional?: boolean } = {}) => (
     <div className="rs-field" key={k}>
       <label
         className="rs-pill"
@@ -277,10 +275,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
           name={k}
           value={v[k]}
           aria-invalid={bad[k] ? true : undefined}
-          aria-describedby={
-            [bad[k] ? `rs-${k}-msg` : "", opts.note ? `rs-${k}-note` : ""].join(" ").trim() ||
-            undefined
-          }
+          aria-describedby={bad[k] ? `rs-${k}-msg` : undefined}
           onChange={(e) => set(k, e.target.value)}
           onBlur={() => leave(k)}
           {...INPUT[k]}
@@ -289,11 +284,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
       {bad[k] ? (
         <p className="rs-msg" id={`rs-${k}-msg`} role="alert">
           {bad[k]}
-        </p>
-      ) : null}
-      {opts.note ? (
-        <p className="rs-why" id={`rs-${k}-note`}>
-          {opts.note}
         </p>
       ) : null}
     </div>
@@ -315,6 +305,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
                 go(1);
               }}
             >
+              {k === "parent" ? <ParentPicture /> : <StudentPicture />}
               {W.who[k]}
             </button>
           ))}
@@ -333,7 +324,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
           autoComplete="off"
           aria-hidden="true"
         />
-        <p className="rs-note">{W.email.note}</p>
       </>
     ),
     names: (
@@ -341,34 +331,35 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         <h1 tabIndex={-1}>{W.names[say].headline}</h1>
         {field("name", W.names[say].name)}
         {field("student", W.names[say].student)}
-        {field("phone", W.names.phone, { optional: true, note: W.names.phoneNote })}
+        {field("phone", W.names.phone)}
       </>
     ),
-    score: (
+    date: (
       <>
         <h1 tabIndex={-1}>{W.score.headline}</h1>
-        <fieldset className="rs-dates">
+        <fieldset className="rs-dates" data-n={programs.length}>
           <legend className="rs-trap">{W.score.headline}</legend>
-          {programs.length ? (
-            programs.map((p) => (
-              <label key={p.id} data-on={p.id === program || undefined}>
-                <input
-                  type="radio"
-                  name="program"
-                  checked={p.id === program}
-                  onChange={() => setProgram(p.id)}
-                />
-                <b>{p.sat}</b>
-                <span>
-                  {W.score.starts} {p.starts}
-                </span>
-              </label>
-            ))
-          ) : (
-            <p className="rs-note">{W.score.closed}</p>
-          )}
+          {programs.map((p) => (
+            <label key={p.id} data-on={p.id === program || undefined}>
+              <input
+                type="radio"
+                name="program"
+                checked={p.id === program}
+                onChange={() => setProgram(p.id)}
+              />
+              <b>{p.month}</b>
+            </label>
+          ))}
+          <label className="rs-wide" data-on={program === UNDECIDED || undefined}>
+            <input
+              type="radio"
+              name="program"
+              checked={program === UNDECIDED}
+              onChange={() => setProgram(UNDECIDED)}
+            />
+            <b>{W.score.notSure}</b>
+          </label>
         </fieldset>
-        {field("score", W.score.field, { optional: true, note: W.score.why })}
       </>
     ),
     pay: (
@@ -428,14 +419,13 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
             <button
               type="submit"
               className="btn"
-              aria-disabled={busy || (name === "score" && !programs.length) || undefined}
+              aria-disabled={busy || undefined}
               data-busy={busy || undefined}
             >
               <span className="lb">{last ? (busy ? W.pay.sending : W.pay.button) : W.next}</span>
             </button>
           </div>
         ) : null}
-        {last ? <p className="rs-safe">{W.pay.safe}</p> : null}
       </form>
       {bad.form ? (
         <p className="rs-msg rs-form-msg" role="alert">

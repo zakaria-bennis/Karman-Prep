@@ -8,23 +8,54 @@ import { Arrow } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
 import { list, pairs, section, SITE } from "@/lib/marketing/site-copy";
 import HeroLab from "@/components/site/hero/HeroLab";
-import CallForm from "./CallForm";
+import CallForm, { type CallWords } from "./CallForm";
 import { PRIVATE_FACTS as F } from "./facts";
 import PlanPicker from "./PlanPicker";
 import SessionDemo from "./SessionDemo";
 
-export default function PrivateSections({ today }: { today: string }) {
-  const top = section(31);
+/** The day-and-time picker's words. */
+function slotWords() {
   const book = section(32);
-  const packs = section(33);
-  const close = section(36);
-  const slot = {
+  return {
     pickDay: book["pick day"],
     pickTime: book["pick time"],
     earlier: book.earlier,
     later: book.later,
     none: book.none,
   };
+}
+
+/** The call form's words, shared with the booking page (/call). */
+export function callWords(): CallWords {
+  const close = section(36);
+  return {
+    ...slotWords(),
+    first: close["form first"],
+    last: close["form last"],
+    phone: close["form phone"],
+    email: close["form email"],
+    button: close["form button"],
+    sending: SITE["form sending"],
+    doneTitle: close["form done title"],
+    doneText: close["form done text"],
+    errors: {
+      first: SITE["form error your name"],
+      last: SITE["form error your name"],
+      phone: SITE["form error phone"],
+      email: SITE["form error email"],
+      slot: SITE["form error slot"],
+      server: SITE["form error server"],
+      network: SITE["form error network"],
+    },
+  };
+}
+
+export default function PrivateSections({ today }: { today: string }) {
+  const top = section(31);
+  const book = section(32);
+  const packs = section(33);
+  const close = section(36);
+  const slot = slotWords();
   return (
     <>
       <HeroLab
@@ -86,28 +117,7 @@ export default function PrivateSections({ today }: { today: string }) {
         <div className="mist" aria-hidden="true" />
         <div className="pg-in rv">
           <h2 id="call-h">{close.headline}</h2>
-          <CallForm
-            today={today}
-            w={{
-              ...slot,
-              name: close["form name"],
-              phoneWhy: close["form phone why"],
-              phone: close["form phone"],
-              email: close["form email"],
-              button: close["form button"],
-              sending: SITE["form sending"],
-              doneTitle: close["form done title"],
-              doneText: close["form done text"],
-              errors: {
-                name: SITE["form error your name"],
-                phone: SITE["form error phone"],
-                email: SITE["form error email"],
-                slot: SITE["form error slot"],
-                server: SITE["form error server"],
-                network: SITE["form error network"],
-              },
-            }}
-          />
+          <CallForm today={today} w={callWords()} />
         </div>
       </section>
     </>

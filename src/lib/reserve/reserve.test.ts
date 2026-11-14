@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { MARCH_PROGRAM, NEXT_PROGRAMS } from "@/lib/marketing/offer";
 import { openPrograms } from "./programs";
-import { detailsSchema, emailSchema, seatSchema } from "./schemas";
+import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 describe("the cohorts a family can reserve", () => {
-  it("offers every cohort until a week before its first class", () => {
+  it("offers the cohorts for the next three SATs, each until a week before its first class", () => {
     expect(openPrograms("2026-11-13").map((p) => p.id)).toEqual([
       MARCH_PROGRAM.id,
       ...NEXT_PROGRAMS.map((p) => p.id),
     ]);
+    expect(openPrograms("2026-11-13").map((p) => p.month)).toEqual(["March", "May", "June"]);
     // registration for the first cohort closes one week before it starts
     expect(openPrograms("2026-12-28").map((p) => p.id)).toContain(MARCH_PROGRAM.id);
     expect(openPrograms("2026-12-29").map((p) => p.id)).not.toContain(MARCH_PROGRAM.id);
@@ -26,10 +27,15 @@ describe("what the form may send", () => {
         false
       );
   });
-  it("takes one full name, a first name and an optional phone", () => {
-    const d = { reservationId: id, parentName: "Mari O'Neil", studentFirst: "Amira", phone: "" };
+  it("takes one full name, a first name and a mobile phone", () => {
+    const d = {
+      reservationId: id,
+      parentName: "Mari O'Neil",
+      studentFirst: "Amira",
+      phone: "(512) 555-0142",
+    };
     expect(detailsSchema.safeParse(d).success).toBe(true);
-    expect(detailsSchema.safeParse({ ...d, phone: "(512) 555-0142" }).success).toBe(true);
+    expect(detailsSchema.safeParse({ ...d, phone: "" }).success).toBe(false);
     for (const bad of [
       { parentName: "Mari4" },
       { studentFirst: "<script>" },
@@ -39,16 +45,31 @@ describe("what the form may send", () => {
     ])
       expect(detailsSchema.safeParse({ ...d, ...bad }).success).toBe(false);
   });
-  it("takes a real SAT score or none, and only the two ways of paying", () => {
-    const seat = {
-      reservationId: id,
-      startScore: "1180",
-      programId: MARCH_PROGRAM.id,
-      payment: "full",
-    };
+  it("asks for nothing but the cohort and the way of paying before payment", () => {
+    const seat = { reservationId: id, programId: MARCH_PROGRAM.id, payment: "full" };
     expect(seatSchema.safeParse(seat).success).toBe(true);
-    expect(seatSchema.safeParse({ ...seat, startScore: "" }).success).toBe(true);
-    for (const bad of [{ startScore: "1185" }, { startScore: "2000" }, { payment: "free" }])
-      expect(seatSchema.safeParse({ ...seat, ...bad }).success).toBe(false);
+    expect(seatSchema.safeParse({ ...seat, payment: "free" }).success).toBe(false);
+    expect(Object.keys(seatSchema.shape)).toEqual(["reservationId", "programId", "payment"]);
+  });
+  it("takes the registration answers after payment, and refuses what they cannot be", () => {
+    const answers = {
+      token: id,
+      startScore: "1180",
+      goalScore: "1400",
+      hardest: "math",
+      times: ["saturday"],
+      note: "Soccer on Tuesdays",
+    };
+    expect(registrationSchema.safeParse(answers).success).toBe(true);
+    expect(registrationSchema.safeParse({ ...answers, startScore: "" }).success).toBe(true);
+    for (const bad of [
+      { startScore: "1185" },
+      { goalScore: "" },
+      { hardest: "everything" },
+      { times: [] },
+      { times: ["midnight"] },
+      { note: "x".repeat(500) },
+    ])
+      expect(registrationSchema.safeParse({ ...answers, ...bad }).success).toBe(false);
   });
 });

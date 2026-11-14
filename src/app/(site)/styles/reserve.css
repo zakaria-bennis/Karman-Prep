@@ -43,7 +43,7 @@
 
 /* the two big choices on the first step */
 .ks .rs-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.ks .rs-pick button { min-height: 96px; padding: 0 18px; border-radius: 26px; background: var(--glass); color: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); transition: translate .4s var(--spring), box-shadow .25s; }
+.ks .rs-pick button { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 240px; padding: 14px 12px 18px; border-radius: 26px; background: var(--glass); color: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); transition: translate .4s var(--spring), box-shadow .25s; }
 .ks .rs-pick button:active { translate: 0 2px; }
 .ks .rs-pick button[data-on] { box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2.5px var(--a); }
 .ks .rs-pick button:focus-visible, .ks .rs-back:focus-visible { outline: 3px solid var(--a); outline-offset: 3px; }
@@ -57,38 +57,61 @@
 .ks :is(.rs-dates, .rs-pay) input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .ks :is(.rs-dates, .rs-pay) label:has(input:focus-visible) { outline: 3px solid var(--a); outline-offset: 3px; }
 .ks .rs-dates b { font-size: 18px; font-weight: 800; }
-.ks .rs-dates span { font-size: 14.5px; font-weight: 700; opacity: .85; text-align: right; }
 .ks .rs-pay span { font-size: 17.5px; font-weight: 800; }
 .ks.lit .rs-pay .num { font-size: 22px; color: var(--a); }
 .ks .rs-pay small { grid-column: 1 / -1; font-size: 14.5px; font-weight: 600; line-height: 1.4; opacity: .9; }
 
 .ks .rs-nav { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 4px; }
 .ks .rs-back { min-height: 48px; padding: 0 16px; border-radius: 999px; background: none; color: inherit; font-size: 16px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
-.ks .rs .btn { border: 0; cursor: pointer; font: inherit; }
-.ks .rs .btn[data-busy] { opacity: .75; cursor: progress; }
-.ks .rs .btn[data-busy] .lb::after { content: ""; display: inline-block; width: 16px; height: 16px; margin-left: 10px; vertical-align: -2px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: rs-spin .7s linear infinite; }
-@keyframes rs-spin { to { rotate: 360deg; } }
+.ks .rs .btn { border: 0; cursor: pointer; font: inherit; font-weight: 800; }
 .ks .rs-safe { margin: 0; font-size: 13.5px; font-weight: 700; opacity: .8; text-align: center; }
 
 /* after paying */
 .ks .rs-done { justify-items: start; overflow: hidden; }
-.ks .rs-next { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.ks .rs-next li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
-.ks.lit .rs-next .num { font-size: 30px; line-height: 1; color: var(--a); }
-.ks .rs-next h2 { margin: 0; font-family: var(--font-hanken), system-ui, sans-serif; font-size: 18px; font-weight: 800; line-height: 1.25; }
-.ks .rs-next p { margin: 2px 0 0; font-size: 15.5px; font-weight: 600; line-height: 1.42; }
 /* confetti, once, when the seat is paid: small paper pieces falling through the card */
 .ks .rs-confetti { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle, #f07a2e 0 3px, transparent 3.5px), radial-gradient(circle, #2449b8 0 3px, transparent 3.5px), radial-gradient(circle, #23a065 0 2.5px, transparent 3px), radial-gradient(circle, #e7b93a 0 3px, transparent 3.5px), radial-gradient(circle, #7d4fd6 0 2.5px, transparent 3px); background-size: 97px 131px, 113px 149px, 79px 167px, 127px 113px, 89px 139px; background-position: 12px -40px, 60px -90px, 30px -20px, 90px -70px, 5px -110px; opacity: 0; animation: rs-confetti 2.6s cubic-bezier(.2, .6, .4, 1) .2s both; }
 @keyframes rs-confetti { 0% { opacity: 0; background-position: 12px -140px, 60px -190px, 30px -120px, 90px -170px, 5px -210px; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; background-position: 30px 240px, 40px 280px, 44px 300px, 70px 220px, 22px 260px; } }
 
 @media (max-width: 520px) {
-  .ks .rs-pick { grid-template-columns: minmax(0, 1fr); }
-  .ks .rs-pick button { min-height: 72px; }
-  .ks .rs-dates label { grid-template-columns: minmax(0, 1fr); }
-  .ks .rs-dates span { text-align: left; }
   .ks .rs-nav .btn { flex: 1; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .ks .rs * { animation: none !important; transition: none !important; } .ks .rs-confetti { display: none; } }
-.ks .rs-ref { margin: 0; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--a) 12%, transparent); font-size: 15px; font-weight: 800; }
-.ks.lit .rs-ref .num { font-size: 17px; letter-spacing: .04em; }
 .ks .rs-done .rs-why { margin-left: 0; }
+/* the two drawings on the first step (RolePictures.tsx): each moves a little when its card is hovered or picked */
+.ks .rs-pic { width: min(100%, 210px); height: auto; overflow: visible; }
+.ks .rs-pic :is(.rs-pic-child, .rs-pic-wave, .rs-pic-tassel, .rs-pic-lock, .rs-pic-nuzzle, .rs-pic-glint) { transform-box: fill-box; transition: transform .6s var(--spring); }
+.ks .rs-pic-child { transform-origin: 50% 100%; }
+.ks .rs-pic-nuzzle { transform-origin: 60% 100%; }
+.ks .rs-pic-wave { transform-origin: 0% 100%; }
+.ks .rs-pic-tassel { transform-origin: 0% 0%; animation: rs-sway 3.6s ease-in-out infinite; }
+.ks .rs-pic-lock { transform-origin: 0% 0%; animation: rs-sway 4.4s ease-in-out infinite reverse; }
+.ks .rs-pic-glint { transform-origin: 50% 50%; animation: rs-glint 2.8s ease-in-out infinite; }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-child { transform: rotate(4deg) translateX(2px); }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-nuzzle { transform: rotate(-4deg); }
+.ks .rs-pick button:is(:hover, [data-on]) .rs-pic-wave { animation: rs-wave 1.2s ease-in-out infinite; }
+@keyframes rs-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg); } }
+@keyframes rs-glint { 0%, 100% { transform: scale(.7); opacity: .5; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes rs-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-7deg); } }
+@media (prefers-reduced-motion: reduce) { .ks .rs-pic * { animation: none !important; transition: none !important; } }
+/* the SAT months side by side, and "Not sure yet" across the full width under them */
+.ks .rs-dates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ks .rs-dates[data-n="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ks .rs-dates[data-n="1"], .ks .rs-dates[data-n="0"] { grid-template-columns: minmax(0, 1fr); }
+.ks .rs-dates label { grid-template-columns: minmax(0, 1fr); justify-items: center; min-height: 64px; align-content: center; padding: 14px 10px; text-align: center; }
+.ks .rs-dates .rs-wide { grid-column: 1 / -1; }
+/* our own payment page (PayStage.tsx): what is being paid for, the one-tap buttons, one small link to every other way */
+.ks .rs-paypage { display: grid; gap: 16px; }
+.ks.lit .rs-paypage h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); line-height: 1.08; }
+.ks .rs-due { margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; font-size: 17px; font-weight: 700; }
+.ks.lit .rs-due .num { font-size: clamp(30px, 4vw, 40px); line-height: 1; color: var(--a); }
+.ks .rs-express { min-height: 55px; }
+.ks .rs-paypage[data-ready] .rs-express[data-off], .ks .rs-all[hidden] { display: none; }
+.ks .rs-wait { height: 55px; border-radius: 999px; background: linear-gradient(100deg, color-mix(in srgb, var(--ink) 8%, transparent) 30%, color-mix(in srgb, var(--ink) 16%, transparent) 50%, color-mix(in srgb, var(--ink) 8%, transparent) 70%) 0 0 / 200% 100%; animation: rs-wait 1.3s linear infinite; }
+.ks .rs-paypage:not([data-ready]) :is(.rs-express, .rs-all) { position: absolute; opacity: 0; pointer-events: none; width: calc(100% - 2 * var(--rs-pad, 28px)); }
+@keyframes rs-wait { to { background-position: -200% 0; } }
+.ks .rs-other { justify-self: center; min-height: 44px; padding: 0 12px; background: none; color: inherit; font-size: 15.5px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
+.ks .rs-other:focus-visible { outline: 3px solid var(--a); outline-offset: 3px; }
+.ks .rs-all { display: grid; gap: 16px; }
+.ks .rs-all .btn { justify-content: center; }
+.ks .rs-paypage .rs-back { justify-self: start; display: inline-flex; align-items: center; }
+@media (prefers-reduced-motion: reduce) { .ks .rs-wait { animation: none; } }

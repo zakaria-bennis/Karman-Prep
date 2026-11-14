@@ -1,0 +1,262 @@
+/* Clerk's own fields and buttons on the sign-in and sign-up pages (cabin.css holds the scene and the first
+   step's pills): the focus ring, the main button, the phone field, the "missing details" step and the line
+   that says where a code was sent. Words and rings are white (founder, 2026-11-14: no gold, no cream). */
+
+/* a field in use is ringed inside its own edge, in white. Nothing is drawn outside the pill, so nothing
+   can be cut off by the form's edges */
+.ks .cb :is(.cl-formFieldInput, .cl-otpCodeFieldInput):is(:focus, :focus-visible) {
+  outline: 0;
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 16px 30px -18px rgba(10, 6, 24, 0.8);
+}
+/* room for a ring or a shadow at the form's own edges */
+.ks .cb :is(.cl-rootBox, .cl-cardBox, .cl-card, .cl-main, .cl-form) {
+  overflow: visible;
+}
+
+/* the main button is the site's own (painted.css, .btn): blue, lit from above, with a soft ring that
+   breathes, and a springy press. Clerk's small arrow is not ours */
+.ks .cb .cl-formButtonPrimary {
+  position: relative;
+  min-height: 62px;
+  border: 0;
+  border-radius: 999px;
+  background:
+    radial-gradient(150px 80px at 50% -10%, rgba(255, 255, 255, 0.3), transparent 70%), #2449b8;
+  color: #fffaf3;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+  animation: cb-btn-breathe 4.6s ease-in-out infinite;
+}
+@keyframes cb-btn-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 5px rgba(255, 250, 243, 0.3),
+      0 0 30px 4px rgba(176, 200, 255, 0.35),
+      0 18px 34px -16px rgba(10, 6, 24, 0.85);
+  }
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(255, 250, 243, 0.18),
+      0 0 50px 12px rgba(176, 200, 255, 0.35),
+      0 18px 34px -16px rgba(10, 6, 24, 0.85);
+  }
+}
+.ks .cb .cl-formButtonPrimary::after,
+.ks .cb .cl-buttonArrowIcon {
+  display: none;
+}
+.ks .cb .cl-formButtonPrimary:hover {
+  background:
+    radial-gradient(170px 90px at 50% -10%, rgba(255, 255, 255, 0.4), transparent 70%), #2449b8;
+}
+.ks .cb .cl-formButtonPrimary:active {
+  transform: translateY(2px) scale(0.975);
+  transition-duration: 0.08s;
+}
+/* working: the button cannot be pressed twice, and Clerk's spinner gives way to the site's orb
+   (CabinStage.tsx puts it there) */
+.ks .cb :is(.cl-formButtonPrimary, .cl-socialButtonsBlockButton):is([disabled], [data-loading]) {
+  pointer-events: none;
+  cursor: progress;
+}
+.ks .cb .cl-spinner {
+  display: none;
+}
+.ks .cb .cb-orb {
+  flex: none;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .cb .cl-formButtonPrimary {
+    animation: none;
+    box-shadow:
+      0 0 0 6px rgba(255, 250, 243, 0.26),
+      0 18px 34px -16px rgba(10, 6, 24, 0.85);
+  }
+}
+
+/* the step Clerk adds when an account still needs a detail: its "Fill in missing fields" heading says
+   nothing the fields do not */
+.ks .cb[data-step="continue"] .cl-header {
+  display: none;
+}
+
+/* the phone field is one pill: the country is a real button at its left, the dialling code right beside
+   it, then the number. Clerk draws a second box for the number inside the pill; only the pill is kept.
+   The field's name rises to the top of the pill once it is in use */
+.ks .cb .cl-formField:has(.cl-phoneInputBox) {
+  position: relative;
+}
+.ks .cb .cl-phoneInputBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 0 18px 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pill);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  color: #fff;
+  font-weight: 700;
+  box-shadow:
+    inset 0 0 0 1px var(--pill-edge),
+    0 16px 30px -18px rgba(10, 6, 24, 0.8);
+}
+.ks .cb .cl-phoneInputBox:focus-within {
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 16px 30px -18px rgba(10, 6, 24, 0.8);
+}
+.ks .cb .cl-phoneInputBox .cl-selectButton {
+  flex: none;
+  width: 74px;
+  min-height: 48px;
+  padding: 0 10px 0 14px;
+  justify-content: space-between;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .cb .cl-phoneInputBox .cl-selectButton:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+.ks .cb .cl-phoneInputBox .cl-selectButton:active {
+  scale: 0.95;
+}
+.ks .cb .cl-phoneInputBox .cl-selectButton:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.ks .cb .cl-phoneInputBox > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: padding 0.18s ease-out;
+}
+.ks .cb .cl-phoneInputBox > div > p {
+  flex: none;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+}
+.ks .cb .cl-phoneInputBox input,
+.ks .cb .cl-phoneInputBox input:is(:focus, :focus-visible) {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  color: #fff;
+  font-size: 17px;
+  text-align: left;
+}
+/* the rising name is drawn inside the pill, over the number (Clerk's own label sits outside the pill and
+   stays for screen readers) */
+.ks .cb .cl-formField:has(.cl-phoneInputBox) .cl-formFieldLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.ks .cb .cl-phoneInputBox > div {
+  position: relative;
+}
+.ks .cb .cl-phoneInputBox > div::before {
+  content: "Phone number";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    top 0.18s ease-out,
+    opacity 0.18s;
+}
+.ks .cb .cl-phoneInputBox:is(:focus-within, :has(input:not(:placeholder-shown))) > div::before {
+  top: 2px;
+  opacity: 0.85;
+}
+.ks .cb .cl-phoneInputBox:is(:focus-within, :has(input:not(:placeholder-shown))) > div {
+  padding-top: 15px;
+}
+.ks .cb .cl-phoneInputBox input:focus::placeholder {
+  opacity: 0;
+}
+/* the list of countries the button opens: a tidy frosted panel, not Clerk's wide default */
+.cl-selectOptionsContainer {
+  max-width: 300px;
+  max-height: 280px;
+  border: 0;
+  border-radius: 20px;
+  background: rgba(30, 24, 48, 0.94);
+  color: #fff;
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.8);
+}
+.cl-selectOptionsContainer :is(.cl-selectSearchInput, input) {
+  border: 0;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+}
+.cl-selectOptionsContainer .cl-selectOption {
+  color: inherit;
+  font-weight: 700;
+}
+
+/* "we sent a code to +1 ...": one plain line in the site's type, with the edit link after it. Clerk draws
+   it as a dark bordered box */
+.ks .cb .cl-identityPreview {
+  justify-content: center;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font: inherit;
+}
+.ks .cb .cl-identityPreviewText {
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 800;
+}
+.ks .cb .cl-identityPreview :is(img, .cl-identityPreviewAvatarBox) {
+  display: none;
+}

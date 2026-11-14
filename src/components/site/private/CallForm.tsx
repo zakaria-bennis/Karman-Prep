@@ -1,6 +1,6 @@
 "use client";
 
-// The free-call form that closes the Private tutoring page: a name, a phone number, an email, and a time
+// The free-call form (the Private tutoring page and /call): first and last name, an email, a phone number, and a time
 // picked from the same day-and-time picker as the session demo. It sits straight on the landscape, in
 // frosted-glass pills. Each field is checked when you leave it and again on the server (lead-actions.ts).
 // Call times are kept in Central Time and shown in the visitor's own time zone, so nobody has to be told
@@ -22,12 +22,11 @@ import SlotPicker, {
   type SlotWords,
 } from "./SlotPicker";
 
-type Field = "name" | "email" | "phone";
+type Field = "first" | "last" | "email" | "phone";
 
 export interface CallWords extends SlotWords {
-  name: string;
-  /** Why the phone is asked, shown under its field. */
-  phoneWhy: string;
+  first: string;
+  last: string;
   phone: string;
   email: string;
   button: string;
@@ -38,18 +37,27 @@ export interface CallWords extends SlotWords {
 }
 
 const OK: Record<Field, (v: string) => boolean> = {
-  name: okName,
+  first: okName,
+  last: okName,
   phone: okPhone,
   email: okEmail,
 };
 const INPUT: Record<Field, Record<string, string | number>> = {
-  name: {
+  first: {
     type: "text",
-    autoComplete: "name",
+    autoComplete: "given-name",
     autoCapitalize: "words",
     autoCorrect: "off",
     spellCheck: "false",
-    maxLength: 60,
+    maxLength: 30,
+  },
+  last: {
+    type: "text",
+    autoComplete: "family-name",
+    autoCapitalize: "words",
+    autoCorrect: "off",
+    spellCheck: "false",
+    maxLength: 30,
   },
   phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 17 },
   email: {
@@ -61,8 +69,8 @@ const INPUT: Record<Field, Record<string, string | number>> = {
     maxLength: 254,
   },
 };
-// the order research gives for a booking: name, then email, then the phone with its reason
-const FIELDS: Field[] = ["name", "email", "phone"];
+// first name, last name, email, then the phone with its reason (founder, 2026-11-14)
+const FIELDS: Field[] = ["first", "last", "email", "phone"];
 
 /** A phone number as it is typed: digits only, set out as (512) 555-0142. A number that starts with + is
  *  kept as + and digits, for families abroad. */
@@ -158,6 +166,8 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
     try {
       result = await submitLead("call", {
         ...data,
+        // the request carries one name, as it always has
+        name: `${data.first.trim()} ${data.last.trim()}`,
         slot: `${dayKey(day)} ${fmtTime(hour as number)}`,
         zone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
         plan: plan.current,
@@ -171,7 +181,9 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       if ("fields" in result) {
         for (const k of Object.keys(result.fields))
           track("form_step", { form: "call", step: "book", kind: "error", field: k });
-        return setErrors(result.fields);
+        // the server checks one name: its message goes to the first name
+        const { name, ...rest } = result.fields as Record<string, string>;
+        return setErrors(name ? { ...rest, first: name } : rest);
       }
       return setBanner(w.errors.server);
     }
@@ -201,11 +213,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
                 name={k}
                 placeholder=" "
                 aria-invalid={errors[k] ? true : undefined}
-                aria-describedby={
-                  [errors[k] ? `call-${k}-msg` : "", k === "phone" ? "call-phone-why" : ""]
-                    .join(" ")
-                    .trim() || undefined
-                }
+                aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
                 onBlur={(e) => {
                   if (!e.target.value) return;
                   check(k, e.target.value);
@@ -214,7 +222,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
                 }}
                 onChange={(e) => {
                   if (k === "phone") e.target.value = formatPhone(e.target.value);
-                  if (k === "name") e.target.value = cleanName(e.target.value);
+                  if (k === "first" || k === "last") e.target.value = cleanName(e.target.value);
                   // a message goes the moment its field is put right; none appears while typing
                   if (errors[k] && OK[k](e.target.value)) check(k, e.target.value);
                 }}
@@ -225,11 +233,6 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
             {errors[k] ? (
               <p className="cf-msg" id={`call-${k}-msg`} role="alert">
                 {errors[k]}
-              </p>
-            ) : null}
-            {k === "phone" ? (
-              <p className="cf-why" id="call-phone-why">
-                {w.phoneWhy}
               </p>
             ) : null}
           </div>
