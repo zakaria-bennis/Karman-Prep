@@ -341,7 +341,7 @@ export const GUARANTEE = {
   highStartProMonths: 3,
   /** Starting score up to `upTo`: points promised on each track. */
   bands: [
-    { upTo: 1200, private: 200, cohort: 150 },
+    { upTo: 1200, private: 200, cohort: 160 },
     { upTo: 1300, private: 160, cohort: 120 },
     { upTo: 1400, private: 120, cohort: 80 },
     { upTo: 1450, private: 60, cohort: 40 },
@@ -353,7 +353,8 @@ export const GUARANTEE = {
   /** Plans that carry it. */
   planIds: ["cohort", "private-10", "private-20"],
   /** Live classes the student must attend, out of MARCH_PROGRAM.totalClasses. */
-  minClassesAttended: 15,
+  /** 16 since 2026-11-13 (founder); it was 15. */
+  minClassesAttended: 16,
   /** Share of the assigned weekly practice that must be done. */
   practicePct: 90,
   /** The SAT must be taken within this many days of the last class. */
@@ -381,7 +382,7 @@ export const GUARANTEE = {
     },
   ],
   requirements: [
-    "Attend at least 15 of the 18 live classes, live.",
+    "Attend at least 16 of the 18 live classes, live.",
     "Take all five full-length practice tests, each in one timed sitting, in the week it's assigned.",
     "Complete at least 90% of the assigned weekly practice.",
     "Sit the SAT within 60 days of the last class.",

@@ -30,7 +30,7 @@ describe("the tiered guarantee", () => {
     });
     expect(GUARANTEE.bands.at(-1)!.upTo + 10).toBe(GUARANTEE.noGuaranteeFrom);
     expect(guaranteeMax("private")).toBe(200);
-    expect(guaranteeMax("cohort")).toBe(150);
+    expect(guaranteeMax("cohort")).toBe(160);
   });
 
   it("names each band's starting scores", () => {

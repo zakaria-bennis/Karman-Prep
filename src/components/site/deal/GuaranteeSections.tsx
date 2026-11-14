@@ -1,10 +1,10 @@
 // The guarantee page (founder, 2026-11-13: clear, short and calm; nothing on it that is not the guarantee).
 // 1: the promise, under a seal. 2: the points we guarantee by starting score, beside what comes back if we
-// miss. 3: what each side does. 4: how to claim. Words: site-copy.ts sections 51 to 55, and section 8 for the
-// two lists the home page also shows. Numbers: offer.ts. Styles: guarantee.css.
+// miss. 3: what each side does, and how a parent watches the guarantee in the open. 4: how to claim, in three
+// steps. Words: site-copy.ts sections 51 to 56, and section 8 for the two lists the home page also shows. Numbers: offer.ts. Styles: guarantee.css.
 import { Arrow, Btn } from "@/components/site/parts";
 import { ROUTES } from "@/components/site/routes";
-import { Close, Tick } from "@/components/site/company/parts";
+import { Tick } from "@/components/site/company/parts";
 import { GUARANTEE as G, guaranteeBandLabel } from "@/lib/marketing/offer";
 import { list, pairs, section } from "@/lib/marketing/site-copy";
 
@@ -31,7 +31,8 @@ export default function GuaranteeSections() {
   const points = section(52);
   const miss = section(53);
   const sides = section(54);
-  const claim = section(55);
+  const seen = section(55);
+  const claim = section(56);
   const home = section(8);
   const cols = list(points.columns);
   const [[highLabel, highText]] = pairs(points.high);
@@ -60,7 +61,6 @@ export default function GuaranteeSections() {
         <div className="pg-in co-in gq-two rv">
           <div className="gq-card">
             <h2 id="points-h">{points.headline}</h2>
-            <p className="gq-sub">{points.text}</p>
             <table className="gq-table">
               <thead>
                 <tr>
@@ -85,7 +85,6 @@ export default function GuaranteeSections() {
                 </tr>
               </tbody>
             </table>
-            <p className="gq-note">{points.note}</p>
           </div>
           <div className="gq-card">
             <h2>{miss.headline}</h2>
@@ -127,17 +126,38 @@ export default function GuaranteeSections() {
               </div>
             ))}
           </div>
-          <p className="gq-note">{sides.note}</p>
+          <div className="gq-seen">
+            <h3>{seen.headline}</h3>
+            <p className="gq-sub">{seen.text}</p>
+            <dl>
+              {pairs(seen.points).map(([name, line]) => (
+                <div key={name}>
+                  <dt>{name}</dt>
+                  <dd>{line}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       </section>
 
-      <Close
-        id="claim"
-        headline={claim.headline}
-        text={claim.text}
-        button={claim.button}
-        href={ROUTES.pricing}
-      />
+      <section className="sect pg-sect gq" id="claim" aria-labelledby="claim-h">
+        <div className="mist" aria-hidden="true" />
+        <div className="pg-in co-in gq-stack rv">
+          <h2 id="claim-h">{claim.headline}</h2>
+          <ol className="gq-steps">
+            {pairs(claim.steps).map(([when, what], i) => (
+              <li className="gq-card" key={when}>
+                <b className="num">{i + 1}</b>
+                <h3>{when}</h3>
+                <p>{what}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="gq-note">{claim.note}</p>
+          <Btn label={claim.button} href={ROUTES.pricing} />
+        </div>
+      </section>
     </>
   );
 }

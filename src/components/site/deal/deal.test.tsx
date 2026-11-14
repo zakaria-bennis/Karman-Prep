@@ -57,19 +57,23 @@ describe("the guarantee page", () => {
   const html = renderToStaticMarkup(<GuaranteeSections />);
   const words = text(html);
 
-  it("keeps every line of sections 51 to 55 word for word", () => {
-    for (const n of [51, 52, 53, 54, 55]) expect(words).toContain(section(n).headline);
+  it("keeps every line of sections 51 to 56 word for word", () => {
+    for (const n of [51, 52, 53, 54, 55, 56]) expect(words).toContain(section(n).headline);
     expect(words).toContain(section(51).text);
-    for (const [a, b] of [...pairs(section(52).high), ...pairs(section(53).rows)]) {
+    for (const [a, b] of [
+      ...pairs(section(52).high),
+      ...pairs(section(53).rows),
+      ...pairs(section(55).points),
+      ...pairs(section(56).steps),
+    ]) {
       expect(words).toContain(a);
       expect(words).toContain(b);
     }
-    for (const n of [52, 53, 54]) expect(words).toContain(section(n).note);
+    for (const n of [53, 56]) expect(words).toContain(section(n).note);
     for (const x of [...list(section(8)["we do"]), ...list(section(8)["you do"])]) {
       expect(words).toContain(x);
     }
-    expect(words).toContain(section(55).text);
-    expect(words).not.toMatch(/undefined|NaN/);
+    expect(words).not.toMatch(/undefined|NaN|video explanations/);
     expect(html.match(/<h1/g)).toHaveLength(1);
   });
 

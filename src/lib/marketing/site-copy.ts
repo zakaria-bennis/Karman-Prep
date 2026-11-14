@@ -145,7 +145,7 @@ line weeks: ${W(MP.weeks)} weeks of work
 line end: The SAT
 outcomes: The target or more = The promise was kept. Nothing back. | Half the target or more = Half the price back (${usd(MP.price / 2)}), or the next cohort free. You choose. | Under half the target = The full ${$(MP.price)} back, or the next cohort free. You choose.
 we do title: Our side
-we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform, with video explanations as they're recorded | A progress report for parents every day
+we do: ${W(MP.classesPerWeek)} live classes a week, in a group of up to ${w(CLASS)} | ${W(MP.fullLengthTests)} full-length practice tests | A weekly live session | The Daily 10 and every question on the platform | A progress report for parents every day
 you do title: Your student's side
 you do: Attend at least ${G.minClassesAttended} of the ${MP.totalClasses} live classes, live | Take all ${w(MP.fullLengthTests)} full-length tests, each in one timed sitting | Do at least ${G.practicePct}% of the weekly practice, tracked on the dashboard | Sit the SAT your cohort ends on
 covers: These are the cohort's terms | ${PRIVATE_PACKAGES[0].name} and ${PRIVATE_PACKAGES[1].name} carry the guarantee too, with their own terms: half back or ${w(PRIVATE_BONUS[P10.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[0].name}; half back or ${w(PRIVATE_BONUS[P20.id].freeSessions)} free sessions on ${PRIVATE_PACKAGES[1].name} | A student's first Karman program, once per student | Paid in full, or every installment paid on time
@@ -350,10 +350,8 @@ link: How it works
 
 ## 52 Guarantee: points
 headline: How many points we guarantee.
-text: It depends on your student's starting SAT score.
 columns: Starting SAT score | The cohort and ${P10.name} | ${P20.name}
 high: ${G.noGuaranteeFrom} or higher = A higher score, or ${w(G.highStartProMonths)} months of ${PRO.name} free
-note: A ${G.topScore} always counts as reaching the score.
 
 ## 53 Guarantee: if we miss
 headline: If we miss, you get your money back.
@@ -363,11 +361,16 @@ note: Or take the next cohort free instead. You choose. On private tutoring, a m
 
 ## 54 Guarantee: both sides
 headline: What we each do.
-note: The guarantee covers a student's first Karman program, paid in full or with every installment on time.
 
-## 55 Guarantee: claim
-headline: Claiming takes one email.
-text: Within ${G.claimDays} days of the test, send the College Board score report to ${G.claimEmail}. No mailed paper reports, no fees.
+## 55 Guarantee: in the open
+headline: You can see where the guarantee stands, any day.
+text: The guarantee is there to serve you, and to keep your student on track. So nothing about it is hidden.
+points: Live in your parent portal = Classes attended, homework done and practice tests taken, next to what the guarantee asks for. | Updates by email = The same numbers come to your inbox, so you never have to ask. | No surprises = If your student falls behind on the guarantee, you hear it from us first, while there is still time to catch up.
+
+## 56 Guarantee: claim
+headline: How to claim it.
+steps: Before the first class = Send us your student's official SAT score report. That sets the starting score. | During the program = Your student shows up and does the work. We track it for you. | After the SAT = Email the new score report to ${G.claimEmail} within ${G.claimDays} days of the test.
+note: The guarantee covers a student's first Karman program, paid in full or with every installment on time. A ${G.topScore} always counts as reaching the score. Nothing is taken out of a refund.
 button: See the plans
 
 ## 58 Pricing
