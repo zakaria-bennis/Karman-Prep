@@ -18,7 +18,10 @@ export const PORTAL_ROUTE: [number, number] = [0.3, 0.5];
 export default function PortalFlight({
   route = PORTAL_ROUTE,
   sky,
+  world,
 }: {
+  /** A generated world with no end (true, or the distance to start at), instead of the fixed route. */
+  world?: boolean | number;
   route?: [number, number];
   /** The visitor's own hour and weather, when the page follows them. */
   sky?: () => FlightSky | null;
@@ -56,6 +59,7 @@ export default function PortalFlight({
           night: () => root.getAttribute("data-kp-mode") === "dark",
           route: [from, to],
           sky: () => skyNow.current?.() ?? null,
+          world,
           onReady: () => stage.setAttribute("data-painted", ""),
         });
         if (!flight.start()) return;
@@ -78,7 +82,7 @@ export default function PortalFlight({
       disposed = true;
       dispose?.();
     };
-  }, [from, to]);
+  }, [from, to, world]);
 
   return (
     <div ref={host} className="kp-backdrop kp-flight" aria-hidden="true">

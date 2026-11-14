@@ -21,6 +21,9 @@ uniform sampler2D uNoise;
    page's own day; uWx is their weather: x cloud cover, y rain, z mist, w snow, each 0 to 1 */
 uniform float uHour;
 uniform vec4 uWx;
+/* a generated world (founder, 2026-11-14): below 0 the page flies its own fixed route; from 0 up it is how
+   far the camera has flown through land that is made up as it goes, with no end */
+uniform float uWorld;
 
 const mat2 M2 = mat2(.8, -.6, .6, .8);
 const float CB = 1.05, CT = 1.3;   /* the cloud deck: bottom and top */
@@ -39,12 +42,28 @@ float fbm(vec2 p) { float a = 0., b = .5; for (int i = 0; i < 5; i++) { a += b *
 
 /* the route: the valley the camera follows, from the high peaks (z = 0) to the open sea (z > 8) */
 float pathX(float z) { return .5 * sin(z * .55) + .22 * sin(z * 1.4 + 1.3); }
+/* the generated world's lie of the land at a distance z: how much open sea, how much water in the valley,
+   how tall the mountains, and how warm it is (which sets the tree line and the snow line) */
+vec4 landAt(float z) {
+  float sea = smoothstep(.6, .78, n2(vec2(z * .13, 1.7)));
+  float wet = max(smoothstep(.38, .56, n2(vec2(z * .09, 9.2))), sea);
+  float tall = n2(vec2(z * .07, 4.4));
+  float warm = smoothstep(.3, .7, n2(vec2(z * .06, 12.3)));
+  return vec4(sea, wet, tall, warm);
+}
+float lowAt(float z) { return uWorld >= 0. ? landAt(z).w : smoothstep(1.2, 4.2, z); }
 float shape(vec2 x, float a) {
   float z = x.y;
   float sea = smoothstep(6.3, 8.4, z);
   float wet = smoothstep(3.9, 4.8, z);
   float amp = mix(1.25, .42, sea);
   float lift = mix(.3, -.2, smoothstep(1.2, 4.2, z)) - .1 * sea;
+  if (uWorld >= 0.) {
+    vec4 l = landAt(z);
+    sea = l.x; wet = l.y;
+    amp = mix(mix(.5, 1.25, l.z), .42, sea);
+    lift = mix(.1, -.18, wet) - .08 * sea;
+  }
   float v = smoothstep(.04, mix(.8, 1.35, wet), abs(x.x - pathX(z)));
   return a * amp * mix(mix(.3, .05, wet), 1., v) + lift;
 }
@@ -69,7 +88,7 @@ vec2 treeAt(vec2 x) {
    fjord, each a cluster of houses with pitched roofs, and one observatory on a hill above the water */
 float townAt(vec2 x, float h) {
   float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.44, .3, abs(x.x - pathX(x.y)));
-  return level * smoothstep(.5, .6, n2(x * 4.6 + 7.3)) * smoothstep(2.3, 2.7, x.y);
+  return level * smoothstep(.5, .6, n2(x * 4.6 + 7.3)) * (uWorld >= 0. ? 1. : smoothstep(2.3, 2.7, x.y));
 }
 /* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
    z = which house it is (0 to 1), w = 1 where a house stands */
@@ -100,7 +119,7 @@ float built(vec2 x, float h) {
 }
 float terrH(vec2 x) {
   float h = terrD(x);
-  float low = smoothstep(1.2, 4.2, x.y);
+  float low = lowAt(x.y);
   float band = smoothstep(mix(.74, .5, low), mix(.6, .36, low), h) * smoothstep(.004, .03, h);
   /* bare rock is cracked and ledged; the forest floor carries its trees */
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
@@ -210,7 +229,7 @@ vec3 ground(vec3 p, float t) {
   vec3 n = normalize(vec3(terrH(p.xz - vec2(e, 0.)) - terrH(p.xz + vec2(e, 0.)), 2. * e, terrH(p.xz - vec2(0., e)) - terrH(p.xz + vec2(0., e))));
   float h = p.y, r = n2(p.xz * 46.), r2 = fbm(p.xz * 7.);
   float near = 1. / (1. + t * t * .5);
-  float low = smoothstep(1.2, 4.2, p.z);
+  float low = lowAt(p.z);
   float tl = mix(.74, .5, low), sl = mix(.8, .7, low);
   float tree = smoothstep(tl, tl - .16, h + .16 * (r2 - .5)) * smoothstep(.36, .6, n.y);
   float mead = smoothstep(.8, .93, n.y) * smoothstep(.2, .06, h + .05 * (r2 - .5));
@@ -225,6 +244,11 @@ vec3 ground(vec3 p, float t) {
   vec3 grass = mix(vec3(.075, .13, .035), vec3(.19, .2, .06), r2);
   vec3 alb = mix(rock, forest, tree);
   alb = mix(alb, grass, mead);
+  /* flower fields: drifts of pink, yellow and lavender through the meadows */
+  float bloom = smoothstep(.52, .7, n2(p.xz * 34. + 3.)) * mead;
+  vec3 petal = mix(vec3(.72, .24, .4), vec3(.86, .7, .18), step(.5, n2(p.xz * 8.)));
+  petal = mix(petal, vec3(.58, .48, .82), step(.72, n2(p.xz * 5. + 20.)));
+  alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .85);
   alb = mix(alb, vec3(.36, .31, .22), smoothstep(.018, .004, h));
   alb = mix(alb, vec3(.78, .83, .9), snow);
   /* the villages: plaster walls, roofs of tile or slate, trodden earth between the houses */
@@ -290,13 +314,15 @@ void main() {
   AMB = mix(AMB, vec3(dot(AMB, vec3(.34))) * 1.15, .7 * dull);
 
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
-  float z = .2 + 8.45 * P;
-  vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), .05 + 1.72 * pow(1. - P, 2.6) + .002 * sin(uTime * .33), z);
+  float z = .2 + 8.45 * P, alt = .05 + 1.72 * pow(1. - P, 2.6), tilt = mix(-.36, .05, smoothstep(0., .92, P));
+  /* the generated world: fly on and on, a little higher over open country and lower along the water */
+  if (uWorld >= 0.) { z = uWorld; alt = .3 + .14 * n2(vec2(z * .21, 5.)); tilt = -.2; }
+  vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
   float zt = z + 1.3;
-  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + mix(-.36, .05, smoothstep(0., .92, P)), zt);
+  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + tilt, zt);
   vec3 ww = normalize(ta - ro), uu = normalize(cross(vec3(0., 1., 0.), ww)), vv = cross(ww, uu);
   vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y;
   /* a tall phone sees the same width of land as a wide screen sees height */
@@ -356,6 +382,16 @@ void main() {
     col += SUNCOL * pow(max(dot(rr, SUN), 0.), 520.) * 5. + NIGHT * vec3(.5, .6, .8) * pow(max(dot(rr, MOON), 0.), 700.) * 1.2;
     float edge = depth + .0025 * sin(uTime * 1.2 + n2(w * 30.) * 6.3);
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
+    /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
+    vec2 bg = w * 8., bid = floor(bg);
+    vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
+    bf.x -= .12 * sin(uTime * .04 + tx(bid) * 6.3);
+    float boat = step(.84, tx(bid + 41.)) * smoothstep(.03, .06, depth);
+    float hull = smoothstep(.05, .03, length(bf * vec2(1., 2.4)));
+    float sail = smoothstep(.028, .014, length((bf + vec2(.004, 0.)) * vec2(2.6, 1.3)));
+    col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
+    col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
+    col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
     col = haze(col, p, rd, tw);
     tend = tw;
   } else {
@@ -365,7 +401,7 @@ void main() {
   vec4 cl = clouds(ro, rd, tend, jit);
   col = col * (1. - cl.a) + cl.rgb;
   /* birds: two loose flocks flying on ahead, by day, below the clouds; hills hide them */
-  float fly = smoothstep(.27, .36, P) * (1. - smoothstep(.9, .99, P)) * (1. - NIGHT) * smoothstep(-.05, .05, SUN.y);
+  float fly = (uWorld >= 0. ? 1. : smoothstep(.27, .36, P) * (1. - smoothstep(.9, .99, P))) * (1. - NIGHT) * smoothstep(-.05, .05, SUN.y);
   if (fly > .01) {
     float ink = 0.;
     for (int k = 0; k < 2; k++) {
@@ -386,7 +422,7 @@ void main() {
     col = mix(col, AMB * .12, ink * fly * .88);
   }
   /* snow: falls around the high peaks, under the clouds, in three depths */
-  float snowing = max(smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P)), uWx.w);
+  float snowing = max(uWorld >= 0. ? 0. : smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P)), uWx.w);
   if (snowing > .01) {
     float fl = 0.;
     for (int k = 0; k < 3; k++) {
@@ -409,6 +445,17 @@ void main() {
     }
     col = mix(col, AMB * 1.4 + .05, clamp(rn, 0., 1.) * uWx.y * .35);
     col = mix(col, vec3(dot(col, vec3(.3, .59, .11))), .25 * uWx.y);
+  }
+  /* motes: pollen drifting by day, fireflies by night, in the generated world */
+  if (uWorld >= 0.) {
+    float mo = 0.;
+    for (int k = 0; k < 2; k++) {
+      float fk = float(k), sc = 7. + fk * 6.;
+      vec2 g = vec2(uv.x * sc + uTime * (.05 + .03 * fk), uv.y * sc + .3 * sin(uTime * .2 + uv.x * 2. + fk) - uTime * .02);
+      vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + fk * 11.), tx(id + 29.)) - .5) * .8;
+      mo += smoothstep(.035, .0, length(f)) * step(.62, tx(id + 9. + fk * 3.)) * (.5 + .5 * sin(uTime * (1. + tx(id)) + tx(id + 5.) * 6.3));
+    }
+    col += mix(KEYCOL * .35 + AMB * .2, vec3(1., .85, .35) * .5, NIGHT) * mo * (1. - uWx.y) * step(uv.y, .35);
   }
   /* light spilling through the air around the sun */
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));

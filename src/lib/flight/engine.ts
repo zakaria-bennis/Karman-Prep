@@ -38,6 +38,9 @@ export interface FlightOptions {
   /** The visitor's own sky, when the page follows it: their local hour and their weather. Left out, or
    *  null, the page keeps its own day. */
   sky?: () => FlightSky | null;
+  /** A generated world with no end, instead of the site's fixed route: true, or the distance to start at.
+   *  The camera then flies on by itself, slowly, and scrolling carries it further. */
+  world?: boolean | number;
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -70,7 +73,7 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 export class Flight {
   private gl: WebGLRenderingContext | null = null;
   private uniforms: Record<
-    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uHour" | "uWx",
+    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uHour" | "uWx" | "uWorld",
     WebGLUniformLocation | null
   > = {
     uRes: null,
@@ -80,6 +83,7 @@ export class Flight {
     uIntro: null,
     uHour: null,
     uWx: null,
+    uWorld: null,
   };
   /** The opening now playing: when it began and how long it runs. */
   private opening: { at: number; ms: number } | null = null;
@@ -230,7 +234,16 @@ export class Flight {
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    for (const name of ["uRes", "uTime", "uP", "uNight", "uIntro", "uHour", "uWx"] as const)
+    for (const name of [
+      "uRes",
+      "uTime",
+      "uP",
+      "uNight",
+      "uIntro",
+      "uHour",
+      "uWx",
+      "uWorld",
+    ] as const)
       this.uniforms[name] = gl.getUniformLocation(prog, name);
     this.shown = { p: -1, night: -1 };
     return true;
@@ -261,6 +274,12 @@ export class Flight {
     gl.uniform1f(this.uniforms.uNight, night);
     gl.uniform1f(this.uniforms.uIntro, intro);
     const sky = this.o.sky?.() ?? null;
+    const world = this.o.world;
+    const from = typeof world === "number" ? world : 3;
+    gl.uniform1f(
+      this.uniforms.uWorld,
+      world === undefined || world === false ? -1 : from + time * 0.012 + p * 2
+    );
     gl.uniform1f(this.uniforms.uHour, sky ? sky.hour : -1);
     gl.uniform4f(
       this.uniforms.uWx,

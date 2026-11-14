@@ -3,7 +3,7 @@
 // /dev/world: the live landscape alone, as the portal's background, with nothing on top (founder,
 // 2026-11-14: build on a blank canvas, the background first). ?p=0.42 holds one spot on the route,
 // ?night=1 shows the night, and with neither the page scrolls through the portal's stretch.
-// Production builds return 404.
+// ?world=1 flies the generated world; ?z=40 starts it at that distance. Production builds return 404.
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import "@/components/portal/portal.css";
@@ -39,7 +39,11 @@ function World() {
     : undefined;
   return (
     <div className="kp-shell" style={{ minHeight: at === null ? "400vh" : "100dvh" }}>
-      <PortalFlight route={at === null ? undefined : [at, at]} sky={sky} />
+      <PortalFlight
+        route={at === null ? undefined : [at, at]}
+        sky={sky}
+        world={q.get("z") !== null ? Number(q.get("z")) : q.get("world") === "1" ? true : undefined}
+      />
     </div>
   );
 }
