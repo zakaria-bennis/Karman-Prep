@@ -68,6 +68,12 @@ const LOGO = {
   ),
 };
 
+/** Shown beside the password field on Get started, before anything is typed, so the rule is no surprise.
+ *  The number must match "Minimum password length" in Clerk (User & authentication, Password): 15, the
+ *  length NIST SP 800-63B asks for when a password is the only thing protecting an account. */
+const PASSWORD_TIP =
+  "Passwords need 15 characters or more. Three or four unrelated words work well.";
+
 const MAIL = (
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="3" y="5.500" width="18" height="13" rx="3.500" />
@@ -150,13 +156,15 @@ function Typed({ pool }: { pool: readonly string[] }) {
 
   return (
     <h1 className="cb-hello" aria-label={full || pool[0]}>
-      <span aria-hidden="true">{text}</span>
-      <i
-        className="cb-caret"
-        data-idle={text ? undefined : ""}
-        data-done={text === full && full ? "" : undefined}
-        aria-hidden="true"
-      />
+      {/* one inline run, so the caret stays at the end of the last word */}
+      <span className="cb-line" aria-hidden="true">
+        {text}
+        <i
+          className="cb-caret"
+          data-idle={text ? undefined : ""}
+          data-done={text === full && full ? "" : undefined}
+        />
+      </span>
     </h1>
   );
 }
@@ -213,6 +221,7 @@ export default function CabinStage({
             {MAIL}
             Continue with email
           </button>
+          {up ? <p className="cb-tip">{PASSWORD_TIP}</p> : null}
         </div>
         <p className="cb-foot">
           {up ? "Already have an account?" : "New here?"}{" "}

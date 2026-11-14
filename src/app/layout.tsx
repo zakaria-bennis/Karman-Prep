@@ -168,6 +168,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       {...KARMAN_AUTH_ROUTES}
       appearance={karmanClerkAppearance}
       localization={{
+        // with two or more ways in, Clerk shortens each button to the provider's name; keep the full
+        // sentence so the pills match "Continue with email" on the sign-in pages
+        socialButtonsBlockButtonManyInView: "Continue with {{provider|titleize}}",
         signIn: {
           start: {
             title: "Log in to Karman",

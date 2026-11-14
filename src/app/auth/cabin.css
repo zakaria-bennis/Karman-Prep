@@ -182,6 +182,9 @@
     .cl-headerSubtitle,
     .cl-formFieldLabel,
     .cl-formFieldHintText,
+    .cl-formFieldInfoText,
+    .cl-formFieldSuccessText,
+    .cl-formFieldWarningText,
     .cl-identityPreviewText,
     .cl-formHeaderTitle,
     .cl-formHeaderSubtitle,
@@ -365,6 +368,23 @@
   ):focus-visible {
   outline: 3px solid var(--amber);
   outline-offset: 3px;
+}
+
+/* the password rule, said up front on Get started, only while the password field is on screen */
+.ks .cb .cb-tip {
+  display: none;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+  color: #f6e3cb;
+  text-shadow: 0 1px 12px rgba(10, 8, 30, 0.85);
+}
+.ks .cb[data-email] .cb-form:has(.cl-signUp-start) .cb-tip,
+.ks .cb .cb-form:has(.cl-signUp-start):not(:has(.cl-socialButtons)) .cb-tip {
+  display: block;
 }
 
 /* ---------- the way to the other page ---------- */
