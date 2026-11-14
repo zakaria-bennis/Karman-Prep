@@ -1,7 +1,6 @@
 // ============================================================
 // KARMAN SITE COPY: every word on the marketing pages.
-// Written 2026-10-25 with the Conversion Copywriter skill (the deck with
-// the alternates and scores is docs/copy/copy-run on claude/site-redesign).
+// First written 2026-10-25 with the Conversion Copywriter skill.
 //
 // How to edit: change the words after a label ("headline:", "text:" ...)
 // and keep the label. Leave a line empty after the colon to hide it.
@@ -290,7 +289,8 @@ link: The guarantee, in full
 
 ## 36 Private: close
 headline: Schedule a free call.
-form name: Your full name
+form first: First name
+form last: Last name
 form phone why: So we can reach you about the call.
 form phone: Phone
 form email: Email
@@ -614,6 +614,7 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 logo: Karman
 free test link: Free practice test
 start free: Get started
+portal link: Go to your portal
 program link: The SAT Program
 private link: Private tutoring
 schools link: Schools
@@ -660,7 +661,6 @@ form error phone: Add a phone number we can reach you on, with the area code.
 form error slot: Pick a day and a time for the call.
 form error network: That didn't go through because the connection dropped. Your answers are still here.
 form error server: That didn't go through on our side. Your answers are still here. Try again in a minute, or write to ${CONTACT.general}.
-form retry: Try again
 pricing practice button: Start ${PP.name}
 pricing pro button: Start ${PRO.name}
 `;

@@ -70,6 +70,7 @@ const isMaintenanceExempt = createRouteMatcher([
 const isPublicRoute = createRouteMatcher([
   "/checkout/start", // pricing plan buttons: signed out goes to sign-up, then back here
   "/reserve(.*)", // reserve a cohort seat: the form, the welcome page and the account link
+  "/call", // book a free call, by itself: where the plan-finder sends a private-tutoring plan
   // the marketing site (src/components/site/routes.ts)
   "/",
   "/program",
@@ -120,6 +121,7 @@ function bypassMiddleware(_request: NextRequest) {
 const isMarketingPage = createRouteMatcher([
   ...SITE_PAGES,
   "/reserve/welcome", // the page a family lands on after paying; it needs no session
+  "/call",
   "/robots.txt",
   "/sitemap.xml",
 ]);

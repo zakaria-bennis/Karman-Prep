@@ -224,6 +224,27 @@ export default function CabinStage({
   const form = useRef<HTMLDivElement>(null);
   const up = mode === "sign-up";
 
+  // Clerk writes a country's flag in front of the phone number a code was sent to. The line is plain text
+  // in the site's type (founder, 2026-11-14), so the flag is taken out wherever Clerk draws it.
+  useEffect(() => {
+    const root = form.current;
+    if (!root) return;
+    const flag = /[\u{1F1E6}-\u{1F1FF}]{2}\s*/gu;
+    const strip = () => {
+      for (const el of root.querySelectorAll(".cl-identityPreviewText")) {
+        const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+          const plain = (n.nodeValue ?? "").replace(flag, "");
+          if (plain !== n.nodeValue) n.nodeValue = plain;
+        }
+      }
+    };
+    strip();
+    const watch = new MutationObserver(strip);
+    watch.observe(root, { childList: true, subtree: true, characterData: true });
+    return () => watch.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!DEV) return;
     const wait = setTimeout(() => setStandIn(!form.current?.querySelector(".cl-card")), 2500);

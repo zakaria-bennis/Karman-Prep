@@ -826,3 +826,5 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 .ks.lit[data-mode="dark"] .lanterns li > span { color: var(--cream); }
 .ks.lit[data-mode="dark"] .gua-pic { color: var(--cream); }
 .ks.lit[data-mode="dark"] .gua-pic { --pp: #18161e; --pg: #6cbf8d; --pr: #ee6e58; }
+/* signed in or not (SitePage.tsx, SIGNED_IN_BOOT): the header shows the portal button, or Sign in and Get started */
+.ks:not([data-in]) .when-in, .ks[data-in] .when-out { display: none !important; }

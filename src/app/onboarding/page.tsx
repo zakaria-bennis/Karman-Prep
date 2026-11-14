@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
   return (
     <SitePage kind="lit" bare drive="steps" className={litFonts}>
       <Suspense fallback={null}>
-        <OnboardingClient satDates={satDates} today={today} signedIn={signedIn} />
+        <OnboardingClient satDates={satDates} signedIn={signedIn} />
       </Suspense>
     </SitePage>
   );

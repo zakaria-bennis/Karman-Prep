@@ -5,6 +5,7 @@
 // buttons, the one reveal, and the alive layer. It renders nothing.
 import { useEffect } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
+import { ROUTES } from "./routes";
 import { startAlive } from "./live/alive";
 import { busy, line } from "./live/kit";
 import { motionPaused, setMotionPaused } from "./live/motion";
@@ -35,6 +36,17 @@ export default function ShellBehaviour() {
       },
       { signal }
     );
+
+    /* ---------- signed in: every "Get started" on the page leads to the portal instead ---------- */
+    if (ks.dataset.in)
+      for (const a of ks.querySelectorAll<HTMLAnchorElement>(
+        `a[href="${ROUTES.signUp}"]:not(.when-out)`
+      )) {
+        a.href = ROUTES.portal;
+        // a button says where it now goes; a link inside a sentence keeps its words
+        const label = a.querySelector(".lb");
+        if (label) label.textContent = SITE["portal link"];
+      }
 
     /* ---------- light and dark: the device's setting until the visitor picks one, then remembered ---------- */
     const themes = [...ks.querySelectorAll<HTMLButtonElement>(".theme")];

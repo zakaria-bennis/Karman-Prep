@@ -19,8 +19,9 @@
   min-height: 100svh;
   display: grid;
   justify-items: center;
-  align-content: start;
-  padding: 92px var(--gutter) 120px;
+  /* the question sits in the middle of the screen on every device, so nothing needs scrolling to */
+  align-content: center;
+  padding: 124px var(--gutter) 110px;
   color: rgb(var(--k-ivory));
 }
 .ks.lit[data-mode="dark"] .ob {
@@ -41,65 +42,63 @@
   gap: 14px;
 }
 
-/* the route: a dotted trail across the top; the stretch already flown is drawn solid, up to a marker */
-.ks .ob-trail {
-  position: relative;
-  height: 58px;
-  margin: 0 8px 6px 44px;
-}
-.ks .ob-trail::before,
-.ks .ob-trail i {
-  content: "";
+/* progress: one segment for each question, pinned just under the header. Answered ones are full; the one
+   on screen fills as it opens, with a small spring */
+.ks .ob-seg {
   position: absolute;
-  left: 0;
-  top: 44px;
-  height: 4px;
-  border-radius: 2px;
-}
-.ks .ob-trail::before {
-  right: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgb(var(--k-ivory) / 0.45) 0 6px,
-    transparent 6px 14px
-  );
-}
-.ks .ob-trail i {
-  width: calc(var(--at) * 100%);
-  background: rgb(var(--k-info));
-  transition: width 0.7s cubic-bezier(0.3, 0.8, 0.3, 1);
-}
-.ks .ob-trail b {
-  position: absolute;
-  left: calc(var(--at) * 100%);
-  top: 36px;
-  width: 20px;
-  height: 20px;
+  top: 68px;
+  left: 50%;
   translate: -50% 0;
-  border-radius: 50%;
-  background: rgb(var(--k-surface));
-  box-shadow:
-    inset 0 0 0 5px rgb(var(--k-info)),
-    0 6px 12px -4px rgb(20 18 30 / 0.5);
-  transition: left 0.7s cubic-bezier(0.3, 0.8, 0.3, 1);
+  width: min(100% - 2 * var(--gutter), 560px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.ks .ob-back {
-  position: absolute;
-  left: -46px;
-  top: 24px;
+.ks .ob-seg button {
+  flex: none;
   width: 44px;
   height: 44px;
+  margin-left: -12px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: none;
   color: inherit;
+  transition: scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
-.ks .ob-back[disabled] {
+.ks .ob-seg button:active {
+  scale: 0.88;
+}
+.ks .ob-seg button[disabled] {
   opacity: 0;
 }
-.ks .ob-back:focus-visible {
+.ks .ob-seg button:focus-visible {
   outline: 3px solid rgb(var(--k-info));
+}
+.ks .ob-seg i {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgb(var(--k-surface) / 0.6);
+  box-shadow: inset 0 0 0 1px rgb(var(--k-ivory) / 0.14);
+}
+.ks .ob-seg i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: rgb(var(--k-info));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.55s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.ks .ob-seg i[data-s="done"]::after {
+  transform: scaleX(1);
+}
+.ks .ob-seg i[data-s="now"]::after {
+  transform: scaleX(0.5);
 }
 
 /* Karman the fox and what he says */
@@ -201,9 +200,19 @@
   opacity: 0.45;
   cursor: default;
 }
+.ks .ob-go[data-centre] {
+  position: static;
+  padding: 6px 0 0;
+  background: none;
+  display: flex;
+  justify-content: center;
+}
+.ks .ob-go[data-centre] .btn {
+  width: auto;
+  min-width: 180px;
+}
 @media (min-width: 640px) {
   .ks .ob {
-    align-content: center;
     padding-bottom: 60px;
   }
   .ks .ob-go {
@@ -310,208 +319,240 @@
   background: none;
 }
 
-/* the flight's score fields (founder, 2026-11-13): the label is a placeholder. It stands in the field
-   until a score is typed, then gives way to it, so the two are never seen together */
-.ks .ob .ob-num:is([data-filled], :focus-within) span {
-  top: 50%;
-  scale: 1;
+/* a written score (Parts.tsx): the pill's name rises as it fills, and is tall enough that the name and the
+   score never touch; the slider under it sets the same number */
+.ks .ob-score {
+  display: grid;
+  gap: 16px;
 }
-.ks .ob .ob-num[data-filled] span {
-  opacity: 0;
+.ks .ob-score[data-off] {
+  opacity: 0.45;
 }
-.ks .ob .ob-num input {
-  padding-top: 0;
+.ks .ob .ob-score .rs-pill {
+  min-height: 76px;
+}
+.ks .ob .ob-score .rs-pill input {
+  height: 76px;
+  padding-top: 28px;
   font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.ks .ob .ob-score .rs-pill:is([data-filled], :focus-within) span {
+  top: 19px;
+}
+.ks .ob-range {
+  padding: 0 6px;
+}
+.ks .ob-range input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: none;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.ks .ob-range input:active {
+  cursor: grabbing;
+}
+.ks .ob-range input::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--k-info)) calc(var(--p) * 100%),
+    rgb(var(--k-ivory) / 0.16) calc(var(--p) * 100%)
+  );
+}
+.ks .ob-range input::-moz-range-track {
+  height: 12px;
+  border-radius: 6px;
+  background: rgb(var(--k-ivory) / 0.16);
+}
+.ks .ob-range input::-moz-range-progress {
+  height: 12px;
+  border-radius: 6px;
+  background: rgb(var(--k-info));
+}
+.ks .ob-range input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: rgb(var(--k-surface));
+  box-shadow:
+    inset 0 0 0 7px rgb(var(--k-info)),
+    0 8px 16px -6px rgb(20 18 30 / 0.6);
+  transition: scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .ob-range input::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(var(--k-surface));
+  box-shadow:
+    inset 0 0 0 7px rgb(var(--k-info)),
+    0 8px 16px -6px rgb(20 18 30 / 0.6);
+}
+.ks .ob-range input:active::-webkit-slider-thumb {
+  scale: 1.18;
+}
+.ks .ob-range input:focus-visible {
+  outline: 3px solid rgb(var(--k-info));
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+.ks .ob-range div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
-/* the landing: the observatory rises into view, and the two cards sit above it */
-.ks .obs {
-  --obs-far-hi: #b9cfc4;
-  --obs-far: #86ab8c;
-  --obs-hill-hi: #8db67e;
-  --obs-hill: #4c7f52;
-  --obs-near-hi: #5f9160;
-  --obs-near: #2f5f40;
-  --obs-pine: #2f5a44;
-  --obs-path: #e9dcbc;
-  --obs-stone: #f6efe0;
-  --obs-shade: #d9cdb6;
-  --obs-roof: #8a6a58;
-  --obs-dome: #b9c4cf;
-  --obs-dome-hi: #f2f5f8;
-  --obs-win: #5d6f86;
-  --obs-dark: #2b3142;
-  position: fixed;
-  inset: auto 0 0 0;
-  z-index: 0;
-  width: 100%;
-  height: min(62svh, 560px);
-  pointer-events: none;
-  animation: obs-rise 1.5s cubic-bezier(0.16, 0.84, 0.3, 1) both;
-}
-.ks.lit[data-mode="dark"] .obs {
-  --obs-far-hi: #34406a;
-  --obs-far: #202a48;
-  --obs-hill-hi: #2a3a5c;
-  --obs-hill: #141f34;
-  --obs-near-hi: #1a2740;
-  --obs-near: #0c1424;
-  --obs-pine: #0c1524;
-  --obs-path: #58608a;
-  --obs-stone: #6f7596;
-  --obs-shade: #50567a;
-  --obs-roof: #3a3550;
-  --obs-dome: #7c86ac;
-  --obs-dome-hi: #c9d2ee;
-  --obs-win: #ffd98a;
-  --obs-dark: #0b0f1c;
-}
-.ks .obs-far {
-  fill: url(#obs-g-far);
-}
-.ks .obs-hill {
-  fill: url(#obs-g-hill);
-}
-.ks .obs-near {
-  fill: url(#obs-g-near);
-}
-.ks .obs-pine {
-  fill: var(--obs-pine);
-}
-.ks .obs-path {
-  stroke: var(--obs-path);
-  stroke-width: 9;
-  stroke-linecap: round;
-  opacity: 0.8;
-}
-.ks .obs-drum,
-.ks .obs-wing {
-  fill: var(--obs-stone);
-}
-.ks .obs-drum-shade {
-  fill: var(--obs-shade);
-  opacity: 0.6;
-}
-.ks .obs-roof {
-  fill: var(--obs-roof);
-}
-.ks .obs-band {
-  fill: var(--obs-shade);
-}
-.ks .obs-rib {
-  stroke: var(--obs-dark);
-  stroke-width: 1.5;
-  opacity: 0.22;
-}
-.ks .obs-win {
-  fill: var(--obs-win);
-}
-.ks :is(.obs-door, .obs-slit, .obs-scope) {
-  fill: var(--obs-dark);
-}
-.ks .obs-shadow {
-  fill: var(--obs-dark);
-  opacity: 0.18;
-}
-.ks :is(.obs-stars, .obs-light) {
-  opacity: 0;
-}
-.ks .obs-stars {
-  fill: #fff7e4;
-}
-.ks.lit[data-mode="dark"] .obs-stars {
-  opacity: 0.9;
-  animation: obs-twinkle 3.6s ease-in-out infinite alternate;
-}
-.ks.lit[data-mode="dark"] .obs-light {
-  opacity: 0.55;
-}
-@keyframes obs-rise {
-  from {
-    opacity: 0;
-    transform: translateY(46%) scale(1.5);
-  }
-}
-@keyframes obs-twinkle {
-  to {
-    opacity: 0.45;
-  }
-}
-.ks .ob[data-landed] {
-  align-content: start;
-  padding-top: 76px;
-  /* room under the cards, so the observatory is seen whole at the end of the page */
-  padding-bottom: 48svh;
-}
-@media (min-width: 1100px) {
-  /* wide screens: the words stand to the left and the observatory keeps the right of the view */
-  .ks .ob[data-landed] {
-    justify-items: start;
-    padding-left: max(var(--gutter), 7vw);
-    padding-bottom: 60px;
-  }
-  .ks .ob[data-landed] .ob-in {
-    width: min(100%, 500px);
-  }
-  .ks .ob[data-landed] .ob-moment {
-    justify-items: start;
-    text-align: left;
-  }
-  /* the welcome line stands on the mountainside here, so it gets the cards' frost to stay readable */
-  .ks .ob[data-landed] .ob-moment .ob-say {
-    padding: 16px 22px;
-    border-radius: 26px;
-    background: rgb(var(--k-surface) / 0.66);
-    -webkit-backdrop-filter: blur(22px) saturate(1.6);
-    backdrop-filter: blur(22px) saturate(1.6);
-  }
-  .ks .obs {
-    left: 16vw;
-    height: min(70svh, 640px);
-  }
-}
-.ks .ob-land {
+/* who is this for: two cards, one picked at a time. The picked one lifts and its ring draws a tick */
+.ks .ob-roles {
   display: grid;
-  gap: 14px;
-  animation: guide-say 0.5s 0.5s ease-out both;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
-.ks .ob-land h2 {
-  margin: 0 0 6px;
-  font-size: 23px;
+.ks .ob-roles button {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  align-content: end;
+  min-height: 150px;
+  padding: 18px;
+  border-radius: 24px;
+  background: rgb(var(--k-surface) / 0.7);
+  color: inherit;
+  text-align: left;
+  box-shadow: inset 0 0 0 1.5px rgb(var(--k-ivory) / 0.2);
+  transition:
+    translate 0.4s cubic-bezier(0.3, 1.5, 0.5, 1),
+    scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1),
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.ks .ob-roles button:active {
+  scale: 0.97;
+}
+.ks .ob-roles button[aria-checked="true"] {
+  translate: 0 -4px;
+  background: rgb(var(--k-info) / 0.14);
+  box-shadow:
+    inset 0 0 0 2.5px rgb(var(--k-info)),
+    0 18px 26px -18px rgb(20 18 30 / 0.7);
+}
+.ks .ob-roles button:focus-visible {
+  outline: 3px solid rgb(var(--k-info));
+  outline-offset: 3px;
+}
+.ks .ob-roles b {
+  font-family: var(--font-young-serif), Georgia, serif;
+  font-size: 21px;
+  font-weight: 400;
   line-height: 1.15;
 }
-.ks .ob-land p {
+.ks .ob-roles span {
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+.ks .ob-roles svg {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: rgb(var(--k-ivory) / 0.35);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ks .ob-roles svg circle {
+  transition:
+    fill 0.25s,
+    stroke 0.25s;
+}
+.ks .ob-roles svg path {
+  stroke: rgb(var(--k-surface));
+  stroke-width: 2.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.35s 0.08s ease-out;
+}
+.ks .ob-roles [aria-checked="true"] svg circle {
+  fill: rgb(var(--k-info));
+  stroke: rgb(var(--k-info));
+}
+.ks .ob-roles [aria-checked="true"] svg path {
+  stroke-dashoffset: 0;
+}
+
+/* the plan: its name, its price, a short why, the answers it turned on, and the site's own button */
+.ks .ob-plan {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.ks .ob-plan p {
   margin: 0;
-  font-size: 16px;
+  font-size: 16.5px;
   font-weight: 600;
   line-height: 1.45;
 }
-.ks .ob-link .btn {
-  margin-top: 16px;
+.ks.lit .ob-plan .ob-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgb(var(--k-info));
+}
+.ks .ob-plan ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ks .ob-plan li {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgb(var(--k-info) / 0.12);
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.ks .ob-plan .btn {
+  margin-top: 6px;
   justify-content: center;
   border: 0;
   cursor: pointer;
   font: inherit;
   font-weight: 800;
 }
-.ks .ob-after ol {
-  list-style: none;
-  margin: 8px 0 14px;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-}
-.ks .ob-after li {
-  display: grid;
-  gap: 1px;
-  padding-left: 16px;
-  border-left: 3px solid rgb(var(--k-info) / 0.55);
-  font-size: 15.5px;
-  line-height: 1.4;
-}
-.ks .ob-after li b {
-  font-weight: 800;
-}
-.ks .ob-after .rs-why {
+.ks .ob-plan .rs-why {
   margin-left: 0;
+}
+.ks .ob-plan .ob-also {
+  padding-top: 12px;
+  border-top: 1px solid rgb(var(--k-ivory) / 0.14);
+  font-size: 15px;
+  width: 100%;
+}
+.ks .ob-quiet {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  font-size: 15.5px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }

@@ -4,6 +4,7 @@ import { RESERVE } from "@/lib/marketing/reserve-copy";
 import RegistrationFlight from "@/components/site/reserve/RegistrationFlight";
 import { confirmPaid, findReservation } from "@/lib/reserve/service";
 import "@/app/onboarding/intake.css";
+import "@/app/onboarding/landing.css";
 
 export const metadata = { title: "Karman Prep: Your seat", robots: { index: false } };
 export const dynamic = "force-dynamic";

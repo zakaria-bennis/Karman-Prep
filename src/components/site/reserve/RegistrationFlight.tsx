@@ -10,6 +10,7 @@
 // Words: reserve-copy.ts (start). Styles: app/onboarding/intake.css.
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Guide } from "@/app/onboarding/_steps/Guide";
+import { Progress, ScoreField } from "@/app/onboarding/_steps/Parts";
 import { saveStart } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { okScore } from "@/lib/marketing/lead-rules";
@@ -20,9 +21,10 @@ import { Observatory } from "./Observatory";
 const W = RESERVE.start;
 const STEPS = ["hello", "score", "goal", "gap", "hardest", "times", "note", "done"] as const;
 type Step = (typeof STEPS)[number];
+/** The steps that ask something: one segment of the progress each. */
+const QUESTIONS: Step[] = ["score", "goal", "hardest", "times", "note"];
 type Hardest = (typeof HARDEST)[number];
 type Time = (typeof CLASS_TIMES)[number];
-const digits = (v: string) => v.replace(/\D/g, "").slice(0, 4);
 /** Where each step is along the landscape's route: from above the clouds (0) down into the valley. */
 const LEG = 0.065;
 /** How far the view may drift on by itself while a question is on screen. */
@@ -138,7 +140,6 @@ export default function RegistrationFlight({
     done: say(W.done),
   };
   const moment = at === "hello" || at === "gap" || at === "done";
-  const along = Math.max(0.06, step / (STEPS.length - 1));
 
   /** The student's own link: shared with the phone's share sheet where there is one, or copied. */
   const send = async () => {
@@ -159,26 +160,16 @@ export default function RegistrationFlight({
   };
 
   const number = (value: string, set: (v: string) => void, label: string, off = false) => (
-    <label
-      className="rs-pill ob-num"
-      data-bad={bad ? true : undefined}
-      data-filled={value ? true : undefined}
-    >
-      <span>{label}</span>
-      <input
-        type="text"
-        inputMode="numeric"
-        autoComplete="off"
-        maxLength={4}
-        disabled={off}
-        value={off ? "" : value}
-        aria-invalid={bad ? true : undefined}
-        onChange={(e) => {
-          set(digits(e.target.value));
-          if (bad) setBad("");
-        }}
-      />
-    </label>
+    <ScoreField
+      label={label}
+      value={value}
+      bad={!!bad}
+      off={off}
+      onChange={(v) => {
+        set(v);
+        if (bad) setBad("");
+      }}
+    />
   );
 
   const body: Partial<Record<Step, ReactNode>> = {
@@ -325,40 +316,15 @@ export default function RegistrationFlight({
   return (
     <div className="ob" data-landed={at === "done" || undefined}>
       {at === "done" ? <Observatory /> : null}
+      {at === "done" || at === "hello" ? null : (
+        <Progress
+          total={QUESTIONS.length}
+          at={QUESTIONS.indexOf(at) + 1 || QUESTIONS.indexOf("goal") + 2}
+          onBack={back}
+          canBack={step > 0 && !busy}
+        />
+      )}
       <div className="ob-in">
-        {at === "done" ? null : (
-          <div
-            className="ob-trail"
-            style={{ "--at": along } as React.CSSProperties}
-            role="progressbar"
-            aria-label="Progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(along * 100)}
-          >
-            <button
-              type="button"
-              className="ob-back"
-              onClick={back}
-              disabled={step === 0 || busy}
-              aria-label="Back"
-            >
-              <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
-                <path
-                  d="M12 4l-6 6 6 6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <i />
-            <b />
-          </div>
-        )}
-
         {moment ? null : <Guide say={said[at]} />}
 
         <form
@@ -388,7 +354,7 @@ export default function RegistrationFlight({
             landing
           ) : (
             // outside the card on purpose: on a phone it is fixed to the bottom of the screen
-            <div className="ob-go">
+            <div className="ob-go" data-centre={at === "hello" || undefined}>
               <button
                 type="submit"
                 className="btn"

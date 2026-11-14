@@ -32,6 +32,13 @@ const impact = localFont({
  *  visitor's own choice, which then wins. Runs before paint. Without scripts the page stays dark. */
 const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="dark"&&m!=="light")m=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
 
+/** Someone already signed in is a client, not a prospect (founder, 2026-11-14): the header offers their
+ *  portal in place of "Sign in" and "Get started". Clerk keeps a small readable cookie that says a session
+ *  exists (its value is a time, or 0 when signed out), so this is known before the page paints, with no
+ *  Clerk code and no server work on the marketing pages. ShellBehaviour does the same for the page's other
+ *  sign-up buttons. */
+const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie))document.getElementById("ks").dataset.in="1"}catch(e){}`;
+
 /** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
  *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
  *  this shows everything at once. Without scripts at all, NO_SCRIPT_REVEAL does the same. */
@@ -198,6 +205,7 @@ export default function SitePage({
       suppressHydrationWarning
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: SIGNED_IN_BOOT }} />
       <script dangerouslySetInnerHTML={{ __html: TEXT_SIZE_BOOT }} />
       <script dangerouslySetInnerHTML={{ __html: REVEAL_FAILSAFE }} />
       <noscript>
@@ -221,11 +229,14 @@ export default function SitePage({
             <a className="nl" href={ROUTES.pricing}>
               {SITE["pricing link"]}
             </a>
-            <a className="nl si" href={ROUTES.signIn}>
+            <a className="nl si when-out" href={ROUTES.signIn}>
               {SITE["sign in link"]}
             </a>
-            <a className="cta" href={ROUTES.signUp}>
+            <a className="cta when-out" href={ROUTES.signUp}>
               {SITE["start free"]}
+            </a>
+            <a className="cta when-in" href={ROUTES.portal}>
+              {SITE["portal link"]}
             </a>
             <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
               <span>{SITE.menu}</span>

@@ -13,6 +13,7 @@ import { litFonts } from "@/components/site/home/fonts";
 import RegistrationFlight from "@/components/site/reserve/RegistrationFlight";
 import "@/app/(site)/site-styles";
 import "@/app/onboarding/intake.css";
+import "@/app/onboarding/landing.css";
 
 export const metadata: Metadata = {
   title: "Registration flight (dev)",

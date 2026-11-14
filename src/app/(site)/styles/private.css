@@ -137,6 +137,9 @@
 
 /* ---------- 4. the free call: frosted-glass pills, straight on the landscape ---------- */
 .ks .pv-close .pg-in { justify-items: center; text-align: center; }
+/* the call form by itself (/call): the same form, under the header, with its headline at the size of a section's */
+.ks .pv-alone { padding-top: 120px; }
+.ks.lit .pv-alone h1 { margin: 0; font-size: clamp(30px, 4vw, 46px); line-height: 1.08; text-wrap: balance; }
 .ks .cf { --glass: rgba(255, 253, 248, .3); --edge: rgba(255, 255, 255, .7); width: min(100%, 900px); display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 16px clamp(16px, 2.4vw, 30px); align-items: start; text-align: left; color: var(--ink); }
 .ks :is(.cf-pill, .cf-when, .cf-done) { background: var(--glass); -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6); box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1px color-mix(in srgb, var(--edge) 55%, transparent), 0 20px 40px -26px rgba(29, 26, 34, .55); }
 .ks .cf-fields { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }

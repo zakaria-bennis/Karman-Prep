@@ -1,28 +1,22 @@
 "use client";
 
 // ============================================================
-// OnboardingClient: the guided intake that ends in a plan recommendation.
+// OnboardingClient: the plan-finder. Eight short questions, then the plan that fits.
 //
-// Rebuilt on what Duolingo's onboarding does well (founder, 2026-11-13; the study and what transfers are in
-// docs/forms/onboarding-notes.md), in Karman's own look:
-//   - it starts before any account exists: the questions come first, and the account is asked for at the
-//     end, to save the plan (value before sign-up);
-//   - Karman the fox guides it: he says how long this takes, reacts to answers and never scolds;
-//   - it is a flight seen through the bird's own eyes: the live landscape moves forward with each answer;
-//   - one question to a screen, a bar that starts part-filled, and the main button in reach of the thumb;
-//   - the scores get an answer of their own (the gap, said plainly), so the questions feel used;
-//   - practice is chosen in small daily minutes, and that button names the commitment;
-//   - answers survive a refresh and the trip to sign-up and back.
+// - It starts before any account exists: the questions come first, and the account is asked for at the
+//   end, to save the plan.
+// - Karman the fox guides it. It is a flight seen through a bird's eyes: the live landscape moves forward
+//   with each answer.
+// - One question to a screen, centred, with a segmented progress and the main button in reach of the thumb.
+// - Every question is one a test prep company needs to place a student, and every answer feeds the plan
+//   (lib/onboarding/recommend-plan.ts). The SAT only: Karman does not teach the PSAT.
+// - Answers survive a refresh and the trip to sign-up and back.
 //
-// Step flow:
-//   hello, role (a parent goes to the parent portal), test and date, starting score, goal score,
-//   the gap (the fox's answer), daily minutes, independence, pace, prior prep, building, recommendation.
-//
-// Tutors come in through a separate URL; they don't need this flow.
+// A parent is not asked the questions: "I'm a parent" opens the parent portal.
+// Words: _steps/shared.ts. Styles: intake.css.
 // ============================================================
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Target, Compass, Gauge, History } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   planSummary,
   recommendPlan,
@@ -31,39 +25,53 @@ import {
   type LearningPace,
   type PriorPrepResult,
 } from "@/lib/onboarding/recommend-plan";
-import { COPY, GUIDE, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
-import { Guide } from "./_steps/Guide";
-import { MinutesStep, hoursFromMinutes } from "./_steps/MinutesStep";
-import { RoleStep } from "./_steps/RoleStep";
-import { SatStep } from "./_steps/SatStep";
-import { ScoreStep } from "./_steps/ScoreStep";
-import { BaselineStep } from "./_steps/BaselineStep";
-import { ChoiceStep } from "./_steps/ChoiceStep";
-import { RecommendationStep } from "./_steps/RecommendationStep";
-import type { TestType } from "@/components/student-portal/settings/test-dates";
+import { okScore } from "@/lib/marketing/lead-rules";
 import { track } from "@/lib/analytics/client";
+import { FINDER as W, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
+import { Guide } from "./_steps/Guide";
+import { Options, Progress, ScoreField } from "./_steps/Parts";
+import { RecommendationStep } from "./_steps/RecommendationStep";
+import { startParentAccountAction } from "./parent-action";
 
-const KEEP = "karman:intake";
-const planHref = (r: Recommendation) => planSummary(r.planId).href;
+const KEEP = "karman:finder";
+const NOT_SURE = "not_sure";
 const STEPS = [
   "hello",
   "role",
-  "sat",
-  "baseline",
+  "month",
+  "score",
   "goal",
   "gap",
-  "minutes",
-  "independence",
-  "pace",
+  "time",
+  "study",
+  "miss",
   "prior",
   "building",
-  "recommendation",
+  "plan",
 ] as const;
 type StepName = (typeof STEPS)[number];
+/** The fox's own moments: no question, so no segment and Back steps over them. */
+const MOMENTS: StepName[] = ["hello", "gap", "building"];
+const QUESTIONS = STEPS.filter((s) => !MOMENTS.includes(s) && s !== "plan");
+const pairs = <T extends string>(o: Record<T, string>) => Object.entries(o) as [T, string][];
+
+/** "December", "March": the month of each coming SAT, with the year only where a month comes twice. */
+function monthsOf(dates: string[]): [string, string][] {
+  const name = (iso: string, year: boolean) =>
+    new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", {
+      month: "long",
+      year: year ? "numeric" : undefined,
+      timeZone: "UTC",
+    });
+  const first = dates.slice(0, 5);
+  return first.map((iso) => [
+    iso,
+    name(iso, first.filter((d) => d.slice(5, 7) === iso.slice(5, 7)).length > 1),
+  ]);
+}
 
 export default function OnboardingClient({
   satDates,
-  today,
   signedIn,
 }: {
   /** Whether an account is already signed in. Signed out, the plan is shown first and the account is
@@ -71,36 +79,31 @@ export default function OnboardingClient({
   signedIn: boolean;
   /** Upcoming SAT dates (YYYY-MM-DD) from the sat_dates table. */
   satDates: string[];
-  /** Today (YYYY-MM-DD), the earliest PSAT date. */
-  today: string;
 }) {
-  // The funnel's "signed up" step: counted once an account reaches the intake.
   useEffect(() => {
     if (signedIn) track("signup");
   }, [signedIn]);
-  // ─── Form state ──────────────────────────────────────────
-  const [role, setRole] = useState<Role>("student");
-  const [testType, setTestType] = useState<TestType>("sat");
-  const [satDate, setSatDate] = useState<string>("");
-  const [goalScore, setGoalScore] = useState<number>(1300);
-  const [hasBaseline, setHasBaseline] = useState<"" | "yes" | "no">("");
-  const [baselineScore, setBaselineScore] = useState<number>(1000);
-  const [minutes, setMinutes] = useState<number | null>(null);
-  const hoursPerWeek = hoursFromMinutes(minutes ?? 20);
-  const [independence, setIndependence] = useState<Independence | "">("");
-  const [pace, setPace] = useState<LearningPace | "">("");
-  const [priorPrep, setPriorPrep] = useState<PriorPrepResult | "">("");
 
-  const copy = COPY.student;
+  const [role, setRole] = useState<Role | null>(null);
+  const [satDate, setSatDate] = useState("");
+  const [score, setScore] = useState("");
+  const [noScore, setNoScore] = useState(false);
+  const [goal, setGoal] = useState("");
+  const [hours, setHours] = useState<number | null>(null);
+  const [study, setStudy] = useState<Independence | null>(null);
+  const [miss, setMiss] = useState<LearningPace | null>(null);
+  const [prior, setPrior] = useState<PriorPrepResult | null>(null);
+
   const [step, setStep] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-
   const [dir, setDir] = useState<1 | -1>(1);
+  const [bad, setBad] = useState("");
   const [ready, setReady] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [parentBusy, startParent] = useTransition();
   const since = useRef(0);
-  const totalSteps = STEPS.length;
-  const currentStep: StepName = STEPS[step];
-  const isLast = step === totalSteps - 1;
+  const card = useRef<HTMLFormElement>(null);
+  const at: StepName = STEPS[step];
+  const months = useMemo(() => monthsOf(satDates), [satDates]);
 
   // answers survive a refresh, and the trip to create an account and back (this tab only)
   useEffect(() => {
@@ -108,22 +111,19 @@ export default function OnboardingClient({
       const k = JSON.parse(sessionStorage.getItem(KEEP) ?? "null");
       if (k && typeof k.step === "number") {
         setRole(k.role);
-        setTestType(k.testType);
         setSatDate(k.satDate);
-        setGoalScore(k.goalScore);
-        setHasBaseline(k.hasBaseline);
-        setBaselineScore(k.baselineScore);
-        setMinutes(k.minutes);
-        setIndependence(k.independence);
-        setPace(k.pace);
-        setPriorPrep(k.priorPrep);
+        setScore(k.score);
+        setNoScore(k.noScore);
+        setGoal(k.goal);
+        setHours(k.hours);
+        setStudy(k.study);
+        setMiss(k.miss);
+        setPrior(k.prior);
         // "building" is a passing moment: come back to the plan itself
-        setStep(
-          Math.min(k.step === STEPS.indexOf("building") ? k.step + 1 : k.step, STEPS.length - 1)
-        );
+        setStep(Math.min(STEPS[k.step] === "building" ? k.step + 1 : k.step, STEPS.length - 1));
       }
     } catch {
-      // a private window may refuse storage: the intake still works, it just starts fresh
+      // a private window may refuse storage: the plan-finder still works, it just starts fresh
     }
     setReady(true);
   }, []);
@@ -132,43 +132,20 @@ export default function OnboardingClient({
     try {
       sessionStorage.setItem(
         KEEP,
-        JSON.stringify({
-          step,
-          role,
-          testType,
-          satDate,
-          goalScore,
-          hasBaseline,
-          baselineScore,
-          minutes,
-          independence,
-          pace,
-          priorPrep,
-        })
+        JSON.stringify({ step, role, satDate, score, noScore, goal, hours, study, miss, prior })
       );
     } catch {
       // see above
     }
-  }, [
-    ready,
-    step,
-    role,
-    testType,
-    satDate,
-    goalScore,
-    hasBaseline,
-    baselineScore,
-    minutes,
-    independence,
-    pace,
-    priorPrep,
-  ]);
+  }, [ready, step, role, satDate, score, noScore, goal, hours, study, miss, prior]);
 
-  // each step is measured (never what was answered beyond the step's name), and "building" passes by itself
+  // each step is measured (never what was answered), and "building" passes by itself
   useEffect(() => {
     if (!ready) return;
     since.current = Date.now();
     track("form_step", { form: "onboarding", step: STEPS[step], kind: "view" });
+    if (STEPS[step] === "score" || STEPS[step] === "goal")
+      card.current?.querySelector<HTMLElement>("input[type='text']")?.focus();
     if (STEPS[step] !== "building") return;
     const t = setTimeout(() => {
       setDir(1);
@@ -177,91 +154,83 @@ export default function OnboardingClient({
     return () => clearTimeout(t);
   }, [ready, step]);
 
-  const canAdvance = (() => {
-    switch (currentStep) {
-      case "role":
-        return !!role;
-      case "sat":
-        return !!satDate;
-      case "goal":
-        return goalScore >= 400 && goalScore <= 1600;
-      case "baseline":
-        if (hasBaseline === "") return false;
-        if (hasBaseline === "yes") return baselineScore >= 400 && baselineScore <= 1600;
-        return true;
-      case "minutes":
-        return minutes !== null;
-      case "independence":
-        return !!independence;
-      case "pace":
-        return !!pace;
-      case "prior":
-        return !!priorPrep;
-      default:
-        return true;
-    }
-  })();
+  const answered: Record<StepName, boolean> = {
+    hello: true,
+    role: !!role,
+    month: !!satDate,
+    score: true,
+    goal: true,
+    gap: true,
+    time: hours !== null,
+    study: !!study,
+    miss: !!miss,
+    prior: !!prior,
+    building: true,
+    plan: true,
+  };
 
-  // ─── Compute recommendation ──────────────────────────────
   const recommendation: Recommendation | null = useMemo(() => {
-    if (!independence || !pace || !priorPrep || !satDate) return null;
+    if (!study || !miss || !prior || !satDate || hours === null || !okScore(goal, 400)) return null;
     const weeksToTest =
-      satDate === "not_registered"
+      satDate === NOT_SURE
         ? null
-        : Math.max(
-            1,
-            Math.round((new Date(satDate).getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000))
-          );
+        : Math.max(1, Math.round((new Date(satDate).getTime() - Date.now()) / (7 * 864e5)));
     return recommendPlan({
       weeksToTest,
-      goalScore,
-      baselineScore: hasBaseline === "yes" ? baselineScore : null,
-      hoursPerWeek,
-      independence,
-      pace,
-      priorPrep,
+      goalScore: Number(goal),
+      baselineScore: noScore ? null : Number(score),
+      hoursPerWeek: hours,
+      independence: study,
+      pace: miss,
+      priorPrep: prior,
     });
-  }, [satDate, goalScore, hasBaseline, baselineScore, hoursPerWeek, independence, pace, priorPrep]);
+  }, [satDate, goal, noScore, score, hours, study, miss, prior]);
 
   const move = (to: number) => {
     track("form_step", {
       form: "onboarding",
-      step: currentStep,
+      step: at,
       kind: to > step ? "next" : "back",
       seconds: Math.min(3600, Math.round((Date.now() - since.current) / 1000)),
     });
+    setBad("");
     setDir(to > step ? 1 : -1);
     setStep(to);
   };
+  const fail = () => {
+    setBad(W.errors.score);
+    card.current?.querySelector<HTMLElement>("input[type='text']")?.focus();
+  };
   function next() {
-    if (canAdvance && step < totalSteps - 1) move(step + 1);
+    if (!answered[at]) return;
+    if (at === "score" && !noScore && !okScore(score, 400)) return fail();
+    if (at === "goal" && !okScore(goal, 400)) return fail();
+    if (at === "role" && role === "parent")
+      return startParent(async () => {
+        const result = await startParentAccountAction();
+        if (result?.error) setBad(result.error);
+      });
+    if (step < STEPS.length - 1) move(step + 1);
   }
   function back() {
-    // "the gap" and "building" are the fox's moments, not questions: Back steps over them
     let to = step - 1;
-    while (to > 0 && (STEPS[to] === "building" || (STEPS[to] === "gap" && to !== step - 1)))
-      to -= 1;
+    while (to > 0 && MOMENTS.includes(STEPS[to])) to -= 1;
     if (step > 0) move(Math.max(0, to));
   }
 
-  /** Signed in: saves the account (role included), then opens the plan's next step. Signed out: the
-   *  answers are already kept, so the visitor makes an account and comes straight back to this plan. */
+  /** Signed in: opens the plan's next step. Signed out: the answers are already kept, so the visitor
+   *  makes an account and comes straight back to this plan. */
   async function continueTo(href: string) {
     setSubmitting(true);
     if (!signedIn) {
-      track("form_step", {
-        form: "onboarding",
-        step: "recommendation",
-        kind: "choice",
-        value: "sign_up",
-      });
+      track("form_step", { form: "onboarding", step: "plan", kind: "choice", value: "sign_up" });
       window.location.assign("/auth/sign-up?redirect_url=/onboarding");
       return;
     }
     await fetch("/api/auth/sync-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role }),
+      body: JSON.stringify({ role: "student" }),
     }).catch(() => {});
     try {
       sessionStorage.removeItem(KEEP);
@@ -271,175 +240,219 @@ export default function OnboardingClient({
     window.location.assign(href);
   }
 
-  const said =
-    currentStep === "gap"
-      ? gapLine(hasBaseline === "yes" ? baselineScore : null, goalScore)
-      : GUIDE[currentStep as keyof typeof GUIDE];
-  const moment = currentStep === "hello" || currentStep === "gap" || currentStep === "building";
-  const nextLabel =
-    currentStep === "hello"
-      ? "Take off"
-      : currentStep === "minutes"
-        ? "That's my pace"
-        : "Continue";
+  const said: Record<StepName, string> = {
+    hello: W.hello,
+    role: W.role.say,
+    month: W.month.say,
+    score: W.score.say,
+    goal: W.goal.say,
+    gap: gapLine(noScore || !score ? null : Number(score), Number(goal)),
+    time: W.time.say,
+    study: W.study.say,
+    miss: W.miss.say,
+    prior: W.prior.say,
+    building: W.building,
+    plan: W.plan.say,
+  };
+  const moment = MOMENTS.includes(at);
+  const isLast = at === "plan";
 
   // The landscape flies forward with each answer; at the plan it reaches the country of the page the plan
   // leads to, so the same landscape is there when the visitor arrives.
   const landing =
-    isLast && recommendation ? (LANDING[planHref(recommendation)] ?? LANDING["/pricing"]) : null;
-  const flown = flownAt(step, totalSteps, landing);
+    isLast && recommendation
+      ? (LANDING[planSummary(recommendation.planId).href] ?? LANDING["/pricing"])
+      : null;
+  const flown = flownAt(step, STEPS.length, landing);
   useEffect(() => {
     const ks = document.getElementById("ks");
     if (ks) ks.dataset.flown = String(flown);
     document.dispatchEvent(new CustomEvent("karman:fly", { detail: flown }));
   }, [flown]);
 
-  const along = Math.max(0.06, (step + 1) / totalSteps);
+  const question = QUESTIONS.indexOf(at as (typeof QUESTIONS)[number]) + 1;
+  const progressAt = question || QUESTIONS.filter((q) => STEPS.indexOf(q) < step).length + 1;
+
   return (
     <div className="ob">
+      {at === "hello" ? null : (
+        <Progress
+          total={QUESTIONS.length}
+          at={isLast || at === "building" ? QUESTIONS.length + 1 : progressAt}
+          onBack={back}
+          canBack={step > 0 && !parentBusy}
+        />
+      )}
       <div className="ob-in">
-        {/* the route flown so far: a dotted trail with a marker where the visitor is */}
-        <div
-          className="ob-trail"
-          style={{ "--at": along } as React.CSSProperties}
-          role="progressbar"
-          aria-label="Progress"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(along * 100)}
-        >
-          <button
-            type="button"
-            className="ob-back"
-            onClick={back}
-            disabled={step === 0}
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <i />
-          <b />
-        </div>
-
-        {moment ? null : <Guide say={said} />}
-
-        <div
-          key={currentStep}
-          className={moment ? undefined : "ob-card"}
+        {moment ? null : <Guide say={said[at]} />}
+        <form
+          key={at}
+          ref={card}
+          className="rs-start"
           style={{ "--guide-from": `${dir * 22}px` } as React.CSSProperties}
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            next();
+          }}
         >
-          {moment ? <Guide say={said} big /> : null}
-
-          {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}
-
-          {currentStep === "sat" && (
-            <SatStep
-              prompt={copy.sat}
-              testType={testType}
-              onTestType={setTestType}
-              value={satDate}
-              onChange={setSatDate}
-              satDates={satDates}
-              today={today}
-            />
+          {moment ? (
+            <Guide say={said[at]} big />
+          ) : (
+            <div className="ob-card rs-start">
+              {at === "role" && (
+                <>
+                  <h1>{W.role.headline}</h1>
+                  <div className="ob-roles" role="radiogroup" aria-label={W.role.headline}>
+                    {(["student", "parent"] as const).map((r) => (
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={role === r}
+                        key={r}
+                        onClick={() => {
+                          setRole(r);
+                          setBad("");
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10.5" />
+                          <path pathLength={1} d="M7 12.500l3.300 3.300L17 9" />
+                        </svg>
+                        <b>{W.role[r][0]}</b>
+                        <span>{W.role[r][1]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              {at === "month" && (
+                <>
+                  <h1>{W.month.headline}</h1>
+                  <Options
+                    label={W.month.headline}
+                    options={[...months, [NOT_SURE, W.month.notSure]]}
+                    value={satDate || null}
+                    onChange={setSatDate}
+                  />
+                </>
+              )}
+              {at === "score" && (
+                <>
+                  <h1>{W.score.headline}</h1>
+                  <ScoreField
+                    label={W.score.field}
+                    value={score}
+                    bad={!!bad}
+                    off={noScore}
+                    onChange={(v) => {
+                      setScore(v);
+                      setBad("");
+                    }}
+                  />
+                  <label className="ob-tick">
+                    <input
+                      type="checkbox"
+                      checked={noScore}
+                      onChange={(e) => {
+                        setNoScore(e.target.checked);
+                        setBad("");
+                      }}
+                    />
+                    <span>{W.score.none}</span>
+                  </label>
+                </>
+              )}
+              {at === "goal" && (
+                <>
+                  <h1>{W.goal.headline}</h1>
+                  <ScoreField
+                    label={W.goal.field}
+                    value={goal}
+                    bad={!!bad}
+                    onChange={(v) => {
+                      setGoal(v);
+                      setBad("");
+                    }}
+                  />
+                </>
+              )}
+              {at === "time" && (
+                <>
+                  <h1>{W.time.headline}</h1>
+                  <Options
+                    label={W.time.headline}
+                    options={W.time.options}
+                    value={hours}
+                    onChange={setHours}
+                  />
+                </>
+              )}
+              {at === "study" && (
+                <>
+                  <h1>{W.study.headline}</h1>
+                  <Options
+                    label={W.study.headline}
+                    options={pairs(W.study.options)}
+                    value={study}
+                    onChange={setStudy}
+                  />
+                </>
+              )}
+              {at === "miss" && (
+                <>
+                  <h1>{W.miss.headline}</h1>
+                  <Options
+                    label={W.miss.headline}
+                    options={pairs(W.miss.options)}
+                    value={miss}
+                    onChange={setMiss}
+                  />
+                </>
+              )}
+              {at === "prior" && (
+                <>
+                  <h1>{W.prior.headline}</h1>
+                  <Options
+                    label={W.prior.headline}
+                    options={pairs(W.prior.options)}
+                    value={prior}
+                    onChange={setPrior}
+                  />
+                </>
+              )}
+              {isLast && recommendation ? (
+                <RecommendationStep
+                  recommendation={recommendation}
+                  onContinue={continueTo}
+                  submitting={submitting}
+                  signedIn={signedIn}
+                />
+              ) : null}
+              {bad ? (
+                <p className="rs-msg" role="alert">
+                  {bad}
+                </p>
+              ) : null}
+            </div>
           )}
-
-          {currentStep === "goal" && (
-            <ScoreStep
-              prompt={copy.goal}
-              value={goalScore}
-              onChange={setGoalScore}
-              icon={<Target className="h-5 w-5 text-info" />}
-            />
-          )}
-
-          {currentStep === "baseline" && (
-            <BaselineStep
-              prompt={copy.baselineQ}
-              yesLabel={copy.baselineYes}
-              noLabel={copy.baselineNo}
-              has={hasBaseline}
-              onPickHas={setHasBaseline}
-              score={baselineScore}
-              onScoreChange={setBaselineScore}
-            />
-          )}
-
-          {currentStep === "minutes" && (
-            <MinutesStep prompt={copy.minutes} value={minutes} onChange={setMinutes} />
-          )}
-
-          {currentStep === "independence" && (
-            <ChoiceStep
-              icon={<Compass className="h-5 w-5 text-info" />}
-              prompt={copy.indeQ}
-              options={[
-                { id: "on_my_own", label: copy.indeOnOwn },
-                { id: "with_checkins", label: copy.indeCheckins },
-                { id: "needs_structure", label: copy.indeStructure },
-              ]}
-              value={independence}
-              onChange={(v) => setIndependence(v as Independence)}
-            />
-          )}
-
-          {currentStep === "pace" && (
-            <ChoiceStep
-              icon={<Gauge className="h-5 w-5 text-info" />}
-              prompt={copy.paceQ}
-              options={[
-                { id: "quick", label: copy.paceQuick },
-                { id: "average", label: copy.paceAvg },
-                { id: "slower", label: copy.paceSlow },
-              ]}
-              value={pace}
-              onChange={(v) => setPace(v as LearningPace)}
-            />
-          )}
-
-          {currentStep === "prior" && (
-            <ChoiceStep
-              icon={<History className="h-5 w-5 text-info" />}
-              prompt={copy.priorQ}
-              options={[
-                { id: "first_time", label: copy.priorFirst },
-                { id: "worked", label: copy.priorWorked },
-                { id: "didnt_move", label: copy.priorFlat },
-              ]}
-              value={priorPrep}
-              onChange={(v) => setPriorPrep(v as PriorPrepResult)}
-            />
-          )}
-
-          {currentStep === "recommendation" && recommendation && (
-            <RecommendationStep
-              recommendation={recommendation}
-              onContinue={continueTo}
-              submitting={submitting}
-              role={role}
-              signedIn={signedIn}
-            />
-          )}
-        </div>
-
-        {/* the main button stays at the bottom of the screen on a phone, where the thumb is */}
-        {!isLast && currentStep !== "building" ? (
-          <div className="ob-go">
-            {/* the site dresses its buttons as the page starts, before React takes over: that is expected */}
-            <button
-              type="button"
-              className="btn"
-              onClick={next}
-              disabled={!canAdvance}
-              suppressHydrationWarning
-            >
-              <span className="lb">{nextLabel}</span>
-              <span className="go">
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            </button>
-          </div>
-        ) : null}
+          {/* outside the card on purpose: on a phone it is fixed to the bottom of the screen */}
+          {!isLast && at !== "building" ? (
+            <div className="ob-go" data-centre={at === "hello" || undefined}>
+              <button
+                type="submit"
+                className="btn"
+                disabled={!answered[at]}
+                data-busy={parentBusy || undefined}
+                suppressHydrationWarning
+              >
+                <span className="lb">
+                  {at === "hello" ? W.helloButton : parentBusy ? W.role.parentBusy : W.next}
+                </span>
+              </button>
+            </div>
+          ) : null}
+        </form>
       </div>
     </div>
   );

@@ -89,3 +89,21 @@ bear, Scout the wolf pup.
 
 Not built yet: a first practice question before the account, a reminder step, sound, and a moving hand-over
 between the intake and the next page (today the next page simply opens on the same stretch of landscape).
+
+## Update, 2026-11-14 (founder's review)
+
+This supersedes anything above that disagrees with it.
+
+- Karman the fox guides alone. Ollie is not in the plan-finder or the registration flight.
+- The plan-finder asks only what a test prep company needs to place a student: who it is for, which SAT
+  month (no PSAT, no exact days), latest score, goal score, hours a week, how they study best, what helps
+  when they miss a question, and whether they prepped before. Words: `src/app/onboarding/_steps/shared.ts`.
+- Study time is asked in hours a week (2 to 3, 4 to 6, 7 to 10, more than 10), not Duolingo-style daily
+  minutes. The fox cites the College Board and Khan Academy finding that 20 hours of practice went with an
+  average 115-point gain.
+- Scores are typed (400 to 1600, in tens) into a pill whose label rises, with a slider under it.
+- Progress is segmented, one segment a question, pinned under the header. Each question is centred.
+- The plan: the cohort is the default; private tutoring only when the cohort cannot get the student there;
+  Pro before Practice. The rules are at the top of `src/lib/onboarding/recommend-plan.ts`.
+- A private-tutoring plan leads to `/call`, the call booking by itself (first name, last name, email, phone).
+- No dashes in questions or answers. "Improved", never "moved".
