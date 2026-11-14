@@ -753,3 +753,8 @@ html:has(.cb-page)::view-transition-new(root) {
     animation: none;
   }
 }
+
+/* Apple's logo is black, and the pills are dark by day and by night: it is drawn white so it can be seen */
+.ks .cb .cl-socialButtonsProviderIcon__apple {
+  filter: invert(1) brightness(2);
+}
