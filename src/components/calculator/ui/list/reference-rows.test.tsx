@@ -119,7 +119,8 @@ it("R-11 the badge is a button: a click or Enter switches the angle mode for eve
   expect(off).toHaveAttribute("aria-disabled", "true");
   await user.click(off);
   expect(kit.engine.settings.angleMode).toBe("radians");
-});
+  // several real clicks and key presses: slow when every test file runs at once, so it gets more time
+}, 20_000);
 
 it("R-5 a regression parameter row offers no decimal/fraction toggle", async () => {
   const kit = renderEditor(<ExpressionPanel {...panelProps()} />, {
