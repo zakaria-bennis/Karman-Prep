@@ -7,7 +7,8 @@
 // docs/forms/onboarding-notes.md), in Karman's own look:
 //   - it starts before any account exists: the questions come first, and the account is asked for at the
 //     end, to save the plan (value before sign-up);
-//   - the fox guides it: it says how long this takes, reacts to answers and never scolds;
+//   - Karman the fox guides it: he says how long this takes, reacts to answers and never scolds;
+//   - it is a flight seen through the bird's own eyes: the live landscape moves forward with each answer;
 //   - one question to a screen, a bar that starts part-filled, and the main button in reach of the thumb;
 //   - the scores get an answer of their own (the gap, said plainly), so the questions feel used;
 //   - practice is chosen in small daily minutes, and that button names the commitment;
@@ -32,7 +33,6 @@ import {
 } from "@/lib/onboarding/recommend-plan";
 import { COPY, GUIDE, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
 import { Crew, Guide } from "./_steps/Guide";
-import { Ollie } from "./_steps/Ollie";
 import { MinutesStep, hoursFromMinutes } from "./_steps/MinutesStep";
 import { RoleStep } from "./_steps/RoleStep";
 import { SatStep } from "./_steps/SatStep";
@@ -298,7 +298,7 @@ export default function OnboardingClient({
   return (
     <div className="ob">
       <div className="ob-in">
-        {/* the route: Ollie flies it as the answers come in */}
+        {/* the route flown so far: a dotted trail with a marker where the visitor is */}
         <div
           className="ob-trail"
           style={{ "--at": along } as React.CSSProperties}
@@ -318,7 +318,7 @@ export default function OnboardingClient({
             <ArrowLeft className="h-5 w-5" />
           </button>
           <i />
-          <Ollie size={70} />
+          <b />
         </div>
 
         {moment ? null : <Guide say={said} />}
@@ -328,12 +328,7 @@ export default function OnboardingClient({
           className={moment ? undefined : "ob-card"}
           style={{ "--guide-from": `${dir * 22}px` } as React.CSSProperties}
         >
-          {moment ? (
-            <div className="ob-sky">
-              <Ollie size={168} />
-              <Guide say={said} big />
-            </div>
-          ) : null}
+          {moment ? <Guide say={said} big /> : null}
           {isLast ? <Crew /> : null}
 
           {currentStep === "role" && <RoleStep role={role} onPick={setRole} />}

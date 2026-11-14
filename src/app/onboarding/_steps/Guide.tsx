@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Pet, type PetHandle } from "@/components/rewards/companion/Pet";
 import type { AnimalId } from "@/lib/rewards/catalog";
 
-/** The companions by name. Karman the fox and Ollie the owl are the founder's names (2026-11-13); the
- *  other four are suggestions until he confirms them. */
+/** The earnable companions from the quiz engine (rewards/animals.ts): faces, as the founder drew them.
+ *  Karman the fox and Ollie the owl are his names (2026-11-13); the other four are suggestions until he
+ *  confirms them. */
 export const CREW: [AnimalId, string][] = [
   ["bunny", "Pip"],
   ["cat", "Mochi"],
+  ["owl", "Ollie"],
   ["fox", "Karman"],
   ["bear", "Bruno"],
   ["wolf", "Scout"],
@@ -16,7 +18,7 @@ export const CREW: [AnimalId, string][] = [
 
 /**
  * Karman the fox, guiding the intake: he says one short line and gives a small cheer each time the line
- * changes. On the intake's "moments" (the hello, the gap, the plan being made) he stands alone with a large
+ * changes. The visitor has the bird's view: the landscape is flown in the first person, so no bird is drawn. On the intake's "moments" (the hello, the gap, the plan being made) he stands alone with a large
  * line and no card.
  */
 /** True once the page is running in the browser. A companion draws itself differently for touch and for a
@@ -37,7 +39,11 @@ export function Guide({ say, big = false }: { say: string; big?: boolean }) {
     <div className={big ? "ob-moment" : "ob-guide"}>
       <div key={big ? "big" : say}>
         {mounted ? (
-          <Pet ref={fox} animal="fox" size={big ? 132 : 64} />
+          <>
+            <Pet ref={fox} animal="fox" size={big ? 132 : 64} />
+            {/* on the big moments Ollie the owl is there too */}
+            {big ? <Pet animal="owl" size={104} /> : null}
+          </>
         ) : (
           <span style={{ display: "block", width: big ? 132 : 64, height: big ? 141 : 68 }} />
         )}

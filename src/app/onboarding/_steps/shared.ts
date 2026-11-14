@@ -26,10 +26,10 @@ export const COPY = {
 } as const;
 
 /** What Karman the fox says at each step (docs/forms/onboarding-notes.md). Short, kind, never guilt. The
- *  intake is a flight: Ollie the owl flies the route, and each answer is a leg of it. */
+ *  intake is a flight seen through a bird's eyes, and each answer is a leg of it. */
 export const GUIDE = {
   hello:
-    "I'm Karman. Ollie's flying us to your plan. Eight quick questions on the way, about a minute.",
+    "I'm Karman, and this is Ollie. Enjoy the view: eight quick questions on the way, about a minute.",
   role: "Before we take off: who's flying with us?",
   sat: "Good. Where are we headed? Pick the test and the date.",
   baseline: "Where are we taking off from? A rough idea is fine.",
