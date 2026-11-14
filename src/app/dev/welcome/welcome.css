@@ -4,6 +4,10 @@
 
 .ks .wl {
   --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+  --a: #2449b8;
+}
+.ks.lit[data-mode="dark"] .wl {
+  --a: #8fb0ff;
 }
 .ks .wl-card {
   animation: wl-pop 0.55s var(--spring) both;
@@ -127,7 +131,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
   animation: wl-fill 0.4s var(--spring) forwards;
   animation-delay: calc(0.5s + var(--i) * 0.14s);
 }
@@ -148,7 +152,7 @@
 .ks .wl-sk-tests span {
   height: 14px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
   overflow: hidden;
 }
 .ks .wl-sk-tests span::after {
@@ -175,7 +179,7 @@
   gap: 12px;
   padding: 10px 14px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  background: color-mix(in srgb, currentColor 7%, transparent);
   font-size: 15px;
   font-weight: 800;
   text-align: left;
@@ -249,7 +253,7 @@
   top: 34px;
   bottom: 0;
   width: 2px;
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  background: color-mix(in srgb, currentColor 18%, transparent);
 }
 .ks .wl-node {
   width: 34px;
@@ -257,7 +261,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 30%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 30%, transparent);
   transition:
     background 0.3s,
     transform 0.45s var(--spring);
@@ -331,7 +335,7 @@
   opacity: 0.35;
 }
 .ks .wl-nav span[data-on] {
-  background: var(--a);
+  background: #2449b8;
   color: #fff;
   transform: scale(1.05) translateX(6px);
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--a) 28%, transparent);
@@ -383,7 +387,7 @@
   margin-right: 9px;
   border-radius: 50%;
   vertical-align: -2px;
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 35%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 35%, transparent);
 }
 @media (max-width: 760px) {
   .ks .wl-portal {

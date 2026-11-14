@@ -33,7 +33,8 @@ export default async function WelcomeDevPage({
         version={version}
         name="Amira"
         plan={PRO_PLAN.name}
-        got={[...PRO_PLAN.includes]}
+        // offer.ts speaks to the parent ("your student"); the welcome speaks to the student
+        got={PRO_PLAN.includes.map((line) => line.replace("your student misses", "you miss"))}
       />
     </SitePage>
   );
