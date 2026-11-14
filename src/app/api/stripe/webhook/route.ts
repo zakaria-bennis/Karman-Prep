@@ -9,6 +9,7 @@
 // Stripe retries the event.
 // ============================================================
 
+import { sendFinishEmail } from "@/lib/checkout/guest";
 import { reservationExpired, settleReservation } from "@/lib/reserve/service";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
@@ -153,6 +154,12 @@ export const POST = withWebhookInstrumentation(
         case "checkout.session.completed":
         case "checkout.session.async_payment_succeeded": {
           const session = event.data.object as Stripe.Checkout.Session;
+          // Paid before having an account (src/lib/checkout/guest.ts): the buyer's account claims
+          // it on /checkout/done. The email carries that link in case the tab was closed.
+          if (session.metadata?.guest === "1") {
+            if (session.payment_status !== "unpaid") await sendFinishEmail(session);
+            break;
+          }
           if (session.mode !== "payment") break;
           if (session.payment_status === "unpaid") {
             // A delayed payment method: async_payment_succeeded follows.

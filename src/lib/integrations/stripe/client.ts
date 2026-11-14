@@ -146,6 +146,45 @@ export async function createCheckoutSession({
 }
 
 /**
+ * Checkout for a visitor who has no account yet (founder, 2026-11-14: pay first, the account comes
+ * after). Stripe makes the customer and takes the email; nothing carries a user id, so the webhook
+ * leaves the purchase alone until the buyer's account claims it (src/lib/checkout/guest.ts).
+ */
+export async function createGuestCheckoutSession({
+  spec,
+  successUrl,
+  cancelUrl,
+}: {
+  spec: StripePriceSpec;
+  successUrl: string;
+  cancelUrl: string;
+}) {
+  const price = await getCheckoutPrice(spec);
+  const metadata = { guest: "1", planId: spec.planId, term: spec.term };
+  const shared: Stripe.Checkout.SessionCreateParams = {
+    line_items: [{ price: price.id, quantity: 1 }],
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata,
+    allow_promotion_codes: true,
+  };
+  if (spec.intervalMonths) {
+    return stripe.checkout.sessions.create({
+      ...shared,
+      mode: "subscription",
+      payment_method_types: [...CARD_METHODS],
+      subscription_data: { metadata: { planId: spec.planId, term: spec.term } },
+    });
+  }
+  return stripe.checkout.sessions.create({
+    ...shared,
+    mode: "payment",
+    customer_creation: "always",
+    payment_intent_data: { metadata: { planId: spec.planId } },
+  });
+}
+
+/**
  * Checkout for a cohort seat reserved from the marketing site, before the student has an account
  * (src/lib/reserve). The same prices and payment methods as a signed-in cohort checkout; the metadata
  * carries the reservation instead of a user, and the webhook settles it by that id.
