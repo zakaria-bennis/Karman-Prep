@@ -20,7 +20,9 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
       (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
     ) ||
     // the marketing pages draw their own light and dark switch in their header
-    [...SITE_PAGES, "/calculator"].includes((pathname ?? "") as (typeof SITE_PAGES)[number]);
+    [...SITE_PAGES, "/calculator", "/onboarding"].includes(
+      (pathname ?? "") as (typeof SITE_PAGES)[number]
+    );
   if (floating && portalHasThemeControl) return null;
   return (
     <button

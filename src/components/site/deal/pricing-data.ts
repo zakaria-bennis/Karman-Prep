@@ -163,7 +163,7 @@ export function pricingData(today: string): PriceProps {
         note: s["cohort note"],
         bullets: list(s["cohort bullets"]),
         cta: s["cohort button"],
-        href: ROUTES.program,
+        href: ROUTES.reserve,
         best: true,
         cohorts,
         award: {

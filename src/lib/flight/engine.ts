@@ -23,6 +23,9 @@ export interface FlightOptions {
   night: () => boolean;
   /** The stretch of the route this page flies, as [from, to] between 0 and 1. The whole route if left out. */
   route?: [number, number];
+  /** How far along its stretch the page is, from 0 to 1, when something other than scrolling flies the
+   *  camera (the guided intake flies forward with each answer). Scrolling flies it if left out. */
+  progress?: () => number;
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -276,7 +279,8 @@ export class Flight {
     if (!this.gl || this.frozen || document.hidden) return;
     const still = this.o.still();
     const max = document.documentElement.scrollHeight - innerHeight;
-    const down = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const scrolled = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    const down = this.o.progress ? Math.min(1, Math.max(0, this.o.progress())) : scrolled;
     const [from, to] = this.o.route ?? [0, 1];
     const goal = from + down * (to - from);
     const want = this.o.night() ? 1 : 0;

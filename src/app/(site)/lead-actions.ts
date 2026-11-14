@@ -8,11 +8,13 @@ import { z } from "zod";
 import { FROM, resend } from "@/lib/integrations/resend/client";
 import { addToWaitlist } from "@/lib/integrations/resend/emails";
 import {
+  SCORE_FLOOR,
   okEmail,
+  okName,
   okPhone,
   okScore,
   okSlot,
-  SCORE_FLOOR,
+  slotInWindow,
   type LeadForm,
 } from "@/lib/marketing/lead-rules";
 import {
@@ -68,9 +70,13 @@ const SCHEMAS = {
   // the free call: who to ask for, the number to text, and the time they picked
   call: z.object({
     email,
-    name: oneLine(SITE["form error your name"]),
+    name: oneLine(SITE["form error your name"]).refine(okName, {
+      message: SITE["form error your name"],
+    }),
     phone: z.string().trim().max(24).refine(okPhone, { message: SITE["form error phone"] }),
-    slot: z.string().refine(okSlot, { message: SITE["form error slot"] }),
+    slot: z
+      .string()
+      .refine((v) => okSlot(v) && slotInWindow(v), { message: SITE["form error slot"] }),
     plan: z.enum(["", ...PRIVATE_PACKAGES.map((p) => p.name)]).optional(),
     // the visitor's own time zone, so the time they saw can be worked out from the Central one
     zone: z.string().max(60).optional(),

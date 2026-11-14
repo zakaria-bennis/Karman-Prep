@@ -40,7 +40,7 @@ export default function ProgramSections() {
       <HeroLab
         page="program"
         headline={open.headline}
-        primary={{ label: open.button, href: ROUTES.pricing }}
+        primary={{ label: open.button, href: ROUTES.reserve }}
         secondary={{ label: open["second button"], href: "#promise" }}
       >
         <ProgramPromise
@@ -188,7 +188,7 @@ export default function ProgramSections() {
               />
               <p className="lede">{open.starts}</p>
               <div className="go-row">
-                <Btn label={open.button} href={ROUTES.pricing} />
+                <Btn label={open.button} href={ROUTES.reserve} />
               </div>
             </div>
             <p className="pg-bonus">{close.bonus}</p>

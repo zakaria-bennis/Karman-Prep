@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import { SOCIALS } from "@/lib/marketing/offer";
 import { SITE } from "@/lib/marketing/site-copy";
 import { TEXT_SIZE_BOOT } from "./text-size";
+import AccountSpot from "./AccountSpot";
 import { Btn } from "./parts";
 import { ROUTES } from "./routes";
 import ShellBehaviour from "./ShellBehaviour";
@@ -31,6 +32,15 @@ const impact = localFont({
 /** The theme follows the device (founder, 8 November, replacing the dark default); the switch remembers a
  *  visitor's own choice, which then wins. Runs before paint. Without scripts the page stays dark. */
 const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="dark"&&m!=="light")m=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.getElementById("ks").dataset.mode=m}catch(e){}try{if(/[?&]type=impact(&|$)/.test(location.search))document.getElementById("ks").dataset.type="impact"}catch(e){}`;
+
+/** Someone already signed in is a client, not a prospect (founder, 2026-11-14): the header offers their
+ *  portal in place of "Sign in" and "Get started". Clerk keeps a small readable cookie that says a session
+ *  exists (its value is a time, or 0 when signed out), so this is known before the page paints, with no
+ *  Clerk code and no server work on the marketing pages. ShellBehaviour does the same for the page's other
+ *  sign-up buttons. The home page itself is for visitors: someone signed in who opens it goes straight to
+ *  their portal, and sees the home page again when they sign out (or with ?site in the address, to look
+ *  at it while signed in). */
+const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie)){document.getElementById("ks").dataset.in="1";if(location.pathname==="/"&&!/[?&]site(=|&|$)/.test(location.search))location.replace("${ROUTES.portal}")}}catch(e){}`;
 
 /** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
  *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
@@ -168,8 +178,15 @@ export default function SitePage({
   children,
   route,
   flight = true,
+  bare = false,
+  drive = "scroll",
   className = "",
 }: {
+  /** True for a page that is one task with nothing to wander off to (the guided intake): the logo stays,
+   *  the links, the menu and the footer go. */
+  bare?: boolean;
+  /** "steps" when the page flies the landscape itself (SiteFlight). */
+  drive?: "scroll" | "steps";
   kind: SiteKind;
   children: ReactNode;
   /** In the landscape world: the stretch of the route this page flies, as [from, to] between 0 and 1. The
@@ -191,6 +208,7 @@ export default function SitePage({
       suppressHydrationWarning
     >
       <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      <script dangerouslySetInnerHTML={{ __html: SIGNED_IN_BOOT }} />
       <script dangerouslySetInnerHTML={{ __html: TEXT_SIZE_BOOT }} />
       <script dangerouslySetInnerHTML={{ __html: REVEAL_FAILSAFE }} />
       <noscript>
@@ -203,84 +221,91 @@ export default function SitePage({
         <a className="mark" href={ROUTES.home}>
           {SITE.logo}
         </a>
-        <nav aria-label="Main">
-          <a className="nl" href={ROUTES.program}>
-            {SITE["program link"]}
-          </a>
-          <a className="nl" href={ROUTES.private}>
-            {SITE["private link"]}
-          </a>
-          <a className="nl" href={ROUTES.pricing}>
-            {SITE["pricing link"]}
-          </a>
-          <a className="nl si" href={ROUTES.signIn}>
-            {SITE["sign in link"]}
-          </a>
-          <a className="cta" href={ROUTES.signUp}>
-            {SITE["start free"]}
-          </a>
-          <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
-            <span>{SITE.menu}</span>
-            <i aria-hidden="true" />
-          </button>
-        </nav>
-      </header>
-      <div className="sheet" id="menu" hidden>
-        <nav aria-label="Menu links">
-          {MENU.map(([href, t]) => (
-            <a key={t} href={href}>
-              {SITE[t]}
+        {bare ? null : (
+          <nav aria-label="Main">
+            <a className="nl" href={ROUTES.program}>
+              {SITE["program link"]}
             </a>
-          ))}
-        </nav>
-        <Btn label={SITE["start free"]} href={ROUTES.signUp} />
-      </div>
-      {lit && flight ? <SiteFlight route={route} /> : null}
+            <a className="nl" href={ROUTES.private}>
+              {SITE["private link"]}
+            </a>
+            <a className="nl" href={ROUTES.pricing}>
+              {SITE["pricing link"]}
+            </a>
+            <a className="nl si when-out" href={ROUTES.signIn}>
+              {SITE["sign in link"]}
+            </a>
+            <a className="cta when-out" href={ROUTES.signUp}>
+              {SITE["start free"]}
+            </a>
+            <AccountSpot label={SITE["portal link"]} />
+            <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
+              <span>{SITE.menu}</span>
+              <i aria-hidden="true" />
+            </button>
+          </nav>
+        )}
+      </header>
+      {bare ? null : (
+        <div className="sheet" id="menu" hidden>
+          <nav aria-label="Menu links">
+            {MENU.map(([href, t]) => (
+              <a key={t} href={href}>
+                {SITE[t]}
+              </a>
+            ))}
+          </nav>
+          <Btn label={SITE["start free"]} href={ROUTES.signUp} />
+        </div>
+      )}
+      {lit && flight ? <SiteFlight route={route} drive={drive} /> : null}
       {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
       <ThemeButton />
-      <footer className="ft">
-        <div className="ft-in">
-          <div className="cols">
-            <span className="mark rv" aria-label={SITE.logo}>
-              {[...SITE.logo].map((ch, i) => (
-                <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
-                  {ch}
-                </span>
-              ))}
-            </span>
-            <nav aria-label="Footer">
-              {FOOTER.map(([h, links]) => (
-                <div className="col" key={h}>
-                  <p className="h">{SITE[h]}</p>
-                  {links.map(([href, t]) => (
-                    <a key={t} href={href}>
-                      {SITE[t]}
-                    </a>
-                  ))}
-                </div>
-              ))}
-            </nav>
-          </div>
-          <div className="ft-base">
-            <span className="ft-social">
-              {(Object.keys(SOCIALS) as (keyof typeof SOCIALS)[]).map((k) => (
-                <a key={k} href={SOCIALS[k]} rel="noopener" aria-label={SITE[`${k} link`]}>
-                  {SOCIAL_MARK[k]}
-                </a>
-              ))}
-            </span>
-            {lit ? (
-              <span className="credit">
-                <button className="motion" type="button" aria-pressed="false">
-                  {SITE.pause}
-                </button>
+      {bare ? null : (
+        <footer className="ft">
+          <div className="ft-in">
+            <div className="cols">
+              <span className="mark rv" aria-label={SITE.logo}>
+                {[...SITE.logo].map((ch, i) => (
+                  <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
+                    {ch}
+                  </span>
+                ))}
               </span>
-            ) : null}
+              <nav aria-label="Footer">
+                {FOOTER.map(([h, links]) => (
+                  <div className="col" key={h}>
+                    <p className="h">{SITE[h]}</p>
+                    {links.map(([href, t]) => (
+                      <a key={t} href={href}>
+                        {SITE[t]}
+                      </a>
+                    ))}
+                  </div>
+                ))}
+              </nav>
+            </div>
+            <div className="ft-base">
+              <span className="ft-social">
+                {(Object.keys(SOCIALS) as (keyof typeof SOCIALS)[]).map((k) => (
+                  <a key={k} href={SOCIALS[k]} rel="noopener" aria-label={SITE[`${k} link`]}>
+                    {SOCIAL_MARK[k]}
+                  </a>
+                ))}
+              </span>
+              {lit ? (
+                <span className="credit">
+                  <button className="motion" type="button" aria-pressed="false">
+                    {SITE.pause}
+                  </button>
+                </span>
+              ) : null}
+            </div>
+            <p className="ft-fine">{SITE["sat note"]}</p>
           </div>
-          <p className="ft-fine">{SITE["sat note"]}</p>
-        </div>
-      </footer>
+        </footer>
+      )}
       <ShellBehaviour />
     </div>
   );

@@ -4,7 +4,12 @@
 
 import Stripe from "stripe";
 import { type CohortPayment } from "./cohort-installments";
-import { cohortInstallmentSpecs, priceLabel, type StripePriceSpec } from "./prices";
+import {
+  cohortInstallmentSpecs,
+  findStripePrice,
+  priceLabel,
+  type StripePriceSpec,
+} from "./prices";
 
 /**
  * Card plus Stripe Link on every checkout. Founder, 2026-11-12: push Link, because a returning
@@ -15,16 +20,12 @@ import { cohortInstallmentSpecs, priceLabel, type StripePriceSpec } from "./pric
 export const CARD_METHODS = ["card", "link"] as const;
 
 /**
- * Card, Link and buy now, pay later on one-payment checkouts (Cohort, Private 10, Private 20).
- * Founder, 2026-11-08. Checked on the Stripe test account on 8 Nov: Klarna, Affirm and
- * Afterpay all open on $995, $1,495 and $2,495. Each must also be on in live mode at launch.
+ * One-payment checkouts (Cohort, Private 10, Private 20) name no payment methods: Stripe offers
+ * whichever ones are switched on in the Dashboard's payment method settings and fit the payment
+ * (card, Link, wallets, and pay-later ways such as Klarna and Afterpay). Naming one that the
+ * account cannot use makes Stripe refuse the whole checkout, and on 2026-11-14 Affirm was
+ * "Ineligible" on the live account. Subscriptions and the deposit keep CARD_METHODS.
  */
-export const ONE_PAYMENT_METHODS = [
-  ...CARD_METHODS,
-  "klarna",
-  "affirm",
-  "afterpay_clearpay",
-] as const;
 
 /** Server-side Stripe client. Never import in browser code.
  *
@@ -137,10 +138,59 @@ export async function createCheckoutSession({
   }
   return stripe.checkout.sessions.create({
     ...shared,
-    payment_method_types: [...ONE_PAYMENT_METHODS],
+    payment_method_types: undefined,
     mode: "payment",
     // The admin scholarship payout refunds the cohort price by cohort_id.
     payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },
+  });
+}
+
+/**
+ * Checkout for a cohort seat reserved from the marketing site, before the student has an account
+ * (src/lib/reserve). The same prices and payment methods as a signed-in cohort checkout; the metadata
+ * carries the reservation instead of a user, and the webhook settles it by that id.
+ * The payment is taken on our own page (/reserve/pay): the session is made for Stripe's fields to be
+ * placed inside it (ui_mode "elements"), and its client secret is what that page opens them with.
+ */
+export async function createReservationCheckoutSession({
+  customerId,
+  reservationId,
+  programId,
+  payment,
+  returnUrl,
+}: {
+  customerId: string;
+  reservationId: string;
+  programId: string;
+  payment: CohortPayment;
+  /** Where Stripe sends the family once the payment is made. */
+  returnUrl: string;
+}) {
+  const metadata = { reservationId, planId: "cohort", term: payment, programId };
+  const shared = {
+    customer: customerId,
+    ui_mode: "elements" as const,
+    return_url: returnUrl,
+    metadata,
+  };
+  if (payment === "installments") {
+    const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
+    return stripe.checkout.sessions.create({
+      ...shared,
+      mode: "payment",
+      payment_method_types: [...CARD_METHODS],
+      line_items: [{ price: deposit.id, quantity: 1 }],
+      payment_intent_data: { setup_future_usage: "off_session", metadata },
+    });
+  }
+  const spec = findStripePrice("cohort");
+  if (!spec) throw new Error("The cohort has no Stripe price in prices.ts");
+  const price = await getCheckoutPrice(spec);
+  return stripe.checkout.sessions.create({
+    ...shared,
+    mode: "payment",
+    line_items: [{ price: price.id, quantity: 1 }],
+    payment_intent_data: { metadata },
   });
 }
 

@@ -304,7 +304,7 @@ export default function SchoolCallForm({
                   <Icon name="alert" />
                   <span>{banner}</span>
                   <button type="button" onClick={() => ref.current?.requestSubmit()}>
-                    {SITE["form retry"]}
+                    {SITE["error retry"]}
                   </button>
                 </div>
               ) : null}

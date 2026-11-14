@@ -9,6 +9,7 @@
 // Stripe retries the event.
 // ============================================================
 
+import { reservationExpired, settleReservation } from "@/lib/reserve/service";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
@@ -158,6 +159,17 @@ export const POST = withWebhookInstrumentation(
             console.log(`[webhook] checkout ${session.id} completed unpaid; waiting for payment`);
             break;
           }
+          // A cohort seat reserved from the marketing site, before the student has an account
+          // (src/lib/reserve): settled by its reservation, not by a user.
+          if (session.metadata?.reservationId) {
+            const outcome = await settleReservation(session);
+            console.log(`[webhook] reservation ${session.metadata.reservationId}: ${outcome}`);
+            if (outcome === "paid" && session.metadata.term === "installments") {
+              const scheduleId = await scheduleCohortInstallments(session);
+              console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
+            }
+            break;
+          }
           const meta = purchaseMetadataSchema.safeParse(session.metadata);
           if (!meta.success) {
             console.warn(
@@ -177,6 +189,12 @@ export const POST = withWebhookInstrumentation(
             const scheduleId = await scheduleCohortInstallments(session);
             console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
           }
+          break;
+        }
+
+        // ---- A reservation's payment page ran out unpaid ----
+        case "checkout.session.expired": {
+          await reservationExpired(event.data.object as Stripe.Checkout.Session);
           break;
         }
 

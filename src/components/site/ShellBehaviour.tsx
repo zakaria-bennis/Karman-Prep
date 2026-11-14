@@ -5,8 +5,9 @@
 // buttons, the one reveal, and the alive layer. It renders nothing.
 import { useEffect } from "react";
 import { SITE } from "@/lib/marketing/site-copy";
+import { ROUTES } from "./routes";
 import { startAlive } from "./live/alive";
-import { busy, line } from "./live/kit";
+import { busy, line, orb } from "./live/kit";
 import { motionPaused, setMotionPaused } from "./live/motion";
 
 export default function ShellBehaviour() {
@@ -35,6 +36,17 @@ export default function ShellBehaviour() {
       },
       { signal }
     );
+
+    /* ---------- signed in: every "Get started" on the page leads to the portal instead ---------- */
+    if (ks.dataset.in)
+      for (const a of ks.querySelectorAll<HTMLAnchorElement>(
+        `a[href="${ROUTES.signUp}"]:not(.when-out)`
+      )) {
+        a.href = ROUTES.portal;
+        // a button says where it now goes; a link inside a sentence keeps its words
+        const label = a.querySelector(".lb");
+        if (label) label.textContent = SITE["portal link"];
+      }
 
     /* ---------- light and dark: the device's setting until the visitor picks one, then remembered ---------- */
     const themes = [...ks.querySelectorAll<HTMLButtonElement>(".theme")];
@@ -145,6 +157,43 @@ export default function ShellBehaviour() {
       );
       on("keydown", (e) => e.key === "Escape" && isOpen() && set(false, true));
     }
+
+    /* ---------- working buttons: any of the site's buttons marked busy (data-busy or aria-busy, set by its
+       form while it saves or sends) cannot be pressed again (alive.css), and after 400 ms the orb appears
+       in it, so a wait is seen to be working. Shorter waits show nothing, which reads as instant ---------- */
+    const orbs = new Map<HTMLElement, { t: ReturnType<typeof setTimeout>; stop?: () => void }>();
+    const isBusy = (b: HTMLElement) => b.dataset.busy !== undefined || b.ariaBusy === "true";
+    const syncBusy = () => {
+      for (const b of ks.querySelectorAll<HTMLElement>(
+        ".btn:is([data-busy], [aria-busy='true'])"
+      )) {
+        if (orbs.has(b) || b.querySelector(".go canvas")) continue;
+        const entry: { t: ReturnType<typeof setTimeout>; stop?: () => void } = {
+          t: setTimeout(() => {
+            const c = document.createElement("canvas");
+            c.className = "btn-orb";
+            b.append(c);
+            entry.stop = orb(c, { size: 22, dark: true });
+          }, 400),
+        };
+        orbs.set(b, entry);
+      }
+      for (const [b, entry] of orbs)
+        if (!b.isConnected || !isBusy(b)) {
+          clearTimeout(entry.t);
+          entry.stop?.();
+          b.querySelector(".btn-orb")?.remove();
+          orbs.delete(b);
+        }
+    };
+    const busyWatch = new MutationObserver(syncBusy);
+    busyWatch.observe(ks, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["data-busy", "aria-busy"],
+    });
+    offs.push(() => busyWatch.disconnect());
 
     /* ---------- presses: a button's orb only if the next page takes over 400 ms; any other link to a page
        starts the line, which itself stays hidden for the first 400 ms ---------- */
