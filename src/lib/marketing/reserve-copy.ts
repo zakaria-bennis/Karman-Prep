@@ -34,17 +34,13 @@ export const RESERVE = {
   },
   score: {
     headline: "Which SAT is the goal?",
-    starts: "Classes start",
-    closed:
-      "The next cohort isn't open yet. Choose Not sure and we'll hold your seat for the right one.",
     notSure: "Not sure yet",
-    notSureNote: "We'll hold the seat and agree the date with you.",
   },
   pay: {
     headline: "How would you like to pay?",
     full: "Pay in full",
     fullPrice: formatPrice(MP.price),
-    fullNote: "One payment. Pay-later options are offered on the next page.",
+    fullNote: "One payment. Financing available.",
     parts: "Deposit, then three payments",
     partsPrice: `${formatPrice(MP.depositAmount)} today`,
     partsNote: `Then ${MP.installments.count} monthly payments of ${formatPrice(MP.installments.amount)}, starting with the first class. The total is the same: ${formatPrice(MP.price)}.`,
@@ -55,7 +51,7 @@ export const RESERVE = {
   errors: {
     email: "Enter an email address, like name@example.com.",
     name: "Enter a name, using letters only.",
-    phone: "Enter all 10 digits, or leave it empty.",
+    phone: "Enter all 10 digits.",
     closed: "Registration for that date just closed. Choose another SAT date.",
     server:
       "That didn't go through. Check your connection and try again, or email hello@karmanprep.com.",

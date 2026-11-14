@@ -22,16 +22,13 @@ export const emailSchema = z.object({
   company: z.literal("").optional(),
 });
 
-/** The names step. The phone is optional: "" when it is left out. */
+/** The names step. The mobile phone is asked for too (founder, 2026-11-14): by this step the email is
+ *  already saved, so the lead is kept even if the visitor stops here. */
 export const detailsSchema = z.object({
   reservationId: z.string().uuid(),
   parentName: name(80),
   studentFirst: name(40),
-  phone: z
-    .string()
-    .trim()
-    .max(24)
-    .refine((v) => v === "" || okPhone(v)),
+  phone: z.string().trim().max(24).refine(okPhone),
 });
 
 /** The cohort and how the seat is paid. Nothing else is asked before payment. */

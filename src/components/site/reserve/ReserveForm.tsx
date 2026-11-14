@@ -3,7 +3,7 @@
 // Reserve a seat, built to docs/forms/form-rules.md (founder, 2026-11-13). Five short steps:
 //   1. who is reserving (one tap, and it words the rest);
 //   2. the email, alone: on Continue the lead is saved, so a family who stops here can be followed up;
-//   3. the names, and an optional phone that says why it is asked;
+//   3. the names and a mobile phone;
 //   4. the SAT date the cohort ends on;
 //   5. how to pay, with the total and the guarantee on screen, then Stripe's own payment page.
 // Nothing else is asked before payment: a buyer who has decided should reach the payment page fast, and the
@@ -12,6 +12,7 @@
 // it is left, and says how to fix what is wrong. Buttons are never greyed out: a press shows every gap and
 // puts the cursor in the first. Answers survive Back, a refresh and a return from the payment page.
 // Steps are measured with form_step events (never what was typed). Words: reserve-copy.ts. Styles: reserve.css.
+import { ParentPicture, StudentPicture } from "./RolePictures";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { payForSeat, saveEmail, saveNames } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
@@ -37,12 +38,12 @@ function formatPhone(v: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-/** Whether a field's answer will do. The phone may be left empty. */
+/** Whether a field's answer will do. */
 const OK: Record<Field, (v: string) => boolean> = {
   email: okEmail,
   name: okName,
   student: okName,
-  phone: (v) => v.trim() === "" || okPhone(v),
+  phone: okPhone,
 };
 const WRONG: Record<Field, string> = {
   email: W.errors.email,
@@ -228,7 +229,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
       });
     },
     names: () => {
-      if (!check(["name", "student", "phone"], ["name", "student"]) || !id) return;
+      if (!check(["name", "student", "phone"], ["name", "student", "phone"]) || !id) return;
       start(async () => {
         const res = await saveNames({
           reservationId: id,
@@ -304,6 +305,7 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
                 go(1);
               }}
             >
+              {k === "parent" ? <ParentPicture /> : <StudentPicture />}
               {W.who[k]}
             </button>
           ))}
@@ -329,33 +331,26 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         <h1 tabIndex={-1}>{W.names[say].headline}</h1>
         {field("name", W.names[say].name)}
         {field("student", W.names[say].student)}
-        {field("phone", W.names.phone, { optional: true })}
+        {field("phone", W.names.phone)}
       </>
     ),
     date: (
       <>
         <h1 tabIndex={-1}>{W.score.headline}</h1>
-        <fieldset className="rs-dates">
+        <fieldset className="rs-dates" data-n={programs.length}>
           <legend className="rs-trap">{W.score.headline}</legend>
-          {programs.length ? (
-            programs.map((p) => (
-              <label key={p.id} data-on={p.id === program || undefined}>
-                <input
-                  type="radio"
-                  name="program"
-                  checked={p.id === program}
-                  onChange={() => setProgram(p.id)}
-                />
-                <b>{p.sat}</b>
-                <span>
-                  {W.score.starts} {p.starts}
-                </span>
-              </label>
-            ))
-          ) : (
-            <p className="rs-note">{W.score.closed}</p>
-          )}
-          <label data-on={program === UNDECIDED || undefined}>
+          {programs.map((p) => (
+            <label key={p.id} data-on={p.id === program || undefined}>
+              <input
+                type="radio"
+                name="program"
+                checked={p.id === program}
+                onChange={() => setProgram(p.id)}
+              />
+              <b>{p.month}</b>
+            </label>
+          ))}
+          <label className="rs-wide" data-on={program === UNDECIDED || undefined}>
             <input
               type="radio"
               name="program"
@@ -363,7 +358,6 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
               onChange={() => setProgram(UNDECIDED)}
             />
             <b>{W.score.notSure}</b>
-            <span>{W.score.notSureNote}</span>
           </label>
         </fieldset>
       </>
