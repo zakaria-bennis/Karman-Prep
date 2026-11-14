@@ -171,6 +171,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         // with two or more ways in, Clerk shortens each button to the provider's name; keep the full
         // sentence so the pills match "Continue with email" on the sign-in pages
         socialButtonsBlockButtonManyInView: "Continue with {{provider|titleize}}",
+        // the field's name sits inside its pill (founder, 2026-11-13), so the placeholder is the name
+        formFieldInputPlaceholder__emailAddress: "Email address",
+        formFieldInputPlaceholder__password: "Password",
+        formFieldInputPlaceholder__signUpPassword: "Password",
         signIn: {
           start: {
             title: "Log in to Karman",

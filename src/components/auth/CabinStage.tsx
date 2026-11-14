@@ -3,7 +3,7 @@
 // The warm sign-in (founder, 2026-11-13): the snowy cabin behind (CabinScene), a greeting that types itself
 // in, and Clerk's own form restyled as warm pills (cabin.css, by Clerk's class names). Clerk does all the
 // signing in, so every later step (the emailed code, a password, errors) is Clerk's too.
-// The ways in are whichever are switched on in Clerk. When Google or Apple is on, they show as pills, Google
+// The ways in are whichever are switched on in Clerk. When Google or Microsoft is on, they show as pills, Google
 // first, and email folds behind a third pill, "Continue with email". When neither is on, the email field
 // simply shows.
 // On this computer Clerk's form cannot draw (the live keys only work on karmanprep.com), so on the dev server
@@ -11,8 +11,12 @@
 import { useEffect, useRef, useState } from "react";
 import { SignIn, SignUp } from "@clerk/nextjs";
 import CabinScene from "./CabinScene";
+import PasswordHelp from "./PasswordHelp";
 
 const DEV = process.env.NODE_ENV !== "production";
+
+/** How long a folded-away email form keeps what was typed. */
+const KEEP_TYPED_MS = 30 * 60 * 1000;
 
 /** Clerk works out its own colours from these, so the steps this file does not restyle still read well on
  *  the night scene. Everything on the first step is then set in cabin.css. */
@@ -58,21 +62,15 @@ const LOGO = {
       />
     </svg>
   ),
-  Apple: (
+  Microsoft: (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M16.500 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9-.7 0-1.800-.8-3-.8-1.500 0-3 .9-3.700 2.300-1.600 2.800-.4 6.900 1.100 9.200.8 1.100 1.700 2.300 2.900 2.300 1.100 0 1.600-.7 3-.7s1.800.7 3 .7c1.200 0 2-1.100 2.800-2.200.9-1.300 1.200-2.500 1.300-2.600-.1 0-2.500-1-2.500-3.800zM14.200 5.800c.6-.8 1-1.800.9-2.800-.9 0-2 .6-2.600 1.400-.6.700-1.100 1.700-.9 2.700 1 .1 2-.5 2.600-1.300z"
-      />
+      <path fill="#f25022" d="M2 2h9.500v9.500H2z" />
+      <path fill="#7fba00" d="M12.500 2H22v9.500h-9.500z" />
+      <path fill="#00a4ef" d="M2 12.500h9.500V22H2z" />
+      <path fill="#ffb900" d="M12.500 12.500H22V22h-9.500z" />
     </svg>
   ),
 };
-
-/** Shown beside the password field on Get started, before anything is typed, so the rule is no surprise.
- *  The number must match "Minimum password length" in Clerk (User & authentication, Password): 15, the
- *  length NIST SP 800-63B asks for when a password is the only thing protecting an account. */
-const PASSWORD_TIP =
-  "Passwords need 15 characters or more. Three or four unrelated words work well.";
 
 const MAIL = (
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
@@ -81,7 +79,7 @@ const MAIL = (
   </svg>
 );
 
-/** Dev server only: Clerk's first step as it looks with Google and Apple switched on, built from Clerk's own
+/** Dev server only: Clerk's first step as it looks with Google and Microsoft switched on, built from Clerk's own
  *  class names, for judging the design. */
 function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
   const step = mode === "sign-in" ? "cl-signIn-start" : "cl-signUp-start";
@@ -91,18 +89,24 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
         <div className={`cl-card ${step}`}>
           <div className="cl-main">
             <div className="cl-socialButtons">
-              {(["Apple", "Google"] as const).map((k) => (
+              {(["Microsoft", "Google"] as const).map((k) => (
                 <button
                   type="button"
                   key={k}
                   className={`cl-socialButtonsBlockButton cl-socialButtonsBlockButton__${k.toLowerCase()}`}
                 >
-                  <span className="cl-socialButtonsProviderIcon">{LOGO[k]}</span>
+                  <span>
+                    <span className="cl-socialButtonsProviderIcon">{LOGO[k]}</span>
+                  </span>
                   <span className="cl-socialButtonsBlockButtonText">Continue with {k}</span>
                 </button>
               ))}
             </div>
-            <div className="cl-dividerRow">or</div>
+            <div className="cl-dividerRow">
+              <div className="cl-dividerLine" />
+              <p className="cl-dividerText">or</p>
+              <div className="cl-dividerLine" />
+            </div>
             <form className="cl-form" onSubmit={(e) => e.preventDefault()}>
               <div className="cl-formField">
                 <label className="cl-formFieldLabel" htmlFor="standin-email">
@@ -114,9 +118,46 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
                   type="email"
                   inputMode="email"
                   autoComplete="email"
-                  placeholder="Enter your email address"
+                  placeholder="Email address"
                 />
               </div>
+              {mode === "sign-up" ? (
+                <div className="cl-formField cl-formField__password">
+                  <label className="cl-formFieldLabel" htmlFor="standin-password">
+                    Password
+                  </label>
+                  <div className="cl-formFieldInputGroup" style={{ position: "relative" }}>
+                    <input
+                      id="standin-password"
+                      className="cl-formFieldInput"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Password"
+                    />
+                    <button
+                      type="button"
+                      className="cl-formFieldInputShowPasswordButton"
+                      style={{
+                        position: "absolute",
+                        right: 14,
+                        top: 0,
+                        height: "100%",
+                        background: "none",
+                      }}
+                    >
+                      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                        <path
+                          d="M1.500 8s2.500-4.500 6.500-4.500S14.500 8 14.500 8 12 12.500 8 12.500 1.500 8 1.500 8z"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.400"
+                        />
+                        <circle cx="8" cy="8" r="2" fill="currentColor" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               <button type="submit" className="cl-formButtonPrimary">
                 Continue
               </button>
@@ -189,6 +230,20 @@ export default function CabinStage({
     return () => clearTimeout(wait);
   }, []);
 
+  // Folding the email fields away keeps what was typed, so coming back to email costs nothing. It is kept on
+  // this page only, never stored, and wiped after half an hour away (founder, 2026-11-13).
+  useEffect(() => {
+    if (email) return;
+    const wipe = setTimeout(() => {
+      form.current?.querySelectorAll<HTMLInputElement>(".cl-form input").forEach((el) => {
+        if (!el.value) return;
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(el, "");
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    }, KEEP_TYPED_MS);
+    return () => clearTimeout(wipe);
+  }, [email]);
+
   // once the email field is unfolded, the cursor goes straight into it
   useEffect(() => {
     if (email) form.current?.querySelector<HTMLInputElement>(".cl-formFieldInput")?.focus();
@@ -217,11 +272,17 @@ export default function CabinStage({
               appearance={APPEARANCE}
             />
           )}
+          <button type="button" className="cb-back" onClick={() => setEmail(false)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M9.5 3.5L5 8l4.5 4.5" />
+            </svg>
+            Back to all sign-in options
+          </button>
           <button type="button" className="cb-email-pill" onClick={() => setEmail(true)}>
             {MAIL}
             Continue with email
           </button>
-          {up ? <p className="cb-tip">{PASSWORD_TIP}</p> : null}
+          {up ? <PasswordHelp within={form} /> : null}
         </div>
         <p className="cb-foot">
           {up ? "Already have an account?" : "New here?"}{" "}

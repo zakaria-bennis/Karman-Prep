@@ -183,68 +183,104 @@ export function drawDeer(
     c.strokeStyle = col;
     c.lineCap = "round";
     c.lineJoin = "round";
-    // legs: the front pair and the back pair swing against each other
-    const leg = (hx: number, a: number, back: boolean) => {
-      const kx = hx + Math.sin(a) * 15;
-      const ky = -22 + Math.cos(a) * 15;
-      const b = a + (back ? 0.55 : -0.5) * (0.6 + 0.4 * Math.sin(stride));
-      c.lineWidth = 4;
+    // Legs, as a deer's are built: a strong upper leg, a thin cannon bone below the joint, and a small hoof.
+    // The hind leg's hock bends backward. The front pair and the back pair swing against each other.
+    const leg = (hx: number, hy: number, a: number, back: boolean, far: boolean) => {
+      const up = back ? 15 : 14;
+      const kx = hx + Math.sin(a) * up + (back ? 5 : -1);
+      const ky = hy + Math.cos(a) * up;
+      const b = a + (back ? -0.42 : 0.1) + (back ? 0.5 : -0.45) * (0.5 + 0.5 * Math.sin(stride));
+      const low = back ? 18 : 17;
+      const fx = kx + Math.sin(b) * low;
+      const fy = ky + Math.cos(b) * low;
+      c.globalAlpha = far ? 0.78 : 1;
+      // upper leg, tapering to the joint
       c.beginPath();
-      c.moveTo(hx, -24);
-      c.lineTo(kx, ky);
-      c.stroke();
-      c.lineWidth = 2.8;
+      const wTop = back ? 5.4 : 3.6;
+      c.moveTo(hx - wTop, hy);
+      c.quadraticCurveTo((hx + kx) / 2 - wTop * 0.7, (hy + ky) / 2, kx - 1.7, ky);
+      c.lineTo(kx + 1.7, ky);
+      c.quadraticCurveTo((hx + kx) / 2 + wTop * 0.9, (hy + ky) / 2, hx + wTop, hy);
+      c.fill();
+      // cannon bone and hoof
+      c.lineWidth = 2.5;
       c.beginPath();
       c.moveTo(kx, ky);
-      c.lineTo(kx + Math.sin(b) * 17, ky + Math.cos(b) * 17);
+      c.lineTo(fx, fy);
       c.stroke();
+      c.lineWidth = 3.6;
+      c.beginPath();
+      c.moveTo(fx, fy - 0.5);
+      c.lineTo(fx - 2.2, fy + 2.6);
+      c.stroke();
+      c.globalAlpha = 1;
     };
-    const swing = Math.sin(stride) * 0.62;
-    leg(-14, -swing - 0.12, false);
-    leg(-9, -swing * 0.7 + 0.14, false);
-    leg(15, swing + 0.1, true);
-    leg(19, swing * 0.7 - 0.16, true);
-    // body, rump, chest
+    const swing = Math.sin(stride) * 0.55;
+    // the far pair first, so the near pair overlaps them
+    leg(-12, -31, -swing * 0.7 + 0.16, false, true);
+    leg(20, -35, swing * 0.7 - 0.2, true, true);
+    leg(-16, -31, -swing - 0.1, false, false);
+    leg(16, -35, swing + 0.06, true, false);
+    // the body in one outline: deep chest, withers, a level back, a round rump and a tucked belly
     c.beginPath();
-    c.ellipse(2, -31, 23, 10.5, -0.05, 0, 7);
+    c.moveTo(-23, -40);
+    c.bezierCurveTo(-23, -47, -18, -51, -12, -50.5);
+    c.bezierCurveTo(-3, -48.5, 8, -49, 16, -50);
+    c.bezierCurveTo(23, -50.5, 27.5, -46, 27, -40);
+    c.bezierCurveTo(26.5, -34, 23, -30.5, 17, -29.5);
+    c.bezierCurveTo(9, -27.5, 2, -27, -6, -27.5);
+    c.bezierCurveTo(-14, -27.5, -22, -30, -23, -40);
+    c.fill();
+    // neck: thick where it leaves the chest, slimmer under the jaw
+    c.beginPath();
+    c.moveTo(-10, -49.5);
+    c.quadraticCurveTo(-16, -60, -20.5, -70);
+    c.lineTo(-28.5, -65);
+    c.quadraticCurveTo(-27, -50, -22.5, -36);
+    c.fill();
+    // head: the skull, a tapering muzzle, and an ear laid back
+    c.beginPath();
+    c.ellipse(-25.5, -70, 6.2, 4.8, 0.3, 0, 7);
     c.fill();
     c.beginPath();
-    c.ellipse(17, -32, 11, 11, 0, 0, 7);
+    c.moveTo(-27, -74.5);
+    c.quadraticCurveTo(-35, -72.5, -40, -66.5);
+    c.quadraticCurveTo(-40.5, -63.8, -37.5, -63.5);
+    c.quadraticCurveTo(-32, -63.5, -26, -65.5);
     c.fill();
     c.beginPath();
-    c.ellipse(-15, -33, 10, 11.5, 0, 0, 7);
+    c.moveTo(-22.5, -73);
+    c.quadraticCurveTo(-21, -82, -14.5, -84.5);
+    c.quadraticCurveTo(-15.5, -77, -19, -71.5);
     c.fill();
-    // neck and head, facing left
-    c.lineWidth = 10;
+    // a short tail, held up as they bound
     c.beginPath();
-    c.moveTo(-18, -36);
-    c.quadraticCurveTo(-25, -46, -27, -57);
-    c.stroke();
-    c.beginPath();
-    c.ellipse(-32, -60, 8.5, 5, 0.32, 0, 7);
-    c.fill();
-    c.beginPath();
-    c.ellipse(-24, -66, 2.4, 5.5, 0.5, 0, 7);
-    c.fill();
-    // tail, held up as they bound
-    c.beginPath();
-    c.ellipse(27, -39, 3, 5.5, -0.5, 0, 7);
+    c.moveTo(25.5, -47);
+    c.quadraticCurveTo(31, -52, 32, -57);
+    c.quadraticCurveTo(27.5, -55, 23.5, -48.5);
     c.fill();
     if (d.antlers) {
-      c.lineWidth = 1.9;
-      for (const side of [0, 1]) {
-        const ox = -27 + side * 3;
+      // each antler: a main beam that sweeps back and then forward, with tines standing up from it
+      for (const side of [1, 0]) {
+        const ox = side * 3.6;
+        const oy = side * -1.2;
+        c.globalAlpha = side ? 0.78 : 1;
+        c.lineWidth = 2.3;
         c.beginPath();
-        c.moveTo(ox, -64);
-        c.quadraticCurveTo(ox + 4, -78, ox + 13, -86);
-        c.moveTo(ox + 3, -73);
-        c.lineTo(ox - 4, -81);
-        c.moveTo(ox + 7, -80);
-        c.lineTo(ox + 3, -90);
-        c.moveTo(ox + 10, -84);
-        c.lineTo(ox + 17, -92);
+        c.moveTo(-23.5 + ox, -74 + oy);
+        c.bezierCurveTo(-17 + ox, -80 + oy, -9 + ox, -90 + oy, -16 + ox, -101 + oy);
+        c.stroke();
+        c.lineWidth = 1.7;
+        c.beginPath();
+        c.moveTo(-21.5 + ox, -76.5 + oy);
+        c.quadraticCurveTo(-26 + ox, -80 + oy, -27.5 + ox, -87 + oy);
+        c.moveTo(-16.5 + ox, -82.5 + oy);
+        c.quadraticCurveTo(-20 + ox, -88 + oy, -20.5 + ox, -96 + oy);
+        c.moveTo(-12.8 + ox, -90 + oy);
+        c.quadraticCurveTo(-9 + ox, -95 + oy, -8.5 + ox, -101 + oy);
         c.stroke();
       }
+      c.globalAlpha = 1;
     }
     c.restore();
   }

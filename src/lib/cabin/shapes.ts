@@ -319,9 +319,59 @@ export function drawCabin(c: Ctx, pl: Place, pal: Palette, mode: CabinMode) {
       c.stroke();
     }
   }
+  // Snow on the pile, lying the way it falls: a drift across the two top logs that sags between them, a
+  // smaller cap on every shoulder the drift leaves open, and a little heaped at the foot.
+  const logR = 7.5 * u;
+  const logAt = (row: number, i: number) => ({
+    x: pileX + (i + row * 0.5) * 15 * u + 7 * u,
+    y: y - 7 * u - row * 13 * u,
+  });
+  const cap = (row: number, i: number, a0: number, a1: number, deep: number) => {
+    const l = logAt(row, i);
+    const mid = (a0 + a1) / 2;
+    c.beginPath();
+    c.arc(l.x, l.y, logR, a0, a1);
+    c.quadraticCurveTo(
+      l.x + Math.cos(mid) * (logR + deep * 2 * u),
+      l.y + Math.sin(mid) * (logR + deep * 2 * u),
+      l.x + Math.cos(a0) * logR,
+      l.y + Math.sin(a0) * logR
+    );
+    c.fill();
+  };
+  c.fillStyle = pal.roofSnow;
+  cap(0, 0, -Math.PI * 0.98, -Math.PI * 0.52, 2.2);
+  cap(0, 3, -Math.PI * 0.48, -Math.PI * 0.02, 2.2);
+  cap(1, 0, -Math.PI * 0.95, -Math.PI * 0.5, 2.6);
+  cap(1, 2, -Math.PI * 0.5, -Math.PI * 0.05, 2.6);
+  const la = logAt(2, 0);
+  const lb = logAt(2, 1);
+  c.beginPath();
+  c.moveTo(la.x + Math.cos(-Math.PI * 0.88) * logR, la.y + Math.sin(-Math.PI * 0.88) * logR);
+  c.quadraticCurveTo(la.x - 6 * u, la.y - 17 * u, la.x + 3 * u, la.y - 15.5 * u);
+  c.quadraticCurveTo((la.x + lb.x) / 2, la.y - 11.5 * u, lb.x - 2 * u, lb.y - 16 * u);
+  c.quadraticCurveTo(
+    lb.x + 7 * u,
+    lb.y - 17.5 * u,
+    lb.x + Math.cos(-Math.PI * 0.12) * logR,
+    lb.y + Math.sin(-Math.PI * 0.12) * logR
+  );
+  c.arc(lb.x, lb.y, logR, -Math.PI * 0.12, -Math.PI * 0.8, true);
+  c.arc(la.x, la.y, logR, -Math.PI * 0.2, -Math.PI * 0.88, true);
+  c.fill();
+  // the drift's shaded underside, and the snow heaped at the foot of the pile
+  c.strokeStyle = night ? "rgba(120, 130, 200, 0.5)" : "rgba(150, 130, 190, 0.45)";
+  c.lineWidth = 1.2 * u;
+  c.beginPath();
+  c.arc(lb.x, lb.y, logR + 0.6 * u, -Math.PI * 0.2, -Math.PI * 0.72, true);
+  c.stroke();
+  c.beginPath();
+  c.arc(la.x, la.y, logR + 0.6 * u, -Math.PI * 0.28, -Math.PI * 0.8, true);
+  c.stroke();
   c.fillStyle = pal.roofSnow;
   c.beginPath();
-  c.ellipse(pileX + 30 * u, y - 44 * u, 26 * u, 8 * u, 0, 0, 7);
+  c.ellipse(pileX + 3 * u, y + 1.5 * u, 11 * u, 4 * u, 0, Math.PI, 0);
+  c.ellipse(pileX + 62 * u, y + 1.5 * u, 13 * u, 4.5 * u, 0, Math.PI, 0);
   c.fill();
 
   // chimney of rounded stones, behind the roof line
