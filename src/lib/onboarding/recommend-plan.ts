@@ -125,8 +125,8 @@ export function planSummary(planId: RecommendedPlanId): PlanSummary {
       return {
         name: MARCH_PROGRAM.planName,
         price: formatPrice(MARCH_PROGRAM.price),
-        href: "/program#apply",
-        action: "Apply for the cohort",
+        href: "/reserve",
+        action: "Reserve a seat",
       };
     case "private-10":
     case "private-20": {

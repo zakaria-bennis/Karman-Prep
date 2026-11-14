@@ -92,7 +92,7 @@ export default function HomePage() {
           </h1>
           <p className="lede">{claim.text}</p>
           <div className="go-row">
-            <Btn label={claim.button} href={ROUTES.signUp} />
+            <Btn label={claim.button} href={ROUTES.start} />
           </div>
           <p className="fine">{claim["button note"]}</p>
         </div>

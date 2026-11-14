@@ -1,0 +1,26 @@
+/* The guided intake (OnboardingClient.tsx): the fox hops when it speaks, its line fades up, and each step
+   slides in from the side the visitor is heading to, in about a quarter of a second. Used through
+   Tailwind's animate-[...] classes, which run only when motion is allowed. */
+@keyframes guide-hop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-9px) scale(1.04, 0.97);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes guide-say {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes guide-step {
+  from {
+    opacity: 0;
+    transform: translateX(var(--guide-from, 22px));
+  }
+}

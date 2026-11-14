@@ -216,7 +216,7 @@ export default function SitePage({
           <a className="nl si" href={ROUTES.signIn}>
             {SITE["sign in link"]}
           </a>
-          <a className="cta" href={ROUTES.signUp}>
+          <a className="cta" href={ROUTES.start}>
             {SITE["start free"]}
           </a>
           <button className="menu" type="button" aria-expanded="false" aria-controls="menu">
@@ -233,7 +233,7 @@ export default function SitePage({
             </a>
           ))}
         </nav>
-        <Btn label={SITE["start free"]} href={ROUTES.signUp} />
+        <Btn label={SITE["start free"]} href={ROUTES.start} />
       </div>
       {lit && flight ? <SiteFlight route={route} /> : null}
       {lit ? <SiteTouches /> : null}

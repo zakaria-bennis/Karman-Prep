@@ -67,7 +67,7 @@ export default function ResearchSections() {
             <p className="lede">{open.text}</p>
             <div className="pg-close">
               <div className="go-row">
-                <Btn label={open.button} href={ROUTES.signUp} />
+                <Btn label={open.button} href={ROUTES.start} />
                 <a className="more" href="#ways">
                   {open["second button"]}
                   <Arrow />

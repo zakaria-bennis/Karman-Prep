@@ -30,9 +30,9 @@ export function ChoiceStep({
             type="button"
             onClick={() => onChange(o.id)}
             className={cn(
-              "w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold transition-all",
+              "w-full rounded-xl border-2 px-4 py-3.5 text-left text-[15px] font-semibold transition-all active:scale-[.98]",
               value === o.id
-                ? "border-info/40 bg-info/10 text-info dark:bg-info/20 dark:text-info-bright"
+                ? "border-info bg-info/15 text-info ring-2 ring-info/30 dark:bg-info/20 dark:text-info-bright"
                 : "border-bronze bg-surface text-ivory hover:border-info/40 dark:border-bronze dark:bg-surface-raised/40 dark:text-ivory"
             )}
           >

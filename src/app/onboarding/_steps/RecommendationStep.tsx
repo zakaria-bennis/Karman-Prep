@@ -9,7 +9,10 @@ export function RecommendationStep({
   onContinue,
   submitting,
   role,
+  signedIn,
 }: {
+  /** Signed out, the plan is shown first and the account is asked for here, to save it. */
+  signedIn: boolean;
   recommendation: Recommendation;
   /** Goes to the plan's real next step: Billing, the cohort application or a call. */
   onContinue: (href: string) => void | Promise<void>;
@@ -79,19 +82,34 @@ export function RecommendationStep({
           </>
         ) : (
           <>
-            {plan.action}
+            {signedIn ? plan.action : "Save my plan"}
             <ArrowRight className="h-5 w-5" />
           </>
         )}
       </button>
 
-      <button
-        type="button"
-        onClick={() => void onContinue("/pricing")}
-        className="mt-3 w-full text-xs font-semibold text-taupe hover:text-ivory dark:text-taupe dark:hover:text-ivory"
-      >
-        Or see every plan and price
-      </button>
+      {signedIn ? null : (
+        <p className="mt-3 text-center text-sm font-semibold text-taupe">
+          A free account keeps this plan and opens your first practice. It takes a few seconds.
+        </p>
+      )}
+
+      {signedIn ? (
+        <button
+          type="button"
+          onClick={() => void onContinue("/pricing")}
+          className="mt-3 w-full text-sm font-semibold text-taupe hover:text-ivory"
+        >
+          Or see every plan and price
+        </button>
+      ) : (
+        <a
+          href="/pricing"
+          className="mt-3 block w-full py-2 text-center text-sm font-semibold text-taupe hover:text-ivory"
+        >
+          Later. Show me every plan and price
+        </a>
+      )}
     </div>
   );
 }

@@ -126,7 +126,7 @@ describe("planSummary", () => {
     expect(planSummary("cohort")).toMatchObject({
       name: "9-week Cohort",
       price: "$995",
-      href: "/program#apply",
+      href: "/reserve",
     });
     expect(planSummary("private-10")).toMatchObject({
       name: "Private 10",
