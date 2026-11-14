@@ -71,6 +71,9 @@ describe("the guarantee page", () => {
       expect(words).toContain(b);
     }
     for (const n of [53, 56]) expect(words).toContain(section(n).note);
+    expect(words).toContain(section(56).proof);
+    for (const x of G.proof) expect(words).toContain(x);
+    expect(words).not.toMatch(/does the work|do the work/);
     for (const x of [...list(section(8)["we do"]), ...list(section(8)["you do"])]) {
       expect(words).toContain(x);
     }

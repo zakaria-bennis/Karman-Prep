@@ -154,7 +154,15 @@ export default function GuaranteeSections() {
             ))}
           </ol>
           <p className="gq-note">{claim.note}</p>
-          <Btn label={claim.button} href={ROUTES.pricing} />
+          <details className="gq-card gq-proof">
+            <summary>{claim.proof}</summary>
+            <ol>
+              {G.proof.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ol>
+          </details>
+          <Btn label={open.button} href={ROUTES.pricing} />
         </div>
       </section>
     </>
