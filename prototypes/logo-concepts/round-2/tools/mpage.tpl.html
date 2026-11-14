@@ -1,0 +1,119 @@
+<title>Karman Mark Sketches</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&family=Young+Serif&family=Caveat:wght@600&display=swap">
+<style>
+/* Layout: a contact sheet. Twelve rows, one per idea; four versions across, each with its lockup and favicon underneath. */
+:root {
+  --bg: #fffaf3; --card: #f5eee2; --line: rgba(29, 26, 34, .12); --fg: #1d1a22; --fg2: #5a5361; --acc: #2449b8;
+  --m-ink: #1d1a22; --m-acc: #2449b8; --m-gold: #dba84a; --m-soft: #cfdaf2; --m-paper: #fffaf3;
+  --display: "Young Serif", Georgia, serif; --body: "Hanken Grotesk", system-ui, -apple-system, sans-serif; --hand: "Caveat", cursive;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0d1d; --card: #12152b; --line: rgba(255, 250, 243, .12); --fg: #fffaf3; --fg2: #b9b3c2; --acc: #e7cf9a;
+  --m-ink: #fffaf3; --m-acc: #8ea4f0; --m-gold: #f1c96a; --m-soft: #2a3468; --m-paper: #0d1024; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b0d1d; --card: #12152b; --line: rgba(255, 250, 243, .12); --fg: #fffaf3; --fg2: #b9b3c2; --acc: #e7cf9a;
+  --m-ink: #fffaf3; --m-acc: #8ea4f0; --m-gold: #f1c96a; --m-soft: #2a3468; --m-paper: #0d1024; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 80px; display: grid; gap: 48px; }
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(34px, 5vw, 58px); line-height: 1.05; }
+h2 { font-size: 24px; line-height: 1.15; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fg2); }
+.top { display: grid; gap: 18px; }
+.lede { max-width: 62ch; font-size: 18px; color: var(--fg2); }
+.bar { display: flex; flex-wrap: wrap; gap: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button { font: 600 14px var(--body); color: var(--fg2); border: 0; background: none; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; border-radius: 10px; }
+.picks { display: flex; flex-wrap: wrap; gap: 10px; }
+.picks a { color: inherit; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-weight: 600; font-size: 15px; display: inline-flex; gap: 8px; align-items: baseline; }
+.picks a:hover { border-color: var(--acc); }
+.picks i { font-style: normal; font-family: var(--hand); font-size: 20px; color: var(--acc); line-height: 1; }
+.idea { display: grid; gap: 16px; scroll-margin-top: 16px; }
+.ihead { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: baseline; }
+.ihead .n { font-family: var(--display); font-size: 24px; color: var(--acc); font-variant-numeric: tabular-nums; min-width: 1.6em; }
+.ihead p { color: var(--fg2); }
+.vs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.v { margin: 0; background: var(--card); border-radius: 20px; padding: 12px; display: grid; gap: 10px; position: relative; scroll-margin-top: 16px; min-width: 0; }
+.v .art { background: var(--m-paper); border-radius: 14px; aspect-ratio: 1; display: grid; place-items: center; }
+.v .big { width: 64%; height: auto; overflow: visible; }
+.v figcaption { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 0 4px 2px; min-width: 0; }
+.tag { font-weight: 700; font-size: 14px; color: var(--fg2); font-variant-numeric: tabular-nums; }
+.lock { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.lock .sm { width: 26px; height: 26px; flex: none; }
+.wm { font-family: var(--display); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fav { width: 26px; height: 26px; border-radius: 6px; background: var(--m-paper); display: grid; place-items: center; border: 1px solid var(--line); }
+.fav .xs { width: 16px; height: 16px; }
+.flag { position: absolute; top: 14px; right: 18px; z-index: 1; font-family: var(--hand); font-size: 22px; color: var(--acc); transform: rotate(-5deg); }
+.notes { display: grid; gap: 10px; max-width: 68ch; color: var(--fg2); font-size: 15px; padding-top: 10px; border-top: 1px solid var(--line); }
+.notes b { color: var(--fg); }
+
+/* the marks */
+.i { fill: var(--m-ink); } .a { fill: var(--m-acc); } .g { fill: var(--m-gold); } .s { fill: var(--m-soft); } .c { fill: var(--m-paper); }
+.i-s, .a-s, .g-s, .s-s, .c-s { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.i-s { stroke: var(--m-ink); } .a-s { stroke: var(--m-acc); } .g-s { stroke: var(--m-gold); } .s-s { stroke: var(--m-soft); } .c-s { stroke: var(--m-paper); }
+.big .tw { transform-box: fill-box; transform-origin: center; animation: tw 3.2s ease-in-out infinite; }
+.big .bob { animation: bob 3.6s ease-in-out infinite; }
+.big .sway { transform-box: fill-box; transform-origin: 50% 0; animation: sway 4s ease-in-out infinite; }
+@keyframes tw { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(.78) rotate(20deg); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.still .big .tw, .still .big .bob, .still .big .sway { animation: none; }
+@media (prefers-reduced-motion: reduce) { .big .tw, .big .bob, .big .sway { animation: none; } }
+
+@media (max-width: 900px) { .vs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .wm { font-size: 15px; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Karman Prep · round two · 12 Nov 2026</span>
+    <h1>Twelve simple marks, four ways each</h1>
+    <p class="lede">Forty-eight logo sketches in your site's colours. Each one is shown large, beside the name the way it would sit in the header, and at favicon size, because a logo that still reads at 16 pixels is simple enough. Refer to any of them by its number and letter, like 8B.</p>
+    <div class="bar">
+      <div class="seg" role="group" aria-label="Preview colours">
+        <button type="button" data-mode="auto" aria-pressed="true">Match device</button>
+        <button type="button" data-mode="light" aria-pressed="false">Day</button>
+        <button type="button" data-mode="dark" aria-pressed="false">Night</button>
+      </div>
+      <div class="seg" role="group" aria-label="Motion">
+        <button type="button" data-motion="on" aria-pressed="true">Gentle motion</button>
+        <button type="button" data-motion="off" aria-pressed="false">Still</button>
+      </div>
+    </div>
+    <nav class="picks" aria-label="My picks">
+      <a href="#answer-bubble-b"><i>my pick</i>8B · Bubble moon</a>
+      <a href="#karman-line-a"><i>second</i>1A · Star over the line</a>
+      <a href="#balloon-a"><i>most alive</i>11A · Hot air balloon</a>
+    </nav>
+  </header>
+
+<!--ROWS-->
+
+  <section class="notes" aria-label="Notes">
+    <p><b>Why 8B.</b> The filled-in answer bubble every SAT student knows becomes a crescent moon with a star. It is one shape, it reads at favicon size, and it ties the night sky to the test without a rocket.</p>
+    <p><b>Nothing here is on the live site.</b> These are sketches drawn in code, not copied from other brands. Once you pick one or two, I can refine the shapes, pair them with the wordmark properly and make the app icon and favicon files.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    if (b.dataset.mode === "auto") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", b.dataset.mode);
+    try { localStorage.setItem("kmark-mode", b.dataset.mode); } catch (e) {}
+  }));
+  document.querySelectorAll("[data-motion]").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("[data-motion]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    document.body.classList.toggle("still", b.dataset.motion === "off");
+  }));
+  try { const m = localStorage.getItem("kmark-mode"); if (m) document.querySelector(`[data-mode="${m}"]`)?.click(); } catch (e) {}
+})();
+</script>

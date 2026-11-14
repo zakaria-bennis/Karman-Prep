@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Karman Prep"><style>.i{fill:var(--m-ink)}.a{fill:var(--m-acc)}.g{fill:var(--m-gold)}.s{fill:var(--m-soft)}.c{fill:var(--m-paper)}
+.i-s,.a-s,.g-s,.s-s,.c-s{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.i-s{stroke:var(--m-ink)}.a-s{stroke:var(--m-acc)}.g-s{stroke:var(--m-gold)}.s-s{stroke:var(--m-soft)}.c-s{stroke:var(--m-paper)}
+:root{--m-ink:#1d1a22;--m-acc:#2449b8;--m-gold:#dba84a;--m-soft:#cfdaf2;--m-paper:#fffaf3}@media (prefers-color-scheme:dark){:root{--m-ink:#fffaf3;--m-acc:#8ea4f0;--m-gold:#f1c96a;--m-soft:#2a3468;--m-paper:#0d1024}}</style><path class="a-s" d="M14 54L38 76L80 30" stroke-width="11"/><g class="tw" style="animation-delay:0s"><path class="g" d="M82.0 10.0Q84.8 21.2 96.0 24.0Q84.8 26.8 82.0 38.0Q79.2 26.8 68.0 24.0Q79.2 21.2 82.0 10.0Z"/></g></svg>
