@@ -92,7 +92,9 @@ function StandIn({ mode }: { mode: "sign-in" | "sign-up" }) {
                   key={k}
                   className={`cl-socialButtonsBlockButton cl-socialButtonsBlockButton__${k.toLowerCase()}`}
                 >
-                  <span className="cl-socialButtonsProviderIcon">{LOGO[k]}</span>
+                  <span>
+                    <span className="cl-socialButtonsProviderIcon">{LOGO[k]}</span>
+                  </span>
                   <span className="cl-socialButtonsBlockButtonText">Continue with {k}</span>
                 </button>
               ))}

@@ -26,9 +26,10 @@
   --ink: #2a1c16;
   --cream: #fff3df;
   --amber: #ffc98a;
-  /* frosted, not white (founder, 2026-11-13): a milky warm glass with the scene blurred behind it */
+  /* frosted, not white (founder, 2026-11-13): a dusky warm glass with the scene blurred behind it,
+     dark enough that the Google and Microsoft marks stand out */
   --pill:
-    linear-gradient(rgba(255, 240, 220, 0.44), rgba(255, 230, 204, 0.34)), rgba(40, 28, 52, 0.28);
+    linear-gradient(rgba(255, 236, 214, 0.16), rgba(255, 226, 200, 0.08)), rgba(26, 18, 40, 0.56);
   --pill-edge: rgba(255, 246, 232, 0.5);
   --frost: blur(28px) saturate(1.7) brightness(1.06);
   position: relative;
@@ -270,6 +271,17 @@
   color: var(--cream);
   font-size: 16.5px;
   font-weight: 800;
+}
+/* each mark sits on its own small light disc, so its colours read on the glass */
+.ks .cb .cl-socialButtonsBlockButton :is(span, div):has(> .cl-socialButtonsProviderIcon) {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fffaf2;
+  box-shadow: 0 2px 8px rgba(10, 6, 24, 0.35);
 }
 .ks .cb :is(.cl-socialButtonsProviderIcon, .cl-socialButtonsProviderIcon svg, .cb-email-pill svg) {
   flex: none;
@@ -617,9 +629,29 @@
   .ks .cb-in {
     grid-template-rows: auto 1fr auto;
   }
+  /* on a phone the greeting lies over the bright sky and the cabin, so it gets its own patch of dusk, a
+     heavier weight and a firmer shadow */
   .ks.lit .cb .cb-hello {
+    position: relative;
     min-height: 0;
     align-content: start;
+    font-weight: 520;
+    text-shadow:
+      0 1px 2px rgba(20, 10, 44, 0.9),
+      0 2px 14px rgba(20, 10, 44, 0.85);
+  }
+  .ks.lit .cb .cb-hello::before {
+    content: "";
+    position: absolute;
+    inset: -46px -40px -34px;
+    z-index: -1;
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      rgba(24, 16, 48, 0.62),
+      rgba(24, 16, 48, 0.4) 48%,
+      rgba(24, 16, 48, 0) 76%
+    );
+    pointer-events: none;
   }
   .ks .cb-form {
     align-self: end;
