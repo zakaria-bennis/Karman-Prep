@@ -1,0 +1,85 @@
+// Every word on the Reserve a seat pages (/reserve and /reserve/welcome). Numbers come from offer.ts.
+import { GUARANTEE as G, MARCH_PROGRAM as MP, formatPrice } from "./offer";
+
+export const RESERVE = {
+  title: "Reserve a seat",
+  steps: ["You", "Contact", "Score", "Payment"],
+  back: "Back",
+  next: "Continue",
+  who: {
+    headline: "Who is filling this in?",
+    parent: "A parent",
+    student: "The student",
+  },
+  contact: {
+    parent: {
+      headline: "Where do we reach you?",
+      first: "Your first name",
+      last: "Your last name",
+      email: "Your email",
+      phone: "Your phone",
+      student: "Your student's first name",
+    },
+    student: {
+      headline: "Who pays for the seat?",
+      first: "Parent's first name",
+      last: "Parent's last name",
+      email: "Parent's email",
+      phone: "Parent's phone",
+      student: "Your first name",
+    },
+    note: "We save this as you go, so we can help if you get stuck.",
+  },
+  score: {
+    headline: "Where is the score today?",
+    field: "Latest SAT score",
+    none: "No SAT yet",
+    noneNote: "No problem. A proctored placement test with us sets the starting score.",
+    date: "Which SAT is the goal?",
+    starts: "Classes start",
+    closed: "Registration for the next cohorts is closed. Email us and we'll find a seat.",
+  },
+  pay: {
+    headline: "How would you like to pay?",
+    full: "Pay in full",
+    fullPrice: formatPrice(MP.price),
+    fullNote: "One payment. Pay later options are offered at checkout.",
+    parts: "Deposit, then three payments",
+    partsPrice: `${formatPrice(MP.depositAmount)} today`,
+    partsNote: `Then ${MP.installments.count} monthly payments of ${formatPrice(MP.installments.amount)}, from the first class. Same total.`,
+    button: "Go to secure payment",
+    sending: "Opening secure payment",
+    safe: "You pay on Stripe's secure page. We never see your card.",
+    promise: `Covered by the guarantee: up to +${G.bands[0].cohort} points, or your money back.`,
+  },
+  errors: {
+    name: "Use letters only.",
+    email: "That email doesn't look right.",
+    phone: "Enter a phone number with its area code.",
+    score: "SAT scores run from 400 to 1600, in tens.",
+    closed: "That cohort's registration just closed. Pick another date.",
+    server: "That didn't go through. Try again, or email hello@karmanprep.com.",
+  },
+  welcome: {
+    paidTitle: "The seat is reserved.",
+    paidText: "Thank you. Here is what happens next.",
+    waitTitle: "Your payment is on its way.",
+    waitText: "This page updates as soon as the payment clears. It usually takes a few seconds.",
+    lostTitle: "We can't find that reservation.",
+    lostText: "Open the link from your confirmation email, or email hello@karmanprep.com.",
+    steps: [
+      ["Create the student's account", "It opens the full platform today, before the first class."],
+      [
+        "Send the starting score",
+        `Email the official SAT score report to ${G.claimEmail}. No SAT yet? We'll email a time for the placement test.`,
+      ],
+      [
+        "Get the class times",
+        "We place your student with others at the same score, and send the schedule before the first week.",
+      ],
+    ] as [string, string][],
+    button: "Create the student's account",
+    claimed: "The student's account is set up. Sign in to start.",
+    signIn: "Sign in",
+  },
+} as const;

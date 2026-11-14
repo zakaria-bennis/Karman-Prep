@@ -9,6 +9,7 @@
 // Stripe retries the event.
 // ============================================================
 
+import { settleReservation } from "@/lib/reserve/service";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
@@ -156,6 +157,17 @@ export const POST = withWebhookInstrumentation(
           if (session.payment_status === "unpaid") {
             // A delayed payment method: async_payment_succeeded follows.
             console.log(`[webhook] checkout ${session.id} completed unpaid; waiting for payment`);
+            break;
+          }
+          // A cohort seat reserved from the marketing site, before the student has an account
+          // (src/lib/reserve): settled by its reservation, not by a user.
+          if (session.metadata?.reservationId) {
+            const outcome = await settleReservation(session);
+            console.log(`[webhook] reservation ${session.metadata.reservationId}: ${outcome}`);
+            if (outcome === "paid" && session.metadata.term === "installments") {
+              const scheduleId = await scheduleCohortInstallments(session);
+              console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
+            }
             break;
           }
           const meta = purchaseMetadataSchema.safeParse(session.metadata);

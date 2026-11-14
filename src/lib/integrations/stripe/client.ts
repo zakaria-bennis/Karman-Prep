@@ -4,7 +4,12 @@
 
 import Stripe from "stripe";
 import { type CohortPayment } from "./cohort-installments";
-import { cohortInstallmentSpecs, priceLabel, type StripePriceSpec } from "./prices";
+import {
+  cohortInstallmentSpecs,
+  findStripePrice,
+  priceLabel,
+  type StripePriceSpec,
+} from "./prices";
 
 /**
  * Card plus Stripe Link on every checkout. Founder, 2026-11-12: push Link, because a returning
@@ -141,6 +146,50 @@ export async function createCheckoutSession({
     mode: "payment",
     // The admin scholarship payout refunds the cohort price by cohort_id.
     payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },
+  });
+}
+
+/**
+ * Checkout for a cohort seat reserved from the marketing site, before the student has an account
+ * (src/lib/reserve). The same prices and payment methods as a signed-in cohort checkout; the metadata
+ * carries the reservation instead of a user, and the webhook settles it by that id.
+ */
+export async function createReservationCheckoutSession({
+  customerId,
+  reservationId,
+  programId,
+  payment,
+  successUrl,
+  cancelUrl,
+}: {
+  customerId: string;
+  reservationId: string;
+  programId: string;
+  payment: CohortPayment;
+  successUrl: string;
+  cancelUrl: string;
+}) {
+  const metadata = { reservationId, planId: "cohort", term: payment, programId };
+  const shared = { customer: customerId, success_url: successUrl, cancel_url: cancelUrl, metadata };
+  if (payment === "installments") {
+    const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
+    return stripe.checkout.sessions.create({
+      ...shared,
+      mode: "payment",
+      payment_method_types: [...CARD_METHODS],
+      line_items: [{ price: deposit.id, quantity: 1 }],
+      payment_intent_data: { setup_future_usage: "off_session", metadata },
+    });
+  }
+  const spec = findStripePrice("cohort");
+  if (!spec) throw new Error("The cohort has no Stripe price in prices.ts");
+  const price = await getCheckoutPrice(spec);
+  return stripe.checkout.sessions.create({
+    ...shared,
+    mode: "payment",
+    payment_method_types: [...ONE_PAYMENT_METHODS],
+    line_items: [{ price: price.id, quantity: 1 }],
+    payment_intent_data: { metadata },
   });
 }
 
