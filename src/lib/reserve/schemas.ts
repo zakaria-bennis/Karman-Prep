@@ -34,14 +34,39 @@ export const detailsSchema = z.object({
     .refine((v) => v === "" || okPhone(v)),
 });
 
-/** The score, the cohort and how the seat is paid. */
+/** The cohort and how the seat is paid. Nothing else is asked before payment. */
 export const seatSchema = z.object({
   reservationId: z.string().uuid(),
+  programId: z.string().min(1).max(60),
+  payment: z.enum(COHORT_PAYMENT_OPTIONS),
+});
+
+export const HARDEST = ["math", "reading", "both", "timing"] as const;
+export const CLASS_TIMES = ["weekday-evenings", "saturday", "sunday"] as const;
+
+/** Right after paying: what gets the student started. Every answer is a choice or a short line. */
+export const registrationSchema = z.object({
+  token: z.string().uuid(),
   /** "" when the student has not taken an SAT yet. */
   startScore: z
     .string()
     .trim()
     .refine((v) => v === "" || okScore(v, 400)),
-  programId: z.string().min(1).max(60),
-  payment: z.enum(COHORT_PAYMENT_OPTIONS),
+  goalScore: z
+    .string()
+    .trim()
+    .refine((v) => okScore(v, 400)),
+  hardest: z.enum(HARDEST),
+  times: z.array(z.enum(CLASS_TIMES)).min(1).max(CLASS_TIMES.length),
+  /** Anything the tutor should know. Optional, one short paragraph, kept as plain text. */
+  note: z
+    .string()
+    .transform((v) =>
+      v
+        .replace(/[\p{C}]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .pipe(z.string().max(400)),
 });
+export type Registration = z.infer<typeof registrationSchema>;

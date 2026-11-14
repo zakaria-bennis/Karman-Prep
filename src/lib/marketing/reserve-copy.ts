@@ -39,8 +39,6 @@ export const RESERVE = {
     starts: "Classes start",
     closed:
       "Registration for the next cohorts is closed. Email hello@karmanprep.com and we'll find a seat.",
-    field: "Latest SAT score",
-    why: "It sets the starting point for the guarantee. No SAT yet? Leave it empty. A placement test with us sets it.",
   },
   pay: {
     headline: "How would you like to pay?",
@@ -59,10 +57,66 @@ export const RESERVE = {
     email: "Enter an email address, like name@example.com.",
     name: "Enter a name, using letters only.",
     phone: "Enter all 10 digits, or leave it empty.",
-    score: "Enter a score from 400 to 1600 that ends in 0, or leave it empty.",
     closed: "Registration for that date just closed. Choose another SAT date.",
     server:
       "That didn't go through. Check your connection and try again, or email hello@karmanprep.com.",
+  },
+  /** Right after payment: Karman the fox asks the few things that get the student started, as a flight
+   *  over the landscape (RegistrationFlight.tsx). {name} is the student's first name. */
+  start: {
+    hello:
+      "The seat is reserved. I'm Karman, and this is Ollie. Five quick questions and {name} is ready for day one.",
+    helloButton: "Take off",
+    score: {
+      say: "Where is {name} taking off from?",
+      headline: "Latest SAT score",
+      field: "SAT score",
+      none: "No SAT yet",
+      noneNote: "No problem. A placement test with us sets the starting point.",
+      why: "It sets the starting point for the guarantee.",
+    },
+    goal: {
+      say: "And where do we land?",
+      headline: "The score {name} is aiming for",
+      field: "Goal score",
+    },
+    gap: "From {from} to {to}. That's {gap} points to fly, and steady work covers it.",
+    gapNoStart: "A {to}. Good place to land. We'll find the starting point first.",
+    hardest: {
+      say: "This tells the tutor where to start.",
+      headline: "What feels hardest right now?",
+      options: {
+        math: "Math",
+        reading: "Reading and Writing",
+        both: "Both about the same",
+        timing: "Running out of time",
+      },
+    },
+    times: {
+      say: "Pick every time that could work. We place the class from these.",
+      headline: "When can {name} make live classes?",
+      options: {
+        "weekday-evenings": "Weekday evenings",
+        saturday: "Saturdays",
+        sunday: "Sundays",
+      },
+    },
+    note: {
+      say: "Last one, and it's optional.",
+      headline: "Anything the tutor should know?",
+      field: "A sport season, a learning difference, a big week",
+      skip: "Leave it empty if there's nothing.",
+    },
+    next: "Continue",
+    finish: "Finish",
+    saving: "Saving",
+    done: "We've landed. {name} is all set.",
+    doneNote: "Thank you. A copy of everything is in your inbox.",
+    errors: {
+      score: "Enter a score from 400 to 1600 that ends in 0.",
+      times: "Pick at least one time.",
+      server: "That didn't save. Check your connection and try again.",
+    },
   },
   welcome: {
     paidTitle: "The seat is reserved.",
@@ -76,8 +130,8 @@ export const RESERVE = {
     steps: [
       ["Create the student's account", "It opens the full platform today, before the first class."],
       [
-        "Send the starting score",
-        `Email the official SAT score report to ${G.claimEmail}. No SAT yet? We'll email a time for the placement test.`,
+        "Send the score report",
+        `Email the official SAT score report (the PDF) to ${G.claimEmail}, for the guarantee. No SAT yet? We'll email a time for the placement test.`,
       ],
       [
         "Get the class times",

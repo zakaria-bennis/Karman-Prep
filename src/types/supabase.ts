@@ -2255,6 +2255,7 @@ export type Database = {
           claimed_at: string | null;
           clerk_user_id: string | null;
           created_at: string;
+          details: Json;
           filled_by: string;
           id: string;
           paid_at: string | null;
@@ -2263,6 +2264,7 @@ export type Database = {
           parent_phone: string | null;
           payment_option: string | null;
           program_id: string | null;
+          registered_at: string | null;
           start_score: number | null;
           status: string;
           stripe_checkout_session_id: string | null;
@@ -2275,6 +2277,7 @@ export type Database = {
           claimed_at?: string | null;
           clerk_user_id?: string | null;
           created_at?: string;
+          details?: Json;
           filled_by: string;
           id?: string;
           paid_at?: string | null;
@@ -2283,6 +2286,7 @@ export type Database = {
           parent_phone?: string | null;
           payment_option?: string | null;
           program_id?: string | null;
+          registered_at?: string | null;
           start_score?: number | null;
           status?: string;
           stripe_checkout_session_id?: string | null;
@@ -2295,6 +2299,7 @@ export type Database = {
           claimed_at?: string | null;
           clerk_user_id?: string | null;
           created_at?: string;
+          details?: Json;
           filled_by?: string;
           id?: string;
           paid_at?: string | null;
@@ -2303,6 +2308,7 @@ export type Database = {
           parent_phone?: string | null;
           payment_option?: string | null;
           program_id?: string | null;
+          registered_at?: string | null;
           start_score?: number | null;
           status?: string;
           stripe_checkout_session_id?: string | null;

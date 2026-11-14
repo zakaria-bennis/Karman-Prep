@@ -47,18 +47,29 @@ clarity and the price in view, so the Reserve a seat form keeps its own rules (`
 no mascot, no game mechanics on the way to payment. Critics also fault Duolingo for guilt messages and for
 upsell screens stacked after a lesson; Karman uses neither.
 
-## How Karman's intake uses it (`src/app/onboarding`)
+## How Karman uses it
 
 Founder, 2026-11-13: keep the direction, but make it ours. It must live in the home page's world (the
-ever-moving painted landscape), it must not read as a copy of Duolingo, and the companions are there to use.
-The fox is Karman. The owl is Ollie.
+ever-moving painted landscape), it must not read as a copy of Duolingo, and the companions are the earnable
+faces from the quiz engine (`src/components/rewards/animals.ts`), never redrawn. The fox is Karman. The owl
+is Ollie.
 
-**The idea that is ours: the intake is a flight.** Ollie the owl flies the route across the live landscape,
-and every answer is a leg of it: the landscape itself moves forward each time (`karman:fly`, SiteFlight's
-`drive="steps"`). Progress is not a bar but a dotted trail that Ollie flies along. Karman the fox rides along
-and does the talking, in flight words: "Where are we taking off from?", "Where do you want to land?", "We've
-landed." When the plan is shown the whole crew cheers, and the landscape has reached the country of the page
-the plan leads to (Reserve a seat, the call, or Pricing), so the same view is there when the visitor arrives.
+**The idea that is ours: a flight seen through a bird's eyes.** No bird is drawn. The visitor has the bird's
+view, and the live landscape itself moves forward with every answer (`karman:fly`; SiteFlight's
+`drive="steps"`). Progress is a dotted trail with a marker. Karman does the talking, in flight words ("Where
+are we taking off from?", "Where do we land?", "We've landed."), Ollie is beside him on the big moments, and
+the whole crew cheers at the end.
+
+**Where it is used**
+
+1. **Registration, right after payment** (`src/components/site/reserve/RegistrationFlight.tsx`, on
+   `/reserve/welcome`). The buttons on the Pricing, SAT Program and Private tutoring pages lead to people who
+   have already decided. The founder chose "pay first" (2026-11-13) after the research in `form-rules.md`
+   and the round on this exact question: before payment the form asks only what payment needs (who, email,
+   names, the SAT date, how to pay); the five questions that get the student started (starting score, goal,
+   what is hardest, class times, a note) come straight after, as the flight. Then the account.
+2. **The plan-finder for visitors who have not decided** (`src/app/onboarding`): Get started opens it, it
+   ends in a plan, and the account is asked for at the end.
 
 | Learned from Duolingo                             | How Karman does it                                                                  |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------- |

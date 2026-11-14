@@ -4,6 +4,8 @@
 //   2. checkoutReservation: the score, the cohort and the way of paying are added, and Stripe Checkout opens.
 //      No account is needed to pay.
 //   3. settleReservation: the Stripe webhook marks the seat paid and sends the family their next steps.
+//      saveRegistration: right after paying, the family answers the few questions that get the student
+//      started (score, goal, what is hardest, class times). Asked after payment on purpose.
 //   4. claimReservation: the student creates an account from the link in those steps; the paid seat is
 //      attached to it, which opens the platform at once. The founder then places the student in a class
 //      by starting score (admin, cohorts).
@@ -14,7 +16,7 @@ import { GUARANTEE, MARCH_PROGRAM as MP, formatPrice } from "@/lib/marketing/off
 import { recordPurchaseGrant } from "@/lib/plans/resolve";
 import { createAdminClient } from "@/lib/supabase/server";
 import { openPrograms } from "./programs";
-import { detailsSchema, emailSchema, seatSchema } from "./schemas";
+import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 export type ReserveResult<T> =
   | { ok: true; value: T }
@@ -32,6 +34,8 @@ export interface Reservation {
   program_id: string | null;
   payment_option: "full" | "installments" | null;
   claim_token: string;
+  details: Record<string, unknown> | null;
+  registered_at: string | null;
   stripe_customer_id: string | null;
   stripe_checkout_session_id: string | null;
   clerk_user_id: string | null;
@@ -160,7 +164,6 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
     await db
       .from(TABLE)
       .update({
-        start_score: s.startScore ? Number(s.startScore) : null,
         program_id: s.programId,
         payment_option: s.payment,
         stripe_customer_id: customerId,
@@ -267,6 +270,45 @@ export async function reservationExpired(
     ],
     r.parent_email
   );
+}
+
+/** The questions asked right after payment, saved to the paid seat, and sent on to the founder. */
+export async function saveRegistration(input: unknown): Promise<ReserveResult<null>> {
+  const parsed = registrationSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  const a = parsed.data;
+  const { data, error } = await createAdminClient()
+    .from(TABLE)
+    .update({
+      start_score: a.startScore ? Number(a.startScore) : null,
+      details: { goalScore: Number(a.goalScore), hardest: a.hardest, times: a.times, note: a.note },
+      registered_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("claim_token", a.token)
+    .in("status", ["paid", "placed"])
+    .select("*")
+    .maybeSingle();
+  if (error) {
+    console.error("[reserve] could not save the registration", error);
+    return { ok: false, error: "server" };
+  }
+  if (!data) return { ok: false, error: "invalid" };
+  const r = data as Reservation;
+  await tellFounder(
+    `Registered: ${r.student_first_name ?? r.parent_email}`,
+    [
+      "The family answered the questions that get the student started.",
+      "",
+      ...describe(r),
+      `Goal score: ${a.goalScore}`,
+      `Hardest right now: ${a.hardest}`,
+      `Can make classes: ${a.times.join(", ")}`,
+      a.note ? `Note: ${a.note}` : "",
+    ].filter((l, i) => l !== "" || i === 1),
+    r.parent_email
+  );
+  return { ok: true, value: null };
 }
 
 export async function findReservation(token: string): Promise<Reservation | null> {

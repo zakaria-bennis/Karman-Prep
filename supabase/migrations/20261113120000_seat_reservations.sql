@@ -15,7 +15,8 @@ create table if not exists public.seat_reservations (
   parent_name text,
   parent_phone text,
   student_first_name text,
-  -- the latest official SAT score; null means no SAT yet, so a placement test sets the start
+  -- the latest official SAT score, asked after payment; null means not given yet, or no SAT yet (then a
+  -- placement test sets the start)
   start_score smallint check (start_score is null or (start_score between 400 and 1600 and start_score % 10 = 0)),
   -- offer.ts program id, e.g. "cohort-march-2027"
   program_id text,
@@ -26,6 +27,10 @@ create table if not exists public.seat_reservations (
   stripe_customer_id text,
   stripe_checkout_session_id text unique,
   paid_at timestamptz,
+  -- what the family tells us right after paying, to get the student started (goal, what is hardest, when
+  -- classes can be made, a note): asked after payment, never before it (docs/forms/form-rules.md)
+  details jsonb not null default '{}'::jsonb,
+  registered_at timestamptz,
   -- the student's Clerk id, once the account is created and linked
   clerk_user_id text,
   claimed_at timestamptz

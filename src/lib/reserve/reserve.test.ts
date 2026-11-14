@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MARCH_PROGRAM, NEXT_PROGRAMS } from "@/lib/marketing/offer";
 import { openPrograms } from "./programs";
-import { detailsSchema, emailSchema, seatSchema } from "./schemas";
+import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 describe("the cohorts a family can reserve", () => {
   it("offers every cohort until a week before its first class", () => {
@@ -39,16 +39,30 @@ describe("what the form may send", () => {
     ])
       expect(detailsSchema.safeParse({ ...d, ...bad }).success).toBe(false);
   });
-  it("takes a real SAT score or none, and only the two ways of paying", () => {
-    const seat = {
-      reservationId: id,
-      startScore: "1180",
-      programId: MARCH_PROGRAM.id,
-      payment: "full",
-    };
+  it("asks for nothing but the cohort and the way of paying before payment", () => {
+    const seat = { reservationId: id, programId: MARCH_PROGRAM.id, payment: "full" };
     expect(seatSchema.safeParse(seat).success).toBe(true);
-    expect(seatSchema.safeParse({ ...seat, startScore: "" }).success).toBe(true);
-    for (const bad of [{ startScore: "1185" }, { startScore: "2000" }, { payment: "free" }])
-      expect(seatSchema.safeParse({ ...seat, ...bad }).success).toBe(false);
+    expect(seatSchema.safeParse({ ...seat, payment: "free" }).success).toBe(false);
+    expect(Object.keys(seatSchema.shape)).toEqual(["reservationId", "programId", "payment"]);
+  });
+  it("takes the registration answers after payment, and refuses what they cannot be", () => {
+    const answers = {
+      token: id,
+      startScore: "1180",
+      goalScore: "1400",
+      hardest: "math",
+      times: ["saturday"],
+      note: "Soccer on Tuesdays",
+    };
+    expect(registrationSchema.safeParse(answers).success).toBe(true);
+    expect(registrationSchema.safeParse({ ...answers, startScore: "" }).success).toBe(true);
+    for (const bad of [
+      { startScore: "1185" },
+      { goalScore: "" },
+      { hardest: "everything" },
+      { times: [] },
+      { note: "x".repeat(500) },
+    ])
+      expect(registrationSchema.safeParse({ ...answers, ...bad }).success).toBe(false);
   });
 });

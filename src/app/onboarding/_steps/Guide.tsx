@@ -37,7 +37,7 @@ export function Guide({ say, big = false }: { say: string; big?: boolean }) {
   }, [say, mounted]);
   return (
     <div className={big ? "ob-moment" : "ob-guide"}>
-      <div key={big ? "big" : say}>
+      <div key={big ? "big-pets" : `${say}-pet`}>
         {mounted ? (
           <>
             <Pet ref={fox} animal="fox" size={big ? 132 : 64} />
@@ -48,7 +48,7 @@ export function Guide({ say, big = false }: { say: string; big?: boolean }) {
           <span style={{ display: "block", width: big ? 132 : 64, height: big ? 141 : 68 }} />
         )}
       </div>
-      <p className="ob-say" key={say} aria-live="polite">
+      <p className="ob-say" key={`${say}-line`} aria-live="polite">
         {say}
       </p>
     </div>
