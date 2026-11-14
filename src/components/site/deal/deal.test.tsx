@@ -9,8 +9,7 @@ import {
   PRO_PLAN,
 } from "@/lib/marketing/offer";
 import { list, pairs, section } from "@/lib/marketing/site-copy";
-import { placeExample } from "./ExampleTrack";
-import GuaranteeSections, { targetBands } from "./GuaranteeSections";
+import GuaranteeSections, { pointRows } from "./GuaranteeSections";
 import { pricingData } from "./pricing-data";
 import PricingPage from "./PricingPage";
 
@@ -58,43 +57,30 @@ describe("the guarantee page", () => {
   const html = renderToStaticMarkup(<GuaranteeSections />);
   const words = text(html);
 
-  it("keeps every line of sections 51 to 56 word for word", () => {
-    expect(words).toContain(section(51).headline);
+  it("keeps every line of sections 51 to 55 word for word", () => {
+    for (const n of [51, 52, 53, 54, 55]) expect(words).toContain(section(n).headline);
     expect(words).toContain(section(51).text);
-    for (const [a, b] of pairs(section(52).rows)) {
+    for (const [a, b] of [...pairs(section(52).high), ...pairs(section(53).rows)]) {
       expect(words).toContain(a);
       expect(words).toContain(b);
     }
-    for (const x of list(section(53).list)) expect(words).toContain(x);
-    for (const [a, b] of pairs(section(54).rows)) {
-      expect(words).toContain(a);
-      expect(words).toContain(b);
+    for (const n of [52, 53, 54]) expect(words).toContain(section(n).note);
+    for (const x of [...list(section(8)["we do"]), ...list(section(8)["you do"])]) {
+      expect(words).toContain(x);
     }
     expect(words).toContain(section(55).text);
     expect(words).not.toMatch(/undefined|NaN/);
+    expect(html.match(/<h1/g)).toHaveLength(1);
   });
 
-  it("charts the targets from offer.ts, one band per line of section 56", () => {
-    const bands = targetBands();
-    expect(bands).toHaveLength(G.bands.length + 1);
-    bands.slice(0, -1).forEach((b, i) => {
-      expect(b.cohort).toBe(G.bands[i].cohort);
-      expect(b.private).toBe(G.bands[i].private);
+  it("lists the points from offer.ts, one line per band of starting scores", () => {
+    const rows = pointRows();
+    expect(rows).toHaveLength(G.bands.length);
+    rows.forEach(([label, cohort, priv], i) => {
+      expect(cohort).toBe(`+${G.bands[i].cohort}`);
+      expect(priv).toBe(`+${G.bands[i].private}`);
+      expect(words).toContain(label);
     });
-    expect(bands.at(-1)?.cohort).toBeUndefined();
-    expect(html.match(/role="radio"/g)).toHaveLength(bands.length);
-  });
-
-  it("places each worked example in the ending its words name", () => {
-    const zone = (at: number) => (at < 1 / 3 ? "full" : at < 2 / 3 ? "half" : "kept");
-    for (const [label, out] of pairs(section(52).rows)) {
-      const p = placeExample(label);
-      expect(p).not.toBeNull();
-      const z = zone(p!.at);
-      if (/full/.test(out)) expect(z).toBe("full");
-      else if (/Half back/.test(out)) expect(z).toBe("half");
-      else expect(z).toBe("kept");
-      expect(out).toContain(`+${p!.gain}`);
-    }
+    expect(section(52).high).toContain(`${G.noGuaranteeFrom} or higher`);
   });
 });
