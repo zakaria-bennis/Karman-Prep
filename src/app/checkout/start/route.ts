@@ -1,9 +1,10 @@
 // ============================================================
 // GET /checkout/start?plan=practice&term=month
-// The pricing page's plan buttons (founder, 2026-11-08): a signed-in
-// visitor goes straight to Stripe Checkout for that plan; a visitor
-// without an account creates one first and comes back here, with the
-// plan carried in the sign-up's redirect_url, then goes to checkout.
+// The pricing page's plan buttons: a signed-in visitor goes straight to
+// Stripe Checkout for that plan. A visitor without an account pays
+// first too (founder, 2026-11-14) and makes the account afterwards
+// (src/lib/checkout/guest.ts); only plans that need an account first
+// (a tutor's plan) still go through Get started and come back here.
 // If checkout can't open (already on a plan, a cohort seat not held
 // yet), the visitor lands on Billing with the plan picked.
 // ============================================================
@@ -11,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { startGuestCheckout } from "@/lib/checkout/guest";
 import { startCheckout } from "@/lib/integrations/stripe/start-checkout";
 
 /** Only these query values pass through; startCheckout validates them again. */
@@ -37,6 +39,12 @@ export async function GET(req: NextRequest) {
 
   const { userId } = await safeAuth();
   if (!userId) {
+    try {
+      const url = await startGuestCheckout(input);
+      if (url) return NextResponse.redirect(url, 303);
+    } catch (error) {
+      console.error("[checkout/start] Guest checkout error:", error);
+    }
     const signUp = new URL("/auth/sign-up", origin);
     signUp.searchParams.set("redirect_url", `${here.pathname}${here.search}`);
     return NextResponse.redirect(signUp, 303);
