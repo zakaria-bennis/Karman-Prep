@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
-import { okEmail, okPhone } from "@/lib/marketing/lead-rules";
+import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
@@ -36,8 +36,8 @@ export interface CallWords extends SlotWords {
 }
 
 const OK: Record<Field, (v: string) => boolean> = {
-  first: (v) => v.trim().length > 0,
-  last: (v) => v.trim().length > 0,
+  first: okName,
+  last: okName,
   phone: okPhone,
   email: okEmail,
 };
@@ -187,16 +187,16 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
           return (
             <div className="cf-field" data-half={half || undefined} key={k}>
               <label className="cf-pill" data-bad={errors[k] ? true : undefined}>
-                {half ? null : <span>{w[k]}</span>}
                 <input
                   name={k}
-                  placeholder={half ? w[k] : undefined}
-                  aria-label={half ? w[k] : undefined}
+                  placeholder={w[k]}
+                  aria-label={w[k]}
                   aria-invalid={errors[k] ? true : undefined}
                   aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
                   onBlur={(e) => e.target.value && check(k, e.target.value)}
                   onChange={(e) => {
                     if (k === "phone") e.target.value = formatPhone(e.target.value);
+                    if (half) e.target.value = cleanName(e.target.value);
                     if (errors[k]) check(k, e.target.value);
                   }}
                   {...INPUT[k]}

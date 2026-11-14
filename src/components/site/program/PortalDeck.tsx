@@ -1,9 +1,11 @@
 "use client";
 
-// A deck of cards that turns by itself: what the parent of one student sees in the parent portal, one view
-// to a card (homework, skills, predicted score, practice time, the tutor's note). The card in front slides
-// away and the next comes up; pointing at the deck holds it, and the dots pick a card. Under reduced motion,
-// or when the painting is held still, it only turns when a dot is pressed. All of it comes in as props.
+// A carousel of cards that turns by itself: what the parent of one student sees in the parent portal, one
+// view to a card (homework, skills, predicted score, practice time, the tutor's note). The card in front has
+// the next and the last one peeking out beside it. It can be slid with a finger or dragged with a mouse, and
+// turned with the arrow keys; pointing at it holds it (founder, 2026-11-13: no row of dashes to press).
+// Under reduced motion, or when the painting is held still, it only turns when slid. All of it comes in as
+// props.
 import { useEffect, useRef, useState } from "react";
 
 export interface DeckWords {
@@ -49,6 +51,34 @@ export default function PortalDeck({ w }: { w: DeckWords }) {
     }, 4200);
     return () => clearInterval(t);
   }, [n]);
+  // sliding: the front card follows the finger or the mouse, and past a short pull the carousel turns
+  const stack = useRef<HTMLDivElement>(null);
+  const pull = useRef<{ x: number; id: number } | null>(null);
+  const drag = (dx: number) => stack.current?.style.setProperty("--dx", `${dx}px`);
+  const down = (e: React.PointerEvent) => {
+    pull.current = { x: e.clientX, id: e.pointerId };
+    held.current = true;
+  };
+  const move = (e: React.PointerEvent) => {
+    if (!pull.current) return;
+    const dx = e.clientX - pull.current.x;
+    if (Math.abs(dx) > 6) stack.current?.setPointerCapture(pull.current.id);
+    stack.current?.toggleAttribute("data-pull", true);
+    drag(dx);
+  };
+  const up = (e: React.PointerEvent) => {
+    if (!pull.current) return;
+    const dx = e.clientX - pull.current.x;
+    pull.current = null;
+    held.current = e.pointerType === "mouse";
+    stack.current?.removeAttribute("data-pull");
+    drag(0);
+    if (Math.abs(dx) > 44) setAt((i) => (i + (dx < 0 ? 1 : n - 1)) % n);
+  };
+  const key = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowRight") setAt((i) => (i + 1) % n);
+    if (e.key === "ArrowLeft") setAt((i) => (i + n - 1) % n);
+  };
   const { score } = w;
   const along = (score.now - score.start) / (score.goal - score.start);
   const most = Math.max(...w.minutes);
@@ -115,11 +145,29 @@ export default function PortalDeck({ w }: { w: DeckWords }) {
       onPointerEnter={() => (held.current = true)}
       onPointerLeave={() => (held.current = false)}
     >
-      <div className="pd-stack">
+      <div
+        className="pd-stack"
+        ref={stack}
+        role="group"
+        aria-roledescription="carousel"
+        aria-label={w.brand}
+        tabIndex={0}
+        onKeyDown={key}
+        onPointerDown={down}
+        onPointerMove={move}
+        onPointerUp={up}
+        onPointerCancel={up}
+      >
         {cards.map((card, i) => {
           const place = (i - at + n) % n;
           return (
-            <article key={i} data-place={place > 2 ? "back" : place} aria-hidden={place !== 0}>
+            <article
+              key={i}
+              data-place={
+                place === 0 ? 0 : place === 1 ? "next" : place === n - 1 ? "last" : "back"
+              }
+              aria-hidden={place !== 0}
+            >
               <header>
                 <b>{w.brand}</b>
                 <nav>
@@ -142,17 +190,6 @@ export default function PortalDeck({ w }: { w: DeckWords }) {
       <p className="pd-cap" key={at}>
         {w.captions[at]}
       </p>
-      <div className="pd-dots">
-        {w.titles.map((t, i) => (
-          <button
-            key={t}
-            type="button"
-            aria-label={t}
-            aria-pressed={i === at}
-            onClick={() => setAt(i)}
-          />
-        ))}
-      </div>
     </div>
   );
 }
