@@ -44,6 +44,20 @@ export const CLIENT_EVENTS = {
   question_viewed: z
     .object({ questionId: uuid, mode: z.enum(["instant", "end", "locked"]).optional() })
     .strict(),
+  /** A step of a public form (founder, 2026-11-13: find the step and the field where families give up).
+   *  It carries the form, the step, what happened, and at most the NAME of a field, never what was typed.
+   *  `view` a step appeared; `next` it was completed; `back` the visitor went back; `error` a field failed
+   *  its check; `leave` the page was left with the form unfinished; `choice` an option was picked. */
+  form_step: z
+    .object({
+      form: z.enum(["reserve", "call"]),
+      step: slug,
+      kind: z.enum(["view", "next", "back", "error", "leave", "choice"]),
+      field: slug.optional(),
+      value: slug.optional(),
+      seconds: z.number().int().min(0).max(3600).optional(),
+    })
+    .strict(),
   /** The calculator was opened on a question. */
   calculator_opened: z.object({ questionId: uuid.optional() }).strict(),
 } as const;

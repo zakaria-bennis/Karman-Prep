@@ -216,19 +216,25 @@
 .ks .pd { --a: #2449b8; display: grid; gap: 14px; }
 .ks .pd-stack { position: relative; height: clamp(310px, 27vw, 350px); }
 .ks .pd-stack article { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr; gap: 12px; padding: 20px 22px 22px; border-radius: 26px; background: linear-gradient(170deg, #fffdf8, #f7efe1); color: var(--ink); box-shadow: 0 28px 54px -32px rgba(29, 26, 34, .75), 0 0 0 1px rgba(29, 26, 34, .07); transition: transform .8s var(--spring), opacity .5s var(--out); transform-origin: 50% 100%; }
-.ks .pd-stack article[data-place="0"] { z-index: 3; }
+.ks .pd-stack[role="group"] { --dx: 0px; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; outline-offset: 10px; }
+.ks .pd-stack[data-pull] { cursor: grabbing; }
+.ks .pd-stack[data-pull] article { transition: none; }
+.ks .pd-stack article[data-place="0"] { z-index: 3; transform: translateX(var(--dx)) rotate(calc(var(--dx) / 40px * 1deg)); }
+.ks .pd-stack article[data-place="next"] { z-index: 2; transform: translateX(11%) scale(.9) rotate(2.5deg); }
+.ks .pd-stack article[data-place="last"] { z-index: 2; transform: translateX(-11%) scale(.9) rotate(-2.5deg); }
+.ks .pd-stack article[data-place="back"] { z-index: 0; opacity: 0; transform: scale(.82); }
+/* the schools and tutors pages' deck (TurnDeck.tsx) still stacks its cards and keeps its dashes */
 .ks .pd-stack article[data-place="1"] { z-index: 2; transform: translateY(14px) scale(.955); }
 .ks .pd-stack article[data-place="2"] { z-index: 1; transform: translateY(28px) scale(.91); }
-.ks .pd-stack article[data-place="back"] { z-index: 0; opacity: 0; transform: translate(60px, -30px) rotate(7deg) scale(.96); }
+.ks .pd-dots { display: flex; gap: 0; }
+.ks .pd-dots button { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.ks .pd-dots button::before { content: ""; width: 22px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 26%, transparent); transition: width .5s var(--spring), background-color .3s var(--out); }
+.ks .pd-dots button[aria-pressed="true"]::before { width: 30px; background: var(--ink); }
 .ks .pd-stack article:not([data-place="0"]) > :not(h4) { opacity: 0; }
 .ks .pd-stack article > :not(h4) { transition: opacity .4s var(--out) .15s; }
 .ks .pd-stack h4 { margin: 0; font-family: var(--font-young-serif), Georgia, serif; font-weight: 400; font-size: clamp(21px, 1.9vw, 26px); line-height: 1.1; }
 .ks .pd-cap { margin: 22px 0 0; font-size: clamp(15.5px, 1.25vw, 17.5px); font-weight: 700; animation: pd-cap .5s var(--out) both; }
 @keyframes pd-cap { from { opacity: 0; transform: translateY(8px); } }
-.ks .pd-dots { display: flex; gap: 0; }
-.ks .pd-dots button { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
-.ks .pd-dots button::before { content: ""; width: 22px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 26%, transparent); transition: width .5s var(--spring), background-color .3s var(--out); }
-.ks .pd-dots button[aria-pressed="true"]::before { width: 30px; background: var(--ink); }
 .ks .pd-list, .ks .pd-skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }
 .ks .pd-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 14px; border-radius: 14px; background: color-mix(in srgb, var(--ink) 5%, transparent); font-size: 15.5px; }
 .ks .pd-list b { font-weight: 800; }

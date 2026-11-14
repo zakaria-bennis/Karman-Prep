@@ -1,0 +1,94 @@
+/* Reserve a seat (/reserve and /reserve/welcome; ReserveForm.tsx): one frosted card on the landscape, the
+   guarantee page's card (guarantee.css, .gq-card). Built to docs/forms/form-rules.md.
+   One rule to a line; never run Prettier on this. */
+
+.ks .rs-page { align-content: center; }
+.ks .rs { position: relative; z-index: 1; width: min(100%, 620px); gap: clamp(16px, 2.4svh, 24px); --glass: rgba(255, 253, 248, .5); }
+.ks.lit[data-mode="dark"] .rs { --glass: rgba(22, 22, 40, .6); }
+.ks.lit .rs h1 { margin: 0; font-size: clamp(28px, 3vw, 40px); line-height: 1.12; text-wrap: balance; }
+
+/* the head of the card: the price, always in view; "Step 2 of 5"; and a thin bar that fills */
+.ks .rs-head { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; padding-bottom: 14px; }
+.ks .rs-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 13%, transparent); }
+.ks .rs-sum { margin: 0; font-size: 15px; font-weight: 800; }
+.ks .rs-count { margin: 0; font-size: 14px; font-weight: 800; opacity: .8; font-variant-numeric: tabular-nums; }
+.ks .rs-bar { position: absolute; z-index: 1; left: 0; bottom: 0; height: 5px; border-radius: 3px; background: var(--a); transition: width .3s var(--out); }
+
+/* a step arrives from the side the visitor is heading to, in a quarter of a second */
+.ks .rs-step { display: grid; gap: clamp(13px, 1.9svh, 18px); animation: rs-in .26s var(--out) both; }
+.ks .rs-step[data-dir="-1"] { animation-name: rs-back; }
+@keyframes rs-in { from { opacity: 0; transform: translateX(22px); } }
+@keyframes rs-back { from { opacity: 0; transform: translateX(-22px); } }
+.ks .rs h1:focus { outline: 0; }
+.ks .rs-field { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
+/* a field: its name sits inside the pill, and rises to the pill's top edge once there is something typed
+   or the cursor is in it, so it is never lost (rule 8) */
+.ks .rs-pill { position: relative; display: block; min-height: 62px; border-radius: 999px; background: rgba(255, 253, 248, .6); box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 16%, transparent); cursor: text; transition: box-shadow .2s, background .2s; }
+.ks.lit[data-mode="dark"] .rs-pill { background: rgba(255, 250, 243, .08); }
+.ks .rs-pill span { position: absolute; left: 26px; top: 50%; translate: 0 -50%; font-size: 17px; font-weight: 700; opacity: .72; pointer-events: none; transform-origin: left; transition: top .18s var(--out), scale .18s var(--out), opacity .18s; }
+.ks .rs-pill em { font-style: normal; font-weight: 600; }
+.ks .rs-pill:is([data-filled], :focus-within) span { top: 17px; scale: .74; opacity: .85; }
+.ks .rs-pill input { display: block; width: 100%; height: 62px; padding: 20px 26px 0; border: 0; outline: 0; border-radius: 999px; background: none; color: inherit; font: inherit; font-size: 18px; font-weight: 700; }
+.ks.lit .rs .rs-pill input:is(:focus, :focus-visible) { outline: 0; box-shadow: none; border: 0; background: none; }
+.ks .rs-pill:focus-within { background: rgba(255, 253, 248, .85); box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2.5px var(--a); }
+.ks.lit[data-mode="dark"] .rs-pill:focus-within { background: rgba(255, 250, 243, .14); }
+.ks .rs-pill[data-bad] { box-shadow: inset 0 0 0 2.5px #c2452f; }
+.ks .rs-msg { margin: 0 0 0 22px; font-size: 14.5px; font-weight: 800; color: #b23a26; }
+.ks.lit[data-mode="dark"] .rs-msg { color: #ffb4a6; }
+.ks .rs-why { margin: 0 0 0 22px; font-size: 14.5px; font-weight: 600; line-height: 1.4; opacity: .88; }
+.ks .rs-form-msg { margin: 0; text-align: center; }
+.ks .rs-note { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.45; }
+.ks .rs-promise { font-weight: 800; }
+.ks .rs-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; opacity: 0; }
+
+/* the two big choices on the first step */
+.ks .rs-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ks .rs-pick button { min-height: 96px; padding: 0 18px; border-radius: 26px; background: var(--glass); color: inherit; font-size: 19px; font-weight: 800; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); transition: translate .4s var(--spring), box-shadow .25s; }
+.ks .rs-pick button:active { translate: 0 2px; }
+.ks .rs-pick button[data-on] { box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2.5px var(--a); }
+.ks .rs-pick button:focus-visible, .ks .rs-back:focus-visible { outline: 3px solid var(--a); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) { .ks .rs-pick button:hover { translate: 0 -3px; box-shadow: inset 0 1.5px 0 var(--edge), inset 0 0 0 2.5px var(--a); } }
+
+/* "no SAT yet", the SAT dates and the two ways to pay: all radios or a tick drawn as cards */
+.ks :is(.rs-dates, .rs-pay) { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 10px; }
+.ks .rs-dates legend { padding: 0; margin-bottom: 10px; font-size: 16.5px; font-weight: 800; }
+.ks :is(.rs-dates, .rs-pay) label { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline; padding: 14px 20px; border-radius: 22px; background: var(--glass); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 14%, transparent); cursor: pointer; transition: box-shadow .25s, background .25s; }
+.ks :is(.rs-dates, .rs-pay) label[data-on] { background: color-mix(in srgb, var(--a) 10%, var(--glass)); box-shadow: inset 0 0 0 2.5px var(--a); }
+.ks :is(.rs-dates, .rs-pay) input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.ks :is(.rs-dates, .rs-pay) label:has(input:focus-visible) { outline: 3px solid var(--a); outline-offset: 3px; }
+.ks .rs-dates b { font-size: 18px; font-weight: 800; }
+.ks .rs-dates span { font-size: 14.5px; font-weight: 700; opacity: .85; text-align: right; }
+.ks .rs-pay span { font-size: 17.5px; font-weight: 800; }
+.ks.lit .rs-pay .num { font-size: 22px; color: var(--a); }
+.ks .rs-pay small { grid-column: 1 / -1; font-size: 14.5px; font-weight: 600; line-height: 1.4; opacity: .9; }
+
+.ks .rs-nav { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 4px; }
+.ks .rs-back { min-height: 48px; padding: 0 16px; border-radius: 999px; background: none; color: inherit; font-size: 16px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
+.ks .rs .btn { border: 0; cursor: pointer; font: inherit; }
+.ks .rs .btn[data-busy] { opacity: .75; cursor: progress; }
+.ks .rs .btn[data-busy] .lb::after { content: ""; display: inline-block; width: 16px; height: 16px; margin-left: 10px; vertical-align: -2px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: rs-spin .7s linear infinite; }
+@keyframes rs-spin { to { rotate: 360deg; } }
+.ks .rs-safe { margin: 0; font-size: 13.5px; font-weight: 700; opacity: .8; text-align: center; }
+
+/* after paying */
+.ks .rs-done { justify-items: start; overflow: hidden; }
+.ks .rs-next { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.ks .rs-next li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; }
+.ks.lit .rs-next .num { font-size: 30px; line-height: 1; color: var(--a); }
+.ks .rs-next h2 { margin: 0; font-family: var(--font-hanken), system-ui, sans-serif; font-size: 18px; font-weight: 800; line-height: 1.25; }
+.ks .rs-next p { margin: 2px 0 0; font-size: 15.5px; font-weight: 600; line-height: 1.42; }
+/* confetti, once, when the seat is paid: small paper pieces falling through the card */
+.ks .rs-confetti { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(circle, #f07a2e 0 3px, transparent 3.5px), radial-gradient(circle, #2449b8 0 3px, transparent 3.5px), radial-gradient(circle, #23a065 0 2.5px, transparent 3px), radial-gradient(circle, #e7b93a 0 3px, transparent 3.5px), radial-gradient(circle, #7d4fd6 0 2.5px, transparent 3px); background-size: 97px 131px, 113px 149px, 79px 167px, 127px 113px, 89px 139px; background-position: 12px -40px, 60px -90px, 30px -20px, 90px -70px, 5px -110px; opacity: 0; animation: rs-confetti 2.6s cubic-bezier(.2, .6, .4, 1) .2s both; }
+@keyframes rs-confetti { 0% { opacity: 0; background-position: 12px -140px, 60px -190px, 30px -120px, 90px -170px, 5px -210px; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; background-position: 30px 240px, 40px 280px, 44px 300px, 70px 220px, 22px 260px; } }
+
+@media (max-width: 520px) {
+  .ks .rs-pick { grid-template-columns: minmax(0, 1fr); }
+  .ks .rs-pick button { min-height: 72px; }
+  .ks .rs-dates label { grid-template-columns: minmax(0, 1fr); }
+  .ks .rs-dates span { text-align: left; }
+  .ks .rs-nav .btn { flex: 1; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .ks .rs * { animation: none !important; transition: none !important; } .ks .rs-confetti { display: none; } }
+.ks .rs-ref { margin: 0; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--a) 12%, transparent); font-size: 15px; font-weight: 800; }
+.ks.lit .rs-ref .num { font-size: 17px; letter-spacing: .04em; }
+.ks .rs-done .rs-why { margin-left: 0; }

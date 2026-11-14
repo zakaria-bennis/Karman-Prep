@@ -290,8 +290,8 @@ link: The guarantee, in full
 
 ## 36 Private: close
 headline: Schedule a free call.
-form first: First name
-form last: Last name
+form name: Your full name
+form phone why: So we can reach you about the call.
 form phone: Phone
 form email: Email
 form button: Schedule my call

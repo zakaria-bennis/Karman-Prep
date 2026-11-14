@@ -69,6 +69,7 @@ const isMaintenanceExempt = createRouteMatcher([
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
   "/checkout/start", // pricing plan buttons: signed out goes to sign-up, then back here
+  "/reserve(.*)", // reserve a cohort seat: the form, the welcome page and the account link
   // the marketing site (src/components/site/routes.ts)
   "/",
   "/program",
@@ -116,7 +117,12 @@ function bypassMiddleware(_request: NextRequest) {
 
 /** The marketing pages. Once launched they need nothing from Clerk on the server, so they skip its
  *  middleware: no handshake redirects for crawlers and link previews, and no auth headers. */
-const isMarketingPage = createRouteMatcher([...SITE_PAGES, "/robots.txt", "/sitemap.xml"]);
+const isMarketingPage = createRouteMatcher([
+  ...SITE_PAGES,
+  "/reserve/welcome", // the page a family lands on after paying; it needs no session
+  "/robots.txt",
+  "/sitemap.xml",
+]);
 
 /** The auth rules: maintenance gate, public routes, then Clerk protection. Exported for the tests. */
 export const karmanAuth = async (auth: ClerkMiddlewareAuth, request: NextRequest) => {

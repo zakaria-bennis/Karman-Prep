@@ -5,6 +5,8 @@ export const ROUTES = {
   home: "/",
   program: "/program",
   private: "/private-tutoring",
+  /** Reserve and pay for a cohort seat. */
+  reserve: "/reserve",
   schools: "/schools",
   tutors: "/for-tutors",
   test: "/free-practice-test",
@@ -30,6 +32,7 @@ export const SITE_PAGES = [
   ROUTES.home,
   ROUTES.program,
   ROUTES.private,
+  ROUTES.reserve,
   ROUTES.schools,
   ROUTES.tutors,
   ROUTES.test,

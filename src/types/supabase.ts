@@ -2249,6 +2249,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      seat_reservations: {
+        Row: {
+          claim_token: string;
+          claimed_at: string | null;
+          clerk_user_id: string | null;
+          created_at: string;
+          filled_by: string;
+          id: string;
+          paid_at: string | null;
+          parent_email: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+          payment_option: string | null;
+          program_id: string | null;
+          start_score: number | null;
+          status: string;
+          stripe_checkout_session_id: string | null;
+          stripe_customer_id: string | null;
+          student_first_name: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          claim_token?: string;
+          claimed_at?: string | null;
+          clerk_user_id?: string | null;
+          created_at?: string;
+          filled_by: string;
+          id?: string;
+          paid_at?: string | null;
+          parent_email: string;
+          parent_name?: string | null;
+          parent_phone?: string | null;
+          payment_option?: string | null;
+          program_id?: string | null;
+          start_score?: number | null;
+          status?: string;
+          stripe_checkout_session_id?: string | null;
+          stripe_customer_id?: string | null;
+          student_first_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          claim_token?: string;
+          claimed_at?: string | null;
+          clerk_user_id?: string | null;
+          created_at?: string;
+          filled_by?: string;
+          id?: string;
+          paid_at?: string | null;
+          parent_email?: string;
+          parent_name?: string | null;
+          parent_phone?: string | null;
+          payment_option?: string | null;
+          program_id?: string | null;
+          start_score?: number | null;
+          status?: string;
+          stripe_checkout_session_id?: string | null;
+          stripe_customer_id?: string | null;
+          student_first_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       sessions: {
         Row: {
           cohort_id: string | null;
