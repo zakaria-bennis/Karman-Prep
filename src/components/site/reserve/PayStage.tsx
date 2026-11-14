@@ -32,7 +32,7 @@ function appearance(dark: boolean): Appearance {
       colorTextSecondary: ink,
       colorBackground: dark ? "#24243c" : "#fffdf8",
       colorDanger: dark ? "#ffb4a6" : "#b23a26",
-      borderRadius: "18px",
+      borderRadius: "28px",
       spacingUnit: "5px",
     },
     rules: {
@@ -106,8 +106,10 @@ export default function PayStage({
       actions.current = loaded.actions;
 
       // the one-tap ways, Link first
-      // Stripe's own defaults: with options set, the buttons never reported back (checked 2026-11-14)
-      const one = checkout.createExpressCheckoutElement();
+      // Only the height is set, to match the site's buttons. With the full option set (order, themes,
+      // layout) the buttons never reported back (checked 2026-11-14), and Stripe's types want all or none.
+      type OneTap = Parameters<typeof checkout.createExpressCheckoutElement>[0];
+      const one = checkout.createExpressCheckoutElement({ buttonHeight: 55 } as unknown as OneTap);
       let answered = false;
       const settle = (any: boolean) => {
         if (answered || !live) return;
