@@ -2,7 +2,7 @@ import SitePage from "@/components/site/SitePage";
 import { litFonts } from "@/components/site/home/fonts";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import RegistrationFlight from "@/components/site/reserve/RegistrationFlight";
-import { findReservation } from "@/lib/reserve/service";
+import { confirmPaid, findReservation } from "@/lib/reserve/service";
 import "@/app/onboarding/intake.css";
 
 export const metadata = { title: "Karman Prep: Your seat", robots: { index: false } };
@@ -15,10 +15,12 @@ const W = RESERVE.welcome;
 export default async function ReserveWelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ r?: string }>;
+  searchParams: Promise<{ r?: string; s?: string }>;
 }) {
-  const { r: token = "" } = await searchParams;
-  const seat = await findReservation(token);
+  const { r: token = "", s: session = "" } = await searchParams;
+  let seat = await findReservation(token);
+  // back from Stripe: confirm the payment now, without waiting for Stripe's own message
+  if (seat && session && (await confirmPaid(seat, session))) seat = await findReservation(token);
   const paid = seat?.status === "paid" || seat?.status === "placed";
   // Paid: the questions that get the student started come first, as a flight (asked after payment on
   // purpose). Once they are answered, the page opens on the landing: the student's own account link.

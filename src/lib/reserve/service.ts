@@ -160,7 +160,8 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
       reservationId: r.id,
       programId: s.programId,
       payment: s.payment,
-      successUrl: `${appUrl()}/reserve/welcome?r=${r.claim_token}`,
+      // Stripe fills in the session id, so the welcome page can confirm the payment itself
+      successUrl: `${appUrl()}/reserve/welcome?r=${r.claim_token}&s={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${appUrl()}/reserve?back=${r.id}`,
     });
     if (!session.url) return { ok: false, error: "server" };
@@ -250,6 +251,21 @@ export async function settleReservation(
   );
   await welcomeFamily(r);
   return "paid";
+}
+
+/** The welcome page's own check, for the seconds before Stripe's message arrives (or when it cannot
+ *  arrive at all): asks Stripe whether this reservation's checkout is paid, and settles it if so. The
+ *  session must be the one made for this reservation, so a made-up address settles nothing. */
+export async function confirmPaid(r: Reservation, sessionId: string): Promise<boolean> {
+  if (r.status !== "started" || !/^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId)) return false;
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.metadata?.reservationId !== r.id || session.payment_status !== "paid") return false;
+    return (await settleReservation(session)) !== "missing";
+  } catch (e) {
+    console.error("[reserve] could not confirm the payment with Stripe", e);
+    return false;
+  }
 }
 
 /** The Stripe webhook's call when a reservation's checkout ran out unpaid: the founder gets the link
