@@ -1,0 +1,414 @@
+/* The welcome mockups (/dev/welcome). Motion borrowed from Duolingo: things pop in on a spring, one at a
+   time, and a tick draws itself. Layout borrowed from Gusto: plain cards, a short list of first steps,
+   one button that matters. Everything else is the guided forms' own (intake.css). */
+
+.ks .wl {
+  --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.ks .wl-card {
+  animation: wl-pop 0.55s var(--spring) both;
+}
+.ks.lit .wl-card h2 {
+  margin: 0 0 4px;
+  font-size: clamp(22px, 2vw, 28px);
+}
+@keyframes wl-pop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+}
+
+/* what the plan includes: each line pops, then its tick draws */
+.ks .wl-got {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.ks .wl-got li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 12px;
+  align-items: start;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  animation: wl-pop 0.5s var(--spring) both;
+  animation-delay: calc(0.35s + var(--i) * 0.32s);
+}
+.ks .wl-got svg {
+  width: 26px;
+  height: 26px;
+}
+.ks .wl-got circle {
+  fill: #2f9e6b;
+  transform-origin: center;
+  animation: wl-dot 0.45s var(--spring) both;
+  animation-delay: calc(0.55s + var(--i) * 0.32s);
+}
+.ks :is(.wl-got, .wl-node) path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.ks .wl-got path {
+  animation: wl-draw 0.3s ease-out forwards;
+  animation-delay: calc(0.8s + var(--i) * 0.32s);
+}
+@keyframes wl-dot {
+  from {
+    transform: scale(0);
+  }
+}
+@keyframes wl-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* paper confetti on the hello */
+.ks .wl-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ks .wl-confetti i {
+  position: absolute;
+  top: -4%;
+  left: var(--x);
+  width: 10px;
+  height: 16px;
+  border-radius: 3px;
+  background: hsl(var(--h) 80% 62%);
+  opacity: 0;
+  animation: wl-fall 2.6s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+  animation-delay: calc(var(--i) * 0.035s);
+}
+@keyframes wl-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(105vh) rotate(calc(var(--h) * 3deg));
+  }
+}
+
+/* a stop on the tour: a small moving sketch of the place, and one line about it */
+.ks .wl-stop {
+  justify-items: center;
+  text-align: center;
+}
+.ks .wl-stop > p {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.ks .wl-sk {
+  width: min(100%, 360px);
+  min-height: 132px;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+}
+.ks .wl-sk-today {
+  grid-template-columns: repeat(5, 1fr);
+  justify-items: center;
+}
+.ks .wl-sk-today i {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  animation: wl-fill 0.4s var(--spring) forwards;
+  animation-delay: calc(0.5s + var(--i) * 0.14s);
+}
+@keyframes wl-fill {
+  50% {
+    transform: scale(1.25);
+  }
+  to {
+    background: var(--a);
+  }
+}
+.ks .wl-sk-tests {
+  text-align: left;
+}
+.ks .wl-sk-tests b {
+  font-size: 14px;
+}
+.ks .wl-sk-tests span {
+  height: 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+.ks .wl-sk-tests span::after {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--a);
+  transform-origin: left;
+  animation: wl-grow 1.4s 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.ks .wl-sk-tests span:last-child::after {
+  animation-delay: 1.1s;
+}
+@keyframes wl-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.ks .wl-sk-library p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: left;
+  animation: wl-pop 0.45s var(--spring) both;
+  animation-delay: calc(0.45s + var(--i) * 0.18s);
+}
+.ks .wl-sk-library i {
+  width: 0;
+  height: 0;
+  border-left: 12px solid var(--a);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+.ks .wl-sk-progress {
+  grid-template-columns: repeat(5, 1fr);
+  align-items: end;
+  height: 132px;
+}
+.ks .wl-sk-progress i {
+  height: var(--h);
+  border-radius: 12px 12px 4px 4px;
+  background: var(--a);
+  transform-origin: bottom;
+  animation: wl-rise 0.7s var(--spring) both;
+  animation-delay: calc(0.45s + var(--i) * 0.12s);
+}
+@keyframes wl-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/* B: the checklist page */
+.ks .wl-wide {
+  align-content: start;
+  padding-top: 110px;
+  gap: 22px;
+}
+.ks .wl-head {
+  width: min(100%, 560px);
+}
+.ks .wl-cols {
+  width: min(100%, 1040px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.ks .wl-cols > :last-child {
+  animation-delay: 0.15s;
+}
+.ks .wl-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+.ks .wl-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  padding-bottom: 20px;
+  animation: wl-pop 0.5s var(--spring) both;
+  animation-delay: calc(0.5s + var(--i) * 0.2s);
+}
+.ks .wl-steps li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 34px;
+  bottom: 0;
+  width: 2px;
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+.ks .wl-node {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 30%, transparent);
+  transition:
+    background 0.3s,
+    transform 0.45s var(--spring);
+}
+.ks .wl-node svg {
+  width: 22px;
+  height: 22px;
+}
+.ks .wl-steps li[data-s="now"] .wl-node {
+  box-shadow: inset 0 0 0 3px var(--a);
+}
+.ks .wl-steps li[data-s="done"] .wl-node {
+  background: #2f9e6b;
+  box-shadow: none;
+  transform: scale(1.08);
+}
+.ks .wl-steps li[data-s="done"] path {
+  animation: wl-draw 0.3s 0.1s ease-out forwards;
+}
+.ks .wl-steps b {
+  font-size: 18px;
+}
+.ks .wl-steps li[data-s="done"] b {
+  opacity: 0.6;
+}
+.ks .wl-steps p {
+  margin: 2px 0 0;
+  font-size: 15.5px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.ks .wl-steps .btn {
+  margin-top: 12px;
+}
+.ks .wl-count {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 800;
+  opacity: 0.7;
+}
+
+/* C: inside the portal */
+.ks .wl-portal {
+  grid-template-columns: 220px minmax(0, 1fr);
+  justify-items: stretch;
+  align-content: stretch;
+  gap: 24px;
+  padding-top: 110px;
+}
+.ks .wl-nav {
+  align-self: start;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 28px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(22px) saturate(1.3);
+  backdrop-filter: blur(22px) saturate(1.3);
+}
+.ks .wl-nav span {
+  padding: 13px 16px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 800;
+  transition:
+    background 0.3s,
+    transform 0.45s var(--spring),
+    opacity 0.3s;
+}
+.ks .wl-portal[data-touring] .wl-nav span:not([data-on]) {
+  opacity: 0.35;
+}
+.ks .wl-nav span[data-on] {
+  background: var(--a);
+  color: #fff;
+  transform: scale(1.05) translateX(6px);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--a) 28%, transparent);
+}
+.ks .wl-stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+}
+.ks .wl-point {
+  justify-self: start;
+  width: min(100%, 460px);
+  display: grid;
+  gap: 14px;
+  margin-top: calc(var(--row) * 54px);
+  align-self: start;
+  animation: wl-pop 0.5s var(--spring) both;
+}
+.ks .wl-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14.5px;
+  font-weight: 800;
+}
+.ks .wl-dock {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 250px;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 24px;
+  font-size: 14.5px;
+  font-weight: 700;
+  animation: wl-pop 0.5s 0.3s var(--spring) both;
+}
+.ks .wl-dock b {
+  font-size: 16px;
+}
+.ks .wl-dock span::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 9px;
+  border-radius: 50%;
+  vertical-align: -2px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+@media (max-width: 760px) {
+  .ks .wl-portal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ks .wl-nav {
+    grid-auto-flow: column;
+    overflow-x: auto;
+  }
+  .ks .wl-point {
+    margin-top: 0;
+    justify-self: center;
+  }
+  .ks .wl-dock {
+    position: static;
+    width: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .wl *,
+  .ks .wl *::after {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+  .ks .wl-confetti {
+    display: none;
+  }
+}
