@@ -83,9 +83,10 @@ export default function PayStage({
   useEffect(() => {
     let live = true;
     track("form_step", { form: "reserve", step: "pay-page", kind: "view" });
-    void (async () => {
+    const open = async () => {
       const stripe = publishableKey ? await loadStripe(publishableKey) : null;
-      if (!stripe || !live) return setBad(W.errors.load);
+      if (!live) return;
+      if (!stripe) return setBad(W.errors.load);
       const dark = document.getElementById("ks")?.dataset.mode === "dark";
       const checkout = stripe.initCheckoutElementsSdk({
         clientSecret,
@@ -113,13 +114,16 @@ export default function PayStage({
         paymentMethodOrder: ["link", "apple_pay", "google_pay"],
         paymentMethods: { link: "auto", applePay: "auto", googlePay: "auto" },
       });
-      one.on("ready", (e) => {
-        // none of them is offered on this device: the full form opens instead
-        const any = Object.values(e.availablePaymentMethods ?? {}).some(Boolean);
+      let answered = false;
+      const settle = (any: boolean) => {
+        if (answered || !live) return;
+        answered = true;
+        // none of the one-tap ways is offered on this device: the full form opens instead
         setOneTap(any);
         if (!any) setMore(true);
         setReady(true);
-      });
+      };
+      one.on("ready", (e) => settle(Object.values(e.availablePaymentMethods ?? {}).some(Boolean)));
       one.on("confirm", async (event) => {
         setBusy(true);
         setBad("");
@@ -135,9 +139,17 @@ export default function PayStage({
       // every other way to pay, behind the small link
       const all = checkout.createPaymentElement({ layout: "accordion" });
       if (fields.current) all.mount(fields.current);
-      // if the one-tap element never answers, do not leave the page waiting on it
-      setTimeout(() => live && setReady(true), 6000);
-    })();
+      // Stripe says nothing at all when no one-tap way is available: do not leave the page waiting on it
+      setTimeout(() => settle(false), 3500);
+    };
+    // anything Stripe refuses while its fields are set up is said on the page, never left as a blank card
+    open().catch((e) => {
+      console.error("[pay] could not open the payment fields", e);
+      if (live) {
+        setReady(true);
+        setBad(W.errors.load);
+      }
+    });
     return () => {
       live = false;
     };
