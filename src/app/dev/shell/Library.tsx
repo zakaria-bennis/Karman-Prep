@@ -91,8 +91,8 @@ function Ring({ counts }: { counts: number[] }) {
   });
   return (
     <span className={styles.ring}>
-      <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
-        <circle className={styles.track} cx="22" cy="22" r="18" pathLength={100} />
+      <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+        <circle className={styles.track} cx="24" cy="24" r="19" pathLength={100} />
         {arcs.map(
           (arc) =>
             arc.len > 0 && (
@@ -100,12 +100,15 @@ function Ring({ counts }: { counts: number[] }) {
                 key={arc.level}
                 className={styles.arc}
                 data-level={arc.level}
-                cx="22"
-                cy="22"
-                r="18"
+                cx="24"
+                cy="24"
+                r="19"
                 pathLength={100}
                 style={
-                  { "--len": Math.max(0, arc.len - 2.5), "--from": -arc.from } as CSSProperties
+                  {
+                    "--len": Math.max(0, arc.len - 3),
+                    "--from": -(arc.from + 1.5),
+                  } as CSSProperties
                 }
               />
             )

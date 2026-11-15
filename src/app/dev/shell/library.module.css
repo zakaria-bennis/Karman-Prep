@@ -11,19 +11,19 @@
 .library {
   --pad: 12px;
   --cell: 48px;
-  --l1: #e0ad4e;
-  --l2: #d9803f;
-  --l3: #3f9567;
-  --l0: rgb(29 26 34 / 0.16);
+  --l1: #e9b200;
+  --l2: #d4521f;
+  --l3: #14804a;
+  --l0: rgb(29 26 34 / 0.2);
   display: grid;
   gap: var(--pad);
 }
 
 :global([data-kp-mode="dark"]) .library {
-  --l1: #f2cf7e;
-  --l2: #f2a266;
-  --l3: #7fd3a0;
-  --l0: rgb(246 241 231 / 0.18);
+  --l1: #ffd84d;
+  --l2: #ff8a4a;
+  --l3: #4fe39a;
+  --l0: rgb(246 241 231 / 0.22);
 }
 
 /* ---- one piece of glass ---- */
@@ -214,8 +214,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
 }
 
 .ring svg {
@@ -224,9 +224,19 @@
   transform: rotate(-90deg);
 }
 
+/* a pale disc behind the ring, so its colours are read against one calm tone, not the landscape */
+.ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
 .ring circle {
   fill: none;
-  stroke-width: 5;
+  stroke-width: 6;
 }
 
 .track {
@@ -234,7 +244,7 @@
 }
 
 .arc {
-  stroke-linecap: round;
+  stroke-linecap: butt;
   stroke-dasharray: calc(var(--len) * 1px) 100px;
   stroke-dashoffset: calc(var(--from) * 1px);
   animation: draw 0.9s var(--out) both;
