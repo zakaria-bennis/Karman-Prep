@@ -112,6 +112,9 @@
   margin: 0 auto;
   padding: var(--pad);
   border-radius: calc(var(--r-lens) + var(--pad));
+  /* the page scrolls under the bar, so the bar is thicker glass than the pieces beneath it */
+  --glass: rgb(255 251 244 / 0.66);
+  --frost: blur(30px) saturate(1.7) brightness(1.06);
   animation: settle 0.7s var(--out) both;
 }
 
@@ -224,15 +227,20 @@
 }
 
 /* ---- the page's name, written on the sky ---- */
+/* the page keeps the same 12 from the screen's edge as the bar, and clears the bar at the bottom */
 .main {
   position: relative;
   z-index: 1;
+  display: grid;
+  align-content: start;
+  gap: 20px;
   min-height: 100dvh;
+  padding: 0 12px calc(max(12px, env(safe-area-inset-bottom)) + 76px + 12px);
 }
 
 .title {
   margin: 0;
-  padding: 88px 24px 0;
+  padding: 88px 12px 0;
   color: var(--ink);
   font: 400 34px/1.1 var(--font-serif);
   letter-spacing: -0.015em;
@@ -344,6 +352,8 @@
     max-width: none;
     margin: 0;
     overflow: hidden;
+    --glass: rgb(255 251 244 / 0.44);
+    --frost: blur(22px) saturate(1.7) brightness(1.06);
   }
 
   /* brand, rows and profile are all one --cell tall, so the top and the bottom of the rail match */
@@ -467,9 +477,32 @@
     transition-delay: 0.05s;
   }
 
+  /* the page starts one gap to the right of the closed rail; the open rail lies over it */
+  .main {
+    gap: 24px;
+    max-width: 1680px;
+    padding: 0 16px 16px calc(16px + 72px + 16px);
+  }
+
   .title {
-    padding: 72px 0 0 288px;
+    padding: 56px 12px 0;
     font-size: 48px;
+  }
+
+  .shell[data-mode="dark"] .nav:not([data-open]) {
+    --glass: rgb(14 16 34 / 0.46);
+    --frost: blur(22px) saturate(1.5) brightness(0.9);
+  }
+
+  /* opened over the page, the rail is thicker glass, so nothing under it shows through as clutter */
+  .nav[data-open] {
+    --glass: rgb(255 251 244 / 0.74);
+    --frost: blur(30px) saturate(1.7) brightness(1.06);
+  }
+
+  .shell[data-mode="dark"] .nav[data-open] {
+    --glass: rgb(14 16 34 / 0.74);
+    --frost: blur(30px) saturate(1.5) brightness(0.9);
   }
 
   .demo {
@@ -478,6 +511,11 @@
     bottom: 16px;
     translate: none;
   }
+}
+
+.shell[data-mode="dark"] .nav {
+  --glass: rgb(14 16 34 / 0.68);
+  --frost: blur(30px) saturate(1.5) brightness(0.9);
 }
 
 @media (prefers-reduced-transparency: reduce) {

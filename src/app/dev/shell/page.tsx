@@ -31,6 +31,7 @@ import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
+import Library from "./Library";
 import { Sticker, type StickerName } from "./stickers";
 
 const LABEL: Record<StickerName, string> = {
@@ -376,6 +377,7 @@ function Shell() {
         <h1 className={styles.title} key={page}>
           {LABEL[page]}
         </h1>
+        {page === "library" && <Library rail={rail} />}
       </main>
 
       {q.get("demo") !== "0" && (

@@ -142,7 +142,19 @@ Known faults and gaps:
    files are under `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for
    `skills/intent` and `skills/pfd`). Raised with him, not yet answered: the streak multiplier that
    resets and mystery boxes are patterns Intent flags for under-18s.
-3. Each screen's layout, one at a time.
+3. Each screen's layout, one at a time. **He approved the menu on 2026-11-15** ("Approved, do
+   Library").
+   - **Library: first version built 2026-11-15, awaiting his verdict.** `Library.tsx` and
+     `library.module.css` beside the menu, shown on `/dev/shell` when Library is chosen. Real domains
+     and skills from `src/data/curriculum/approved-skill-taxonomy.json`; the levels are stand-ins, no
+     student data is read. A top piece of glass holds the section switch (Reading and Writing, Math),
+     "9 of 20 skills Proficient" and the key to the squares. Each domain is its own piece of glass:
+     its name, one square per skill, then the skills as rows with their level. A phone reads one
+     column with the first domain open; a desktop gets two balanced columns, all open. Pressing a
+     skill opens "Start skill set" and "Lesson", which lead nowhere until the skill page exists.
+     Squares: outline, two washes of the text colour, clay for Proficient. This reads his "four square
+     dots" as one square per skill in four states; he has been asked to confirm.
+     The open rail lies over the page as thicker glass, and so does the phone bar.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
    redrawn: he says it looks like a llama.
 5. The welcome after payment (a new buyer lands in the portal with nothing special today).
