@@ -126,6 +126,17 @@ Known faults and gaps:
      menu: Settings, Light or Dark, Sign out. Settings is not a row in the rail. The site's floating
      theme button is hidden on `/dev/shell` (`ThemeToggle.tsx`).
    - On the phone the lens holds the whole item, picture and word, and is always wider than the word.
+   **Fourth pass, same day.** He confirmed the rail stays on the left. Three more rules:
+   - The filled sticker pictures did "not look professional enough". The icons are now one custom
+     line family (24 grid, 1.6 line, a faint wash of the text colour, one clay accent), still drawn in
+     `stickers.tsx`, no library. Awaiting his verdict.
+   - **The highlight is glass on glass, never white**: "slightly more frosted glass than the glass
+     that sits behind it, almost like the glasses are stacked" (`--lens`, 24% white by day, 11% at night).
+   - **Even margins everywhere, measured**: "even margins between the header and the footer, and even
+     on the sides ... everything looks equal as you slide around". One inset (`--pad`: 12 in the rail,
+     8 in the phone bar) on all four sides; the lens fills its item exactly; brand, rows and profile
+     share one height. Measure it in a browser before showing him anything (the check used here read
+     each box's distance from its glass on every side).
    On a phone the lens can be dragged along the bar and is thrown to the item its speed carries it to.
    The rail shows only with a mouse and 960px; touch screens keep the bottom bar. Intent and PFD skill
    files are under `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for

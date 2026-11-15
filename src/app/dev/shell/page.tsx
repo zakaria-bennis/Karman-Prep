@@ -127,11 +127,10 @@ function Shell() {
     (i: number) => {
       const li = list.current?.querySelectorAll<HTMLLIElement>("li[data-item]")[i];
       if (!li) return { x: 0, y: 0, w: 64 };
-      /* on the bar the lens holds the whole item, and is always wider than its word */
-      const word = li.querySelector<HTMLElement>("[data-word]")?.scrollWidth ?? 0;
+      /* the lens is exactly its item: on the bar that is the picture and the word together */
       return rail
-        ? { x: 0, y: li.offsetTop, w: 64 }
-        : { x: li.offsetLeft + li.offsetWidth / 2, y: 0, w: Math.max(64, word + 24) };
+        ? { x: 0, y: li.offsetTop, w: li.offsetWidth }
+        : { x: li.offsetLeft + li.offsetWidth / 2, y: 0, w: li.offsetWidth };
     },
     [rail]
   );
@@ -320,7 +319,7 @@ function Shell() {
           onClick={() => setMenu(!menu)}
         >
           <span className={styles.face} aria-hidden="true">
-            M
+            <b>M</b>
           </span>
           <span className={styles.word}>
             Maya Okafor
@@ -350,7 +349,7 @@ function Shell() {
                 setMenu(false);
               }}
             >
-              <Sticker name="settings" size={28} />
+              <Sticker name="settings" size={24} />
               Settings
             </button>
             <div className={styles.look} role="group" aria-label="Appearance">
