@@ -14,12 +14,13 @@ wants to be asked about every parent feature before it is designed).
 
 He rejected, on 2026-11-14: three welcome-after-payment mockups (`/dev/welcome`) and three Library layouts
 (`/dev/portal`). Both lacked the coherence of Canvas, Khan Academy and Duolingo, and the painted backdrop
-was "absolutely ass". Do not revive either. They are in draft PR 297, which should be closed, not merged.
+was "absolutely ass". Do not revive either. Their code is deleted from the portal branch, and their draft
+PR 297 is closed unmerged.
 
 ## Step 1, the background: in progress, direction approved
 
-Branch `claude/portal-world` (pushed, no pull request yet; cut from an older `main`, so merge `origin/main`
-into it first). Blank page: `/dev/world` (dev only).
+Branch `claude/portal-world`, draft PR 302. It also carries the two fixes of PR 296 (below), because it was
+cut from that branch; if PR 296 merges first, nothing changes here. Blank page: `/dev/world` (dev only).
 
 The portal's background is the live, lit landscape of the home page (`src/lib/flight/`), not the painted
 one in `src/lib/painting/`. On top of the home page's engine this branch adds, all in
