@@ -250,6 +250,55 @@
   animation: arrive 0.55s var(--out) both;
 }
 
+/* a skill's name is longer than a screen's, so it is set smaller and may wrap */
+.title[data-long] {
+  padding-top: 0;
+  font-size: 28px;
+  text-wrap: balance;
+}
+
+/* the way back: a small piece of glass above the name, naming where it goes */
+.back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border-radius: 20px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+  transition: transform 0.2s var(--out);
+}
+
+.shell .back {
+  margin-top: 72px;
+  background: var(--glass);
+}
+
+.back svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.back:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) {
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+}
+
 @keyframes arrive {
   from {
     opacity: 0;
@@ -487,6 +536,15 @@
   .title {
     padding: 56px 12px 0;
     font-size: 48px;
+  }
+
+  .title[data-long] {
+    padding-top: 0;
+    font-size: 40px;
+  }
+
+  .shell .back {
+    margin-top: 40px;
   }
 
   .shell[data-mode="dark"] .nav:not([data-open]) {

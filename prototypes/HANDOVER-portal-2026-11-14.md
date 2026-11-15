@@ -161,7 +161,16 @@ Known faults and gaps:
      in `library.module.css`); the section is a bar cut by level, whose key carries the counts; each
      domain has a ring with the number Proficient inside; each skill has a three-step meter in place
      of its level word (the word shows when the skill is pressed). Bar, rings and meters draw in as
-     the screen arrives. The squares are gone from this screen. Awaiting his verdict.
+     the screen arrives. The squares are gone from this screen. **He approved the Library** ("yes"),
+     asking for more contrast in the ring: the level colours are now deeper (`#e9b200`, `#d4521f`,
+     `#14804a` by day) and each ring sits on a pale disc with clean gaps between its arcs.
+   - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
+     `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
+     goes back to the domain. In his order: the level first (three named steps that fill), then the
+     lesson (a video frame marked "Coming this winter", and "Read the lesson"), then "Skill sets"
+     (three, with Done and Up next, and one ink button to start the next). All of it is stand-in: no
+     lesson, question or student data is read, the buttons lead nowhere, and "three skill sets" is a
+     guess he has not confirmed.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
    redrawn: he says it looks like a llama.
 5. The welcome after payment (a new buyer lands in the portal with nothing special today).

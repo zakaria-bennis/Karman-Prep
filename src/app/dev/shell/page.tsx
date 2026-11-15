@@ -31,7 +31,8 @@ import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
-import Library from "./Library";
+import Library, { type Section } from "./Library";
+import SkillPage, { type OpenSkill } from "./SkillPage";
 import { Sticker, type StickerName } from "./stickers";
 
 const LABEL: Record<StickerName, string> = {
@@ -97,6 +98,9 @@ function Shell() {
   const held = q.get("open") === "1";
   const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
   const [page, setPage] = useState<StickerName>(PLANS[plan].bar[0]);
+  const [skill, setSkill] = useState<OpenSkill | null>(null);
+  const [section, setSection] = useState<Section>("Reading and Writing");
+  const inSkill = page === "library" && skill !== null;
   const at = Math.max(0, items.indexOf(page));
   const [world] = useState(() => ({}));
 
@@ -290,7 +294,10 @@ function Shell() {
                 aria-label={LABEL[item]}
                 whileTap={still ? undefined : { scale: 0.9 }}
                 transition={POP}
-                onClick={() => setPage(item)}
+                onClick={() => {
+                  setPage(item);
+                  setSkill(null);
+                }}
                 onPointerEnter={(e) => {
                   setHover(i);
                   setHoverY(e.currentTarget.parentElement?.offsetTop ?? 0);
@@ -374,10 +381,27 @@ function Shell() {
       </AnimatePresence>
 
       <main className={styles.main}>
-        <h1 className={styles.title} key={page}>
-          {LABEL[page]}
+        {inSkill && (
+          <button type="button" className={styles.back} onClick={() => setSkill(null)}>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M14.500 6.500L9 12l5.500 5.500" />
+            </svg>
+            {skill.domain}
+          </button>
+        )}
+        <h1
+          className={styles.title}
+          key={inSkill ? skill.name : page}
+          data-long={inSkill || undefined}
+        >
+          {inSkill ? skill.name : LABEL[page]}
         </h1>
-        {page === "library" && <Library rail={rail} />}
+        {page === "library" &&
+          (skill ? (
+            <SkillPage skill={skill} />
+          ) : (
+            <Library rail={rail} section={section} onSection={setSection} onOpen={setSkill} />
+          ))}
       </main>
 
       {q.get("demo") !== "0" && (

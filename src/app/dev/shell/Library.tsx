@@ -9,12 +9,13 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState, type CSSProperties } from "react";
 import approved from "@/data/curriculum/approved-skill-taxonomy.json";
 import styles from "./library.module.css";
+import type { OpenSkill } from "./SkillPage";
 
 /** The founder's four levels, in order (2026-11-14). */
 const LEVELS = ["Not started", "Learning", "Understanding", "Proficient"] as const;
 const TOP = LEVELS.length - 1;
 const SECTIONS = ["Reading and Writing", "Math"] as const;
-type Section = (typeof SECTIONS)[number];
+export type Section = (typeof SECTIONS)[number];
 
 interface Skill {
   name: string;
@@ -123,14 +124,15 @@ function DomainGlass({
   domain,
   order,
   startOpen,
+  onOpen,
 }: {
   domain: Domain;
   order: number;
   startOpen: boolean;
+  onOpen: (skill: OpenSkill) => void;
 }) {
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(startOpen);
-  const [picked, setPicked] = useState<string | null>(null);
   const counts = tally(domain.skills);
   return (
     <section className={styles.glass} style={{ "--i": order } as CSSProperties}>
@@ -162,39 +164,18 @@ function DomainGlass({
             transition={still ? STILL : OPEN}
           >
             {domain.skills.map((skill) => {
-              const on = picked === skill.name;
               return (
                 <li key={skill.name}>
                   <button
                     type="button"
                     className={styles.skill}
-                    aria-expanded={on}
-                    onClick={() => setPicked(on ? null : skill.name)}
+                    onClick={() =>
+                      onOpen({ name: skill.name, level: skill.level, domain: domain.name })
+                    }
                   >
                     <span className={styles.label}>{skill.name}</span>
                     <Meter level={skill.level} />
                   </button>
-                  <AnimatePresence initial={false}>
-                    {on && (
-                      <motion.div
-                        className={styles.acts}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={still ? STILL : OPEN}
-                      >
-                        <div>
-                          <button type="button" className={styles.go}>
-                            {skill.level === 0 ? "Start skill set" : "Continue skill set"}
-                          </button>
-                          <button type="button" className={styles.quiet}>
-                            Lesson
-                          </button>
-                          <span className={styles.now}>{LEVELS[skill.level]}</span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </li>
               );
             })}
@@ -205,9 +186,18 @@ function DomainGlass({
   );
 }
 
-export default function Library({ rail }: { rail: boolean }) {
+export default function Library({
+  rail,
+  section,
+  onSection,
+  onOpen,
+}: {
+  rail: boolean;
+  section: Section;
+  onSection: (section: Section) => void;
+  onOpen: (skill: OpenSkill) => void;
+}) {
   const still = useReducedMotion() ?? false;
-  const [section, setSection] = useState<Section>("Reading and Writing");
   const domains = DOMAINS[section];
   const counts = tally(domains.flatMap((d) => d.skills));
   const [left, right] = columns(domains);
@@ -221,7 +211,7 @@ export default function Library({ rail }: { rail: boolean }) {
               key={name}
               type="button"
               aria-pressed={section === name}
-              onClick={() => setSection(name)}
+              onClick={() => onSection(name)}
             >
               {section === name && (
                 <motion.span
@@ -272,6 +262,7 @@ export default function Library({ rail }: { rail: boolean }) {
                   domain={domain}
                   order={order}
                   startOpen={rail || order === 0}
+                  onOpen={onOpen}
                 />
               );
             })}

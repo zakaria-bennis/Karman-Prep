@@ -358,10 +358,6 @@
   --at: var(--l3);
 }
 
-.skill[aria-expanded="true"] {
-  background: var(--hover);
-}
-
 .skill:active,
 .head:active {
   transform: scale(0.985);
@@ -377,50 +373,6 @@
   .skill:hover .meter i[data-on] {
     filter: brightness(1.08);
   }
-}
-
-/* what you can do with a skill, once it is pressed */
-.acts {
-  overflow: hidden;
-}
-
-.acts > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding: 4px var(--pad) 8px;
-}
-
-.go,
-.quiet {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: transform 0.2s var(--out);
-}
-
-.library .go {
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.library .quiet {
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.go:active,
-.quiet:active {
-  transform: scale(0.95);
-}
-
-.now {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.78;
 }
 
 /* ---- with room: the top piece on one line, the domains in two columns ---- */
