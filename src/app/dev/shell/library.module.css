@@ -55,68 +55,17 @@
   gap: var(--pad);
 }
 
-.switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--r-lens);
-  background: var(--hover);
-}
-
-.switch button {
-  position: relative;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 12px;
-  white-space: nowrap;
-}
-
-.switch button > span:last-child {
-  position: relative;
-}
-
-.switch button:active > span:last-child {
-  opacity: 0.7;
-}
-
-.lens {
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  background: var(--lens);
-  box-shadow:
-    var(--lens-shade),
-    inset 0 0 0 1px var(--lens-edge);
-}
-
 .spread {
   display: grid;
   gap: 10px;
   padding: 4px var(--pad) 6px;
 }
 
-/* one bar, cut by level; each part grows in from the left, one after the other */
+/* one band whose colours run into each other */
 .bar {
-  display: flex;
-  gap: 3px;
   height: 12px;
-}
-
-.bar i {
-  flex: 0 0 0;
-  min-width: 6px;
   border-radius: 6px;
   transform-origin: 0 50%;
-  animation: grow 0.7s var(--out) both;
-  animation-delay: calc(120ms + var(--i) * 90ms);
-}
-
-@keyframes grow {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
 }
 
 .key {
@@ -148,22 +97,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-.bar i[data-level="0"],
 .key i[data-level="0"] {
   background: var(--l0);
 }
 
-.bar i[data-level="1"],
 .key i[data-level="1"] {
   background: var(--l1);
 }
 
-.bar i[data-level="2"],
 .key i[data-level="2"] {
   background: var(--l2);
 }
 
-.bar i[data-level="3"],
 .key i[data-level="3"] {
   background: var(--l3);
 }
@@ -209,64 +154,31 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* the ring: a quiet track, then an arc for each level, drawn round as the piece arrives */
+/* the ring: one band of colour that flows round a pale disc, swept in by GSAP (--sweep, 0 to 1) */
 .ring {
   position: relative;
   display: grid;
   place-items: center;
   width: 48px;
   height: 48px;
-}
-
-.ring svg {
-  position: absolute;
-  inset: 0;
-  transform: rotate(-90deg);
-}
-
-/* a pale disc behind the ring, so its colours are read against one calm tone, not the landscape */
-.ring::before {
-  content: "";
-  position: absolute;
-  inset: 0;
   border-radius: 50%;
   background: var(--lens);
   box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
-.ring circle {
-  fill: none;
-  stroke-width: 6;
-}
-
-.track {
-  stroke: var(--l0);
-}
-
-.arc {
-  stroke-linecap: butt;
-  stroke-dasharray: calc(var(--len) * 1px) 100px;
-  stroke-dashoffset: calc(var(--from) * 1px);
-  animation: draw 0.9s var(--out) both;
-  animation-delay: calc(200ms + var(--i, 0) * 60ms);
-}
-
-@keyframes draw {
-  from {
-    stroke-dasharray: 0 100px;
-  }
-}
-
-.arc[data-level="1"] {
-  stroke: var(--l1);
-}
-
-.arc[data-level="2"] {
-  stroke: var(--l2);
-}
-
-.arc[data-level="3"] {
-  stroke: var(--l3);
+.ring i {
+  --sweep: 1;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)),
+    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)),
+    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
+  mask-composite: intersect;
 }
 
 .ring b {
@@ -377,21 +289,11 @@
 
 /* ---- with room: the top piece on one line, the domains in two columns ---- */
 @media (min-width: 960px) and (hover: hover) {
-  .top {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .switch {
-    width: 400px;
-  }
-
   .spread {
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: 24px;
-    padding: 0 var(--pad) 0 0;
+    padding: 6px var(--pad);
   }
 
   .cols {
@@ -401,8 +303,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .glass,
-  .bar i,
-  .arc,
   .meter i[data-on] {
     animation: none;
   }

@@ -164,6 +164,27 @@ Known faults and gaps:
      the screen arrives. The squares are gone from this screen. **He approved the Library** ("yes"),
      asking for more contrast in the ring: the level colours are now deeper (`#e9b200`, `#d4521f`,
      `#14804a` by day) and each ring sits on a pale disc with clean gaps between its arcs.
+   - **Library, third pass (2026-11-15).** He had NOT approved moving on ("I don't even say it's
+     ready yet"): do not start the next screen until he says the current one is done. The skill page
+     below is parked. What he asked for, and what was built:
+     - **Research first, every screen:** Mobbin for education portals, REA for how they are built,
+       then Intent, impeccable, Perception-First Design and frontend-design to turn it into the
+       screen. Found: Brilliant asks "What do you want to learn first?" with two big subject cards;
+       Quizlet and Vocabulary use small progress rings; Duolingo's front page is Lottie files and SVG
+       (11 Lottie, 27 SVG seen by REA); Brilliant's is looping WebM clips. None draws live 3D, which
+       is where Karman differs. REA only saw their public front pages, not their signed-in portals.
+     - **GSAP and three.js are now installed and used** (he asked three times; `gsap`, `three`,
+       `@types/three`). Motion (`framer-motion`) still moves the menu.
+     - **A hero on first opening the Library** (`LibraryHero.tsx`, `hero.module.css`,
+       `SubjectModel.tsx`): two glass doors, Reading and Writing, and Math, each with a live three.js
+       object (a book whose pages turn; a faceted solid with two orbiting rings), brought in and
+       pressed with GSAP. Pressing a door goes to that section's Library; a "Library" button goes
+       back. The section switch is gone: the two sections are separate, as he asked. **Phone and
+       desktop are two compositions**: stacked wide doors with words left and object right; tall
+       side-by-side doors with the object above and the domains named below.
+     - **Fluid, not segmented:** every ring and band is one gradient whose colours run into each other
+       (`flow()` in `Library.tsx`), swept in by GSAP.
+     Awaiting his verdict.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

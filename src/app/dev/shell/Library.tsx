@@ -6,7 +6,7 @@
 // a bar for the section, a ring for each domain and a three-step meter for each skill, in one warm scale
 // (honey, amber, then green), never blue. The levels shown are stand-ins: no student data is read yet.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import approved from "@/data/curriculum/approved-skill-taxonomy.json";
 import styles from "./library.module.css";
 import type { OpenSkill } from "./SkillPage";
@@ -14,7 +14,7 @@ import type { OpenSkill } from "./SkillPage";
 /** The founder's four levels, in order (2026-11-14). */
 const LEVELS = ["Not started", "Learning", "Understanding", "Proficient"] as const;
 const TOP = LEVELS.length - 1;
-const SECTIONS = ["Reading and Writing", "Math"] as const;
+export const SECTIONS = ["Reading and Writing", "Math"] as const;
 export type Section = (typeof SECTIONS)[number];
 
 interface Skill {
@@ -30,7 +30,7 @@ interface Domain {
 const standIn = (d: number, s: number) =>
   [3, 2, 3, 1, 0, 2, 3, 1, 2, 0, 3, 1][(d * 5 + s * 3) % 12];
 
-const DOMAINS: Record<Section, Domain[]> = { "Reading and Writing": [], Math: [] };
+export const DOMAINS: Record<Section, Domain[]> = { "Reading and Writing": [], Math: [] };
 approved.domains.forEach((domain, d) => {
   DOMAINS[domain.section as Section].push({
     name: domain.label,
@@ -41,7 +41,7 @@ approved.domains.forEach((domain, d) => {
 });
 
 /** How many skills sit at each level, from Not started to Proficient. */
-const tally = (skills: Skill[]) =>
+export const tally = (skills: Skill[]) =>
   LEVELS.map((_, level) => skills.filter((s) => s.level === level).length);
 
 /** Two columns of about the same height, keeping the domains in order. */
@@ -56,7 +56,6 @@ function columns(domains: Domain[]): [Domain[], Domain[]] {
 }
 
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
-const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
 
 /** A skill's level as three steps that fill: none, one, two, three. */
@@ -80,41 +79,35 @@ function Meter({ level }: { level: number }) {
   );
 }
 
-/** A domain at a glance: a ring drawn from its skills' levels, with the number Proficient inside. */
-function Ring({ counts }: { counts: number[] }) {
-  const total = counts.reduce((a, b) => a + b, 0);
-  let from = 0;
-  const arcs = [3, 2, 1].map((level) => {
-    const len = (counts[level] / total) * 100;
-    const arc = { level, len, from };
-    from += len;
-    return arc;
+/**
+ * A gradient whose colours run into each other, Proficient first, then Understanding, Learning and what
+ * is not started. `unit` is "deg" for a ring and "%" for a bar. Each border is a soft blend, never a cut
+ * (founder, 2026-11-15: "I wish it was fluid").
+ */
+export function flow(counts: number[], unit: "deg" | "%", shape: string): string {
+  const whole = unit === "deg" ? 360 : 100;
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
+  const order = [3, 2, 1, 0].filter((level) => counts[level] > 0);
+  const soft = whole * 0.07;
+  let at = 0;
+  const stops: string[] = [];
+  order.forEach((level, i) => {
+    const end = at + (counts[level] / total) * whole;
+    const from = i === 0 ? 0 : at + soft / 2;
+    const to = i === order.length - 1 ? whole : end - soft / 2;
+    stops.push(`var(--l${level}) ${Math.min(from, to)}${unit} ${Math.max(from, to)}${unit}`);
+    at = end;
   });
+  return unit === "deg"
+    ? `conic-gradient(${shape}, ${stops.join(", ")})`
+    : `linear-gradient(${shape}, ${stops.join(", ")})`;
+}
+
+/** A domain at a glance: one ring whose colours flow round it, with the number Proficient inside. */
+function Ring({ counts }: { counts: number[] }) {
   return (
     <span className={styles.ring}>
-      <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
-        <circle className={styles.track} cx="24" cy="24" r="19" pathLength={100} />
-        {arcs.map(
-          (arc) =>
-            arc.len > 0 && (
-              <circle
-                key={arc.level}
-                className={styles.arc}
-                data-level={arc.level}
-                cx="24"
-                cy="24"
-                r="19"
-                pathLength={100}
-                style={
-                  {
-                    "--len": Math.max(0, arc.len - 3),
-                    "--from": -(arc.from + 1.5),
-                  } as CSSProperties
-                }
-              />
-            )
-        )}
-      </svg>
+      <i data-ring style={{ background: flow(counts, "deg", "from 0deg") }} />
       <b>{counts[TOP]}</b>
     </span>
   );
@@ -189,55 +182,61 @@ function DomainGlass({
 export default function Library({
   rail,
   section,
-  onSection,
   onOpen,
 }: {
   rail: boolean;
   section: Section;
-  onSection: (section: Section) => void;
   onOpen: (skill: OpenSkill) => void;
 }) {
   const still = useReducedMotion() ?? false;
+  const root = useRef<HTMLDivElement>(null);
   const domains = DOMAINS[section];
   const counts = tally(domains.flatMap((d) => d.skills));
   const [left, right] = columns(domains);
 
+  /* GSAP draws the figures in: the bar runs out from the left, then each ring sweeps round */
+  useEffect(() => {
+    if (still || !root.current) return;
+    let revert = () => {};
+    let gone = false;
+    import("gsap").then(({ gsap }) => {
+      if (gone || !root.current) return;
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          "[data-bar]",
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            duration: 1.1,
+            ease: "power3.out",
+            delay: 0.15,
+          }
+        );
+        gsap.fromTo(
+          "[data-ring]",
+          { "--sweep": 0, rotate: -90 },
+          { "--sweep": 1, rotate: 0, duration: 1.3, ease: "power3.out", delay: 0.25, stagger: 0.09 }
+        );
+      }, root);
+      revert = () => ctx.revert();
+    });
+    return () => {
+      gone = true;
+      revert();
+    };
+  }, [still, section, rail]);
+
   return (
-    <div className={styles.library}>
+    <div ref={root} className={styles.library}>
       <header className={`${styles.glass} ${styles.top}`}>
-        <div className={styles.switch} role="group" aria-label="Section">
-          {SECTIONS.map((name) => (
-            <button
-              key={name}
-              type="button"
-              aria-pressed={section === name}
-              onClick={() => onSection(name)}
-            >
-              {section === name && (
-                <motion.span
-                  layoutId="library-section"
-                  className={styles.lens}
-                  transition={still ? STILL : SLIDE}
-                />
-              )}
-              <span>{name}</span>
-            </button>
-          ))}
-        </div>
         {/* the section at a glance: one bar, and its key carries the numbers */}
         <div className={styles.spread} key={section}>
-          <div className={styles.bar} aria-hidden="true">
-            {[3, 2, 1, 0].map(
-              (level, i) =>
-                counts[level] > 0 && (
-                  <i
-                    key={level}
-                    data-level={level}
-                    style={{ flexGrow: counts[level], "--i": i } as CSSProperties}
-                  />
-                )
-            )}
-          </div>
+          <div
+            className={styles.bar}
+            data-bar
+            aria-hidden="true"
+            style={{ background: flow(counts, "%", "to right") }}
+          />
           <ul className={styles.key}>
             {[3, 2, 1, 0].map((level) => (
               <li key={level}>
