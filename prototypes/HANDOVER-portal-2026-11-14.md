@@ -155,6 +155,13 @@ Known faults and gaps:
      Squares: outline, two washes of the text colour, clay for Proficient. This reads his "four square
      dots" as one square per skill in four states; he has been asked to confirm.
      The open rail lies over the page as thicker glass, and so does the phone bar.
+     **Second pass, same day.** He likes the design but not the squares, wants "a nicer color that's
+     not blue" (Khan Academy owns blue) and "figures, animations ... not just a wall of text". Now:
+     one warm scale everywhere (honey Learning, amber Understanding, green Proficient; `--l1` to `--l3`
+     in `library.module.css`); the section is a bar cut by level, whose key carries the counts; each
+     domain has a ring with the number Proficient inside; each skill has a three-step meter in place
+     of its level word (the word shows when the skill is pressed). Bar, rings and meters draw in as
+     the screen arrives. The squares are gone from this screen. Awaiting his verdict.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
    redrawn: he says it looks like a llama.
 5. The welcome after payment (a new buyer lands in the portal with nothing special today).

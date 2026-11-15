@@ -2,7 +2,9 @@
 
 // The Library (step 3 of the portal rebuild, first screen). Section, then domain, then skill, from the
 // approved skill list. Every piece is frosted glass sized to what it holds; nothing is a white box.
-// The levels shown are stand-ins: no student data is read here yet.
+// Progress is drawn, not written (founder, 2026-11-15: "figures, animations ... not just a wall of text"):
+// a bar for the section, a ring for each domain and a three-step meter for each skill, in one warm scale
+// (honey, amber, then green), never blue. The levels shown are stand-ins: no student data is read yet.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState, type CSSProperties } from "react";
 import approved from "@/data/curriculum/approved-skill-taxonomy.json";
@@ -37,6 +39,10 @@ approved.domains.forEach((domain, d) => {
   });
 });
 
+/** How many skills sit at each level, from Not started to Proficient. */
+const tally = (skills: Skill[]) =>
+  LEVELS.map((_, level) => skills.filter((s) => s.level === level).length);
+
 /** Two columns of about the same height, keeping the domains in order. */
 function columns(domains: Domain[]): [Domain[], Domain[]] {
   const size = (list: Domain[]) => list.reduce((n, d) => n + d.skills.length + 2, 0);
@@ -52,8 +58,62 @@ const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
 
-function Square({ level }: { level: number }) {
-  return <i className={styles.sq} data-level={level} />;
+/** A skill's level as three steps that fill: none, one, two, three. */
+function Meter({ level }: { level: number }) {
+  return (
+    <span
+      className={styles.meter}
+      data-level={level}
+      role="img"
+      aria-label={LEVELS[level]}
+      title={LEVELS[level]}
+    >
+      {[1, 2, 3].map((step) => (
+        <i
+          key={step}
+          data-on={level >= step || undefined}
+          style={{ "--s": step } as CSSProperties}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** A domain at a glance: a ring drawn from its skills' levels, with the number Proficient inside. */
+function Ring({ counts }: { counts: number[] }) {
+  const total = counts.reduce((a, b) => a + b, 0);
+  let from = 0;
+  const arcs = [3, 2, 1].map((level) => {
+    const len = (counts[level] / total) * 100;
+    const arc = { level, len, from };
+    from += len;
+    return arc;
+  });
+  return (
+    <span className={styles.ring}>
+      <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
+        <circle className={styles.track} cx="22" cy="22" r="18" pathLength={100} />
+        {arcs.map(
+          (arc) =>
+            arc.len > 0 && (
+              <circle
+                key={arc.level}
+                className={styles.arc}
+                data-level={arc.level}
+                cx="22"
+                cy="22"
+                r="18"
+                pathLength={100}
+                style={
+                  { "--len": Math.max(0, arc.len - 2.5), "--from": -arc.from } as CSSProperties
+                }
+              />
+            )
+        )}
+      </svg>
+      <b>{counts[TOP]}</b>
+    </span>
+  );
 }
 
 function DomainGlass({
@@ -68,29 +128,22 @@ function DomainGlass({
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(startOpen);
   const [picked, setPicked] = useState<string | null>(null);
-  const done = domain.skills.filter((s) => s.level === TOP).length;
+  const counts = tally(domain.skills);
   return (
     <section className={styles.glass} style={{ "--i": order } as CSSProperties}>
       <button
         type="button"
         className={styles.head}
         aria-expanded={open}
+        aria-label={`${domain.name}: ${counts[TOP]} of ${domain.skills.length} skills Proficient`}
         onClick={() => setOpen(!open)}
       >
-        <span className={styles.name}>{domain.name}</span>
-        <span className={styles.tally}>
-          <span
-            className={styles.strip}
-            role="img"
-            aria-label={`${done} of ${domain.skills.length} skills Proficient`}
-          >
-            {domain.skills.map((s) => (
-              <Square key={s.name} level={s.level} />
-            ))}
-          </span>
-          <span aria-hidden="true">
-            {done} of {domain.skills.length}
-          </span>
+        <Ring counts={counts} />
+        <span className={styles.name}>
+          {domain.name}
+          <small>
+            {counts[TOP]} of {domain.skills.length} Proficient
+          </small>
         </span>
         <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M6.500 9.500l5.500 5.500 5.500-5.500" />
@@ -115,9 +168,8 @@ function DomainGlass({
                     aria-expanded={on}
                     onClick={() => setPicked(on ? null : skill.name)}
                   >
-                    <Square level={skill.level} />
                     <span className={styles.label}>{skill.name}</span>
-                    <span className={styles.level}>{LEVELS[skill.level]}</span>
+                    <Meter level={skill.level} />
                   </button>
                   <AnimatePresence initial={false}>
                     {on && (
@@ -135,6 +187,7 @@ function DomainGlass({
                           <button type="button" className={styles.quiet}>
                             Lesson
                           </button>
+                          <span className={styles.now}>{LEVELS[skill.level]}</span>
                         </div>
                       </motion.div>
                     )}
@@ -153,8 +206,7 @@ export default function Library({ rail }: { rail: boolean }) {
   const still = useReducedMotion() ?? false;
   const [section, setSection] = useState<Section>("Reading and Writing");
   const domains = DOMAINS[section];
-  const all = domains.flatMap((d) => d.skills);
-  const done = all.filter((s) => s.level === TOP).length;
+  const counts = tally(domains.flatMap((d) => d.skills));
   const [left, right] = columns(domains);
 
   return (
@@ -179,20 +231,30 @@ export default function Library({ rail }: { rail: boolean }) {
             </button>
           ))}
         </div>
-        <p className={styles.count}>
-          <strong>
-            {done} of {all.length}
-          </strong>{" "}
-          skills Proficient
-        </p>
-        <ul className={styles.legend} aria-label="What the squares mean">
-          {LEVELS.map((name, level) => (
-            <li key={name}>
-              <Square level={level} />
-              {name}
-            </li>
-          ))}
-        </ul>
+        {/* the section at a glance: one bar, and its key carries the numbers */}
+        <div className={styles.spread} key={section}>
+          <div className={styles.bar} aria-hidden="true">
+            {[3, 2, 1, 0].map(
+              (level, i) =>
+                counts[level] > 0 && (
+                  <i
+                    key={level}
+                    data-level={level}
+                    style={{ flexGrow: counts[level], "--i": i } as CSSProperties}
+                  />
+                )
+            )}
+          </div>
+          <ul className={styles.key}>
+            {[3, 2, 1, 0].map((level) => (
+              <li key={level}>
+                <i data-level={level} />
+                <b>{counts[level]}</b>
+                {LEVELS[level]}
+              </li>
+            ))}
+          </ul>
+        </div>
       </header>
 
       {/* a phone reads one column, with the first domain open; a desktop gets two, all open */}

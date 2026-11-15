@@ -3,12 +3,27 @@
  * same lens, one inset (--pad, 12) on every side of every piece, rows one --cell (48) tall with the
  * lens corner (16), so a piece's corner is 16 + 12 = 28 like the rail's.
  * Three text sizes: 12, 15 and 18. Two weights: 500 and 600.
+ *
+ * Progress is drawn in one warm scale, never blue (founder, 2026-11-15): honey for Learning, amber for
+ * Understanding, green for Proficient. The same three colours mean the same thing in the section's
+ * bar, each domain's ring and each skill's meter.
  */
 .library {
   --pad: 12px;
   --cell: 48px;
+  --l1: #e0ad4e;
+  --l2: #d9803f;
+  --l3: #3f9567;
+  --l0: rgb(29 26 34 / 0.16);
   display: grid;
   gap: var(--pad);
+}
+
+:global([data-kp-mode="dark"]) .library {
+  --l1: #f2cf7e;
+  --l2: #f2a266;
+  --l3: #7fd3a0;
+  --l0: rgb(246 241 231 / 0.18);
 }
 
 /* ---- one piece of glass ---- */
@@ -34,7 +49,7 @@
   }
 }
 
-/* ---- the top piece: which section, how far along, what the squares mean ---- */
+/* ---- the top piece: which section, and the section at a glance ---- */
 .top {
   display: grid;
   gap: var(--pad);
@@ -75,60 +90,82 @@
     inset 0 0 0 1px var(--lens-edge);
 }
 
-.count {
-  margin: 0;
-  padding: 0 var(--pad);
-  font-weight: 500;
+.spread {
+  display: grid;
+  gap: 10px;
+  padding: 4px var(--pad) 6px;
 }
 
-.count strong {
-  font-size: 18px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+/* one bar, cut by level; each part grows in from the left, one after the other */
+.bar {
+  display: flex;
+  gap: 3px;
+  height: 12px;
 }
 
-.legend {
+.bar i {
+  flex: 0 0 0;
+  min-width: 6px;
+  border-radius: 6px;
+  transform-origin: 0 50%;
+  animation: grow 0.7s var(--out) both;
+  animation-delay: calc(120ms + var(--i) * 90ms);
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+.key {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 6px 18px;
   margin: 0;
-  padding: 0 var(--pad) 4px;
+  padding: 0;
   list-style: none;
   font-size: 12px;
   font-weight: 500;
 }
 
-.legend li {
+.key li {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* ---- the squares: an outline, two washes of the text colour, then clay for Proficient ---- */
-.sq {
-  flex: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 3.5px;
-  background: currentColor;
+.key i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
-.sq[data-level="0"] {
-  background: none;
-  box-shadow: inset 0 0 0 1.5px currentColor;
-  opacity: 0.4;
+.key b {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.sq[data-level="1"] {
-  opacity: 0.3;
+.bar i[data-level="0"],
+.key i[data-level="0"] {
+  background: var(--l0);
 }
 
-.sq[data-level="2"] {
-  opacity: 0.78;
+.bar i[data-level="1"],
+.key i[data-level="1"] {
+  background: var(--l1);
 }
 
-.sq[data-level="3"] {
-  background: var(--clay);
+.bar i[data-level="2"],
+.key i[data-level="2"] {
+  background: var(--l2);
+}
+
+.bar i[data-level="3"],
+.key i[data-level="3"] {
+  background: var(--l3);
 }
 
 /* ---- the domains ---- */
@@ -145,41 +182,90 @@
 
 .head {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 4px 12px;
+  gap: 12px;
   width: 100%;
-  min-height: var(--cell);
-  padding: 6px var(--pad);
+  min-height: 60px;
+  padding: 8px var(--pad);
   border-radius: var(--r-lens);
   text-align: left;
-  transition: background 0.2s var(--out);
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
 }
 
 .name {
+  display: grid;
+  gap: 2px;
   font-size: 18px;
   line-height: 1.2;
 }
 
-.tally {
-  grid-column: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.name small {
   font-size: 12px;
   font-weight: 500;
+  opacity: 0.78;
   font-variant-numeric: tabular-nums;
 }
 
-.strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+/* the ring: a quiet track, then an arc for each level, drawn round as the piece arrives */
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+
+.track {
+  stroke: var(--l0);
+}
+
+.arc {
+  stroke-linecap: round;
+  stroke-dasharray: calc(var(--len) * 1px) 100px;
+  stroke-dashoffset: calc(var(--from) * 1px);
+  animation: draw 0.9s var(--out) both;
+  animation-delay: calc(200ms + var(--i, 0) * 60ms);
+}
+
+@keyframes draw {
+  from {
+    stroke-dasharray: 0 100px;
+  }
+}
+
+.arc[data-level="1"] {
+  stroke: var(--l1);
+}
+
+.arc[data-level="2"] {
+  stroke: var(--l2);
+}
+
+.arc[data-level="3"] {
+  stroke: var(--l3);
+}
+
+.ring b {
+  position: relative;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
 .chev {
-  grid-column: 2;
-  grid-row: 1 / span 2;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -205,9 +291,9 @@
 
 .skill {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   min-height: var(--cell);
   padding: 8px var(--pad);
@@ -223,10 +309,43 @@
   text-wrap: pretty;
 }
 
-.level {
-  font-size: 12px;
-  opacity: 0.78;
-  white-space: nowrap;
+/* the meter: three steps that fill as the skill climbs, and take the colour of the level reached */
+.meter {
+  display: flex;
+  gap: 3px;
+}
+
+.meter i {
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--l0);
+}
+
+.meter i[data-on] {
+  background: var(--at);
+  transform-origin: 0 50%;
+  animation: step 0.5s cubic-bezier(0.3, 1.5, 0.45, 1) both;
+  animation-delay: calc(260ms + var(--s) * 70ms);
+}
+
+@keyframes step {
+  from {
+    transform: scaleX(0.2);
+    opacity: 0;
+  }
+}
+
+.meter[data-level="1"] {
+  --at: var(--l1);
+}
+
+.meter[data-level="2"] {
+  --at: var(--l2);
+}
+
+.meter[data-level="3"] {
+  --at: var(--l3);
 }
 
 .skill[aria-expanded="true"] {
@@ -243,6 +362,11 @@
   .head:hover {
     background: var(--hover);
   }
+
+  /* the meter leans forward when its row is hovered */
+  .skill:hover .meter i[data-on] {
+    filter: brightness(1.08);
+  }
 }
 
 /* what you can do with a skill, once it is pressed */
@@ -252,8 +376,10 @@
 
 .acts > div {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  padding: 4px var(--pad) 8px calc(var(--pad) + 24px);
+  padding: 4px var(--pad) 8px;
 }
 
 .go,
@@ -280,19 +406,30 @@
   transform: scale(0.95);
 }
 
+.now {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
 /* ---- with room: the top piece on one line, the domains in two columns ---- */
 @media (min-width: 960px) and (hover: hover) {
   .top {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
+    gap: 24px;
   }
 
   .switch {
     width: 400px;
   }
 
-  .legend {
-    padding-bottom: 0;
+  .spread {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 24px;
+    padding: 0 var(--pad) 0 0;
   }
 
   .cols {
@@ -301,7 +438,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glass {
+  .glass,
+  .bar i,
+  .arc,
+  .meter i[data-on] {
     animation: none;
   }
 
