@@ -1,44 +1,22 @@
 "use client";
 
-// The Library (step 3 of the portal rebuild, first screen). Section, then domain, then skill, from the
-// approved skill list. Every piece is frosted glass sized to what it holds; nothing is a white box.
-// Progress is drawn, not written (founder, 2026-11-15: "figures, animations ... not just a wall of text"):
-// a bar for the section, a ring for each domain and a three-step meter for each skill, in one warm scale
-// (honey, amber, then green), never blue. The levels shown are stand-ins: no student data is read yet.
+// One section of the Library (Reading and Writing, or Math): its domains, and the skills in each.
+// Every piece is frosted glass sized to what it holds.
+// Progress is one colour, gold, and it is drawn as night sky (founder, 2026-11-15: "one color filling up"
+// and "the constellation ideas ... combine them"): each skill is a star that fills with gold as it
+// climbs, each domain is the constellation of its skills, and a line between two Proficient stars lights
+// up. Stars answer the pointer, the rows and the stars point at each other, and a lit constellation
+// plays a few quiet notes. The levels shown are stand-ins: no student data is read yet.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import approved from "@/data/curriculum/approved-skill-taxonomy.json";
 import styles from "./library.module.css";
 import type { OpenSkill } from "./SkillPage";
+import { LEVELS, SECTIONS, SKILLS, type Domain, type Section, type Skill } from "./skills72";
+import { buzz, constellation, tick } from "./sound";
 
-/** The founder's four levels, in order (2026-11-14). */
-const LEVELS = ["Not started", "Learning", "Understanding", "Proficient"] as const;
+export { SECTIONS, type Section };
+export const DOMAINS = SKILLS;
 const TOP = LEVELS.length - 1;
-export const SECTIONS = ["Reading and Writing", "Math"] as const;
-export type Section = (typeof SECTIONS)[number];
-
-interface Skill {
-  name: string;
-  level: number;
-}
-interface Domain {
-  name: string;
-  skills: Skill[];
-}
-
-/** A stand-in level for each skill, the same on every load. */
-const standIn = (d: number, s: number) =>
-  [3, 2, 3, 1, 0, 2, 3, 1, 2, 0, 3, 1][(d * 5 + s * 3) % 12];
-
-export const DOMAINS: Record<Section, Domain[]> = { "Reading and Writing": [], Math: [] };
-approved.domains.forEach((domain, d) => {
-  DOMAINS[domain.section as Section].push({
-    name: domain.label,
-    skills: domain.skills
-      .filter((skill) => skill.selectable)
-      .map((skill, s) => ({ name: skill.label, level: standIn(d, s) })),
-  });
-});
 
 /** How many skills sit at each level, from Not started to Proficient. */
 export const tally = (skills: Skill[]) =>
@@ -46,7 +24,7 @@ export const tally = (skills: Skill[]) =>
 
 /** Two columns of about the same height, keeping the domains in order. */
 function columns(domains: Domain[]): [Domain[], Domain[]] {
-  const size = (list: Domain[]) => list.reduce((n, d) => n + d.skills.length + 2, 0);
+  const size = (list: Domain[]) => list.reduce((n, d) => n + d.skills.length + 4, 0);
   let best = 1;
   for (let k = 1; k < domains.length; k++) {
     const gap = (i: number) => Math.abs(size(domains.slice(0, i)) - size(domains.slice(i)));
@@ -57,9 +35,11 @@ function columns(domains: Domain[]): [Domain[], Domain[]] {
 
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
+const STAR =
+  "M12 2.800l2.850 5.900 6.450.900-4.700 4.500 1.150 6.400L12 17.450 6.250 20.500l1.150-6.400L2.700 9.600l6.450-.900z";
 
-/** A skill's level as three steps that fill: none, one, two, three. */
-function Meter({ level }: { level: number }) {
+/** A skill's level as one drop of gold that fills: empty, a third, two thirds, then full with its star. */
+export function StarMeter({ level }: { level: number }) {
   return (
     <span
       className={styles.meter}
@@ -68,48 +48,76 @@ function Meter({ level }: { level: number }) {
       aria-label={LEVELS[level]}
       title={LEVELS[level]}
     >
-      {[1, 2, 3].map((step) => (
-        <i
-          key={step}
-          data-on={level >= step || undefined}
-          style={{ "--s": step } as CSSProperties}
-        />
-      ))}
+      <i style={{ clipPath: `inset(${100 - (level / TOP) * 100}% 0 0 0)` }} />
+      {level === TOP && (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d={STAR} />
+        </svg>
+      )}
     </span>
   );
 }
 
-/**
- * A gradient whose colours run into each other, Proficient first, then Understanding, Learning and what
- * is not started. `unit` is "deg" for a ring and "%" for a bar. Each border is a soft blend, never a cut
- * (founder, 2026-11-15: "I wish it was fluid").
- */
-export function flow(counts: number[], unit: "deg" | "%", shape: string): string {
-  const whole = unit === "deg" ? 360 : 100;
-  const total = counts.reduce((a, b) => a + b, 0) || 1;
-  const order = [3, 2, 1, 0].filter((level) => counts[level] > 0);
-  const soft = whole * 0.07;
-  let at = 0;
-  const stops: string[] = [];
-  order.forEach((level, i) => {
-    const end = at + (counts[level] / total) * whole;
-    const from = i === 0 ? 0 : at + soft / 2;
-    const to = i === order.length - 1 ? whole : end - soft / 2;
-    stops.push(`var(--l${level}) ${Math.min(from, to)}${unit} ${Math.max(from, to)}${unit}`);
-    at = end;
-  });
-  return unit === "deg"
-    ? `conic-gradient(${shape}, ${stops.join(", ")})`
-    : `linear-gradient(${shape}, ${stops.join(", ")})`;
-}
-
-/** A domain at a glance: one ring whose colours flow round it, with the number Proficient inside. */
-function Ring({ counts }: { counts: number[] }) {
+/** A domain as a constellation: one star for each skill, joined in order. */
+function Sky({
+  skills,
+  hot,
+  onHot,
+  onOpen,
+}: {
+  skills: Skill[];
+  hot: number | null;
+  onHot: (i: number | null) => void;
+  onOpen: (i: number) => void;
+}) {
+  const n = skills.length;
+  const at = skills.map((_, i) => ({
+    x: n === 1 ? 50 : 4 + (92 * i) / (n - 1),
+    y: 50 + 30 * Math.sin(i * 2.3 + n * 0.7),
+  }));
   return (
-    <span className={styles.ring}>
-      <i data-ring style={{ background: flow(counts, "deg", "from 0deg") }} />
-      <b>{counts[TOP]}</b>
-    </span>
+    <div className={styles.sky} aria-hidden="true">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        {at.slice(1).map((p, i) => (
+          <line
+            key={i}
+            x1={at[i].x}
+            y1={at[i].y}
+            x2={p.x}
+            y2={p.y}
+            vectorEffect="non-scaling-stroke"
+            data-line
+            data-lit={(skills[i].level === TOP && skills[i + 1].level === TOP) || undefined}
+          />
+        ))}
+      </svg>
+      <div className={styles.stars}>
+        {skills.map((skill, i) => (
+          <button
+            key={skill.name}
+            type="button"
+            tabIndex={-1}
+            className={styles.star}
+            data-star
+            data-level={skill.level}
+            data-hot={hot === i || undefined}
+            title={`${skill.name}: ${LEVELS[skill.level]}`}
+            style={
+              {
+                left: `${at[i].x}%`,
+                top: `${at[i].y}%`,
+                "--tw": `${((i * 0.37) % 2).toFixed(2)}s`,
+              } as CSSProperties
+            }
+            onPointerEnter={() => onHot(i)}
+            onPointerLeave={() => onHot(null)}
+            onClick={() => onOpen(i)}
+          >
+            <i />
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -126,27 +134,37 @@ function DomainGlass({
 }) {
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(startOpen);
-  const counts = tally(domain.skills);
+  const [hot, setHot] = useState<number | null>(null);
+  const lit = domain.skills.filter((s) => s.level === TOP).length;
+  const go = (i: number) => {
+    const skill = domain.skills[i];
+    tick();
+    buzz(8);
+    onOpen({ name: skill.name, level: skill.level, domain: domain.name, tests: skill.tests });
+  };
   return (
     <section className={styles.glass} style={{ "--i": order } as CSSProperties}>
       <button
         type="button"
         className={styles.head}
         aria-expanded={open}
-        aria-label={`${domain.name}: ${counts[TOP]} of ${domain.skills.length} skills Proficient`}
-        onClick={() => setOpen(!open)}
+        aria-label={`${domain.name}: ${lit} of ${domain.skills.length} stars lit`}
+        onClick={() => {
+          setOpen(!open);
+          tick();
+        }}
       >
-        <Ring counts={counts} />
         <span className={styles.name}>
           {domain.name}
           <small>
-            {counts[TOP]} of {domain.skills.length} Proficient
+            <b>{lit}</b> of {domain.skills.length} lit
           </small>
         </span>
         <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M6.500 9.500l5.500 5.500 5.500-5.500" />
         </svg>
       </button>
+      <Sky skills={domain.skills} hot={hot} onHot={setHot} onOpen={go} />
       <AnimatePresence initial={false}>
         {open && (
           <motion.ul
@@ -156,22 +174,23 @@ function DomainGlass({
             exit={{ height: 0, opacity: 0 }}
             transition={still ? STILL : OPEN}
           >
-            {domain.skills.map((skill) => {
-              return (
-                <li key={skill.name}>
-                  <button
-                    type="button"
-                    className={styles.skill}
-                    onClick={() =>
-                      onOpen({ name: skill.name, level: skill.level, domain: domain.name })
-                    }
-                  >
-                    <span className={styles.label}>{skill.name}</span>
-                    <Meter level={skill.level} />
-                  </button>
-                </li>
-              );
-            })}
+            {domain.skills.map((skill, i) => (
+              <li key={skill.name}>
+                <button
+                  type="button"
+                  className={styles.skill}
+                  data-hot={hot === i || undefined}
+                  onClick={() => go(i)}
+                  onPointerEnter={() => setHot(i)}
+                  onPointerLeave={() => setHot(null)}
+                  onFocus={() => setHot(i)}
+                  onBlur={() => setHot(null)}
+                >
+                  <span className={styles.label}>{skill.name}</span>
+                  <StarMeter level={skill.level} />
+                </button>
+              </li>
+            ))}
           </motion.ul>
         )}
       </AnimatePresence>
@@ -192,9 +211,10 @@ export default function Library({
   const root = useRef<HTMLDivElement>(null);
   const domains = DOMAINS[section];
   const counts = tally(domains.flatMap((d) => d.skills));
+  const total = counts.reduce((a, b) => a + b, 0);
   const [left, right] = columns(domains);
 
-  /* GSAP draws the figures in: the bar runs out from the left, then each ring sweeps round */
+  /* GSAP lights the sky: the gold line runs out, each constellation's lines draw, its stars pop in */
   useEffect(() => {
     if (still || !root.current) return;
     let revert = () => {};
@@ -203,50 +223,56 @@ export default function Library({
       if (gone || !root.current) return;
       const ctx = gsap.context(() => {
         gsap.fromTo(
-          "[data-bar]",
+          "[data-band]",
           { scaleX: 0 },
-          {
-            scaleX: 1,
-            duration: 1.1,
-            ease: "power3.out",
-            delay: 0.15,
-          }
+          { scaleX: 1, duration: 1.2, ease: "power3.out", delay: 0.15 }
         );
+        // each line grows from the star it starts at to the next one
+        gsap.from("[data-line]", {
+          attr: {
+            x2: (_: number, el: Element) => Number(el.getAttribute("x1")),
+            y2: (_: number, el: Element) => Number(el.getAttribute("y1")),
+          },
+          opacity: 0,
+          duration: 0.7,
+          ease: "power2.out",
+          delay: 0.3,
+          stagger: 0.02,
+        });
         gsap.fromTo(
-          "[data-ring]",
-          { "--sweep": 0, rotate: -90 },
-          { "--sweep": 1, rotate: 0, duration: 1.3, ease: "power3.out", delay: 0.25, stagger: 0.09 }
+          "[data-star]",
+          { scale: 0 },
+          { scale: 1, duration: 0.6, ease: "back.out(3)", delay: 0.3, stagger: 0.018 }
         );
       }, root);
       revert = () => ctx.revert();
+      constellation(counts[TOP]);
     });
     return () => {
       gone = true;
       revert();
     };
+    // the counts follow the section
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [still, section, rail]);
 
   return (
     <div ref={root} className={styles.library}>
       <header className={`${styles.glass} ${styles.top}`}>
-        {/* the section at a glance: one bar, and its key carries the numbers */}
-        <div className={styles.spread} key={section}>
-          <div
-            className={styles.bar}
-            data-bar
-            aria-hidden="true"
-            style={{ background: flow(counts, "%", "to right") }}
-          />
-          <ul className={styles.key}>
-            {[3, 2, 1, 0].map((level) => (
-              <li key={level}>
-                <i data-level={level} />
-                <b>{counts[level]}</b>
-                {LEVELS[level]}
-              </li>
-            ))}
-          </ul>
+        <p className={styles.count}>
+          <b>{counts[TOP]}</b> of {total} stars lit
+        </p>
+        <div className={styles.band}>
+          <i data-band style={{ width: `${(counts[TOP] / total) * 100}%` }} />
         </div>
+        <ul className={styles.key} aria-label="What a star shows">
+          {[1, 2, 3].map((level) => (
+            <li key={level}>
+              <StarMeter level={level} />
+              {LEVELS[level]}
+            </li>
+          ))}
+        </ul>
       </header>
 
       {/* a phone reads one column, with the first domain open; a desktop gets two, all open */}

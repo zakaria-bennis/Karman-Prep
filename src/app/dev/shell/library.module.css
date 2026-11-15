@@ -1,29 +1,28 @@
 /*
- * The Library screen. It uses the menu's material and numbers (shell.module.css): the same glass, the
- * same lens, one inset (--pad, 12) on every side of every piece, rows one --cell (48) tall with the
- * lens corner (16), so a piece's corner is 16 + 12 = 28 like the rail's.
+ * One section of the Library. It uses the menu's material and numbers (shell.module.css): the same glass,
+ * one inset (--pad, 12) on every side of every piece, rows one --cell (48) tall with the lens corner (16),
+ * so a piece's corner is 16 + 12 = 28 like the rail's.
  * Three text sizes: 12, 15 and 18. Two weights: 500 and 600.
  *
- * Progress is drawn in one warm scale, never blue (founder, 2026-11-15): honey for Learning, amber for
- * Understanding, green for Proficient. The same three colours mean the same thing in the section's
- * bar, each domain's ring and each skill's meter.
+ * Progress is one colour, gold (founder, 2026-11-15: no "rainbow"), drawn as night sky: a star for each
+ * skill, a constellation for each domain.
  */
 .library {
   --pad: 12px;
   --cell: 48px;
-  --l1: #e9b200;
-  --l2: #d4521f;
-  --l3: #14804a;
+  --gold: #b97800;
+  --gold-soft: rgb(185 120 0 / 0.5);
+  --gold-glow: rgb(233 178 0 / 0.6);
   --l0: rgb(29 26 34 / 0.2);
   display: grid;
   gap: var(--pad);
 }
 
 :global([data-kp-mode="dark"]) .library {
-  --l1: #ffd84d;
-  --l2: #ff8a4a;
-  --l3: #4fe39a;
-  --l0: rgb(246 241 231 / 0.22);
+  --gold: #ffd56a;
+  --gold-soft: rgb(255 213 106 / 0.5);
+  --gold-glow: rgb(255 213 106 / 0.65);
+  --l0: rgb(246 241 231 / 0.24);
 }
 
 /* ---- one piece of glass ---- */
@@ -49,23 +48,50 @@
   }
 }
 
-/* ---- the top piece: which section, and the section at a glance ---- */
+/* ---- the top piece: how much of the section's sky is lit, and how to read a star ---- */
 .top {
   display: grid;
-  gap: var(--pad);
-}
-
-.spread {
-  display: grid;
   gap: 10px;
-  padding: 4px var(--pad) 6px;
+  padding: calc(var(--pad) + 4px) calc(var(--pad) * 2);
 }
 
-/* one band whose colours run into each other */
-.bar {
-  height: 12px;
-  border-radius: 6px;
+.count {
+  margin: 0;
+  font-weight: 500;
+}
+
+.count b {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* one gold line that fills, with a slow light passing along it */
+.band {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--l0);
+  overflow: hidden;
+}
+
+.band i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(100deg, var(--gold) 40%, #fff3c8 50%, var(--gold) 60%) 0 0 / 300% 100%;
+  box-shadow: 0 0 14px var(--gold-glow);
   transform-origin: 0 50%;
+  animation: glide 4.5s linear infinite;
+}
+
+@keyframes glide {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -150% 0;
+  }
 }
 
 .key {
@@ -85,32 +111,41 @@
   gap: 6px;
 }
 
-.key i {
-  width: 10px;
-  height: 10px;
+/* ---- a drop that fills with gold from the foot up; full, it shows its star and glows ---- */
+.meter {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--l0);
 }
 
-.key b {
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.meter i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--gold);
 }
 
-.key i[data-level="0"] {
-  background: var(--l0);
+.meter svg {
+  position: absolute;
+  inset: 4px;
+  width: 14px;
+  height: 14px;
+  fill: var(--on-ink);
 }
 
-.key i[data-level="1"] {
-  background: var(--l1);
+.meter[data-level="3"] {
+  box-shadow: 0 0 10px 1px var(--gold-glow);
+  animation: twinkle 3.2s ease-in-out infinite;
 }
 
-.key i[data-level="2"] {
-  background: var(--l2);
-}
-
-.key i[data-level="3"] {
-  background: var(--l3);
+@keyframes twinkle {
+  50% {
+    box-shadow: 0 0 16px 4px var(--gold-glow);
+    transform: scale(1.08);
+  }
 }
 
 /* ---- the domains ---- */
@@ -127,12 +162,12 @@
 
 .head {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 12px;
   width: 100%;
-  min-height: 60px;
-  padding: 8px var(--pad);
+  min-height: 56px;
+  padding: 6px var(--pad);
   border-radius: var(--r-lens);
   text-align: left;
   transition:
@@ -150,41 +185,12 @@
 .name small {
   font-size: 12px;
   font-weight: 500;
-  opacity: 0.78;
+  opacity: 0.82;
   font-variant-numeric: tabular-nums;
 }
 
-/* the ring: one band of colour that flows round a pale disc, swept in by GSAP (--sweep, 0 to 1) */
-.ring {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.ring i {
-  --sweep: 1;
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  -webkit-mask:
-    radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)),
-    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
-  -webkit-mask-composite: source-in;
-  mask:
-    radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)),
-    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
-  mask-composite: intersect;
-}
-
-.ring b {
-  position: relative;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
+.name small b {
+  font-weight: 600;
 }
 
 .chev {
@@ -200,15 +206,106 @@
   transform: rotate(180deg);
 }
 
+/* the constellation: a strip of sky set into the glass */
+.sky {
+  position: relative;
+  height: 72px;
+  margin: 4px 0;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.sky svg {
+  position: absolute;
+  inset: 8px 14px;
+  width: calc(100% - 28px);
+  height: calc(100% - 16px);
+  overflow: visible;
+}
+
+.stars {
+  position: absolute;
+  inset: 8px 14px;
+}
+
+.sky line {
+  stroke: currentColor;
+  stroke-opacity: 0.28;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+
+.sky line[data-lit] {
+  stroke: var(--gold);
+  stroke-opacity: 1;
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 3px var(--gold-glow));
+}
+
+/* a star is a small button: a wide touch area round a dot that shows the level */
+.library .star {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+}
+
+.star i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  transition: transform 0.45s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+.star[data-level="0"] i {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  opacity: 0.45;
+}
+
+.star[data-level="1"] i {
+  opacity: 0.5;
+}
+
+.star[data-level="2"] i {
+  width: 9px;
+  height: 9px;
+  opacity: 0.8;
+}
+
+.star[data-level="3"] i {
+  width: 12px;
+  height: 12px;
+  box-shadow:
+    0 0 10px 2px var(--gold-glow),
+    0 0 2px 1px #fff8de inset;
+  animation: shine 3.4s ease-in-out var(--tw, 0s) infinite;
+}
+
+@keyframes shine {
+  50% {
+    box-shadow:
+      0 0 18px 5px var(--gold-glow),
+      0 0 2px 1px #fff8de inset;
+  }
+}
+
+.star[data-hot] i {
+  transform: scale(1.9);
+  opacity: 1;
+}
+
 .skills {
   margin: 0;
   padding: 0;
   list-style: none;
   overflow: hidden;
-}
-
-.skills li:first-child {
-  margin-top: 4px;
 }
 
 .skill {
@@ -231,43 +328,16 @@
   text-wrap: pretty;
 }
 
-/* the meter: three steps that fill as the skill climbs, and take the colour of the level reached */
-.meter {
-  display: flex;
-  gap: 3px;
+.skill .meter {
+  transition: transform 0.45s cubic-bezier(0.3, 1.7, 0.45, 1);
 }
 
-.meter i {
-  width: 14px;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--l0);
+.skill[data-hot] {
+  background: var(--hover);
 }
 
-.meter i[data-on] {
-  background: var(--at);
-  transform-origin: 0 50%;
-  animation: step 0.5s cubic-bezier(0.3, 1.5, 0.45, 1) both;
-  animation-delay: calc(260ms + var(--s) * 70ms);
-}
-
-@keyframes step {
-  from {
-    transform: scaleX(0.2);
-    opacity: 0;
-  }
-}
-
-.meter[data-level="1"] {
-  --at: var(--l1);
-}
-
-.meter[data-level="2"] {
-  --at: var(--l2);
-}
-
-.meter[data-level="3"] {
-  --at: var(--l3);
+.skill[data-hot] .meter {
+  transform: scale(1.25) rotate(-8deg);
 }
 
 .skill:active,
@@ -276,24 +346,17 @@
 }
 
 @media (hover: hover) {
-  .skill:hover,
   .head:hover {
     background: var(--hover);
   }
-
-  /* the meter leans forward when its row is hovered */
-  .skill:hover .meter i[data-on] {
-    filter: brightness(1.08);
-  }
 }
 
-/* ---- with room: the top piece on one line, the domains in two columns ---- */
+/* ---- with room: the domains in two columns ---- */
 @media (min-width: 960px) and (hover: hover) {
-  .spread {
-    grid-template-columns: 1fr auto;
+  .top {
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 24px;
-    padding: 6px var(--pad);
   }
 
   .cols {
@@ -303,11 +366,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .glass,
-  .meter i[data-on] {
+  .band i,
+  .meter[data-level="3"],
+  .star[data-level="3"] i {
     animation: none;
   }
 
-  .chev {
+  .chev,
+  .star i,
+  .skill .meter {
     transition: none;
   }
 }

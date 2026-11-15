@@ -1,34 +1,79 @@
 /*
- * The Library's doors. The same glass and inset as everywhere else (--pad 12, lens corner 16), with a
- * door's own, larger corner (36) because it is the one big thing on the screen.
- * The phone and the desktop are two compositions, not one that reflows.
+ * The Library's hero: a stage that fills what is left of the screen, the scene drawn on one canvas, and
+ * the two choices as buttons over it. Each choice carries a small glass plaque with its name and its
+ * progress in one colour, gold.
+ * Tall stage (phone): the two halves are stacked. Wide stage (desktop): they stand side by side.
  */
 .hero {
-  --l1: #e9b200;
-  --l2: #d4521f;
-  --l3: #14804a;
+  --gold: #b97800;
+  --gold-glow: rgb(233 178 0 / 0.55);
   --l0: rgb(29 26 34 / 0.2);
-  display: grid;
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 12px;
-  /* what is left of the screen under the page's name and above the bar, shared by the two doors */
+  position: relative;
+  /* the screen, less the page's name above and the bar below */
   height: calc(100dvh - 145px - 100px);
-  min-height: 420px;
+  min-height: 440px;
+  border-radius: 36px;
+  touch-action: pan-y;
 }
 
 :global([data-kp-mode="dark"]) .hero {
-  --l1: #ffd84d;
-  --l2: #ff8a4a;
-  --l3: #4fe39a;
-  --l0: rgb(246 241 231 / 0.22);
+  --gold: #ffd56a;
+  --gold-glow: rgb(255 213 106 / 0.6);
+  --l0: rgb(246 241 231 / 0.24);
 }
 
-.hero .door {
-  position: relative;
+.canvas {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.6s var(--out);
+}
+
+.hero[data-ready] .canvas {
+  opacity: 1;
+}
+
+/* the split sky is a window with a glass rim; the other two float straight over the land */
+.hero[data-kind="sky"] .canvas {
+  box-shadow: var(--lift);
+}
+
+.hero[data-kind="sky"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  pointer-events: none;
+}
+
+.picks {
+  position: absolute;
+  inset: 0;
   display: grid;
-  min-height: 0;
-  padding: 24px;
+  grid-template-rows: 1fr 1fr;
+}
+
+.hero .pick {
+  display: grid;
+  align-content: end;
+  justify-items: start;
+  min-width: 0;
+  padding: 12px;
   border-radius: 36px;
+  text-align: left;
+}
+
+.plaque {
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+  padding: 14px 18px 16px;
+  border-radius: 24px;
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -36,37 +81,23 @@
     var(--lift),
     inset 0 0 0 1px var(--glass-edge),
     inset 0 1px 0 1px var(--glass-shine);
-  text-align: left;
-  overflow: hidden;
-  transition: box-shadow 0.4s var(--out);
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
-/* a door that is hovered, focused or pressed is the thicker glass */
-.hero .door[data-lively] {
-  box-shadow:
-    0 28px 60px -22px rgb(24 28 58 / 0.6),
-    inset 0 0 0 1px var(--lens-edge),
-    inset 0 1px 0 1px var(--glass-shine),
-    inset 0 0 0 999px var(--hover);
+.pick:active .plaque {
+  transform: scale(0.96);
 }
 
-.model {
-  display: block;
-  min-width: 0;
-  min-height: 0;
-}
-
-.words {
-  display: grid;
-  align-content: end;
-  gap: 8px;
-  min-width: 0;
+@media (hover: hover) {
+  .pick:hover .plaque,
+  .pick:focus-visible .plaque {
+    transform: translateY(-4px) scale(1.03);
+  }
 }
 
 .name {
-  font: 400 30px/1.05 var(--font-serif);
+  font: 400 26px/1.05 var(--font-serif);
   letter-spacing: -0.015em;
-  text-wrap: balance;
 }
 
 .meta {
@@ -80,117 +111,68 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* the section's progress as one band whose colours run into each other */
-.flow {
+/* progress in one colour: a gold line that fills */
+.band {
   display: block;
-  height: 10px;
-  border-radius: 5px;
+  width: 168px;
+  max-width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--l0);
+}
+
+.band i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
   transform-origin: 0 50%;
+  animation: fill 1.2s var(--out) 0.5s both;
 }
 
-.domains {
-  display: none;
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
 }
 
-.enter {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--lens);
-  box-shadow:
-    var(--lens-shade),
-    inset 0 0 0 1px var(--lens-edge);
-  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
-}
-
-.enter svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.door[data-lively] .enter {
-  transform: translateX(4px) scale(1.08);
-}
-
-/* ---- phone: two wide doors, the words at the left, the object at the right ---- */
-.hero .door {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  grid-template-rows: minmax(0, 1fr);
-  gap: 8px;
-}
-
-.model {
-  grid-column: 2;
-  grid-row: 1;
-  margin: -24px -24px -24px -32px;
-}
-
-.words {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.enter {
-  display: none;
-}
-
-/* ---- desktop: two tall doors, the object above, the words and the domains below ---- */
 @media (min-width: 960px) and (hover: hover) {
   .hero {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
     height: calc(100dvh - 56px - 53px - 24px - 16px);
     min-height: 520px;
   }
 
-  .hero .door {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    gap: 0;
-    padding: 36px;
+  .picks {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .model {
-    grid-column: 1;
-    grid-row: 1;
-    margin: -12px 0 0;
+  .hero .pick {
+    padding: 24px;
   }
 
-  .words {
-    grid-column: 1;
-    grid-row: 2;
-    gap: 12px;
-    padding-right: 72px;
+  .plaque {
+    gap: 8px;
+    padding: 20px 26px 24px;
+    border-radius: 28px;
   }
 
   .name {
-    font-size: 52px;
+    font-size: 44px;
   }
 
-  .flow {
-    max-width: 420px;
+  .band {
+    width: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band i {
+    animation: none;
   }
 
-  .domains {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 20px;
-    font-size: 15px;
-    font-weight: 500;
-    opacity: 0.82;
-  }
-
-  .enter {
-    display: grid;
-    right: 36px;
-    bottom: 36px;
+  .plaque {
+    transition: none;
   }
 }

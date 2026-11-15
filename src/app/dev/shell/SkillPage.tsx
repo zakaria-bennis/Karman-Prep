@@ -14,6 +14,8 @@ export interface OpenSkill {
   name: string;
   level: number;
   domain: string;
+  /** What the skill tests, in a line. */
+  tests?: string;
 }
 
 /** Stand-in skill sets: the ones before the level are done, the next one is up. */
@@ -45,6 +47,7 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
             </li>
           ))}
         </ol>
+        {skill.tests && <p className={styles.tests}>{skill.tests}</p>}
         <p>A skill moves up as you get it right, and slips back a step if you miss it later.</p>
       </section>
 

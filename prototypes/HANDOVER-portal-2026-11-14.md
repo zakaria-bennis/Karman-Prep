@@ -185,6 +185,32 @@ Known faults and gaps:
      - **Fluid, not segmented:** every ring and band is one gradient whose colours run into each other
        (`flow()` in `Library.tsx`), swept in by GSAP.
      Awaiting his verdict.
+   - **Library, fourth pass (2026-11-15): three hero demos, gold constellations, 72 skills.** He
+     rejected the "rainbow" bands and the first 3D objects ("random BS-looking icons"). Ideas were
+     written down first and he chose: heroes 2, 4 and 5, and progress as "one color filling up"
+     combined with "the constellation ideas", with "motion, vibrations, animations, and sound, and,
+     more importantly, beauty". **Write ideas down and let him pick before building anything big.**
+     - **Three hero demos**, switched from the demo bar or `?hero=orrery|sky|paper`, all three.js +
+       GSAP in `heroes/` on one shared stage (`stage.ts`: one canvas, two stations, side by side on a
+       wide stage and stacked on a tall one). `LibraryHero.tsx` lays two real buttons over the canvas.
+       `bookOrrery.ts`: a book whose pages curl and turn, paper birds rising from it; a brass orrery
+       whose rings swing level on hover. `splitSky.ts`: one sky cut on a slant, dusk with a lantern
+       and drifting pages against night with star figures that draw themselves; hover leans the seam,
+       dragging moves it, choosing sweeps it across. `paperCrystal.ts`: one creased sheet that folds
+       into a book, a bird and a tower; a crystal cluster that bursts when chosen. My own ranking:
+       the book and orrery is the strongest, paper and crystal the weakest. He has not ranked them.
+     - **Progress is one colour, gold**, as night sky: each domain has a strip of sky with one star
+       per skill joined in order, lines between two Proficient stars light up, rows and stars point
+       at each other on hover, and each row has a drop that fills with gold (full shows a star).
+     - **Sound and vibration** (`sound.ts`, Web Audio, no files): hover, choose, open a skill, and a
+       few notes as a constellation lights. Silent until the first press (browser rule). Vibration
+       is Android only; iPhone browsers ignore it. A "Sound" switch is in the demo bar.
+     - **72 skills, a proposal** (`skills72.ts`): 34 Reading and Writing, 38 Math, each with a line on
+       what it tests. The approved 39-skill list that the question bank is tagged with
+       (`src/data/curriculum/approved-skill-taxonomy.json`) is NOT changed and no question is
+       retagged; adopting the 72 is a separate job that needs his go-ahead and a retagging plan.
+     Checked: every hero opens, hovers, chooses and reaches a skill on desktop and phone with no
+     errors. Not checked: sound by ear, vibration, a real phone's speed, the split-sky drag.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the
