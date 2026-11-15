@@ -245,6 +245,17 @@ Known faults and gaps:
      Checked on desktop and phone: both halves hover, both choices transition and land in the right
      section, no shader errors. Not checked: a real phone's speed (this is a heavy scene on top of the
      landscape), the drag, sound by ear. Awaiting his verdict.
+   - **Library page for each side, rebuilt 2026-11-15, awaiting his verdict.** He asked for it to be
+     "very intuitive and easy to use", with figures "equally as utilitarian as they are beautiful".
+     No retagging of the bank ("We're not going to retag anything now"). `Library.tsx` now has:
+     **Next up** (the skill nearest Proficient, what it tests, and "Start skill set N"; first on a
+     phone); **where your skills stand** (one number, one gold line, and the lanes: a dot per skill
+     in the lane of its level, which is also the key); a **filter** (All, In progress, Not started,
+     Proficient); and each **domain** with small lanes in its head and its skills as rows with
+     **three pips, one per skill set** (the rule drawn: 8 questions a set, one level a set) and a
+     star at Proficient. The constellation strips were removed from this page as decoration; stars
+     stay in the hero. Research: Khan Academy's SAT course via REA (a key at the top, one mark per
+     skill, "Up next for you", 127 skills in 14 units), Uxcel and Coursera (a lead card to continue).
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

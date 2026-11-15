@@ -1,17 +1,15 @@
 /*
- * One section of the Library. It uses the menu's material and numbers (shell.module.css): the same glass,
+ * One side of the Library. It uses the menu's material and numbers (shell.module.css): the same glass,
  * one inset (--pad, 12) on every side of every piece, rows one --cell (48) tall with the lens corner (16),
  * so a piece's corner is 16 + 12 = 28 like the rail's.
  * Three text sizes: 12, 15 and 18. Two weights: 500 and 600.
- *
- * Progress is one colour, gold (founder, 2026-11-15: no "rainbow"), drawn as night sky: a star for each
- * skill, a constellation for each domain.
+ * One colour carries progress: gold. Its strength is the level: an outline, then pale, then fuller, then
+ * solid and glowing for Proficient.
  */
 .library {
   --pad: 12px;
   --cell: 48px;
   --gold: #b97800;
-  --gold-soft: rgb(185 120 0 / 0.5);
   --gold-glow: rgb(233 178 0 / 0.6);
   --l0: rgb(29 26 34 / 0.2);
   display: grid;
@@ -20,9 +18,21 @@
 
 :global([data-kp-mode="dark"]) .library {
   --gold: #ffd56a;
-  --gold-soft: rgb(255 213 106 / 0.5);
   --gold-glow: rgb(255 213 106 / 0.65);
   --l0: rgb(246 241 231 / 0.24);
+}
+
+.library h2,
+.library p {
+  margin: 0;
+}
+
+.library svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ---- one piece of glass ---- */
@@ -48,15 +58,21 @@
   }
 }
 
-/* ---- the top piece: how much of the section's sky is lit, and how to read a star ---- */
-.top {
+/* ---- the lead: where you stand, and what to do next ---- */
+.lead {
   display: grid;
-  gap: 10px;
-  padding: calc(var(--pad) + 4px) calc(var(--pad) * 2);
+  gap: var(--pad);
+}
+
+.standing,
+.next {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: calc(var(--pad) * 2);
 }
 
 .count {
-  margin: 0;
   font-weight: 500;
 }
 
@@ -94,58 +110,212 @@
   }
 }
 
-.key {
+/* ---- the lanes: a dot for each skill, in the lane of its level ---- */
+.lanes {
+  display: grid;
+  gap: 5px;
+}
+
+.lane {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  min-height: 8px;
+}
+
+.dots {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: 4px;
+}
+
+.lane i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  transition: transform 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+.lane[data-level="0"] i {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  opacity: 0.4;
+}
+
+.lane[data-level="1"] i {
+  opacity: 0.42;
+}
+
+.lane[data-level="2"] i {
+  opacity: 0.74;
+}
+
+.lane[data-level="3"] i {
+  box-shadow: 0 0 7px var(--gold-glow);
+}
+
+.lane i[data-hot] {
+  transform: scale(2);
+  opacity: 1;
+}
+
+/* in the lead the lanes are named and counted, so they are also the key to every other figure */
+.lanes[data-named] {
+  gap: 8px;
+}
+
+.lanes[data-named] .lane {
+  grid-template-columns: 104px 1fr auto;
+  gap: 12px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.key li {
+.lanes[data-named] .lane i {
+  width: 10px;
+  height: 10px;
+}
+
+.lanes[data-named] b {
+  min-width: 2ch;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nextName {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.nextWhy {
+  font-weight: 500;
+  opacity: 0.86;
+  max-width: 46ch;
+}
+
+.nextWhere {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-/* ---- a drop that fills with gold from the foot up; full, it shows its star and glows ---- */
-.meter {
+.library .start {
+  justify-self: start;
+  height: var(--cell);
+  padding: 0 22px;
+  border-radius: var(--r-lens);
+  background: var(--ink);
+  color: var(--on-ink);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.start:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) {
+  .start:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* ---- three pips: one for each skill set a skill takes ---- */
+.pips {
   position: relative;
+  display: flex;
   flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--l0);
+  align-items: center;
+  gap: 3px;
 }
 
-.meter i {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
+.pips i {
+  width: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--l0);
+}
+
+.pips i[data-on] {
   background: var(--gold);
 }
 
-.meter svg {
-  position: absolute;
-  inset: 4px;
-  width: 14px;
-  height: 14px;
-  fill: var(--on-ink);
+.pips[data-level="3"] i {
+  box-shadow: 0 0 6px var(--gold-glow);
 }
 
-.meter[data-level="3"] {
-  box-shadow: 0 0 10px 1px var(--gold-glow);
+.library .pips svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  fill: var(--gold);
+  stroke: none;
+  filter: drop-shadow(0 0 4px var(--gold-glow));
   animation: twinkle 3.2s ease-in-out infinite;
 }
 
 @keyframes twinkle {
   50% {
-    box-shadow: 0 0 16px 4px var(--gold-glow);
-    transform: scale(1.08);
+    transform: scale(1.18);
   }
+}
+
+/* ---- the filter ---- */
+.filter {
+  display: flex;
+  gap: 4px;
+  justify-self: start;
+  max-width: 100%;
+  padding: 4px;
+  border-radius: calc(12px + 4px);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filter button {
+  position: relative;
+  flex: none;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filter button > span:last-child {
+  position: relative;
+}
+
+.filter b {
+  font-weight: 600;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter button[aria-pressed="true"] {
+  font-weight: 600;
+}
+
+.lens {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
 }
 
 /* ---- the domains ---- */
@@ -162,12 +332,12 @@
 
 .head {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
-  min-height: 56px;
-  padding: 6px var(--pad);
+  min-height: 64px;
+  padding: 8px var(--pad);
   border-radius: var(--r-lens);
   text-align: left;
   transition:
@@ -193,112 +363,16 @@
   font-weight: 600;
 }
 
+.head .lanes {
+  width: 116px;
+}
+
 .chev {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
   transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.45, 1);
 }
 
 .head[aria-expanded="true"] .chev {
   transform: rotate(180deg);
-}
-
-/* the constellation: a strip of sky set into the glass */
-.sky {
-  position: relative;
-  height: 72px;
-  margin: 4px 0;
-  border-radius: var(--r-lens);
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.sky svg {
-  position: absolute;
-  inset: 8px 14px;
-  width: calc(100% - 28px);
-  height: calc(100% - 16px);
-  overflow: visible;
-}
-
-.stars {
-  position: absolute;
-  inset: 8px 14px;
-}
-
-.sky line {
-  stroke: currentColor;
-  stroke-opacity: 0.28;
-  stroke-width: 1.2;
-  stroke-linecap: round;
-}
-
-.sky line[data-lit] {
-  stroke: var(--gold);
-  stroke-opacity: 1;
-  stroke-width: 1.8;
-  filter: drop-shadow(0 0 3px var(--gold-glow));
-}
-
-/* a star is a small button: a wide touch area round a dot that shows the level */
-.library .star {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
-  border-radius: 50%;
-}
-
-.star i {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  transition: transform 0.45s cubic-bezier(0.3, 1.7, 0.45, 1);
-}
-
-.star[data-level="0"] i {
-  background: none;
-  box-shadow: inset 0 0 0 1.5px currentColor;
-  opacity: 0.45;
-}
-
-.star[data-level="1"] i {
-  opacity: 0.5;
-}
-
-.star[data-level="2"] i {
-  width: 9px;
-  height: 9px;
-  opacity: 0.8;
-}
-
-.star[data-level="3"] i {
-  width: 12px;
-  height: 12px;
-  box-shadow:
-    0 0 10px 2px var(--gold-glow),
-    0 0 2px 1px #fff8de inset;
-  animation: shine 3.4s ease-in-out var(--tw, 0s) infinite;
-}
-
-@keyframes shine {
-  50% {
-    box-shadow:
-      0 0 18px 5px var(--gold-glow),
-      0 0 2px 1px #fff8de inset;
-  }
-}
-
-.star[data-hot] i {
-  transform: scale(1.9);
-  opacity: 1;
 }
 
 .skills {
@@ -308,11 +382,15 @@
   overflow: hidden;
 }
 
+.skills li:first-child {
+  margin-top: 4px;
+}
+
 .skill {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   min-height: var(--cell);
   padding: 8px var(--pad);
@@ -328,16 +406,11 @@
   text-wrap: pretty;
 }
 
-.skill .meter {
-  transition: transform 0.45s cubic-bezier(0.3, 1.7, 0.45, 1);
-}
-
-.skill[data-hot] {
-  background: var(--hover);
-}
-
-.skill[data-hot] .meter {
-  transform: scale(1.25) rotate(-8deg);
+.go {
+  opacity: 0.45;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
 }
 
 .skill:active,
@@ -345,18 +418,33 @@
   transform: scale(0.985);
 }
 
+.skill:focus-visible,
+.skill:active {
+  background: var(--hover);
+}
+
 @media (hover: hover) {
+  .skill:hover,
   .head:hover {
     background: var(--hover);
   }
+
+  .skill:hover .go {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
-/* ---- with room: the domains in two columns ---- */
+.none {
+  padding: calc(var(--pad) * 2);
+  font-weight: 500;
+}
+
+/* ---- with room: the lead in two pieces, the domains in two columns ---- */
 @media (min-width: 960px) and (hover: hover) {
-  .top {
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 24px;
+  .lead {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .cols {
@@ -364,17 +452,60 @@
   }
 }
 
+/* without room, what to do next comes first, and the filter spans the width with its counts dropped
+   (the lanes above already give them) so all four choices fit */
+@media (max-width: 959px) {
+  .next {
+    order: -1;
+  }
+
+  .filter {
+    justify-self: stretch;
+  }
+
+  .filter button {
+    flex: 1 1 auto;
+    padding: 0 8px;
+  }
+
+  .filter b {
+    display: none;
+  }
+}
+
+/* a narrow phone: the domain's lanes drop under its name so the name is never squeezed */
+@media (max-width: 479px) {
+  .head {
+    grid-template-columns: 1fr auto;
+  }
+
+  .head .lanes {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto;
+  }
+
+  .chev {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .lanes[data-named] .lane {
+    grid-template-columns: 96px 1fr auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .glass,
   .band i,
-  .meter[data-level="3"],
-  .star[data-level="3"] i {
+  .pips svg {
     animation: none;
   }
 
   .chev,
-  .star i,
-  .skill .meter {
+  .go,
+  .lane i,
+  .start {
     transition: none;
   }
 }
