@@ -1,26 +1,26 @@
 "use client";
 
-// One side of the Library (Reading and Writing, or Math): what to do next, where every skill stands,
-// and the skills themselves, domain by domain. Every piece is frosted glass sized to what it holds.
-//
-// What the page is for, and what each part answers (worked out with Intent and Perception-First Design):
-//   "What should I do now?"       Next up: the one skill closest to Proficient, and a button to start it.
-//   "How am I doing overall?"     One number, one gold line.
-//   "Where do my skills stand?"   The lanes: every skill is one dot, standing in the lane of its level.
-//                                 A dot moves up a lane when a skill set is passed, so the figure is the
-//                                 rule itself, drawn. It is the same figure for the side and for a domain.
-//   "Show me less."               A filter: all, in progress, not started, Proficient.
-//   "Which skill, and how far?"   Each row: the skill, and three pips, one for each skill set it takes
-//                                 (founder, 2026-11-15: a set is 8 questions; one level per set).
-// One colour carries progress: gold. Studied first: Khan Academy's SAT course (one square per skill, a key
-// at the top, "Up next for you"), Uxcel and Coursera (a lead card to continue), Quizlet (three states).
-// The levels shown are stand-ins: no student data is read yet.
+// One side of the Library (Reading and Writing, or Math). Every piece is frosted glass sized to what it
+// holds. From the top (founder's notes of 2026-11-15):
+//   Where your skills stand   a ring whose colour shows, at a glance, how much is Proficient,
+//                             Understanding, Learning and not started, with the share Proficient to one
+//                             decimal in the middle; beside it, a rounded square for each skill in the lane
+//                             of its level, which is also the key.
+//   Today                     the Daily 10 and the Challenge question, to start if not done (practice.tsx).
+//   More ways to practise     time trials, endless mode, strategy quizzes, full-length exams, and on the
+//                             Reading and Writing side flashcards and the word game (practice.tsx).
+//   A filter, then the domains and their skills. Each row: the skill, how many questions it holds, and
+//   three bars, one for each level it climbs, with a star at Proficient. Skill sets are never numbered.
+// One hue carries progress, in three clear steps: deep evergreen by day, marigold by night.
+// The levels and the question counts are stand-ins: no student data is read, and the bank is not yet
+// tagged to these 72 skills.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import styles from "./library.module.css";
+import { Modes, Today } from "./practice";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, SKILLS, type Domain, type Section, type Skill } from "./skills72";
-import { buzz, constellation, tick } from "./sound";
+import { buzz, tick } from "./sound";
 
 export { SECTIONS, type Section };
 export const DOMAINS = SKILLS;
@@ -56,27 +56,44 @@ const STILL = { duration: 0 } as const;
 const STAR =
   "M12 2.800l2.850 5.900 6.450.900-4.700 4.500 1.150 6.400L12 17.450 6.250 20.500l1.150-6.400L2.700 9.600l6.450-.900z";
 
-/** A skill's three skill sets as three pips: one fills for each set passed. Proficient earns its star. */
+/** A gradient round a ring whose colours run into each other: Proficient first, then down the levels. */
+function flow(counts: number[]): string {
+  const total = counts.reduce((a, b) => a + b, 0) || 1;
+  const order = [3, 2, 1, 0].filter((level) => counts[level] > 0);
+  const soft = 14;
+  let at = 0;
+  const stops = order.map((level, i) => {
+    const end = at + (counts[level] / total) * 360;
+    const from = i === 0 ? 0 : at + soft / 2;
+    const to = i === order.length - 1 ? 360 : end - soft / 2;
+    at = end;
+    return `var(--p${level}) ${Math.min(from, to)}deg ${Math.max(from, to)}deg`;
+  });
+  return `conic-gradient(from 0deg, ${stops.join(", ")})`;
+}
+
+/** A skill's level as three bars, one for each level it climbs; Proficient earns its star. The star's
+ *  place is always kept, so the bars line up down a column whether or not a row has one. */
 export function Pips({ level }: { level: number }) {
-  const label =
-    level === TOP
-      ? "Proficient: all 3 skill sets done"
-      : `${LEVELS[level]}: ${level} of 3 skill sets done`;
   return (
-    <span className={styles.pips} data-level={level} role="img" aria-label={label} title={label}>
+    <span
+      className={styles.pips}
+      data-level={level}
+      role="img"
+      aria-label={LEVELS[level]}
+      title={LEVELS[level]}
+    >
       {[1, 2, 3].map((n) => (
         <i key={n} data-on={level >= n || undefined} />
       ))}
-      {level === TOP && (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d={STAR} />
-        </svg>
-      )}
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d={STAR} />
+      </svg>
     </span>
   );
 }
 
-/** The lanes: one dot for each skill, standing in the lane of its level, Proficient at the top. */
+/** The lanes: one rounded square for each skill, in the lane of its level, Proficient at the top. */
 function Lanes({ skills, hot, named }: { skills: Skill[]; hot?: string | null; named?: boolean }) {
   return (
     <span className={styles.lanes} data-named={named || undefined} aria-hidden="true">
@@ -120,6 +137,7 @@ function DomainGlass({
   const [open, setOpen] = useState(startOpen);
   const [hot, setHot] = useState<string | null>(null);
   const done = domain.skills.filter((s) => s.level === TOP).length;
+  const questions = domain.skills.reduce((n, s) => n + s.questions, 0);
   return (
     <section className={styles.glass} style={{ "--i": order } as CSSProperties}>
       <button
@@ -135,7 +153,10 @@ function DomainGlass({
         <span className={styles.name}>
           {domain.name}
           <small>
-            <b>{done}</b> of {domain.skills.length} Proficient
+            <span>
+              <b>{done}</b> of {domain.skills.length} Proficient
+            </span>
+            <span className={styles.qty}>{questions.toLocaleString("en-US")} questions</span>
           </small>
         </span>
         <Lanes skills={domain.skills} hot={hot} />
@@ -165,6 +186,7 @@ function DomainGlass({
                       level: skill.level,
                       domain: domain.name,
                       tests: skill.tests,
+                      questions: skill.questions,
                     });
                   }}
                   onPointerEnter={() => setHot(skill.name)}
@@ -173,6 +195,7 @@ function DomainGlass({
                   onBlur={() => setHot(null)}
                 >
                   <span className={styles.label}>{skill.name}</span>
+                  <span className={styles.qty}>{skill.questions} questions</span>
                   <Pips level={skill.level} />
                   <svg
                     className={styles.go}
@@ -208,23 +231,15 @@ export default function Library({
   const domains = DOMAINS[section];
   const all = domains.flatMap((d) => d.skills);
   const counts = tally(all);
-  const total = all.length;
-
-  // Next up: the skill nearest to Proficient that is not there yet, in the order of the course
-  const next = [2, 1, 0]
-    .map((level) =>
-      domains.flatMap((d) =>
-        d.skills.filter((s) => s.level === level).map((s) => ({ ...s, domain: d.name }))
-      )
-    )
-    .find((list) => list.length > 0)?.[0];
+  const share = ((counts[TOP] / all.length) * 100).toFixed(1);
+  const bank = all.reduce((n, sk) => n + sk.questions, 0);
 
   const visible = domains
     .map((domain) => ({ domain, skills: domain.skills.filter(FILTERS[filter].keep) }))
     .filter((d) => d.skills.length > 0);
   const [left, right] = columns(visible);
 
-  /* GSAP brings the figures in: the gold line runs out, then the dots take their places lane by lane */
+  /* GSAP brings the figures in: the ring sweeps round, then the squares take their places lane by lane */
   useEffect(() => {
     if (still || !root.current) return;
     let revert = () => {};
@@ -233,9 +248,9 @@ export default function Library({
       if (gone || !root.current) return;
       const ctx = gsap.context(() => {
         gsap.fromTo(
-          "[data-band]",
-          { scaleX: 0 },
-          { scaleX: 1, duration: 1.2, ease: "power3.out", delay: 0.15 }
+          "[data-ring]",
+          { "--sweep": 0, rotate: -90 },
+          { "--sweep": 1, rotate: 0, duration: 1.4, ease: "power3.out", delay: 0.15 }
         );
         gsap.fromTo(
           "[data-dot]",
@@ -244,14 +259,11 @@ export default function Library({
         );
       }, root);
       revert = () => ctx.revert();
-      constellation(Math.min(4, counts[TOP]));
     });
     return () => {
       gone = true;
       revert();
     };
-    // the counts follow the section
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [still, section, rail]);
 
   return (
@@ -261,47 +273,22 @@ export default function Library({
           className={`${styles.glass} ${styles.standing}`}
           aria-label="Where your skills stand"
         >
-          <p className={styles.count}>
-            <b>{counts[TOP]}</b> of {total} skills Proficient
-          </p>
-          <div className={styles.band}>
-            <i data-band style={{ width: `${(counts[TOP] / total) * 100}%` }} />
-          </div>
-          <Lanes skills={all} named />
-        </section>
-
-        {next && (
-          <section
-            className={`${styles.glass} ${styles.next}`}
-            style={{ "--i": 1 } as CSSProperties}
-          >
-            <h2 className={styles.nextName}>{next.name}</h2>
-            <p className={styles.nextWhy}>{next.tests}</p>
-            <p className={styles.nextWhere}>
-              <Pips level={next.level} />
-              {next.level === 2
-                ? "Next up: one skill set from Proficient"
-                : `Next up: skill set ${next.level + 1} of 3`}
+          <div className={styles.ring} role="img" aria-label={`${share}% of skills Proficient`}>
+            <i data-ring style={{ background: flow(counts) }} />
+            <p>
+              <b>{share}%</b>
+              Proficient
             </p>
-            <button
-              type="button"
-              className={styles.start}
-              onClick={() => {
-                tick();
-                buzz(10);
-                onOpen({
-                  name: next.name,
-                  level: next.level,
-                  domain: next.domain,
-                  tests: next.tests,
-                });
-              }}
-            >
-              Start skill set {next.level + 1}
-            </button>
-          </section>
-        )}
+          </div>
+          <div className={styles.standingWords}>
+            <Lanes skills={all} named />
+            <p className={styles.bank}>{bank.toLocaleString("en-US")} questions to practise from</p>
+          </div>
+        </section>
+        <Today />
       </div>
+
+      <Modes section={section} />
 
       <div className={styles.filter} role="group" aria-label="Show">
         {(Object.keys(FILTERS) as Filter[]).map((key) => (

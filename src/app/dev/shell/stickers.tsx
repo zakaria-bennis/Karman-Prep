@@ -36,32 +36,24 @@ const ART: Record<StickerName, ReactNode> = {
       />
     </>
   ),
-  // books standing on a shelf; one is pulled out when the row is hovered
+  // three books in a neat row, the last one leaning to the left on the others (founder, 2026-11-15)
   library: (
     <>
-      <rect x="4.500" y="6.500" width="3.500" height="14" rx="1" {...WASH} />
-      <rect x="8" y="9.500" width="3" height="11" rx="1" />
+      <rect x="3.500" y="6.500" width="4.200" height="14" rx="1" {...WASH} />
+      <rect data-move="pull" x="7.700" y="6.500" width="4.200" height="14" rx="1" />
+      {/* the third leans to the left, resting on the other two */}
       <rect
-        data-move="pull"
-        x="11"
-        y="4.500"
-        width="4"
-        height="16"
+        x="15.400"
+        y="6.800"
+        width="4.200"
+        height="14"
         rx="1"
+        transform="rotate(-15 19.600 20.500)"
         fill={ACCENT}
         fillOpacity="0.3"
         stroke={ACCENT}
       />
-      <rect
-        x="16"
-        y="7.500"
-        width="3.200"
-        height="13"
-        rx="1"
-        transform="rotate(11 17.600 20.500)"
-        {...WASH}
-      />
-      <path d="M2.500 20.500h19" />
+      <path d="M2 20.500h20" />
     </>
   ),
   // a target with an arrow in the middle

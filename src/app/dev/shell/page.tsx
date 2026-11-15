@@ -83,6 +83,21 @@ const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const POP = { type: "spring", stiffness: 600, damping: 18, mass: 0.8 } as const;
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
+/* a page that slides over: it comes in from the side it is headed (1 forward, -1 back) on a spring, and
+   the page it replaces leaves quickly the other way */
+const SLIDE_OVER = {
+  from: (dir: number) => ({ x: dir * 120, opacity: 0 }),
+  here: {
+    x: 0,
+    opacity: 1,
+    transition: { type: "spring" as const, stiffness: 300, damping: 30, mass: 1 },
+  },
+  gone: (dir: number) => ({
+    x: dir * -120,
+    opacity: 0,
+    transition: { duration: 0.16, ease: "easeIn" as const },
+  }),
+};
 const RAIL = "(min-width: 960px) and (hover: hover)";
 /** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
 const project = (v: number) => ((v / 1000) * 0.99) / (1 - 0.99);
@@ -405,14 +420,33 @@ function Shell() {
         >
           {inSkill ? skill.name : page === "library" && section ? section : LABEL[page]}
         </h1>
-        {page === "library" &&
-          (skill ? (
-            <SkillPage skill={skill} />
-          ) : section ? (
-            <Library rail={rail} section={section} onOpen={setSkill} />
-          ) : (
-            <LibraryHero onPick={setSection} />
-          ))}
+        {page === "library" && !section && <LibraryHero onPick={setSection} />}
+        {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
+        {page === "library" && section && (
+          <AnimatePresence mode="wait" initial={false} custom={skill ? 1 : -1}>
+            <motion.div
+              key={skill ? `skill ${skill.name}` : section}
+              custom={skill ? 1 : -1}
+              variants={SLIDE_OVER}
+              initial={still ? false : "from"}
+              animate="here"
+              exit={still ? undefined : "gone"}
+            >
+              {skill ? (
+                <SkillPage skill={skill} />
+              ) : (
+                <Library
+                  rail={rail}
+                  section={section}
+                  onOpen={(next) => {
+                    setSkill(next);
+                    window.scrollTo({ top: 0 });
+                  }}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       {q.get("demo") !== "0" && (

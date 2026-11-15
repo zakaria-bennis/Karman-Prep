@@ -256,6 +256,33 @@ Known faults and gaps:
      star at Proficient. The constellation strips were removed from this page as decoration; stars
      stay in the hero. Research: Khan Academy's SAT course via REA (a key at the top, one mark per
      skill, "Up next for you", 127 skills in 14 units), Uxcel and Coursera (a lead card to continue).
+   - **Library page, second round (2026-11-15), all applied; awaiting his verdict.** His rules:
+     - **No shiny bar.** A **progress ring** instead: colour alone shows roughly how much is not
+       started, Learning, Understanding and Proficient (the colours run into each other, never cut),
+       and the middle shows the share Proficient **to one decimal** (28.9%).
+     - **Skills are rounded squares, never circles.**
+     - **Never number skill sets** ("some people won't get it ... they're just skill sets"): the
+       button only ever says "Start skill set".
+     - **Colour:** one hue in three clear steps (`--p1`, `--p2`, `--p3`). **Dark mode is marigold;
+       light mode is deep evergreen**, chosen for contrast on warm glass (he asked for "a better
+       color for contrast" and has not yet said if evergreen is it). The hero's reading sign uses
+       the same evergreen in light mode.
+     - **The three bars and the star sit on one line**, and the star's place is always kept so the
+       bars line up down a column.
+     - **Text big enough to read easily:** 13, 16 and 20 on these pages.
+     - **Library icon:** three books in a row, the last leaning to the left on the others.
+     - **Top right is Today:** the Daily 10 and the Challenge question, each with Start until done,
+       with their own drawn icons and small fact marks (`practice.tsx`). "Next up" was removed.
+     - **Where the modes live:** a "More ways to practise" piece on each side: time trials, endless
+       mode, strategy quizzes, full-length exams, plus flashcards and the word game on Reading and
+       Writing. He said "word line"; taken as the existing Wordle-style word game. Time trial and
+       endless mode also appear on each skill's page.
+     - **Flaunt the bank, subtly:** a quiet question count on every skill row, every domain and the
+       side as a whole ("almost 11,000" questions, about 150 a skill, some held back for exams).
+       The counts shown are stand-ins.
+     - **Opening a skill slides over to a second page** focused on that skill (`SkillPage.tsx`):
+       what it tests, the three named steps, the rule for the next skill set ("Get 5 right to move
+       up to Proficient"), one "Start skill set" button, the lesson, and more practice on the skill.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

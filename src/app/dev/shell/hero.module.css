@@ -5,8 +5,9 @@
  * Tall stage (phone): the two halves are stacked. Wide stage (desktop): they stand side by side.
  */
 .hero {
-  --gold: #b97800;
-  --gold-glow: rgb(233 178 0 / 0.55);
+  /* light mode: deep evergreen, which reads on warm glass; dark mode and the night sign: marigold */
+  --gold: #0a5a43;
+  --gold-glow: rgb(10 90 67 / 0.35);
   --l0: rgb(29 26 34 / 0.2);
   position: relative;
   /* the screen, less the page's name above and the bar below */

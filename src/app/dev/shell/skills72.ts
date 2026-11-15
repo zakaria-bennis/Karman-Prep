@@ -13,6 +13,8 @@ export interface Skill {
   name: string;
   tests: string;
   level: number;
+  /** How many questions the Library holds for this skill. A stand-in until the bank is tagged to the 72. */
+  questions: number;
 }
 export interface Domain {
   name: string;
@@ -153,6 +155,7 @@ export const SKILLS = Object.fromEntries(
         name: skill,
         tests,
         level: standIn(d + k * 4, s),
+        questions: 96 + ((d * 37 + s * 53 + k * 11) % 58),
       })),
     })),
   ])
