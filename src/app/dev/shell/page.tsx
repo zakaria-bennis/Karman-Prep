@@ -32,7 +32,7 @@ import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { type Section } from "./Library";
-import LibraryHero, { HEROES, type HeroKind } from "./LibraryHero";
+import LibraryHero from "./LibraryHero";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { Sticker, type StickerName } from "./stickers";
@@ -102,10 +102,6 @@ function Shell() {
   const [page, setPage] = useState<StickerName>(PLANS[plan].bar[0]);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
-  const heroQ = q.get("hero");
-  const [hero, setHero] = useState<HeroKind>(
-    heroQ !== null && heroQ in HEROES ? (heroQ as HeroKind) : "orrery"
-  );
   const [sound, setSoundOn] = useState(true);
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
@@ -415,24 +411,15 @@ function Shell() {
           ) : section ? (
             <Library rail={rail} section={section} onOpen={setSkill} />
           ) : (
-            <LibraryHero key={hero} kind={hero} onPick={setSection} />
+            <LibraryHero onPick={setSection} />
           ))}
       </main>
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
-          {page === "library" &&
-            !section &&
-            !skill &&
-            (Object.keys(HEROES) as HeroKind[]).map((k) => (
-              <button key={k} type="button" aria-pressed={hero === k} onClick={() => setHero(k)}>
-                {HEROES[k]}
-              </button>
-            ))}
           <button type="button" aria-pressed={sound} onClick={() => setSoundOn(!sound)}>
             Sound
           </button>
-          <span className={styles.rule} />
           {(Object.keys(PLANS) as Plan[]).map((k) => (
             <button key={k} type="button" aria-pressed={plan === k} onClick={() => choosePlan(k)}>
               {PLANS[k].label}

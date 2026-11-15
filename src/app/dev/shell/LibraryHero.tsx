@@ -1,13 +1,10 @@
 "use client";
 
-// The Library's first screen: choose Reading and Writing, or Math. Three demos of it are built for the
-// founder to try (2026-11-15), each a live three.js scene moved by GSAP:
-//   orrery  the book and the orrery        (heroes/bookOrrery.ts)
-//   sky     the split sky                  (heroes/splitSky.ts)
-//   paper   paper and crystal              (heroes/paperCrystal.ts)
-// The scene is one canvas; the two choices are real buttons laid over it, so they work with a keyboard
-// and a screen reader. A wide stage (desktop) sets the subjects side by side; a tall one (phone) stacks
-// them. Reduced motion holds each scene still and skips the exit.
+// The Library's first screen: one sky cut in two, Reading and Writing on one half and Math on the other
+// (founder, 2026-11-15, chosen from three demos). The scene is heroes/splitSky.ts, a live three.js scene
+// moved by GSAP. It is one canvas; the two choices are real buttons laid over it, so they work with a
+// keyboard and a screen reader. A wide stage (desktop) sets the halves side by side; a tall one (phone)
+// stacks them. Reduced motion holds the scene still and skips the exit.
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { Hero, Side, Stage } from "./heroes/stage";
@@ -15,26 +12,14 @@ import styles from "./hero.module.css";
 import { DOMAINS, SECTIONS, tally, type Section } from "./Library";
 import { buzz, chosen, ping, rustle, whoosh } from "./sound";
 
-export type HeroKind = "orrery" | "sky" | "paper";
-export const HEROES: Record<HeroKind, string> = {
-  orrery: "Book and orrery",
-  sky: "Split sky",
-  paper: "Paper and crystal",
-};
-
-export default function LibraryHero({
-  kind,
-  onPick,
-}: {
-  kind: HeroKind;
-  onPick: (section: Section) => void;
-}) {
+export default function LibraryHero({ onPick }: { onPick: (section: Section) => void }) {
   const still = useReducedMotion() ?? false;
   const host = useRef<HTMLDivElement>(null);
   const live = useRef<{ hero: Hero; stage: Stage; run: (fn: () => void) => void } | null>(null);
   const leaving = useRef(false);
   const press = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const [ready, setReady] = useState(false);
+  const [leavingNow, setLeavingNow] = useState(false);
 
   useEffect(() => {
     const box = host.current;
@@ -46,11 +31,7 @@ export default function LibraryHero({
       const [{ createStage }, { gsap }, scene] = await Promise.all([
         import("./heroes/stage"),
         import("gsap"),
-        kind === "orrery"
-          ? import("./heroes/bookOrrery")
-          : kind === "sky"
-            ? import("./heroes/splitSky")
-            : import("./heroes/paperCrystal"),
+        import("./heroes/splitSky"),
       ]);
       if (gone) return;
       const stage = createStage(box, still);
@@ -72,7 +53,7 @@ export default function LibraryHero({
       undo();
       setReady(false);
     };
-  }, [kind, still]);
+  }, [still]);
 
   const hover = (side: Side | null) => {
     const now = live.current;
@@ -87,6 +68,7 @@ export default function LibraryHero({
     if (leaving.current) return;
     if (!now || still) return onPick(SECTIONS[side]);
     leaving.current = true;
+    setLeavingNow(true);
     whoosh();
     chosen();
     buzz(14);
@@ -118,7 +100,7 @@ export default function LibraryHero({
   return (
     <div
       className={styles.hero}
-      data-kind={kind}
+      data-leaving={leavingNow || undefined}
       data-ready={ready || undefined}
       onPointerDown={(e) => (press.current = { x: e.clientX, y: e.clientY, moved: false })}
       onPointerMove={moved}

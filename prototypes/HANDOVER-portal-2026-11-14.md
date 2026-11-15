@@ -190,15 +190,8 @@ Known faults and gaps:
      written down first and he chose: heroes 2, 4 and 5, and progress as "one color filling up"
      combined with "the constellation ideas", with "motion, vibrations, animations, and sound, and,
      more importantly, beauty". **Write ideas down and let him pick before building anything big.**
-     - **Three hero demos**, switched from the demo bar or `?hero=orrery|sky|paper`, all three.js +
-       GSAP in `heroes/` on one shared stage (`stage.ts`: one canvas, two stations, side by side on a
-       wide stage and stacked on a tall one). `LibraryHero.tsx` lays two real buttons over the canvas.
-       `bookOrrery.ts`: a book whose pages curl and turn, paper birds rising from it; a brass orrery
-       whose rings swing level on hover. `splitSky.ts`: one sky cut on a slant, dusk with a lantern
-       and drifting pages against night with star figures that draw themselves; hover leans the seam,
-       dragging moves it, choosing sweeps it across. `paperCrystal.ts`: one creased sheet that folds
-       into a book, a bird and a tower; a crystal cluster that bursts when chosen. My own ranking:
-       the book and orrery is the strongest, paper and crystal the weakest. He has not ranked them.
+     - Three hero demos were built (book and orrery, split sky, paper and crystal); he chose the
+       split sky, described below, and the other two were deleted.
      - **Progress is one colour, gold**, as night sky: each domain has a strip of sky with one star
        per skill joined in order, lines between two Proficient stars light up, rows and stars point
        at each other on hover, and each row has a drop that fills with gold (full shows a star).
@@ -211,6 +204,30 @@ Known faults and gaps:
        retagged; adopting the 72 is a separate job that needs his go-ahead and a retagging plan.
      Checked: every hero opens, hovers, chooses and reaches a skill on desktop and phone with no
      errors. Not checked: sound by ear, vibration, a real phone's speed, the split-sky drag.
+   - **Library hero, chosen direction (2026-11-15): the split sky.** Of the three demos he picked the
+     sky split on a slant ("a great direction to be moving in"), with the book from the other demo on
+     the Reading and Writing half and constellations on the Math half. The other two heroes are
+     deleted. His rules for it:
+     - **An even half each**, with a slight angle on both phone and desktop. The seam passes through
+       the centre; a hover only leans it a tenth of the way.
+     - **Reading and Writing: the book, realistic and alive** (`heroes/book.ts`): real print set on
+       the pages (a chapter heading, a drop capital, paragraphs, a small figure, page numbers), page
+       edges, grained leather, gilt corners, a pencil, a silk ribbon that sways, leaves that curl and
+       turn, letters lifting off the page, paper birds, a lantern on a chain. Hovering the half (the
+       book or its sign) tilts the book up, riffles the pages, speeds the letters and birds and swings
+       the lantern.
+     - **Math: a real night sky** (`heroes/splitSky.ts`): a Milky Way with dust lanes, stars in three
+       depths that twinkle and wheel slowly, a breathing nebula, shooting stars. **Constellations are
+       only straight vectors from star to star, never curves**, each with a glowing core, a halo and
+       light running along it, drawn star by star; each star has a core, a halo and four rays that
+       shimmer. Figures: a sigma, a right triangle, a cube, a W, rising steps, a kite, an arrowhead.
+       Hover surges the vectors and sends a shooting star.
+     - **A real transition on choosing**: the chosen sky sweeps across, the camera pushes in, then the
+       sky opens like an iris onto the Library's own background (whatever the mode), while the signs
+       and the window's rim give way. For Math the constellations linger over the land for a moment.
+     Checked on desktop and phone: both halves hover, both choices transition and land in the right
+     section, no shader errors. Not checked: a real phone's speed (this is a heavy scene on top of the
+     landscape), the drag, sound by ear. Awaiting his verdict.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the
