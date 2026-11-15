@@ -204,6 +204,8 @@ Known faults and gaps:
        retagged; adopting the 72 is a separate job that needs his go-ahead and a retagging plan.
      Checked: every hero opens, hovers, chooses and reaches a skill on desktop and phone with no
      errors. Not checked: sound by ear, vibration, a real phone's speed, the split-sky drag.
+   - **Library hero: APPROVED by the founder on 2026-11-15 ("It's ready").** Do not redesign it. Next is the
+     page inside a section (domains, constellations, skills), which he has not yet approved.
    - **Library hero, chosen direction (2026-11-15): the split sky.** Of the three demos he picked the
      sky split on a slant ("a great direction to be moving in"), with the book from the other demo on
      the Reading and Writing half and constellations on the Math half. The other two heroes are
