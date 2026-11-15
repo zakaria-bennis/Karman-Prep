@@ -56,6 +56,13 @@ calmer greens, lifted darks, flowers that glow faintly at night. First fauna is 
 dark horses) grazing and drifting in meadow lands, swans with wakes near shores, shoals of fish under
 shallow water (some gold in clear water), rings where fish rise. Not yet looked at by night or in motion.
 
+He then asked for "both and more mystical" (keep going, and push the mystical side). Added: shafts of
+light fanning from the sun, glowing dust over the whole picture, a sky that keeps a little dusk (peach
+and lilac low, violet-blue overhead), a few pale "spirit lights" that rise and sway from dusk through the
+night, rare silver-leaved spirit trees that shine at night, a sea that glows blue where it breaks on the
+shore at night, and flowers grown as fields in rows with green lanes (flower fields, lavender). Looked at
+in stills by day, dawn, sunset and night; not in motion and not on a phone. No verdict yet.
+
 Known faults and gaps:
 
 - **Trees** are now real shapes near the camera (pines, round crowns, bamboo), in groves with clearings,
@@ -67,7 +74,7 @@ Known faults and gaps:
   cloud edges); real-time "Ghibli" foliage is lit as one soft ball per crown with a gradient, a shaded
   foot and a lit top. Studio Ghibli's free official stills are for personal, non-commercial use: fine to
   study for palette, never to ship. He has not yet named the paintings to match.
-- The shader takes 40 to 60 seconds to appear on a first load on this Mac. Not measured on a phone.
+- The shader takes about 100 seconds to appear on a first load on this Mac. Not measured on a phone.
   Its drawing speed is unmeasured. Both must be fixed or measured before it goes behind a real page.
 - Flat lands (hills, flower fields, savanna, lavender) are plainer than the mountain and sea lands.
   Flowers are blotches, not fields. Rice terraces and canyon walls are rough.

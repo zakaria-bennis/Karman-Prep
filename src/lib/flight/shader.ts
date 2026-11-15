@@ -124,6 +124,11 @@ vec3 skyBase(vec3 rd) {
   float mu = max(dot(rd, SUN), 0.);
   vec3 zen = mix(vec3(.006, .011, .03), vec3(.09, .26, .62), DAY);
   vec3 hor = mix(vec3(.016, .026, .06), vec3(.56, .72, .9), DAY);
+#ifdef WORLD
+  /* a sky that never quite leaves dusk: peach and lilac low down, a deeper violet-blue overhead */
+  hor = mix(hor, vec3(.8, .7, .82), .42 * DAY);
+  zen = mix(zen, vec3(.16, .2, .56), .45 * DAY);
+#endif
   vec3 c = mix(hor, zen, pow(y, .45));
   vec3 warm = mix(vec3(1., .34, .1), vec3(1., .66, .34), min(y * 3., 1.));
   c = mix(c, warm, LOW * pow(1. - y, 5.) * (.3 + .7 * pow(mu, 1.5)));
@@ -274,7 +279,9 @@ ${WORLD_ALBEDO}
   vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
 #ifdef WORLD
   /* by night the flowers hold a little light of their own, and it breathes */
-  glow += NIGHT * petal * bloom * (.22 + .1 * sin(uTime * .7 + r * 6.3));
+  glow += NIGHT * petal * bloom * (.09 + .04 * sin(uTime * .7 + r * 6.3));
+  /* a spirit tree's crown shines pale at night */
+  glow += NIGHT * vec3(.3, .8, .78) * spirit * tree * TF * (.25 + .5 * wd.y) * (.8 + .2 * sin(uTime * .6 + wd.z * 40.));
 #endif
   float sh = shadow(p + n * .004);
 #ifdef WORLD
@@ -306,7 +313,7 @@ void main() {
   float e = clamp(uIntro, 0., 1.), es = e * e * (3. - 2. * e), left = 1. - es;
   XM = max(.8 * left * left, .5 * uWx.z);
 #ifdef WORLD
-  XM = max(XM, .06 + .3 * land(uWorld + 1., 10.).a);
+  XM = max(XM, .09 + .3 * land(uWorld + 1., 10.).a);
 #endif
   XA = sin(3.14159 * e);
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
@@ -438,6 +445,10 @@ ${WORLD_WATER}
     col += SUNCOL * pow(max(dot(rr, SUN), 0.), 520.) * 5. + NIGHT * vec3(.5, .6, .8) * pow(max(dot(rr, MOON), 0.), 700.) * 1.2;
     float edge = depth + .0025 * sin(uTime * 1.2 + n2(w * 30.) * 6.3);
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
+#ifdef WORLD
+    /* by night the sea shines blue where it breaks on the shore, and in patches where it is stirred */
+    col += NIGHT * vec3(.08, .55, .8) * (smoothstep(.012, .0, edge) * .7 + .05 * smoothstep(.6, .8, n2(w * 9. + uTime * .05)) * smoothstep(.1, .0, depth)) * (1. - ice);
+#endif
     /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
     vec2 bg = w * 8., bid = floor(bg);
     vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
@@ -516,19 +527,35 @@ ${WORLD_AFLOAT}
   /* motes: pollen drifting by day, fireflies by night, in the endless world */
 #ifdef WORLD
   {
+    /* dust that catches the light by day, fireflies by night: three depths, over the whole picture, thickest low down */
     float mo = 0.;
-    for (int k = 0; k < 2; k++) {
-      float fk = float(k), sc = 7. + fk * 6.;
-      vec2 g = vec2(uv.x * sc + uTime * (.05 + .03 * fk), uv.y * sc + .3 * sin(uTime * .2 + uv.x * 2. + fk) - uTime * .02);
+    for (int k = 0; k < 3; k++) {
+      float fk = float(k), sc = 6. + fk * 5.;
+      vec2 g = vec2(uv.x * sc + uTime * (.04 + .025 * fk), uv.y * sc + .3 * sin(uTime * .2 + uv.x * 2. + fk) - uTime * .025);
       vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + fk * 11.), tx(id + 29.)) - .5) * .8;
-      mo += smoothstep(.035, .0, length(f)) * step(.62, tx(id + 9. + fk * 3.)) * (.5 + .5 * sin(uTime * (1. + tx(id)) + tx(id + 5.) * 6.3));
+      mo += smoothstep(.04, .0, length(f)) * step(.55, tx(id + 9. + fk * 3.)) * (.5 + .5 * sin(uTime * (1. + tx(id)) + tx(id + 5.) * 6.3));
     }
-    col += mix(KEYCOL * .35 + AMB * .2, vec3(1., .85, .35) * .5, NIGHT) * mo * (1. - uWx.y) * step(uv.y, .35);
+    col += mix(KEYCOL * .4 + AMB * .2, vec3(1., .85, .35) * .55, NIGHT) * mo * (1. - uWx.y) * smoothstep(1., -.3, uv.y);
+    /* spirit lights: a few pale lanterns of light that rise slowly and sway, from dusk through the night */
+    float orb = 0.;
+    vec2 og = vec2(uv.x * 2.6 + .25 * sin(uTime * .13 + uv.y * 2.), uv.y * 2.6 - uTime * .035);
+    vec2 oid = floor(og), of = fract(og) - .5 - (vec2(tx(oid + 3.), tx(oid + 21.)) - .5) * .7;
+    float od = length(of);
+    orb = (smoothstep(.05, .0, od) + .35 * exp(-od * 9.)) * step(.74, tx(oid + 13.)) * (.6 + .4 * sin(uTime * .5 + tx(oid) * 6.3));
+    col += vec3(.55, .85, 1.) * orb * (.08 + .5 * NIGHT + .3 * LOW) * (1. - uWx.y);
   }
 #endif
   /* light spilling through the air around the sun */
 #ifdef WORLD
   col += SUNCOL * (pow(max(dot(rd, SUN), 0.), 5.) * .16 + pow(max(dot(rd, SUN), 0.), 40.) * .2) * (1. - exp(-tend * .3));
+  {
+    /* shafts of light fanning out from the sun through the mist, slowly turning */
+    float sd = dot(SUN, ww);
+    vec2 dv = uv - vec2(dot(SUN, uu), dot(SUN, vv)) * lens / max(sd, .05);
+    float ang = atan(dv.y, dv.x);
+    float ray = smoothstep(.42, .78, n2(vec2(ang * 5., uTime * .04))) * (.5 + .5 * n2(vec2(ang * 14. + 7., uTime * .06)));
+    col += SUNCOL * ray * .085 * exp(-length(dv) * 1.1) * smoothstep(0., .2, sd) * (.6 + LOW) * (1. - .7 * uWx.x);
+  }
 #else
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));
 #endif

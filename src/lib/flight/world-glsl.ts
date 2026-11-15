@@ -132,6 +132,9 @@ export const WORLD_ALBEDO = `
   vec3 crownNear = mix(G4.rgb, G5.rgb, .15 + .85 * wd.z) * mix(.5, 1.35, wd.y) * (.8 + .4 * n2(p.xz * 330.));
   /* the top of a crown catches warm light (the way stylised foliage is painted: a gradient, a shaded foot, a lit top) */
   crownNear *= mix(vec3(1.), vec3(1.28, 1.16, .78), smoothstep(.55, 1., wd.y));
+  /* now and then a spirit tree: silver-leaved by day, softly shining by night */
+  float spirit = step(.94, wd.z);
+  crownNear = mix(crownNear, vec3(.5, .7, .68) * mix(.6, 1.25, wd.y), spirit * .8);
   alb = mix(alb, mix(crownFar, crownNear, TF), tree);
   /* and a crown is lit as one soft mass, not leaf by leaf */
   n = normalize(mix(n, normalize(ng + vec3(0., .5, 0.)), .45 * tree * TF));
@@ -139,6 +142,17 @@ export const WORLD_ALBEDO = `
   float bloom = smoothstep(.76 - .5 * fl, .9 - .44 * fl, n2(p.xz * 34. + 3.)) * mead * step(.01, fl) * (1. - G6.w) * (1. - tree);
   vec3 petal = mix(G9.rgb, G10.rgb, step(.5, n2(p.xz * 8.)));
   petal = mix(petal, .5 * (G9.rgb + G10.rgb) + vec3(.1, .08, .16), step(.72, n2(p.xz * 5. + 20.)));
+  /* where a land is given over to flowers they grow as fields: each its own colour, in rows, with green lanes between */
+  vec2 fq = p.xz * 5.5 + .3 * vec2(n2(p.xz * 3.), n2(p.xz * 3. + 9.));
+  vec2 fi = floor(fq), fe = fract(fq);
+  float fa = tx(fi + 7.) * 3.14159;
+  float rows = .5 + .5 * sin(dot(p.xz, vec2(cos(fa), sin(fa))) * 620.);
+  float lane = smoothstep(.0, .07, min(min(fe.x, 1. - fe.x), min(fe.y, 1. - fe.y)));
+  float fields = smoothstep(.6, .9, fl);
+  bloom = mix(bloom, mead * lane * step(.2, tx(fi + 3.)) * (1. - G6.w) * (1. - tree), fields);
+  float pick = tx(fi + 11.);
+  vec3 crop = pick < .4 ? G9.rgb : pick < .8 ? G10.rgb : .5 * (G9.rgb + G10.rgb) + vec3(.1, .08, .16);
+  petal = mix(petal, crop * (.62 + .38 * mix(1., rows, FINE)), fields);
   alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .88);
   alb = mix(alb, sand, smoothstep(.018 + .03 * G6.w, .004, h));
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
