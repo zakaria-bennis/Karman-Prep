@@ -3,12 +3,13 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const signOut = vi.hoisted(() => vi.fn());
+const openUserProfile = vi.hoisted(() => vi.fn());
 const who = vi.hoisted(() => ({
   user: null as null | { firstName: string; hasImage: boolean; imageUrl: string },
 }));
 vi.mock("@clerk/nextjs", () => ({
   useUser: () => ({ isLoaded: true, isSignedIn: true, user: who.user }),
-  useClerk: () => ({ signOut }),
+  useClerk: () => ({ signOut, openUserProfile }),
 }));
 
 import AccountSpot from "./AccountSpot";
@@ -42,6 +43,7 @@ describe("the picture at the top right of the site", () => {
     expect(screen.getByRole("menuitem", { name: "Go to your portal" }).getAttribute("href")).toBe(
       "/dashboard/student"
     );
+    expect(screen.getByRole("menuitem", { name: "Billing" }).getAttribute("href")).toBe("/billing");
     fireEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));
     expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
