@@ -266,7 +266,10 @@ Known faults and gaps:
   on Homework.
 - **Mastery levels:** Not Started, Learning, Understanding, Proficient. **Rule (founder, 2026-11-15):** every skill starts at
   Not Started and moves up one level at a time; a skill set is 8 questions; so Proficient takes at least
-  three skill sets, 24 questions. The skill page's three skill sets match this. A skill drops when missed later.
+  three skill sets, 24 questions. The skill page's three skill sets match this. Within a set: 3 right
+  moves it up to Learning, 4 to Understanding, 5 to Proficient. A set must be finished in full to move a
+  skill up or down. **The 72 skills are settled** (`src/app/dev/shell/skills72.ts`); the question bank is
+  still tagged with the approved 39 and has not been retagged. A skill drops when missed later.
   Skipping the Daily 10 drops 1 to 3 skills at most. The code still has the old five names.
 - **Library:** two sections, four domains each, then skills. Mastery shows as squares, already designed.
 - **Homework (from Canvas): the to-do list.** Grouped by Reading and Writing, Math and full-length exams.

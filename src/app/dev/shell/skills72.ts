@@ -1,7 +1,7 @@
-// A proposed list of 72 skills for the Library (founder, 2026-11-15: "differentiate 72 skills ... not too
+// The Library's 72 skills, settled by the founder on 2026-11-15. First written as a proposal (founder, 2026-11-15: "differentiate 72 skills ... not too
 // granular ... each skill is truly testing maybe 1, 2, or a maximum of 3 unique things"). 34 in Reading
 // and Writing, 38 in Math, in the SAT's own eight domains.
-// THIS IS A PROPOSAL FOR THE DEMO ONLY. The list the question bank is tagged with is
+// The Library is built on this list. The list the question bank is still tagged with is
 // src/data/curriculum/approved-skill-taxonomy.json (39 skills); it is not changed here, and no question
 // has been retagged. Each skill says what it tests, so the founder can check the cut.
 
