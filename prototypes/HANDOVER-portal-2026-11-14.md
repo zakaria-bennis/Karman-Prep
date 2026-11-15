@@ -96,17 +96,27 @@ Known faults and gaps:
 
 1. His verdict on the endless world, then iterate the background until he approves it. Then its life:
    animals crossing the land, birds, fish (he asked for all three).
-2. The menu: **first version built 2026-11-15, awaiting his verdict.** Page `/dev/shell` (dev only;
-   `?plan=practice|cohort|private`, `?night=1`, `?demo=0`). A floating paper panel over the world: a bar
-   of five at the bottom on a phone, a labelled column at the left from 960px, with an ink shape that
-   slides to the pressed item. The page name sits on the sky; one sheet below it holds the screen and is
-   empty on purpose. Its numbers: control height 48, corners 14 and 24, three text sizes (12, 15, title).
-   He asked for it to be designed with the impeccable, Intent and Perception-First Design skills plus
-   Mobbin (Calm, Deel and Telegram were the references for a menu floating over a picture). Intent and
-   PFD are not listed as skills in Claude Code; their files are under
-   `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for `skills/intent`
-   and `skills/pfd`). Raised with him, not yet answered: the streak multiplier that resets and mystery
-   boxes are patterns Intent flags for under-18s.
+2. The menu: **second version built 2026-11-15, awaiting his verdict.** Page `/dev/shell` (dev only;
+   `?plan=practice|cohort|private`, `?night=1`, `?demo=0`, `?open=1`). He rejected the first version
+   (solid cream panels and a big sheet): "I like a more frosted glass design ... not overusing white on
+   an app that highlights beauty in nature", no "squared-off boxes", the app should "live in the
+   background". His rules from that verdict, which now apply to every portal screen:
+   - **Frosted glass, never white panels**, tuned for light and dark. This overrides the older "no
+     blurred boxes" line for the portals. Screens will be glass pieces sized to their content.
+   - **Custom Karman stickers for every icon**, never a stock icon set (`stickers.tsx`: filled little
+     pictures in the fox's colours with a pale die-cut edge).
+   - **Spring physics, lifelike, Apple's way** (the `apple-design` skill; Designing Fluid Interfaces).
+     He named GSAP and three.js. The menu uses Motion (`framer-motion`, already installed) because its
+     springs keep velocity and can be grabbed mid-flight; GSAP and three.js are not installed. He has
+     been told and has not answered.
+   - **The highlight must never crowd or clip a word.** The lens sits behind the sticker only.
+   - **Desktop: a slim rail (72px) that opens to 232px on hover or focus**, and it may hold more than
+     five items (what the phone keeps under More: Chat, Rewards, Settings).
+   On a phone the lens can be dragged along the bar and is thrown to the item its speed carries it to.
+   The rail shows only with a mouse and 960px; touch screens keep the bottom bar. Intent and PFD skill
+   files are under `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for
+   `skills/intent` and `skills/pfd`). Raised with him, not yet answered: the streak multiplier that
+   resets and mystery boxes are patterns Intent flags for under-18s.
 3. Each screen's layout, one at a time.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
    redrawn: he says it looks like a llama.

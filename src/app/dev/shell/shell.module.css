@@ -1,46 +1,46 @@
 /*
- * The portal's menu (step 2 of the rebuild), over the endless world.
- * The rules it keeps, measured from Khan Academy, Duolingo and Canvas: one font in two weights, three
- * text sizes, one height for every control (48), one corner for controls (14) and one for panels (24),
- * one action colour (ink) and spacing in steps of 8.
- * The world moves, so nothing is read against it except the page title, which sits on its own veil.
+ * The portal's menu (step 2 of the rebuild), over the endless world. Second version: frosted glass.
+ * The world is the picture; the menu is a piece of glass lying on it, never a white box.
+ * Kept from the coherence rules: one font in two weights, three text sizes, one corner for glass (28),
+ * ink (or cream at night) as the only text colour, spacing in steps of 4 and 8.
+ * Movement is in page.tsx (springs); this file holds the material and the layout.
  */
 .shell {
-  --paper: #fbf6ee;
   --ink: #1d1a22;
-  --soft: #5d5866;
-  --line: rgb(29 26 34 / 0.1);
-  --press: rgb(29 26 34 / 0.07);
-  --on-ink: #fbf6ee;
-  --veil: rgb(251 246 238 / 0.8);
-  --title: #1d1a22;
-  --lift: 0 12px 32px -12px rgb(22 26 48 / 0.35), 0 2px 6px rgb(22 26 48 / 0.08);
-  --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+  --glass: rgb(255 251 244 / 0.44);
+  --glass-edge: rgb(255 255 255 / 0.62);
+  --glass-shine: rgb(255 255 255 / 0.7);
+  --lens: rgb(255 255 255 / 0.62);
+  --lens-edge: rgb(255 255 255 / 0.9);
+  --halo: rgb(255 250 240 / 0.85);
+  --cut: #fffdf8;
+  --lift: 0 18px 44px -18px rgb(24 28 58 / 0.5), 0 2px 8px rgb(24 28 58 / 0.1);
+  --frost: blur(22px) saturate(1.7) brightness(1.06);
   --out: cubic-bezier(0.16, 1, 0.3, 1);
-  --r-control: 14px;
-  --r-panel: 24px;
-  --h: 48px;
-  --bar: 72px;
+  --r-glass: 28px;
+  --r-lens: 20px;
   color: var(--ink);
-  font: 500 15px/1.35 var(--font-sans);
+  background: none;
+  font: 600 15px/1.3 var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 .shell[data-mode="dark"] {
-  --paper: #171a2a;
-  --ink: #f1ece2;
-  --soft: #a9adbf;
-  --line: rgb(241 236 226 / 0.12);
-  --press: rgb(241 236 226 / 0.09);
-  --on-ink: #171a2a;
-  --veil: rgb(12 14 26 / 0.7);
-  --title: #f6f1e7;
-  --lift: 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.25);
+  --ink: #f6f1e7;
+  --glass: rgb(14 16 34 / 0.46);
+  --glass-edge: rgb(255 255 255 / 0.16);
+  --glass-shine: rgb(255 255 255 / 0.22);
+  --lens: rgb(255 255 255 / 0.16);
+  --lens-edge: rgb(255 255 255 / 0.3);
+  --halo: rgb(8 10 24 / 0.8);
+  --cut: #f4efe6;
+  --lift: 0 18px 44px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.3);
+  --frost: blur(22px) saturate(1.5) brightness(0.9);
 }
 
 .shell ::selection {
   background: var(--ink);
-  color: var(--on-ink);
+  color: var(--cut);
 }
 
 .shell :focus-visible {
@@ -57,19 +57,30 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ---- the menu: a bar of five at the bottom on a phone ---- */
+/* ---- the glass ---- */
+.nav,
+.demo {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    var(--lift),
+    inset 0 1px 0 var(--glass-shine);
+}
+
+/* ---- the menu on a phone: a bar of five at the bottom ---- */
 .nav {
   position: fixed;
   z-index: 4;
   left: 12px;
   right: 12px;
   bottom: max(12px, env(safe-area-inset-bottom));
-  max-width: 480px;
+  max-width: 460px;
   margin: 0 auto;
-  padding: 8px;
-  border-radius: var(--r-panel);
-  background: var(--paper);
-  box-shadow: var(--lift);
+  padding: 6px 8px;
+  border-radius: var(--r-glass);
+  animation: settle 0.7s var(--out) both;
 }
 
 .brand,
@@ -80,97 +91,107 @@
 .items {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--n), 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
+  touch-action: pan-y;
 }
 
-/* the ink shape that marks where you are; it slides to the item you press */
-.here {
+/* the lens sits behind the sticker only, so no word is ever clipped by it */
+.lens {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(100% / var(--n));
-  border-radius: var(--r-control);
-  background: var(--ink);
-  transform: translateX(calc(var(--at) * 100%));
-  transition: transform 0.42s var(--spring);
+  top: 2px;
+  left: -32px;
+  width: 64px;
+  height: 40px;
+  border-radius: var(--r-lens);
+  background: var(--lens);
+  border: 1px solid var(--lens-edge);
+  box-shadow: 0 6px 16px -8px rgb(24 28 58 / 0.45);
+  pointer-events: none;
 }
 
 .item {
   position: relative;
   display: grid;
   justify-items: center;
-  align-content: center;
+  align-content: start;
   gap: 2px;
   width: 100%;
-  height: 56px;
-  border-radius: var(--r-control);
-  color: var(--soft);
-  font-size: 12px;
-  font-weight: 600;
-  transition:
-    color 0.2s var(--out),
-    transform 0.2s var(--out);
+  height: 64px;
+  padding: 6px 0 0;
+  border-radius: var(--r-lens);
+  font-size: 11px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  text-shadow: 0 0 10px var(--halo);
 }
 
-.item[aria-current="page"] {
-  color: var(--on-ink);
+.art {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
 }
 
-.item:active {
-  transform: scale(0.94);
+.art svg {
+  overflow: visible;
+  filter: drop-shadow(0 2px 2px rgb(24 28 58 / 0.28));
 }
 
-@media (hover: hover) {
-  .item:not([aria-current]):hover {
-    color: var(--ink);
-  }
+.art [data-cut] * {
+  fill: var(--cut);
+  stroke: var(--cut);
+  stroke-width: 5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: none;
 }
 
-/* ---- the page: its name on the sky, then one sheet that rides up over the world ---- */
+.item .word {
+  opacity: 0.86;
+  transition: opacity 0.2s var(--out);
+}
+
+.item[aria-current="page"] .word {
+  opacity: 1;
+}
+
+/* ---- the page's name, written on the sky ---- */
 .main {
   position: relative;
   z-index: 1;
   min-height: 100dvh;
-  padding: 0 0 calc(var(--bar) + 28px);
 }
 
 .title {
-  display: flex;
-  align-items: flex-end;
-  min-height: 148px;
   margin: 0;
-  padding: 0 24px 20px;
-  color: var(--title);
-  font: 400 32px/1.1 var(--font-serif);
-  letter-spacing: -0.01em;
+  padding: 88px 24px 0;
+  color: var(--ink);
+  font: 400 34px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
   text-shadow:
-    0 0 28px var(--veil),
-    0 0 8px var(--veil);
-  animation: arrive 0.5s var(--out) both;
-}
-
-.sheet {
-  min-height: calc(100dvh - 148px - var(--bar) - 28px);
-  margin: 0 12px;
-  padding: 24px;
-  border-radius: var(--r-panel);
-  background: var(--paper);
-  box-shadow: var(--lift);
-}
-
-.note {
-  margin: 0;
-  max-width: 44ch;
-  color: var(--soft);
+    0 0 28px var(--halo),
+    0 0 8px var(--halo);
+  animation: arrive 0.55s var(--out) both;
 }
 
 @keyframes arrive {
   from {
     opacity: 0;
-    transform: translateY(8px);
-    filter: blur(6px);
+    transform: translateY(10px);
+    filter: blur(8px);
+  }
+}
+
+/* glass arrives as a material: it sharpens and settles, it does not just fade */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+    filter: blur(10px);
   }
 }
 
@@ -181,99 +202,92 @@
   top: 12px;
   right: 12px;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
+  gap: 2px;
   padding: 4px;
   border-radius: 999px;
-  background: rgb(14 20 30 / 0.78);
   font-size: 12px;
-  font-weight: 600;
 }
 
 .demo button {
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  color: #f4f1ea;
 }
 
 .demo button[aria-pressed="true"] {
-  background: #f4f1ea;
-  color: #14181f;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
-/* ---- from a tablet on its side upward: the menu stands at the left, with its words beside the icons ---- */
-@media (min-width: 960px) {
+/* ---- with a mouse and room: a slim rail at the left that opens when the pointer is on it ---- */
+@media (min-width: 960px) and (hover: hover) {
   .nav {
-    top: 16px;
+    top: 50%;
     left: 16px;
     right: auto;
-    bottom: 16px;
+    bottom: auto;
     display: flex;
     flex-direction: column;
-    width: 232px;
+    gap: 8px;
     max-width: none;
+    max-height: calc(100dvh - 32px);
     margin: 0;
     padding: 12px;
+    overflow: hidden;
+    translate: 0 -50%;
   }
 
   .brand {
-    display: block;
-    padding: 12px 12px 20px;
+    display: flex;
+    align-items: baseline;
+    height: 40px;
+    padding: 6px 0 0 15px;
     font: 400 22px/1 var(--font-serif);
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .brand i {
+    font-style: normal;
   }
 
   .items {
-    grid-template-columns: 1fr;
+    grid-auto-flow: row;
+    grid-auto-rows: 48px;
     gap: 4px;
+    touch-action: auto;
   }
 
-  .here {
+  .lens {
     inset: 0 0 auto 0;
     width: auto;
-    height: var(--h);
-    transform: translateY(calc(var(--at) * (var(--h) + 4px)));
+    height: 48px;
+    border-radius: 16px;
   }
 
   .item {
     grid-auto-flow: column;
     justify-content: start;
-    justify-items: start;
-    gap: 12px;
-    height: var(--h);
-    padding: 0 12px;
+    align-content: center;
+    align-items: center;
+    gap: 14px;
+    height: 48px;
+    padding: 0 0 0 7px;
     font-size: 15px;
-  }
-
-  .item:active {
-    transform: scale(0.97);
-  }
-
-  @media (hover: hover) {
-    .item:not([aria-current]):hover {
-      background: var(--press);
-    }
+    letter-spacing: 0;
+    text-shadow: none;
   }
 
   .who {
     display: flex;
     align-items: center;
     gap: 12px;
-    width: 100%;
-    min-height: 56px;
-    margin-top: auto;
-    padding: 8px 12px;
-    border-top: 1px solid var(--line);
-    border-radius: 0 0 var(--r-control) var(--r-control);
+    height: 48px;
+    padding: 0 0 0 5px;
+    border-radius: 16px;
     text-align: left;
-    transition: background 0.2s var(--out);
-  }
-
-  .shell .who:hover {
-    background: var(--press);
+    white-space: nowrap;
   }
 
   .face {
@@ -284,35 +298,47 @@
     height: 36px;
     border-radius: 50%;
     background: var(--ink);
-    color: var(--on-ink);
-    font-weight: 600;
+    color: var(--cut);
   }
 
-  .name {
+  .shell[data-mode="dark"] .face {
+    color: #171a2a;
+  }
+
+  .who .word {
     display: grid;
-    font-weight: 600;
   }
 
-  .name small {
-    color: var(--soft);
+  .who small {
     font-size: 12px;
     font-weight: 500;
+    opacity: 0.8;
   }
 
-  .main {
-    padding: 0 16px 16px 264px;
+  /* the words materialise as the rail opens, and go the way they came */
+  .nav .word,
+  .brand i {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateX(-6px);
+    transition:
+      opacity 0.18s var(--out),
+      filter 0.18s var(--out),
+      transform 0.18s var(--out);
+  }
+
+  .nav[data-open] .word,
+  .nav[data-open] .brand i {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition-duration: 0.36s;
+    transition-delay: 0.05s;
   }
 
   .title {
-    min-height: 176px;
-    padding: 0 8px 24px;
-    font-size: 44px;
-  }
-
-  .sheet {
-    min-height: calc(100dvh - 176px - 16px);
-    margin: 0;
-    padding: 32px;
+    padding: 72px 0 0 128px;
+    font-size: 48px;
   }
 
   .demo {
@@ -321,13 +347,36 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .here,
-  .item {
-    transition: none;
+@media (prefers-reduced-transparency: reduce) {
+  .shell {
+    --glass: rgb(251 246 238 / 0.94);
+    --frost: none;
   }
 
+  .shell[data-mode="dark"] {
+    --glass: rgb(23 26 42 / 0.94);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .shell {
+    --glass: rgb(251 246 238 / 0.97);
+    --glass-edge: var(--ink);
+  }
+
+  .shell[data-mode="dark"] {
+    --glass: rgb(16 18 32 / 0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
   .title {
     animation: none;
+  }
+
+  .nav .word,
+  .brand i {
+    transition: none;
   }
 }

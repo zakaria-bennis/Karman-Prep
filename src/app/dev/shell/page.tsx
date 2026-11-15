@@ -1,31 +1,32 @@
 "use client";
 
 // /dev/shell: step 2 of the portal rebuild, the menu, on the endless world (step 1, /dev/world).
-// The sheet is left empty on purpose: each screen's layout is a later step.
-// The menu follows the plan (prototypes/HANDOVER-portal-2026-11-14.md), five items at most.
+// Second version (founder, 2026-11-15): frosted glass, not paper; Karman's own stickers; spring physics;
+// a slim rail on desktop that opens when the pointer is on it. No screen is laid out yet.
 //   ?plan=practice|cohort|private   whose menu to show
 //   ?night=1                        dark mode
 //   ?demo=0                         hide the demo switches (for pictures)
+//   ?open=1                         hold the desktop rail open (for pictures)
 // Production builds return 404.
+import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
 import { notFound, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
+import { Sticker, type StickerName } from "./stickers";
 
-type Item =
-  | "homework"
-  | "library"
-  | "practice"
-  | "class"
-  | "schedule"
-  | "progress"
-  | "rewards"
-  | "more";
-
-const LABEL: Record<Item, string> = {
+const LABEL: Record<StickerName, string> = {
   homework: "Homework",
   library: "Library",
   practice: "Practice",
@@ -33,93 +34,61 @@ const LABEL: Record<Item, string> = {
   schedule: "Schedule",
   progress: "Progress",
   rewards: "Rewards",
+  chat: "Chat",
+  settings: "Settings",
   more: "More",
 };
 
-/** The founder's menus, in his order. The first item is where that student lands. */
+/** The founder's menus. `bar` is the phone's five; `rail` is the desktop's, which has room for what the
+ *  phone keeps under More. The first item is where that student lands. */
 const PLANS = {
   practice: {
     label: "Free, Practice, Pro",
-    items: ["library", "practice", "progress", "rewards", "more"],
+    name: "Practice",
+    bar: ["library", "practice", "progress", "rewards", "more"],
+    rail: ["library", "practice", "progress", "rewards", "settings"],
   },
-  cohort: { label: "Cohort", items: ["homework", "library", "class", "progress", "more"] },
-  private: { label: "Private", items: ["homework", "library", "schedule", "progress", "more"] },
-} as const satisfies Record<string, { label: string; items: readonly Item[] }>;
+  cohort: {
+    label: "Cohort",
+    name: "Cohort",
+    bar: ["homework", "library", "class", "progress", "more"],
+    rail: ["homework", "library", "class", "chat", "progress", "rewards", "settings"],
+  },
+  private: {
+    label: "Private",
+    name: "Private",
+    bar: ["homework", "library", "schedule", "progress", "more"],
+    rail: ["homework", "library", "schedule", "chat", "progress", "rewards", "settings"],
+  },
+} as const satisfies Record<
+  string,
+  { label: string; name: string; bar: readonly StickerName[]; rail: readonly StickerName[] }
+>;
 type Plan = keyof typeof PLANS;
 
-/* One icon family: a 24 grid, 1.75 strokes, round ends. */
-const ICON: Record<Item, ReactNode> = {
-  homework: (
-    <>
-      <rect x="4.5" y="4" width="15" height="16.5" rx="3" />
-      <path d="M9 3.5h6v2.5H9zM8.5 12.5l2.2 2.2 4.8-4.8" />
-    </>
-  ),
-  library: (
-    <path d="M12 6.5c-1.8-1.3-4.3-1.9-7.5-1.8v13c3.2-.1 5.7.5 7.5 1.8m0-13c1.8-1.3 4.3-1.9 7.5-1.8v13c-3.2-.1-5.7.5-7.5 1.8m0-13v13" />
-  ),
-  practice: (
-    <>
-      <path d="M5 19l.9-4.1L16.4 4.4a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L9.1 18.1z" />
-      <path d="M14.5 6.3l3.2 3.2" />
-    </>
-  ),
-  class: (
-    <>
-      <rect x="3.5" y="6.5" width="12" height="11" rx="3" />
-      <path d="M15.5 10.5l5-2.7v8.4l-5-2.7" />
-    </>
-  ),
-  schedule: (
-    <>
-      <rect x="4" y="5.5" width="16" height="14.5" rx="3" />
-      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
-    </>
-  ),
-  progress: <path d="M4 19.5h16M6.5 15.5l4-4.5 3 2.5 5-6.5M14.5 7h4v4" />,
-  rewards: (
-    <>
-      <circle cx="12" cy="12" r="8.2" />
-      <path d="M12 7.6l1.3 2.8 3 .4-2.2 2.1.6 3-2.7-1.5-2.7 1.5.6-3-2.2-2.1 3-.4z" />
-    </>
-  ),
-  more: (
-    <>
-      <circle cx="6" cy="12" r="1.3" />
-      <circle cx="12" cy="12" r="1.3" />
-      <circle cx="18" cy="12" r="1.3" />
-    </>
-  ),
-};
-
-function Icon({ name }: { name: Item }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {ICON[name]}
-    </svg>
-  );
-}
+/* Springs, in Apple's terms (Designing Fluid Interfaces): a quick response with a little bounce where a
+   press or a flick carried the motion, none where a surface simply opens. */
+const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
+const POP = { type: "spring", stiffness: 600, damping: 18, mass: 0.8 } as const;
+const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
+const STILL = { duration: 0 } as const;
+const RAIL = "(min-width: 960px) and (hover: hover)";
+/** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
+const project = (v: number) => ((v / 1000) * 0.99) / (1 - 0.99);
 
 function Shell() {
   const q = useSearchParams();
   const planQ = q.get("plan");
+  const still = useReducedMotion() ?? false;
   const [plan, setPlan] = useState<Plan>(
     planQ !== null && planQ in PLANS ? (planQ as Plan) : "practice"
   );
   const [dark, setDark] = useState(q.get("night") === "1");
-  const items: readonly Item[] = PLANS[plan].items;
-  const [page, setPage] = useState<Item>(items[0]);
+  const [rail, setRail] = useState(false);
+  const [open, setOpen] = useState(q.get("open") === "1");
+  const held = q.get("open") === "1";
+  const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
+  const [page, setPage] = useState<StickerName>(PLANS[plan].bar[0]);
   const at = Math.max(0, items.indexOf(page));
   const [world] = useState(() => ({}));
 
@@ -128,10 +97,112 @@ function Shell() {
     document.documentElement.setAttribute("data-kp-look", "lit");
   }, [dark]);
 
+  useEffect(() => {
+    const m = matchMedia(RAIL);
+    const set = () => setRail(m.matches);
+    set();
+    m.addEventListener("change", set);
+    return () => m.removeEventListener("change", set);
+  }, []);
+
+  /* ---- the lens: the lit piece of glass under the current item. It is moved by a spring, so a new
+     press, or a finger that grabs it, redirects it from wherever it is. ---- */
+  const list = useRef<HTMLUListElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const placed = useRef(false);
+  const spot = useCallback(
+    (i: number) => {
+      const li = list.current?.querySelectorAll<HTMLLIElement>("li[data-item]")[i];
+      if (!li) return { x: 0, y: 0 };
+      return rail ? { x: 0, y: li.offsetTop } : { x: li.offsetLeft + li.offsetWidth / 2, y: 0 };
+    },
+    [rail]
+  );
+  const send = useCallback(
+    (i: number, velocity = 0) => {
+      const to = spot(i);
+      const how = still || !placed.current ? STILL : { ...SLIDE, velocity };
+      animate(x, to.x, how);
+      animate(y, to.y, how);
+      placed.current = true;
+    },
+    [spot, still, x, y]
+  );
+  useLayoutEffect(() => {
+    send(at);
+  }, [at, send, items]);
+  useEffect(() => {
+    const again = () => {
+      placed.current = false;
+      send(at);
+    };
+    window.addEventListener("resize", again);
+    return () => window.removeEventListener("resize", again);
+  }, [at, send]);
+
+  /* on the phone's bar the lens can be dragged: it follows the finger, and when let go it is thrown to
+     the item its speed was carrying it to */
+  const drag = useRef<{
+    startX: number;
+    from: number;
+    moved: boolean;
+    lastX: number;
+    lastT: number;
+    v: number;
+  } | null>(null);
+  const nearest = (px: number) => {
+    const lis = [...(list.current?.querySelectorAll<HTMLLIElement>("li[data-item]") ?? [])];
+    let best = 0;
+    lis.forEach((li, i) => {
+      const c = li.offsetLeft + li.offsetWidth / 2;
+      const b = lis[best].offsetLeft + lis[best].offsetWidth / 2;
+      if (Math.abs(c - px) < Math.abs(b - px)) best = i;
+    });
+    return best;
+  };
+  const down = (e: ReactPointerEvent<HTMLUListElement>) => {
+    if (rail) return;
+    drag.current = {
+      startX: e.clientX,
+      from: x.get(),
+      moved: false,
+      lastX: e.clientX,
+      lastT: e.timeStamp,
+      v: 0,
+    };
+  };
+  const move = (e: ReactPointerEvent<HTMLUListElement>) => {
+    const d = drag.current;
+    if (!d) return;
+    if (!d.moved && Math.abs(e.clientX - d.startX) < 10) return;
+    if (!d.moved) {
+      d.moved = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    const dt = Math.max(1, e.timeStamp - d.lastT);
+    d.v = 0.6 * d.v + 0.4 * (((e.clientX - d.lastX) / dt) * 1000);
+    d.lastX = e.clientX;
+    d.lastT = e.timeStamp;
+    const w = e.currentTarget.offsetWidth;
+    const raw = d.from + (e.clientX - d.startX);
+    const over = raw < 28 ? raw - 28 : raw > w - 28 ? raw - (w - 28) : 0;
+    x.set(raw - over + over * 0.25);
+  };
+  const up = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return;
+    const i = nearest(x.get() + project(d.v));
+    setPage(items[i]);
+    send(i, d.v);
+  };
+
   const choosePlan = (next: Plan) => {
     setPlan(next);
-    setPage(PLANS[next].items[0]);
+    setPage(PLANS[next].bar[0]);
   };
+  const wide = rail && (open || held);
 
   return (
     <div
@@ -140,44 +211,73 @@ function Shell() {
     >
       <PortalFlight world={world} />
 
-      <nav className={styles.nav} aria-label="Portal">
-        <span className={styles.brand}>Karman</span>
-        <ul className={styles.items} style={{ "--at": at, "--n": items.length } as CSSProperties}>
-          <li className={styles.here} aria-hidden="true" />
+      <motion.nav
+        className={styles.nav}
+        aria-label="Portal"
+        data-open={wide || undefined}
+        initial={false}
+        animate={rail ? { width: wide ? 232 : 72 } : { width: "auto" }}
+        transition={still ? STILL : OPEN}
+        onPointerEnter={() => setOpen(true)}
+        onPointerLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      >
+        <span className={styles.brand} aria-label="Karman">
+          K<i>arman</i>
+        </span>
+        <ul
+          ref={list}
+          className={styles.items}
+          onPointerDown={down}
+          onPointerMove={move}
+          onPointerUp={up}
+          onPointerCancel={up}
+        >
+          <motion.li className={styles.lens} style={{ x, y }} aria-hidden="true" />
           {items.map((item) => (
-            <li key={item}>
-              <button
+            <li key={item} data-item>
+              <motion.button
                 type="button"
                 className={styles.item}
                 aria-current={item === page ? "page" : undefined}
+                aria-label={LABEL[item]}
+                whileTap={still ? undefined : { scale: 0.9 }}
+                transition={POP}
                 onClick={() => setPage(item)}
               >
-                <Icon name={item} />
-                <span>{LABEL[item]}</span>
-              </button>
+                <motion.span
+                  className={styles.art}
+                  animate={{ scale: item === page ? 1.14 : 1, y: item === page && !rail ? -1 : 0 }}
+                  transition={still ? STILL : POP}
+                >
+                  <Sticker name={item} />
+                </motion.span>
+                <span className={styles.word}>{LABEL[item]}</span>
+              </motion.button>
             </li>
           ))}
         </ul>
-        <button type="button" className={styles.who} onClick={() => setPage("more")}>
+        <button
+          type="button"
+          className={styles.who}
+          aria-label="Maya Okafor, account"
+          onClick={() => setPage(rail ? "settings" : "more")}
+        >
           <span className={styles.face} aria-hidden="true">
             M
           </span>
-          <span className={styles.name}>
+          <span className={styles.word}>
             Maya Okafor
-            <small>{plan === "practice" ? "Practice" : PLANS[plan].label}</small>
+            <small>{PLANS[plan].name}</small>
           </span>
         </button>
-      </nav>
+      </motion.nav>
 
       <main className={styles.main}>
         <h1 className={styles.title} key={page}>
           {LABEL[page]}
         </h1>
-        <section className={styles.sheet} aria-label={LABEL[page]}>
-          <p className={styles.note}>
-            This sheet is empty on purpose. The {LABEL[page]} layout is the next step.
-          </p>
-        </section>
       </main>
 
       {q.get("demo") !== "0" && (
