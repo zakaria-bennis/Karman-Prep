@@ -37,10 +37,11 @@ const THEME_BOOT = `try{var m=localStorage.getItem("karman-site-theme");if(m!=="
  *  portal in place of "Sign in" and "Get started". Clerk keeps a small readable cookie that says a session
  *  exists (its value is a time, or 0 when signed out), so this is known before the page paints, with no
  *  Clerk code and no server work on the marketing pages. ShellBehaviour does the same for the page's other
- *  sign-up buttons. The home page itself is for visitors: someone signed in who opens it goes straight to
- *  their portal, and sees the home page again when they sign out (or with ?site in the address, to look
- *  at it while signed in). */
-const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie)){document.getElementById("ks").dataset.in="1";if(location.pathname==="/"&&!/[?&]site(=|&|$)/.test(location.search))location.replace("${ROUTES.portal}")}}catch(e){}`;
+ *  sign-up buttons. The home page still opens for them (founder, 2026-11-14: "the homepage isn't
+ *  loading"): it used to send a signed-in visitor straight to the portal, which hid the home page from
+ *  anyone signed in and sent a visitor whose session had lapsed to the sign-in page. Their portal is one
+ *  press away, in the header and on every sign-up button. */
+const SIGNED_IN_BOOT = `try{if(/(?:^|; )__client_uat[^=]*=[1-9]/.test(document.cookie))document.getElementById("ks").dataset.in="1"}catch(e){}`;
 
 /** Content is never left hidden. The reveals (.rv) and the rising headings (.kin) wait for ShellBehaviour to
  *  watch them; if the page's scripts have not started a few seconds in (a failed load, a very slow phone),
