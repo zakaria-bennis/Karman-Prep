@@ -832,13 +832,16 @@ html.claim-go .ks .claim .keep { animation: keep-ink .01s linear 1.65s both; }
 /* the profile picture: a button of its own, so the header's link rules (their side padding squeezed the photo
    to a sliver) do not reach it. Rest, hover, press and release each have their own look, on a spring. */
 .ks .hd .acct-wrap { position: relative; flex: none; align-self: center; margin-left: 10px; }
-.ks .hd .acct-wrap button.acct { position: relative; width: 46px; height: 46px; min-height: 0; padding: 0; border: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--go, #2449b8); color: #fffaf3; font: inherit; font-weight: 800; font-size: 18px; line-height: 1; cursor: pointer; box-shadow: 0 0 0 2.5px rgba(255, 250, 243, .92), 0 10px 20px -10px rgba(29, 26, 34, .7); transform: none; transition: transform .5s var(--spring), box-shadow .25s; }
-.ks .hd .acct-wrap button.acct img { width: 46px; height: 46px; max-width: none; aspect-ratio: 1; object-fit: cover; object-position: 50% 28%; display: block; border-radius: 50%; }
+.ks .hd .acct-wrap button.acct { position: relative; width: 46px; height: 46px; min-height: 0; padding: 0; border: 0; border-radius: 50%; overflow: hidden; display: grid; place-items: center; box-sizing: border-box; border: 2.5px solid #fffaf3; background: var(--go, #2449b8); color: #fffaf3; font: inherit; font-weight: 800; font-size: 18px; line-height: 1; cursor: pointer; box-shadow: 0 10px 20px -10px rgba(29, 26, 34, .7); transform: none; transition: transform .5s var(--spring), box-shadow .25s; }
+.ks .hd .acct-wrap button.acct img { width: 100%; height: 100%; max-width: none; aspect-ratio: 1; object-fit: cover; object-position: 50% 28%; display: block; border-radius: 50%; }
 .ks .hd .acct-wrap button.acct svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.ks .hd .acct-wrap button.acct:active { transform: scale(.92); transition-duration: .09s; box-shadow: 0 0 0 2px rgba(255, 250, 243, .92), 0 4px 10px -6px rgba(29, 26, 34, .7); }
-.ks .hd .acct-wrap button.acct[aria-expanded="true"] { box-shadow: 0 0 0 2.5px #fffaf3, 0 0 0 5.5px var(--go, #2449b8); }
+.ks .hd .acct-wrap button.acct:active { transform: scale(.92); transition-duration: .09s; box-shadow: 0 4px 10px -6px rgba(29, 26, 34, .7); }
+.ks .hd .acct-wrap button.acct[aria-expanded="true"] { box-shadow: 0 0 0 3px var(--go, #2449b8); }
 .ks .hd .acct-wrap button.acct:focus-visible { outline: 3px solid var(--go, #2449b8); outline-offset: 4px; }
-@media (hover: hover) and (pointer: fine) { .ks .hd .acct-wrap button.acct:hover:not(:active) { transform: translateY(-2px) scale(1.04); box-shadow: 0 0 0 3px #fffaf3, 0 16px 26px -12px rgba(29, 26, 34, .8); } }
+@media (hover: hover) and (pointer: fine) { .ks .hd .acct-wrap button.acct:hover:not(:active) { transform: translateY(-2px) scale(1.04); box-shadow: 0 16px 26px -12px rgba(29, 26, 34, .8); } }
+/* on a phone the picture sits beside the menu button: the two are the same size and the same round shape, with
+   a clear gap between them, so they read as a pair and neither is pressed by mistake */
+@media (max-width: 960px) { .ks.lit[data-in] .hd .acct-wrap { margin: 0 12px 0 8px; } .ks.lit[data-in] .hd .menu { box-sizing: border-box; width: 46px; height: 46px; min-height: 46px; padding: 0; margin-left: 0; border-radius: 50%; } }
 /* the menu under the picture: who is signed in, then where they can go, then Sign out */
 .ks .hd .acct-wrap .acct-menu { position: absolute; top: calc(100% + 12px); right: 0; z-index: 30; width: max-content; min-width: 236px; max-width: min(300px, calc(100vw - 24px)); display: grid; gap: 2px; padding: 8px; border-radius: 22px; background: #fffaf3; color: #1d1a22; box-shadow: 0 24px 44px -20px rgba(29, 26, 34, .65), 0 0 0 1px rgba(29, 26, 34, .08); animation: acct-in .34s var(--spring) both; transform-origin: top right; }
 .ks.lit[data-mode="dark"] .hd .acct-wrap .acct-menu { background: #24243c; color: #fffaf3; box-shadow: 0 24px 44px -20px rgba(0, 0, 0, .8), 0 0 0 1px rgba(255, 250, 243, .14); }
