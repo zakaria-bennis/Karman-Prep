@@ -365,7 +365,7 @@ void main() {
   float jit = fract(tx(gl_FragCoord.xy) + tx(gl_FragCoord.yx * .37 + 11.));
 
   float tmax = 16., tw = rd.y < -.0002 ? -ro.y / rd.y : 1e5;
-  float lim = min(tmax, tw), t = .02, hit = -1.;
+  float lim = min(tmax, tw), t = .02, hit = -1., before = .02;
   for (int i = 0; i < 96; i++) {
     vec3 p = ro + rd * t;
     float tm = terrM(p.xz), h = p.y - tm;
@@ -376,12 +376,27 @@ void main() {
 #endif
     if (h < .0012 * t) { hit = t; break; }
 #ifdef WORLD
+    before = t;
     t += h * (h < .03 ? .34 : .46) + .0008;
 #else
     t += h * .46 + .0008;
 #endif
     if (t > lim || (p.y > 2.1 && rd.y > 0.)) break;
   }
+#ifdef WORLD
+  /* a small steep thing (a roof, a tree, an animal) is met a little late by the long strides above, which
+     draws it in steps; so close in on the true surface between the last two strides */
+  if (hit > 0.) {
+    float lo = before, hi = hit;
+    for (int i = 0; i < 5; i++) {
+      float mid = .5 * (lo + hi);
+      vec3 p = ro + rd * mid;
+      float tm = terrM(p.xz);
+      if (p.y - tm - stands(p.xz, tm, clamp(1.7 - mid * .6, 0., 1.)) < 0.) hi = mid; else lo = mid;
+    }
+    hit = hi;
+  }
+#endif
 
   vec3 col;
   float tend = tmax;

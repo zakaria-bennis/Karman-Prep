@@ -79,9 +79,9 @@ float treeBand(float h, float tl) { return smoothstep(tl, tl - .14, h) * smooths
 vec2 beast(vec2 x) {
   vec2 hid = floor(x * 7.);
   float kind = tx(hid + 5.);
-  if (tx(hid + 71.) < .45) return vec2(0., kind);
+  if (tx(hid + 71.) < .62) return vec2(0., kind);
   float gathered = smoothstep(.5, .2, length(fract(x * 7.) - .5));
-  vec2 g = x * 90. + vec2(uTime * .014 * (kind - .5), uTime * .006);
+  vec2 g = x * 150. + vec2(uTime * .022 * (kind - .5), uTime * .01);
   vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + 3.), tx(id + 19.)) - .5) * .5;
   f -= .1 * vec2(sin(uTime * .3 + tx(id) * 6.3), cos(uTime * .23 + tx(id + 7.) * 6.3));
   float d = length(f * vec2(1.5, 3.2));
@@ -93,14 +93,14 @@ float pasture(float h, float m) { return step(.3, m) * smoothstep(.006, .014, h)
 float stands(vec2 x, float h, float fade) {
   vec4 g2 = land(x.y, 2.);
   float up = max(built(x, h), woods(x, g2).x * treeBand(h, g2.x * 1.2) * fade);
-  return max(up, beast(x).x * .0042 * pasture(h, land(x.y, 4.).a) * fade);
+  return max(up, beast(x).x * .0026 * pasture(h, land(x.y, 4.).a) * fade);
 }
 /* the finest ground: x = the ground itself with its cracks and ledges, y = what stands on it */
 vec2 terrH2(vec2 x) {
   float h = terrD(x);
   float band = treeBand(h, G2.x * 1.2);
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(max(built(x, h), woods(x, G2).x * band * TF), beast(x).x * .0042 * pasture(h, G4.w) * TF));
+  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(max(built(x, h), woods(x, G2).x * band * TF), beast(x).x * .0026 * pasture(h, G4.w) * TF));
 }
 `;
 

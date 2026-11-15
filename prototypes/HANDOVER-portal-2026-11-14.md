@@ -74,8 +74,13 @@ Known faults and gaps:
   cloud edges); real-time "Ghibli" foliage is lit as one soft ball per crown with a gradient, a shaded
   foot and a lit top. Studio Ghibli's free official stills are for personal, non-commercial use: fine to
   study for palette, never to ship. He has not yet named the paintings to match.
-- The shader takes about 100 seconds to appear on a first load on this Mac. Not measured on a phone.
-  Its drawing speed is unmeasured. Both must be fixed or measured before it goes behind a real page.
+- **Speed, measured 2026-11-15 on this Mac (M2 Pro, Chrome with its graphics card):** the world is on
+  screen about 1 second after the page opens on desktop and under half a second at phone size; the shader
+  itself is ready in about half a second, and the engine was drawing above its starting sharpness, so
+  frames are quick here. Earlier notes of a 20 to 100 second wait were wrong: Claude's preview pane was
+  hidden, and a hidden tab does not draw. **Check pictures with a real browser at full size**, not the
+  small preview pane: full size showed roofs and animals drawn in steps, now fixed by closing in on the
+  true surface after the ray's last stride. Not measured: a real phone, an old laptop.
 - Flat lands (hills, flower fields, savanna, lavender) are plainer than the mountain and sea lands.
   Flowers are blotches, not fields. Rice terraces and canyon walls are rough.
 - Not built: animals, fish, more bird kinds, the observatory and other wonders, chimney smoke, real
