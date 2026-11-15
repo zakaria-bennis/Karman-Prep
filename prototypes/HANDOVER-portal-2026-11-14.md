@@ -239,7 +239,7 @@ Known faults and gaps:
        set into the middle ridge with trees in front of its foot, and is a **glass dome** you can see
        the stars through (frame of struts, a telescope inside, a lit doorway) **with two dishes**
        beside it. **The book stays centred in its half**; the signs were made smaller to fit instead
-       (on a phone the upper sign sits in the top corner).
+       (he then asked for the Reading and Writing sign to stay at the foot of its half on a phone, with the book above it and never overlapping).
      Checked on desktop and phone: both halves hover, both choices transition and land in the right
      section, no shader errors. Not checked: a real phone's speed (this is a heavy scene on top of the
      landscape), the drag, sound by ear. Awaiting his verdict.

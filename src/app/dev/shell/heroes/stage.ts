@@ -87,9 +87,10 @@ export function createStage(box: HTMLElement, still: boolean): Stage {
     // each subject stands in the middle of its own half (founder, 2026-11-15); the signs are small
     // enough to sit in a corner beside it
     if (portrait) {
-      stations[0].position.set(0, layout.halfH * 0.5, 0);
+      // on a phone the upper sign sits at the foot of its half, so the book stands in the room above it
+      stations[0].position.set(0, layout.halfH * 0.7, 0);
       stations[1].position.set(0, -layout.halfH * 0.5, 0);
-      stations.forEach((s) => s.scale.setScalar(0.78));
+      stations.forEach((s) => s.scale.setScalar(0.64));
     } else {
       stations[0].position.set(-layout.halfW * 0.5, layout.halfH * 0.04, 0);
       stations[1].position.set(layout.halfW * 0.5, layout.halfH * 0.04, 0);

@@ -106,9 +106,10 @@
 }
 
 /* a sign never crosses the seam (founder, 2026-11-15), and it is small, so the subject keeps the
-   middle of its half. On a phone the upper sign sits in the top corner and the lower one at the foot. */
+   middle of its half. Both signs sit at the foot of their halves; the book stands above its sign and never under it. */
 .hero .pick[data-side="0"] {
-  align-content: start;
+  /* at the foot of its half, lifted clear of the seam, which slopes up to the right */
+  padding-bottom: 66px;
 }
 
 /* the Math sign lies on the night, so it is dark glass with pale words in either mode */
@@ -194,7 +195,7 @@
 
   /* on a desktop both signs sit at the foot of their halves, each well clear of the seam */
   .hero .pick[data-side="0"] {
-    align-content: end;
+    padding-bottom: 20px;
   }
 
   .hero .pick[data-side="1"] {
