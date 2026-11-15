@@ -51,8 +51,8 @@ export interface FlightOptions {
   /** The portals' endless world (world.ts) instead of the site's fixed route. The camera flies on by
    *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
-   *  twenty minutes; the three are for looking at the world while it is built. */
-  world?: boolean | { from?: number; land?: string; settled?: number };
+   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
+  world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -202,6 +202,7 @@ export class Flight {
         this.stripAt = Number.NaN;
         this.wake();
       };
+      (window as unknown as { __where?: unknown }).__where = () => this.flown;
     }
     return true;
   }
@@ -366,7 +367,7 @@ export class Flight {
     const opt = typeof this.o.world === "object" ? this.o.world : {};
     /* the camera drifts on only while pictures are drawn, so a rested tab wakes where it stopped */
     if (this.flownAt >= 0 && !this.o.still())
-      this.flown += Math.min(0.1, Math.max(0, time - this.flownAt)) * DRIFT;
+      this.flown += Math.min(0.1, Math.max(0, time - this.flownAt)) * DRIFT * (opt.speed ?? 1);
     this.flownAt = time;
     const d = this.flown;
     /* the shader's own distance starts again every WRAP, so its numbers stay exact */

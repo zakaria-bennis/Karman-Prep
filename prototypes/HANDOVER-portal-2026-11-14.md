@@ -40,9 +40,13 @@ How it is built:
 - **Speed:** slow drift (`DRIFT`), a new land about every two minutes.
 - Weather is a setting (`sky`), not yet fed by the visitor's real weather.
 
-`/dev/world` switches: `?land=reef` (hold one land), `?z=40`, `?sky=0.5` (hold the sky part-way through
-its 20 minutes), `?night=1`, `?wx=cloudy|rain|mist|snow`. In the console, `__world({land, from, settled})`
-changes these without a reload.
+`/dev/world` is now a demo (founder, 2026-11-15: "a full demo preview"): a bar at the bottom names the
+land under the camera and has Next land, Fast tour (12 times faster), Stay here, the sky (Live, Dawn,
+Day, Sunset, Night) and the weather. The address still takes `?land=reef`, `?z=40`, `?sky=0.5`,
+`?night=1`, `?wx=cloudy|rain|mist|snow`, `?speed=12`, and `?bar=0` hides the bar. In the console,
+`__world({land, from, settled, speed})` changes these without a reload and `__where()` says how far the
+camera has flown. A 90 second film of it (day, sunset, night) is at `prototypes/portals/world-demo.mp4`
+(not committed; made frame by frame with `__world` and `__flight`, then ffmpeg).
 
 What he said on seeing the first lands: he likes the overall landscape; it looks **plastic**, the art
 style is not coherent, details do not make sense up close; shading and reflections should be more real

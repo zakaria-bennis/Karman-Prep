@@ -279,7 +279,7 @@ ${WORLD_ALBEDO}
   vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
 #ifdef WORLD
   /* by night the flowers hold a little light of their own, and it breathes */
-  glow += NIGHT * petal * bloom * (.09 + .04 * sin(uTime * .7 + r * 6.3));
+  glow += NIGHT * petal * bloom * (.022 + .01 * sin(uTime * .7 + r * 6.3));
   /* a spirit tree's crown shines pale at night */
   glow += NIGHT * vec3(.3, .8, .78) * spirit * tree * TF * (.25 + .5 * wd.y) * (.8 + .2 * sin(uTime * .6 + wd.z * 40.));
 #endif
@@ -462,7 +462,7 @@ ${WORLD_WATER}
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
 #ifdef WORLD
     /* by night the sea shines blue where it breaks on the shore, and in patches where it is stirred */
-    col += NIGHT * vec3(.08, .55, .8) * (smoothstep(.012, .0, edge) * .7 + .05 * smoothstep(.6, .8, n2(w * 9. + uTime * .05)) * smoothstep(.1, .0, depth)) * (1. - ice);
+    col += NIGHT * vec3(.08, .55, .8) * (smoothstep(.012, .0, edge) * .7 * smoothstep(.0, .03, max(depth, -terrL(w + vec2(0., .05)))) + .05 * smoothstep(.6, .8, n2(w * 9. + uTime * .05)) * smoothstep(.1, .0, depth)) * (1. - ice);
 #endif
     /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
     vec2 bg = w * 8., bid = floor(bg);
@@ -557,7 +557,7 @@ ${WORLD_AFLOAT}
     vec2 oid = floor(og), of = fract(og) - .5 - (vec2(tx(oid + 3.), tx(oid + 21.)) - .5) * .7;
     float od = length(of);
     orb = (smoothstep(.05, .0, od) + .35 * exp(-od * 9.)) * step(.74, tx(oid + 13.)) * (.6 + .4 * sin(uTime * .5 + tx(oid) * 6.3));
-    col += vec3(.55, .85, 1.) * orb * (.08 + .5 * NIGHT + .3 * LOW) * (1. - uWx.y);
+    col += vec3(.55, .85, 1.) * orb * (.06 + .26 * NIGHT + .2 * LOW) * (1. - uWx.y);
   }
 #endif
   /* light spilling through the air around the sun */

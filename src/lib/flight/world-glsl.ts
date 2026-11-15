@@ -133,7 +133,7 @@ export const WORLD_ALBEDO = `
   /* the top of a crown catches warm light (the way stylised foliage is painted: a gradient, a shaded foot, a lit top) */
   crownNear *= mix(vec3(1.), vec3(1.28, 1.16, .78), smoothstep(.55, 1., wd.y));
   /* now and then a spirit tree: silver-leaved by day, softly shining by night */
-  float spirit = step(.94, wd.z);
+  float spirit = step(.985, wd.z);
   crownNear = mix(crownNear, vec3(.5, .7, .68) * mix(.6, 1.25, wd.y), spirit * .8);
   alb = mix(alb, mix(crownFar, crownNear, TF), tree);
   /* and a crown is lit as one soft mass, not leaf by leaf */
