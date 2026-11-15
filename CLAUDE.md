@@ -13,6 +13,8 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
   when the task needs a number.
 - **Every word on the marketing site:** `src/lib/marketing/site-copy.ts`.
 - **Where the home page stands:** `prototypes/HANDOVER-home-2026-11-09.md`.
+- **Where the portal rebuild stands (student and parent portals):**
+  `prototypes/HANDOVER-portal-2026-11-14.md`. Read it before any portal work.
 - **`docs/archive/` is history.** Take no direction from it.
 
 ## How to work with the founder
@@ -28,9 +30,10 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
 ## Design work
 
 - Load the `impeccable` skill first. Use Mobbin for reference screens and 21st.dev for components.
-- The feeling is Studio Ghibli: hand-painted, soft, quietly magical. The portals' world is the painted
-  landscape in `src/lib/painting/`. The home page's world is the live, lit landscape in `src/lib/flight/`,
-  which is more realistic on purpose. Details are in `PRODUCT.md`.
+- The feeling is Studio Ghibli: hand-painted, soft, quietly magical. The world behind the home page, the
+  subpages and the portals is the live, lit landscape in `src/lib/flight/`, which is more realistic on
+  purpose (founder, 2026-11-14: the portals no longer use the painted landscape). Details are in
+  `PRODUCT.md`.
 - No AI-generated images on the site. Draw in code, or use a real photo, logo or open-licence
   illustration.
 - Watch every animation before showing it (`scripts/dev/motion-sheet.mjs`). Look at full-size

@@ -100,8 +100,11 @@ Existing portal data plumbing is kept; redesign replaces the look and flows.
     replacing the code-made painting there): flown from above the clouds to the
     sea as the page scrolls, one day in light mode and one night in dark mode
     (`src/lib/flight/`). He likes the Ghibli look and this more realistic,
-    photoreal-painting look; the realism is intentional. The portals keep the
-    painted landscape in `src/lib/painting/`.
+    photoreal-painting look; the realism is intentional. The portals use this
+    same live landscape (founder, 2026-11-14, replacing the painted landscape in
+    `src/lib/painting/` there), grown into a generated world with villages,
+    weather and the visitor's own time of day: see
+    `prototypes/HANDOVER-portal-2026-11-14.md`.
   - The feeling is Studio Ghibli (founder, 2026-11-09, after first choosing Duolingo and
     finding the result childish): hand-painted, soft, quietly magical. No bright orange,
     no toy-like chunky shapes. Actions are ink on the painting; the painting is the colour.
