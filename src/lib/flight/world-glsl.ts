@@ -48,41 +48,78 @@ float townAt(vec2 x, float h) {
   return level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
 }
 float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
-/* a tree's own shape: a pine's point, a round crown, or a tall cane of bamboo */
-float crown(float t) { return mix(1.7 * t, 1.15 * sqrt(t), smoothstep(.2, .6, G2.w)) * mix(1., 1.9, smoothstep(.7, 1., G2.w)); }
-float terrH(vec2 x) {
+/* one tree in its cell: x = how far up its crown this point is (0 at its edge, 1 at its top), y = which tree */
+vec2 treeW(vec2 g, float on, float round) {
+  vec2 id = floor(g);
+  vec2 f = fract(g) - .5 - (vec2(tx(id), tx(id + 41.)) - .5) * .7;
+  float size = .42 + .58 * tx(id + 13.);
+  float d = length(f) / (.5 * size);
+  return vec2(mix(max(0., 1. - d), sqrt(max(0., 1. - d * d)), round) * size * step(1. - on, tx(id + 59.)), tx(id + 77.));
+}
+/* the woods (founder, 2026-11-14: the trees looked like plastic beads): real trees of two sizes, standing in
+   groves with clearings between: pines are tall points, broadleaf crowns are round and knobbly with leaf,
+   bamboo is tall cane. x = the tree's height here, y = how far up its crown (0 to 1), z = which tree */
+float TF;   /* how much of a tree's shape is drawn at this distance: all of it near, none far off */
+vec3 woods(vec2 x, vec4 g2) {
+  if (g2.z < .02) return vec3(0.);
+  float round = smoothstep(.15, .5, g2.w), cane = smoothstep(.7, 1., g2.w);
+  float open = smoothstep(.3, .55, .55 * n2(x * 13.) + .45 * n2(x * 41. + 5.) + .7 * (g2.z - .55));
+  float on = .35 + .65 * g2.z;
+  vec2 a = treeW(x * 74., on, round), b = treeW(M2 * x * 131. + 17., on, round);
+  b.x *= .62;
+  vec2 t = a.x > b.x ? a : b;
+  t.x *= open;
+  float leaf = round * (n2(x * 470.) - .5) * .34 * step(.001, t.x);
+  return vec3(mix(.028, .0125, round) * mix(1., 2.2, cane) * t.x * (1. + leaf), t.x, t.y);
+}
+float treeBand(float h, float tl) { return smoothstep(tl, tl - .14, h) * smoothstep(.004, .03, h); }
+/* what stands on the ground at x, for the ray: a house or a tree, whichever is taller */
+float stands(vec2 x, float h, float fade) {
+  vec4 g2 = land(x.y, 2.);
+  return max(built(x, h), woods(x, g2).x * treeBand(h, g2.x * 1.2) * fade);
+}
+/* the finest ground: x = the ground itself with its cracks and ledges, y = what stands on it */
+vec2 terrH2(vec2 x) {
   float h = terrD(x);
-  float tl = G2.x * 1.2;
-  float band = smoothstep(tl, tl - .14, h) * smoothstep(.004, .03, h);
+  float band = treeBand(h, G2.x * 1.2);
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  float town = townAt(x, h);
-  return h + (band * (1. - town) * .0056 * crown(treeAt(x, G2.z).x) + (1. - band) * crag * (1. - .85 * max(G6.w, G4.w))) * FINE + built(x, h);
+  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(built(x, h), woods(x, G2).x * band * TF));
 }
 `;
 
-/** The colour of the ground. Inside ground(): p, n, h, r, r2, near are set; it sets alb, tree and snow. */
+/** The colour of the ground. Inside ground(): p, n (with the trees), ng (the bare ground), h, r, r2, near, ao are set; it sets alb, snow and veg. */
 export const WORLD_ALBEDO = `
+  h = terrD(p.xz);
   float tl = G2.x * 1.2, sl = G2.y * 1.5;
-  vec2 tr = treeAt(p.xz, G2.z);
-  float flat1 = smoothstep(.36, .6, n.y);
-  float tree = smoothstep(tl, tl - .16, h + .16 * (r2 - .5)) * flat1;
-  float mead = max(smoothstep(.8, .93, n.y) * smoothstep(.2, .06, h + .05 * (r2 - .5)), G4.w * smoothstep(.5, .74, n.y));
-  float snow = smoothstep(sl, sl + .12, h + .2 * (r2 - .5)) * smoothstep(.4, .68, n.y);
+  vec3 wd = woods(p.xz, G2);
+  float band = treeBand(h, tl);
+  float flat1 = smoothstep(.36, .6, ng.y);
+  /* far off a wood is one soft canopy; near, each tree is itself */
+  float canopy = band * flat1 * smoothstep(0., .55, G2.z);
+  float mead = max(smoothstep(.8, .93, ng.y) * smoothstep(.2, .06, h + .05 * (r2 - .5)), G4.w * smoothstep(.5, .74, ng.y));
+  float tree = mix(canopy * (1. - mead), smoothstep(.02, .14, wd.y * band), TF);
+  float snow = smoothstep(sl, sl + .12, h + .2 * (r2 - .5)) * smoothstep(.4, .68, ng.y);
   vec3 d1 = noised(p.xz * 34.), d2 = noised(p.xz * 97.);
-  float bare = (1. - tree * G2.z) * (1. - snow * .7) * (1. - .8 * max(G6.w, mead));
+  float bare = (1. - tree) * (1. - canopy) * (1. - snow * .7) * (1. - .8 * max(G6.w, mead));
   n = normalize(n + vec3(d1.y + .6 * d2.y, 0., d1.z + .6 * d2.z) * .26 * near * bare);
   vec3 rock = G6.rgb * mix(.4, 1.3, r2) * (.7 + .6 * n2(vec2(h * 80. + r2 * 5., r * 2.)));
-  rock *= mix(.62, 1.08, smoothstep(.3, .75, n.y));
-  vec3 forest = mix(G4.rgb, G5.rgb, mix(r, .3 * r + .7 * tr.y, FINE)) * mix(1., .7 + .6 * tr.x, FINE);
+  rock *= mix(.62, 1.08, smoothstep(.3, .75, ng.y));
   vec3 grass = G3.rgb * mix(.6, 1.3, r2);
   vec3 sand = G7.rgb * (.8 + .4 * r2);
-  vec3 alb = mix(rock, sand, G6.w * smoothstep(.4, .7, n.y));
-  alb = mix(alb, forest, tree * smoothstep(0., .55, G2.z));
+  vec3 alb = mix(rock, sand, G6.w * smoothstep(.4, .7, ng.y));
+  /* under the trees: deep shade and leaf litter */
+  alb = mix(alb, G4.rgb * (.55 + .3 * r), canopy);
   alb = mix(alb, grass, mead * (1. - G6.w));
-  /* single trees standing in open grass */
-  alb = mix(alb, forest, tree * mead * smoothstep(.03, .2, tr.x) * FINE);
+  /* a crown: its own green, dark at the foot and bright at the top, dabbed with leaf */
+  vec3 crownFar = mix(G4.rgb, G5.rgb, .3 + .4 * r);
+  vec3 crownNear = mix(G4.rgb, G5.rgb, .15 + .85 * wd.z) * mix(.5, 1.35, wd.y) * (.8 + .4 * n2(p.xz * 330.));
+  /* the top of a crown catches warm light (the way stylised foliage is painted: a gradient, a shaded foot, a lit top) */
+  crownNear *= mix(vec3(1.), vec3(1.28, 1.16, .78), smoothstep(.55, 1., wd.y));
+  alb = mix(alb, mix(crownFar, crownNear, TF), tree);
+  /* and a crown is lit as one soft mass, not leaf by leaf */
+  n = normalize(mix(n, normalize(ng + vec3(0., .5, 0.)), .45 * tree * TF));
   float fl = G3.w;
-  float bloom = smoothstep(.76 - .5 * fl, .9 - .44 * fl, n2(p.xz * 34. + 3.)) * mead * step(.01, fl) * (1. - G6.w);
+  float bloom = smoothstep(.76 - .5 * fl, .9 - .44 * fl, n2(p.xz * 34. + 3.)) * mead * step(.01, fl) * (1. - G6.w) * (1. - tree);
   vec3 petal = mix(G9.rgb, G10.rgb, step(.5, n2(p.xz * 8.)));
   petal = mix(petal, .5 * (G9.rgb + G10.rgb) + vec3(.1, .08, .16), step(.72, n2(p.xz * 5. + 20.)));
   alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .88);
@@ -90,8 +127,10 @@ export const WORLD_ALBEDO = `
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
   float wander = n2(p.xz * 2.3 + 40.), stroke = fbm(p.xz * 16. + 9.);
   alb *= mix(vec3(.8, .92, 1.1), vec3(1.18, 1.04, .8), wander) * (.84 + .32 * stroke);
-  alb = mix(alb, vec3(.78, .83, .9), snow * (1. - .5 * tree * G2.z * FINE * step(.1, tr.x)));
-  float veg = clamp(max(tree * G2.z, mead), 0., 1.) * (1. - snow);
+  alb = mix(alb, vec3(.78, .83, .9), snow * (1. - .55 * tree));
+  float veg = clamp(max(max(tree, canopy), mead), 0., 1.) * (1. - snow);
+  /* the foot of a tree stands in its own shade */
+  ao *= mix(1., .55 + .45 * wd.y, tree * TF);
 `;
 
 /** The colour of the water's body, with reefs and ice. Inside main(): p, w, depth are set; it sets body and ice. */

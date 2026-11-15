@@ -51,9 +51,16 @@ wanders, softer light on leaves, water that mirrors the real shore, wind patches
 
 Known faults and gaps:
 
-- **Trees still read as beads** ("bubble wrap") on slopes and as dark dots on open grass. The biggest
-  remaining cause of the plastic look.
-- The shader takes about 20 to 30 seconds to appear on a first load on this Mac. Not measured on a phone.
+- **Trees** are now real shapes near the camera (pines, round crowns, bamboo), in groves with clearings,
+  lit as soft masses with a warm top, and the camera flies lower with trees and houses about 1.6 times
+  bigger (he said from a bird's-eye view the trees "look like grass"). Round crowns close to the camera
+  still look a little like eggs. No verdict yet on this version.
+- He asked to base the look on existing painted landscapes instead of from scratch. Research so far:
+  Ghibli backgrounds are poster colour (opaque, laid in few confident tones, skies on wet paper for soft
+  cloud edges); real-time "Ghibli" foliage is lit as one soft ball per crown with a gradient, a shaded
+  foot and a lit top. Studio Ghibli's free official stills are for personal, non-commercial use: fine to
+  study for palette, never to ship. He has not yet named the paintings to match.
+- The shader takes 40 to 60 seconds to appear on a first load on this Mac. Not measured on a phone.
   Its drawing speed is unmeasured. Both must be fixed or measured before it goes behind a real page.
 - Flat lands (hills, flower fields, savanna, lavender) are plainer than the mountain and sea lands.
   Flowers are blotches, not fields. Rice terraces and canyon walls are rough.

@@ -83,7 +83,7 @@ vec2 treeAt(vec2 x, float dens) {
 /* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
    z = which house it is (0 to 1), w = 1 where a house stands */
 vec4 house(vec2 x) {
-  vec2 g = x * 58., id = floor(g);
+  vec2 g = x * 40., id = floor(g);
   float r = tx(id + 5.), r2 = tx(id + 23.);
   vec2 f = fract(g) - .5 - (vec2(r, r2) - .5) * .28;
   float an = tx(id + 61.) * 3.14159, c = cos(an), sn = sin(an);
@@ -91,7 +91,7 @@ vec4 house(vec2 x) {
   vec2 hs = vec2(.25 + .1 * r, .16 + .06 * r2);
   vec2 d = abs(f) - hs;
   float inside = max(d.x, d.y), on = step(.25, tx(id + 97.));
-  float wall = .0048 + .0024 * r2, roof = .0042 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
+  float wall = .0068 + .003 * r2, roof = .006 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
   return vec4((wall + roof) * smoothstep(.035, -.02, inside) * on, inside, r, on);
 }
 #ifdef WORLD
@@ -224,10 +224,16 @@ vec3 ground(vec3 p, float t) {
   FINE = clamp(1.6 - t * .55, 0., 1.);
 #ifdef WORLD
   landHere(p.z);
-#endif
+  TF = clamp(1.7 - t * .6, 0., 1.);
+  vec2 hx0 = terrH2(p.xz - vec2(e, 0.)), hx1 = terrH2(p.xz + vec2(e, 0.)), hz0 = terrH2(p.xz - vec2(0., e)), hz1 = terrH2(p.xz + vec2(0., e));
+  vec3 ng = normalize(vec3(hx0.x - hx1.x, 2. * e, hz0.x - hz1.x));
+  vec3 n = normalize(vec3(hx0.x + hx0.y - hx1.x - hx1.y, 2. * e, hz0.x + hz0.y - hz1.x - hz1.y));
+#else
   vec3 n = normalize(vec3(terrH(p.xz - vec2(e, 0.)) - terrH(p.xz + vec2(e, 0.)), 2. * e, terrH(p.xz - vec2(0., e)) - terrH(p.xz + vec2(0., e))));
+#endif
   float h = p.y, r = n2(p.xz * 46.), r2 = fbm(p.xz * 7.);
   float near = 1. / (1. + t * t * .5);
+  float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
 #ifdef WORLD
 ${WORLD_ALBEDO}
 #else
@@ -266,7 +272,6 @@ ${WORLD_ALBEDO}
   float lamp = step(.45, hz.z) * town * hz.w;
   vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
   float sh = shadow(p + n * .004);
-  float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
 #ifdef WORLD
 ${WORLD_LIGHT}
 #else
@@ -322,13 +327,13 @@ void main() {
   float z = .2 + 8.45 * P, alt = .05 + 1.72 * pow(1. - P, 2.6), tilt = mix(-.36, .05, smoothstep(0., .92, P));
 #ifdef WORLD
   /* fly on and on, low enough to see the trees and the houses, rising and sinking a little */
-  z = uWorld; alt = .2 + .1 * n2(vec2(z * .21, 5.)); tilt = -.17;
+  z = uWorld; alt = .11 + .07 * n2(vec2(z * .21, 5.)); tilt = -.11;
 #endif
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
 #ifdef WORLD
-  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ro.xz + vec2(0., .25))) + .1, .06));
+  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ro.xz + vec2(0., .2))) + .075, .06));
 #else
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
 #endif
@@ -346,9 +351,17 @@ void main() {
   for (int i = 0; i < 96; i++) {
     vec3 p = ro + rd * t;
     float tm = terrM(p.xz), h = p.y - tm;
+#ifdef WORLD
+    if (h < .06) h -= stands(p.xz, tm, clamp(1.7 - t * .6, 0., 1.));
+#else
     if (h < .04) h -= built(p.xz, tm);
+#endif
     if (h < .0012 * t) { hit = t; break; }
+#ifdef WORLD
+    t += h * (h < .03 ? .34 : .46) + .0008;
+#else
     t += h * .46 + .0008;
+#endif
     if (t > lim || (p.y > 2.1 && rd.y > 0.)) break;
   }
 
