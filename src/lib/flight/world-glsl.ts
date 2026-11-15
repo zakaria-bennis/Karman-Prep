@@ -73,17 +73,34 @@ vec3 woods(vec2 x, vec4 g2) {
   return vec3(mix(.028, .0125, round) * mix(1., 2.2, cane) * t.x * (1. + leaf), t.x, t.y);
 }
 float treeBand(float h, float tl) { return smoothstep(tl, tl - .14, h) * smoothstep(.004, .03, h); }
-/* what stands on the ground at x, for the ray: a house or a tree, whichever is taller */
+/* herds (founder, 2026-11-14: "animals going across the landscape"): sheep, deer or dark horses grazing in
+   the open grass, each herd drifting its own slow way and each animal wandering within it.
+   x = how far up its back this point is (0 to 1), y = which herd */
+vec2 beast(vec2 x) {
+  vec2 hid = floor(x * 7.);
+  float kind = tx(hid + 5.);
+  if (tx(hid + 71.) < .45) return vec2(0., kind);
+  float gathered = smoothstep(.5, .2, length(fract(x * 7.) - .5));
+  vec2 g = x * 90. + vec2(uTime * .014 * (kind - .5), uTime * .006);
+  vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + 3.), tx(id + 19.)) - .5) * .5;
+  f -= .1 * vec2(sin(uTime * .3 + tx(id) * 6.3), cos(uTime * .23 + tx(id + 7.) * 6.3));
+  float d = length(f * vec2(1.5, 3.2));
+  return vec2(sqrt(max(0., 1. - d * d * 6.)) * step(.6, tx(id + 47.)) * gathered, kind);
+}
+/* where animals may stand: low open ground in a land that has meadows (m: how much) */
+float pasture(float h, float m) { return step(.3, m) * smoothstep(.006, .014, h) * smoothstep(.3, .22, h); }
+/* what stands on the ground at x, for the ray: a house, a tree or an animal, whichever is tallest */
 float stands(vec2 x, float h, float fade) {
   vec4 g2 = land(x.y, 2.);
-  return max(built(x, h), woods(x, g2).x * treeBand(h, g2.x * 1.2) * fade);
+  float up = max(built(x, h), woods(x, g2).x * treeBand(h, g2.x * 1.2) * fade);
+  return max(up, beast(x).x * .0042 * pasture(h, land(x.y, 4.).a) * fade);
 }
 /* the finest ground: x = the ground itself with its cracks and ledges, y = what stands on it */
 vec2 terrH2(vec2 x) {
   float h = terrD(x);
   float band = treeBand(h, G2.x * 1.2);
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(built(x, h), woods(x, G2).x * band * TF));
+  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(max(built(x, h), woods(x, G2).x * band * TF), beast(x).x * .0042 * pasture(h, G4.w) * TF));
 }
 `;
 
@@ -127,8 +144,15 @@ export const WORLD_ALBEDO = `
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
   float wander = n2(p.xz * 2.3 + 40.), stroke = fbm(p.xz * 16. + 9.);
   alb *= mix(vec3(.8, .92, 1.1), vec3(1.18, 1.04, .8), wander) * (.84 + .32 * stroke);
+  /* calmer colour: a little of the green taken out, a little dusk-blue let in */
+  alb = mix(alb, vec3(dot(alb, vec3(.3, .59, .11))) * vec3(.96, 1., 1.06), .2);
   alb = mix(alb, vec3(.78, .83, .9), snow * (1. - .55 * tree));
-  float veg = clamp(max(max(tree, canopy), mead), 0., 1.) * (1. - snow);
+  /* the herds: pale sheep, brown deer, dark horses */
+  vec2 bs = beast(p.xz);
+  float isB = smoothstep(.05, .3, bs.x) * pasture(h, G4.w) * TF * (1. - tree);
+  vec3 coat = bs.y < .4 ? vec3(.6, .58, .52) : bs.y < .75 ? vec3(.3, .19, .1) : vec3(.1, .08, .07);
+  alb = mix(alb, coat * mix(.55, 1.15, bs.x), isB);
+  float veg = clamp(max(max(tree, canopy), mead), 0., 1.) * (1. - snow) * (1. - isB);
   /* the foot of a tree stands in its own shade */
   ao *= mix(1., .55 + .45 * wd.y, tree * TF);
 `;
@@ -145,6 +169,12 @@ export const WORLD_WATER = `
     coral = mix(coral, vec3(.3, .16, .46), step(.74, n2(w * 29. + 8.)));
     body = mix(body, coral * (.5 + .7 * n2(w * 90.)) * (AMB + KEYCOL * .8), bed * .8);
     body = mix(w7.rgb * (AMB * .7 + KEYCOL), body, smoothstep(0., .014, depth));
+    /* fish: small dark shapes in shoals under the shallows, all swimming one way; a few are gold in clear water */
+    vec2 fg = w * 46. + vec2(uTime * .22, .12 * sin(uTime * .4 + w.x * 9.)), fid = floor(fg);
+    vec2 ff = fract(fg) - .5 - (vec2(tx(fid + 3.), tx(fid + 19.)) - .5) * .6;
+    float shoal = smoothstep(.5, .66, n2(w * 5. + vec2(uTime * .01, 4.)));
+    float fish = smoothstep(.16, .06, length(ff * vec2(1., 3.))) * step(.5, tx(fid + 47.)) * shoal * smoothstep(.004, .02, depth) * smoothstep(.16, .05, depth) * (1. - ice);
+    body = mix(body, mix(body * .22, vec3(.8, .3, .06) * (AMB + KEYCOL), step(.8, tx(fid + 61.)) * w8.a), fish * .85);
 `;
 
 /** The light on the ground, painted. Inside ground(): n, sh, ao, alb, veg are set; it sets lin. */
@@ -170,4 +200,20 @@ export const WORLD_MIRROR = `
       /* slopes that face the sun are bright in the mirror too */
       float face = clamp(.6 + 9. * (q.y - terrL(q.xz + KEY.xz * .03)), .15, 1.3);
       land *= KEYCOL * face * 1.5 + AMB * .6;
+`;
+
+/** Life on the water's surface. Inside main(): w, depth, ice, col are set. */
+export const WORLD_AFLOAT = `
+    /* swans near the shore, each trailing a wake, and the rings fish leave when they rise */
+    vec2 sg = w * 16. + vec2(uTime * .02, 0.), sid = floor(sg);
+    vec2 sf = fract(sg) - .5 - (vec2(tx(sid + 3.), tx(sid + 17.)) - .5) * .6;
+    float swan = step(.8, tx(sid + 43.)) * smoothstep(.004, .012, depth) * smoothstep(.1, .05, depth) * (1. - ice);
+    float bird = max(smoothstep(.07, .045, length(sf * vec2(1., 1.7))), smoothstep(.03, .015, length(sf - vec2(.07, 0.))));
+    float wake = smoothstep(.02, .0, abs(abs(sf.y) + (sf.x + .05) * .5)) * step(sf.x, -.05) * smoothstep(-.45, -.1, sf.x);
+    col += (AMB + KEYCOL) * .12 * wake * swan;
+    col = mix(col, vec3(.95, .94, .9) * (AMB * .9 + KEYCOL), bird * swan);
+    vec2 rg = w * 11., rid = floor(rg);
+    vec2 rf = fract(rg) - .5 - (vec2(tx(rid + 5.), tx(rid + 29.)) - .5) * .5;
+    float ph = fract(uTime * .11 + tx(rid + 13.));
+    col += (AMB + KEYCOL) * .1 * smoothstep(.02, .0, abs(length(rf) - ph * .35)) * (1. - ph) * step(.6, tx(rid + 37.)) * (1. - ice);
 `;

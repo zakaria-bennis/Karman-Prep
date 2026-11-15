@@ -49,6 +49,13 @@ style is not coherent, details do not make sense up close; shading and reflectio
 but still Ghibli. A first pass answered that (light in soft painted steps, violet shade, colour that
 wanders, softer light on leaves, water that mirrors the real shore, wind patches). No verdict yet.
 
+**The mood he wants (founder, 2026-11-15):** "a more calming mystical painted background that the user
+travels through with the appropriate lighting and flora and fauna". Not bright storybook. A first mood
+pass is in: thicker soft air with a little lilac, mist always lying low, a lower softer sun by day,
+calmer greens, lifted darks, flowers that glow faintly at night. First fauna is in: herds (sheep, deer,
+dark horses) grazing and drifting in meadow lands, swans with wakes near shores, shoals of fish under
+shallow water (some gold in clear water), rings where fish rise. Not yet looked at by night or in motion.
+
 Known faults and gaps:
 
 - **Trees** are now real shapes near the camera (pines, round crowns, bamboo), in groves with clearings,

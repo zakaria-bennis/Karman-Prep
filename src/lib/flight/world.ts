@@ -536,5 +536,5 @@ export const SETTLE_MS = 20 * 60_000;
  */
 export function sunAt(dark: boolean, t: number): [number, number] {
   const e = smooth(Math.min(1, Math.max(0, t)));
-  return dark ? [2.5 - 30.5 * e, 8 + 20 * e] : [1.5 + 40.5 * e, -30 + 26 * e];
+  return dark ? [2.5 - 30.5 * e, 8 + 20 * e] : [1.5 + 26.5 * e, -30 + 26 * e];
 }

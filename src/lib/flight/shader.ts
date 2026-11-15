@@ -11,6 +11,7 @@
 // lying in the valley drains away, and the camera sinks a little to its place; at night the northern lights
 // surge instead.
 import {
+  WORLD_AFLOAT,
   WORLD_ALBEDO,
   WORLD_BUILT,
   WORLD_LIGHT,
@@ -83,7 +84,7 @@ vec2 treeAt(vec2 x, float dens) {
 /* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
    z = which house it is (0 to 1), w = 1 where a house stands */
 vec4 house(vec2 x) {
-  vec2 g = x * 40., id = floor(g);
+  vec2 g = x * 54., id = floor(g);
   float r = tx(id + 5.), r2 = tx(id + 23.);
   vec2 f = fract(g) - .5 - (vec2(r, r2) - .5) * .28;
   float an = tx(id + 61.) * 3.14159, c = cos(an), sn = sin(an);
@@ -91,7 +92,7 @@ vec4 house(vec2 x) {
   vec2 hs = vec2(.25 + .1 * r, .16 + .06 * r2);
   vec2 d = abs(f) - hs;
   float inside = max(d.x, d.y), on = step(.25, tx(id + 97.));
-  float wall = .0068 + .003 * r2, roof = .006 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
+  float wall = .0056 + .0026 * r2, roof = .005 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
   return vec4((wall + roof) * smoothstep(.035, -.02, inside) * on, inside, r, on);
 }
 #ifdef WORLD
@@ -271,6 +272,10 @@ ${WORLD_ALBEDO}
   /* lamps: at night most houses have a window lit, and the light spills onto the ground around them */
   float lamp = step(.45, hz.z) * town * hz.w;
   vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
+#ifdef WORLD
+  /* by night the flowers hold a little light of their own, and it breathes */
+  glow += NIGHT * petal * bloom * (.22 + .1 * sin(uTime * .7 + r * 6.3));
+#endif
   float sh = shadow(p + n * .004);
 #ifdef WORLD
 ${WORLD_LIGHT}
@@ -283,7 +288,13 @@ ${WORLD_LIGHT}
 
 vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
   vec3 fogc = skyBase(normalize(vec3(rd.x, .04 + max(rd.y, 0.) * .25, rd.z)));
+#ifdef WORLD
+  /* the air is thick and soft: far land melts into the sky, a little lilac in it */
+  fogc = mix(fogc, fogc * vec3(1.03, .98, 1.08) + vec3(.02, .012, .03) * DAY, .6);
+  col = mix(col, fogc, 1. - exp((-t * t * .022 - t * .05) * (1. + 9. * XM)));
+#else
   col = mix(col, fogc, 1. - exp((-t * t * .013 - t * .02) * (1. + 9. * XM)));
+#endif
   /* mist that lies on the water and in the low ground, and drifts */
   float mist = exp(-max(p.y, 0.) * mix(11., 1.7, XM)) * (1. - exp(-t * mix(.9, 5., XM))) * mix(.35 + .65 * fbm(p.xz * 2.4 + vec2(uTime * .03, 0.)), .75 + .25 * fbm(p.xz * 1.3 + vec2(uTime * .12, uTime * .05)), XM);
   return mix(col, fogc * 1.08 + KEYCOL * .05, mist * mix(mix(.38, .62, max(LOW, NIGHT)), .985, XM));
@@ -295,7 +306,7 @@ void main() {
   float e = clamp(uIntro, 0., 1.), es = e * e * (3. - 2. * e), left = 1. - es;
   XM = max(.8 * left * left, .5 * uWx.z);
 #ifdef WORLD
-  XM = max(XM, .3 * land(uWorld + 1., 10.).a);
+  XM = max(XM, .06 + .3 * land(uWorld + 1., 10.).a);
 #endif
   XA = sin(3.14159 * e);
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
@@ -437,6 +448,9 @@ ${WORLD_WATER}
     col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
     col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
     col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
+#ifdef WORLD
+${WORLD_AFLOAT}
+#endif
     col = haze(col, p, rd, tw);
     tend = tw;
   } else {
@@ -513,12 +527,24 @@ ${WORLD_WATER}
   }
 #endif
   /* light spilling through the air around the sun */
+#ifdef WORLD
+  col += SUNCOL * (pow(max(dot(rd, SUN), 0.), 5.) * .16 + pow(max(dot(rd, SUN), 0.), 40.) * .2) * (1. - exp(-tend * .3));
+#else
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));
+#endif
 
   col *= mix(1.05, 2.6, NIGHT);
+#ifdef WORLD
+  col = mix(vec3(dot(col, vec3(.299, .587, .114))), col, 1.02);
+#else
   col = mix(vec3(dot(col, vec3(.299, .587, .114))), col, 1.14);
+#endif
   col = clamp((col * (2.51 * col + .03)) / (col * (2.43 * col + .59) + .14), 0., 1.);
   col = pow(col, vec3(.4545));
+#ifdef WORLD
+  /* a quiet picture: the darks lifted toward dusk-blue, the lights held back from white */
+  col = col * vec3(.94, .94, .92) + vec3(.026, .03, .044);
+#endif
   vec2 sc = gl_FragCoord.xy / uRes;
   col *= .86 + .14 * pow(16. * sc.x * sc.y * (1. - sc.x) * (1. - sc.y), .2);
   col += (jit - .5) / 255.;

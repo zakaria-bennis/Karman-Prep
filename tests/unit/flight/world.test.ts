@@ -49,7 +49,7 @@ describe("the portals' endless world", () => {
 
   it("opens light mode at dawn and dark mode late in the sunset, then settles", () => {
     expect(sunAt(false, 0)[0]).toBeLessThan(5);
-    expect(sunAt(false, 1)[0]).toBeGreaterThan(35);
+    expect(sunAt(false, 1)[0]).toBeGreaterThan(20);
     expect(sunAt(true, 0)[0]).toBeGreaterThan(0);
     expect(sunAt(true, 1)[0]).toBeLessThan(-20);
   });
