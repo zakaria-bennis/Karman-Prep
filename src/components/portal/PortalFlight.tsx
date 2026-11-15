@@ -9,7 +9,7 @@
  * chunk after the page is up; a browser that cannot draw it keeps the plain sky behind.
  */
 import { useEffect, useRef } from "react";
-import type { FlightSky } from "@/lib/flight/engine";
+import type { FlightOptions, FlightSky } from "@/lib/flight/engine";
 import { MOTION_EVENT, prefersStill } from "@/lib/painting/motion";
 
 /** The stretch every portal flies: late morning over the valleys, calm behind dense pages. */
@@ -20,19 +20,22 @@ export default function PortalFlight({
   sky,
   world,
 }: {
-  /** A generated world with no end (true, or the distance to start at), instead of the fixed route. */
-  world?: boolean | number;
+  /** The endless world instead of the fixed route (see FlightOptions.world). */
+  world?: FlightOptions["world"];
   route?: [number, number];
-  /** The visitor's own hour and weather, when the page follows them. */
+  /** The visitor's own weather, when the page follows it. */
   sky?: () => FlightSky | null;
 }) {
   const [from, to] = route;
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const skyNow = useRef(sky);
+  const worldNow = useRef(world);
   useEffect(() => {
     skyNow.current = sky;
-  }, [sky]);
+    worldNow.current = world;
+  }, [sky, world]);
+  const worldKey = JSON.stringify(world ?? null);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -59,7 +62,7 @@ export default function PortalFlight({
           night: () => root.getAttribute("data-kp-mode") === "dark",
           route: [from, to],
           sky: () => skyNow.current?.() ?? null,
-          world,
+          world: worldNow.current,
           onReady: () => stage.setAttribute("data-painted", ""),
         });
         if (!flight.start()) return;
@@ -82,7 +85,7 @@ export default function PortalFlight({
       disposed = true;
       dispose?.();
     };
-  }, [from, to, world]);
+  }, [from, to, worldKey]);
 
   return (
     <div ref={host} className="kp-backdrop kp-flight" aria-hidden="true">

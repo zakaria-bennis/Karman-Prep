@@ -17,50 +17,55 @@ He rejected, on 2026-11-14: three welcome-after-payment mockups (`/dev/welcome`)
 was "absolutely ass". Do not revive either. Their code is deleted from the portal branch, and their draft
 PR 297 is closed unmerged.
 
-## Step 1, the background: in progress, direction approved
+## Step 1, the background: in progress
 
-Branch `claude/portal-world`, draft PR 302. It also carries the two fixes of PR 296 (below), because it was
-cut from that branch; if PR 296 merges first, nothing changes here. Blank page: `/dev/world` (dev only).
+Branch `claude/portal-world`, draft PR 302. Blank page: `/dev/world` (dev only).
 
-The portal's background is the live, lit landscape of the home page (`src/lib/flight/`), not the painted
-one in `src/lib/painting/`. On top of the home page's engine this branch adds, all in
-`src/lib/flight/shader.ts` and switched on only where a page asks:
+The portal's background is the live, lit landscape of the home page (`src/lib/flight/`), flown as an
+**endless world** (founder, 2026-11-14, evening: "auto-generated ... endless and forever", like flying over
+a Minecraft world in creative mode, at least twenty lands that blend into each other).
 
-- **A generated world** (`uWorld`, engine option `world`): the land is made up as the camera flies, with no
-  end: sea, lakes, valleys, mountain height and climate vary along the route (`landAt`). The home page and
-  subpages still fly their fixed route.
-- **Villages** (`townAt`, `house`, `built`): houses with pitched roofs in the heightfield, lit windows at night.
-- **The visitor's sky** (`uHour`, `uWx`, engine option `sky`): the sun follows a clock; cloud, rain, mist
-  and snow change the light and the air.
-- Flower fields, boats with lanterns, and drifting motes (pollen by day, fireflies by night).
+How it is built:
 
-`/dev/world` switches: `?world=1` (fly the generated world), `?z=27` (start there), `?p=0.5` (hold a spot),
-`?hour=17.7`, `?wx=cloudy|rain|mist|snow`, `?night=1`, `?live=1` (the visitor's own clock).
+- `src/lib/flight/world.ts` holds the lands. **Each land is one row of numbers** (height, valley width,
+  water, trees, colours, villages, reef, ice, mist). There are 21. The route is cut into stretches of one
+  land each, in a fixed shuffle where every land comes round before any repeats; the end of each stretch
+  slides into the next. A new land is a new row.
+- `src/lib/flight/world-glsl.ts` is the shader code only the world uses. It reads the lands from a small
+  table of the route just ahead. `shader.ts` compiles with or without it (`#define WORLD`), so the home
+  page's shader is unchanged in what it draws.
+- **Day and night (founder's rule):** light mode opens at dawn and is full day 20 minutes later; dark mode
+  opens late in the sunset and is full night 20 minutes later. He said "dusk" for light mode; dawn was
+  assumed. The tab remembers when its sky started and how far it has flown.
+- **Speed:** slow drift (`DRIFT`), a new land about every two minutes.
+- Weather is a setting (`sky`), not yet fed by the visitor's real weather.
 
-What he said about it: "okay for right now"; the valley alone is not enough; he wants scenery that flows
-from one kind to the next, generated not preset, with wildlife and particle effects, like a Minecraft
-creative-mode flyover (biomes, villages, oceans, life, observatories), in the Ghibli style with detailed
-strokes, motion and lighting. He has not yet given a verdict on the generated world.
+`/dev/world` switches: `?land=reef` (hold one land), `?z=40`, `?sky=0.5` (hold the sky part-way through
+its 20 minutes), `?night=1`, `?wx=cloudy|rain|mist|snow`. In the console, `__world({land, from, settled})`
+changes these without a reload.
+
+What he said on seeing the first lands: he likes the overall landscape; it looks **plastic**, the art
+style is not coherent, details do not make sense up close; shading and reflections should be more real
+but still Ghibli. A first pass answered that (light in soft painted steps, violet shade, colour that
+wanders, softer light on leaves, water that mirrors the real shore, wind patches). No verdict yet.
 
 Known faults and gaps:
 
-- Only stills were checked (six by day). Not watched in motion, not seen at night in the generated world,
-  not tried on a phone, and its speed is unmeasured. The houses and the generated land cost extra work on
-  every picture; measure before it goes behind a real page.
-- The houses are specks from flying height; the boats are specks; trees read as pebbles in green valleys.
-- No observatory yet: four candidate hills are in the shader (`domeAt`) and none showed in view. Place one
-  by hand and delete the candidates.
-- A stray sliver floats near one high peak. Not known whether it predates this branch.
-- White patches in one meadow, probably snow lying too low.
-- Not started: animals on land, beaches with detail, caves, chimney smoke, the hand-painted stroke quality.
-- Real weather is not wired. Cloudflare gives the server the visitor's rough city, so no cookie or prompt is
-  needed, but a weather source must be chosen (terms and price unchecked; one popular free source is
-  non-commercial only) and the privacy policy needs a line that his lawyer sees. He called it an "essential
-  cookie"; that is a legal label and was not given.
+- **Trees still read as beads** ("bubble wrap") on slopes and as dark dots on open grass. The biggest
+  remaining cause of the plastic look.
+- The shader takes about 20 to 30 seconds to appear on a first load on this Mac. Not measured on a phone.
+  Its drawing speed is unmeasured. Both must be fixed or measured before it goes behind a real page.
+- Flat lands (hills, flower fields, savanna, lavender) are plainer than the mountain and sea lands.
+  Flowers are blotches, not fields. Rice terraces and canyon walls are rough.
+- Not built: animals, fish, more bird kinds, the observatory and other wonders, chimney smoke, real
+  weather (a source must be chosen; the privacy policy needs a line his lawyer sees).
+- When the shader's distance wraps (every 128 units, over an hour of flying) the view will jump; it needs
+  a fade.
 
 ## What comes next, in order
 
-1. His verdict on the generated world, then iterate the background until he approves it.
+1. His verdict on the endless world, then iterate the background until he approves it. Then its life:
+   animals crossing the land, birds, fish (he asked for all three).
 2. The sidebar (phone: a bar of five at the bottom; desktop: a labelled menu on the left).
 3. Each screen's layout, one at a time.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
