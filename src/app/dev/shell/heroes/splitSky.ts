@@ -1,8 +1,8 @@
 // The Library's hero: one sky cut in two on a slight slant, an even half each.
 //   Reading and Writing: golden hour, drifting cloud, wooded hills, and the open book (book.ts).
 //   Math: a real night. A Milky Way with its dust lanes, thousands of stars in three depths that twinkle
-//   and wheel slowly about a pole, a breathing nebula, the odd shooting star, an observatory on the
-//   ridge with its telescope turned up at the sky, and a few constellations.
+//   and wheel slowly about a pole, a breathing nebula, the odd shooting star, a glass-domed observatory
+//   and its dishes set into the hills, and a few constellations.
 // The constellations are quiet on purpose (founder, 2026-11-15: "very subtle and low-key, but also
 // breathing and flowing ... just slightly more prominent than the background stars"). They are small,
 // made only of straight vectors from star to star, and they keep changing: each one is drawn, held,
@@ -96,34 +96,57 @@ const SKY = /* glsl */ `
     return c;
   }
 
-  // the observatory on the far ridge: a drum, a dome with its slit open, and the telescope looking up
+  // a dish on its mast, tipped up at the sky
+  float dish(vec2 o, float r) {
+    vec2 up = normalize(vec2(-0.45, 0.89));
+    vec2 c = vec2(0.0, 0.62);
+    float bowl = max(length(o - c - up * r * 0.72) - r, dot(o - c - up * r * 0.72, up) + r * 0.62);   // a solid shallow bowl
+    float mast = sdSeg(o, vec2(0.0, -0.3), c) - 0.07;
+    float horn = min(sdSeg(o, c, c + up * r * 0.7) - 0.028, length(o - c - up * r * 0.7) - 0.07);
+    return min(min(bowl, mast), horn);
+  }
+  // the observatory, set into the middle ridge: a glass dome you could stand in and look up through,
+  // its frame of struts catching the sky, a small telescope inside, and two dishes beside it
   vec3 observatory(vec3 c, vec2 p) {
-    float ground = (ridge1(uObs.x) * 2.0 - 1.0) * uHalf.y;
-    vec2 o = (p - vec2(uObs.x, ground - uObs.y * 0.06)) / uObs.y;
-    float drum = sdBox(o - vec2(0.0, 0.3), vec2(0.78, 0.36));
-    float dome = max(length(o - vec2(0.0, 0.62)) - 0.8, 0.62 - o.y);
-    float wing = sdBox(o - vec2(1.15, 0.16), vec2(0.5, 0.22));
-    float body = min(min(drum, dome), wing);
-    vec2 up = normalize(vec2(-0.5, 0.87));
-    float tube = sdSeg(o, vec2(0.0, 0.78) + up * 0.1, vec2(0.0, 0.78) + up * 1.35) - 0.105;
-    float hood = sdSeg(o, vec2(0.0, 0.78) + up * 1.25, vec2(0.0, 0.78) + up * 1.5) - 0.15;
-    float aa = 1.5 / (uObs.y * 120.0);
-    vec3 stone = vec3(0.075, 0.085, 0.20);
-    // a cool light from the sky on the dome's upper left, and bands where its panels meet
-    float lit = clamp(dot(normalize(o - vec2(0.0, 0.62)), vec2(-0.6, 0.8)), 0.0, 1.0) * step(0.62, o.y);
-    vec3 shell = stone + vec3(0.10, 0.13, 0.24) * lit + vec3(0.02) * step(0.5, fract(atan(o.x, o.y - 0.62) * 3.0));
-    c = mix(c, shell, smoothstep(aa, -aa, body));
-    // the slit, lit dimly from inside, the telescope standing in it
-    float slit = max(sdBox(o - vec2(0.0, 0.62) - up * 0.45, vec2(0.6, 0.6)), abs(dot(o - vec2(0.0, 0.62), vec2(up.y, -up.x))) - 0.16);
-    slit = max(slit, dome);
-    c = mix(c, vec3(0.30, 0.20, 0.12), smoothstep(aa, -aa, slit) * 0.8);
-    c = mix(c, vec3(0.13, 0.14, 0.26), smoothstep(aa, -aa, min(tube, hood)));
-    c += vec3(0.5, 0.7, 1.0) * smoothstep(aa, -aa, abs(hood) - 0.012) * 0.25;
-    // lit windows and a door
-    float win = min(sdBox(o - vec2(-0.38, 0.34), vec2(0.07, 0.11)), sdBox(o - vec2(0.36, 0.34), vec2(0.07, 0.11)));
-    win = min(win, sdBox(o - vec2(1.2, 0.16), vec2(0.09, 0.09)));
-    c = mix(c, vec3(1.0, 0.74, 0.36), smoothstep(aa, -aa, win) * (0.85 + 0.15 * sin(uTime * 1.3)));
-    c += vec3(1.0, 0.70, 0.30) * exp(-max(win, 0.0) * 9.0) * 0.12 * smoothstep(aa, -aa, body);
+    float s = uObs.y;
+    float aa = 1.5 / (s * 120.0);
+    vec2 o = (p - vec2(uObs.x, (ridge2(uObs.x) * 2.0 - 1.0) * uHalf.y - s * 0.04)) / s;
+    // the dishes first, a little behind the dome, each standing on the ground where it is
+    for (int i = 0; i < 2; i++) {
+      float dx = i == 0 ? 1.55 : -1.5;
+      float size = i == 0 ? 0.46 : 0.34;
+      float gx = uObs.x + dx * s;
+      vec2 q = (p - vec2(gx, (ridge2(gx) * 2.0 - 1.0) * uHalf.y - s * 0.1)) / (s * (i == 0 ? 1.0 : 0.8));
+      float d = dish(q, size);
+      c = mix(c, vec3(0.20, 0.24, 0.42), smoothstep(aa, -aa, d));
+      c += vec3(0.45, 0.6, 0.9) * smoothstep(aa * 2.0, 0.0, abs(d)) * 0.16;
+    }
+    vec2 dc = vec2(0.0, 0.2);                     // the dome's centre, low, so it sits down in the hill
+    float rad = length(o - dc);
+    float dome = max(rad - 0.86, dc.y - o.y);
+    float inside = smoothstep(aa, -aa, dome);
+    // glass: the sky shows through, tinted, brighter towards the rim where glass turns edge-on
+    float rim = smoothstep(0.55, 0.86, rad);
+    vec3 glass = c * 0.8 + vec3(0.10, 0.15, 0.28) + vec3(0.25, 0.36, 0.6) * rim * 0.6;
+    // a warm light low inside, as from a lamp on the floor
+    glass += vec3(1.0, 0.66, 0.3) * exp(-length((o - vec2(0.0, 0.3)) * vec2(1.0, 1.7)) * 2.6) * 0.34 * (0.9 + 0.1 * sin(uTime * 1.1));
+    // the frame: rings and leaning struts, as a geodesic dome has
+    float ang = atan(o.x, o.y - dc.y);
+    float struts = min(abs(fract(ang * 2.55 + rad * 1.6) - 0.5), abs(fract(ang * 2.55 - rad * 1.6) - 0.5));
+    float rings = abs(fract(rad * 3.5) - 0.5);
+    float frame = smoothstep(0.045, 0.0, min(struts, rings * 0.6));
+    glass = mix(glass, vec3(0.55, 0.66, 0.9), frame * 0.6);
+    c = mix(c, glass, inside);
+    c += vec3(0.6, 0.75, 1.0) * smoothstep(aa * 3.0, 0.0, abs(dome)) * 0.35 * step(dc.y, o.y);   // the glass's edge
+    // inside it, a telescope on its mount, looking up
+    vec2 up = normalize(vec2(-0.42, 0.9));
+    float scope = min(sdSeg(o, vec2(0.05, 0.42), vec2(0.05, 0.42) + up * 0.5) - 0.06, sdSeg(o, vec2(0.05, 0.2), vec2(0.05, 0.42)) - 0.035);
+    c = mix(c, vec3(0.05, 0.06, 0.14), smoothstep(aa, -aa, scope) * inside);
+    // the low wall it stands on, with one lit doorway
+    float wall = sdBox(o - vec2(0.0, 0.12), vec2(0.9, 0.1)) - 0.02;
+    c = mix(c, vec3(0.09, 0.10, 0.22), smoothstep(aa, -aa, wall));
+    float door = sdBox(o - vec2(0.42, 0.11), vec2(0.07, 0.09));
+    c = mix(c, vec3(1.0, 0.74, 0.36), smoothstep(aa, -aa, door) * 0.9);
     return c;
   }
 
@@ -549,8 +572,8 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     state.range = Math.abs(normal.x) * l.halfW + Math.abs(normal.y) * l.halfH;
     uniforms.uHalf.value.set(l.halfW, l.halfH);
     uniforms.uObs.value.set(
-      l.portrait ? l.halfW * 0.42 : l.halfW * 0.66,
-      l.halfH * (l.portrait ? 0.085 : 0.2),
+      l.portrait ? l.halfW * 0.3 : l.halfW * 0.62,
+      l.halfH * (l.portrait ? 0.15 : 0.3),
       0
     );
     const px = (renderer.domElement.height / (2 * l.halfH)) * (l.portrait ? 0.26 : 0.34);

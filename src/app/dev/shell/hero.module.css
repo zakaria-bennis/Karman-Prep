@@ -91,10 +91,10 @@
 
 .plaque {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   max-width: 100%;
-  padding: 14px 18px 16px;
-  border-radius: 24px;
+  padding: 10px 14px 12px;
+  border-radius: 18px;
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -105,10 +105,10 @@
   transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
-/* a sign never crosses the seam (founder, 2026-11-15). On a phone the seam slopes up to the right
-   through the middle, so the upper sign stands clear above it and the lower one clear below. */
-.pick[data-side="0"] {
-  padding-bottom: 76px;
+/* a sign never crosses the seam (founder, 2026-11-15), and it is small, so the subject keeps the
+   middle of its half. On a phone the upper sign sits in the top corner and the lower one at the foot. */
+.hero .pick[data-side="0"] {
+  align-content: start;
 }
 
 /* the Math sign lies on the night, so it is dark glass with pale words in either mode */
@@ -136,17 +136,17 @@
 }
 
 .name {
-  font: 400 26px/1.05 var(--font-serif);
+  font: 400 20px/1.1 var(--font-serif);
   letter-spacing: -0.015em;
 }
 
 .meta {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .meta b {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -154,9 +154,9 @@
 /* progress in one colour: a gold line that fills */
 .band {
   display: block;
-  width: 168px;
+  width: 132px;
   max-width: 100%;
-  height: 6px;
+  height: 5px;
   border-radius: 3px;
   background: var(--l0);
 }
@@ -189,13 +189,12 @@
   }
 
   .hero .pick {
-    padding: 24px;
+    padding: 20px;
   }
 
-  /* on a desktop the seam leans to the right at the foot, so the Math sign starts well clear of it,
-     and the Reading and Writing sign stops well short */
+  /* on a desktop both signs sit at the foot of their halves, each well clear of the seam */
   .hero .pick[data-side="0"] {
-    padding-right: 96px;
+    align-content: end;
   }
 
   .hero .pick[data-side="1"] {
@@ -203,17 +202,25 @@
   }
 
   .plaque {
-    gap: 8px;
-    padding: 20px 26px 24px;
-    border-radius: 28px;
+    gap: 6px;
+    padding: 14px 18px 16px;
+    border-radius: 22px;
   }
 
   .name {
-    font-size: 44px;
+    font-size: 28px;
+  }
+
+  .meta {
+    font-size: 15px;
+  }
+
+  .meta b {
+    font-size: 18px;
   }
 
   .band {
-    width: 260px;
+    width: 190px;
   }
 }
 
