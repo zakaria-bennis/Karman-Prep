@@ -13,6 +13,7 @@
   --lens: rgb(255 255 255 / 0.62);
   --lens-edge: rgb(255 255 255 / 0.9);
   --halo: rgb(255 250 240 / 0.85);
+  --hover: rgb(255 255 255 / 0.28);
   --cut: #fffdf8;
   --lift: 0 18px 44px -18px rgb(24 28 58 / 0.5), 0 2px 8px rgb(24 28 58 / 0.1);
   --frost: blur(22px) saturate(1.7) brightness(1.06);
@@ -33,6 +34,7 @@
   --lens: rgb(255 255 255 / 0.16);
   --lens-edge: rgb(255 255 255 / 0.3);
   --halo: rgb(8 10 24 / 0.8);
+  --hover: rgb(255 255 255 / 0.08);
   --cut: #f4efe6;
   --lift: 0 18px 44px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.3);
   --frost: blur(22px) saturate(1.5) brightness(0.9);
@@ -59,7 +61,8 @@
 
 /* ---- the glass ---- */
 .nav,
-.demo {
+.demo,
+.account {
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -84,15 +87,58 @@
 }
 
 .brand,
-.who {
+.who,
+.under {
   display: none;
+}
+
+/* the piece that stirs when its row is hovered or chosen */
+.art svg,
+.art [data-move] {
+  transform-box: fill-box;
+  transform-origin: 50% 60%;
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+@media (hover: hover) {
+  .item:hover .art svg {
+    transform: rotate(-5deg) scale(1.06);
+  }
+
+  .item:hover [data-move="pull"] {
+    transform: translateY(-7px) rotate(-5deg);
+  }
+
+  .item:hover [data-move="pop"] {
+    transform: scale(1.18);
+  }
+
+  .item:hover [data-move="dart"] {
+    transform: translate(3px, -3px);
+  }
+
+  .item:hover [data-move="spin"] {
+    transform: rotate(60deg);
+  }
+
+  .item:hover [data-move="flag"] {
+    transform: scaleX(1.25) skewY(-6deg);
+    transform-origin: 0 50%;
+  }
+
+  .item:hover [data-move="flap"] {
+    transform: translateY(-3px);
+  }
+
+  .item:hover [data-move="chalk"] {
+    transform: translateX(2px);
+  }
 }
 
 .items {
   position: relative;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  display: flex;
+  justify-content: space-between;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -102,10 +148,10 @@
 /* the lens sits behind the sticker only, so no word is ever clipped by it */
 .lens {
   position: absolute;
-  top: 2px;
-  left: -32px;
+  top: 0;
+  left: 0;
   width: 64px;
-  height: 40px;
+  height: 64px;
   border-radius: var(--r-lens);
   background: var(--lens);
   border: 1px solid var(--lens-edge);
@@ -120,8 +166,9 @@
   align-content: start;
   gap: 2px;
   width: 100%;
+  min-width: 56px;
   height: 64px;
-  padding: 6px 0 0;
+  padding: 7px 6px 0;
   border-radius: var(--r-lens);
   font-size: 11px;
   letter-spacing: 0;
@@ -199,10 +246,12 @@
 .demo {
   position: fixed;
   z-index: 5;
-  top: 12px;
-  right: 12px;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 92px);
+  translate: -50% 0;
   display: flex;
   gap: 2px;
+  white-space: nowrap;
   padding: 4px;
   border-radius: 999px;
   font-size: 12px;
@@ -219,22 +268,72 @@
   box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
+/* ---- the profile's menu: a smaller piece of glass that grows out of the profile ---- */
+.account {
+  position: fixed;
+  z-index: 6;
+  left: 28px;
+  bottom: 92px;
+  display: grid;
+  gap: 4px;
+  width: 208px;
+  padding: 8px;
+  border-radius: 22px;
+  transform-origin: 20% 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 14px;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.row:hover {
+  background: var(--hover);
+}
+
+.row:active {
+  transform: scale(0.97);
+}
+
+.look {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--hover);
+}
+
+.look button {
+  height: 36px;
+  border-radius: 11px;
+}
+
+.look button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
 /* ---- with a mouse and room: a slim rail at the left that opens when the pointer is on it ---- */
 @media (min-width: 960px) and (hover: hover) {
   .nav {
-    top: 50%;
+    top: 16px;
     left: 16px;
     right: auto;
-    bottom: auto;
+    bottom: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     max-width: none;
-    max-height: calc(100dvh - 32px);
     margin: 0;
     padding: 12px;
     overflow: hidden;
-    translate: 0 -50%;
   }
 
   .brand {
@@ -253,6 +352,7 @@
   }
 
   .items {
+    display: grid;
     grid-auto-flow: row;
     grid-auto-rows: 48px;
     gap: 4px;
@@ -272,6 +372,7 @@
     align-content: center;
     align-items: center;
     gap: 14px;
+    min-width: 0;
     height: 48px;
     padding: 0 0 0 7px;
     font-size: 15px;
@@ -279,13 +380,27 @@
     text-shadow: none;
   }
 
+  .under {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--hover);
+    pointer-events: none;
+  }
+
   .who {
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 48px;
+    flex: none;
+    height: 56px;
+    margin-top: auto;
     padding: 0 0 0 5px;
     border-radius: 16px;
+    box-shadow: 0 -1px 0 var(--glass-edge);
+    transition: background 0.2s var(--out);
     text-align: left;
     white-space: nowrap;
   }
@@ -337,13 +452,28 @@
   }
 
   .title {
-    padding: 72px 0 0 128px;
+    padding: 72px 0 0 288px;
     font-size: 48px;
   }
 
+  .who:hover,
+  .who[aria-expanded="true"] {
+    background: var(--hover);
+  }
+
+  .who:active .face {
+    transform: scale(0.92);
+  }
+
+  .face {
+    transition: transform 0.2s var(--out);
+  }
+
   .demo {
-    top: 16px;
+    left: auto;
     right: 16px;
+    bottom: 16px;
+    translate: none;
   }
 }
 
@@ -376,7 +506,9 @@
   }
 
   .nav .word,
-  .brand i {
+  .brand i,
+  .art svg,
+  .art [data-move] {
     transition: none;
   }
 }

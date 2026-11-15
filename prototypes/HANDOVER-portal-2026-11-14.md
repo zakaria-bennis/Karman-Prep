@@ -112,6 +112,20 @@ Known faults and gaps:
    - **The highlight must never crowd or clip a word.** The lens sits behind the sticker only.
    - **Desktop: a slim rail (72px) that opens to 232px on hover or focus**, and it may hold more than
      five items (what the phone keeps under More: Chat, Rewards, Settings).
+   **Third pass, same day, from his notes on the glass version (he likes the frosted effect):**
+   - Stickers were "a little too colorful": now cream, sand and plum ink with one soft tint each.
+   - Subjects he chose: Library is books standing on a shelf, and one book moves on hover; Class is a
+     classroom drawing (a chalkboard), not a computer; Rewards is a trophy; Practice is not a pencil
+     (now a target with an arrow, unconfirmed); he disliked the More pebbles (now a satchel,
+     unconfirmed); Progress stays a mountain for now ("mountain, an arrow, a graph going up ... later").
+   - The rail runs the full height with a margin. He said "on the right side"; it was kept on the left
+     and he was asked which he meant.
+   - Each row animates on hover when the rail is open (a faint glass follows the pointer; a part of each
+     sticker stirs).
+   - No light and dark switch at the top right. The profile at the bottom of the rail opens a small
+     menu: Settings, Light or Dark, Sign out. Settings is not a row in the rail. The site's floating
+     theme button is hidden on `/dev/shell` (`ThemeToggle.tsx`).
+   - On the phone the lens holds the whole item, picture and word, and is always wider than the word.
    On a phone the lens can be dragged along the bar and is thrown to the item its speed carries it to.
    The rail shows only with a mouse and 960px; touch screens keep the bottom bar. Intent and PFD skill
    files are under `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for

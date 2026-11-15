@@ -8,7 +8,14 @@
 //   ?demo=0                         hide the demo switches (for pictures)
 //   ?open=1                         hold the desktop rail open (for pictures)
 // Production builds return 404.
-import { animate, motion, useMotionValue, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useTransform,
+} from "framer-motion";
 import { notFound, useSearchParams } from "next/navigation";
 import {
   Suspense,
@@ -46,19 +53,19 @@ const PLANS = {
     label: "Free, Practice, Pro",
     name: "Practice",
     bar: ["library", "practice", "progress", "rewards", "more"],
-    rail: ["library", "practice", "progress", "rewards", "settings"],
+    rail: ["library", "practice", "progress", "rewards"],
   },
   cohort: {
     label: "Cohort",
     name: "Cohort",
     bar: ["homework", "library", "class", "progress", "more"],
-    rail: ["homework", "library", "class", "chat", "progress", "rewards", "settings"],
+    rail: ["homework", "library", "class", "chat", "progress", "rewards"],
   },
   private: {
     label: "Private",
     name: "Private",
     bar: ["homework", "library", "schedule", "progress", "more"],
-    rail: ["homework", "library", "schedule", "chat", "progress", "rewards", "settings"],
+    rail: ["homework", "library", "schedule", "chat", "progress", "rewards"],
   },
 } as const satisfies Record<
   string,
@@ -110,12 +117,21 @@ function Shell() {
   const list = useRef<HTMLUListElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const w = useMotionValue(64);
+  const left = useTransform([x, w], ([c, width]: number[]) => c - width / 2);
+  const [menu, setMenu] = useState(false);
+  const [hover, setHover] = useState<number | null>(null);
+  const [hoverY, setHoverY] = useState(0);
   const placed = useRef(false);
   const spot = useCallback(
     (i: number) => {
       const li = list.current?.querySelectorAll<HTMLLIElement>("li[data-item]")[i];
-      if (!li) return { x: 0, y: 0 };
-      return rail ? { x: 0, y: li.offsetTop } : { x: li.offsetLeft + li.offsetWidth / 2, y: 0 };
+      if (!li) return { x: 0, y: 0, w: 64 };
+      /* on the bar the lens holds the whole item, and is always wider than its word */
+      const word = li.querySelector<HTMLElement>("[data-word]")?.scrollWidth ?? 0;
+      return rail
+        ? { x: 0, y: li.offsetTop, w: 64 }
+        : { x: li.offsetLeft + li.offsetWidth / 2, y: 0, w: Math.max(64, word + 24) };
     },
     [rail]
   );
@@ -125,9 +141,10 @@ function Shell() {
       const how = still || !placed.current ? STILL : { ...SLIDE, velocity };
       animate(x, to.x, how);
       animate(y, to.y, how);
+      animate(w, to.w, how);
       placed.current = true;
     },
-    [spot, still, x, y]
+    [spot, still, x, y, w]
   );
   useLayoutEffect(() => {
     send(at);
@@ -202,7 +219,21 @@ function Shell() {
     setPlan(next);
     setPage(PLANS[next].bar[0]);
   };
-  const wide = rail && (open || held);
+  const wide = rail && (open || held || menu);
+
+  useEffect(() => {
+    if (!menu) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setMenu(false);
+    const away = (e: PointerEvent) => {
+      if (!(e.target as Element).closest("[data-account]")) setMenu(false);
+    };
+    window.addEventListener("keydown", key);
+    window.addEventListener("pointerdown", away);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("pointerdown", away);
+    };
+  }, [menu]);
 
   return (
     <div
@@ -219,7 +250,10 @@ function Shell() {
         animate={rail ? { width: wide ? 232 : 72 } : { width: "auto" }}
         transition={still ? STILL : OPEN}
         onPointerEnter={() => setOpen(true)}
-        onPointerLeave={() => setOpen(false)}
+        onPointerLeave={() => {
+          setOpen(false);
+          setHover(null);
+        }}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
       >
@@ -234,8 +268,20 @@ function Shell() {
           onPointerUp={up}
           onPointerCancel={up}
         >
-          <motion.li className={styles.lens} style={{ x, y }} aria-hidden="true" />
-          {items.map((item) => (
+          {/* a faint piece of glass that follows the pointer from row to row (desktop only) */}
+          <motion.li
+            className={styles.under}
+            aria-hidden="true"
+            initial={false}
+            animate={{ y: hoverY, opacity: rail && hover !== null && hover !== at ? 1 : 0 }}
+            transition={still ? STILL : SLIDE}
+          />
+          <motion.li
+            className={styles.lens}
+            style={rail ? { x: 0, y, width: "100%" } : { x: left, y: 0, width: w }}
+            aria-hidden="true"
+          />
+          {items.map((item, i) => (
             <li key={item} data-item>
               <motion.button
                 type="button"
@@ -245,15 +291,21 @@ function Shell() {
                 whileTap={still ? undefined : { scale: 0.9 }}
                 transition={POP}
                 onClick={() => setPage(item)}
+                onPointerEnter={(e) => {
+                  setHover(i);
+                  setHoverY(e.currentTarget.parentElement?.offsetTop ?? 0);
+                }}
               >
                 <motion.span
                   className={styles.art}
-                  animate={{ scale: item === page ? 1.14 : 1, y: item === page && !rail ? -1 : 0 }}
+                  animate={{ scale: item === page ? 1.12 : 1 }}
                   transition={still ? STILL : POP}
                 >
                   <Sticker name={item} />
                 </motion.span>
-                <span className={styles.word}>{LABEL[item]}</span>
+                <span className={styles.word} data-word>
+                  {LABEL[item]}
+                </span>
               </motion.button>
             </li>
           ))}
@@ -261,8 +313,11 @@ function Shell() {
         <button
           type="button"
           className={styles.who}
+          data-account
           aria-label="Maya Okafor, account"
-          onClick={() => setPage(rail ? "settings" : "more")}
+          aria-haspopup="menu"
+          aria-expanded={menu}
+          onClick={() => setMenu(!menu)}
         >
           <span className={styles.face} aria-hidden="true">
             M
@@ -273,6 +328,50 @@ function Shell() {
           </span>
         </button>
       </motion.nav>
+
+      {/* the profile's own menu: Settings lives here, not in the rail (founder, 2026-11-15) */}
+      <AnimatePresence>
+        {menu && rail && (
+          <motion.div
+            className={styles.account}
+            role="menu"
+            data-account
+            initial={still ? false : { opacity: 0, scale: 0.9, y: 12, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={still ? undefined : { opacity: 0, scale: 0.9, y: 12, filter: "blur(8px)" }}
+            transition={still ? STILL : OPEN}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.row}
+              onClick={() => {
+                setPage("settings");
+                setMenu(false);
+              }}
+            >
+              <Sticker name="settings" size={28} />
+              Settings
+            </button>
+            <div className={styles.look} role="group" aria-label="Appearance">
+              <button type="button" aria-pressed={!dark} onClick={() => setDark(false)}>
+                Light
+              </button>
+              <button type="button" aria-pressed={dark} onClick={() => setDark(true)}>
+                Dark
+              </button>
+            </div>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.row}
+              onClick={() => setMenu(false)}
+            >
+              Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className={styles.main}>
         <h1 className={styles.title} key={page}>
@@ -287,9 +386,11 @@ function Shell() {
               {PLANS[k].label}
             </button>
           ))}
-          <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
-            Night
-          </button>
+          {!rail && (
+            <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
+              Night
+            </button>
+          )}
         </div>
       )}
     </div>
