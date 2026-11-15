@@ -148,7 +148,7 @@ function DomainGlass({
         type="button"
         className={styles.head}
         aria-expanded={open}
-        aria-label={`${domain.name}: ${lit} of ${domain.skills.length} stars lit`}
+        aria-label={`${domain.name}: ${lit} of ${domain.skills.length} skills Proficient`}
         onClick={() => {
           setOpen(!open);
           tick();
@@ -157,7 +157,7 @@ function DomainGlass({
         <span className={styles.name}>
           {domain.name}
           <small>
-            <b>{lit}</b> of {domain.skills.length} lit
+            <b>{lit}</b> of {domain.skills.length} Proficient
           </small>
         </span>
         <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -260,7 +260,7 @@ export default function Library({
     <div ref={root} className={styles.library}>
       <header className={`${styles.glass} ${styles.top}`}>
         <p className={styles.count}>
-          <b>{counts[TOP]}</b> of {total} stars lit
+          <b>{counts[TOP]}</b> of {total} skills Proficient
         </p>
         <div className={styles.band}>
           <i data-band style={{ width: `${(counts[TOP] / total) * 100}%` }} />

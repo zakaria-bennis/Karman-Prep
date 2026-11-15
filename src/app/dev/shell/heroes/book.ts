@@ -1,4 +1,4 @@
-// The Reading and Writing half of the Library's hero: an open book, a hanging lantern, and what rises
+// The Reading and Writing half of the Library's hero: an open book, and what rises
 // from the pages. Everything is built here from shapes and from small canvases drawn in code: the print
 // on the pages is real text set in a serif, the page edges and the leather grain are drawn textures.
 // No model file and no image. The book casts and takes shadows from one warm light.
@@ -184,21 +184,6 @@ function grain(): THREE.CanvasTexture {
   return t;
 }
 
-/** A soft glow, bright at the centre. */
-function halo(inner: string, outer: string): THREE.CanvasTexture {
-  const c = document.createElement("canvas");
-  c.width = c.height = 128;
-  const g = c.getContext("2d")!;
-  const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grad.addColorStop(0, inner);
-  grad.addColorStop(1, outer);
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 128, 128);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
 /** One letter, glowing, for the script that rises off the page. */
 function glyph(char: string): THREE.CanvasTexture {
   const c = document.createElement("canvas");
@@ -223,7 +208,6 @@ const arch = (u: number) => 0.085 * Math.sin(Math.PI * u ** 0.72);
 export interface Book {
   /** The book and all that belongs to it; the stage positions this. */
   root: THREE.Group;
-  lantern: THREE.Group;
   lively(on: boolean): void;
   /** Chosen: the book opens towards the reader and lifts away. */
   leave(rise: number): gsap.core.Timeline;
@@ -236,7 +220,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
   book.rotation.set(-0.76, 0.26, 0.04);
   root.add(book);
 
-  // one warm light, low and to the left like the lantern, that casts the book's shadows
+  // one warm light, low and to the left like the evening sun, that casts the book's shadows
   const key = new THREE.DirectionalLight(0xffdfb4, 1.9);
   key.position.set(-2.6, 3.4, 4.2);
   key.castShadow = true;
@@ -321,38 +305,6 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     leaf.position.z = z0 + 0.004;
     hinge.add(cover, block, leaf);
     book.add(hinge);
-
-    if (side < 0) {
-      // a pencil left lying across the page
-      const pencil = new THREE.Group();
-      const body = shaded(
-        new THREE.Mesh(
-          new THREE.CylinderGeometry(0.034, 0.034, 0.92, 6),
-          new THREE.MeshStandardMaterial({ color: 0xd9a23a, roughness: 0.5, clippingPlanes })
-        )
-      );
-      const wood = new THREE.Mesh(
-        new THREE.ConeGeometry(0.034, 0.11, 6),
-        new THREE.MeshStandardMaterial({ color: 0xe6c79c, roughness: 0.8, clippingPlanes })
-      );
-      wood.position.y = 0.515;
-      const lead = new THREE.Mesh(
-        new THREE.ConeGeometry(0.012, 0.04, 6),
-        new THREE.MeshStandardMaterial({ color: 0x2c2a2e, roughness: 0.4, clippingPlanes })
-      );
-      lead.position.y = 0.55;
-      const ferrule = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.07, 12), gilt);
-      ferrule.position.y = -0.49;
-      const rubber = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.034, 0.034, 0.07, 12),
-        new THREE.MeshStandardMaterial({ color: 0xd98a86, roughness: 0.7, clippingPlanes })
-      );
-      rubber.position.y = -0.56;
-      pencil.add(body, wood, lead, ferrule, rubber);
-      pencil.position.set(-W * 0.62, -H * 0.3, z0 + 0.075);
-      pencil.rotation.set(0, 0, -1.02);
-      hinge.add(pencil);
-    }
   }
   const spine = shaded(
     new THREE.Mesh(new RoundedBoxGeometry(0.2, H + 0.18, 0.13, 3, 0.03), leather)
@@ -447,7 +399,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     };
   });
 
-  // folded paper birds that leave the book in a widening spiral
+  // a folded paper bird that glides across now and then (founder: "the occasional gliding bird")
   const birdMat = new THREE.MeshStandardMaterial({
     color: 0xfff3dd,
     roughness: 0.7,
@@ -455,7 +407,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     flatShading: true,
     clippingPlanes,
   });
-  const birds = Array.from({ length: 7 }, (_, i) => {
+  const birds = Array.from({ length: 2 }, (_, i) => {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute(
       "position",
@@ -468,74 +420,14 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     );
     const mesh = new THREE.Mesh(geo, birdMat);
     root.add(mesh);
-    return { mesh, geo, phase: i / 7, seed: (i * 0.41) % 1 };
+    return { mesh, geo, phase: 0.3 + i * 0.5, seed: (i * 0.41) % 1 };
   });
-
-  // ---- the lantern ----
-  const lantern = new THREE.Group();
-  const iron = new THREE.MeshStandardMaterial({
-    color: 0x3a2a22,
-    metalness: 0.8,
-    roughness: 0.45,
-    clippingPlanes,
-  });
-  const glass = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.17, 0.15, 0.42, 8),
-    new THREE.MeshStandardMaterial({
-      color: 0xffe9bd,
-      emissive: 0xffa33a,
-      emissiveIntensity: 2.4,
-      transparent: true,
-      opacity: 0.92,
-      clippingPlanes,
-    })
-  );
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.2, 8), iron);
-  roof.position.y = 0.31;
-  const knob = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.014, 8, 20), iron);
-  knob.position.y = 0.45;
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.06, 8), iron);
-  base.position.y = -0.24;
-  lantern.add(glass, roof, knob, base);
-  for (let i = 0; i < 4; i++) {
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.44, 0.02), iron);
-    bar.position.set(
-      Math.cos((i * Math.PI) / 2 + 0.4) * 0.175,
-      0,
-      Math.sin((i * Math.PI) / 2 + 0.4) * 0.175
-    );
-    lantern.add(bar);
-  }
-  for (let i = 0; i < 26; i++) {
-    const link = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.009, 6, 14), iron);
-    link.position.y = 0.53 + i * 0.058;
-    link.rotation.y = i % 2 ? Math.PI / 2 : 0;
-    lantern.add(link);
-  }
-  const lamp = new THREE.PointLight(0xffb866, 16, 8);
-  const shine = new THREE.Sprite(
-    new THREE.SpriteMaterial({
-      map: halo("rgba(255, 214, 140, 0.85)", "rgba(255, 170, 70, 0)"),
-      transparent: true,
-      depthWrite: false,
-      clippingPlanes,
-    })
-  );
-  shine.scale.setScalar(2.2);
-  lantern.add(lamp, shine);
 
   const rush = { v: 1 };
   if (!stage.still) {
     gsap.from(book.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 1.4, ease: "elastic.out(1, 0.65)" });
     gsap.from(book.rotation, { y: book.rotation.y - 1.2, duration: 1.6, ease: "power3.out" });
     gsap.to(book.position, { y: 0.09, duration: 3.1, ease: "sine.inOut", repeat: -1, yoyo: true });
-    gsap.to(lantern.rotation, {
-      z: 0.07,
-      duration: 2.4,
-      ease: "sine.inOut",
-      repeat: -1,
-      yoyo: true,
-    });
   }
 
   stage.onFrame((t, dt) => {
@@ -567,29 +459,30 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       s.sprite.material.opacity = Math.sin(Math.PI * k) ** 0.7 * 0.95;
       s.sprite.material.rotation = Math.sin(k * 5 + s.seed * 9) * 0.5;
     });
-    birds.forEach((b) => {
-      b.phase = (b.phase + dt * 0.075 * rush.v) % 1;
-      const k = b.phase;
-      const a = k * 5.2 + b.seed * 21;
-      const r = 0.25 + k * 2.2;
-      b.mesh.position.set(Math.cos(a) * r, -0.1 + k * 3, Math.sin(a) * r * 0.5 + 0.7);
-      b.mesh.rotation.set(0.25, -a + Math.PI / 2, Math.sin(t * 2 + b.seed * 9) * 0.25);
-      b.mesh.scale.setScalar(Math.sin(Math.PI * k) ** 0.6 * 0.95);
-      const flap = Math.sin(t * 9 + b.seed * 40) * 0.13;
+    birds.forEach((b, i) => {
+      // each crosses once, slowly, then waits out of sight for most of its turn
+      b.phase = (b.phase + dt * 0.035) % 1;
+      const k = b.phase / 0.42;
+      b.mesh.visible = k < 1;
+      const dir = i % 2 ? -1 : 1;
+      b.mesh.position.set(
+        dir * (k * 2 - 1) * 4.2,
+        1.5 + i * 0.5 + Math.sin(k * 5 + b.seed * 9) * 0.35,
+        0.4
+      );
+      b.mesh.rotation.set(0.2, (dir * Math.PI) / 2, Math.sin(t * 1.3 + b.seed * 9) * 0.3);
+      b.mesh.scale.setScalar(1.1);
+      const flap = Math.sin(t * 6 + b.seed * 40) * 0.1;
       const bp = b.geo.attributes.position;
       bp.setY(2, 0.03 + flap);
       bp.setY(4, 0.03 + flap);
       bp.needsUpdate = true;
       b.geo.computeVertexNormals();
     });
-    const flicker = Math.sin(t * 7) * 1.2 + Math.sin(t * 13.3) * 0.7;
-    lamp.intensity = (16 + flicker) * (0.7 + rush.v * 0.3);
-    shine.scale.setScalar(2.2 + flicker * 0.04 + (rush.v - 1) * 0.35);
   });
 
   return {
     root,
-    lantern,
     lively(on) {
       const s = on ? 1.07 : 1;
       gsap.to(book.scale, {
@@ -608,12 +501,6 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       });
       gsap.to(flip, { timeScale: on ? 3.4 : 1, duration: 0.4 });
       gsap.to(rush, { v: on ? 3.2 : 1, duration: 0.5 });
-      if (on)
-        gsap.fromTo(
-          lantern.rotation,
-          { z: -0.22 },
-          { z: 0.07, duration: 1.6, ease: "elastic.out(1.1, 0.35)", overwrite: true }
-        );
     },
     leave(rise) {
       return gsap
@@ -622,8 +509,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
         .to(rush, { v: 5, duration: 0.3 }, 0)
         .to(book.rotation, { x: -0.3, y: 0, z: 0, duration: 0.8, ease: "power2.inOut" }, 0)
         .to(book.scale, { x: 1.25, y: 1.25, z: 1.25, duration: 0.8, ease: "power2.inOut" }, 0)
-        .to(root.position, { y: `+=${rise}`, duration: 0.75, ease: "power2.in" }, 0.75)
-        .to(lantern.position, { y: `+=${rise}`, duration: 0.75, ease: "power2.in" }, 0.8);
+        .to(root.position, { y: `+=${rise}`, duration: 0.75, ease: "power2.in" }, 0.75);
     },
   };
 }

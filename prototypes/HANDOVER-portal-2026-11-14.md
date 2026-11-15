@@ -225,6 +225,16 @@ Known faults and gaps:
      - **A real transition on choosing**: the chosen sky sweeps across, the camera pushes in, then the
        sky opens like an iris onto the Library's own background (whatever the mode), while the signs
        and the window's rim give way. For Math the constellations linger over the land for a moment.
+     - **His second round on it (2026-11-15), all applied:** no pencil and no lantern; only "the
+       occasional gliding bird" on the reading side and "the occasional shooting star" at night; the
+       glow "way too bright", so constellations are now "very subtle and low-key, but also breathing
+       and flowing", "just slightly more prominent than the background stars", about half the size,
+       and they move and change shape; the figures are an isosceles triangle, a parallelogram, a
+       sideways M and the sum sign (the last two are near twins; he has not said if that is what he
+       meant); an observatory with a telescope stands on the ridge; the hills have three wooded
+       layers with mist; the signs say "14 of 34 skills Proficient", never "stars lit"; **the more
+       skills are Proficient, the more constellations are joined up** (the rest are loose stars);
+       and **a sign must never cross the seam**, on phone or desktop.
      Checked on desktop and phone: both halves hover, both choices transition and land in the right
      section, no shader errors. Not checked: a real phone's speed (this is a heavy scene on top of the
      landscape), the drag, sound by ear. Awaiting his verdict.

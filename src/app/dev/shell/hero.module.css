@@ -105,6 +105,12 @@
   transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
+/* a sign never crosses the seam (founder, 2026-11-15). On a phone the seam slopes up to the right
+   through the middle, so the upper sign stands clear above it and the lower one clear below. */
+.pick[data-side="0"] {
+  padding-bottom: 76px;
+}
+
 /* the Math sign lies on the night, so it is dark glass with pale words in either mode */
 .pick[data-side="1"] .plaque {
   --gold: #ffd56a;
@@ -184,6 +190,16 @@
 
   .hero .pick {
     padding: 24px;
+  }
+
+  /* on a desktop the seam leans to the right at the foot, so the Math sign starts well clear of it,
+     and the Reading and Writing sign stops well short */
+  .hero .pick[data-side="0"] {
+    padding-right: 96px;
+  }
+
+  .hero .pick[data-side="1"] {
+    padding-left: 132px;
   }
 
   .plaque {

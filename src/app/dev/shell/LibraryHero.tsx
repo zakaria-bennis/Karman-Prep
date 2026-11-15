@@ -37,7 +37,9 @@ export default function LibraryHero({ onPick }: { onPick: (section: Section) => 
       const stage = createStage(box, still);
       let hero!: Hero;
       const ctx = gsap.context(() => {
-        hero = scene.build(stage);
+        // how much of Math is Proficient decides how many constellations are joined up
+        const math = tally(DOMAINS.Math.flatMap((d) => d.skills));
+        hero = scene.build(stage, { mathShare: math[3] / math.reduce((a, b) => a + b, 0) });
       });
       stage.start();
       live.current = { hero, stage, run: (fn) => ctx.add(fn) };
@@ -132,7 +134,7 @@ export default function LibraryHero({ onPick }: { onPick: (section: Section) => 
               <span className={styles.plaque}>
                 <span className={styles.name}>{section}</span>
                 <span className={styles.meta}>
-                  <b>{counts[3]}</b> of {total} stars lit
+                  <b>{counts[3]}</b> of {total} skills Proficient
                 </span>
                 <span className={styles.band}>
                   <i style={{ width: `${(counts[3] / total) * 100}%` }} />

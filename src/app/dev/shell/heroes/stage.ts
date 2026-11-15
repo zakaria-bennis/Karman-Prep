@@ -86,9 +86,9 @@ export function createStage(box: HTMLElement, still: boolean): Stage {
     layout.halfW = layout.halfH * aspect;
     if (portrait) {
       // each half keeps its lower third for the plaque, so the subject stands in the upper two thirds
-      stations[0].position.set(0, layout.halfH * 0.66, 0);
+      stations[0].position.set(0, layout.halfH * 0.74, 0);
       stations[1].position.set(0, -layout.halfH * 0.31, 0);
-      stations.forEach((s) => s.scale.setScalar(0.8));
+      stations.forEach((s) => s.scale.setScalar(0.68));
     } else {
       stations.forEach((s) => s.scale.setScalar(1));
       stations[0].position.set(-layout.halfW * 0.5, layout.halfH * 0.16, 0);
