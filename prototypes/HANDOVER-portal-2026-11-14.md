@@ -96,7 +96,17 @@ Known faults and gaps:
 
 1. His verdict on the endless world, then iterate the background until he approves it. Then its life:
    animals crossing the land, birds, fish (he asked for all three).
-2. The sidebar (phone: a bar of five at the bottom; desktop: a labelled menu on the left).
+2. The menu: **first version built 2026-11-15, awaiting his verdict.** Page `/dev/shell` (dev only;
+   `?plan=practice|cohort|private`, `?night=1`, `?demo=0`). A floating paper panel over the world: a bar
+   of five at the bottom on a phone, a labelled column at the left from 960px, with an ink shape that
+   slides to the pressed item. The page name sits on the sky; one sheet below it holds the screen and is
+   empty on purpose. Its numbers: control height 48, corners 14 and 24, three text sizes (12, 15, title).
+   He asked for it to be designed with the impeccable, Intent and Perception-First Design skills plus
+   Mobbin (Calm, Deel and Telegram were the references for a menu floating over a picture). Intent and
+   PFD are not listed as skills in Claude Code; their files are under
+   `~/Library/Application Support/Claude/local-agent-mode-sessions/.../rpm/` (search for `skills/intent`
+   and `skills/pfd`). Raised with him, not yet answered: the streak multiplier that resets and mystery
+   boxes are patterns Intent flags for under-18s.
 3. Each screen's layout, one at a time.
 4. The 16 characters, their unlock challenges and unlock animations, in the fox's style. The owl must be
    redrawn: he says it looks like a llama.

@@ -1,0 +1,333 @@
+/*
+ * The portal's menu (step 2 of the rebuild), over the endless world.
+ * The rules it keeps, measured from Khan Academy, Duolingo and Canvas: one font in two weights, three
+ * text sizes, one height for every control (48), one corner for controls (14) and one for panels (24),
+ * one action colour (ink) and spacing in steps of 8.
+ * The world moves, so nothing is read against it except the page title, which sits on its own veil.
+ */
+.shell {
+  --paper: #fbf6ee;
+  --ink: #1d1a22;
+  --soft: #5d5866;
+  --line: rgb(29 26 34 / 0.1);
+  --press: rgb(29 26 34 / 0.07);
+  --on-ink: #fbf6ee;
+  --veil: rgb(251 246 238 / 0.8);
+  --title: #1d1a22;
+  --lift: 0 12px 32px -12px rgb(22 26 48 / 0.35), 0 2px 6px rgb(22 26 48 / 0.08);
+  --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+  --out: cubic-bezier(0.16, 1, 0.3, 1);
+  --r-control: 14px;
+  --r-panel: 24px;
+  --h: 48px;
+  --bar: 72px;
+  color: var(--ink);
+  font: 500 15px/1.35 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell[data-mode="dark"] {
+  --paper: #171a2a;
+  --ink: #f1ece2;
+  --soft: #a9adbf;
+  --line: rgb(241 236 226 / 0.12);
+  --press: rgb(241 236 226 / 0.09);
+  --on-ink: #171a2a;
+  --veil: rgb(12 14 26 / 0.7);
+  --title: #f6f1e7;
+  --lift: 0 12px 32px -12px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.25);
+}
+
+.shell ::selection {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.shell :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.shell button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- the menu: a bar of five at the bottom on a phone ---- */
+.nav {
+  position: fixed;
+  z-index: 4;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: var(--r-panel);
+  background: var(--paper);
+  box-shadow: var(--lift);
+}
+
+.brand,
+.who {
+  display: none;
+}
+
+.items {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* the ink shape that marks where you are; it slides to the item you press */
+.here {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(100% / var(--n));
+  border-radius: var(--r-control);
+  background: var(--ink);
+  transform: translateX(calc(var(--at) * 100%));
+  transition: transform 0.42s var(--spring);
+}
+
+.item {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 100%;
+  height: 56px;
+  border-radius: var(--r-control);
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    color 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.item[aria-current="page"] {
+  color: var(--on-ink);
+}
+
+.item:active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) {
+  .item:not([aria-current]):hover {
+    color: var(--ink);
+  }
+}
+
+/* ---- the page: its name on the sky, then one sheet that rides up over the world ---- */
+.main {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  padding: 0 0 calc(var(--bar) + 28px);
+}
+
+.title {
+  display: flex;
+  align-items: flex-end;
+  min-height: 148px;
+  margin: 0;
+  padding: 0 24px 20px;
+  color: var(--title);
+  font: 400 32px/1.1 var(--font-serif);
+  letter-spacing: -0.01em;
+  text-shadow:
+    0 0 28px var(--veil),
+    0 0 8px var(--veil);
+  animation: arrive 0.5s var(--out) both;
+}
+
+.sheet {
+  min-height: calc(100dvh - 148px - var(--bar) - 28px);
+  margin: 0 12px;
+  padding: 24px;
+  border-radius: var(--r-panel);
+  background: var(--paper);
+  box-shadow: var(--lift);
+}
+
+.note {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--soft);
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(6px);
+  }
+}
+
+/* ---- demo switches (dev only) ---- */
+.demo {
+  position: fixed;
+  z-index: 5;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(14 20 30 / 0.78);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.demo button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: #f4f1ea;
+}
+
+.demo button[aria-pressed="true"] {
+  background: #f4f1ea;
+  color: #14181f;
+}
+
+/* ---- from a tablet on its side upward: the menu stands at the left, with its words beside the icons ---- */
+@media (min-width: 960px) {
+  .nav {
+    top: 16px;
+    left: 16px;
+    right: auto;
+    bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    width: 232px;
+    max-width: none;
+    margin: 0;
+    padding: 12px;
+  }
+
+  .brand {
+    display: block;
+    padding: 12px 12px 20px;
+    font: 400 22px/1 var(--font-serif);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .items {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .here {
+    inset: 0 0 auto 0;
+    width: auto;
+    height: var(--h);
+    transform: translateY(calc(var(--at) * (var(--h) + 4px)));
+  }
+
+  .item {
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+    gap: 12px;
+    height: var(--h);
+    padding: 0 12px;
+    font-size: 15px;
+  }
+
+  .item:active {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) {
+    .item:not([aria-current]):hover {
+      background: var(--press);
+    }
+  }
+
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    margin-top: auto;
+    padding: 8px 12px;
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 var(--r-control) var(--r-control);
+    text-align: left;
+    transition: background 0.2s var(--out);
+  }
+
+  .shell .who:hover {
+    background: var(--press);
+  }
+
+  .face {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--on-ink);
+    font-weight: 600;
+  }
+
+  .name {
+    display: grid;
+    font-weight: 600;
+  }
+
+  .name small {
+    color: var(--soft);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .main {
+    padding: 0 16px 16px 264px;
+  }
+
+  .title {
+    min-height: 176px;
+    padding: 0 8px 24px;
+    font-size: 44px;
+  }
+
+  .sheet {
+    min-height: calc(100dvh - 176px - 16px);
+    margin: 0;
+    padding: 32px;
+  }
+
+  .demo {
+    top: 16px;
+    right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .here,
+  .item {
+    transition: none;
+  }
+
+  .title {
+    animation: none;
+  }
+}
