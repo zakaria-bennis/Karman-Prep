@@ -819,3 +819,28 @@ that is marked as one (`rewardsData.ts` lists which is which). Files: `Rewards.t
 - `plans.ts` now holds the menu lists that were in `page.tsx` (which is back to about 635 lines).
 - The phone audit walks Rewards too.
 - Next: his verdict on Rewards; then the new-student page for Progress, or the characters.
+
+**Progress step 5, the new-student page: built (2026-11-16), awaiting his verdict.** He chose it as
+the next piece. His rules (2026-11-15): the page tells a new student what to do first and sends them
+there; the Daily 10 comes first; a full-length exam is suggested after 100 questions, as a suggestion
+and not a gate; a predicted score needs two full-length exams; Free students never get one.
+- **Nothing answered yet** (`ProgressStart.tsx`, `progressStart.module.css`): instead of three panes
+  of zeros, Progress is one thing to do and what it leads to. Left: "Start here", "Daily 10" in the
+  large serif the predicted score will use, one line, and "Start the Daily 10". Right, "Coming up",
+  in order: your first answers (time, pacing and calendar start to fill in), 100 questions (a good
+  time for a first full-length exam, "0 of 100"), two full-length exams (your predicted score, "0 of
+  2"). On the Free plan the last one reads "Your predicted score, with Practice or Pro".
+- **Some practice, no score yet** (`Waiting` in `ProgressScore.tsx`): the score's place still says
+  "Take two full-length exams to see your predicted score". Under 100 questions and no exam it shows
+  a band and "52 of 100 questions before your first exam", the main button is "Start the Daily 10",
+  and a quiet "Take an exam now" sits under it (the 100 is not a gate). At 100 questions, or once
+  one exam is taken, it shows the two exam slots and "Start a full-length exam", as before.
+- **Free plan:** the score's place reads "Your predicted score comes with Practice or Pro" with an
+  Upgrade button. The demo bar has a "Free plan" switch on Progress.
+- Two more made-up students in the demo bar: **Day 1** (nothing answered) and **2 days** (52
+  questions, no exam). `BEFORE_EXAM` (100) is in `progressData.ts`.
+- Buttons lead nowhere yet (the Daily 10, exams and Upgrade are not wired), like the rest of the
+  dev shell. The wording of the three "Coming up" lines is mine.
+- With this, the five steps planned for Progress are all built. Open on Progress: his verdict on
+  this page, the Progress icon, the exam breakdown page, accommodations and the test date in
+  Settings, and real data.

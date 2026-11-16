@@ -134,6 +134,16 @@ const audit = () => {
       await main.getByRole("button", { name: "Keep for later" }).click(); await p.waitForTimeout(500);
       for (const pg of ["Coins", "Shop", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
       await main.getByRole("button", { name: /^Bear/ }).click(); await check("Rewards / a character pressed");
+      // Progress for a student who has answered nothing, one with a little practice, and the Free plan
+      if (who === "9 weeks") {
+        const demo = (text) => p.evaluate((text) => [...document.querySelectorAll("[aria-label='Demo switches'] button")].find((b) => b.textContent.trim() === text).click(), text);
+        await p.getByRole("navigation").getByRole("button", { name: "Progress" }).click(); await p.waitForTimeout(700);
+        await demo("Day 1"); await check("Progress / nothing answered yet");
+        await demo("Free plan"); await check("Progress / nothing answered yet, Free plan");
+        await demo("2 days"); await check("Progress / Free plan, no score");
+        await demo("Free plan"); await check("Progress / under 100 questions");
+        await demo("6 days"); await check("Progress / one exam taken");
+      }
       await c.close();
     }
   }

@@ -15,7 +15,7 @@
 //     it. The point being looked at is gray.
 //   - Pointing at (or dragging along, or arrowing through) the line turns the number above into that
 //     day's. Nothing floats over the graph, and there is no key.
-//   - A prediction needs two full-length exams. Before that the same place says so.
+//   - A prediction needs two full-length exams. Before that the same place says what to do next.
 //   - The countdown shows only when the student has entered a test date: a dark badge inside the
 //     top right corner, with the date under it. The days and the date are written in a color that
 //     says how near the test is, with a shine that passes over them: blue when it is more than a
@@ -41,6 +41,7 @@ import {
   type Series,
   type Student,
   type StudentKey,
+  BEFORE_EXAM,
 } from "./progressData";
 import { tick } from "./sound";
 
@@ -69,12 +70,82 @@ function Countdown({ days }: { days: number }) {
   );
 }
 
+/** The score's place before there is a score. A prediction needs two full-length exams. Until then
+ *  it says what to do next (founder, 2026-11-15): the Daily 10 first; a full-length exam is suggested
+ *  once 100 questions are answered, and can be taken sooner; on the Free plan the score comes with
+ *  Practice or Pro. */
+function Waiting({
+  student,
+  answered,
+  free,
+}: {
+  student: Student;
+  answered: number;
+  free: boolean;
+}) {
+  const taken = student.exams.length;
+  if (free)
+    return (
+      <div className={styles.waiting}>
+        <Tile name="exam" />
+        <h2>Your predicted score comes with Practice or Pro</h2>
+        <GoButton>Upgrade</GoButton>
+      </div>
+    );
+  const ready = taken > 0 || answered >= BEFORE_EXAM;
+  return (
+    <div className={styles.waiting}>
+      <Tile name={ready ? "exam" : "daily"} />
+      <h2>Take two full-length exams to see your predicted score</h2>
+      {ready ? (
+        <>
+          <div className={styles.slots} role="img" aria-label={`${taken} of 2 taken`}>
+            {[0, 1].map((i) => (
+              <i key={i} data-on={i < taken || undefined}>
+                {student.exams[i]?.score}
+              </i>
+            ))}
+          </div>
+          <p>
+            <b>{taken}</b> of 2 taken
+          </p>
+          <GoButton>Start a full-length exam</GoButton>
+        </>
+      ) : (
+        <>
+          {/* how far along the first hundred questions are, as a band and a count */}
+          <div
+            className={styles.toExam}
+            role="img"
+            aria-label={`${answered} of ${BEFORE_EXAM} questions answered`}
+          >
+            <i style={{ width: `${Math.round((answered / BEFORE_EXAM) * 100)}%` }} />
+          </div>
+          <p>
+            <b>{answered}</b> of {BEFORE_EXAM} questions before your first exam
+          </p>
+          <GoButton>Start the Daily 10</GoButton>
+          <button type="button" className={styles.sooner} onClick={() => tick()}>
+            Take an exam now
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ProgressScore({
   student: key,
+  answered,
+  free,
   wanted,
   onSpan,
 }: {
   student: StudentKey;
+  /** How many questions the student has answered so far. */
+  answered: number;
+  /** Whether the student is on the Free plan, which has no predicted score. */
+  free: boolean;
   /** The span chosen for the whole Progress page: the numbers beside the score follow it too. */
   wanted: SpanKey | null;
   onSpan: (span: SpanKey) => void;
@@ -188,25 +259,7 @@ export default function ProgressScore({
           />
         </>
       ) : (
-        <div className={styles.waiting}>
-          <Tile name="exam" />
-          <h2>Take two full-length exams to see your predicted score</h2>
-          <div
-            className={styles.slots}
-            role="img"
-            aria-label={`${student.exams.length} of 2 taken`}
-          >
-            {[0, 1].map((i) => (
-              <i key={i} data-on={i < student.exams.length || undefined}>
-                {student.exams[i]?.score}
-              </i>
-            ))}
-          </div>
-          <p>
-            <b>{student.exams.length}</b> of 2 taken
-          </p>
-          <GoButton>Start a full-length exam</GoButton>
-        </div>
+        <Waiting student={student} answered={answered} free={free} />
       )}
     </section>
   );

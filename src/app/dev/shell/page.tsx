@@ -100,6 +100,8 @@ function Shell() {
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
+  /* the Free plan, which has no predicted score (demo only) */
+  const [free, setFree] = useState(false);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
   /* Escape steps back out of a number's page to Progress */
@@ -563,6 +565,7 @@ function Shell() {
                   window.scrollTo({ top: 0 });
                 }}
                 extraTime={extraTime}
+                free={free && plan === "practice"}
                 onSkill={openSkill}
               />
             </motion.div>
@@ -602,6 +605,11 @@ function Shell() {
                 {STUDENTS[k].label}
               </button>
             ))}
+          {page === "progress" && plan === "practice" && (
+            <button type="button" aria-pressed={free} onClick={() => setFree(!free)}>
+              Free plan
+            </button>
+          )}
           {stat === "pace" &&
             [1, 1.5, 2].map((x) => (
               <button

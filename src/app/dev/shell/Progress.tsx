@@ -9,7 +9,8 @@
 //   A row of the three weakest skills was built and removed (founder, 2026-11-16: "I don't need that
 //   pane").
 //   What was step 4, History, is now the Mistake Log, a page of its own in the menu (MistakeLog.tsx).
-//   Still to come: the new-student page.
+//   5. The new-student page (ProgressStart.tsx): a student who has answered nothing sees where to
+//      start, the Daily 10, instead of three panes of zeros.
 // With room, the score stands in the middle with the numbers at its left and the calendar at its
 // right, all on one screen. On a phone nothing scrolls: each piece is its own page, with buttons.
 import { motion, useReducedMotion } from "framer-motion";
@@ -18,6 +19,7 @@ import lib from "./library.module.css";
 import styles from "./progress.module.css";
 import { Calendar, Stats } from "./ProgressActivity";
 import { STUDENTS, activity, type Student, type StudentKey } from "./progressData";
+import ProgressStart from "./ProgressStart";
 import ProgressStat from "./ProgressStat";
 import type { StatKey } from "./progressStats";
 import type { Found } from "./progressBreakdowns";
@@ -36,6 +38,7 @@ export default function Progress({
   onStat,
   extraTime,
   onSkill,
+  free,
 }: {
   rail: boolean;
   student: StudentKey;
@@ -46,6 +49,8 @@ export default function Progress({
   extraTime: number;
   /** Opens a skill in the Library. */
   onSkill: (found: Found) => void;
+  /** Whether the student is on the Free plan, which has no predicted score. */
+  free: boolean;
 }) {
   const still = useReducedMotion() ?? false;
   const student: Student = STUDENTS[key];
@@ -54,6 +59,9 @@ export default function Progress({
   // one span of time for the whole page: set on the score or on the numbers, it moves both
   const [span, setSpan] = useState<SpanKey | null>(null);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
+  const answered = useMemo(() => logs.reduce((n, l) => n + l.questions, 0), [logs]);
+  // a student who has answered nothing has no progress to show: the page says where to start
+  if (answered === 0) return <ProgressStart free={free} />;
   if (stat)
     return (
       <ProgressStat
@@ -94,7 +102,15 @@ export default function Progress({
           ))}
         </div>
       )}
-      {show("Score") && <ProgressScore student={key} wanted={span} onSpan={setSpan} />}
+      {show("Score") && (
+        <ProgressScore
+          student={key}
+          answered={answered}
+          free={free}
+          wanted={span}
+          onSpan={setSpan}
+        />
+      )}
       {show("Activity") && (
         <Stats
           key={`stats ${key}`}

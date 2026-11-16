@@ -19,9 +19,19 @@ export type Student = {
   now: number;
   /** Days until the test date they entered, if they entered one. */
   testIn: number | null;
+  /** A student who has answered nothing yet (stand-in data only). */
+  blank?: boolean;
 };
 
+/** Questions to answer before a full-length exam is suggested. It is a suggestion, not a gate
+ *  (founder, 2026-11-15). */
+export const BEFORE_EXAM = 100;
+
 export const STUDENTS = {
+  // brand new: nothing answered, so Progress is the page that says where to start
+  day1: { label: "Day 1", days: 0, exams: [], now: 0, testIn: null, blank: true },
+  // a little practice, under 100 questions, no exam yet
+  days2: { label: "2 days", days: 2, exams: [], now: 0, testIn: null },
   new: { label: "6 days", days: 6, exams: [{ day: 4, score: 1180 }], now: 0, testIn: null },
   weeks3: {
     label: "3 weeks",
@@ -154,7 +164,7 @@ export function activity(student: Student): DayLog[] {
   for (let day = 0; day <= student.days; day++) {
     const exam = student.exams.findIndex((e) => e.day === day) + 1;
     const recent = day > student.days - run;
-    const rest = !exam && !recent && noise(day, 1) < 0.2;
+    const rest = student.blank || (!exam && !recent && noise(day, 1) < 0.2);
     const daily10 = !rest && (recent || noise(day, 2) < 0.8);
     const sets = rest ? 0 : Math.floor(noise(day, 3) * 4);
     const fives = rest ? 0 : Math.floor(noise(day, 4) * 3);
