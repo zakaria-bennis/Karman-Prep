@@ -220,6 +220,7 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
   const monthDays = Array.from({ length }, (_, i) => logOf(i + 1)).filter((day) => day >= 0);
   const practiced = monthDays.filter((day) => logs[day].questions > 0).length;
   const log = logs[picked];
+  const improved = Math.min(log.sets, (log.day * 7) % 4);
   const when = dateOf(student, picked);
 
   return (
@@ -362,8 +363,9 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
               <dt>invested</dt>
             </div>
             <div>
-              <dd>{Math.round((log.correct / log.questions) * 100)}%</dd>
-              <dt>correct</dt>
+              {/* how many skills went up a level that day (a stand-in until levels are logged) */}
+              <dd>{improved}</dd>
+              <dt>{improved === 1 ? "skill improved" : "skills improved"}</dt>
             </div>
           </dl>
         )}

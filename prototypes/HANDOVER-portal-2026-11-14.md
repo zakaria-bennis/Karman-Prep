@@ -882,3 +882,33 @@ and not a gate; a predicted score needs two full-length exams; Free students nev
 - With this, the five steps planned for Progress are all built. Open on Progress: his verdict on
   this page, the Progress icon, the exam breakdown page, accommodations and the test date in
   Settings, and real data.
+
+## Rewards: fifth round, and the last touches to Progress and the Mistake Log (2026-11-16)
+
+He said the Library, Progress, the Mistake Log and Rewards are done after this round. Next is the quiz
+engine and each activity's beginning and end screens. Do not start it until he says so.
+
+- **Things to wear: 100, each a thing of its own** (he rejected 200 made of color variants). They are in
+  `accessoryHead.tsx` (40), `accessoryRest.tsx` (20 eyes, 20 neck, 20 side), drawn with `accessoryKit.tsx`
+  and listed in `accessories.tsx`. `/dev/shell/sheet` shows all 100 on all 16 characters (1,600 checked).
+- **The wardrobe is a screen of its own** (`Wardrobe.tsx`): things at the left, the character at the
+  right, the page's back pill and Escape leave it. Over the character are the faces to try things on;
+  a mystery character is left out until unlocked. "Unlock all 100 for testing" is for design only.
+- **Once all 100 are won, no box can be opened**: the Open button goes and the note says "You have all 100".
+- **Passes**: Exam pass, 1 a month, keep up to 3. Streak saver, 1 every 2 weeks, keep up to 3. Second
+  chance: buy any number, use 1 per skill (he corrected himself on this the same day). No time passes on
+  the dev page, so a limited pass can be bought once.
+- **The coin**: Karman as George Washington is on a dollar bill: the wig over the whole head, a roll at
+  each side, ears up through it, coat and cravat. He approved it ("looks amazing").
+- **The box** shakes in every direction, at rest and when pressed. On a prize, "Keep for later" is at the
+  left in green and "Wear it" at the right, plain.
+- **Night music offer** (`MusicOffer.tsx`): at night a banner comes in at the top right, "Turn it on" or a
+  cross. Refused twice in a row, it is never shown again; left alone, it leaves and that is not a refusal.
+  Memory is in this browser (`kp-music`). **No recordings are chosen, so nothing plays yet**, and there is
+  no Settings page to turn it off in. The demo bar's "Offer music" (night only) shows it again.
+- **Progress**: the day card shows "skills improved" in place of percent correct (a stand-in number). The
+  right-and-missed bars on Questions answered are a brighter green and red.
+- **Open**: he asked for AM and PM on the Mistake Log's times, but its "Time" column is how long a
+  session took, not a time of day. Asked him which he means; nothing changed there yet. He also asked for
+  Records to be "the same height as" Characters: the two columns now end level at every width; ask if he
+  meant something else.

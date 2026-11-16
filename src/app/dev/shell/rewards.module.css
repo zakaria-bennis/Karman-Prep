@@ -437,6 +437,7 @@
 @media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
   .rewards {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .rewards > .middle {
@@ -462,12 +463,25 @@
     align-items: start;
   }
 
+  /* the price, and beside it the two short lines about how often and how many */
   .pass .buy {
     grid-column: 2;
-    grid-auto-flow: column;
-    justify-content: start;
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-items: start;
     align-items: center;
-    gap: 10px;
+    gap: 0 12px;
+  }
+
+  .pass .buy button {
+    grid-row: span 2;
+  }
+
+  .pass .buy small:first-of-type {
+    align-self: end;
+  }
+
+  .pass .buy small:last-of-type {
+    align-self: start;
   }
 
   /* the Coins page on a phone: the line above already shows the coins held, so the pane begins

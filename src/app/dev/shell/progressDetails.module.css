@@ -188,14 +188,15 @@
   display: block;
   height: 10px;
   border-radius: 4px;
-  background: var(--down);
+  /* brighter than the page's own green and red, so the two sides are told apart at once */
+  background: #ff6b5c;
   overflow: hidden;
 }
 
 .band i {
   display: block;
   height: 100%;
-  background: var(--p3);
+  background: #2fcf8a;
   border-right: 2px solid var(--glass-edge);
   transform-origin: 0 50%;
   animation: grow 0.45s var(--out) both;

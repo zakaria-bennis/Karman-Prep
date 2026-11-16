@@ -5,13 +5,14 @@
 //   Coins        what the student holds, the multiplier their
 //                challenge-question streak has earned (a quarter more each day, up to 5x), and where
 //                this week's coins came from.
-//   The box      the mystery box, opened for coins: it holds one of 200 things to wear
-//                (RewardsBox.tsx, accessories.tsx). The wardrobe, opened from the box, shows what has
-//                been won and lets the fox put things on, one in each place: head, eyes, neck, side.
+//   The box      the mystery box, opened for coins: it holds one of 100 things to wear
+//                (RewardsBox.tsx, accessories.tsx). Once all 100 are won, no more can be opened.
+//                The wardrobe, opened from the box, is a screen of its own (Wardrobe.tsx).
 //   Records      little things worth knowing (lifetime coins, best day and so on), under Coins.
 //   Passes       things of real use: starting a full-length exam outside Saturday's window,
 //                keeping a streak through a missed day, and a second chance after a miss inside a
-//                skill set (bought here ahead of time, used there). Each is limited.
+//                skill set (bought here ahead of time, used there). Each may be bought once in
+//                its own stretch of time, and up to three kept.
 //   Characters   the 16, each with its own name under its square and a little story, each unlocked
 //                by its own challenge. One still locked shows its face grayed out, with a ring round
 //                its square for how far along it is; the three hardest are black shapes named "???".
@@ -21,15 +22,16 @@
 // Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
 import cast from "./rewardsCast.module.css";
-import ward from "./rewardsWardrobe.module.css";
-import { ACCESSORIES, Dressed, SLOTS, type Accessory, type Outfit, type Slot } from "./accessories";
+import { ACCESSORIES, Dressed, type Accessory, type Outfit } from "./accessories";
+import type { Trail } from "./MistakeLog";
 import MysteryBox, { Coin } from "./RewardsBox";
 import { PassIcon } from "./RewardsPassIcon";
+import Wardrobe from "./Wardrobe";
 import {
   BOX_PRICE,
   CHARACTERS,
@@ -48,7 +50,14 @@ const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
 const count = (n: number) => n.toLocaleString("en-US");
 const times = (n: number) => `${n}x`;
 
-export default function Rewards({ rail }: { rail: boolean }) {
+export default function Rewards({
+  rail,
+  onTrail,
+}: {
+  rail: boolean;
+  /** Tells the page what its title and way back should say while the wardrobe is open. */
+  onTrail: (trail: Trail | null) => void;
+}) {
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
   const [coins, setCoins] = useState(COINS);
@@ -57,8 +66,21 @@ export default function Rewards({ rail }: { rail: boolean }) {
   /** What the fox has on: one thing, or none, in each place. */
   const [outfit, setOutfit] = useState<Outfit>({});
   const [wardrobe, setWardrobe] = useState(false);
-  const [slot, setSlot] = useState<Slot | null>(null);
-  /** How many of each pass are held, bought on this page (nothing is saved yet). */
+  // the wardrobe is a screen of its own: the page's title names it and its back pill leaves it
+  useEffect(() => {
+    onTrail(wardrobe ? { name: "Wardrobe", back: "Rewards", go: () => setWardrobe(false) } : null);
+    return () => onTrail(null);
+  }, [wardrobe, onTrail]);
+  useEffect(() => {
+    if (!wardrobe) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setWardrobe(false);
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [wardrobe]);
+  /** How many of each pass are held. One may be bought in each pass's own stretch of time and up to
+   *  three kept; on this page, where no time passes, that is one of each (nothing is saved yet). */
   const [held, setHeld] = useState<Record<string, number>>({});
   const [picked, setPicked] = useState(0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
@@ -70,7 +92,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
     ping();
   };
   /** The next thing a box gives: one not yet won, taken in an order that looks like chance and
-   *  reaches all 200 before it repeats. */
+   *  reaches all 100 before it repeats. */
   const next = (): Accessory => {
     const many = ACCESSORIES.length;
     for (let n = owned.length; n < owned.length + many; n++) {
@@ -82,12 +104,23 @@ export default function Rewards({ rail }: { rail: boolean }) {
   /** Puts a thing on, or takes it off if it is already on. */
   const wear = (item: Accessory) =>
     setOutfit({ ...outfit, [item.slot]: outfit[item.slot] === item.id ? undefined : item.id });
-  const mine = ACCESSORIES.filter((a) => owned.includes(a.id) && (!slot || a.slot === slot));
   const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
   const chosen = CHARACTERS[picked];
   const has = chosen.done >= chosen.of;
   const hidden = chosen.mystery && !has;
 
+  if (wardrobe)
+    return (
+      <Wardrobe
+        owned={owned}
+        outfit={outfit}
+        onWear={wear}
+        onUnlockAll={() => {
+          setOwned(ACCESSORIES.map((a) => a.id));
+          tick();
+        }}
+      />
+    );
   return (
     <div className={`${lib.library} ${styles.rewards}`}>
       {!rail && (
@@ -188,8 +221,9 @@ export default function Rewards({ rail }: { rail: boolean }) {
 
       {(show("Box") || show("Passes")) && (
         <section className={`${lib.glass} ${styles.middle}`} aria-label="Mystery box and passes">
-          {show("Box") && !wardrobe && (
+          {show("Box") && (
             <MysteryBox
+              all={ACCESSORIES.length}
               coins={coins}
               outfit={outfit}
               owned={owned.length}
@@ -207,100 +241,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
               }}
             />
           )}
-          {/* the wardrobe takes the box's place: everything won, to put on and take off */}
-          {show("Box") && wardrobe && (
-            <div className={ward.wardrobe}>
-              <header>
-                <button
-                  type="button"
-                  className={ward.backIn}
-                  onClick={() => {
-                    setWardrobe(false);
-                    tick();
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                    <path d="M14.500 6.500L9 12l5.500 5.500" />
-                  </svg>
-                  Box
-                </button>
-                <h2>Wardrobe</h2>
-                <p>
-                  <b>{owned.length}</b> of {ACCESSORIES.length}
-                </p>
-              </header>
-              <div className={ward.fitting}>
-                <Dressed face="fox" outfit={outfit} size={104} />
-              </div>
-              <div className={`${lib.filter} ${ward.slots}`} role="group" aria-label="Worn on">
-                {([null, ...(Object.keys(SLOTS) as Slot[])] as (Slot | null)[]).map((key) => (
-                  <button
-                    key={key ?? "all"}
-                    type="button"
-                    aria-pressed={slot === key}
-                    onClick={() => {
-                      setSlot(key);
-                      tick();
-                    }}
-                  >
-                    {slot === key && (
-                      <motion.span
-                        layoutId="rewards-slot"
-                        className={lib.lens}
-                        transition={
-                          still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
-                        }
-                      />
-                    )}
-                    <span>{key ? SLOTS[key] : "All"}</span>
-                  </button>
-                ))}
-              </div>
-              {mine.length > 0 ? (
-                <ul className={ward.rack}>
-                  {mine.map((item) => (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        className={ward.thing}
-                        aria-pressed={outfit[item.slot] === item.id}
-                        onClick={() => {
-                          wear(item);
-                          tick();
-                        }}
-                      >
-                        <Dressed face="fox" outfit={{ [item.slot]: item.id }} size={56} />
-                        {item.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className={ward.bare}>
-                  <p>
-                    {owned.length
-                      ? "Nothing for that place yet."
-                      : "Open a box to win your first one."}
-                  </p>
-                </div>
-              )}
-              {/* for trying things on while the page is being designed; not for students */}
-              {owned.length < ACCESSORIES.length && (
-                <button
-                  type="button"
-                  className={styles.quiet}
-                  onClick={() => {
-                    setOwned(ACCESSORIES.map((a) => a.id));
-                    tick();
-                  }}
-                >
-                  Unlock all 200 for testing
-                </button>
-              )}
-            </div>
-          )}
-          {/* with room, the open wardrobe has the whole pane, so the passes step aside */}
-          {show("Passes") && !(rail && wardrobe) && (
+          {show("Passes") && (
             <div className={styles.passes}>
               <h3>Passes</h3>
               <ul>
@@ -314,19 +255,26 @@ export default function Rewards({ rail }: { rail: boolean }) {
                         <span>{pass.does}</span>
                       </div>
                       <div className={styles.buy}>
-                        {/* an exam pass or a streak saver is held one at a time; second chances
-                            may be kept in number, to use later inside a skill set */}
+                        {/* once one is bought, the next waits for the pass's own stretch of time;
+                            up to three can be kept */}
                         <button
                           type="button"
                           className={styles.price}
-                          disabled={(mine > 0 && !pass.stacks) || coins < pass.price}
+                          disabled={(mine > 0 && !!pass.next) || coins < pass.price}
                           aria-label={`Buy ${pass.name} for ${pass.price} coins`}
                           onClick={() => buy(pass)}
                         >
                           <Coin size={20} />
                           {count(pass.price)}
                         </button>
-                        <small>{mine > 0 ? `You have ${mine}` : pass.limit}</small>
+                        <small>{mine > 0 && pass.next ? `Next ${pass.next}` : pass.limit}</small>
+                        <small>
+                          {mine > 0
+                            ? `You have ${mine}${pass.bank ? ` of ${pass.bank}` : ""}`
+                            : pass.bank
+                              ? `Keep up to ${pass.bank}`
+                              : "Buy any number"}
+                        </small>
                       </div>
                     </li>
                   );

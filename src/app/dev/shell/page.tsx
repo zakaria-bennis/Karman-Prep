@@ -42,6 +42,7 @@ import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
+import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
 import { Sticker, type StickerName } from "./stickers";
 
@@ -100,6 +101,8 @@ function Shell() {
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
+  /* counts each time the offer of music is asked for again (demo only) */
+  const [offer, setOffer] = useState(0);
   /* the Free plan, which has no predicted score (demo only) */
   const [free, setFree] = useState(false);
   /* which way the next page slides: 1 going deeper, -1 coming back */
@@ -571,7 +574,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "rewards" && <Rewards rail={rail} />}
+        {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog
             key={student}
@@ -583,6 +586,9 @@ function Shell() {
           />
         )}
       </main>
+
+      {/* at night, the offer of classical music comes in at the top right (MusicOffer.tsx) */}
+      <MusicOffer key={offer} night={dark} />
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
@@ -624,6 +630,18 @@ function Shell() {
           {!rail && (
             <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
               Night
+            </button>
+          )}
+          {/* forgets what was answered, so the night offer of music can be seen again */}
+          {dark && (
+            <button
+              type="button"
+              onClick={() => {
+                forgetMusic();
+                setOffer(offer + 1);
+              }}
+            >
+              Offer music
             </button>
           )}
         </div>

@@ -44,36 +44,49 @@
   inset: 0;
 }
 
-/* now and then the resting box shakes, as if something inside wanted out */
+/* now and then the resting box jolts every way, not only from side to side: across, up, down, a little
+   bulge, as if whatever is inside were trying to get out */
 .boxHold[data-idle] {
   animation: shake 4.6s ease-in-out infinite;
 }
 
 @keyframes shake {
   0%,
-  84%,
+  78%,
   100% {
     transform: none;
   }
 
-  87% {
-    transform: rotate(-4deg);
+  80.500% {
+    transform: translate(-6px, 2px) rotate(-3deg);
   }
 
-  90% {
-    transform: rotate(4deg) translateY(-4px);
+  83% {
+    transform: translate(7px, -6px) rotate(3deg) scale(1.04, 0.96);
+  }
+
+  85.500% {
+    transform: translate(-3px, -10px) rotate(-2deg) scale(0.96, 1.06);
+  }
+
+  88% {
+    transform: translate(6px, 4px) rotate(2deg) scale(1.05, 0.95);
+  }
+
+  90.500% {
+    transform: translate(-7px, -3px) rotate(-4deg);
   }
 
   93% {
-    transform: rotate(-3deg);
+    transform: translate(4px, -7px) rotate(3deg) scale(0.97, 1.05);
   }
 
-  96% {
-    transform: rotate(2deg);
+  95.500% {
+    transform: translate(-2px, 3px) rotate(-1deg);
   }
 }
 
-/* pressed, it squashes and shakes hard for a moment before it gives */
+/* pressed, it is thrown about harder still for a moment before it gives */
 .boxHold[data-shaking] {
   transform-origin: 50% 90%;
   animation: about 0.52s cubic-bezier(0.3, 0, 0.4, 1);
@@ -84,20 +97,28 @@
     transform: scale(1);
   }
 
-  18% {
-    transform: scale(1.08, 0.9) rotate(-5deg);
+  14% {
+    transform: translate(-8px, 3px) scale(1.08, 0.9) rotate(-5deg);
   }
 
-  36% {
-    transform: scale(0.94, 1.08) rotate(5deg);
+  28% {
+    transform: translate(9px, -8px) scale(0.94, 1.08) rotate(5deg);
   }
 
-  54% {
-    transform: scale(1.1, 0.88) rotate(-4deg);
+  42% {
+    transform: translate(-6px, -12px) scale(0.95, 1.1) rotate(-3deg);
   }
 
-  72% {
-    transform: scale(0.92, 1.1) rotate(3deg);
+  56% {
+    transform: translate(8px, 5px) scale(1.1, 0.88) rotate(4deg);
+  }
+
+  70% {
+    transform: translate(-9px, -4px) scale(0.92, 1.1) rotate(-4deg);
+  }
+
+  84% {
+    transform: translate(5px, -9px) scale(0.96, 1.06) rotate(3deg);
   }
 
   100% {

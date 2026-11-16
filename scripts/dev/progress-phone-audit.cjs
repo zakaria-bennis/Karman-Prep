@@ -149,9 +149,10 @@ const audit = () => {
       await main.getByRole("button", { name: /^Open/ }).click(); await p.waitForTimeout(1700); await check("Rewards / a prize");
       await main.getByRole("button", { name: "Keep for later" }).click(); await p.waitForTimeout(500);
       await main.getByRole("button", { name: "Wardrobe" }).click(); await check("Rewards / wardrobe");
-      await main.getByRole("button", { name: "Unlock all 200 for testing" }).click(); await check("Rewards / wardrobe, all 200");
-      await main.getByRole("button", { name: "Box", exact: true }).first().click(); await p.waitForTimeout(300);
-      for (const pg of ["Coins", "Passes", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
+      await main.getByRole("button", { name: "Unlock all 100 for testing" }).click(); await check("Rewards / wardrobe, all 100");
+      await main.getByRole("button", { name: "Party hat", exact: true }).click(); await main.getByRole("button", { name: "Try on Juniper" }).click(); await check("Rewards / wardrobe, dressed");
+      await main.getByRole("button", { name: "Rewards", exact: true }).click(); await p.waitForTimeout(300); await check("Rewards / every thing won");
+      for (const pg of ["Coins", "Passes", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); if (pg === "Passes") { await main.getByRole("button", { name: /Buy Second chance/ }).click(); await check("Rewards / a pass bought"); } }
       await main.getByRole("button", { name: /^Thistle/ }).click(); await check("Rewards / a character pressed");
       // Progress for a student who has answered nothing, one with a little practice, and the Free plan
       if (who === "9 weeks") {

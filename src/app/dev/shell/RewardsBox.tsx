@@ -1,18 +1,19 @@
 "use client";
 
 // The coin, the mystery box, and what comes out of it. Everything is drawn here in code.
-//   The coin   a gold piece with Karman the fox carved into it in a George Washington wig, like the
-//              head on a real coin (founder, 2026-11-16: "I think that would be hilarious"): a reeded
-//              rim, a sunk field, and the fox cut into that field with the powdered curls at its
-//              cheeks.
+//   The coin   a gold piece with Karman the fox on it as George Washington is on a dollar bill
+//              (founder, 2026-11-16, with the portrait as his reference): a reeded rim, a sunk
+//              field, and in it the fox to the shoulders, the wig over his whole head with a roll at
+//              each side, his ears up through it, a coat and a cravat.
 //   The box    a chunky gift box in the manner of Crossy Road's, shaded on every face, tied in gold
 //              with a soft bow. It shakes now and then and gives off sparks. Pressed, it squashes
 //              and shakes for a moment, then the lid flies off, a burst of blocks goes up, light
 //              pours out of the open box, and the prize pops out and hangs over it. The open box
 //              shows its inside. (He asked for elements of Crossy Road's opening; this is built from
 //              what I know of it, not from watching it again.)
-// The prize is one of the 200 things to wear (accessories.tsx). It is shown on the fox and is never
-// put on for the student: they choose "Wear it" or "Keep for later". One sound for each real moment.
+// The prize is one of the 100 things to wear (accessories.tsx); once all are won, none can be
+// opened. It is shown on the fox and is never put on for the student: they choose "Keep for later" or
+// "Wear it". One sound for each real moment.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Dressed, type Accessory, type Outfit } from "./accessories";
@@ -22,9 +23,22 @@ import { BOX_PRICE } from "./rewardsData";
 import { chosen, tick, whoosh } from "./sound";
 
 const FOX = "M-34 -80L-8 -56L0 -58L8 -56L34 -80L30 -42L40 -32L30 0L0 8L-30 0L-40 -32L-30 -42Z";
-/** The wig: a cap across the brow and three rolled curls down each cheek. */
-const WIG_CAP = "M-33 -40C-28 -64 28 -64 33 -40C18 -52 -18 -52 -33 -40Z";
-const CURLS = [-30, -15, 0];
+// The wig, as on the portrait on a dollar bill: hair swept back over the whole top of the head, a
+// big rolled puff at each side where the ears would be on a man, and a smaller roll under it. The
+// fox's own ears come up through it. Under the chin are the coat's shoulders and a cravat.
+const WIG_BACK = "M-55 -26C-61 -66 -30 -82 0 -82C30 -82 61 -66 55 -26Z";
+const WIG_FRONT =
+  "M-34 -35C-25 -50 -8 -54 0 -47C8 -54 25 -50 34 -35L48 -41C43 -62 20 -69 0 -67C-20 -69 -43 -62 -48 -41Z";
+const EARS = "M-44 -54L-39 -94L-13 -66ZM44 -54L39 -94L13 -66Z";
+const EARS_IN = "M-38 -61L-36 -83L-22 -67ZM38 -61L36 -83L22 -67Z";
+const COAT = "M-80 54C-74 20 -46 6 -26 0L26 0C46 6 74 20 80 54Z";
+const CRAVAT = "M-13 9C-6 14 6 14 13 9L17 25C9 21 4 27 0 43C-4 27 -9 21 -17 25Z";
+const ROLLS = [
+  { x: 49, y: -21, rx: 16, ry: 14.5 },
+  { x: 46, y: 5, rx: 12, ry: 10 },
+];
+const PALE = "#fff0b8";
+const LINE = "#8a5a00";
 
 export function Coin({ size = 20 }: { size?: number }) {
   return (
@@ -43,6 +57,13 @@ export function Coin({ size = 20 }: { size?: number }) {
           <stop offset="0" stopColor="#b97c0a" />
           <stop offset="1" stopColor="#e0a326" />
         </linearGradient>
+        <linearGradient id="kp-coin-coat" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#7a4d00" />
+          <stop offset="1" stopColor="#a8700a" />
+        </linearGradient>
+        <clipPath id="kp-coin-clip">
+          <circle cx="24" cy="24" r="17.800" />
+        </clipPath>
       </defs>
       {/* the rim, with its reeded edge */}
       <circle
@@ -58,7 +79,7 @@ export function Coin({ size = 20 }: { size?: number }) {
         cy="24"
         r="21"
         fill="none"
-        stroke="#8a5a00"
+        stroke={LINE}
         strokeOpacity="0.5"
         strokeWidth="1.600"
         strokeDasharray="0.9 1.3"
@@ -74,81 +95,123 @@ export function Coin({ size = 20 }: { size?: number }) {
         strokeOpacity="0.55"
       />
       <circle cx="24.600" cy="24.600" r="17.800" fill="none" stroke="#fff3b8" strokeOpacity="0.7" />
-      {/* Karman, carved into the field, in his wig */}
-      <g transform="translate(24 34.600) scale(0.27)">
-        <path d={FOX} transform="translate(2.600 2.600)" fill="#fff3b8" fillOpacity="0.85" />
-        <path d={FOX} transform="translate(-2.200 -2.200)" fill="#5a3800" fillOpacity="0.75" />
-        <path d={FOX} fill="url(#kp-coin-fox)" />
-        <path
-          d="M-28 -48L-30 -68L-16 -56ZM28 -48L30 -68L16 -56Z"
-          fill="#8a5a00"
-          fillOpacity="0.8"
-        />
-        <path
-          d="M-40 -32L-16 -14L0 8L16 -14L40 -32M-16 -14L0 -24L16 -14"
-          fill="none"
-          stroke="#6b4300"
-          strokeOpacity="0.7"
-          strokeWidth="2.200"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M-40 -32L-16 -14L0 8L-30 0ZM40 -32L16 -14L0 8L30 0Z"
-          fill="#ffe9a3"
-          fillOpacity="0.55"
-        />
-        {/* the wig, raised and pale: the cap, then the curls, each with the line of its roll */}
-        <path d={WIG_CAP} transform="translate(-1.800 -1.800)" fill="#5a3800" fillOpacity="0.6" />
-        <path d={WIG_CAP} fill="#fff0b8" />
-        {CURLS.map((y) => (
-          <g key={y}>
-            <ellipse cx="-45" cy={y - 1.5} rx="12" ry="8.500" fill="#5a3800" fillOpacity="0.55" />
-            <ellipse cx="-44" cy={y} rx="12" ry="8.500" fill="#fff0b8" />
-            <path
-              d={`M-52 ${y}C-50 ${y - 6} -38 ${y - 6} -36 ${y}C-38 ${y + 4} -46 ${y + 4} -47 ${y}`}
-              fill="none"
-              stroke="#8a5a00"
-              strokeOpacity="0.7"
-              strokeWidth="1.800"
-            />
-            <ellipse cx="43" cy={y - 1.5} rx="12" ry="8.500" fill="#5a3800" fillOpacity="0.55" />
-            <ellipse cx="44" cy={y} rx="12" ry="8.500" fill="#ffe7a0" />
-            <path
-              d={`M52 ${y}C50 ${y - 6} 38 ${y - 6} 36 ${y}C38 ${y + 4} 46 ${y + 4} 47 ${y}`}
-              fill="none"
-              stroke="#8a5a00"
-              strokeOpacity="0.7"
-              strokeWidth="1.800"
-            />
-          </g>
-        ))}
-        <path
-          d="M-22 -50C-10 -56 10 -56 22 -50"
-          fill="none"
-          stroke="#8a5a00"
-          strokeOpacity="0.6"
-          strokeWidth="1.800"
-        />
-        {/* slanted eyes, each with a point of light */}
-        <ellipse
-          cx="-15"
-          cy="-28"
-          rx="7"
-          ry="4.400"
-          transform="rotate(20 -15 -28)"
-          fill="#4a2e00"
-        />
-        <ellipse cx="15" cy="-28" rx="7" ry="4.400" transform="rotate(-20 15 -28)" fill="#4a2e00" />
-        <circle cx="-12.600" cy="-29.800" r="1.700" fill="#fff3b8" />
-        <circle cx="17.400" cy="-29.800" r="1.700" fill="#fff3b8" />
-        <path d="M-5 -15L5 -15L0 -9Z" fill="#4a2e00" />
-        <path
-          d="M-4 -5Q0 -2 4 -5"
-          fill="none"
-          stroke="#4a2e00"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
+      {/* Karman as the head on the coin: a portrait to the shoulders, cut off by the field's edge */}
+      <g clipPath="url(#kp-coin-clip)">
+        <g transform="translate(24 31.400) scale(0.235)">
+          {/* the coat, and the turn of its collar */}
+          <path d={COAT} transform="translate(-2 -2)" fill="#5a3800" fillOpacity="0.6" />
+          <path d={COAT} fill="url(#kp-coin-coat)" />
+          <path
+            d="M-26 1L-9 34M26 1L9 34M-52 14L-40 54M52 14L40 54"
+            fill="none"
+            stroke="#ffe9a3"
+            strokeOpacity="0.55"
+            strokeWidth="2.400"
+            strokeLinecap="round"
+          />
+          {/* the hair behind the head, over the whole top of it */}
+          <path d={WIG_BACK} transform="translate(-2 -2)" fill="#5a3800" fillOpacity="0.6" />
+          <path d={WIG_BACK} fill={PALE} />
+          {/* the fox's ears come up through the hair */}
+          <path d={EARS} fill="url(#kp-coin-fox)" stroke="#6b4300" strokeWidth="1.600" />
+          <path d={EARS_IN} fill={LINE} fillOpacity="0.8" />
+          {/* the face */}
+          <path d={FOX} transform="translate(-2.200 -2.200)" fill="#5a3800" fillOpacity="0.75" />
+          <path d={FOX} fill="url(#kp-coin-fox)" />
+          <path
+            d="M-40 -32L-16 -14L0 8L16 -14L40 -32M-16 -14L0 -24L16 -14"
+            fill="none"
+            stroke="#6b4300"
+            strokeOpacity="0.7"
+            strokeWidth="2.200"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M-40 -32L-16 -14L0 8L-30 0ZM40 -32L16 -14L0 8L30 0Z"
+            fill="#ffe9a3"
+            fillOpacity="0.55"
+          />
+          {/* the hair swept back from the brow, which hides where the ears begin */}
+          <path d={WIG_FRONT} fill={PALE} />
+          <path
+            d="M-34 -35C-25 -50 -8 -54 0 -47C8 -54 25 -50 34 -35"
+            fill="none"
+            stroke={LINE}
+            strokeOpacity="0.6"
+            strokeWidth="1.800"
+            strokeLinecap="round"
+          />
+          <path
+            d="M-22 -47C-21 -58 -14 -68 -8 -76M-9 -51C-9 -60 -6 -70 -3 -78M9 -51C9 -60 6 -70 3 -78M22 -47C21 -58 14 -68 8 -76M-36 -43C-36 -52 -31 -58 -27 -62M36 -43C36 -52 31 -58 27 -62"
+            fill="none"
+            stroke={LINE}
+            strokeOpacity="0.45"
+            strokeWidth="1.600"
+            strokeLinecap="round"
+          />
+          {/* the rolls at each side, each with the line of its curl */}
+          {ROLLS.map((r) =>
+            [-1, 1].map((way) => (
+              <g key={`${r.y}${way}`} transform={`translate(${way * r.x} ${r.y}) scale(${way} 1)`}>
+                <ellipse
+                  cx="-1.600"
+                  cy="-1.600"
+                  rx={r.rx}
+                  ry={r.ry}
+                  fill="#5a3800"
+                  fillOpacity="0.55"
+                />
+                <ellipse rx={r.rx} ry={r.ry} fill={way < 0 ? PALE : "#ffe7a0"} />
+                <path
+                  d={`M${-r.rx * 0.62} 1C${-r.rx * 0.5} ${-r.ry * 0.7} ${r.rx * 0.5} ${-r.ry * 0.7} ${r.rx * 0.6} 0C${r.rx * 0.5} ${r.ry * 0.55} ${-r.rx * 0.1} ${r.ry * 0.55} ${-r.rx * 0.15} 0`}
+                  fill="none"
+                  stroke={LINE}
+                  strokeOpacity="0.7"
+                  strokeWidth="1.800"
+                  strokeLinecap="round"
+                />
+              </g>
+            ))
+          )}
+          {/* the cravat under the chin */}
+          <path d={CRAVAT} transform="translate(-1.600 -1.600)" fill="#5a3800" fillOpacity="0.55" />
+          <path d={CRAVAT} fill={PALE} />
+          <path
+            d="M-9 13C-3 17 3 17 9 13M0 17L0 36"
+            fill="none"
+            stroke={LINE}
+            strokeOpacity="0.6"
+            strokeWidth="1.600"
+            strokeLinecap="round"
+          />
+          {/* slanted eyes, each with a point of light */}
+          <ellipse
+            cx="-15"
+            cy="-28"
+            rx="7"
+            ry="4.400"
+            transform="rotate(20 -15 -28)"
+            fill="#4a2e00"
+          />
+          <ellipse
+            cx="15"
+            cy="-28"
+            rx="7"
+            ry="4.400"
+            transform="rotate(-20 15 -28)"
+            fill="#4a2e00"
+          />
+          <circle cx="-12.600" cy="-29.800" r="1.700" fill="#fff3b8" />
+          <circle cx="17.400" cy="-29.800" r="1.700" fill="#fff3b8" />
+          <path d="M-5 -15L5 -15L0 -9Z" fill="#4a2e00" />
+          <path
+            d="M-4 -5Q0 -2 4 -5"
+            fill="none"
+            stroke="#4a2e00"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </g>
       </g>
       {/* light catching the upper left of the rim */}
       <path
@@ -350,17 +413,20 @@ export default function MysteryBox({
   onWear,
   onWardrobe,
   owned,
+  all,
 }: {
   coins: number;
   /** What the fox has on now. */
   outfit: Outfit;
-  /** How many of the 200 are still to be won. */
+  /** How many things to wear are still to be won. */
   left: number;
   /** Takes the price, and says which prize came out. */
   onOpen: () => Accessory;
   onWear: (prize: Accessory) => void;
   onWardrobe: () => void;
   owned: number;
+  /** How many things to wear there are in all. */
+  all: number;
 }) {
   const still = useReducedMotion() ?? false;
   const [stage, setStage] = useState<"closed" | "shaking" | "open">("closed");
@@ -510,10 +576,21 @@ export default function MysteryBox({
         {open && prize ? (
           <>
             <h2>{prize.name}</h2>
+            {/* keeping it is the first choice, at the left and in green; wearing it now is beside it */}
             <div className={styles.pair}>
               <button
                 type="button"
                 className={styles.primary}
+                onClick={() => {
+                  setStage("closed");
+                  tick();
+                }}
+              >
+                Keep for later
+              </button>
+              <button
+                type="button"
+                className={styles.quiet}
                 onClick={() => {
                   onWear(prize);
                   setStage("closed");
@@ -522,36 +599,29 @@ export default function MysteryBox({
               >
                 Wear it
               </button>
-              <button
-                type="button"
-                className={styles.quiet}
-                onClick={() => {
-                  setStage("closed");
-                  tick();
-                }}
-              >
-                Keep for later
-              </button>
             </div>
           </>
         ) : (
           <>
             <h2>Mystery box</h2>
             <div className={styles.pair}>
-              <button
-                type="button"
-                className={styles.primary}
-                disabled={short || left === 0 || stage === "shaking"}
-                onClick={() => {
-                  setPrize(onOpen());
-                  setStage("shaking");
-                  whoosh();
-                }}
-              >
-                Open
-                <Coin size={22} />
-                {BOX_PRICE}
-              </button>
+              {/* with everything won there is nothing left to open, so the way to open one goes */}
+              {left > 0 && (
+                <button
+                  type="button"
+                  className={styles.primary}
+                  disabled={short || stage === "shaking"}
+                  onClick={() => {
+                    setPrize(onOpen());
+                    setStage("shaking");
+                    whoosh();
+                  }}
+                >
+                  Open
+                  <Coin size={22} />
+                  {BOX_PRICE}
+                </button>
+              )}
               <button type="button" className={styles.quiet} onClick={onWardrobe}>
                 Wardrobe
               </button>
@@ -559,10 +629,10 @@ export default function MysteryBox({
             {/* said in a place that is always kept */}
             <p className={styles.note}>
               {left === 0
-                ? "You have all 200"
+                ? `You have all ${all}`
                 : short
                   ? `${BOX_PRICE - coins} more coins to open one`
-                  : `${owned} of 200 won`}
+                  : `${owned} of ${all} won`}
             </p>
           </>
         )}

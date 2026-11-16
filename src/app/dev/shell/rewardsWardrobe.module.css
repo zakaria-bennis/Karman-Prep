@@ -1,60 +1,42 @@
 /*
- * The wardrobe (Rewards.tsx): everything won from boxes, to put on and take off. Glass, corners and
- * text sizes come from library.module.css, set on .library.
+ * The wardrobe (Wardrobe.tsx): the things to wear at the left, the character at the right. Glass,
+ * corners and text sizes come from library.module.css, set on .library. (The shell clears every
+ * button's font and background, so a button with its own is named through the page.)
  */
 .wardrobe {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
+  align-items: start;
 }
 
-.wardrobe header {
+.things,
+.fitting {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: calc(var(--pad) + 6px);
+}
+
+.things header {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.wardrobe header p {
+.things header p {
+  flex: none;
   margin-left: auto;
   font-size: 13px;
   font-weight: 500;
 }
 
-.wardrobe header b {
+.things header b {
   font-size: 16px;
   font-weight: 600;
 }
 
-.wardrobe .backIn {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  height: 36px;
-  padding: 0 12px 0 6px;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.backIn svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* the fox in what it has on, beside the places a thing can be worn */
-.fitting {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
 .wardrobe .slots {
+  flex: 1 1 auto;
+  max-width: 460px;
   background: var(--hover);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -69,10 +51,10 @@
 /* the rack scrolls inside itself, so the page does not */
 .rack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   gap: 6px;
-  /* as tall as the screen leaves, so the page itself never scrolls */
-  max-height: max(120px, calc(100dvh - 452px));
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 2px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -85,6 +67,7 @@
   justify-items: center;
   gap: 4px;
   width: 100%;
+  min-height: 100%;
   padding: 8px 4px 6px;
   border-radius: var(--r-lens);
   background: var(--hover);
@@ -112,36 +95,163 @@
 
 .bare {
   display: grid;
-  justify-items: center;
-  gap: 10px;
+  flex: 1 1 auto;
+  place-items: center;
   padding: 24px 8px;
   font-size: 16px;
   font-weight: 500;
   text-align: center;
 }
 
+.wardrobe .test {
+  align-self: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* the character, in what it has on */
+.fitting {
+  align-items: center;
+}
+
+.mirror {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  flex: 1 1 auto;
+  min-height: 200px;
+}
+
+.figure {
+  display: grid;
+  place-items: center;
+}
+
+.on {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+.wardrobe .on button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 8px 0 12px;
+  border-radius: 17px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.on svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+/* the characters' faces: pressing one tries the same things on it */
+.faces {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+
+.wardrobe .faces button {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 3px 0;
+  border-radius: 10px;
+  background: var(--hover);
+  transition: background 0.2s var(--out);
+}
+
+.wardrobe .faces button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
 @media (hover: hover) {
   .wardrobe .thing:hover,
-  .wardrobe .backIn:hover {
+  .wardrobe .faces button:hover,
+  .wardrobe .on button:hover,
+  .wardrobe .test:hover {
     background: var(--lens);
   }
 }
 
-/* the medium-width window: the wardrobe shares the top pane, so its rack is lower */
-@media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
-  .rack {
-    max-height: 250px;
+/* with room: the things take most of the width, and both panes are as tall as the screen leaves */
+@media (min-width: 960px) and (hover: hover) {
+  .wardrobe {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .things,
+  .fitting {
+    height: calc(100dvh - 88px);
+    min-height: 420px;
+  }
+
+  /* with a whole pane to stand in, the character is seen large */
+  .figure {
+    zoom: 1.5;
   }
 }
 
-/* a phone: a smaller fox, and a rack as tall as the screen leaves */
-@media (max-width: 599px) {
+/* a phone: the character on top, small, and the things under it in a pane that scrolls inside */
+@media (max-width: 959px) {
   .fitting {
-    zoom: 0.7;
+    order: -1;
+    gap: 8px;
+    padding: var(--pad);
+  }
+
+  .mirror {
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .figure {
+    zoom: 0.55;
+  }
+
+  /* five places and the count share one line */
+  .things header {
+    gap: 8px;
+  }
+
+  .slots button {
+    padding: 0;
+    font-size: 14px;
+  }
+
+  .faces button {
+    min-height: 40px;
+  }
+
+  .things {
+    gap: 10px;
+    padding: var(--pad);
   }
 
   .rack {
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    max-height: max(110px, calc(100dvh - 548px));
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    flex: none;
+    height: max(150px, calc(100dvh - 590px));
   }
 }

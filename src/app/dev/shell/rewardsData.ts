@@ -17,7 +17,8 @@
 //   Each is priced so it cannot be abused.
 //   Themes and skins are off the page: he is rethinking them (perhaps places, such as countries) and
 //   light and dark stay tied to day and night.
-//   A box holds one of 200 things to wear (accessories.tsx; he asked for 200).
+//   A box holds one of 100 things to wear, each a thing of its own (accessories.tsx). Once all
+//   100 are won, no more boxes can be opened.
 //   Not settled, and made up here: every price and amount, and every character's name (but
 //   Karman), story and challenge (he asked for a draft of those; a challenge suits its character
 //   where it can, as he asked: the owl reads, the hedgehog counts, the squirrel saves coins).
@@ -45,18 +46,20 @@ export const EARNED = [
 
 export const BOX_PRICE = 500;
 
-/** Things of real use that coins buy. Each has a limit, which he set (2026-11-16): the exam pass
- *  once a month, the streak saver once a week, the second chance once in a skill set. The prices are
- *  stand-ins. */
+/** Things of real use that coins buy. His rules (2026-11-16): an exam pass may be bought once a
+ *  month and a streak saver once every two weeks, and three of each may be kept. Second chances
+ *  may be bought in any number, but only one may be used in a skill. The prices are stand-ins. */
 export type Pass = {
   name: string;
   does: string;
   price: number;
-  /** How often one may be bought. */
+  /** The rule said under the price: how often one may be bought, or how it may be used. */
   limit: string;
+  /** When the next may be bought once one has been. A pass without it may be bought freely. */
+  next?: string;
+  /** How many may be kept. A pass without it may be kept in any number. */
+  bank?: number;
   icon: PassKind;
-  /** More than one may be held at a time. */
-  stacks?: boolean;
 };
 export const PASSES: Pass[] = [
   {
@@ -65,23 +68,26 @@ export const PASSES: Pass[] = [
     does: "Start a full-length exam before or after Saturday",
     price: 3000,
     limit: "1 a month",
+    next: "in a month",
+    bank: 3,
     icon: "exam",
   },
   {
     name: "Streak saver",
     does: "Keeps your streak through one missed day",
     price: 1200,
-    limit: "1 a week",
+    limit: "1 every 2 weeks",
+    next: "in 2 weeks",
+    bank: 3,
     icon: "streak",
   },
   {
+    // bought here and kept for later; it cannot be bought in the middle of a skill set
     name: "Second chance",
     does: "Correct a miss in a skill set and keep your run going",
     price: 300,
-    // bought here and kept for later; it cannot be bought in the middle of a skill set
-    limit: "Use 1 a skill set",
+    limit: "Use 1 per skill",
     icon: "chance",
-    stacks: true,
   },
 ];
 
