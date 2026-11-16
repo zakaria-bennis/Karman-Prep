@@ -1,56 +1,126 @@
 "use client";
 
-// The mystery box, and what comes out of it (founder, 2026-10-30): a chunky gift box in the manner of
-// Crossy Road's, pressed to open, one at a time. It bursts into blocks; nothing unfolds like paper and
-// it casts no shadow. The prize is shown on the fox and is never put on for the student: they choose
-// "Wear it" or "Keep for later". One sound for each real moment. Everything is drawn here in code.
-// It is opened with tokens, and it holds only things to wear (founder, 2026-11-16).
+// The coin, the mystery box, and what comes out of it. Everything is drawn here in code.
+//   The coin   a gold piece with the fox's head carved into it (founder, 2026-11-16): a reeded rim,
+//              a sunk field, and the fox cut into that field, dark along its upper left edges and
+//              lit along its lower right ones, with slanted eyes.
+//   The box    a chunky gift box (in the manner of Crossy Road's), shaded on every face, tied in gold
+//              with a full bow. It shakes now and then and gives off sparks. Pressed, it hops, rays
+//              break out behind it, the lid bursts away in pieces, and the prize rises out of it
+//              (founder, 2026-11-16; this replaces the first version's burst into blocks).
+// The prize is shown on the fox and is never put on for the student: they choose "Wear it" or "Keep
+// for later". A box holds only things to wear. One sound for each real moment.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Fox } from "@/components/portal/Fox";
 import styles from "./rewards.module.css";
 import { BOX_PRICE, PRIZES, type Wear } from "./rewardsData";
 import { chosen, tick, whoosh } from "./sound";
 
-/** A token: a gold piece with the fox's head set into it (founder, 2026-11-16). The same gold in
- *  every theme, lit from the upper left; the fox is a darker gold with a lighter left side. */
-export function Token({ size = 20 }: { size?: number }) {
+const FOX = "M-34 -80L-8 -56L0 -58L8 -56L34 -80L30 -42L40 -32L30 0L0 8L-30 0L-40 -32L-30 -42Z";
+
+export function Coin({ size = 20 }: { size?: number }) {
   return (
-    <svg className={styles.token} viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <svg className={styles.coin} viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
       <defs>
-        <linearGradient id="kp-token" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
-          <stop offset="0" stopColor="#fff3b8" />
-          <stop offset="0.45" stopColor="#f2b632" />
-          <stop offset="1" stopColor="#a66f00" />
+        <linearGradient id="kp-coin-rim" x1="0.15" y1="0.08" x2="0.85" y2="0.95">
+          <stop offset="0" stopColor="#fff6c9" />
+          <stop offset="0.4" stopColor="#f5bd3a" />
+          <stop offset="1" stopColor="#9a6500" />
+        </linearGradient>
+        <radialGradient id="kp-coin-field" cx="0.38" cy="0.32" r="0.75">
+          <stop offset="0" stopColor="#f7c84a" />
+          <stop offset="1" stopColor="#c98a0a" />
+        </radialGradient>
+        <linearGradient id="kp-coin-fox" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#b97c0a" />
+          <stop offset="1" stopColor="#e0a326" />
         </linearGradient>
       </defs>
-      <circle cx="12" cy="12" r="10.500" fill="url(#kp-token)" stroke="#8a5a00" strokeWidth="1" />
+      {/* the rim, with its reeded edge */}
       <circle
-        cx="12"
-        cy="12"
-        r="8.800"
+        cx="24"
+        cy="24"
+        r="22.500"
+        fill="url(#kp-coin-rim)"
+        stroke="#7a4d00"
+        strokeWidth="1"
+      />
+      <circle
+        cx="24"
+        cy="24"
+        r="21"
         fill="none"
-        stroke="#fff3b8"
+        stroke="#8a5a00"
+        strokeOpacity="0.5"
+        strokeWidth="1.600"
+        strokeDasharray="0.9 1.3"
+      />
+      {/* the field, sunk below the rim: shadow along its upper left, light along its lower right */}
+      <circle cx="24" cy="24" r="17.800" fill="url(#kp-coin-field)" />
+      <circle
+        cx="23.500"
+        cy="23.500"
+        r="17.800"
+        fill="none"
+        stroke="#6b4300"
         strokeOpacity="0.55"
-        strokeWidth="0.700"
       />
-      {/* the fox: ears, cheeks and chin, as on the mark */}
+      <circle cx="24.600" cy="24.600" r="17.800" fill="none" stroke="#fff3b8" strokeOpacity="0.7" />
+      {/* the fox, carved into the field */}
+      <g transform="translate(24 35.800) scale(0.3)">
+        <path d={FOX} transform="translate(2.600 2.600)" fill="#fff3b8" fillOpacity="0.85" />
+        <path d={FOX} transform="translate(-2.200 -2.200)" fill="#5a3800" fillOpacity="0.75" />
+        <path d={FOX} fill="url(#kp-coin-fox)" />
+        {/* the inner ears, the brow and the mask, cut as lines */}
+        <path
+          d="M-28 -48L-30 -68L-16 -56ZM28 -48L30 -68L16 -56Z"
+          fill="#8a5a00"
+          fillOpacity="0.8"
+        />
+        <path
+          d="M-40 -32L0 -26L40 -32M-40 -32L-16 -14L0 8L16 -14L40 -32M-16 -14L0 -24L16 -14"
+          fill="none"
+          stroke="#6b4300"
+          strokeOpacity="0.7"
+          strokeWidth="2.200"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M-40 -32L-16 -14L0 8L-30 0ZM40 -32L16 -14L0 8L30 0Z"
+          fill="#ffe9a3"
+          fillOpacity="0.55"
+        />
+        {/* slanted eyes, each with a point of light */}
+        <ellipse
+          cx="-15"
+          cy="-28"
+          rx="7"
+          ry="4.400"
+          transform="rotate(20 -15 -28)"
+          fill="#4a2e00"
+        />
+        <ellipse cx="15" cy="-28" rx="7" ry="4.400" transform="rotate(-20 15 -28)" fill="#4a2e00" />
+        <circle cx="-12.600" cy="-29.800" r="1.700" fill="#fff3b8" />
+        <circle cx="17.400" cy="-29.800" r="1.700" fill="#fff3b8" />
+        <path d="M-5 -15L5 -15L0 -9Z" fill="#4a2e00" />
+        <path
+          d="M-4 -5Q0 -2 4 -5"
+          fill="none"
+          stroke="#4a2e00"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </g>
+      {/* light catching the upper left of the rim */}
       <path
-        d="M6.900 5.800L10.800 9.400L12 9.100L13.200 9.400L17.100 5.800L16.500 11.500L18 13L16.500 17.800L12 19L7.500 17.800L6 13L7.500 11.500Z"
-        fill="#b97c0a"
+        d="M7.500 17A18 18 0 0 1 19 6.600"
+        fill="none"
+        stroke="#fffdf0"
+        strokeOpacity="0.8"
+        strokeWidth="1.400"
+        strokeLinecap="round"
       />
-      <path
-        d="M6.900 5.800L10.800 9.400L12 9.100L12 19L7.500 17.800L6 13L7.500 11.500Z"
-        fill="#d99a16"
-      />
-      <path
-        d="M6 13L9.600 15.700L12 19L7.500 17.800ZM18 13L14.400 15.700L12 19L16.500 17.800Z"
-        fill="#ffe28a"
-      />
-      <path d="M9.600 15.700L12 14.200L14.400 15.700L12 19Z" fill="#ffe9a3" />
-      <circle cx="9.750" cy="13.600" r="0.950" fill="#6b4300" />
-      <circle cx="14.250" cy="13.600" r="0.950" fill="#6b4300" />
-      <path d="M11.250 15.900H12.750L12 16.700Z" fill="#6b4300" />
     </svg>
   );
 }
@@ -110,50 +180,119 @@ export function Wearing({ wear, size }: { wear: Wear | null; size: number }) {
   );
 }
 
-/** The box itself: a cube with a lid, in the page's green, tied with gold. */
-function Box() {
+/** The gradients the box's faces and ribbons are filled with. */
+function BoxPaints() {
+  const fill = (id: string, from: string, to: string, across = false) => (
+    <linearGradient id={id} x1="0" y1="0" x2={across ? "1" : "0"} y2="1">
+      <stop offset="0" stopColor={from} />
+      <stop offset="1" stopColor={to} />
+    </linearGradient>
+  );
   return (
-    <svg className={styles.box} viewBox="0 0 200 204" aria-hidden="true">
-      {/* the body */}
-      <path d="M30 89L100 124L100 196L30 161Z" fill="#38a47b" />
-      <path d="M170 89L100 124L100 196L170 161Z" fill="#0a5a43" />
-      <path d="M58 103L72 110L72 182L58 175Z" fill="#f6c549" />
-      <path d="M142 103L128 110L128 182L142 175Z" fill="#c98a0a" />
-      {/* the lid: a little wider than the body, so it reads as a lid */}
-      <path d="M22 67L100 106L100 126L22 87Z" fill="#45b48a" />
-      <path d="M178 67L100 106L100 126L178 87Z" fill="#0e6f53" />
-      <path d="M100 28L178 67L100 106L22 67Z" fill="#86d0ac" />
-      <path d="M58 85L72 92L72 112L58 105Z" fill="#ffd96b" />
-      <path d="M142 85L128 92L128 112L142 105Z" fill="#d99a16" />
-      <path d="M58 85L72 92L150 53L136 46Z" fill="#ffe28a" />
-      <path d="M128 92L142 85L64 46L50 53Z" fill="#f6c549" />
-      {/* the bow */}
-      <path d="M100 66L78 48L74 62Z" fill="#d99a16" />
-      <path d="M100 66L122 48L126 62Z" fill="#f6c549" />
-      <path d="M93 62L100 58L107 62L100 70Z" fill="#fff3b8" />
+    <defs>
+      {fill("kp-box-left", "#4cc096", "#2d9a70")}
+      {fill("kp-box-right", "#157a5b", "#084736")}
+      {fill("kp-box-top", "#b9efd6", "#7fd2ab", true)}
+      {fill("kp-lid-left", "#5fd0a6", "#3aa97f")}
+      {fill("kp-lid-right", "#1b8767", "#0b5a44")}
+      {fill("kp-gold-lit", "#fff0b3", "#f2b632")}
+      {fill("kp-gold-mid", "#f8cf5c", "#d99a16")}
+      {fill("kp-gold-dark", "#dda01c", "#a66f00")}
+    </defs>
+  );
+}
+
+/** The box below its lid. */
+function BoxBody() {
+  return (
+    <svg className={styles.boxArt} viewBox="0 0 240 250" aria-hidden="true">
+      <BoxPaints />
+      <path d="M36 104L120 146L120 234L36 192Z" fill="url(#kp-box-left)" />
+      <path d="M204 104L120 146L120 234L204 192Z" fill="url(#kp-box-right)" />
+      {/* the ribbon down each face */}
+      <path d="M70 121L86 129L86 217L70 209Z" fill="url(#kp-gold-mid)" />
+      <path d="M154 129L170 121L170 209L154 217Z" fill="url(#kp-gold-dark)" />
+      {/* the shade the lid throws, and the light along the near corner */}
+      <path d="M36 104L120 146L204 104L204 118L120 160L36 118Z" fill="#052a20" fillOpacity="0.28" />
+      <path d="M120 150V234" stroke="#bff3dc" strokeOpacity="0.5" strokeWidth="1.500" />
     </svg>
   );
 }
 
-/** Where each block of the burst flies to: sixteen, all round the box, the same every time. */
-const BLOCKS = Array.from({ length: 16 }, (_, i) => {
-  const turn = (i / 16) * Math.PI * 2 + (i % 2) * 0.2;
-  const far = 92 + (i % 3) * 26;
+/** The lid, with the ribbon over it and the bow on top. */
+function BoxLid() {
+  return (
+    <svg className={styles.boxArt} viewBox="0 0 240 250" aria-hidden="true">
+      <BoxPaints />
+      <path d="M26 81L120 128L120 152L26 105Z" fill="url(#kp-lid-left)" />
+      <path d="M214 81L120 128L120 152L214 105Z" fill="url(#kp-lid-right)" />
+      <path d="M120 34L214 81L120 128L26 81Z" fill="url(#kp-box-top)" />
+      <path d="M70 103L86 111L86 135L70 127Z" fill="url(#kp-gold-mid)" />
+      <path d="M154 111L170 103L170 127L154 135Z" fill="url(#kp-gold-dark)" />
+      <path d="M70 103L86 111L180 64L164 56Z" fill="url(#kp-gold-lit)" />
+      <path d="M154 111L170 103L76 56L60 64Z" fill="url(#kp-gold-mid)" />
+      {/* light along the lid's near edges */}
+      <path
+        d="M26 81L120 128L214 81"
+        fill="none"
+        stroke="#e9fff5"
+        strokeOpacity="0.7"
+        strokeWidth="1.600"
+      />
+      {/* the bow: two full loops, each with its hollow, the tails, and the knot over them */}
+      <path d="M112 86L92 112L106 116L120 92Z" fill="url(#kp-gold-dark)" />
+      <path d="M128 86L148 112L134 116L120 92Z" fill="url(#kp-gold-mid)" />
+      <path d="M118 80C98 42 54 38 54 62C54 84 94 90 118 84Z" fill="url(#kp-gold-lit)" />
+      <path d="M108 76C96 56 70 54 70 64C70 74 92 78 108 78Z" fill="#a66f00" />
+      <path d="M108 76C98 62 78 60 74 64C80 62 96 66 108 78Z" fill="#7a4d00" fillOpacity="0.5" />
+      <path d="M122 80C142 42 186 38 186 62C186 84 146 90 122 84Z" fill="url(#kp-gold-mid)" />
+      <path d="M132 76C144 56 170 54 170 64C170 74 148 78 132 78Z" fill="#8a5a00" />
+      <path
+        d="M132 76C142 62 162 60 166 64C160 62 144 66 132 78Z"
+        fill="#5a3800"
+        fillOpacity="0.5"
+      />
+      <rect x="109" y="68" width="22" height="20" rx="7" fill="url(#kp-gold-lit)" />
+      <path
+        d="M113 72C116 70 124 70 127 72"
+        fill="none"
+        stroke="#fffdf0"
+        strokeOpacity="0.9"
+        strokeWidth="1.600"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Where each piece of the lid flies to when it bursts: twelve, up and out, the same every time. */
+const SHARDS = Array.from({ length: 12 }, (_, i) => {
+  const turn = Math.PI * (1.08 + (i / 11) * 0.84);
+  const far = 120 + (i % 3) * 34;
   return {
     x: Math.cos(turn) * far,
-    y: Math.sin(turn) * far - 20,
-    spin: (i % 2 ? 1 : -1) * (120 + i * 14),
-    tint: ["#38a47b", "#0a5a43", "#86d0ac", "#f6c549"][i % 4],
+    y: Math.sin(turn) * far - 10,
+    spin: (i % 2 ? 1 : -1) * (140 + i * 16),
+    tint: ["#7fd2ab", "#f2b632", "#3aa97f", "#fff0b3"][i % 4],
   };
 });
+/** Where the sparks that drift off the resting box begin, and when. */
+const SPARKS = [
+  { x: -78, y: -6, lag: 0 },
+  { x: 74, y: -30, lag: 0.9 },
+  { x: -52, y: -74, lag: 1.7 },
+  { x: 58, y: 34, lag: 2.4 },
+  { x: -88, y: 46, lag: 3.1 },
+  { x: 22, y: -92, lag: 3.8 },
+];
 
 export default function MysteryBox({
-  tokens,
+  coins,
   wearing,
   onOpen,
   onWear,
 }: {
-  tokens: number;
+  coins: number;
   /** What the fox has on now. */
   wearing: Wear | null;
   /** Takes the price, and says which prize came out. */
@@ -161,57 +300,116 @@ export default function MysteryBox({
   onWear: (wear: Wear) => void;
 }) {
   const still = useReducedMotion() ?? false;
-  const [stage, setStage] = useState<"closed" | "burst" | "prize">("closed");
+  const [stage, setStage] = useState<"closed" | "opening" | "prize">("closed");
   const [prize, setPrize] = useState<Wear | null>(null);
-  const short = tokens < BOX_PRICE;
+  const short = coins < BOX_PRICE;
   useEffect(() => {
-    if (stage !== "burst") return;
+    if (stage !== "opening") return;
     const done = setTimeout(
       () => {
         setStage("prize");
         chosen();
       },
-      still ? 0 : 620
+      still ? 0 : 900
     );
     return () => clearTimeout(done);
   }, [stage, still]);
 
   const name = PRIZES.find((p) => p.key === prize)?.name;
+  const open = stage !== "closed";
   return (
     <div className={styles.boxPart}>
-      <div className={styles.stage}>
+      <div className={styles.stage} data-stage={stage}>
+        {/* rays break out behind the box as it opens, and turn slowly behind the prize */}
+        <AnimatePresence>
+          {open && !still && (
+            <motion.svg
+              key="rays"
+              className={styles.rays}
+              viewBox="-100 -100 200 200"
+              aria-hidden="true"
+              initial={{ scale: 0.2, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
+              transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <g>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <path key={i} d="M0 0L-7 -98L7 -98Z" transform={`rotate(${i * 30})`} />
+                ))}
+              </g>
+            </motion.svg>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence initial={false}>
-          {stage === "closed" && (
+          {stage !== "prize" && (
             <motion.div
               key="box"
               className={styles.boxHold}
+              data-idle={stage === "closed" || undefined}
               initial={still ? false : { scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={still ? undefined : { scale: 1.18, opacity: 0, transition: { duration: 0.12 } }}
-              transition={{ type: "spring", stiffness: 420, damping: 22 }}
+              animate={
+                stage === "opening" && !still
+                  ? { y: [0, -22, 0], scale: [1, 1.07, 1], opacity: 1 }
+                  : { y: 0, scale: 1, opacity: 1 }
+              }
+              exit={
+                still
+                  ? undefined
+                  : { scale: 0.7, y: 30, opacity: 0, transition: { duration: 0.18 } }
+              }
+              transition={
+                stage === "opening"
+                  ? { duration: 0.5, ease: [0.3, 0.9, 0.4, 1] }
+                  : { type: "spring", stiffness: 420, damping: 22 }
+              }
             >
-              <Box />
+              <BoxBody />
+              {/* the lid: it sits on the box, and is gone the moment the box is opened */}
+              {stage === "closed" && (
+                <span className={styles.lid}>
+                  <BoxLid />
+                </span>
+              )}
+              {stage === "closed" &&
+                !still &&
+                SPARKS.map((spark, i) => (
+                  <i
+                    key={i}
+                    className={styles.spark}
+                    style={
+                      {
+                        "--x": `${spark.x}px`,
+                        "--y": `${spark.y}px`,
+                        "--lag": `${spark.lag}s`,
+                      } as CSSProperties
+                    }
+                  />
+                ))}
             </motion.div>
           )}
-          {stage === "burst" &&
+          {/* the lid bursts outward in pieces */}
+          {stage === "opening" &&
             !still &&
-            BLOCKS.map((block, i) => (
+            SHARDS.map((shard, i) => (
               <motion.i
-                key={i}
-                className={styles.block}
-                style={{ background: block.tint }}
-                initial={{ x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 }}
-                animate={{ x: block.x, y: block.y, scale: 0.4, rotate: block.spin, opacity: 0 }}
-                transition={{ duration: 0.6, ease: [0.2, 0.8, 0.3, 1] }}
+                key={`shard ${i}`}
+                className={styles.shard}
+                style={{ background: shard.tint }}
+                initial={{ x: 0, y: -30, scale: 1, rotate: 0, opacity: 1 }}
+                animate={{ x: shard.x, y: shard.y, scale: 0.5, rotate: shard.spin, opacity: 0 }}
+                transition={{ duration: 0.7, ease: [0.15, 0.8, 0.3, 1], delay: 0.16 }}
               />
             ))}
-          {stage === "prize" && prize && (
+          {/* the prize rises out of the box */}
+          {open && prize && (
             <motion.div
               key="prize"
               className={styles.prize}
-              initial={still ? false : { scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 380, damping: 20 }}
+              initial={still ? false : { y: 40, scale: 0.3, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18, delay: still ? 0 : 0.3 }}
             >
               <Wearing wear={prize} size={132} />
             </motion.div>
@@ -255,22 +453,22 @@ export default function MysteryBox({
               <button
                 type="button"
                 className={styles.primary}
-                disabled={short || stage === "burst"}
+                disabled={short || stage === "opening"}
                 onClick={() => {
                   setPrize(onOpen());
-                  setStage("burst");
+                  setStage("opening");
                   whoosh();
                 }}
               >
                 Open
-                <Token size={20} />
+                <Coin size={22} />
                 {BOX_PRICE}
               </button>
             </div>
             {/* said only when it matters, in a place that is always kept */}
             <p className={styles.note}>
               {short
-                ? `${BOX_PRICE - tokens} more tokens to open one`
+                ? `${BOX_PRICE - coins} more coins to open one`
                 : wearing && `Wearing: ${PRIZES.find((p) => p.key === wearing)?.name}`}
             </p>
           </>

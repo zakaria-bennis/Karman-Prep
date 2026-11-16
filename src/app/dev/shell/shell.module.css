@@ -215,22 +215,44 @@
   transition: none;
 }
 
-/* the Progress arrow: its track and shade draw back to the foot of the line and grow out again, and
-   the arrow's tip stays on the end of the track the whole way (the two moves are the same shape) */
-.art [data-move="track"],
-.art [data-move="tip"] {
+/* the Progress graph: hovered, its line is drawn from foot to tip, the shade spreads under it from
+   left to right, and the arrowhead comes in at the tip as the line arrives */
+.art [data-move="line"],
+.art [data-move="shade"],
+.art [data-move="head"] {
   transition: none;
 }
 
-@keyframes track {
-  45% {
-    transform: scale(0.4);
+.art [data-move="line"] {
+  stroke-dasharray: 1;
+}
+
+@keyframes line {
+  from {
+    stroke-dashoffset: 1;
   }
 }
 
-@keyframes tip {
-  45% {
-    transform: translate(-8.7px, 6.6px);
+@keyframes shade {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes head {
+  0%,
+  72% {
+    opacity: 0;
+    transform: translate(-3px, 3.6px) scale(0.4);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -260,12 +282,16 @@
     transform: rotate(-4deg) scale(1.06);
   }
 
-  .item:hover [data-move="track"] {
-    animation: track 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+  .item:hover [data-move="line"] {
+    animation: line 0.8s cubic-bezier(0.4, 0, 0.3, 1);
   }
 
-  .item:hover [data-move="tip"] {
-    animation: tip 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+  .item:hover [data-move="shade"] {
+    animation: shade 0.8s cubic-bezier(0.4, 0, 0.3, 1);
+  }
+
+  .item:hover [data-move="head"] {
+    animation: head 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
   }
 
   .item:hover [data-move="page"] {

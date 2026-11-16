@@ -1,6 +1,6 @@
 /*
  * Rewards. Glass, inset, corners, text sizes (13, 16, 20) and the one green come from
- * library.module.css, set on .library. Tokens are gold, the same gold in every theme.
+ * library.module.css, set on .library. Coins are gold, the same gold in every theme.
  * (The shell clears every button's font and background, so a button with its own is named through
  * the page: .rewards .name.)
  */
@@ -19,7 +19,7 @@
   font-weight: 600;
 }
 
-.tokens,
+.coins,
 .middle,
 .cast,
 .records {
@@ -30,7 +30,7 @@
   padding: calc(var(--pad) * 2);
 }
 
-/* the left side: tokens, and under it the records, which take the height that is left */
+/* the left side: coins, and under it the records, which take the height that is left */
 .left {
   display: flex;
   flex-direction: column;
@@ -67,11 +67,11 @@
   font-weight: 500;
 }
 
-.token {
+.coin {
   flex: none;
 }
 
-/* ---- a phone's line of tokens, always in sight ---- */
+/* ---- a phone's line of coins, always in sight ---- */
 .purse {
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@
   text-shadow: none;
 }
 
-/* ---- tokens ---- */
+/* ---- coins ---- */
 .held {
   display: flex;
   align-items: center;
@@ -104,6 +104,10 @@
   font: 400 64px/1 var(--font-serif);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums lining-nums;
+}
+
+.held[data-long] {
+  font-size: 46px;
 }
 
 .part {
@@ -191,7 +195,7 @@
   display: grid;
   place-items: center;
   width: 100%;
-  height: 216px;
+  height: 236px;
 }
 
 .boxHold,
@@ -201,27 +205,118 @@
   place-items: center;
 }
 
-.box {
-  display: block;
-  width: 196px;
-  height: 200px;
+.boxHold {
+  width: 216px;
+  height: 225px;
 }
 
-@media (hover: hover) {
-  .box {
-    transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
-  }
-
-  .stage:hover .box {
-    transform: rotate(-3deg) scale(1.04);
-  }
-}
-
-.block {
+/* the body and the lid are two drawings on one grid, laid one over the other */
+.boxArt {
   position: absolute;
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lid {
+  position: absolute;
+  inset: 0;
+}
+
+/* now and then the resting box shakes, as if something inside wanted out */
+.boxHold[data-idle] {
+  animation: shake 4.6s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+
+  87% {
+    transform: rotate(-4deg);
+  }
+
+  90% {
+    transform: rotate(4deg) translateY(-4px);
+  }
+
+  93% {
+    transform: rotate(-3deg);
+  }
+
+  96% {
+    transform: rotate(2deg);
+  }
+}
+
+/* sparks drift up off the box */
+.spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  background: #ffe28a;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
+  transform: translate(var(--x), var(--y));
+  animation: drift 4.2s ease-in-out var(--lag) infinite;
+}
+
+@keyframes drift {
+  0% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(0.3) rotate(0deg);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translate(var(--x), calc(var(--y) - 10px)) scale(1) rotate(40deg);
+  }
+
+  45%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), calc(var(--y) - 34px)) scale(0.4) rotate(120deg);
+  }
+}
+
+/* the rays behind the opening box and the prize */
+.rays {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+}
+
+.rays g {
+  fill: #ffd96b;
+  opacity: 0.55;
+  transform-origin: 0 0;
+  animation: turn 14s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.stage[data-stage="prize"] .rays g {
+  opacity: 0.32;
+}
+
+/* a piece of the lid, flying off */
+.shard {
+  position: absolute;
+  width: 30px;
+  height: 20px;
+  border-radius: 4px;
 }
 
 .wearing {
@@ -448,19 +543,6 @@
   }
 }
 
-/* a price that is told, not pressed */
-.tag {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 40px;
-  padding: 0 14px;
-  font-size: 16px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
 .pass small {
   font-size: 13px;
   font-weight: 500;
@@ -492,34 +574,80 @@
   gap: 6px;
 }
 
-/* a character's square. One still to unlock is faint glass with a lock, and a line along its foot
-   that fills as its challenge is met. The one pressed has a ring inside its own edge. */
-.rewards .face {
+/* a character: its square, and its name under it */
+.rewards .cell {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 12px;
+  transition: transform 0.15s var(--out);
+}
+
+.rewards .cell:active {
+  transform: scale(0.95);
+}
+
+.named {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.cell[aria-pressed="true"] .named {
+  font-weight: 700;
+}
+
+/* the square. One still to unlock is faint glass; how far along its challenge is runs round it as
+   a green ring set into its edge, starting from the top. */
+.face {
+  --far: 0;
   position: relative;
   display: grid;
   place-items: center;
   width: 100%;
   aspect-ratio: 1;
-  overflow: hidden;
   border-radius: 12px;
   background: var(--hover);
-  transition:
-    transform 0.15s var(--out),
-    box-shadow 0.15s var(--out);
-}
-
-.rewards .face[data-mine] {
-  background: var(--lens);
   box-shadow: inset 0 0 0 1px var(--lens-edge);
+  transition: box-shadow 0.15s var(--out);
 }
 
-.lock {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.45;
+.face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3.5px;
+  border-radius: inherit;
+  background: conic-gradient(var(--p2) calc(var(--far) * 1%), transparent 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.face[data-mine] {
+  background: var(--lens);
+}
+
+.face[data-mine]::before {
+  content: none;
+}
+
+/* the one pressed: a dark line just inside the ring, so the two never run together */
+.cell[aria-pressed="true"] .face::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--ink);
+  pointer-events: none;
 }
 
 /* one still to unlock: its face is there to be seen, grayed out */
@@ -538,14 +666,6 @@
 
 :global([data-kp-mode="dark"]) .shade {
   opacity: 0.9;
-}
-
-.face > i {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 4px;
-  background: var(--p2);
 }
 
 .rewards .face[aria-pressed="true"] {
@@ -574,14 +694,6 @@
 
 .card h3 {
   font-size: 16px;
-}
-
-/* what animal it is, quietly after its name */
-.card h3 small {
-  margin-left: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0.78;
 }
 
 .how {
@@ -615,12 +727,12 @@
     background: var(--hover);
   }
 
-  .rewards .face:not([aria-pressed="true"]):hover {
-    box-shadow: inset 0 0 0 2px var(--ink);
+  .cell:not([aria-pressed="true"]):hover .face {
+    background: var(--lens);
   }
 }
 
-/* with room: tokens at the left, the box and the passes in the middle, the characters at the right,
+/* with room: coins at the left, the box and the passes in the middle, the characters at the right,
    all the same height */
 @media (min-width: 1200px) and (hover: hover) {
   .rewards {
@@ -629,7 +741,7 @@
   }
 }
 
-/* a narrower desktop: the box and the passes on top, tokens and characters side by side under them */
+/* a narrower desktop: the box and the passes on top, coins and characters side by side under them */
 @media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
   .rewards {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -645,7 +757,7 @@
 }
 
 @media (max-width: 599px) {
-  .tokens,
+  .coins,
   .middle,
   .cast,
   .records {
@@ -666,9 +778,9 @@
     gap: 10px;
   }
 
-  /* the Tokens page on a phone: the line above already shows the tokens held, so the pane begins
+  /* the Coins page on a phone: the line above already shows the coins held, so the pane begins
      at the multiplier; this week's sources and the records sit three to a row, so nothing scrolls */
-  .tokens > h2,
+  .coins > h2,
   .held {
     display: none;
   }
@@ -701,6 +813,18 @@
     gap: 10px 8px;
   }
 
+  /* the squares are lower than they are wide on a phone, so sixteen with their names and the card
+     above them fit one screen */
+  .face {
+    min-height: 0;
+    aspect-ratio: 1.35;
+  }
+
+  .card {
+    min-height: 112px;
+    padding: 10px 12px;
+  }
+
   .records dd {
     font-size: 20px;
   }
@@ -718,7 +842,7 @@
 
 /* a short phone: a little less air, so each page still fits the screen */
 @media (max-width: 599px) and (max-height: 780px) {
-  .tokens,
+  .coins,
   .middle,
   .cast,
   .records {
@@ -727,12 +851,12 @@
   }
 
   .stage {
-    height: 190px;
+    height: 200px;
   }
 
-  .box {
-    width: 172px;
-    height: 176px;
+  .boxHold {
+    width: 180px;
+    height: 188px;
   }
 
   /* the squares are a little lower than they are wide, so the card under them still fits */
@@ -740,8 +864,13 @@
     gap: 4px;
   }
 
-  .rewards .face {
-    aspect-ratio: 1.3;
+  .face {
+    aspect-ratio: 1.75;
+  }
+
+  /* the faces are drawn a little smaller there, to sit inside the lower squares */
+  .face > * {
+    transform: scale(0.8);
   }
 
   .card {
@@ -751,9 +880,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .box,
   .passIcon [data-part] {
     transition: none;
+  }
+
+  .boxHold[data-idle],
+  .rays g {
+    animation: none;
   }
 
   .pass:hover [data-part] {

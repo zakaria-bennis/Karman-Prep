@@ -99,27 +99,34 @@ const ART: Record<StickerName, ReactNode> = {
       <circle data-move="pop" cx="12" cy="15.200" r="2.100" fill={ACCENT} stroke="none" />
     </>
   ),
-  // an arrow climbing, with green shade under it (founder, 2026-11-16: no orange dot). Hovered, the
-  // arrow runs back down its track and up again, and the track and the shade form under it: the track
-  // and shade grow out of the foot of the line while the arrow's tip rides on its end.
+  // a graph: its two axes, a line climbing to a small arrowhead, and green shade under the line
+  // (founder, 2026-11-16). Hovered, the line is drawn from its foot to its tip, the shade spreads
+  // under it as it goes, and the arrowhead rides its end.
   progress: (
     <>
       <defs>
         <linearGradient id="kp-climb" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor={GREEN} stopOpacity="1" />
-          <stop offset="0.55" stopColor={GREEN} stopOpacity="0.55" />
-          <stop offset="1" stopColor={GREEN} stopOpacity="0.08" />
+          <stop offset="0.6" stopColor={GREEN} stopOpacity="0.5" />
+          <stop offset="1" stopColor={GREEN} stopOpacity="0.1" />
         </linearGradient>
       </defs>
-      <g data-move="track" style={{ transformBox: "view-box", transformOrigin: "4.5px 18.5px" }}>
-        <path
-          d="M4.500 18.500L9.500 13L12.500 15.500L19 7.500V19.500H4.500Z"
-          fill="url(#kp-climb)"
-          stroke="none"
-        />
-        <path d="M4.500 18.500L9.500 13L12.500 15.500L19 7.500" vectorEffect="non-scaling-stroke" />
+      <path
+        data-move="shade"
+        d="M6.500 16.500L10.500 12.200L13.200 14.400L18.400 7.800V19H6.500Z"
+        fill="url(#kp-climb)"
+        stroke="none"
+      />
+      <path d="M4 4.500V19.500H20.500" />
+      <path
+        data-move="line"
+        pathLength={1}
+        d="M6.500 16.500L10.500 12.200L13.200 14.400L18.400 7.800"
+      />
+      {/* the arrowhead is drawn pointing along the line's last stretch, and kept small */}
+      <g data-move="head">
+        <path d="M15.800 7.500L18.700 7.400L19.100 10.300" />
       </g>
-      <path data-move="tip" d="M14.300 7.300H19.200V12.200" />
     </>
   ),
   // a trophy, its star in gold

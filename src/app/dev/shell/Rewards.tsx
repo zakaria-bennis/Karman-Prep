@@ -2,28 +2,28 @@
 
 // Rewards (2026-11-16), built from what the founder has settled and marked where it is a guess
 // (rewardsData.ts says which is which).
-//   Tokens       what the student holds (he calls them tokens, not coins), the multiplier their
+//   Coins        what the student holds, the multiplier their
 //                challenge-question streak has earned (a quarter more each day, up to 5x), and where
-//                this week's tokens came from.
-//   The box      the mystery box, opened for tokens: it holds things to wear (RewardsBox.tsx).
-//   Records      little things worth knowing (lifetime tokens, best day and so on), under Tokens.
+//                this week's coins came from.
+//   The box      the mystery box, opened for coins: it holds things to wear (RewardsBox.tsx).
+//   Records      little things worth knowing (lifetime coins, best day and so on), under Coins.
 //   Passes       things of real use: starting a full-length exam outside Saturday's window,
 //                keeping a streak through a missed day, and a second chance after a miss inside a
-//                skill set (paid for there, so here it only tells its price). Each is limited.
-//   Characters   the 16, each with its own name and a little story, each unlocked by its own
-//                challenge. One still locked shows its face grayed out, so the student can see who
-//                is waiting; the three hardest are black shapes with no name. The card above the
-//                faces tells the pressed one's story and how to unlock it.
+//                skill set (bought here ahead of time, used there). Each is limited.
+//   Characters   the 16, each with its own name under its square and a little story, each unlocked
+//                by its own challenge. One still locked shows its face grayed out, with a ring round
+//                its square for how far along it is; the three hardest are black shapes named "???".
+//                The card above the faces tells the pressed one's story and how to unlock it.
 // With room, the three pieces stand side by side on one screen. On a phone each is a page of its own,
-// under a slim line that always shows the tokens held.
-// Tokens are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
+// under a slim line that always shows the coins held.
+// Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
-import MysteryBox, { Token, Wearing } from "./RewardsBox";
+import MysteryBox, { Coin, Wearing } from "./RewardsBox";
 import { PassIcon } from "./RewardsPassIcon";
 import {
   BOX_PRICE,
@@ -34,32 +34,32 @@ import {
   PRIZES,
   RECORDS,
   STREAK,
-  TOKENS,
+  COINS,
   multiplierFor,
   type Pass,
   type Wear,
 } from "./rewardsData";
 import { ping, tick } from "./sound";
 
-const PAGES = ["Box", "Tokens", "Passes", "Characters"] as const;
+const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
 const count = (n: number) => n.toLocaleString("en-US");
 const times = (n: number) => `${n}x`;
 
 export default function Rewards({ rail }: { rail: boolean }) {
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
-  const [tokens, setTokens] = useState(TOKENS);
+  const [coins, setCoins] = useState(COINS);
   const [opened, setOpened] = useState(0);
   const [wearing, setWearing] = useState<Wear | null>(null);
-  /** The passes bought on this page (nothing is saved yet). */
-  const [held, setHeld] = useState<string[]>([]);
+  /** How many of each pass are held, bought on this page (nothing is saved yet). */
+  const [held, setHeld] = useState<Record<string, number>>({});
   const [picked, setPicked] = useState(0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
 
   const multiplier = multiplierFor(STREAK);
   const buy = (pass: Pass) => {
-    setTokens(tokens - pass.price);
-    setHeld([...held, pass.name]);
+    setCoins(coins - pass.price);
+    setHeld({ ...held, [pass.name]: (held[pass.name] ?? 0) + 1 });
     ping();
   };
   const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
@@ -71,10 +71,10 @@ export default function Rewards({ rail }: { rail: boolean }) {
     <div className={`${lib.library} ${styles.rewards}`}>
       {!rail && (
         <>
-          {/* the tokens held are always in sight on a phone, whatever page is open */}
+          {/* the coins held are always in sight on a phone, whatever page is open */}
           <p className={styles.purse}>
-            <Token size={24} />
-            <b>{count(tokens)}</b>
+            <Coin size={24} />
+            <b>{count(coins)}</b>
             <span>{times(multiplier)} multiplier</span>
           </p>
           <div className={`${lib.pager} ${styles.tabs}`} role="group" aria-label="Page">
@@ -104,13 +104,14 @@ export default function Rewards({ rail }: { rail: boolean }) {
         </>
       )}
 
-      {show("Tokens") && (
+      {show("Coins") && (
         <div className={styles.left}>
-          <section className={`${lib.glass} ${styles.tokens}`} aria-label="Tokens">
-            <h2>Tokens</h2>
-            <p className={styles.held}>
-              <Token size={52} />
-              {count(tokens)}
+          <section className={`${lib.glass} ${styles.coins}`} aria-label="Coins">
+            <h2>Coins</h2>
+            {/* a long number is set smaller, so it stays inside the pane */}
+            <p className={styles.held} data-long={coins >= 10000 || undefined}>
+              <Coin size={52} />
+              {count(coins)}
             </p>
 
             <div className={styles.part}>
@@ -143,7 +144,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 {EARNED.map((row) => (
                   <li key={row.name}>
                     <span>{row.name}</span>
-                    <b>+{count(row.tokens)}</b>
+                    <b>+{count(row.coins)}</b>
                   </li>
                 ))}
               </ul>
@@ -168,10 +169,10 @@ export default function Rewards({ rail }: { rail: boolean }) {
         <section className={`${lib.glass} ${styles.middle}`} aria-label="Mystery box and passes">
           {show("Box") && (
             <MysteryBox
-              tokens={tokens}
+              coins={coins}
               wearing={wearing}
               onOpen={() => {
-                setTokens(tokens - BOX_PRICE);
+                setCoins(coins - BOX_PRICE);
                 setOpened(opened + 1);
                 return PRIZES[opened % PRIZES.length].key;
               }}
@@ -183,7 +184,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
               <h3>Passes</h3>
               <ul>
                 {PASSES.map((pass) => {
-                  const mine = held.includes(pass.name);
+                  const mine = held[pass.name] ?? 0;
                   return (
                     <li key={pass.name} className={styles.pass}>
                       <PassIcon kind={pass.icon} />
@@ -192,27 +193,19 @@ export default function Rewards({ rail }: { rail: boolean }) {
                         <span>{pass.does}</span>
                       </div>
                       <div className={styles.buy}>
-                        {pass.inSet ? (
-                          // paid for inside a skill set, at the moment it is needed: its price is
-                          // told here, with nothing to press
-                          <p className={styles.tag} aria-label={`${pass.price} tokens`}>
-                            <Token size={18} />
-                            {count(pass.price)}
-                          </p>
-                        ) : (
-                          // one at a time: once held, another cannot be bought until it is used
-                          <button
-                            type="button"
-                            className={styles.price}
-                            disabled={mine || tokens < pass.price}
-                            aria-label={`Buy ${pass.name} for ${pass.price} tokens`}
-                            onClick={() => buy(pass)}
-                          >
-                            <Token size={18} />
-                            {count(pass.price)}
-                          </button>
-                        )}
-                        <small>{mine ? "You have 1" : pass.limit}</small>
+                        {/* an exam pass or a streak saver is held one at a time; second chances
+                            may be kept in number, to use later inside a skill set */}
+                        <button
+                          type="button"
+                          className={styles.price}
+                          disabled={(mine > 0 && !pass.stacks) || coins < pass.price}
+                          aria-label={`Buy ${pass.name} for ${pass.price} coins`}
+                          onClick={() => buy(pass)}
+                        >
+                          <Coin size={20} />
+                          {count(pass.price)}
+                        </button>
+                        <small>{mine > 0 ? `You have ${mine}` : pass.limit}</small>
                       </div>
                     </li>
                   );
@@ -235,15 +228,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
               is fixed, so pressing moves nothing. A mystery keeps its name and story to itself. */}
           <div className={styles.card} aria-live="polite">
             <div>
-              <h3>
-                {hidden ? (
-                  "???"
-                ) : (
-                  <>
-                    {chosen.name} <small>{chosen.kind}</small>
-                  </>
-                )}
-              </h3>
+              <h3>{hidden ? "???" : chosen.name}</h3>
               <p className={styles.far}>
                 {has ? (
                   "Unlocked"
@@ -265,29 +250,35 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 <button
                   key={c.name}
                   type="button"
-                  className={styles.face}
-                  data-mine={mine || undefined}
+                  className={styles.cell}
                   aria-pressed={picked === i}
                   aria-label={
                     secret
                       ? "A mystery character, locked"
-                      : `${c.name} the ${c.kind.toLowerCase()}, ${mine ? "unlocked" : "locked"}`
+                      : `${c.name}, ${mine ? "unlocked" : "locked"}`
                   }
                   onClick={() => {
                     setPicked(i);
                     tick();
                   }}
                 >
-                  {i === 0 ? (
-                    <Wearing wear={wearing} size={44} />
-                  ) : (
-                    // one still to unlock is seen grayed out; the three hardest are black shapes
-                    <span className={mine ? undefined : secret ? styles.shade : styles.peek}>
-                      <Face kind={c.face} size={44} />
-                    </span>
-                  )}
-                  {/* how far along a locked one is, along the foot of its square */}
-                  {!mine && <i style={{ width: `${Math.round((c.done / c.of) * 100)}%` }} />}
+                  {/* the square: how far along a locked one is runs round it as a ring set into
+                      its edge */}
+                  <span
+                    className={styles.face}
+                    data-mine={mine || undefined}
+                    style={{ "--far": Math.round((c.done / c.of) * 100) } as CSSProperties}
+                  >
+                    {i === 0 ? (
+                      <Wearing wear={wearing} size={44} />
+                    ) : (
+                      // one still to unlock is seen grayed out; the three hardest are black shapes
+                      <span className={mine ? undefined : secret ? styles.shade : styles.peek}>
+                        <Face kind={c.face} size={44} />
+                      </span>
+                    )}
+                  </span>
+                  <span className={styles.named}>{secret ? "???" : c.name}</span>
                 </button>
               );
             })}

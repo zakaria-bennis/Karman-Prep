@@ -778,68 +778,84 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   taken still open nothing), saving bookmarks and flags, real data, the test date in Settings.
 - Next: his verdict; then the new-student page.
 
-**Rewards: second version (2026-11-16), after his first verdict; awaiting his next.** Files:
-`Rewards.tsx`, `RewardsBox.tsx`, `characters.tsx`, `rewardsData.ts` (which says what is settled and
-what is made up), `rewards.module.css`.
-- **They are tokens, not coins** (his word, 2026-11-16). The word "coin" is gone from the code and the
-  page. The token is a gold piece with the fox's head set into it (`Token` in `RewardsBox.tsx`).
-- **Settled by him and used here:** tokens are spent only on Rewards and appear nowhere else; they
+**Rewards: fourth round (2026-11-16); awaiting his next verdict.** Files: `Rewards.tsx`,
+`RewardsBox.tsx`, `RewardsPassIcon.tsx`, `characters.tsx`, `rewardsData.ts` (which says what is settled
+and what is made up), `rewards.module.css`. He gave four rounds of notes in one day; this is where it
+stands.
+- **They are coins.** He tried "tokens" for one round and came back: "tokens are just hard to say."
+  Do not rename them again without his word. The coin is a gold piece with the fox's head **carved
+  into** it: a reeded rim, a sunk field, the fox cut into the field with slanted eyes (`Coin` in
+  `RewardsBox.tsx`). **The made-up student holds 100,000 coins because he asked for that many to
+  test with**; a real student starts at none.
+- **Settled by him and used here:** coins are spent only on Rewards and appear nowhere else; they
   are gold in every theme; they are earned by leveling up skills, full-length exam scores, time
   trials, endless mode and the Daily 10; the challenge-question streak raises a multiplier by 0.25x
-  a day up to 5x and a missed day returns it to 1x; the mystery box is a chunky gift box that bursts
-  into blocks, one at a time, no shadow, nothing unfolding like paper; **a box holds only things to
-  wear** ("Only things to wear"), shown on the fox and never put on for the student ("Wear it" or
-  "Keep for later"); 16 characters, each unlocked by its own challenge and by nothing else; the fox
-  is every student's first.
+  a day up to 5x and a missed day returns it to 1x; **a box holds only things to wear**, shown on
+  the fox and never put on for the student ("Wear it" or "Keep for later"); 16 characters, each
+  unlocked by its own challenge and by nothing else; the fox is every student's first, and **its
+  name is Karman**.
+- **The mystery box** is shaded on every face and tied in gold with a full bow. At rest it shakes
+  now and then and gives off sparks. Opened, it hops, rays break out behind it, **the lid bursts
+  outward in pieces**, and the prize rises out of it on the fox. This is his description from
+  2026-11-16 and it replaces his 2026-10-30 rule of a burst into blocks.
 - **Themes and skins are off the page.** His words: they "definitely might need to be rethought";
-  he may base themes on places such as countries; light and dark stay tied to day and night. He
-  wants them to be valuable but has not decided how. Do not put the first version's four themes and
-  four skins back.
-- **Passes take their place: things of real use.** His idea (2026-11-16): tokens buy a start for a
-  full-length exam outside its window, a way to keep a streak through a missed day, and a second
-  chance inside a skill set, each priced so it cannot be abused. **New product rule he stated:
-  full-length exams can only be started on Saturday, from 6 am to midnight.** Three rows, with the
-  limits he set: **Exam pass** (one pass for both the early and the late start; once a month),
-  **Streak saver** (once a week; once one is held another cannot be bought; he saw it and said it is
-  fine) and **Second chance** (once in a skill set). Second chance is his own addition: inside a
-  skill set, after a miss, the student corrects the mistake and pays tokens so the run of right
-  answers still counts and the skill can still level up (his example: three right, one wrong,
-  corrected and paid for, and on to Understanding). It is paid for inside the skill set, so on
-  Rewards it only tells its price and has nothing to press. The skill set screen that offers it is
-  not built. The prices are mine (3,000, 1,200, 300).
-- **Each pass has a small picture that moves when its row is hovered** (`RewardsPassIcon.tsx`): the
-  streak saver's flame "is alive", sinking to an ember and flaring back into a flame; the second
-  chance's circle with a cross pops into a green circle with a check mark. The exam pass keeps the
-  exam paper.
-- **Characters have names and stories, and all can be seen before they are unlocked.** He asked that
-  they not be called by their animal, that each have a name and a little backstory, that one not yet
-  unlocked show its face grayed out, and that **the last three, the hardest, be blacked out as
-  mystery characters** ("just like how Subway Surfers does it"). All 16 faces are now drawn in code
-  in the fox's manner (`characters.tsx`). Thirteen show grayed out until unlocked; the last three
-  (the red panda, the stag, the phoenix) are black shapes, and their card says "???" and "A mystery
-  until it is yours." with the challenge still told. The card that names the pressed character sits
-  **above** the faces, as he asked. All 16 names, stories and challenges are my draft: Ember the
-  fox, Juniper the owl, Clover the rabbit, Thistle the hedgehog, Maple the deer, Bruno the bear,
-  Pebble the otter, Hazel the squirrel, Reed the heron, Barley the badger, Sable the lynx, Flint the
-  wolf, Willow the crane, then Saffron, Rowan and Cinder. **He has not judged the fifteen new faces.**
-- **Records, a second pane on the left under Tokens,** to balance the page against Characters (his
-  ask): lifetime tokens, earned today, best day, boxes opened, longest streak, top multiplier. All
+  he may base themes on places such as countries; light and dark stay tied to day and night. Do not
+  put the first version's four themes and four skins back.
+- **Passes take their place: things of real use**, each with the limit he set. **New product rule
+  he stated: full-length exams can only be started on Saturday, from 6 am to midnight.**
+  - **Exam pass:** one pass for both an early and a late start; once a month.
+  - **Streak saver:** keeps a streak through one missed day; once a week. He saw it and said it is
+    fine.
+  - **Second chance:** inside a skill set, after a miss, the student corrects the mistake and
+    spends one so the run of right answers still counts and the skill can still level up (his
+    example: three right, one wrong, corrected, and on to Understanding). **They are bought on
+    Rewards ahead of time and kept; they cannot be bought in the middle of a skill set.** One may
+    be used in a skill set. The skill set screen that uses them is not built.
+  - The prices are mine (3,000, 1,200, 300). An exam pass or a streak saver is held one at a time;
+    second chances can be held in number.
+  - Each has a small picture that moves when its row is hovered (`RewardsPassIcon.tsx`): the
+    flame sinks to an ember and flares back; the circle with a cross pops into a green circle with
+    a check mark.
+- **Characters** (`characters.tsx` draws all 16 faces in code, in the fox's manner):
+  - Each has its own name, written **under its square**, and a little story. The card never says
+    what animal it is (his ask). The card sits **above** the faces.
+  - One not yet unlocked is seen grayed out. How far along its challenge is runs round its square
+    as **a green ring set into the edge** (he did not want the bars under the squares).
+  - **The last three, the hardest, are black shapes named "???"** ("just like how Subway Surfers
+    does it"), and their card says "A mystery until it is yours." with the challenge still told. He
+    wants it to be a surprise: the three are animals whose outlines could be several things (the
+    wolf, the badger, the red panda). The stag was one of them and its antlers gave it away, so it
+    was moved up into the grayed-out ones. Keep antlers, long bills, spines and tails out of the
+    mystery three.
+  - He found the heron, the crane, the lynx, the squirrel and the otter hard to read; they are
+    redrawn: the heron and the crane from the side (long neck and bill), the lynx with long ear
+    tufts and ragged cheek ruffs, the squirrel with its tail and an acorn, the otter with whiskers
+    and a pebble in its paws. **He has not judged the redrawn five or the rest.**
+  - All names, stories and challenges are my draft, in order: Karman, Juniper (owl), Clover
+    (rabbit), Maple (deer), Thistle (hedgehog), Bruno (bear), Pebble (otter), Hazel (squirrel), Reed
+    (heron), Sable (lynx), Willow (crane), Rowan (stag), Cinder (phoenix), then the three mysteries:
+    Flint (wolf), Barley (badger), Saffron (red panda).
+- **Records, a second pane on the left under Coins,** to balance the page against Characters (his
+  ask): lifetime coins, earned today, best day, boxes opened, longest streak, top multiplier. All
   six figures are made up.
-- **The page.** With room, three columns on one screen: Tokens (held, multiplier with its 16-step
-  climb, this week's earnings) over Records; the mystery box with Passes under it; Characters. In
-  the medium-width window the box and passes sit side by side on top. On a phone a slim line always
-  shows the tokens held, and Box, Tokens, Passes and Characters are pages; none scrolls (the Tokens
-  page there starts at the multiplier, since the line above already shows the tokens held).
-- **Still made up:** every price, amount and limit; the four things to wear (round glasses, party
-  hat, crown, spring leaf); every name, story and challenge.
-- **Open with him:** where a student sees and changes what they own;
-  what themes and skins become; and the question raised on 2026-11-15 and never answered, that a
-  streak multiplier that resets and mystery boxes are patterns flagged for under-18s.
-- **Menu icons, each with a color of its own** (his list, 2026-11-16; `stickers.tsx`): Progress is an
-  arrow climbing over green shade, and hovered, the arrow runs back down its track and up again with
-  the track and shade forming under it; the Rewards trophy's star is gold; the Mistake Log's line is
-  orange; the Library's books are red and green upright and blue leaning on its side. He said "the
-  blue book on its side": I read that as the leaning book. If he meant lying flat, redraw it.
+- **The page.** With room, three columns on one screen: Coins over Records; the mystery box with
+  Passes under it; Characters. In the medium-width window the box and passes sit side by side on
+  top. On a phone a slim line always shows the coins held, and Box, Coins, Passes and Characters
+  are pages; none scrolls.
+- **Still made up:** every price and amount; the four things to wear (round glasses, party hat,
+  crown, spring leaf); every name, story and challenge; the six records.
+- **Open with him:** one phrase in his last notes that I could not make out ("Exchange would
+  disable the links", said between the mystery characters and the grayed-out names) and did not
+  build on; where a student sees and changes what they own; what themes and skins become; and the
+  question raised on 2026-11-15 and never answered, that a streak multiplier that resets and
+  mystery boxes are patterns flagged for under-18s.
+- **Menu icons, each with a color of its own** (his list, 2026-11-16; `stickers.tsx`): **Progress is
+  a graph**: its two axes, a line climbing to a small arrowhead, green shade under the line;
+  hovered, the line is drawn from foot to tip with the shade spreading under it (his second note on
+  it: the first arrow "springs upward, it's not drawn, and the arrowhead is way too big"). The
+  Rewards trophy's star is gold; the Mistake Log's line is orange; the Library's books are red and
+  green upright and blue leaning on its side. He said "the blue book on its side": I read that as
+  the leaning book. If he meant lying flat, redraw it.
 - `plans.ts` holds the menu lists that were in `page.tsx`. The phone audit walks Rewards too.
 
 **Progress step 5, the new-student page: built (2026-11-16), awaiting his verdict.** He chose it as

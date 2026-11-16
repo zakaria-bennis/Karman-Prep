@@ -132,7 +132,7 @@ const audit = () => {
       await check("Rewards / Box");
       await main.getByRole("button", { name: /^Open/ }).click(); await p.waitForTimeout(1100); await check("Rewards / a prize");
       await main.getByRole("button", { name: "Keep for later" }).click(); await p.waitForTimeout(500);
-      for (const pg of ["Tokens", "Passes", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
+      for (const pg of ["Coins", "Passes", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
       await main.getByRole("button", { name: /^Thistle/ }).click(); await check("Rewards / a character pressed");
       // Progress for a student who has answered nothing, one with a little practice, and the Free plan
       if (who === "9 weeks") {
