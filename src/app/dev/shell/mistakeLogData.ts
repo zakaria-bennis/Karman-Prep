@@ -110,6 +110,8 @@ export type Session = {
   asked: Asked[];
   right: number;
   seconds: number;
+  /** When it was begun, in minutes after midnight (a stand-in until sessions are logged). */
+  at: number;
   /** A full-length exam's score. */
   score?: number;
 };
@@ -219,9 +221,20 @@ export function sittingsOf(student: Student, logs: DayLog[]): Session[] {
         asked,
         right: asked.filter((q) => q.right).length,
         seconds: asked.reduce((sum, q) => sum + q.seconds, 0),
+        at: 0,
         score: draft.mode === "exam" ? student.exams[log.exam - 1].score : undefined,
       };
     });
+    // the day's times: an exam begins in the morning, other days in the late afternoon, and each
+    // sitting follows the one before after a short rest
+    let at =
+      log.exam > 0
+        ? 9 * 60 + Math.floor(noise(day, 22, 0) * 4) * 15
+        : 15 * 60 + 30 + Math.floor(noise(day, 22, 0) * 16) * 15;
+    for (const [i, s] of sessions.entries()) {
+      s.at = at;
+      at += Math.ceil(s.seconds / 60) + 2 + Math.floor(noise(day, 23, i) * 9);
+    }
     // the day's last sitting comes first
     out.push(...sessions.reverse());
   }

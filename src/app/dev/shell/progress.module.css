@@ -179,20 +179,24 @@
    of the score, the same distance from the top edge as from the right one (the pane's own inset). The
    days and the date take a color for how near the test is, and a shine passes over them. */
 .countdown {
-  --near: #8db6ff;
-  --near-lit: #ffffff;
+  --near: #2456c4;
+  --near-lit: #9dbcff;
   display: grid;
   align-self: flex-end;
   justify-items: end;
   gap: 2px;
   padding: 8px 12px;
   border-radius: var(--r-lens);
-  /* a dark chip in both modes: gold, blue and red only read as metal against something dark */
-  background: rgb(29 26 34 / 0.86);
+  /* a second pane of frosted glass laid on the score's: lighter than it by day, darker by night
+     (founder, 2026-11-16). The days and the date are deep by day and bright by night, to be read. */
+  background: rgb(255 255 255 / 0.46);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
   box-shadow:
-    0 8px 18px -12px rgb(24 28 58 / 0.7),
-    inset 0 0 0 1px rgb(255 255 255 / 0.14);
-  color: #f6f1e7;
+    0 8px 18px -12px rgb(24 28 58 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.7),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.6);
+  color: var(--ink);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
@@ -201,11 +205,31 @@
 }
 
 .countdown[data-near="month"] {
+  --near: #8a5a00;
+  --near-lit: #e9b233;
+}
+
+.countdown[data-near="week"] {
+  --near: #b3261a;
+  --near-lit: #ff8672;
+}
+
+:global([data-kp-mode="dark"]) .countdown {
+  --near: #8db6ff;
+  --near-lit: #ffffff;
+  background: rgb(8 10 24 / 0.5);
+  box-shadow:
+    0 8px 18px -12px rgb(0 0 0 / 0.7),
+    inset 0 0 0 1px rgb(255 255 255 / 0.16),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.12);
+}
+
+:global([data-kp-mode="dark"]) .countdown[data-near="month"] {
   --near: #f2b632;
   --near-lit: #fff6cf;
 }
 
-.countdown[data-near="week"] {
+:global([data-kp-mode="dark"]) .countdown[data-near="week"] {
   --near: #ff8672;
   --near-lit: #fff0ea;
 }

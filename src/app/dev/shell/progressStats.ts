@@ -14,6 +14,17 @@ export const clock = (minutes: number) =>
   minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 export const minSec = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, "0")}`;
+/** A length of time in words, so it is not read as a time of day: "1m 24s", "8m", "45s". */
+export const minSecWords = (seconds: number) => {
+  const all = Math.round(seconds);
+  if (all < 60) return `${all}s`;
+  return all % 60 ? `${Math.floor(all / 60)}m ${all % 60}s` : `${all / 60}m`;
+};
+/** A time of day from minutes after midnight: "4:15 PM". */
+export const timeOfDay = (minutes: number) => {
+  const hour = Math.floor(minutes / 60) % 24;
+  return `${hour % 12 || 12}:${String(minutes % 60).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+};
 const sign = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "");
 const count = (n: number) => n.toLocaleString("en-US");
 

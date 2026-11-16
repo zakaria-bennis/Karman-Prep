@@ -18,7 +18,7 @@ import type { Found } from "./progressBreakdowns";
 import { dateOf, type Student } from "./progressData";
 import { MODES, type Asked, type Session } from "./mistakeLogData";
 import styles from "./mistakeLog.module.css";
-import { clock, minSec } from "./progressStats";
+import { clock, minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 
 export const dayName = (student: Student, day: number) =>
@@ -32,9 +32,10 @@ export const dayName = (student: Student, day: number) =>
           day: "numeric",
         });
 
-/** How long a sitting took: minutes and seconds, or hours and minutes for an exam. */
+/** How long a sitting took, in words so it is not read as a time of day: minutes and seconds, or
+ *  hours and minutes for an exam. */
 export const took = (seconds: number) =>
-  seconds >= 3600 ? clock(Math.round(seconds / 60)) : minSec(seconds);
+  seconds >= 3600 ? clock(Math.round(seconds / 60)) : minSecWords(seconds);
 
 export const Chevron = ({ back = false }: { back?: boolean }) => (
   <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -140,7 +141,7 @@ export function QuestionRow({
             </span>
           )}
         </span>
-        <span className={styles.took}>{minSec(q.seconds)}</span>
+        <span className={styles.took}>{minSecWords(q.seconds)}</span>
         <Chevron />
       </button>
     </li>
@@ -205,7 +206,7 @@ export function SessionOverview({
           {!named && <h2>{session.name}</h2>}
           <p className={styles.when}>
             {session.mode === "skill" && `${MODES.skill}, `}
-            {dayName(student, session.day)}
+            {dayName(student, session.day)}, {timeOfDay(session.at)}
           </p>
         </div>
         {ways.close && <Close close={ways.close} />}
@@ -228,7 +229,7 @@ export function SessionOverview({
         </div>
         {many > 1 && (
           <div className={styles.fact}>
-            <b>{minSec(session.seconds / many)}</b>Pace
+            <b>{minSecWords(session.seconds / many)}</b>Pace
           </div>
         )}
       </div>
@@ -472,7 +473,7 @@ export function QuestionView({
       <p className={styles.verdict} data-right={q.right}>
         <Mark right={q.right} />
         <b>{q.right ? "Correct" : "Missed"}</b>
-        <span>{minSec(q.seconds)}</span>
+        <span>{minSecWords(q.seconds)}</span>
       </p>
       <button type="button" className={styles.skill} onClick={() => onSkill(q.found)}>
         {q.found.skill.name}

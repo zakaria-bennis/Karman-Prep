@@ -912,3 +912,8 @@ engine and each activity's beginning and end screens. Do not start it until he s
   session took, not a time of day. Asked him which he means; nothing changed there yet. He also asked for
   Records to be "the same height as" Characters: the two columns now end level at every width; ask if he
   meant something else.
+
+**Settled the same day:** the Mistake Log shows both: the time of day each session began ("6:44 PM", a
+stand-in until sessions are logged) and lengths in words ("8m", "1m 36s"). The bars are a light leaf
+green and a red as bright. The SAT badge is frosted glass laid on the score: lighter by day, darker by
+night. **Next, by his word: the Cohort and Private students' tabs and what only they get.**

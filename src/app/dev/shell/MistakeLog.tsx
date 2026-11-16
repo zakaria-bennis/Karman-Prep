@@ -41,7 +41,7 @@ import {
 } from "./MistakeLogViews";
 import type { Found } from "./progressBreakdowns";
 import { activity, type Student } from "./progressData";
-import { minSec } from "./progressStats";
+import { minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 
 const LENSES = ["Sessions", "Missed", "Bookmarks"] as const;
@@ -297,20 +297,21 @@ export default function MistakeLog({
                           >
                             <span className={styles.what}>
                               <b>{s.name}</b>
-                              {s.mode === "skill" ? (
-                                <small>{MODES.skill}</small>
-                              ) : (
-                                (s.mode === "trial" || s.mode === "endless") && (
-                                  <small>{s.asked[0].found.section}</small>
-                                )
-                              )}
+                              {/* when it was begun, and what kind of work it was */}
+                              <small>
+                                {timeOfDay(s.at)}
+                                {s.mode === "skill"
+                                  ? `, ${MODES.skill}`
+                                  : (s.mode === "trial" || s.mode === "endless") &&
+                                    `, ${s.asked[0].found.section}`}
+                              </small>
                             </span>
                             <span className={styles.got}>
                               <b>{s.right}</b> of {s.asked.length}
                             </span>
                             <span className={styles.wide}>{took(s.seconds)}</span>
                             <span className={styles.wide}>
-                              {s.asked.length > 1 && minSec(s.seconds / s.asked.length)}
+                              {s.asked.length > 1 && minSecWords(s.seconds / s.asked.length)}
                             </span>
                             <Chevron />
                           </button>
