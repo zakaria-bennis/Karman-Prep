@@ -522,7 +522,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "progress" && <Progress student={student} />}
+        {page === "progress" && <Progress rail={rail} student={student} />}
       </main>
 
       {q.get("demo") !== "0" && (

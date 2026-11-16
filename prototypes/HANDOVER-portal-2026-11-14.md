@@ -530,3 +530,22 @@ like a stock ("really addictive"):
   has 1 to 5, Pro 1 to 20). The line it appears on is always kept, empty or not, so sliding across an
   exam never shifts the sections, the spans or the graph. **Anything that appears on hover must have
   its place reserved: nothing below may move.**
+
+**Progress step 2 built (2026-11-16), awaiting his verdict.** He approved step 1 ("Yes, next step").
+Files are now split: `progressData.ts` (the made-up students, the score line, a log of every day),
+`ProgressScore.tsx` (step 1), `ProgressActivity.tsx` and `progressActivity.module.css` (step 2),
+`Progress.tsx` (the page).
+- **Layout.** On a wide desktop the score stands in the middle with the numbers at its left and the
+  calendar at its right, all on one screen. Between 960 and 1199 wide the score is on top and the
+  other two sit under it (this one scrolls). On a phone each piece is its own page with buttons
+  (Score, Activity, Calendar) and none scrolls.
+- **Six numbers:** accuracy (leading, with today's percent and a small line), questions answered,
+  time invested, days practiced, skills Proficient, exams taken. A switch: 7 days, 30 days, all time
+  (all time first shown). On 7 or 30 days each number carries a ticker against the span before,
+  green up and red down; the place of every ticker is kept, so switching moves nothing.
+- **Calendar:** one month at a time with arrows; each day a rounded square shaded in four steps of
+  the green by questions done; today is ringed; pressing a day shows its questions, time, accuracy,
+  Daily 10 and any exam in a box of fixed height. The streak counts days in a row with the Daily 10.
+- The countdown is now one quiet line above the score at every width.
+- Stand-ins: the whole daily log (`activity()`), the skills count, time. Not built: real idle-time
+  tracking (his rule: only active time counts, mouse jigglers must not inflate it).
