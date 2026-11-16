@@ -5,7 +5,8 @@
 //   - One total, large. Reading and Writing and Math sit inside it, smaller. Never a range, never a goal.
 //   - Pressing a section swaps the graph (and the large number) to that section; pressing it again, or
 //     Total, goes back.
-//   - The ticker says how far the score has moved over the chosen span, with a sign, green up, red down.
+//   - The ticker is a signed number and its span in one weight and one color, like a stock app:
+//     "+150 all time", "−30 past 7 days". Green up, red down. It is not a sentence.
 //   - Spans: 7 days, 2 weeks, 1 month, 3 months, 6 months, all time. A span longer than the student's
 //     own history cannot be chosen. The line and its fill turn red when the score fell over the span.
 //   - Both axes fit what is shown: the days and the scores each fill the graph.
@@ -139,14 +140,15 @@ const dateOf = (student: Student, day: number) =>
 const short = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const long = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
-/** The spans of time the graph can show. `said` finishes the ticker's sentence. */
+/** The spans of time the graph can show. `said` follows the number on the ticker: "+150 all time",
+ *  "−30 past 7 days". It is not a sentence (founder, 2026-11-15). */
 const SPANS = [
-  { key: "7d", label: "7 days", brief: "7D", days: 7, said: "in the last 7 days" },
-  { key: "2w", label: "2 weeks", brief: "2W", days: 14, said: "in the last 2 weeks" },
-  { key: "1m", label: "1 month", brief: "1M", days: 30, said: "in the last month" },
-  { key: "3m", label: "3 months", brief: "3M", days: 91, said: "in the last 3 months" },
-  { key: "6m", label: "6 months", brief: "6M", days: 182, said: "in the last 6 months" },
-  { key: "all", label: "All time", brief: "All", days: Infinity, said: "" },
+  { key: "7d", label: "7 days", brief: "7D", days: 7, said: "past 7 days" },
+  { key: "2w", label: "2 weeks", brief: "2W", days: 14, said: "past 2 weeks" },
+  { key: "1m", label: "1 month", brief: "1M", days: 30, said: "past month" },
+  { key: "3m", label: "3 months", brief: "3M", days: 91, said: "past 3 months" },
+  { key: "6m", label: "6 months", brief: "6M", days: 182, said: "past 6 months" },
+  { key: "all", label: "All time", brief: "All", days: Infinity, said: "all time" },
 ] as const;
 type SpanKey = (typeof SPANS)[number]["key"];
 
@@ -396,7 +398,7 @@ export default function Progress({ student: key }: { student: StudentKey }) {
   const moved = shown ? shown[series] - first[series] : 0;
   const fell = latest ? latest[series] < first[series] : false;
   const examOn = past ? student.exams.find((e) => e.day === shown.day) : undefined;
-  const since = first ? `since ${long(dateOf(student, first.day))}` : "";
+  const since = first ? `since ${short(dateOf(student, first.day))}` : "";
   const choose = (next: Series) => {
     setSeries(next);
     setAt(null);
@@ -430,11 +432,8 @@ export default function Progress({ student: key }: { student: StudentKey }) {
                 className={styles.ticker}
                 data-way={moved > 0 ? "up" : moved < 0 ? "down" : "flat"}
               >
-                <b>
-                  {moved > 0 ? "+" : moved < 0 ? "−" : ""}
-                  {Math.abs(moved)}
-                </b>{" "}
-                {past || span.days === Infinity ? since : span.said}
+                {moved > 0 ? "+" : moved < 0 ? "−" : ""}
+                {Math.abs(moved)} {past ? since : span.said}
                 {examOn && (
                   <span>
                     Full-length exam that day <b>{split(examOn.day, examOn.score)[series]}</b>

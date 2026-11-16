@@ -51,28 +51,27 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* the ticker: a signed number, green up and red down, then the span it covers */
+/* the ticker: a signed number and its span, all one weight and one color, green up and red down */
 .ticker {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.ticker b {
+  margin-top: 4px;
   font-size: 20px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.ticker[data-way="up"] > b {
+.ticker[data-way="up"] {
   color: var(--up);
 }
 
-.ticker[data-way="down"] > b {
+.ticker[data-way="down"] {
   color: var(--down);
 }
 
 .ticker span {
   display: block;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .ticker span b {

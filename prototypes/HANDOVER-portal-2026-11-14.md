@@ -512,3 +512,7 @@ like a stock ("really addictive"):
 - **No key under the graph.**
 - He asked to have the page opened for him: he does not know how to open localhost. Open the browser
   pane on `/dev/shell` for him whenever there is something to look at.
+- **The ticker is not a sentence** (he sent two stock-app examples: "+29.60 past 5 days", "−7.23
+  today"). A signed number and its span in one size, one weight and one color: "+150 all time",
+  "−30 past 7 days", "+90 past month". Green up, red down. While a day is pointed at it reads
+  "+80 since Sep 27".
