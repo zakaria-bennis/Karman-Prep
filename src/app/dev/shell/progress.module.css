@@ -89,6 +89,14 @@
 }
 
 /* names the exam on the day pointed at. The line is always there, empty or not, so nothing shifts */
+.examNote b[data-way="up"] {
+  color: var(--up);
+}
+
+.examNote b[data-way="down"] {
+  color: var(--down);
+}
+
 .examNote {
   min-height: 20px;
   font-size: 13px;
@@ -276,6 +284,22 @@
 }
 
 .examScore {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* a level to aim at: a dashed line in the text color, never the color of the trend */
+.goal {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 0.75;
+}
+
+.goalName {
   fill: currentColor;
   font-size: 13px;
   font-weight: 600;

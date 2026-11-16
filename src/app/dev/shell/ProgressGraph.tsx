@@ -141,6 +141,7 @@ export function Graph({
   ticks,
   format = String,
   marked = [],
+  goal,
   label,
   say,
   at,
@@ -157,6 +158,8 @@ export function Graph({
   format?: (value: number) => string;
   /** Days to mark with a breathing point (full-length exams), at their own values. */
   marked?: Dot[];
+  /** A level to aim at, drawn as a dashed line across the graph with its name at the right. */
+  goal?: { value: number; label: string };
   /** What the graph is of, for a screen reader. */
   label: string;
   /** What to say about one of the `points`, for a screen reader. */
@@ -282,6 +285,22 @@ export function Graph({
             </text>
           ))}
           <path className={styles.area} d={area} fill="url(#kp-graph-fill)" />
+          {goal && (
+            <>
+              <path
+                className={styles.goal}
+                d={`M${pad.left} ${y(goal.value)}H${width - pad.right}`}
+              />
+              <text
+                className={styles.goalName}
+                x={width - pad.right}
+                y={y(goal.value) - 7}
+                textAnchor="end"
+              >
+                {goal.label}
+              </text>
+            </>
+          )}
           <path className={styles.line} d={line} pathLength={1} />
           {marked.map((mark, i) => (
             <g key={mark.day}>

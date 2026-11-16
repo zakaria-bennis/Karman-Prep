@@ -41,7 +41,7 @@ const STILL = { duration: 0 } as const;
 
 /** A ring cut clean by level: Proficient first, then down the levels. Where two levels meet there is a
  *  hairline in the same colour as the ring's edge. */
-function ringOf(counts: number[]): string {
+export function ringOf(counts: number[]): string {
   const total = counts.reduce((a, b) => a + b, 0) || 1;
   const line = 1.4;
   let at = 0;

@@ -584,3 +584,28 @@ Files are now split: `progressData.ts` (the made-up students, the score line, a 
 - The score piece is now a column whose graph takes any spare height, so nothing else stretches.
 - **Each number's page: he wants more creative, useful pages** than a bigger graph. Ideas were put to
   him for all seven; nothing more is built until he picks.
+
+**Progress: the page behind each number, built (2026-11-16), awaiting his verdict.** He said "execute
+on all those ideas". Every one is two panes across the whole page, the same width as the Library's
+("the distance from the menu bar to the border on the other edge of the screen"): the stock piece at
+the left (`ProgressStat.tsx`), the breakdown at the right for the same span (`ProgressDetails.tsx`,
+stand-in figures in `progressBreakdowns.ts`). On a phone they are two pages, Trend and Breakdown.
+- **Time invested:** by section, then by domain. His rules: domains, not skills, and never by kind of
+  work (no "time on the Daily 10"). Also the days of the week it went on, and the average day.
+- **Questions answered:** by domain and by kind of work, each band cut into right and missed; the
+  hardest level met.
+- **Skills Proficient:** the Library's rings for both sides; skills gained in the span and any that
+  slipped. A skill pressed here opens on its own page in the Library (`onSkill` in `page.tsx`).
+- **Exams taken:** each exam with its total, sections, date and change from the one before; the exams
+  left in the plan as slots; a button to start the next.
+- **Pacing (his design):** split into Overall, Reading and Writing and Math. **A dashed goal line
+  across the graph**: the pace the real SAT allows (1:22 overall, 1:11 Reading and Writing, 1:35
+  Math), multiplied by the student's extra time, so it sits higher at 1.5x or 2x. A line under the
+  ticker says how far over or under the goal the student is. The demo bar has Standard, 1.5x and 2x
+  time on this page until Settings holds accommodations. Also pace on right against missed answers,
+  and the slowest skills.
+- **Accuracy:** by domain, by difficulty level (1 to 7), and the three skills missed most.
+- **Days practiced:** the last year as a grid of small squares, the streak now and the longest, the
+  strongest weekday.
+- Not done: the Breakdown page on a phone scrolls for four of the seven (60 to 240 pixels); History
+  links wait for the History page; every breakdown figure is a stand-in.

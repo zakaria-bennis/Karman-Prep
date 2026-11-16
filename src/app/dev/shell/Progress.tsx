@@ -16,6 +16,7 @@ import { Calendar, Stats } from "./ProgressActivity";
 import { STUDENTS, activity, type Student, type StudentKey } from "./progressData";
 import ProgressStat from "./ProgressStat";
 import type { StatKey } from "./progressStats";
+import type { Found } from "./progressBreakdowns";
 import ProgressScore from "./ProgressScore";
 import { tick } from "./sound";
 
@@ -28,12 +29,18 @@ export default function Progress({
   student: key,
   stat,
   onStat,
+  extraTime,
+  onSkill,
 }: {
   rail: boolean;
   student: StudentKey;
   /** The number whose own page is open, if any. */
   stat: StatKey | null;
   onStat: (stat: StatKey) => void;
+  /** The student's accommodation: 1 for standard time, 1.5 or 2 for extra time. */
+  extraTime: number;
+  /** Opens a skill in the Library. */
+  onSkill: (found: Found) => void;
 }) {
   const still = useReducedMotion() ?? false;
   const student: Student = STUDENTS[key];
@@ -42,9 +49,15 @@ export default function Progress({
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
   if (stat)
     return (
-      <div className={`${lib.library} ${styles.progress}`} data-single>
-        <ProgressStat key={`${key} ${stat}`} student={student} logs={logs} stat={stat} />
-      </div>
+      <ProgressStat
+        key={`${key} ${stat}`}
+        rail={rail}
+        student={student}
+        logs={logs}
+        stat={stat}
+        extraTime={extraTime}
+        onSkill={onSkill}
+      />
     );
   return (
     <div className={`${lib.library} ${styles.progress}`}>

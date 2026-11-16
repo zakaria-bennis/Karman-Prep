@@ -130,6 +130,8 @@ function Shell() {
   /* the number whose own page is open in Progress, if any */
   const [stat, setStat] = useState<StatKey | null>(null);
   const inStat = page === "progress" && stat !== null;
+  /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
+  const [extraTime, setExtraTime] = useState(1);
   /* how frosted the glass is; the dial remembers its setting on this computer */
   const [frost, setFrost] = useState(0.7);
   useEffect(() => {
@@ -570,6 +572,17 @@ function Shell() {
                   setStat(next);
                   window.scrollTo({ top: 0 });
                 }}
+                extraTime={extraTime}
+                onSkill={(found) => {
+                  // a skill named on a Progress page opens on its own page in the Library
+                  dir.current = 1;
+                  setPage("library");
+                  setSection(found.section);
+                  setDomain(found.domain);
+                  setSkill({ ...found.skill, domain: found.domain });
+                  setStat(null);
+                  window.scrollTo({ top: 0 });
+                }}
               />
             </motion.div>
           </AnimatePresence>
@@ -608,6 +621,17 @@ function Shell() {
                 onClick={() => setStudent(k)}
               >
                 {STUDENTS[k].label}
+              </button>
+            ))}
+          {stat === "pace" &&
+            [1, 1.5, 2].map((x) => (
+              <button
+                key={x}
+                type="button"
+                aria-pressed={extraTime === x}
+                onClick={() => setExtraTime(x)}
+              >
+                {x === 1 ? "Standard time" : `${x}x time`}
               </button>
             ))}
           {!rail && (
