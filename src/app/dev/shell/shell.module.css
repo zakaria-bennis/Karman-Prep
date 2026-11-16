@@ -298,9 +298,20 @@
   transform: scale(0.95);
 }
 
+/* a way onward from a page (Progress to its History): the same pill at the far end of the line, with
+   its arrow after the word */
+.shell .forth {
+  padding: 0 8px 0 14px;
+  margin-left: auto;
+}
+
 @media (hover: hover) {
   .back:hover svg {
     transform: translateX(-3px);
+  }
+
+  .forth:hover svg {
+    transform: translateX(3px);
   }
 }
 

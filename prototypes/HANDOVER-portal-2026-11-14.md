@@ -701,3 +701,38 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   so each exam is two lines; a short phone (740 tall) scrolled, so the graph and the big number are
   lower there; side labels on a low graph collided, so only those with room are written; the pacing
   goal's name sat on the line, so it moves to the end of the graph where the line is farther away.
+
+**Progress: pacing drawn faster-side-up, and step 4, History, built (2026-11-16); awaiting his verdict.**
+- **Pacing's graph is upside down on purpose** (his words: "It makes good progress look bad, so I'd
+  rather just not have it go red if things are actually getting better"). Faster is at the top, so a
+  student getting faster sees a line that rises and is green; getting slower falls and is red. The
+  same holds for the small line on the Pacing number. When the goal is beaten the line is above the
+  goal line. In code: `lessIsBetter` on the stat (`progressStats.ts`), `flip` on `Graph` and `Spark`,
+  and `wayOf(change, lessIsBetter)`. The ticker still shows the change in time ("−0:07 all time"),
+  now in green when it is a gain. His earlier rule holds everywhere: a line that falls is never green.
+- **History** opens from a **History** button at the far end of the Progress title row
+  (`ProgressHistory.tsx`, `HistoryViews.tsx`, `history.module.css`; stand-in data in
+  `historyData.ts`). Three views, one bar: **Sessions** (every sitting, newest first, by day: skill
+  sets, Daily 10, full-length exams, challenge questions, time trials, endless mode), **Missed** (the
+  mistake log: every missed question) and **Bookmarks**. Four menus narrow all three: kind of work,
+  section, domain, skill (never difficulty). Choosing a skill sets its domain and section.
+- Opening a sitting shows its name, day, how it went (score for an exam, correct, time, pace) and its
+  questions, with All, Correct, Missed (shown only when the sitting has both). Opening a question
+  shows the student's answer, the right answer and the explanation, the skill (which opens it in the
+  Library), a bookmark button, and arrows to the question before and after. No retry. Cohort and
+  Private students also get a flag button; flagging bookmarks the question, and a flagged row carries
+  a small flag.
+- With room, the log is at the left and what is open at the right, each scrolling inside its own
+  glass, so the page never scrolls. On a phone each is its own page: the title row's back pill steps
+  out one level (History, then the sitting), and so does Escape. History is the one Progress page
+  that scrolls on a phone. The list shows 40 rows and "Show earlier" adds 40.
+- The daily log now records what each day was made of (`sets`, `fives`, `challenge` on `DayLog`), so
+  History's counts agree with the calendar. The challenge question adds one to a day's questions.
+- **Stand-ins:** every sitting and answer is made up. The question shown for a past answer is one of
+  eight samples written for this page, one per domain; the bank's real questions replace them when
+  History reads real answers. Bookmarks and flags changed on the page are not saved.
+- The phone audit (`scripts/dev/progress-phone-audit.cjs`) now walks History too: 234 screens, none
+  with anything wrong. It also checks the title row (the History button must not meet the title).
+- Not built: the exam breakdown page (an exam in History shows its questions, which may be most of
+  it; the exam rows on Exams taken still open nothing), saving bookmarks and flags, real data.
+- Next: his verdict on History; then step 5, the new-student page.

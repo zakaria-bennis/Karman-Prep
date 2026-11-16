@@ -34,8 +34,8 @@ import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
-import Progress, { STUDENTS, type StudentKey } from "./Progress";
-import { STATS, type StatKey } from "./progressStats";
+import Progress, { STUDENTS, type Opened, type StudentKey, type Trail } from "./Progress";
+import { STATS } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -127,7 +127,9 @@ function Shell() {
   /* which made-up student the Progress page shows (demo only) */
   const [student, setStudent] = useState<StudentKey>("weeks9");
   /* the number whose own page is open in Progress, if any */
-  const [stat, setStat] = useState<StatKey | null>(null);
+  const [stat, setStat] = useState<Opened | null>(null);
+  /* what is open inside History on a phone: it names the page and the way back */
+  const [trail, setTrail] = useState<Trail | null>(null);
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
@@ -464,13 +466,14 @@ function Shell() {
               className={styles.back}
               onClick={() => {
                 dir.current = -1;
-                setStat(null);
+                if (trail) trail.go();
+                else setStat(null);
               }}
             >
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path d="M14.500 6.500L9 12l5.500 5.500" />
               </svg>
-              Progress
+              {trail?.back ?? "Progress"}
             </button>
           )}
           {!(page === "library" && !section) && (
@@ -480,21 +483,40 @@ function Shell() {
                 inSkill
                   ? skill.name
                   : inStat
-                    ? stat
+                    ? (trail?.name ?? stat)
                     : page === "library" && section
                       ? (domain ?? section)
                       : page
               }
-              data-long={(page === "library" && (inSkill || section !== null)) || undefined}
+              data-long={
+                (page === "library" && (inSkill || section !== null)) || trail !== null || undefined
+              }
             >
               {inSkill
                 ? skill.name
                 : inStat
-                  ? STATS[stat].name
+                  ? (trail?.name ?? (stat === "history" ? "History" : STATS[stat].name))
                   : page === "library" && section
                     ? (domain ?? section)
                     : LABEL[page]}
             </h1>
+          )}
+          {/* History is its own page, a press away from Progress */}
+          {page === "progress" && !stat && (
+            <button
+              type="button"
+              className={`${styles.back} ${styles.forth}`}
+              onClick={() => {
+                dir.current = 1;
+                setStat("history");
+                window.scrollTo({ top: 0 });
+              }}
+            >
+              History
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+              </svg>
+            </button>
           )}
         </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
@@ -565,6 +587,8 @@ function Shell() {
                   window.scrollTo({ top: 0 });
                 }}
                 extraTime={extraTime}
+                flags={plan !== "practice"}
+                onTrail={setTrail}
                 onSkill={(found) => {
                   // a skill named on a Progress page opens on its own page in the Library
                   dir.current = 1;

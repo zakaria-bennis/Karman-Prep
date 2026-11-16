@@ -1,4 +1,4 @@
-// Walks every Progress screen in /dev/shell on three phone sizes and reports text that spills out of
+// Walks every Progress screen in /dev/shell, History included, on three phone sizes and reports text that spills out of
 // its pane, is cut off, overlaps other text, or makes the page scroll. Run with the dev server up:
 //   NODE_PATH=$PWD/node_modules node scripts/dev/progress-phone-audit.cjs <folder for screenshots>
 
@@ -10,6 +10,14 @@ const audit = () => {
   const issues = [];
   const say = (el) => (el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 28) || el.tagName;
   if (document.documentElement.scrollWidth > innerWidth) issues.push("PAGE SCROLLS SIDEWAYS");
+  // the page's name and the buttons beside it share one line: none may lie over another or leave the screen
+  const top = [...(main.firstElementChild?.children ?? [])].map((el) => [el, el.getBoundingClientRect()]).filter(([, r]) => r.width);
+  top.forEach(([a, ra], i) => {
+    if (ra.right > innerWidth + 1) issues.push(`SPILLS: "${say(a)}" off the screen`);
+    top.slice(i + 1).forEach(([b, rb]) => {
+      if (Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left) > 2 && Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top) > 3) issues.push(`OVERLAP: "${say(a)}" on "${say(b)}"`);
+    });
+  });
   if (document.documentElement.scrollHeight > innerHeight + 1) issues.push(`scrolls down ${document.documentElement.scrollHeight - innerHeight}px`);
   for (const sec of main.querySelectorAll("section")) {
     const S = sec.getBoundingClientRect();
@@ -59,9 +67,10 @@ const audit = () => {
       await p.addStyleTag({ content: "[aria-label='Demo switches']{display:none!important}" });
       const main = p.locator("main");
       const tag = `${vp.width}-${who.replace(" ", "")}`;
-      const check = async (label) => {
+      // History is the one Progress page that may scroll down (founder, 2026-11-15)
+      const check = async (label, mayScroll = false) => {
         await p.waitForTimeout(450);
-        const found = await p.evaluate(audit);
+        const found = (await p.evaluate(audit)).filter((issue) => !(mayScroll && issue.startsWith("scrolls down")));
         screens++;
         if (found.length) { bad++; console.log(`${tag} ${label}: ${found.slice(0, 4).join(" ; ")}${found.length > 4 ? ` (+${found.length - 4} more)` : ""}`); await p.screenshot({ path: `${out}/BAD-${tag}-${label.replace(/\W+/g, "_")}.png` }); }
         else if (vp.width === 390 && who === "7 months") await p.screenshot({ path: `${out}/ok-${label.replace(/\W+/g, "_")}.png` });
@@ -90,6 +99,23 @@ const audit = () => {
         }
         await main.getByRole("button", { name: "Progress", exact: true }).click(); await p.waitForTimeout(600);
       }
+      // History: the log three ways, a sitting, a question, and a full-length exam
+      const back = () => main.locator("button").first().click();
+      const lens = (name) => main.getByLabel("Shown", { exact: true }).getByRole("button", { name }).click();
+      const log = main.getByRole("region", { name: "Log" });
+      await main.getByRole("button", { name: "History", exact: true }).click(); await p.waitForTimeout(900);
+      await check("History / Sessions", true);
+      await log.getByRole("button").filter({ hasText: "Daily 10" }).first().click(); await check("History / a sitting", true);
+      await main.getByRole("button", { name: /Question 3/ }).first().click(); await check("History / a question", true);
+      await back(); await p.waitForTimeout(300); await back(); await p.waitForTimeout(300);
+      await lens("Missed"); await check("History / Missed", true);
+      await log.locator("li button").first().click(); await check("History / a missed question", true);
+      await back(); await p.waitForTimeout(300);
+      await lens("Bookmarks"); await check("History / Bookmarks", true);
+      await lens("Sessions"); await main.getByLabel("Kind of work").selectOption("exam"); await check("History / exams only", true);
+      await log.locator("li button").first().click(); await check("History / an exam", true);
+      await back(); await p.waitForTimeout(300);
+      await main.getByLabel("Skill").selectOption("Circle equations"); await lens("Bookmarks"); await check("History / nothing here", true);
       await c.close();
     }
   }

@@ -67,7 +67,8 @@ export function byMode(questions: number, exams: number, accuracy: number) {
 }
 
 export type Found = { section: Section; domain: string; skill: Skill };
-const every: Found[] = SECTIONS.flatMap((section) =>
+/** Every one of the 72 skills, with its section and domain. */
+export const everySkill: Found[] = SECTIONS.flatMap((section) =>
   SKILLS[section].flatMap((domain) =>
     domain.skills.map((skill) => ({ section, domain: domain.name, skill }))
   )
@@ -75,7 +76,7 @@ const every: Found[] = SECTIONS.flatMap((section) =>
 /** Skills at a level, taken turn about from the two sections so both are seen. */
 const atLevel = (level: number, many: number, only?: Section): Found[] => {
   const sides = SECTIONS.filter((section) => !only || section === only).map((section) =>
-    every.filter((f) => f.section === section && f.skill.level === level)
+    everySkill.filter((f) => f.section === section && f.skill.level === level)
   );
   const out: Found[] = [];
   for (let i = 0; out.length < many && sides.some((side) => side[i]); i++)

@@ -1,7 +1,8 @@
 // The numbers beside the predicted score, in the founder's order (2026-11-16): time invested, questions
 // answered (which carries accuracy), skills Proficient, pacing, days practiced, exams taken last. Each is kept like a
 // stock: what it stands at now, how far it moved over a span, and a line of how it got there. A line
-// that fell is red and one that rose is green, whatever the number.
+// that fell is red and one that rose is green, whatever the number. Pacing alone is drawn upside down,
+// faster at the top, so a student getting faster sees a line that rises.
 import { SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
 
 export type StatKey = "time" | "questions" | "skills" | "exams" | "pace" | "accuracy" | "days";
@@ -22,6 +23,9 @@ export type Stat = {
   after?: string;
   /** Whether "all time" is a span worth choosing: not for a count that only ever adds up. */
   allTime: boolean;
+  /** A number that is better when it is smaller (pacing). Its graph is drawn upside down, so getting
+   *  better is a line that rises, and it is colored by better and worse. */
+  lessIsBetter?: boolean;
   /** The value as written. */
   show: (value: number) => string;
   /** A change in the value as written, with its sign. */
@@ -77,6 +81,7 @@ export const STATS: Record<StatKey, Stat> = {
     name: "Pacing",
     after: "per question",
     allTime: true,
+    lessIsBetter: true,
     show: minSec,
     moved: (n) => `${sign(n)}${minSec(Math.abs(n))}`,
     plot: (v) => v,
@@ -154,7 +159,9 @@ export function ledger(student: Student, logs: DayLog[]): Record<StatKey, number
   return out;
 }
 
-/** Which way a number moved. Up is green and down is red for every number, pacing included (founder,
- *  2026-11-16: "if there's a downward trend, it shouldn't be in green"). */
-export const wayOf = (change: number): "up" | "down" | "flat" =>
-  change === 0 ? "flat" : change > 0 ? "up" : "down";
+/** Which way a number's line goes: up is green and down is red on every graph (founder, 2026-11-16:
+ *  "if there's a downward trend, it shouldn't be in green"). Pacing is drawn upside down, faster at
+ *  the top, so getting faster is a line that rises and is green (founder, 2026-11-16: "it makes good
+ *  progress look bad"). */
+export const wayOf = (change: number, lessIsBetter = false): "up" | "down" | "flat" =>
+  change === 0 ? "flat" : change > 0 !== lessIsBetter ? "up" : "down";

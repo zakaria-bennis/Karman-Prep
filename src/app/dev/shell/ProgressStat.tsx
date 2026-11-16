@@ -6,7 +6,8 @@
 //           spans, and the line. Pointing along the line shows the number as it stood that day.
 //   right   what stands behind the number, broken down for the same span (ProgressDetails.tsx).
 // Pacing splits into Reading and Writing and Math, and draws the student's goal across the graph: the
-// pace the real SAT allows, longer for a student with extra time. Questions answered carries accuracy
+// pace the real SAT allows, longer for a student with extra time. Its graph is upside down, faster at
+// the top: getting faster rises and is green, and the line is above the goal when the goal is beaten. Questions answered carries accuracy
 // too: a second button swaps the number and the line to the share answered right.
 // The right-hand panes end level with the trend: the last one takes any height left over and stays
 // empty there. Exams taken has no trend at all, only its list.
@@ -111,7 +112,9 @@ export default function ProgressStat({
         <section
           className={`${lib.glass} ${styles.score} ${page.trend}`}
           aria-label={stat.name}
-          data-trend={wayOf(series[student.days] - series[from]) === "down" ? "down" : "up"}
+          data-trend={
+            wayOf(series[student.days] - series[from], stat.lessIsBetter) === "down" ? "down" : "up"
+          }
         >
           <div className={styles.head}>
             <h2>
@@ -122,7 +125,7 @@ export default function ProgressStat({
               {stat.show(series[day])}
               {stat.after && <small>{stat.after}</small>}
             </p>
-            <p className={styles.ticker} data-way={wayOf(moved)}>
+            <p className={styles.ticker} data-way={wayOf(moved, stat.lessIsBetter)}>
               {stat.moved(moved)} {past ? `since ${short(dateOf(student, from))}` : span.said}
             </p>
             {/* always there, so a number with a line here is laid out like one without */}
@@ -189,6 +192,7 @@ export default function ProgressStat({
               most: stat.most,
             })}
             format={stat.mark}
+            flip={stat.lessIsBetter}
             goal={goal === null ? undefined : { value: goal, label: `Your goal ${minSec(goal)}` }}
             label={stat.name}
             say={(i) => stat.show(series[from + i])}

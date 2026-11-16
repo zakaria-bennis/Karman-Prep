@@ -128,6 +128,11 @@ export type DayLog = {
   exam: number;
   /** Seconds a question took on timed work that day, on average; 0 if nothing was done. */
   pace: number;
+  /** What the day's practice was made of, for the History page: skill sets of 8 questions, bursts of
+   *  5 (a time trial or endless mode), and whether the challenge question was answered. */
+  sets: number;
+  fives: number;
+  challenge: boolean;
 };
 
 /** Seconds a question the real SAT allows, on average: 134 minutes for 98 questions. Standard time;
@@ -150,9 +155,10 @@ export function activity(student: Student): DayLog[] {
     const recent = day > student.days - run;
     const rest = !exam && !recent && noise(day, 1) < 0.2;
     const daily10 = !rest && (recent || noise(day, 2) < 0.8);
-    const practice = rest
-      ? 0
-      : (daily10 ? 10 : 0) + Math.floor(noise(day, 3) * 4) * 8 + Math.floor(noise(day, 4) * 3) * 5;
+    const sets = rest ? 0 : Math.floor(noise(day, 3) * 4);
+    const fives = rest ? 0 : Math.floor(noise(day, 4) * 3);
+    const challenge = !rest && noise(day, 8) < 0.7;
+    const practice = (daily10 ? 10 : 0) + sets * 8 + fives * 5 + (challenge ? 1 : 0);
     const questions = practice + (exam ? 98 : 0);
     const rate = 0.6 + 0.24 * (day / Math.max(1, student.days)) + (noise(day, 5) - 0.5) * 0.16;
     logs.push({
@@ -165,6 +171,9 @@ export function activity(student: Student): DayLog[] {
       pace: questions
         ? Math.round(98 - 18 * (day / Math.max(1, student.days)) + (noise(day, 7) - 0.5) * 14)
         : 0,
+      sets,
+      fives,
+      challenge,
     });
   }
   return logs;

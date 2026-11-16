@@ -1,0 +1,633 @@
+/*
+ * History: the log at the left, what is open at the right. Glass, inset, corners, text sizes (13, 16,
+ * 20) and the one green come from library.module.css, set on .library. Correct is the green and
+ * missed is the red used across Progress.
+ */
+.history {
+  --up: var(--p3);
+  --down: #c0392b;
+  --on-mark: #fffdf8;
+  align-items: start;
+}
+
+:global([data-kp-mode="dark"]) .history {
+  --up: var(--p1);
+  --down: #ff8d7e;
+  --on-mark: #1d1a22;
+}
+
+.log,
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: calc(var(--pad) + 4px);
+}
+
+.history h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---- the bars of choices: hollows in the glass, as on the rest of Progress ---- */
+.history .lenses {
+  justify-self: stretch;
+  flex: none;
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.lenses button {
+  flex: 1 1 0;
+  height: 36px;
+}
+
+/* ---- the four menus that narrow the log ---- */
+.sift {
+  display: grid;
+  flex: none;
+  /* two to a row at every size: four in a row cut the longer names short */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pick {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.pick select {
+  width: 100%;
+  height: 40px;
+  padding: 0 28px 0 12px;
+  border: 0;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background 0.2s var(--out);
+}
+
+.pick[data-on] select {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+  font-weight: 600;
+}
+
+/* the menus' own lists are the system's, so they are told which mode they are in */
+.pick select option,
+.pick select optgroup {
+  color: #1d1a22;
+  background: #fffdf8;
+}
+
+.pick::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  opacity: 0.6;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .pick select:hover {
+    background: var(--lens);
+  }
+}
+
+/* ---- the log itself ---- */
+.scroll {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.day {
+  display: grid;
+  gap: 2px;
+}
+
+.day h3 {
+  padding: 10px 12px 4px;
+  opacity: 0.78;
+}
+
+.rows {
+  display: grid;
+  gap: 2px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 8px 8px 12px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.row[data-q] {
+  grid-template-columns: 20px minmax(0, 1fr) auto auto 20px;
+}
+
+.row[aria-current] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+.row:active {
+  transform: scale(0.985);
+  background: var(--hover);
+}
+
+.what {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.what b {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.what small {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  opacity: 0.78;
+}
+
+.got,
+.took {
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.got b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.took {
+  min-width: 36px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.signs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.signs span {
+  display: flex;
+}
+
+.sign {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chev {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.mark {
+  flex: none;
+}
+
+.mark circle {
+  fill: var(--down);
+}
+
+.mark[data-right="true"] circle {
+  fill: var(--up);
+}
+
+.mark path {
+  fill: none;
+  stroke: var(--on-mark);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.more {
+  justify-self: center;
+  height: 40px;
+  padding: 0 18px;
+  margin: 8px 0 4px;
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.more:active {
+  transform: scale(0.96);
+}
+
+.none {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 12px;
+  text-align: center;
+}
+
+.none p {
+  max-width: 34ch;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .row:hover,
+  .more:hover {
+    background: var(--hover);
+  }
+
+  .row[aria-current]:hover {
+    background: var(--lens);
+  }
+
+  .row:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* ---- what is open: a sitting, or one question ---- */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: turn 0.2s var(--out) both;
+}
+
+@keyframes turn {
+  from {
+    opacity: 0;
+  }
+}
+
+.head {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.when {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fact b {
+  font: 400 30px/1.1 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.backIn {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: 2px;
+  height: 36px;
+  padding: 0 12px 0 6px;
+  margin: -4px 0 -4px -6px;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s var(--out);
+}
+
+.backIn .chev {
+  opacity: 1;
+}
+
+.qhead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tools {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  margin: -6px -6px 0 0;
+}
+
+.tools button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-lens);
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.tools button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.tools button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tools .chev {
+  opacity: 1;
+}
+
+/* a bookmark or flag that is off is an outline; on, it is filled */
+.tools .sign {
+  fill: none;
+}
+
+.tools button[aria-pressed="true"] .sign {
+  fill: currentColor;
+}
+
+.tools button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict b {
+  font-weight: 600;
+  color: var(--down);
+}
+
+.verdict[data-right="true"] b {
+  color: var(--up);
+}
+
+/* the skill the question tests: opens it in the Library */
+.skill {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: 4px;
+  min-height: 36px;
+  padding: 4px 8px 4px 12px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.prompt {
+  max-width: 68ch;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.choices {
+  display: grid;
+  gap: 6px;
+  max-width: 68ch;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.choices li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--r-lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.choices i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.choices b {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.choices li[data-is="right"] {
+  background: color-mix(in srgb, var(--up) 14%, transparent);
+  box-shadow: inset 0 0 0 2px var(--up);
+}
+
+.choices li[data-is="missed"] {
+  background: color-mix(in srgb, var(--down) 12%, transparent);
+  box-shadow: inset 0 0 0 2px var(--down);
+}
+
+.choices li[data-is="right"] i {
+  background: var(--up);
+  box-shadow: none;
+  color: var(--on-mark);
+}
+
+.choices li[data-is="missed"] i {
+  background: var(--down);
+  box-shadow: none;
+  color: var(--on-mark);
+}
+
+.why {
+  display: grid;
+  gap: 4px;
+  max-width: 68ch;
+}
+
+.why p {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+@media (hover: hover) {
+  .backIn:hover,
+  .tools button:hover:not(:disabled),
+  .skill:hover {
+    background: var(--lens);
+  }
+
+  .skill:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* with room: the log and what is open side by side, each as tall as the screen and scrolling inside
+   itself, so the page never scrolls (72 above the panes, 16 below) */
+@media (min-width: 960px) and (hover: hover) {
+  .history {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+
+  .history[data-alone] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* a sitting's three choices do not need the whole width of the pane */
+  .reading .lenses {
+    align-self: start;
+    width: min(100%, 360px);
+  }
+
+  .log,
+  .reading {
+    height: calc(100dvh - 88px);
+    min-height: 420px;
+  }
+
+  .scroll,
+  .reading {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--lens-edge) transparent;
+  }
+
+  .scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-right: 4px;
+    margin-right: -8px;
+  }
+}
+
+/* a phone: the menus in the size the phone will not zoom in on */
+@media (max-width: 959px) {
+  .pick select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 599px) {
+  .choices li {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  /* the label goes under the choice, where there is room for it */
+  .choices b {
+    grid-column: 2;
+  }
+
+  .fact b {
+    font-size: 26px;
+  }
+
+  .facts {
+    gap: 8px 22px;
+  }
+
+  /* with the name in the page's title, the date sits level with the bookmark and the arrows */
+  .qhead {
+    align-items: center;
+  }
+
+  .tools {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+
+  .chev {
+    transition: none;
+  }
+}

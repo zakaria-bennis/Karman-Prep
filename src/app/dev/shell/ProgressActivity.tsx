@@ -24,7 +24,16 @@ import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from
 import { tick } from "./sound";
 
 /** A number's small stock line over the span shown, with a fill that fades out under it. */
-function Spark({ values, way }: { values: number[]; way: "up" | "down" | "flat" }) {
+function Spark({
+  values,
+  way,
+  flip = false,
+}: {
+  values: number[];
+  way: "up" | "down" | "flat";
+  /** Upside down, the lowest value at the top: for pacing, where getting faster should rise. */
+  flip?: boolean;
+}) {
   const id = useId();
   const w = 104;
   const h = 36;
@@ -33,7 +42,8 @@ function Spark({ values, way }: { values: number[]; way: "up" | "down" | "flat" 
   const line = values
     .map((v, i) => {
       const x = (i / Math.max(1, values.length - 1)) * w;
-      const y = 4 + (1 - (high === low ? 0.5 : (v - low) / (high - low))) * (h - 8);
+      const share = high === low ? 0.5 : (v - low) / (high - low);
+      const y = 4 + (flip ? share : 1 - share) * (h - 8);
       return `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
     })
     .join("");
@@ -86,7 +96,7 @@ export function Stats({
           const stat: Stat = STATS[key];
           const series = book[key];
           const moved = series[to] - series[from];
-          const way = wayOf(moved);
+          const way = wayOf(moved, stat.lessIsBetter);
           return (
             <li key={key}>
               <button
@@ -111,6 +121,7 @@ export function Stats({
                   <Spark
                     values={thin(series.slice(from, to + 1))}
                     way={way === "flat" ? "up" : way}
+                    flip={stat.lessIsBetter}
                   />
                 )}
                 <svg

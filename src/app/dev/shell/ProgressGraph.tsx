@@ -157,6 +157,7 @@ export function Graph({
   format = String,
   marked = [],
   goal,
+  flip = false,
   label,
   say,
   at,
@@ -175,6 +176,9 @@ export function Graph({
   marked?: Dot[];
   /** A level to aim at, drawn as a dashed line across the graph with its name at the right. */
   goal?: { value: number; label: string };
+  /** Draws the graph upside down, the lowest value at the top: for a number that is better when it
+   *  is smaller (pacing), so that getting better rises. */
+  flip?: boolean;
   /** What the graph is of, for a screen reader. */
   label: string;
   /** What to say about one of the `points`, for a screen reader. */
@@ -205,10 +209,10 @@ export function Graph({
   const inner = Math.max(1, width - pad.left - pad.right);
   const days = useMemo(() => dayMarks(student, from), [student, from]);
   const x = (day: number) => pad.left + ((day - from) / Math.max(1, student.days - from)) * inner;
-  const y = (value: number) =>
-    pad.top +
-    (1 - (value - ticks[0]) / (ticks[ticks.length - 1] - ticks[0])) *
-      (height - pad.top - pad.bottom);
+  const y = (value: number) => {
+    const share = (value - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]);
+    return pad.top + (flip ? share : 1 - share) * (height - pad.top - pad.bottom);
+  };
   const line = points
     .map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)} ${y(p.value).toFixed(1)}`)
     .join("");
@@ -221,12 +225,12 @@ export function Graph({
   const goalAtStart = goal
     ? Math.abs(ends[0] - goal.value) > Math.abs(ends[1] - goal.value)
     : false;
-  const goalBelow = goal ? ends[goalAtStart ? 0 : 1] > goal.value : false;
+  const goalBelow = goal ? y(ends[goalAtStart ? 0 : 1]) < y(goal.value) : false;
   // up the side, a mark is written only if it clears the one above it by 16 pixels: on a low graph
   // every second one is left as a line alone, and the top mark is always written
   const written = new Set<number>();
   let last = -Infinity;
-  [...ticks].reverse().forEach((value) => {
+  (flip ? ticks : [...ticks].reverse()).forEach((value) => {
     if (y(value) - last >= 16) {
       written.add(value);
       last = y(value);
