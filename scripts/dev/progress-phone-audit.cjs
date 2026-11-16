@@ -1,4 +1,4 @@
-// Walks every Progress screen in /dev/shell, the Mistake Log and Rewards, on three phone sizes and reports text that spills out of
+// Walks every Progress screen in /dev/shell, the Mistake Log, Rewards and the Library, on three phone sizes and reports text that spills out of
 // its pane, is cut off, overlaps other text, or makes the page scroll. Run with the dev server up:
 //   NODE_PATH=$PWD/node_modules node scripts/dev/progress-phone-audit.cjs <folder for screenshots>
 
@@ -31,6 +31,15 @@ const audit = () => {
       if (!own) continue;
       // a menu lies over what is under it on purpose; if one is open, only the menu is checked
       if (el.closest("[role=listbox]")) continue;
+      // a row further down a list that scrolls inside itself is not on show, so it is not judged
+      let hidden = false;
+      for (let a = el.parentElement; a && a !== sec; a = a.parentElement) {
+        const o = getComputedStyle(a).overflowY;
+        if (o !== "auto" && o !== "scroll") continue;
+        const box = a.getBoundingClientRect();
+        if (r.bottom > box.bottom + 1 || r.top < box.top - 1) hidden = true;
+      }
+      if (hidden) continue;
       if (sec.querySelector("[data-popover]") && !el.closest("[data-popover]") && !el.closest("[aria-haspopup]")) continue;
       // spills out of its pane (a menu may hang below a short pane: the page scrolls to it)
       if (r.left < S.left - 1 || r.right > S.right + 1 || (r.bottom > S.bottom + 1 && !el.closest("[data-popover]"))) issues.push(`SPILLS: "${say(el)}"`);
@@ -127,11 +136,21 @@ const audit = () => {
       await main.getByRole("button", { name: "Geometry and Trigonometry" }).click(); await check("Mistake Log / skills menu, a domain open", true);
       await main.getByRole("menuitemcheckbox", { name: "Circle equations" }).click(); await p.keyboard.press("Escape");
       await lens("Bookmarks"); await check("Mistake Log / nothing here", true);
-      // Rewards: its four pages, and a box opened
+      // the Library on a phone: a section's three pages, a domain and a skill. These lists scroll down
+      // by nature, so only spills, cut-off text and overlaps are looked for.
+      await p.getByRole("navigation").getByRole("button", { name: "Library" }).click(); await p.waitForTimeout(1300);
+      await main.getByRole("button", { name: /Math/ }).first().click(); await p.waitForTimeout(1300);
+      for (const pg of ["Skills", "Today", "Practice"]) { await main.locator("[aria-label=Page]").getByRole("button", { name: pg, exact: true }).click(); await check(`Library / Math ${pg}`, true); }
+      await main.locator("[aria-label=Page]").getByRole("button", { name: "Skills", exact: true }).click(); await p.waitForTimeout(300);
+      await main.getByRole("button", { name: /Algebra/ }).first().click(); await p.waitForTimeout(800); await check("Library / a domain", true);
+      // Rewards: its four pages, a box opened, and the wardrobe
       await p.getByRole("navigation").getByRole("button", { name: "Rewards" }).click(); await p.waitForTimeout(900);
       await check("Rewards / Box");
-      await main.getByRole("button", { name: /^Open/ }).click(); await p.waitForTimeout(1100); await check("Rewards / a prize");
+      await main.getByRole("button", { name: /^Open/ }).click(); await p.waitForTimeout(1700); await check("Rewards / a prize");
       await main.getByRole("button", { name: "Keep for later" }).click(); await p.waitForTimeout(500);
+      await main.getByRole("button", { name: "Wardrobe" }).click(); await check("Rewards / wardrobe");
+      await main.getByRole("button", { name: "Unlock all 200 for testing" }).click(); await check("Rewards / wardrobe, all 200");
+      await main.getByRole("button", { name: "Box", exact: true }).first().click(); await p.waitForTimeout(300);
       for (const pg of ["Coins", "Passes", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
       await main.getByRole("button", { name: /^Thistle/ }).click(); await check("Rewards / a character pressed");
       // Progress for a student who has answered nothing, one with a little practice, and the Free plan

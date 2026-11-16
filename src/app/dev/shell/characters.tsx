@@ -1,8 +1,9 @@
 // The characters' faces, drawn here in code on the fox's own grid and in the fox's manner: flat
 // facets, a lighter left side and a darker right, the same dark eyes with a point of light, a little
-// blush. The fox itself is the approved mark (Fox.tsx). The other fifteen are first drawings for the
-// founder to judge (2026-11-16). The last three (red panda, stag, phoenix) are seen only as black
-// shapes until they are unlocked, so their outlines matter most.
+// blush. The fox itself is the approved mark (Fox.tsx). The other fifteen are drawings for the
+// founder to judge (2026-11-16). All are seen from the front, so anything worn sits the same way on
+// each (accessories.tsx). A heron, a crane and a phoenix were tried and he did not like them: they
+// are now the frog, the koala and the tiger.
 import type { ReactNode } from "react";
 import { Fox } from "@/components/portal/Fox";
 
@@ -15,14 +16,14 @@ export type FaceKind =
   | "hedgehog"
   | "otter"
   | "squirrel"
-  | "heron"
+  | "frog"
   | "badger"
   | "lynx"
   | "wolf"
-  | "crane"
+  | "koala"
   | "redpanda"
   | "stag"
-  | "phoenix";
+  | "tiger";
 
 const INK = "#24180F";
 function Eyes({ x = 15, y = -28, r = 6 }: { x?: number; y?: number; r?: number }) {
@@ -186,50 +187,56 @@ const FACES: Record<Exclude<FaceKind, "fox">, ReactNode> = {
       <ellipse cx="10" cy="8" rx="5.500" ry="4.500" fill="#6f4f37" />
     </>
   ),
-  // a great bushy tail curling up behind, tufted ears, full cheeks, and an acorn at its chin
+  // tufted ears, round full cheeks, a small smile over two front teeth, and an acorn at its chin
   squirrel: (
     <>
-      <path d="M24 8C58 6 60 -44 42 -64C32 -74 18 -66 24 -54C38 -40 38 -14 18 0Z" fill="#b9722b" />
-      <path d="M30 0C50 -6 52 -40 40 -56C44 -38 42 -16 24 -4Z" fill="#e8b06a" />
-      <path d="M-28 -44L-34 -80L-12 -56Z" fill="#b9722b" />
-      <path d="M-34 -80L-31 -68L-24 -72Z" fill="#7a4416" />
-      <path d="M14 -56L22 -80L26 -46Z" fill="#a05f20" />
+      <path d="M-28 -44L-34 -82L-12 -56Z" fill="#b9722b" />
+      <path d="M-34 -82L-31 -69L-24 -73Z" fill="#7a4416" />
+      <path d="M28 -44L34 -82L12 -56Z" fill="#a05f20" />
+      <path d="M34 -82L31 -69L24 -73Z" fill="#6a3a12" />
       <path d="M-34 -48L0 -58L0 6L-22 2L-40 -22Z" fill="#d08a3e" />
-      <path d="M30 -46L0 -58L0 6L22 2L36 -22Z" fill="#c07a30" />
-      <ellipse cx="-19" cy="-10" rx="14" ry="12" fill="#f8e8cc" />
-      <ellipse cx="17" cy="-10" rx="13" ry="12" fill="#efdab6" />
-      <path d="M-9 -18L0 -23L9 -18L0 0Z" fill="#f8e8cc" />
-      <Eyes x={14} y={-32} />
-      <path d="M-4 -17L4 -17L0 -12Z" fill="#5a3414" />
-      <path d="M-8 1H8L6 6H-6Z" fill="#7a4416" />
-      <path d="M-6 6H6L0 15Z" fill="#d9a25a" />
-      <path d="M0 1V-3" stroke="#7a4416" strokeWidth="1.800" strokeLinecap="round" />
+      <path d="M34 -48L0 -58L0 6L22 2L40 -22Z" fill="#b9722b" />
+      <circle cx="-22" cy="-9" r="15" fill="#f8e8cc" />
+      <circle cx="22" cy="-9" r="15" fill="#efdab6" />
+      <path d="M-10 -18L0 -24L10 -18L7 -2L0 2L-7 -2Z" fill="#fbf0dc" />
+      <Eyes x={15} y={-32} />
+      <Blush x={27} y={-6} />
+      <path d="M-4.500 -18L4.500 -18L0 -12.500Z" fill="#5a3414" />
+      <path
+        d="M0 -12.500V-10M-6 -9Q-3 -6 0 -9.500Q3 -6 6 -9"
+        stroke="#5a3414"
+        strokeWidth="1.700"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M-3 -8.300H3V-3.500H-3Z" fill="#fff" stroke="#d9c7a6" strokeWidth="0.700" />
+      <path d="M0 -8.300V-3.500" stroke="#d9c7a6" strokeWidth="0.700" />
+      <path d="M-8 3H8L6 8H-6Z" fill="#7a4416" />
+      <path d="M-6 8H6L0 16Z" fill="#d9a25a" />
     </>
   ),
-  // seen from the side: a long neck, a dagger of a bill, and a dark plume trailing from the brow
-  heron: (
+  // two great eyes set on top of a wide green head, and a wide smile
+  frog: (
     <>
+      <path d="M-44 -34L0 -42L0 12L-26 8L-46 -10Z" fill="#7cc46a" />
+      <path d="M44 -34L0 -42L0 12L26 8L46 -10Z" fill="#5fa851" />
+      <circle cx="-21" cy="-46" r="16" fill="#7cc46a" />
+      <circle cx="21" cy="-46" r="16" fill="#5fa851" />
+      <circle cx="-21" cy="-46" r="11" fill="#fbf9ee" />
+      <circle cx="21" cy="-46" r="11" fill="#f0eddc" />
+      <Eyes x={21} y={-46} r={6} />
+      <path d="M-30 -8L0 -2L30 -8L24 6L0 12L-24 6Z" fill="#d9eeb8" />
+      <Blush x={33} y={-18} />
+      <circle cx="-5" cy="-24" r="1.600" fill="#3d7a35" />
+      <circle cx="5" cy="-24" r="1.600" fill="#3d7a35" />
       <path
-        d="M-22 16C-40 -12 -4 -22 -14 -46"
-        stroke="#9fb2c4"
-        strokeWidth="15"
-        strokeLinecap="round"
+        d="M-26 -10Q0 4 26 -10"
+        stroke="#2f5f2a"
+        strokeWidth="2.200"
         fill="none"
-      />
-      <path
-        d="M-18 16C-36 -12 0 -22 -10 -46"
-        stroke="#f3f5f8"
-        strokeWidth="5"
         strokeLinecap="round"
-        fill="none"
       />
-      <ellipse cx="-8" cy="-52" rx="17" ry="13" fill="#f3f5f8" />
-      <path d="M6 -58L56 -50L6 -52Z" fill="#f2c14e" />
-      <path d="M6 -52L56 -50L6 -45Z" fill="#c4860d" />
-      <path d="M4 -61C-10 -70 -30 -62 -54 -76L-50 -66C-34 -58 -18 -56 -4 -56Z" fill="#2b3440" />
-      <path d="M-24 -58L-56 -60" stroke="#2b3440" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="-1" cy="-53" r="4" fill="#f2c14e" />
-      <circle cx="-1" cy="-53" r="2" fill={INK} />
     </>
   ),
   // a white face with two dark stripes running down through the eyes
@@ -310,30 +317,21 @@ const FACES: Record<Exclude<FaceKind, "fox">, ReactNode> = {
       <Smile y={-2} />
     </>
   ),
-  // seen from the side: a white neck with a dark stripe, a red crown and a gray bill
-  crane: (
+  // big round fluffy ears and a great dark nose
+  koala: (
     <>
-      <path
-        d="M-20 16C-34 -14 -6 -22 -12 -46"
-        stroke="#f7f5f0"
-        strokeWidth="15"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M-12 16C-26 -12 2 -22 -4 -42"
-        stroke="#2b2622"
-        strokeWidth="5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <ellipse cx="-6" cy="-52" rx="16" ry="12.500" fill="#f7f5f0" />
-      <path d="M-20 -57C-14 -70 4 -70 9 -58C2 -62 -10 -62 -20 -55Z" fill="#c8553d" />
-      <path d="M-1 -49C-8 -46 -12 -42 -10 -36L-2 -42Z" fill="#2b2622" />
-      <path d="M8 -57L46 -51L8 -52Z" fill="#aab1b8" />
-      <path d="M8 -52L46 -51L8 -46Z" fill="#737a82" />
-      <circle cx="0" cy="-54" r="3.600" fill="#c8553d" />
-      <circle cx="0" cy="-54" r="1.900" fill={INK} />
+      <circle cx="-38" cy="-42" r="19" fill="#a9afb6" />
+      <circle cx="-38" cy="-42" r="11" fill="#f1e9e4" />
+      <circle cx="38" cy="-42" r="19" fill="#8e959d" />
+      <circle cx="38" cy="-42" r="11" fill="#e2d9d3" />
+      <path d="M-36 -46L0 -56L0 10L-26 6L-42 -18Z" fill="#b4bac1" />
+      <path d="M36 -46L0 -56L0 10L26 6L42 -18Z" fill="#9aa1a9" />
+      <path d="M-16 -4L0 -8L16 -4L12 6L0 10L-12 6Z" fill="#e9edf0" />
+      <Eyes x={16} y={-30} r={5} />
+      <Blush x={29} y={-14} />
+      <ellipse cx="0" cy="-17" rx="8.500" ry="12" fill="#2b2622" />
+      <ellipse cx="-2.500" cy="-22" rx="2.500" ry="3.500" fill="#5a534d" />
+      <Smile y={0} />
     </>
   ),
   // wide pale ears, a rust head, white brows and cheeks, and dark marks under the eyes
@@ -378,21 +376,35 @@ const FACES: Record<Exclude<FaceKind, "fox">, ReactNode> = {
       <Smile y={0} />
     </>
   ),
-  // a bird of fire: a crest of flames, bright cheeks and a golden bill
-  phoenix: (
+  // orange with dark stripes on the brow and cheeks, round ears, a pale muzzle
+  tiger: (
     <>
-      <path d="M-14 -50L-26 -94L-2 -66Z" fill="#ee5a24" />
-      <path d="M-6 -54L0 -110L10 -64Z" fill="#f2a93b" />
-      <path d="M10 -50L28 -92L16 -60Z" fill="#d94a18" />
-      <path d="M-34 -26L-52 -12L-30 -6Z" fill="#ee5a24" />
-      <path d="M34 -26L52 -12L30 -6Z" fill="#d94a18" />
-      <path d="M-30 -48L0 -58L0 4L-16 -2L-34 -26Z" fill="#f08a2c" />
-      <path d="M30 -48L0 -58L0 4L16 -2L34 -26Z" fill="#d96a1c" />
-      <circle cx="-15" cy="-31" r="10.500" fill="#ffd24a" />
-      <circle cx="15" cy="-31" r="10.500" fill="#f6c038" />
-      <Eyes x={15} y={-31} r={5} />
-      <path d="M-7 -18L0 -18L0 4Z" fill="#ffd24a" />
-      <path d="M7 -18L0 -18L0 4Z" fill="#e3a21a" />
+      <circle cx="-29" cy="-52" r="13" fill="#e88a2a" />
+      <circle cx="-29" cy="-52" r="6.500" fill="#fbe6cc" />
+      <circle cx="29" cy="-52" r="13" fill="#cf7420" />
+      <circle cx="29" cy="-52" r="6.500" fill="#efd4b4" />
+      <path d="M-36 -48L0 -58L0 10L-24 6L-42 -20Z" fill="#f29a38" />
+      <path d="M36 -48L0 -58L0 10L24 6L42 -20Z" fill="#dc8226" />
+      <path d="M-42 -20L-24 -14L-10 6L-24 6Z" fill="#fff6e6" />
+      <path d="M42 -20L24 -14L10 6L24 6Z" fill="#f3e6cf" />
+      <path d="M-14 -14L0 -20L14 -14L9 4L0 8L-9 4Z" fill="#fff6e6" />
+      <path
+        d="M0 -58L-4 -44L0 -40L4 -44ZM-12 -55L-12 -44L-8 -47ZM12 -55L12 -44L8 -47Z"
+        fill="#2b2622"
+      />
+      <path
+        d="M-42 -20L-30 -22L-36 -14ZM-38 -6L-27 -10L-31 -1ZM42 -20L30 -22L36 -14ZM38 -6L27 -10L31 -1Z"
+        fill="#2b2622"
+      />
+      <Eyes x={16} y={-30} />
+      <path d="M-5 -15L5 -15L0 -9Z" fill="#d9777a" />
+      <path
+        d="M0 -9V-5M-5 -3Q0 1 5 -3"
+        stroke={INK}
+        strokeWidth="1.700"
+        fill="none"
+        strokeLinecap="round"
+      />
     </>
   ),
 };

@@ -566,3 +566,17 @@
     transition: none;
   }
 }
+
+/* a phone: the ways to practice sit two to a row, so every name is read in full */
+@media (max-width: 599px) {
+  .modes ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mode {
+    gap: 10px;
+    padding-right: var(--pad);
+    white-space: normal;
+    line-height: 1.2;
+  }
+}

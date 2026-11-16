@@ -1,0 +1,147 @@
+/*
+ * The wardrobe (Rewards.tsx): everything won from boxes, to put on and take off. Glass, corners and
+ * text sizes come from library.module.css, set on .library.
+ */
+.wardrobe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.wardrobe header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wardrobe header p {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.wardrobe header b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.wardrobe .backIn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 36px;
+  padding: 0 12px 0 6px;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.backIn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the fox in what it has on, beside the places a thing can be worn */
+.fitting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.wardrobe .slots {
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.slots button {
+  flex: 1 1 0;
+  height: 36px;
+}
+
+/* the rack scrolls inside itself, so the page does not */
+.rack {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 6px;
+  /* as tall as the screen leaves, so the page itself never scrolls */
+  max-height: max(120px, calc(100dvh - 452px));
+  padding: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--lens-edge) transparent;
+}
+
+.wardrobe .thing {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 4px 6px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    background 0.2s var(--out),
+    transform 0.15s var(--out);
+}
+
+.wardrobe .thing[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 2px var(--go);
+  font-weight: 600;
+}
+
+.wardrobe .thing:active {
+  transform: scale(0.96);
+}
+
+.bare {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (hover: hover) {
+  .wardrobe .thing:hover,
+  .wardrobe .backIn:hover {
+    background: var(--lens);
+  }
+}
+
+/* the medium-width window: the wardrobe shares the top pane, so its rack is lower */
+@media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
+  .rack {
+    max-height: 250px;
+  }
+}
+
+/* a phone: a smaller fox, and a rack as tall as the screen leaves */
+@media (max-width: 599px) {
+  .fitting {
+    zoom: 0.7;
+  }
+
+  .rack {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    max-height: max(110px, calc(100dvh - 548px));
+  }
+}

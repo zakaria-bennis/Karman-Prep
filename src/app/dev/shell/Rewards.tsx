@@ -5,7 +5,9 @@
 //   Coins        what the student holds, the multiplier their
 //                challenge-question streak has earned (a quarter more each day, up to 5x), and where
 //                this week's coins came from.
-//   The box      the mystery box, opened for coins: it holds things to wear (RewardsBox.tsx).
+//   The box      the mystery box, opened for coins: it holds one of 200 things to wear
+//                (RewardsBox.tsx, accessories.tsx). The wardrobe, opened from the box, shows what has
+//                been won and lets the fox put things on, one in each place: head, eyes, neck, side.
 //   Records      little things worth knowing (lifetime coins, best day and so on), under Coins.
 //   Passes       things of real use: starting a full-length exam outside Saturday's window,
 //                keeping a streak through a missed day, and a second chance after a miss inside a
@@ -23,7 +25,10 @@ import { useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
-import MysteryBox, { Coin, Wearing } from "./RewardsBox";
+import cast from "./rewardsCast.module.css";
+import ward from "./rewardsWardrobe.module.css";
+import { ACCESSORIES, Dressed, SLOTS, type Accessory, type Outfit, type Slot } from "./accessories";
+import MysteryBox, { Coin } from "./RewardsBox";
 import { PassIcon } from "./RewardsPassIcon";
 import {
   BOX_PRICE,
@@ -31,13 +36,11 @@ import {
   DAYS_TO_TOP,
   EARNED,
   PASSES,
-  PRIZES,
   RECORDS,
   STREAK,
   COINS,
   multiplierFor,
   type Pass,
-  type Wear,
 } from "./rewardsData";
 import { ping, tick } from "./sound";
 
@@ -49,8 +52,12 @@ export default function Rewards({ rail }: { rail: boolean }) {
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
   const [coins, setCoins] = useState(COINS);
-  const [opened, setOpened] = useState(0);
-  const [wearing, setWearing] = useState<Wear | null>(null);
+  /** The things to wear that have been won from boxes, by id, newest last. */
+  const [owned, setOwned] = useState<string[]>([]);
+  /** What the fox has on: one thing, or none, in each place. */
+  const [outfit, setOutfit] = useState<Outfit>({});
+  const [wardrobe, setWardrobe] = useState(false);
+  const [slot, setSlot] = useState<Slot | null>(null);
   /** How many of each pass are held, bought on this page (nothing is saved yet). */
   const [held, setHeld] = useState<Record<string, number>>({});
   const [picked, setPicked] = useState(0);
@@ -62,6 +69,20 @@ export default function Rewards({ rail }: { rail: boolean }) {
     setHeld({ ...held, [pass.name]: (held[pass.name] ?? 0) + 1 });
     ping();
   };
+  /** The next thing a box gives: one not yet won, taken in an order that looks like chance and
+   *  reaches all 200 before it repeats. */
+  const next = (): Accessory => {
+    const many = ACCESSORIES.length;
+    for (let n = owned.length; n < owned.length + many; n++) {
+      const pick = ACCESSORIES[(n * 37 + 11) % many];
+      if (!owned.includes(pick.id)) return pick;
+    }
+    return ACCESSORIES[0];
+  };
+  /** Puts a thing on, or takes it off if it is already on. */
+  const wear = (item: Accessory) =>
+    setOutfit({ ...outfit, [item.slot]: outfit[item.slot] === item.id ? undefined : item.id });
+  const mine = ACCESSORIES.filter((a) => owned.includes(a.id) && (!slot || a.slot === slot));
   const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
   const chosen = CHARACTERS[picked];
   const has = chosen.done >= chosen.of;
@@ -167,19 +188,119 @@ export default function Rewards({ rail }: { rail: boolean }) {
 
       {(show("Box") || show("Passes")) && (
         <section className={`${lib.glass} ${styles.middle}`} aria-label="Mystery box and passes">
-          {show("Box") && (
+          {show("Box") && !wardrobe && (
             <MysteryBox
               coins={coins}
-              wearing={wearing}
+              outfit={outfit}
+              owned={owned.length}
+              left={ACCESSORIES.length - owned.length}
               onOpen={() => {
+                const prize = next();
                 setCoins(coins - BOX_PRICE);
-                setOpened(opened + 1);
-                return PRIZES[opened % PRIZES.length].key;
+                setOwned([...owned, prize.id]);
+                return prize;
               }}
-              onWear={setWearing}
+              onWear={(prize) => setOutfit({ ...outfit, [prize.slot]: prize.id })}
+              onWardrobe={() => {
+                setWardrobe(true);
+                tick();
+              }}
             />
           )}
-          {show("Passes") && (
+          {/* the wardrobe takes the box's place: everything won, to put on and take off */}
+          {show("Box") && wardrobe && (
+            <div className={ward.wardrobe}>
+              <header>
+                <button
+                  type="button"
+                  className={ward.backIn}
+                  onClick={() => {
+                    setWardrobe(false);
+                    tick();
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                    <path d="M14.500 6.500L9 12l5.500 5.500" />
+                  </svg>
+                  Box
+                </button>
+                <h2>Wardrobe</h2>
+                <p>
+                  <b>{owned.length}</b> of {ACCESSORIES.length}
+                </p>
+              </header>
+              <div className={ward.fitting}>
+                <Dressed face="fox" outfit={outfit} size={104} />
+              </div>
+              <div className={`${lib.filter} ${ward.slots}`} role="group" aria-label="Worn on">
+                {([null, ...(Object.keys(SLOTS) as Slot[])] as (Slot | null)[]).map((key) => (
+                  <button
+                    key={key ?? "all"}
+                    type="button"
+                    aria-pressed={slot === key}
+                    onClick={() => {
+                      setSlot(key);
+                      tick();
+                    }}
+                  >
+                    {slot === key && (
+                      <motion.span
+                        layoutId="rewards-slot"
+                        className={lib.lens}
+                        transition={
+                          still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
+                        }
+                      />
+                    )}
+                    <span>{key ? SLOTS[key] : "All"}</span>
+                  </button>
+                ))}
+              </div>
+              {mine.length > 0 ? (
+                <ul className={ward.rack}>
+                  {mine.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        className={ward.thing}
+                        aria-pressed={outfit[item.slot] === item.id}
+                        onClick={() => {
+                          wear(item);
+                          tick();
+                        }}
+                      >
+                        <Dressed face="fox" outfit={{ [item.slot]: item.id }} size={56} />
+                        {item.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className={ward.bare}>
+                  <p>
+                    {owned.length
+                      ? "Nothing for that place yet."
+                      : "Open a box to win your first one."}
+                  </p>
+                </div>
+              )}
+              {/* for trying things on while the page is being designed; not for students */}
+              {owned.length < ACCESSORIES.length && (
+                <button
+                  type="button"
+                  className={styles.quiet}
+                  onClick={() => {
+                    setOwned(ACCESSORIES.map((a) => a.id));
+                    tick();
+                  }}
+                >
+                  Unlock all 200 for testing
+                </button>
+              )}
+            </div>
+          )}
+          {/* with room, the open wardrobe has the whole pane, so the passes step aside */}
+          {show("Passes") && !(rail && wardrobe) && (
             <div className={styles.passes}>
               <h3>Passes</h3>
               <ul>
@@ -217,7 +338,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
       )}
 
       {show("Characters") && (
-        <section className={`${lib.glass} ${styles.cast}`} aria-label="Characters">
+        <section className={`${lib.glass} ${styles.cast} ${cast.cast}`} aria-label="Characters">
           <header>
             <h2>Characters</h2>
             <p>
@@ -226,10 +347,18 @@ export default function Rewards({ rail }: { rail: boolean }) {
           </header>
           {/* who the pressed one is, its story, and how it is unlocked, above the faces. Its height
               is fixed, so pressing moves nothing. A mystery keeps its name and story to itself. */}
-          <div className={styles.card} aria-live="polite">
+          <div className={cast.card} aria-live="polite">
             <div>
-              <h3>{hidden ? "???" : chosen.name}</h3>
-              <p className={styles.far}>
+              <h3>
+                {hidden ? (
+                  "???"
+                ) : (
+                  <>
+                    {chosen.name} <small>{chosen.kind}</small>
+                  </>
+                )}
+              </h3>
+              <p className={cast.far}>
                 {has ? (
                   "Unlocked"
                 ) : (
@@ -239,10 +368,10 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 )}
               </p>
             </div>
-            <p className={styles.story}>{hidden ? "A mystery until it is yours." : chosen.story}</p>
-            <p className={styles.how}>{chosen.challenge}</p>
+            <p className={cast.story}>{hidden ? "A mystery until it is yours." : chosen.story}</p>
+            <p className={cast.how}>{chosen.challenge}</p>
           </div>
-          <div className={styles.grid} role="group" aria-label="Characters">
+          <div className={cast.grid} role="group" aria-label="Characters">
             {CHARACTERS.map((c, i) => {
               const mine = c.done >= c.of;
               const secret = c.mystery && !mine;
@@ -250,7 +379,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 <button
                   key={c.name}
                   type="button"
-                  className={styles.cell}
+                  className={cast.cell}
                   aria-pressed={picked === i}
                   aria-label={
                     secret
@@ -265,20 +394,20 @@ export default function Rewards({ rail }: { rail: boolean }) {
                   {/* the square: how far along a locked one is runs round it as a ring set into
                       its edge */}
                   <span
-                    className={styles.face}
+                    className={cast.face}
                     data-mine={mine || undefined}
                     style={{ "--far": Math.round((c.done / c.of) * 100) } as CSSProperties}
                   >
                     {i === 0 ? (
-                      <Wearing wear={wearing} size={44} />
+                      <Dressed face="fox" outfit={outfit} size={44} />
                     ) : (
                       // one still to unlock is seen grayed out; the three hardest are black shapes
-                      <span className={mine ? undefined : secret ? styles.shade : styles.peek}>
+                      <span className={mine ? undefined : secret ? cast.shade : cast.peek}>
                         <Face kind={c.face} size={44} />
                       </span>
                     )}
                   </span>
-                  <span className={styles.named}>{secret ? "???" : c.name}</span>
+                  <span className={cast.named}>{secret ? "???" : c.name}</span>
                 </button>
               );
             })}

@@ -183,160 +183,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- the mystery box ---- */
-.boxPart {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-}
-
-.stage {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 236px;
-}
-
-.boxHold,
-.prize {
-  position: absolute;
-  display: grid;
-  place-items: center;
-}
-
-.boxHold {
-  width: 216px;
-  height: 225px;
-}
-
-/* the body and the lid are two drawings on one grid, laid one over the other */
-.boxArt {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.lid {
-  position: absolute;
-  inset: 0;
-}
-
-/* now and then the resting box shakes, as if something inside wanted out */
-.boxHold[data-idle] {
-  animation: shake 4.6s ease-in-out infinite;
-}
-
-@keyframes shake {
-  0%,
-  84%,
-  100% {
-    transform: none;
-  }
-
-  87% {
-    transform: rotate(-4deg);
-  }
-
-  90% {
-    transform: rotate(4deg) translateY(-4px);
-  }
-
-  93% {
-    transform: rotate(-3deg);
-  }
-
-  96% {
-    transform: rotate(2deg);
-  }
-}
-
-/* sparks drift up off the box */
-.spark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 9px;
-  height: 9px;
-  background: #ffe28a;
-  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-  opacity: 0;
-  transform: translate(var(--x), var(--y));
-  animation: drift 4.2s ease-in-out var(--lag) infinite;
-}
-
-@keyframes drift {
-  0% {
-    opacity: 0;
-    transform: translate(var(--x), var(--y)) scale(0.3) rotate(0deg);
-  }
-
-  18% {
-    opacity: 1;
-    transform: translate(var(--x), calc(var(--y) - 10px)) scale(1) rotate(40deg);
-  }
-
-  45%,
-  100% {
-    opacity: 0;
-    transform: translate(var(--x), calc(var(--y) - 34px)) scale(0.4) rotate(120deg);
-  }
-}
-
-/* the rays behind the opening box and the prize */
-.rays {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  pointer-events: none;
-}
-
-.rays g {
-  fill: #ffd96b;
-  opacity: 0.55;
-  transform-origin: 0 0;
-  animation: turn 14s linear infinite;
-}
-
-@keyframes turn {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.stage[data-stage="prize"] .rays g {
-  opacity: 0.32;
-}
-
-/* a piece of the lid, flying off */
-.shard {
-  position: absolute;
-  width: 30px;
-  height: 20px;
-  border-radius: 4px;
-}
-
-.wearing {
-  position: relative;
-  display: block;
-  flex: none;
-}
-
-.wearing > svg {
-  display: block;
-}
-
-.worn {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
 .under {
   display: grid;
   justify-items: center;
@@ -471,6 +317,23 @@
   overflow: visible;
 }
 
+/* the exam pass: golden papers, and a glint of light that crosses them every few seconds */
+.gold [data-part="glint"] {
+  animation: glint 3.4s ease-in-out infinite;
+}
+
+@keyframes glint {
+  0%,
+  55% {
+    transform: translateX(-22px);
+  }
+
+  85%,
+  100% {
+    transform: translateX(26px);
+  }
+}
+
 /* the flame is alive: hovered, it sinks to an ember and flares back up */
 .passIcon [data-part="flame"] {
   transform-box: fill-box;
@@ -550,173 +413,6 @@
   white-space: nowrap;
 }
 
-/* ---- the characters ---- */
-.cast header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.cast header p {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.cast header b {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-
-/* a character: its square, and its name under it */
-.rewards .cell {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  min-width: 0;
-  padding: 0;
-  border-radius: 12px;
-  transition: transform 0.15s var(--out);
-}
-
-.rewards .cell:active {
-  transform: scale(0.95);
-}
-
-.named {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-.cell[aria-pressed="true"] .named {
-  font-weight: 700;
-}
-
-/* the square. One still to unlock is faint glass; how far along its challenge is runs round it as
-   a green ring set into its edge, starting from the top. */
-.face {
-  --far: 0;
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 12px;
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  transition: box-shadow 0.15s var(--out);
-}
-
-.face::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: 3.5px;
-  border-radius: inherit;
-  background: conic-gradient(var(--p2) calc(var(--far) * 1%), transparent 0);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-.face[data-mine] {
-  background: var(--lens);
-}
-
-.face[data-mine]::before {
-  content: none;
-}
-
-/* the one pressed: a dark line just inside the ring, so the two never run together */
-.cell[aria-pressed="true"] .face::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 8px;
-  box-shadow: 0 0 0 2px var(--ink);
-  pointer-events: none;
-}
-
-/* one still to unlock: its face is there to be seen, grayed out */
-.peek {
-  display: grid;
-  filter: grayscale(1);
-  opacity: 0.5;
-}
-
-/* one of the three hardest: only its shape, in black, until it is unlocked */
-.shade {
-  display: grid;
-  filter: brightness(0);
-  opacity: 0.78;
-}
-
-:global([data-kp-mode="dark"]) .shade {
-  opacity: 0.9;
-}
-
-.rewards .face[aria-pressed="true"] {
-  box-shadow:
-    inset 0 0 0 2.5px var(--ink),
-    inset 0 0 0 4.5px #fffdf8;
-}
-
-.rewards .face:active {
-  transform: scale(0.94);
-}
-
-.card {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  min-height: 132px;
-  padding: 12px 14px;
-  border-radius: var(--r-lens);
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.35;
-}
-
-.card h3 {
-  font-size: 16px;
-}
-
-.how {
-  font-weight: 600;
-}
-
-/* the name, with how far along it is at the end of the same line */
-.card div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.far {
-  font-weight: 600;
-}
-
-.far b {
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
-}
-
 @media (hover: hover) {
   .rewards .primary:hover:not(:disabled) {
     background: color-mix(in srgb, var(--go) 88%, var(--ink));
@@ -725,10 +421,6 @@
   .rewards .quiet:hover,
   .rewards .price:hover:not(:disabled) {
     background: var(--hover);
-  }
-
-  .cell:not([aria-pressed="true"]):hover .face {
-    background: var(--lens);
   }
 }
 
@@ -813,18 +505,6 @@
     gap: 10px 8px;
   }
 
-  /* the squares are lower than they are wide on a phone, so sixteen with their names and the card
-     above them fit one screen */
-  .face {
-    min-height: 0;
-    aspect-ratio: 1.35;
-  }
-
-  .card {
-    min-height: 112px;
-    padding: 10px 12px;
-  }
-
   .records dd {
     font-size: 20px;
   }
@@ -849,44 +529,11 @@
     gap: 12px;
     padding: var(--pad);
   }
-
-  .stage {
-    height: 200px;
-  }
-
-  .boxHold {
-    width: 180px;
-    height: 188px;
-  }
-
-  /* the squares are a little lower than they are wide, so the card under them still fits */
-  .grid {
-    gap: 4px;
-  }
-
-  .face {
-    aspect-ratio: 1.75;
-  }
-
-  /* the faces are drawn a little smaller there, to sit inside the lower squares */
-  .face > * {
-    transform: scale(0.8);
-  }
-
-  .card {
-    min-height: 124px;
-    padding: 8px 12px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .passIcon [data-part] {
     transition: none;
-  }
-
-  .boxHold[data-idle],
-  .rays g {
-    animation: none;
   }
 
   .pass:hover [data-part] {

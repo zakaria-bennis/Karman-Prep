@@ -310,7 +310,7 @@ export function DomainPage({
         <Key skills={domain.skills} />
       </section>
 
-      <div className={styles.filter} role="group" aria-label="Show">
+      <div className={`${styles.filter} ${styles.levels}`} role="group" aria-label="Show">
         {(Object.keys(FILTERS) as Filter[]).map((key) => (
           <button
             key={key}

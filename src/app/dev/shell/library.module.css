@@ -564,6 +564,12 @@
     padding: 0 10px;
   }
 
+  /* a level in the key is a button: on a phone it is tall enough to press without care */
+  .key li > * {
+    min-height: 44px;
+    align-content: center;
+  }
+
   .standingWords {
     max-width: none;
   }
@@ -571,6 +577,14 @@
 
 /* a narrow phone: a domain's band drops under its name, and a skill row drops its question count */
 @media (max-width: 599px) {
+  /* five levels in one bar: the names are set a little smaller, so the last is never off the edge */
+  .levels button {
+    flex: 1 1 auto;
+    min-width: 40px;
+    padding: 0 5px;
+    font-size: 13px;
+  }
+
   .domain {
     grid-template-columns: 1fr auto auto;
     gap: 8px 12px;

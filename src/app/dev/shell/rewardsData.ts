@@ -17,8 +17,10 @@
 //   Each is priced so it cannot be abused.
 //   Themes and skins are off the page: he is rethinking them (perhaps places, such as countries) and
 //   light and dark stay tied to day and night.
-//   Not settled, and made up here: every price, amount and limit, which things to wear there are,
-//   and every character's name, story and challenge (he asked for a draft of those).
+//   A box holds one of 200 things to wear (accessories.tsx; he asked for 200).
+//   Not settled, and made up here: every price and amount, and every character's name (but
+//   Karman), story and challenge (he asked for a draft of those; a challenge suits its character
+//   where it can, as he asked: the owl reads, the hedgehog counts, the squirrel saves coins).
 import type { FaceKind } from "./characters";
 import type { PassKind } from "./RewardsPassIcon";
 
@@ -42,16 +44,6 @@ export const EARNED = [
 ];
 
 export const BOX_PRICE = 500;
-
-export type Wear = "glasses" | "hat" | "crown" | "leaf";
-/** What a mystery box can hold: things the student's character wears, and nothing else. These four
- *  are stand-ins. */
-export const PRIZES: { key: Wear; name: string }[] = [
-  { key: "glasses", name: "Round glasses" },
-  { key: "hat", name: "Party hat" },
-  { key: "crown", name: "Crown" },
-  { key: "leaf", name: "Spring leaf" },
-];
 
 /** Things of real use that coins buy. Each has a limit, which he set (2026-11-16): the exam pass
  *  once a month, the streak saver once a week, the second chance once in a skill set. The prices are
@@ -104,8 +96,9 @@ export const RECORDS = [
 ];
 
 export type Character = {
-  /** Its own name. The card never says what animal it is (founder, 2026-11-16). */
+  /** Its own name, and what animal it is: the card says both (founder, 2026-11-16). */
   name: string;
+  kind: string;
   story: string;
   /** How it is unlocked. */
   challenge: string;
@@ -124,6 +117,7 @@ export type Character = {
 export const CHARACTERS: Character[] = [
   {
     name: "Karman",
+    kind: "Fox",
     story: "Your guide from day one. Curious about everything, afraid of no question.",
     challenge: "Yours from the start",
     done: 1,
@@ -132,14 +126,16 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Juniper",
+    kind: "Owl",
     story: "Reads by moonlight and has never once lost her place.",
-    challenge: "Finish 10 Daily 10s",
-    done: 9,
-    of: 10,
+    challenge: "Bring 5 Reading and Writing skills to Proficient",
+    done: 4,
+    of: 5,
     face: "owl",
   },
   {
     name: "Clover",
+    kind: "Rabbit",
     story: "Always first to the finish line. Sometimes forgets to stop there.",
     challenge: "Finish 5 time trials",
     done: 3,
@@ -148,22 +144,25 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Maple",
+    kind: "Deer",
     story: "Shows up every single morning, rain or frost.",
-    challenge: "Answer the challenge question 7 days in a row",
+    challenge: "Finish the Daily 10 seven days in a row",
     done: 6,
     of: 7,
     face: "deer",
   },
   {
     name: "Thistle",
-    story: "Small, prickly, and very proud of his sharp points. His answers are sharper.",
-    challenge: "Bring 10 skills to Proficient",
-    done: 8,
-    of: 10,
+    kind: "Hedgehog",
+    story: "Has counted every one of his spines. Twice, to be sure.",
+    challenge: "Bring 5 Math skills to Proficient",
+    done: 3,
+    of: 5,
     face: "hedgehog",
   },
   {
     name: "Bruno",
+    kind: "Bear",
     story: "Two weeks without a miss. He will hibernate after the SAT.",
     challenge: "Answer the challenge question 14 days in a row",
     done: 6,
@@ -172,6 +171,7 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Pebble",
+    kind: "Otter",
     story: "Treats every hard problem like a game she fully intends to win.",
     challenge: "Answer 25 in a row in endless mode",
     done: 14,
@@ -180,6 +180,7 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Hazel",
+    kind: "Squirrel",
     story: "Saves everything. You never know when a coin will come in handy.",
     challenge: "Earn 5,000 coins",
     done: 1840,
@@ -188,14 +189,16 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Reed",
-    story: "Can stand still through a whole exam. Ask him how.",
+    kind: "Frog",
+    story: "Can sit perfectly still through a whole exam. Ask him how.",
     challenge: "Finish 3 full-length exams",
     done: 2,
     of: 3,
-    face: "heron",
+    face: "frog",
   },
   {
     name: "Sable",
+    kind: "Lynx",
     story: "Misses nothing. Not once.",
     challenge: "Get all 10 right in a Daily 10",
     done: 0,
@@ -204,14 +207,16 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Willow",
-    story: "Started low and kept rising.",
+    kind: "Koala",
+    story: "Takes her time, climbs steadily, and ends up higher than anyone expected.",
     challenge: "Raise your predicted score by 200",
     done: 170,
     of: 200,
-    face: "crane",
+    face: "koala",
   },
   {
     name: "Rowan",
+    kind: "Stag",
     story: "Learns a whole territory before moving on to the next.",
     challenge: "Bring every skill in one domain to Proficient",
     done: 5,
@@ -220,14 +225,16 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Cinder",
-    story: "Rises again every time she falls.",
+    kind: "Tiger",
+    story: "Burning bright. She goes back for every question that got away.",
     challenge: "Look back at 50 missed questions",
     done: 21,
     of: 50,
-    face: "phoenix",
+    face: "tiger",
   },
   {
     name: "Flint",
+    kind: "Wolf",
     story: "Has run the whole course ten times and would go again.",
     challenge: "Finish 10 full-length exams",
     done: 5,
@@ -237,6 +244,7 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Barley",
+    kind: "Badger",
     story: "Shows up. Every. Single. Day.",
     challenge: "Hold the 5x multiplier for 30 days",
     done: 0,
@@ -246,6 +254,7 @@ export const CHARACTERS: Character[] = [
   },
   {
     name: "Saffron",
+    kind: "Red panda",
     story: "Calm at the very top of the tree.",
     challenge: "Bring all 72 skills to Proficient",
     done: 25,
