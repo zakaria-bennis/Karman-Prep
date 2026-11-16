@@ -14,7 +14,7 @@ import { chosen, tick } from "./sound";
 
 const HOUR = 3_600_000;
 /** The banner's stars: round, of several sizes, always in the same places. */
-const STARS = Array.from({ length: 46 }, (_, n) => {
+const STARS = Array.from({ length: 26 }, (_, n) => {
   const at = (k: number) => {
     const x = Math.sin((n + 1) * 91.7 + k * 37.3) * 43758.5453;
     return x - Math.floor(x);
@@ -65,10 +65,19 @@ export function SortIcon({ sort }: { sort: Sort }) {
       )}
       {sort === "strategy" && (
         <>
-          {/* a compass, for a strategy quiz */}
-          <circle cx="14" cy="14" r="10.500" />
-          <path d="M14 6.500l3 7.500-3 7.500-3-7.500Z" data-fill data-part="needle" />
-          <circle cx="14" cy="14" r="1" data-solid />
+          {/* a compass, for a strategy quiz: marks round its edge for the eight directions (the four
+              main ones longer), and a needle that is one line, red toward north and blue toward
+              south */}
+          <circle cx="14" cy="14" r="11" />
+          <path d="M14 3v3M14 22v3M3 14h3M22 14h3" />
+          <path
+            d="M6.200 6.200l1.300 1.300M21.800 6.200l-1.300 1.300M6.200 21.800l1.300-1.300M21.800 21.800l-1.300-1.300"
+            strokeWidth="1.200"
+          />
+          <g data-part="needle">
+            <path d="M14 14L17.500 8.500" stroke="#ff5a4f" strokeWidth="2.400" />
+            <path d="M14 14L10.500 19.500" stroke="#4f9dff" strokeWidth="2.400" />
+          </g>
         </>
       )}
     </svg>
@@ -89,6 +98,7 @@ export function Item({
 }) {
   const state = { todo: "", done: "Done", missing: "Missing", closed: "Closed" }[work.state];
   const open = work.state === "todo" || work.state === "missing";
+  const done = work.state === "done";
   return (
     <li data-in>
       <div
@@ -156,31 +166,47 @@ export function Item({
             Start
           </button>
         )}
+        {/* a finished piece can be gone over again: its mistakes are looked at from here */}
+        {done && !small && (
+          <button
+            type="button"
+            className={styles.begin}
+            aria-label={`Review ${work.name}`}
+            onClick={() => tick()}
+          >
+            Review
+          </button>
+        )}
       </div>
     </li>
   );
 }
 
-/** Today's Daily 10, when it is not yet done: a card of its own at the head of the day, with ten
- *  lights that run in a wave, and Start on it. */
+/** Today's Daily 10, when it is not yet done: a card of its own at the head of the day, orange
+ *  fading into black, with ten rounded squares breathing green (as if all ten will be right), and
+ *  Start on it. */
 export function DailyTen({ onStart }: { onStart: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current || calm()) return;
-    const wave = gsap.to(ref.current.querySelectorAll("[data-dot]"), {
-      keyframes: [
-        { y: -6, scale: 1.25, opacity: 1, duration: 0.3, ease: "power2.out" },
-        { y: 0, scale: 1, opacity: 0.55, duration: 0.5, ease: "bounce.out" },
-      ],
-      stagger: { each: 0.09, repeat: -1, repeatDelay: 1.8 },
-    });
+    // the ten squares breathe green, one a little after another, very gently
+    const wave = gsap.fromTo(
+      ref.current.querySelectorAll("[data-dot]"),
+      { opacity: 0.45, scale: 0.94 },
+      {
+        opacity: 0.95,
+        scale: 1,
+        duration: 2.2,
+        ease: "sine.inOut",
+        stagger: { each: 0.18, repeat: -1, yoyo: true },
+      }
+    );
     return () => {
       wave.kill();
     };
   }, []);
   return (
     <div ref={ref} className={styles.daily} data-in>
-      <span className={styles.dailyLights} aria-hidden="true" />
       <p>
         <b>Daily 10</b>
         <span className={styles.dots} aria-hidden="true">
@@ -257,10 +283,9 @@ export function ExamBanner({
   }, [open]);
   return (
     <section className={styles.exam} data-open={open || undefined} aria-label="Full-length exam">
-      {/* a window onto outer space: a far glow, round stars of many sizes that come and go, a ringed
-          planet, a small moon, and now and then a shooting star */}
-      <span className={styles.space} aria-hidden="true">
-        <span className={styles.lights} />
+      {/* the scene: a beach as the light goes. Dusk with a moon and a few round stars by night,
+          sunset by day. Waves roll in and wash up the sand, one after another. */}
+      <span className={styles.shore} aria-hidden="true">
         {STARS.map((s, n) => (
           <i
             key={n}
@@ -268,16 +293,38 @@ export function ExamBanner({
             style={
               {
                 left: `${s.x}%`,
-                top: `${s.y}%`,
+                top: `${s.y * 0.42}%`,
                 "--size": `${s.r}px`,
                 "--wait": `${s.w}s`,
               } as CSSProperties
             }
           />
         ))}
-        <span className={styles.planet} />
-        <span className={styles.moon} />
-        <span className={styles.shoot} />
+        <span className={styles.orb} />
+        <span className={styles.glitter} />
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+          {/* far swell, nearer swell, then the wave that breaks on the sand with its foam */}
+          <path
+            className={styles.swell}
+            d="M0 52 Q150 44 300 52 T600 52 T900 52 T1200 52 T1500 52 T1800 52 V120 H0Z"
+          />
+          <path
+            className={styles.swell2}
+            d="M0 66 Q100 58 200 66 T400 66 T600 66 T800 66 T1000 66 T1200 66 T1400 66 T1600 66 V120 H0Z"
+          />
+          <path className={styles.sand} d="M0 96 Q300 84 600 92 T1200 88 V120 H0Z" />
+          <g className={styles.wash}>
+            <path className={styles.water} d="M0 78 Q200 70 400 80 T800 78 T1200 80 V120 H0Z" />
+            <path className={styles.foam} d="M0 78 Q200 70 400 80 T800 78 T1200 80" />
+          </g>
+          <g className={styles.wash2}>
+            <path
+              className={styles.water}
+              d="M0 84 Q150 78 300 86 T600 84 T900 86 T1200 84 V120 H0Z"
+            />
+            <path className={styles.foam} d="M0 84 Q150 78 300 86 T600 84 T900 86 T1200 84" />
+          </g>
+        </svg>
       </span>
       <span className={styles.examFox} aria-hidden="true">
         <Dressed

@@ -59,9 +59,10 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
     };
     const move = (e: PointerEvent) => {
       const { dx, dy, lx, ly } = toward(e);
-      x(dx * 9);
-      y(dy * 7);
-      turn(dx * 10);
+      // the whole body leans the way the eyes look, so the eyes do not seem to move by themselves
+      x(lx * 9 + dx * 4);
+      y(ly * 6 + dy * 3);
+      turn(lx * 11);
       ex?.(lx * 4.2);
       ey?.(ly * 3.4);
       hx?.(lx * 1.6);
@@ -257,7 +258,11 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
           {day.class}
         </b>
         <em aria-live="polite" suppressHydrationWarning>
-          {going ? "Opening Zoom" : live ? "Join now" : countdown(when(day) - now)}
+          {going
+            ? "Opening Zoom"
+            : live
+              ? "Join now"
+              : countdown(when(day) - CLASS.early * MIN - now)}
         </em>
       </span>
       <svg
@@ -273,7 +278,8 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
   );
 }
 
-/** A line of words that changes every few seconds: the old one rises away and the next comes up. */
+/** A line of words that changes slowly, each staying ten seconds: the old one fades up and away
+ *  and the next breathes in. */
 export function Ticker({ lines }: { lines: string[] }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [at, setAt] = useState(0);
@@ -285,20 +291,20 @@ export function Ticker({ lines }: { lines: string[] }) {
       const next = () => setAt((n) => n + 1);
       if (!el || calm()) return next();
       gsap.to(el, {
-        y: -14,
+        y: -10,
         opacity: 0,
-        duration: 0.25,
-        ease: "power2.in",
+        duration: 0.9,
+        ease: "sine.inOut",
         onComplete: () => {
           next();
           gsap.fromTo(
             el,
-            { y: 14, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.45, ease: "back.out(2)" }
+            { y: 10, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1.1, ease: "sine.out" }
           );
         },
       });
-    }, 3400);
+    }, 10000);
     return () => window.clearInterval(timer);
   }, [key, lines.length]);
   return (

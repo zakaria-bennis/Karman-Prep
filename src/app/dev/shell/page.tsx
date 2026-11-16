@@ -30,7 +30,6 @@ import {
 import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
-import { Fox } from "@/components/portal/Fox";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
@@ -373,7 +372,11 @@ function Shell() {
         >
           <span className={styles.face} aria-hidden="true">
             <b>
-              <Fox size={26} />
+              {/* no picture has been set, so this is the plain one: a head and shoulders */}
+              <svg viewBox="0 0 34 34" width="34" height="34">
+                <circle cx="17" cy="13.500" r="5.500" />
+                <path d="M6 31c1.500-6.500 5.700-9.500 11-9.500s9.500 3 11 9.500Z" />
+              </svg>
             </b>
           </span>
           <span className={styles.word}>

@@ -972,3 +972,12 @@ class button always goes to Zoom (no link exists yet; it says "Opening Zoom"). S
 slides the pieces in. **Phone bar:** pictures only, the middle one larger, fixed to the bottom with the
 safe area (`layout.tsx` sets `viewport-fit=cover`). **Homework icon:** rows slide off, a tick lands with
 confetti, and it loops while Homework is open.
+
+**Homework, sixth version (same day).** Start and Review are glass buttons, not white; a finished piece
+says Review and opened Completed work lies in a grid. The exam banner is a beach drawn in code: dusk with
+a moon by night, sunset by day, swells and two waves washing up the sand (he asked whether real footage
+could be found; he has been asked if he wants a free-license clip instead). The Daily 10 card is orange
+fading to black with ten rounded squares breathing green. The character's whole body leans the way its
+eyes look. The words under it stay ten seconds each. The class countdown ends five minutes before class.
+The compass has eight edge marks and a one-line needle, red and blue. The profile picture is a plain
+head and shoulders until a student sets one (no fox).

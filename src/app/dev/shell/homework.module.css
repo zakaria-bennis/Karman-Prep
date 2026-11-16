@@ -46,36 +46,12 @@
 
 /* by day the banner is a dawn sky with dark words; by night it is the deep one above */
 :global([data-kp-mode="light"]) .exam {
-  color: #3a1d4a;
-  background: linear-gradient(110deg, #ffe7b0, #ffc9a8 45%, #f6a9cd);
+  color: #3a1430;
+  background: #ff9f6b;
   box-shadow:
     var(--lift),
     inset 0 0 0 1px rgb(255 255 255 / 0.7),
     inset 0 1px 0 1px rgb(255 255 255 / 0.8);
-}
-
-:global([data-kp-mode="light"]) .lights {
-  background:
-    radial-gradient(closest-side at 22% 40%, rgb(255 255 255 / 0.7), transparent),
-    radial-gradient(closest-side at 70% 60%, rgb(255 150 120 / 0.45), transparent),
-    radial-gradient(closest-side at 90% 30%, rgb(150 190 255 / 0.55), transparent);
-}
-
-:global([data-kp-mode="light"]) .star {
-  box-shadow: 0 0 calc(var(--size) * 2) rgb(255 255 255 / 0.9);
-}
-
-:global([data-kp-mode="light"]) .planet {
-  background: radial-gradient(circle at 32% 28%, #fff3d0, #ffb37a 50%, #e77aa6 85%);
-  box-shadow: 0 0 26px rgb(255 255 255 / 0.7);
-}
-
-:global([data-kp-mode="light"]) .planet::after {
-  border-color: rgb(255 255 255 / 0.9);
-}
-
-:global([data-kp-mode="light"]) .shoot {
-  display: none;
 }
 
 :global([data-kp-mode="light"]) .clock > span {
@@ -90,36 +66,31 @@
   color: #fff3d6;
 }
 
-/* ---- the scene: a window onto outer space ---- */
-.space {
+/* ---- the scene: a beach as the light goes, with waves coming in ---- */
+.shore {
   position: absolute;
   z-index: -1;
   inset: 0;
   overflow: hidden;
+  /* dusk: the last light low on the water under a deep sky */
+  background: linear-gradient(
+    180deg,
+    #0b1030 0%,
+    #1d1c52 30%,
+    #5a2f6e 46%,
+    #c2607a 54%,
+    #12254a 56%
+  );
 }
 
-/* a far glow that drifts */
-.lights {
+.shore svg {
   position: absolute;
-  inset: -40%;
-  background:
-    radial-gradient(closest-side at 24% 46%, rgb(120 90 255 / 0.5), transparent),
-    radial-gradient(closest-side at 62% 60%, rgb(255 80 170 / 0.38), transparent),
-    radial-gradient(closest-side at 86% 30%, rgb(60 170 255 / 0.4), transparent);
-  animation: drift 16s ease-in-out infinite alternate;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
-@keyframes drift {
-  from {
-    transform: translate(-5%, -4%) rotate(0deg);
-  }
-
-  to {
-    transform: translate(5%, 5%) rotate(10deg);
-  }
-}
-
-/* round stars of several sizes, each brightening and dimming in its own time */
+/* round stars, few, in the sky only */
 .star {
   position: absolute;
   width: var(--size);
@@ -134,88 +105,155 @@
 @keyframes twinkle {
   0%,
   100% {
-    opacity: 0.25;
+    opacity: 0.2;
   }
 
   50% {
-    opacity: 1;
+    opacity: 0.95;
   }
 }
 
-/* a ringed planet, lit from the upper left, turning slowly on its tilt */
-.planet {
+/* the moon, and its light lying on the water under it */
+.orb {
   position: absolute;
-  top: 50%;
-  left: 52%;
-  width: 54px;
-  height: 54px;
-  margin-top: -27px;
+  top: 12%;
+  left: 58%;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffd9a0, #f08a5a 45%, #8a2f6a 80%);
-  box-shadow: 0 0 26px rgb(240 138 90 / 0.5);
-  animation: float 9s ease-in-out infinite alternate;
+  background: radial-gradient(circle at 38% 34%, #fffdf2, #d9d6f2 70%);
+  box-shadow: 0 0 22px 6px rgb(220 220 255 / 0.4);
 }
 
-.planet::after {
-  content: "";
+.glitter {
   position: absolute;
-  inset: 18px -26px;
-  border: 3px solid rgb(255 226 180 / 0.75);
-  border-radius: 50%;
-  transform: rotate(-18deg);
-  clip-path: polygon(0 46%, 100% 46%, 100% 100%, 0 100%);
+  top: 56%;
+  left: calc(58% - 30px);
+  width: 82px;
+  height: 30%;
+  background: repeating-linear-gradient(180deg, rgb(255 255 255 / 0.5) 0 1px, transparent 1px 5px);
+  mask-image: radial-gradient(closest-side, #000, transparent);
+  animation: shimmer 2.8s ease-in-out infinite alternate;
 }
 
-.moon {
-  position: absolute;
-  top: 22%;
-  left: 68%;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f4f1ff, #9a96c8 70%);
-  animation: float 7s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes float {
+@keyframes shimmer {
   from {
-    transform: translateY(-4px) rotate(-3deg);
+    transform: scaleX(0.7);
+    opacity: 0.5;
   }
 
   to {
-    transform: translateY(4px) rotate(3deg);
+    transform: scaleX(1.1);
+    opacity: 0.95;
   }
 }
 
-/* a shooting star crosses now and then */
-.shoot {
-  position: absolute;
-  top: 12%;
-  left: 30%;
-  width: 90px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, #fff);
-  opacity: 0;
-  transform: rotate(18deg);
-  animation: shoot 9s ease-in infinite;
+/* the swells slide along; the nearest water washes up the sand and draws back, edged with foam */
+.swell {
+  fill: #1a3a6a;
+  animation: along 11s linear infinite;
 }
 
-@keyframes shoot {
+.swell2 {
+  fill: #14305c;
+  animation: along 8s linear infinite reverse;
+}
+
+@keyframes along {
+  to {
+    transform: translateX(-600px);
+  }
+}
+
+.sand {
+  fill: #3a3050;
+}
+
+.water {
+  fill: #1d4a7c;
+  fill-opacity: 0.92;
+}
+
+.foam {
+  fill: none;
+  stroke: #f4fbff;
+  stroke-width: 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.wash {
+  animation: wash 6.5s ease-in-out infinite;
+}
+
+.wash2 {
+  animation: wash 6.5s ease-in-out -3.2s infinite;
+}
+
+@keyframes wash {
   0%,
-  84% {
-    opacity: 0;
-    translate: 0 0;
+  100% {
+    transform: translateY(26px);
+    opacity: 0.4;
   }
 
-  88% {
+  45% {
+    transform: translateY(0);
     opacity: 1;
   }
 
-  100% {
-    opacity: 0;
-    translate: 420px 136px;
+  60% {
+    transform: translateY(3px);
+    opacity: 1;
   }
+}
+
+/* by day it is sunset: a low sun, a warm sky, gold on the water */
+:global([data-kp-mode="light"]) .shore {
+  background: linear-gradient(
+    180deg,
+    #ffc98a 0%,
+    #ff9f6b 30%,
+    #ff7a6e 46%,
+    #ffd28a 54%,
+    #b0607a 56%
+  );
+}
+
+:global([data-kp-mode="light"]) .star {
+  display: none;
+}
+
+:global([data-kp-mode="light"]) .orb {
+  top: 26%;
+  width: 34px;
+  height: 34px;
+  background: radial-gradient(circle at 50% 50%, #fff6c8, #ffc64a 70%);
+  box-shadow: 0 0 40px 14px rgb(255 214 120 / 0.7);
+}
+
+:global([data-kp-mode="light"]) .glitter {
+  background: repeating-linear-gradient(180deg, rgb(255 236 170 / 0.9) 0 1px, transparent 1px 5px);
+}
+
+:global([data-kp-mode="light"]) .swell {
+  fill: #c9657a;
+}
+
+:global([data-kp-mode="light"]) .swell2 {
+  fill: #a64f78;
+}
+
+:global([data-kp-mode="light"]) .water {
+  fill: #8a4577;
+}
+
+:global([data-kp-mode="light"]) .sand {
+  fill: #e2a878;
+}
+
+:global([data-kp-mode="light"]) .foam {
+  stroke: #fff4dc;
 }
 
 .examFox {
@@ -498,7 +536,7 @@
   stroke: #fff8e6;
 }
 
-/* today's Daily 10: a card at the head of the day, with soft lights behind and ten dots in a wave */
+/* today's Daily 10: a card at the head of the day, orange fading into black */
 .daily {
   position: relative;
   display: flex;
@@ -508,21 +546,11 @@
   padding: 12px 16px 12px 20px;
   border-radius: 20px;
   overflow: hidden;
-  background: linear-gradient(120deg, rgb(34 195 107 / 0.42), rgb(47 139 255 / 0.36));
+  color: #fff6ea;
+  background: linear-gradient(110deg, #ff8a1f 0%, #c8530c 38%, #3a1a08 78%, #120a06 100%);
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.28),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.35);
-  isolation: isolate;
-}
-
-.dailyLights {
-  position: absolute;
-  z-index: -1;
-  inset: -60%;
-  background:
-    radial-gradient(closest-side at 30% 45%, rgb(120 255 190 / 0.4), transparent),
-    radial-gradient(closest-side at 72% 55%, rgb(110 170 255 / 0.4), transparent);
-  animation: drift 12s ease-in-out infinite alternate;
+    inset 0 0 0 1px rgb(255 190 120 / 0.4),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3);
 }
 
 .homework .daily p {
@@ -539,15 +567,17 @@
 
 .dots {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
+/* ten rounded squares that breathe green, very gently */
 .dots i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.55;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: #3fe08a;
+  box-shadow: 0 0 8px rgb(63 224 138 / 0.5);
+  opacity: 0.6;
 }
 
 /* ---- the right: the day, or the week ---- */
@@ -633,6 +663,11 @@
   overflow: hidden;
 }
 
+/* done work, opened, lies in a grid */
+.homework .grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
 /* tinted glass, one piece under another: a pane of the subject's color laid on the day's glass,
    with a fine light edge. It is not lit from inside, so it does not glare. */
 .homework .work {
@@ -703,14 +738,17 @@
   stroke-width: 2.2;
 }
 
-/* Start: on every piece still to do, and on the Daily 10 */
+/* Start, or Review on a finished piece: a pane of glass close to what is behind it, like Join */
 .homework .begin {
   flex: none;
   height: 40px;
   padding: 0 20px;
   border-radius: 20px;
-  background: rgb(255 255 255 / 0.9);
-  color: #1d1a22;
+  background: rgb(255 255 255 / 0.16);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.34),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3);
+  color: inherit;
   font-size: 15px;
   font-weight: 700;
   transition:
@@ -790,7 +828,7 @@
 
   .homework .begin:hover {
     transform: scale(1.06);
-    background: #fff;
+    background: rgb(255 255 255 / 0.3);
   }
 
   .classButton:hover .joinArrow {
@@ -968,12 +1006,6 @@
     text-align: left;
   }
 
-  /* no room for the planet and its moon behind the words and the clock */
-  .planet,
-  .moon {
-    display: none;
-  }
-
   .homework .classButton {
     grid-column: 1 / -1;
     margin-top: 8px;
@@ -1019,15 +1051,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lights,
   .star,
   .examFox,
   .hop,
   .homework .classButton,
-  .planet,
-  .moon,
-  .shoot,
-  .dailyLights,
+  .swell,
+  .swell2,
+  .wash,
+  .wash2,
+  .glitter,
   .homework .start {
     animation: none;
   }

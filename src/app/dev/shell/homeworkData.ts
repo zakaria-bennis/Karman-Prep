@@ -74,8 +74,9 @@ const MATH = [
 
 /** When the exam may be begun (his rule: Saturday only, 6 AM to midnight), in hours of the day. */
 export const EXAM = { opens: 6, closes: 24 };
-/** The live class: when it begins, how long it runs, and how early its door opens (mine). */
-export const CLASS = { hour: 19, minutes: 90, early: 10 };
+/** The live class: when it begins, how long it runs (mine), and how early its door opens: the
+ *  countdown ends five minutes before the class, at 6:55 for a class at 7 (founder, 2026-11-16). */
+export const CLASS = { hour: 19, minutes: 90, early: 5 };
 
 /** One week's days, Sunday to Saturday. `week` 0 is this week, -1 the one before. */
 export function weekOf(week: number): HomeworkDay[] {

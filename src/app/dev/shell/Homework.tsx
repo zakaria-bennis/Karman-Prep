@@ -95,7 +95,7 @@ function Work({
           <AnimatePresence initial={false}>
             {open && (
               <motion.ul
-                className={styles.list}
+                className={`${styles.list} ${styles.grid}`}
                 initial={still ? false : { height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={still ? undefined : { height: 0, opacity: 0 }}
