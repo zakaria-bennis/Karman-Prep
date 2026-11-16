@@ -1,21 +1,35 @@
 "use client";
 
-// Progress, step 1 of 6 (founder, 2026-11-15): the predicted score, first and centered.
+// Progress, step 1 of 6 (founder, 2026-11-15): the predicted score, first and centered. It reads like a
+// stock: one large number, a ticker under it, a line with a fading fill, and spans of time to choose.
 //   - One total, large. Reading and Writing and Math sit inside it, smaller. Never a range, never a goal.
-//   - One line of how the prediction has moved. Both axes fit the student: the days run from their first
-//     day to today, and the scores run over their own range, so 6 days and 7 months, or +70 and +460,
-//     each fill the graph.
-//   - Full-length exams are marked on the graph at their real scores.
-//   - Pointing at (or dragging along, or arrowing through) the line turns the score above it into that
-//     day's: the total and the two section scores. Nothing floats over the graph.
+//   - Pressing a section swaps the graph (and the large number) to that section; pressing it again, or
+//     Total, goes back.
+//   - The ticker says how far the score has moved over the chosen span, with a sign, green up, red down.
+//   - Spans: 7 days, 2 weeks, 1 month, 3 months, 6 months, all time. A span longer than the student's
+//     own history cannot be chosen. The line and its fill turn red when the score fell over the span.
+//   - Both axes fit what is shown: the days and the scores each fill the graph.
+//   - Full-length exams are marked at their real scores: a point with a ring that breathes out from it.
+//   - Pointing at (or dragging along, or arrowing through) the line turns the number above into that
+//     day's. Nothing floats over the graph, and there is no key.
 //   - A prediction needs two full-length exams. Before that the same place says so.
 //   - The countdown shows only when the student has entered a test date.
 // Every number is a stand-in: no student data is read. The demo bar switches between four made-up
 // students so the scaling can be seen.
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 import lib from "./library.module.css";
 import { GoButton, Tile } from "./practice";
 import styles from "./progress.module.css";
+import { tick } from "./sound";
 
 /** The day the stand-ins call today, fixed so the server and the browser draw the same page. */
 const TODAY = new Date(2026, 10, 15);
@@ -27,7 +41,9 @@ type Student = {
   label: string;
   /** Days since they began. */
   days: number;
-  exams: Exam[];
+  exams: readonly Exam[];
+  /** Turns in the prediction between exams (stand-in data only). */
+  turns?: readonly Exam[];
   /** Today's prediction. */
   now: number;
   /** Days until the test date they entered, if they entered one. */
@@ -47,6 +63,7 @@ export const STUDENTS = {
     now: 1270,
     testIn: 48,
   },
+  // this one slipped in the last week, so the 7-day span shows red
   weeks9: {
     label: "9 weeks",
     days: 63,
@@ -55,8 +72,9 @@ export const STUDENTS = {
       { day: 14, score: 1230 },
       { day: 28, score: 1290 },
       { day: 42, score: 1320 },
-      { day: 56, score: 1370 },
+      { day: 52, score: 1370 },
     ],
+    turns: [{ day: 56, score: 1410 }],
     now: 1380,
     testIn: 20,
   },
@@ -80,14 +98,30 @@ export const STUDENTS = {
 } as const satisfies Record<string, Student>;
 export type StudentKey = keyof typeof STUDENTS;
 
-type Point = { day: number; total: number; math: number; rw: number };
+type Series = "total" | "rw" | "math";
+const NAMES: Record<Series, string> = {
+  total: "Predicted score",
+  rw: "Predicted Reading and Writing score",
+  math: "Predicted Math score",
+};
+const CHIPS: Record<Series, string> = { total: "Total", rw: "Reading and Writing", math: "Math" };
+
+type Point = { day: number } & Record<Series, number>;
+
+/** A total split into its two sections (stand-in arithmetic). */
+const split = (day: number, total: number): Point => {
+  const math = round10(total * (0.51 + 0.015 * Math.sin(day / 9)));
+  return { day, total, math, rw: total - math };
+};
 
 /** The prediction for every day from the second exam to today: it follows the exams, with a little
  *  life in it, in tens. */
 function predict(student: Student): Point[] {
   const { exams, days, now } = student;
   if (exams.length < 2) return [];
-  const marks = [...exams.slice(1), { day: days, score: now }];
+  const marks = [...exams.slice(1), ...(student.turns ?? []), { day: days, score: now }].sort(
+    (a, b) => a.day - b.day
+  );
   const points: Point[] = [];
   for (let day = exams[1].day; day <= days; day++) {
     const next = marks.findIndex((m) => m.day >= day);
@@ -95,9 +129,7 @@ function predict(student: Student): Point[] {
     const b = marks[next];
     const t = b.day === a.day ? 1 : (day - a.day) / (b.day - a.day);
     const wobble = day === days ? 0 : Math.sin(day * 0.9) * 4 + Math.sin(day * 0.31) * 5;
-    const total = round10(a.score + (b.score - a.score) * t + wobble);
-    const math = round10(total * (0.51 + 0.015 * Math.sin(day / 9)));
-    points.push({ day, total, math, rw: total - math });
+    points.push(split(day, round10(a.score + (b.score - a.score) * t + wobble)));
   }
   return points;
 }
@@ -107,13 +139,26 @@ const dateOf = (student: Student, day: number) =>
 const short = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const long = (d: Date) => d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
-/** Marks along the days: every other day for a week or two, weeks for a couple of months, then months. */
-function dayMarks(student: Student): { day: number; label: string }[] {
+/** The spans of time the graph can show. `said` finishes the ticker's sentence. */
+const SPANS = [
+  { key: "7d", label: "7 days", brief: "7D", days: 7, said: "in the last 7 days" },
+  { key: "2w", label: "2 weeks", brief: "2W", days: 14, said: "in the last 2 weeks" },
+  { key: "1m", label: "1 month", brief: "1M", days: 30, said: "in the last month" },
+  { key: "3m", label: "3 months", brief: "3M", days: 91, said: "in the last 3 months" },
+  { key: "6m", label: "6 months", brief: "6M", days: 182, said: "in the last 6 months" },
+  { key: "all", label: "All time", brief: "All", days: Infinity, said: "" },
+] as const;
+type SpanKey = (typeof SPANS)[number]["key"];
+
+/** Marks along the days shown: days for a week or two, weeks for a couple of months, then months. */
+function dayMarks(student: Student, from: number): { day: number; label: string }[] {
   const { days } = student;
-  if (days > 100) {
-    const marks: { day: number; label: string }[] = [];
+  const span = days - from;
+  const marks: { day: number; label: string }[] = [];
+  if (span > 100) {
     const first = dateOf(student, 0);
-    const at = new Date(first.getFullYear(), first.getMonth() + 1, 1);
+    const start = dateOf(student, from);
+    const at = new Date(start.getFullYear(), start.getMonth() + 1, 1);
     while (at <= TODAY) {
       marks.push({
         day: Math.round((at.getTime() - first.getTime()) / DAY),
@@ -123,21 +168,21 @@ function dayMarks(student: Student): { day: number; label: string }[] {
     }
     return marks;
   }
-  const step = days <= 12 ? 2 : days <= 28 ? 4 : days <= 70 ? 7 : 14;
-  const marks: { day: number; label: string }[] = [];
-  for (let day = days; day >= 0; day -= step)
+  const step = span <= 8 ? 1 : span <= 16 ? 2 : span <= 32 ? 4 : span <= 70 ? 7 : 14;
+  for (let day = days; day >= from; day -= step)
     marks.unshift({ day, label: short(dateOf(student, day)) });
   return marks;
 }
 
-/** The scores to mark up the side: steps that suit the student's own range. */
-function scoreMarks(values: number[]): number[] {
+/** The scores to mark up the side: steps that suit the range being shown. */
+function scoreMarks(values: number[], series: Series): number[] {
   const low = Math.min(...values);
   const high = Math.max(...values);
   const span = Math.max(high - low, 20);
-  const step = span <= 100 ? 20 : span <= 250 ? 50 : span <= 500 ? 100 : 200;
-  const from = Math.max(400, Math.floor((low - step * 0.25) / step) * step);
-  const to = Math.min(1600, Math.ceil((high + step * 0.25) / step) * step);
+  const step = span <= 40 ? 10 : span <= 100 ? 20 : span <= 250 ? 50 : span <= 500 ? 100 : 200;
+  const [least, most] = series === "total" ? [400, 1600] : [200, 800];
+  const from = Math.max(least, Math.floor((low - step * 0.25) / step) * step);
+  const to = Math.min(most, Math.ceil((high + step * 0.25) / step) * step);
   const marks: number[] = [];
   for (let s = from; s <= to; s += step) marks.push(s);
   return marks;
@@ -145,11 +190,17 @@ function scoreMarks(values: number[]): number[] {
 
 function Graph({
   student,
+  series,
+  from,
   points,
   at,
   setAt,
 }: {
   student: Student;
+  series: Series;
+  /** The first day shown. */
+  from: number;
+  /** The days shown, in order. */
   points: Point[];
   /** The day being pointed at, as a place in `points`, or none. */
   at: number | null;
@@ -165,31 +216,43 @@ function Graph({
   }, []);
 
   const narrow = width < 520;
-  const height = narrow ? 220 : 280;
+  const height = narrow ? 210 : 270;
   const pad = { left: 46, right: narrow ? 14 : 22, top: 30, bottom: 30 };
-  const scores = useMemo(
-    () => scoreMarks([...points.map((p) => p.total), ...student.exams.map((e) => e.score)]),
-    [points, student]
+  const exams = useMemo(
+    () => student.exams.filter((e) => e.day >= from).map((e) => split(e.day, e.score)),
+    [student, from]
   );
-  const days = useMemo(() => dayMarks(student), [student]);
+  const scores = useMemo(
+    () =>
+      scoreMarks(
+        [...points, ...exams].map((p) => p[series]),
+        series
+      ),
+    [points, exams, series]
+  );
+  const days = useMemo(() => dayMarks(student, from), [student, from]);
   const x = (day: number) =>
-    pad.left + (day / student.days) * Math.max(0, width - pad.left - pad.right);
+    pad.left +
+    ((day - from) / Math.max(1, student.days - from)) * Math.max(0, width - pad.left - pad.right);
   const y = (score: number) =>
     pad.top +
     (1 - (score - scores[0]) / (scores[scores.length - 1] - scores[0])) *
       (height - pad.top - pad.bottom);
   const line = points
-    .map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)} ${y(p.total)}`)
+    .map((p, i) => `${i ? "L" : "M"}${x(p.day).toFixed(1)} ${y(p[series])}`)
     .join("");
   const floor = height - pad.bottom;
   const area = `${line}L${x(points[points.length - 1].day)} ${floor}L${x(points[0].day)} ${floor}Z`;
-  const shown = at === null ? null : points[at];
-  const labelled = student.exams.length <= 6;
+  const shown = at === null ? null : (points[at] ?? null);
+  const labelled = exams.length <= 6;
+  const skip = narrow ? (days.length > 7 ? 3 : days.length > 4 ? 2 : 1) : 1;
 
   const find = (e: PointerEvent<HTMLDivElement>) => {
     const left = e.currentTarget.getBoundingClientRect().left;
     const day =
-      ((e.clientX - left - pad.left) / Math.max(1, width - pad.left - pad.right)) * student.days;
+      from +
+      ((e.clientX - left - pad.left) / Math.max(1, width - pad.left - pad.right)) *
+        (student.days - from);
     let best = 0;
     points.forEach((p, i) => {
       if (Math.abs(p.day - day) < Math.abs(points[best].day - day)) best = i;
@@ -198,12 +261,12 @@ function Graph({
   };
   const key = (e: KeyboardEvent<HTMLDivElement>) => {
     const last = points.length - 1;
-    const from = at ?? last;
+    const here = at ?? last;
     const to =
       e.key === "ArrowLeft"
-        ? Math.max(0, from - 1)
+        ? Math.max(0, here - 1)
         : e.key === "ArrowRight"
-          ? Math.min(last, from + 1)
+          ? Math.min(last, here + 1)
           : e.key === "Home"
             ? 0
             : e.key === "End"
@@ -222,7 +285,7 @@ function Graph({
       style={{ height }}
       role="slider"
       tabIndex={0}
-      aria-label="Predicted score over time"
+      aria-label={`${NAMES[series]} over time`}
       aria-valuemin={0}
       aria-valuemax={points.length - 1}
       aria-valuenow={at ?? points.length - 1}
@@ -234,11 +297,16 @@ function Graph({
       onKeyDown={key}
     >
       {width > 0 && (
-        <svg key={student.label} width={width} height={height} aria-hidden="true">
+        <svg
+          key={`${student.label} ${series} ${from}`}
+          width={width}
+          height={height}
+          aria-hidden="true"
+        >
           <defs>
             <linearGradient id="kp-score-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="var(--p2)" stopOpacity="0.34" />
-              <stop offset="1" stopColor="var(--p2)" stopOpacity="0" />
+              <stop offset="0" stopColor="var(--trend)" stopOpacity="0.36" />
+              <stop offset="1" stopColor="var(--trend)" stopOpacity="0" />
             </linearGradient>
           </defs>
           {scores.map((score) => (
@@ -255,34 +323,35 @@ function Graph({
               className={styles.mark}
               x={x(mark.day)}
               y={height - 8}
-              textAnchor={i === days.length - 1 && mark.day === student.days ? "end" : "middle"}
+              textAnchor={
+                mark.day === student.days ? "end" : mark.day === from ? "start" : "middle"
+              }
             >
-              {/* on a narrow screen only every second or third mark is named, so they never touch */}
-              {narrow && days.length > 5 && (days.length - 1 - i) % (days.length > 7 ? 3 : 2)
-                ? ""
-                : mark.label}
+              {/* with little room only every second or third mark is named, so they never touch */}
+              {(days.length - 1 - i) % skip ? "" : mark.label}
             </text>
           ))}
           <path className={styles.area} d={area} fill="url(#kp-score-fill)" />
           <path className={styles.line} d={line} pathLength={1} />
-          {student.exams.map((exam) => (
+          {exams.map((exam, i) => (
             <g key={exam.day}>
-              <rect
-                className={styles.exam}
-                x={x(exam.day) - 5.5}
-                y={y(exam.score) - 5.5}
-                width="11"
-                height="11"
-                rx="3"
+              {/* a full-length exam at its real score: a point, and a ring breathing out from it */}
+              <circle
+                className={styles.ring}
+                style={{ "--lag": `${(i % 4) * -0.6}s` } as CSSProperties}
+                cx={x(exam.day)}
+                cy={y(exam[series])}
+                r="5.500"
               />
+              <circle className={styles.exam} cx={x(exam.day)} cy={y(exam[series])} r="5.500" />
               {labelled && (
                 <text
                   className={styles.examScore}
                   x={Math.max(pad.left + 16, x(exam.day))}
-                  y={y(exam.score) - 12}
+                  y={y(exam[series]) - 14}
                   textAnchor="middle"
                 >
-                  {exam.score}
+                  {exam[series]}
                 </text>
               )}
             </g>
@@ -290,7 +359,7 @@ function Graph({
           {shown && (
             <>
               <path className={styles.hair} d={`M${x(shown.day)} ${pad.top - 8}V${floor}`} />
-              <circle className={styles.dot} cx={x(shown.day)} cy={y(shown.total)} r="6" />
+              <circle className={styles.dot} cx={x(shown.day)} cy={y(shown[series])} r="6" />
             </>
           )}
         </svg>
@@ -300,25 +369,47 @@ function Graph({
 }
 
 export default function Progress({ student: key }: { student: StudentKey }) {
+  const still = useReducedMotion() ?? false;
   const student: Student = STUDENTS[key];
-  const points = useMemo(() => predict(student), [student]);
+  const all = useMemo(() => predict(student), [student]);
+  const [series, setSeries] = useState<Series>("total");
+  const [wanted, setWanted] = useState<SpanKey>("all");
   const [at, setAt] = useState<number | null>(null);
   const [was, setWas] = useState(key);
   if (was !== key) {
     setWas(key);
     setAt(null);
+    setWanted("all");
   }
+
+  // a span can be chosen only if the prediction has run at least that long
+  const history = all.length ? student.days - all[0].day : 0;
+  const open = (days: number) => days === Infinity || history >= days;
+  const span = SPANS.find((s) => s.key === wanted && open(s.days)) ?? SPANS[SPANS.length - 1];
+  const from = span.days === Infinity ? 0 : student.days - span.days;
+  const points = useMemo(() => all.filter((p) => p.day >= from), [all, from]);
   const latest = points[points.length - 1];
   const first = points[0];
-  // the day pointed at on the graph, if any: the score above the graph shows that day instead of today
+  // the day pointed at on the graph, if any: the number above shows that day instead of today
   const shown = at === null ? latest : (points[at] ?? latest);
-  const past = at !== null && shown !== latest;
-  const moved = shown ? shown.total - first.total : 0;
+  const past = shown !== latest;
+  const moved = shown ? shown[series] - first[series] : 0;
+  const fell = latest ? latest[series] < first[series] : false;
   const examOn = past ? student.exams.find((e) => e.day === shown.day) : undefined;
+  const since = first ? `since ${long(dateOf(student, first.day))}` : "";
+  const choose = (next: Series) => {
+    setSeries(next);
+    setAt(null);
+    tick();
+  };
 
   return (
     <div className={`${lib.library} ${styles.progress}`}>
-      <section className={`${lib.glass} ${styles.score}`} aria-label="Predicted score">
+      <section
+        className={`${lib.glass} ${styles.score}`}
+        aria-label="Predicted score"
+        data-trend={fell ? "down" : "up"}
+      >
         {student.testIn !== null && (
           <p className={styles.countdown}>
             <b>{student.testIn}</b> days to your SAT
@@ -330,49 +421,82 @@ export default function Progress({ student: key }: { student: StudentKey }) {
           <>
             <div className={styles.head}>
               <h2>
-                {past
-                  ? `Predicted score on ${long(dateOf(student, shown.day))}`
-                  : "Predicted score"}
+                {NAMES[series]}
+                {past && ` on ${long(dateOf(student, shown.day))}`}
               </h2>
-              <p className={styles.total}>{shown.total}</p>
-              <p className={styles.moved}>
-                {examOn ? (
-                  <>
-                    Full-length exam that day <b>{examOn.score}</b>
-                  </>
-                ) : moved === 0 ? (
-                  <>The same as on {long(dateOf(student, first.day))}</>
-                ) : (
-                  <>
-                    <b>
-                      {moved > 0 ? "Up" : "Down"} {Math.abs(moved)}
-                    </b>{" "}
-                    since {long(dateOf(student, first.day))}
-                  </>
+              <p className={styles.total}>{shown[series]}</p>
+              {/* the ticker: how far it has moved over the span, with a sign, green up and red down */}
+              <p
+                className={styles.ticker}
+                data-way={moved > 0 ? "up" : moved < 0 ? "down" : "flat"}
+              >
+                <b>
+                  {moved > 0 ? "+" : moved < 0 ? "−" : ""}
+                  {Math.abs(moved)}
+                </b>{" "}
+                {past || span.days === Infinity ? since : span.said}
+                {examOn && (
+                  <span>
+                    Full-length exam that day <b>{split(examOn.day, examOn.score)[series]}</b>
+                  </span>
                 )}
               </p>
-              <dl className={styles.sections}>
-                <div>
-                  <dt>Reading and Writing</dt>
-                  <dd>{shown.rw}</dd>
-                </div>
-                <div>
-                  <dt>Math</dt>
-                  <dd>{shown.math}</dd>
-                </div>
-              </dl>
+              <div className={styles.sections} role="group" aria-label="Score shown on the graph">
+                {(["total", "rw", "math"] as const)
+                  .filter((k) => k !== "total" || series !== "total")
+                  .map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={series === k}
+                      onClick={() => choose(series === k ? "total" : k)}
+                    >
+                      {CHIPS[k]}
+                      <b>{shown[k]}</b>
+                    </button>
+                  ))}
+              </div>
             </div>
-            <Graph student={student} points={points} at={at} setAt={setAt} />
-            <ul className={styles.legend}>
-              <li>
-                <i data-kind="line" />
-                Predicted score
-              </li>
-              <li>
-                <i data-kind="exam" />
-                Full-length exam score
-              </li>
-            </ul>
+
+            <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
+              {SPANS.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  aria-label={s.label}
+                  aria-pressed={span.key === s.key}
+                  disabled={!open(s.days)}
+                  onClick={() => {
+                    setWanted(s.key);
+                    setAt(null);
+                    tick();
+                  }}
+                >
+                  {span.key === s.key && (
+                    <motion.span
+                      layoutId="progress-span"
+                      className={lib.lens}
+                      transition={
+                        still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
+                      }
+                    />
+                  )}
+                  <span>
+                    <span data-full>{s.label}</span>
+                    <span data-brief>{s.brief}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <Graph
+              student={student}
+              series={series}
+              from={from}
+              points={points}
+              at={at}
+              setAt={setAt}
+            />
           </>
         ) : (
           <div className={styles.waiting}>

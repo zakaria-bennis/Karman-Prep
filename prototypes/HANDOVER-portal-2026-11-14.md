@@ -497,3 +497,18 @@ which covered the section scores and was removed. With fewer than two exams the 
 two full-length exams to see your predicted score". The demo bar has four made-up students (6 days, 3
 weeks, 9 weeks, 7 months) to show the scaling. All numbers are stand-ins. Not built: the Free plan's
 wording (the score comes with Practice or Pro), accommodations, changing the test date.
+
+**Progress step 1, second round (2026-11-15), applied; awaiting his verdict.** He wants it to read
+like a stock ("really addictive"):
+- **Sections are buttons.** Pressing Reading and Writing or Math swaps the graph and the large number
+  to that section; a Total button appears as the way back.
+- **A ticker under the number:** a signed change over the chosen span ("+150 since September 27",
+  "−30 in the last 7 days"), green up, red down.
+- **Spans:** 7 days, 2 weeks, 1 month, 3 months, 6 months, all time (short labels on a phone). A span
+  longer than the student's prediction history is greyed out.
+- **Red when it fell.** The line, the fading fill under it and the exam points turn red when the score
+  dropped over the span shown. He likes the fill that starts strong and fades out: keep it.
+- **Exam points are circles with a ring breathing out**, the size of the old square. No squares here.
+- **No key under the graph.**
+- He asked to have the page opened for him: he does not know how to open localhost. Open the browser
+  pane on `/dev/shell` for him whenever there is something to look at.

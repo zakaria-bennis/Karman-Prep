@@ -16,6 +16,23 @@
   padding: calc(var(--pad) * 2);
 }
 
+/* green when the score rose over the span shown, red when it fell: the line, its fill, the exam points
+   and the ticker all take it */
+.score {
+  --up: var(--p3);
+  --down: #c0392b;
+  --trend: var(--up);
+}
+
+:global([data-kp-mode="dark"]) .score {
+  --up: var(--p1);
+  --down: #ff8d7e;
+}
+
+.score[data-trend="down"] {
+  --trend: var(--down);
+}
+
 .head {
   display: grid;
   justify-items: center;
@@ -34,25 +51,44 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-.moved {
+/* the ticker: a signed number, green up and red down, then the span it covers */
+.ticker {
   font-size: 13px;
   font-weight: 500;
 }
 
-.moved b {
-  font-size: 16px;
+.ticker b {
+  font-size: 20px;
   font-weight: 600;
-  color: var(--go);
+  font-variant-numeric: tabular-nums;
 }
 
-/* the two sections, inside the score and quieter than it */
-.progress .sections {
+.ticker[data-way="up"] > b {
+  color: var(--up);
+}
+
+.ticker[data-way="down"] > b {
+  color: var(--down);
+}
+
+.ticker span {
+  display: block;
+}
+
+.ticker span b {
+  font-size: 16px;
+}
+
+/* the sections, inside the score and quieter than it. Each is a button: it swaps the graph to itself */
+.sections {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
   margin: 14px 0 0;
 }
 
-.sections div {
+.sections button {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -60,18 +96,58 @@
   border-radius: var(--r-lens);
   background: var(--hover);
   box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.sections dt {
   font-size: 13px;
   font-weight: 500;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out),
+    box-shadow 0.2s var(--out);
 }
 
-.sections dd {
-  margin: 0;
+.sections button b {
   font-size: 20px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.sections button:active {
+  transform: scale(0.96);
+}
+
+.sections button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 2px var(--trend);
+}
+
+@media (hover: hover) {
+  .sections button:hover {
+    background: var(--lens);
+  }
+}
+
+/* the spans of time: one bar of choices, a hollow in the glass, with a lens on the chosen one */
+.progress .spans {
+  justify-self: center;
+  margin-top: 10px;
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.spans button {
+  height: 36px;
+}
+
+.spans button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.spans [data-brief] {
+  display: none;
 }
 
 /* the countdown: only for a student who has entered a test date */
@@ -132,7 +208,7 @@
 
 .line {
   fill: none;
-  stroke: var(--p3);
+  stroke: var(--trend);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -140,15 +216,33 @@
   animation: draw 0.8s var(--out) both;
 }
 
-:global([data-kp-mode="dark"]) .line {
-  stroke: var(--p1);
+/* a full-length exam at its real score: a point the size of the old square, and a ring that breathes
+   out from it */
+.exam {
+  fill: var(--trend);
+  stroke: #fffdf8;
+  stroke-width: 2;
 }
 
-/* a full-length exam, at its real score: a rounded square, like every other mark in the portal */
-.exam {
-  fill: #fffdf8;
-  stroke: var(--p3);
-  stroke-width: 2.5;
+.ring {
+  fill: var(--trend);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: breathe 2.6s ease-out infinite;
+  animation-delay: var(--lag);
+}
+
+@keyframes breathe {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  70%,
+  to {
+    transform: scale(2.8);
+    opacity: 0;
+  }
 }
 
 .examScore {
@@ -166,43 +260,9 @@
 }
 
 .dot {
-  fill: var(--go);
+  fill: var(--trend);
   stroke: #fffdf8;
   stroke-width: 2.5;
-}
-
-.progress .legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px 24px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend i[data-kind="line"] {
-  width: 22px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--p3);
-}
-
-:global([data-kp-mode="dark"]) .legend i[data-kind="line"] {
-  background: var(--p1);
-}
-
-.legend i[data-kind="exam"] {
-  width: 11px;
-  height: 11px;
-  border-radius: 3px;
-  background: #fffdf8;
-  box-shadow: 0 0 0 2.5px var(--p3);
 }
 
 /* ---- before two exams: the same place says what to do ---- */
@@ -283,12 +343,25 @@
     margin-bottom: 6px;
   }
 
-  .progress .sections {
-    gap: 8px;
+  .sections button {
+    padding: 8px 10px;
   }
 
-  .sections div {
-    padding: 8px 10px;
+  .progress .spans {
+    justify-self: stretch;
+  }
+
+  .spans button {
+    flex: 1 1 0;
+    padding: 0 4px;
+  }
+
+  .spans [data-full] {
+    display: none;
+  }
+
+  .spans [data-brief] {
+    display: inline;
   }
 }
 
@@ -296,5 +369,11 @@
   .line,
   .area {
     animation: none;
+  }
+
+  .ring {
+    animation: none;
+    transform: scale(1.8);
+    opacity: 0.25;
   }
 }
