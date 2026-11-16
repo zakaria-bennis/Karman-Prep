@@ -367,16 +367,11 @@ export function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
   );
 }
 
-/** An icon on its tile, in its own colour. `big` is the size the Practice section shows it at. */
-export function Tile({ name, big }: { name: IconName; big?: boolean }) {
-  const size = name === "trial" ? 44 : 28;
+/** An icon on its tile, in its own colour. */
+export function Tile({ name }: { name: IconName }) {
   return (
-    <span
-      className={styles.tile}
-      data-big={big || undefined}
-      style={{ "--tint": TINTS[name] ?? "#d9a441" } as CSSProperties}
-    >
-      <Icon name={name} size={big ? Math.round(size * 1.4) : size} />
+    <span className={styles.tile} style={{ "--tint": TINTS[name] ?? "#d9a441" } as CSSProperties}>
+      <Icon name={name} size={name === "trial" ? 44 : 28} />
     </span>
   );
 }

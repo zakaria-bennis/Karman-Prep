@@ -460,32 +460,3 @@ His rules from this round:
   the wind start on hover (or keyboard focus). The fire leans to the upper left, more on the top half
   than the bottom, as if the clock were falling down and to the right. On a phone there is no hover, so
   the fire shows only while the button is pressed or focused.
-
-## Practice section: first version (2026-11-15), awaiting his verdict
-
-He said the Library is done for now and asked for the Practice section, built from everything the
-Library rounds taught ("take all the knowledge ... to create the practice section"). No options were
-shown first, at his word. Files: `PracticePage.tsx` and `practicePage.module.css` beside the menu; the
-icons, `Today`, `Tile` and `GoButton` are shared with the Library (`practice.tsx`). Shown on `/dev/shell`
-when Practice is chosen (Free, Practice and Pro menus).
-
-- **Practice page.** Today (Daily 10, Challenge question), Unfinished (work begun and not finished, with
-  Resume), and Ways to practise: six large buttons, each with its icon, its name, the student's own
-  record with the number right beside what it counts, and one small figure in the Library's green
-  (pace steps, runs, quizzes done, cards known, tries, exam slots with scores). Glass is sized to its
-  content; the desktop page fits one screen.
-- **A way's own page** (`ModePage`), sliding over like a skill: what it is in a line, the choices
-  (Section, and a deck or a source where there is one), one outline Start button, and the student's
-  record on a second piece of glass. Time trials show pace and accuracy with "Review your mistakes" as a
-  button under the record. Endless mode shows the mistake log. Full-length exams show each exam's score.
-- **Phone:** two pages with buttons, Today and Practise, each fitting the screen; the figures wait on
-  each way's own page.
-- **True, taken from the site and the app:** time trials start at 1.25x the real SAT time and tighten 5%
-  a round to 0.75x while accuracy holds; endless mode has no clock and picks the skill needed most; the
-  Practice plan has five full-length exams (`QUESTION_BANK.practiceTests`); the exam runs 2 hours 14
-  minutes.
-- **Stand-ins, to confirm with him:** every number; the Unfinished piece itself (my addition); the
-  strategy quiz names and the count of 14; the flashcard decks and counts; how Word Line is played and
-  scored; the choice "The skill I need most / My mistakes" in endless mode.
-- **Not built:** locks for Free students ("Upgrade"), anything that really starts a quiz, a hero. The
-  Library has a hero because it has two sides to choose between; Practice opens straight onto its page.
