@@ -3,10 +3,10 @@
 // One side of the Library (Reading and Writing, or Math), in two pages so nothing is crowded (founder,
 // 2026-11-15: "we can have subpages. We'll just focus on the domains first"):
 //   Library      the side as a whole: a ring of where the skills stand, today's two tasks, the ways to
-//                practise, and the four domains set side by side to compare. Choosing a domain opens it.
+//                practice, and the four domains set side by side to compare. Choosing a domain opens it.
 //   DomainPage   one domain: a filter, then its skills. Choosing a skill opens the skill's page.
 // On a phone the first page is itself split into three, with buttons to move between them, so nobody
-// scrolls a long way: Skills, Today, Practise.
+// scrolls a long way: Skills, Today, Practice.
 // Progress is one green, dark for Proficient and light for Learning in both modes, and every mark has a
 // thin edge so it stands clear of the glass. Bands are cut clean where two levels meet: no blending.
 // The levels and the question counts are stand-ins: no student data is read yet.
@@ -119,7 +119,7 @@ function Key({ skills, onLevel }: { skills: Skill[]; onLevel?: (level: number) =
   );
 }
 
-const PAGES = ["Skills", "Today", "Practise"] as const;
+const PAGES = ["Skills", "Today", "Practice"] as const;
 
 export default function Library({
   rail,
@@ -236,7 +236,7 @@ export default function Library({
         {show("Today") && <Today />}
       </div>
 
-      {show("Practise") && <Modes />}
+      {show("Practice") && <Modes />}
 
       {show("Skills") && (
         <section className={`${styles.glass} ${styles.domains}`} aria-label="Domains">

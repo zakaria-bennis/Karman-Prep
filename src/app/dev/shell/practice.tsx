@@ -1,6 +1,6 @@
 "use client";
 
-// Pieces of the Library that are about practising, not about one skill:
+// Pieces of the Library that are about practicing, not about one skill:
 //   Today     the Daily 10 and the Challenge question, each to start if it has not been done yet.
 //   Modes     time trials, endless mode, strategy quizzes, flashcards, Word Line and full-length exams,
 //             on both sides. Names only.
@@ -501,11 +501,11 @@ const MODES: { icon: IconName; name: string }[] = [
   { icon: "exam", name: "Full-length exams" },
 ];
 
-/** The other ways to practise: one row of names, each with its icon. The same six on both sides. */
+/** The other ways to practice: one row of names, each with its icon. The same six on both sides. */
 export function Modes() {
   return (
-    <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practise">
-      <h2>More ways to practise</h2>
+    <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
+      <h2>More ways to practice</h2>
       <ul>
         {MODES.map((mode) => (
           <li key={mode.name}>

@@ -109,7 +109,7 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
         )}
       </section>
 
-      {/* 3. other ways to practise this one skill */}
+      {/* 3. other ways to practice this one skill */}
       <section className={`${lib.glass} ${styles.more}`}>
         <h2>More practice on this skill</h2>
         {(
