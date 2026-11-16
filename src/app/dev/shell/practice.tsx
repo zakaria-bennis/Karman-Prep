@@ -47,15 +47,19 @@ const ICONS = {
   strategy: (
     <>
       <circle cx="12" cy="12" r="10.300" fill="#fffdf8" stroke="#3b3442" strokeWidth="1.300" />
-      {[45, 135, 225, 315].map((a) => (
-        <path
-          key={a}
-          d="M12 2.600v1.700"
-          stroke="#3b3442"
-          strokeWidth="1.100"
-          transform={`rotate(${a} 12 12)`}
-        />
-      ))}
+      {/* the dial: a fine tick every 15 degrees, a longer one at each point between N, E, S and W */}
+      <circle cx="12" cy="12" r="8.300" stroke="#3b3442" strokeWidth="0.500" fill="none" />
+      {Array.from({ length: 24 }, (_, i) => i * 15)
+        .filter((a) => a % 90 !== 0)
+        .map((a) => (
+          <path
+            key={a}
+            d={a % 45 === 0 ? "M12 2.200v2.300" : "M12 2.200v1.100"}
+            stroke="#3b3442"
+            strokeWidth={a % 45 === 0 ? 1 : 0.6}
+            transform={`rotate(${a} 12 12)`}
+          />
+        ))}
       {(
         [
           ["N", 12, 5.9],
@@ -177,7 +181,7 @@ const TINTS: Partial<Record<IconName, string>> = {
 /** The home page's racing stopwatch, flames streaming off its back, made small. */
 function TrialWatch({ size }: { size: number }) {
   return (
-    <svg viewBox="-6 6 216 216" width={size} height={size} aria-hidden="true" focusable="false">
+    <svg viewBox="-90 -34 300 300" width={size} height={size} aria-hidden="true" focusable="false">
       <defs>
         {[
           ["kp-fire-a", "#c81e0e", "#ff5a1a"],
@@ -194,27 +198,29 @@ function TrialWatch({ size }: { size: number }) {
       {/* the fire behind the watch: tongues that taper to a point, long and red outside, short and
           pale at the heart, each flickering in its own time */}
       <g data-a="fire">
-        {(
-          [
-            [-16, 84, 22, "a", 0],
-            [14, 78, 20, "a", 0.07],
-            [0, 94, 26, "a", 0.03],
-            [-9, 66, 17, "b", 0.11],
-            [9, 60, 16, "b", 0.05],
-            [0, 72, 18, "b", 0.09],
-            [-4, 44, 11, "c", 0.02],
-            [5, 38, 10, "c", 0.13],
-          ] as const
-        ).map(([turn, long, wide, tone, lag], i) => (
-          <path
-            key={i}
-            data-a="tongue"
-            style={{ "--lag": `${lag}s`, transformOrigin: "70px 116px" } as CSSProperties}
-            transform={`rotate(${turn} 70 116)`}
-            fill={`url(#kp-fire-${tone})`}
-            d={`M74 116C${74 - long * 0.25} ${116 - wide} ${74 - long * 0.7} ${116 - wide * 0.55} ${74 - long} 116C${74 - long * 0.7} ${116 + wide * 0.55} ${74 - long * 0.25} ${116 + wide} 74 116Z`}
-          />
-        ))}
+        {[-78, -58, -38, -19, 0, 19, 38, 58, 78].flatMap((turn, n) =>
+          (
+            [
+              ["a", 132 - Math.abs(turn) * 0.75, 30],
+              ["b", 96 - Math.abs(turn) * 0.6, 22],
+              ["c", 58 - Math.abs(turn) * 0.4, 13],
+            ] as const
+          ).map(([tone, long, wide], layer) => (
+            <path
+              key={`${turn} ${tone}`}
+              data-a="tongue"
+              style={
+                {
+                  "--lag": `${((n * 7 + layer * 3) % 10) / 40}s`,
+                  transformOrigin: "118px 116px",
+                } as CSSProperties
+              }
+              transform={`rotate(${turn} 118 116)`}
+              fill={`url(#kp-fire-${tone})`}
+              d={`M58 116C${58 - long * 0.25} ${116 - wide} ${58 - long * 0.7} ${116 - wide * 0.55} ${58 - long} 116C${58 - long * 0.7} ${116 + wide * 0.55} ${58 - long * 0.25} ${116 + wide} 58 116Z`}
+            />
+          ))
+        )}
       </g>
       <g fill="currentColor">
         <rect x="110" y="20" width="16" height="18" rx="4" />
@@ -349,7 +355,7 @@ export function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
 export function Tile({ name }: { name: IconName }) {
   return (
     <span className={styles.tile} style={{ "--tint": TINTS[name] ?? "#d9a441" } as CSSProperties}>
-      <Icon name={name} size={name === "trial" ? 34 : 28} />
+      <Icon name={name} size={name === "trial" ? 44 : 28} />
     </span>
   );
 }

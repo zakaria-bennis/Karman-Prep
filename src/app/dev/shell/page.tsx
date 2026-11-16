@@ -29,9 +29,10 @@ import {
 import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
+import { Fox } from "@/components/portal/Fox";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
-import Library, { DOMAINS, DomainPage, type Section } from "./Library";
+import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
@@ -124,16 +125,13 @@ function Shell() {
   const [domain, setDomain] = useState<string | null>(null);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
-  // a domain, or (from the key beside the ring) every skill at one level across the side's domains
+  // `domain` holds a domain's name or, from the key beside the ring, a level's name
   const openDomain =
-    section && domain
-      ? (DOMAINS[section].find((d) => d.name === domain) ?? {
-          name: domain,
-          skills: DOMAINS[section]
-            .flatMap((d) => d.skills)
-            .filter((sk) => LEVEL_NAMES[sk.level] === domain),
-        })
-      : undefined;
+    section && domain ? DOMAINS[section].find((d) => d.name === domain) : undefined;
+  const openLevel =
+    section && domain && !openDomain
+      ? LEVEL_NAMES.indexOf(domain as (typeof LEVEL_NAMES)[number])
+      : -1;
   const at = Math.max(0, items.indexOf(page));
   const [world] = useState(() => ({}));
 
@@ -366,7 +364,9 @@ function Shell() {
           onClick={() => setMenu(!menu)}
         >
           <span className={styles.face} aria-hidden="true">
-            <b>M</b>
+            <b>
+              <Fox size={26} />
+            </b>
           </span>
           <span className={styles.word}>
             Maya Okafor
@@ -468,6 +468,16 @@ function Shell() {
             >
               {skill ? (
                 <SkillPage skill={skill} />
+              ) : section && openLevel >= 0 ? (
+                <LevelPage
+                  section={section}
+                  level={openLevel}
+                  onOpen={(next) => {
+                    dir.current = 1;
+                    setSkill(next);
+                    window.scrollTo({ top: 0 });
+                  }}
+                />
               ) : openDomain ? (
                 <DomainPage
                   domain={openDomain}

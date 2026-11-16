@@ -36,23 +36,43 @@ const ART: Record<StickerName, ReactNode> = {
       />
     </>
   ),
-  // three books in a neat row, the last one leaning to the left on the others (founder, 2026-11-15)
+  // three books of three colours: two upright, the third slanted against them (founder, 2026-11-15)
   library: (
     <>
-      <rect x="3.500" y="6.500" width="4.200" height="14" rx="1" {...WASH} />
-      <rect data-move="pull" x="7.700" y="6.500" width="4.200" height="14" rx="1" />
-      {/* the third leans to the left, resting on the other two */}
+      {/* two books upright and together, each standing on the shelf */}
       <rect
-        x="15.400"
-        y="6.800"
+        x="3.200"
+        y="6.200"
         width="4.200"
-        height="14"
-        rx="1"
-        transform="rotate(-15 19.600 20.500)"
-        fill={ACCENT}
-        fillOpacity="0.3"
-        stroke={ACCENT}
+        height="13.500"
+        rx="0.900"
+        fill="#7fa98f"
+        fillOpacity="0.55"
       />
+      <rect
+        x="7.800"
+        y="7.700"
+        width="4.200"
+        height="12"
+        rx="0.900"
+        fill="#d9b06a"
+        fillOpacity="0.6"
+      />
+      {/* the third leans left against them, its foot on the shelf: turned about its own lower left corner,
+          so no part of it goes below the shelf or into the book beside it */}
+      <g data-move="slip" style={{ transformBox: "view-box", transformOrigin: "17.6px 19.7px" }}>
+        <rect
+          x="17.600"
+          y="8.200"
+          width="3.600"
+          height="11.500"
+          rx="0.900"
+          transform="rotate(-17 17.600 19.700)"
+          fill={ACCENT}
+          fillOpacity="0.5"
+          stroke={ACCENT}
+        />
+      </g>
       <path d="M2 20.500h20" />
     </>
   ),

@@ -200,8 +200,9 @@
     transform: rotate(-4deg) scale(1.06);
   }
 
-  .item:hover [data-move="pull"] {
-    transform: translateY(-3.5px) rotate(-4deg);
+  /* the leaning book slips a little further, its foot sliding along the shelf */
+  .item:hover [data-move="slip"] {
+    transform: rotate(-7deg);
   }
 
   .item:hover [data-move="pop"] {
@@ -507,9 +508,10 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: var(--ink);
-    color: var(--on-ink);
-    font-weight: 600;
+    /* the fox is every student's picture until they choose their own */
+    background: #fff3de;
+    box-shadow: inset 0 0 0 1px var(--glass-edge);
+    overflow: hidden;
     transition: transform 0.2s var(--out);
   }
 

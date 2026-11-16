@@ -368,6 +368,24 @@ Known faults and gaps:
      the thinking-orbs package's look (it was removed): the loader is now three orbs circling in
      step, drawn here. He points to how Claude's own thinking indicator moves as the model. The
      time-trial flames were redrawn a third time as tapering tongues; still unconfirmed.
+   - **Seventh round (2026-11-15), applied; awaiting his verdict.**
+     - **A level's list is its own page** (`LevelPage`): the count and the skills grouped by domain,
+       with **no share and no filter**, because on one level those say nothing. He caught the earlier
+       version showing "100% Proficient" and empty filters.
+     - **"Weakest domain"** is the label (not "Start here"), on a second piece of glass stacked on
+       the first, with no coloured edge. It is chosen by weight: each skill counts for how far it
+       has climbed (0 to 3) and a domain's score is its average climb, so domains of different sizes
+       compare fairly; a tie goes to the one with more not started. The method is never shown.
+     - **The book closes like a real book**: halves fold together with the pages inside, held apart
+       by the spine's width, and only then does it turn its cover to you. Check any 3D exit frame by
+       frame; the first version showed pages outside.
+     - **Library menu icon**: two upright books and a third leaning on them with its foot on the
+       shelf, three colours, nothing clipping. Checked frame by frame through its hover.
+     - Learning's green is a little greener. The compass has a real dial of ticks. The time-trial
+       flames spring from the whole back half of the watch's rim (he said "right"; the watch races
+       right, so they stream off the left: confirm). Numbers sit right beside their level in a
+       domain's summary. The line under the ring reads "4,711 total math questions".
+     - **A student's default picture is the fox** until they choose their own.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

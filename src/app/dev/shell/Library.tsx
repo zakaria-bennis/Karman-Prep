@@ -138,7 +138,14 @@ export default function Library({
   const bank = all.reduce((n, s) => n + s.questions, 0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
   // the domain with the smallest share Proficient is the one to work on first
-  const weakest = [...domains].sort((x, y) => Number(share(x.skills)) - Number(share(y.skills)))[0];
+  // The weakest domain: every skill counts for how far it has climbed (none 0, Learning 1, Understanding
+  // 2, Proficient 3), and a domain's score is its average climb out of 3. Averaging makes a domain of
+  // twelve skills comparable with one of six. A tie goes to the domain with more skills not started.
+  const climb = (d: Domain) =>
+    d.skills.reduce((n, sk) => n + sk.level, 0) / (d.skills.length * TOP);
+  const weakest = [...domains].sort(
+    (x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0]
+  )[0];
 
   useEffect(() => {
     if (still || !root.current) return;
@@ -220,7 +227,8 @@ export default function Library({
                 }}
               />
               <p className={styles.bank}>
-                {bank.toLocaleString("en-US")} questions to practise from
+                {bank.toLocaleString("en-US")} total{" "}
+                {section === "Math" ? "math" : "reading and writing"} questions
               </p>
             </div>
           </section>
@@ -251,7 +259,7 @@ export default function Library({
                   >
                     <span className={styles.name}>
                       {domain.name}
-                      {first && <small>Start here: the most to gain</small>}
+                      {first && <small>Weakest domain</small>}
                     </span>
                     <span className={styles.grow} data-grow>
                       <Band skills={domain.skills} />
@@ -362,6 +370,69 @@ export function DomainPage({
         </ul>
         {shown.length === 0 && <p className={styles.none}>No skills here yet.</p>}
       </section>
+    </div>
+  );
+}
+
+/** Every skill at one level, across the side's domains. It has no share or filter of its own: it is
+ *  already one level, so those would say nothing (founder, 2026-11-15). */
+export function LevelPage({
+  section,
+  level,
+  onOpen,
+}: {
+  section: Section;
+  level: number;
+  onOpen: (skill: OpenSkill) => void;
+}) {
+  const groups = DOMAINS[section]
+    .map((domain) => ({ domain, skills: domain.skills.filter((sk) => sk.level === level) }))
+    .filter((g) => g.skills.length > 0);
+  const count = groups.reduce((n, g) => n + g.skills.length, 0);
+  return (
+    <div className={styles.library}>
+      <p className={styles.lede}>
+        <b>{count}</b> {count === 1 ? "skill" : "skills"} in {section}
+      </p>
+      {groups.map(({ domain, skills }) => (
+        <section key={domain.name} className={`${styles.glass} ${styles.skills}`}>
+          <h2 className={styles.group}>{domain.name}</h2>
+          <ul>
+            {skills.map((skill) => (
+              <li key={skill.name}>
+                <button
+                  type="button"
+                  className={styles.skill}
+                  onClick={() => {
+                    tick();
+                    buzz(8);
+                    onOpen({
+                      name: skill.name,
+                      level: skill.level,
+                      domain: LEVELS[level],
+                      tests: skill.tests,
+                      questions: skill.questions,
+                    });
+                  }}
+                >
+                  <span className={styles.label}>{skill.name}</span>
+                  <span className={styles.qty}>{skill.questions} questions</span>
+                  <Pips level={skill.level} />
+                  <svg
+                    className={styles.go}
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    aria-hidden="true"
+                  >
+                    <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }

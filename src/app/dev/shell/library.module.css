@@ -14,7 +14,7 @@
   --r-piece: 16px;
   /* not started is see-through: the glass itself, inside an edge */
   --p0: transparent;
-  --p1: #a8dcc2;
+  --p1: #86d0ac;
   --p2: #38a47b;
   --p3: #0a5a43;
   --sq-edge: rgb(10 70 52 / 0.6);
@@ -28,7 +28,7 @@
 
 :global([data-kp-mode="dark"]) .library {
   --p0: transparent;
-  --p1: #bfe9d4;
+  --p1: #9be0c0;
   --p2: #45b48a;
   --p3: #0e6f53;
   --sq-edge: rgb(255 255 255 / 0.62);
@@ -284,12 +284,14 @@
   color: var(--go);
 }
 
-/* the domain to work on first is lit, with a green edge down its side */
+/* the weakest domain lies on its own piece of glass, stacked on the piece beneath */
 .domain[data-first] {
   background: var(--lens);
   box-shadow:
+    var(--lens-shade),
+    0 8px 20px -12px rgb(24 28 58 / 0.4),
     inset 0 0 0 1px var(--lens-edge),
-    inset 3px 0 0 var(--go);
+    inset 0 1px 0 var(--glass-shine);
 }
 
 .grow {
@@ -348,9 +350,32 @@
   padding: calc(var(--pad) * 2);
 }
 
+/* in a row, each number sits right beside its level */
 .summary .key {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+}
+
+.summary .key li > * {
+  grid-template-columns: auto auto auto;
+  gap: 8px;
+  width: auto;
+}
+
+.lede {
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+.lede b {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.library h2.group {
+  padding: var(--pad) var(--pad) 4px;
+  font-size: 16px;
 }
 
 .count {

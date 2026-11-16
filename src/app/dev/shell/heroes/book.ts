@@ -322,7 +322,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     );
     group.position.z = z0 + 0.012 + i * 0.005;
     book.add(group);
-    return { geo, p: 0 };
+    return { geo, p: 0, group };
   });
   const bend = (leaf: (typeof leaves)[number]) => {
     const pos = leaf.geo.attributes.position;
@@ -532,28 +532,33 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       gsap.to(rush, { v: on ? 3.2 : 1, duration: 0.5 });
     },
     leave(station) {
-      // the book comes to the middle of the stage, squares up, and closes; the page arrives as it shuts
+      // the book comes to the middle and shuts, its two halves folding together with the pages inside;
+      // only once it is shut does it turn its front cover to you, and the page arrives then
+      leaves.forEach((leaf) => (leaf.group.visible = false));
+      flip.pause();
       const tl = gsap
         .timeline()
         .to(rush, { v: 0.2, duration: 0.3 }, 0)
-        .to(leaves, { p: 0, duration: 0.3, ease: "power2.out", overwrite: true }, 0)
-        .to(station.position, { x: 0, y: 0, duration: 0.7, ease: "power3.inOut" }, 0)
-        .to(book.rotation, { x: -0.35, y: 0, z: 0, duration: 0.7, ease: "power3.inOut" }, 0)
-        .to(book.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.7, ease: "power3.inOut" }, 0)
-        .to(aura.scale, { x: 0.01, y: 0.01, duration: 0.5 }, 0.5);
-      flip.pause();
-      hinges.forEach(({ hinge, side }) =>
+        .to(station.position, { x: 0, y: 0, duration: 0.5, ease: "power3.inOut" }, 0)
+        .to(book.scale, { x: 1.15, y: 1.15, z: 1.15, duration: 0.5, ease: "power3.inOut" }, 0)
+        .to(aura.scale, { x: 0.01, y: 0.01, duration: 0.35 }, 0.15);
+      hinges.forEach(({ hinge, side }) => {
         tl.to(
           hinge.rotation,
-          { y: -side * (Math.PI / 2 - 0.02), duration: 0.55, ease: "power2.in" },
-          0.6
+          { y: -side * (Math.PI / 2 - 0.015), duration: 0.55, ease: "power2.inOut" },
+          0.25
+        );
+        // each half stands the thickness of its pages away from the middle, as a spine holds them, so
+        // the two blocks of pages meet face to face and neither passes through the other
+        tl.to(hinge.position, { x: side * (T + 0.05), duration: 0.55, ease: "power2.inOut" }, 0.25);
+      });
+      return tl
+        .to(
+          book.rotation,
+          { x: -0.1, y: -Math.PI / 2 + 0.3, z: 0, duration: 0.55, ease: "power2.inOut" },
+          0.7
         )
-      );
-      return tl.to(
-        book.scale,
-        { x: 0.001, y: 0.001, z: 0.001, duration: 0.25, ease: "power2.in" },
-        1.15
-      );
+        .to(book.scale, { x: 0.001, y: 0.001, z: 0.001, duration: 0.3, ease: "power2.in" }, 1.5);
     },
   };
 }

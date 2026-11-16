@@ -848,7 +848,7 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
         .to(
           uniforms.uOpen,
           { value: 1, duration: 0.7, ease: "power2.inOut" },
-          side === 0 ? 0.9 : 0.5
+          side === 0 ? 1.25 : 0.5
         );
       if (side === 0) tl.add(book.leave(stage.stations[0]), 0);
       else {
