@@ -917,3 +917,15 @@ engine and each activity's beginning and end screens. Do not start it until he s
 stand-in until sessions are logged) and lengths in words ("8m", "1m 36s"). The bars are a light leaf
 green and a red as bright. The SAT badge is frosted glass laid on the score: lighter by day, darker by
 night. **Next, by his word: the Cohort and Private students' tabs and what only they get.**
+
+## Cohort and Private tabs: Homework, first version (2026-11-16), awaiting his verdict
+
+His answers are in the memory note `project_student_portal_spec.md` (rounds of 2026-11-16). Built:
+`Homework.tsx`, `homeworkData.ts`, `homework.module.css`, shown for `?plan=cohort` and `?plan=private`.
+The whole week, a day beside a day, today marked; one list a day with the Daily 10 first; a color for
+each kind of work (Reading and Writing blue, Math violet, Mixed teal, Pacing and strategy amber, Tests
+rose) and a band over the week showing how much of each; arrows step to other weeks; the exam is on
+Saturday; Done, Missing and Closed states. On a phone: a strip of seven days and the day pressed.
+All the work is made up. Pressing work leads nowhere yet. **Not done:** on Cohort and Private phones he
+wants the Mistake Log and Rewards under More, and there is no More page yet. Next after his verdict:
+Class (next class and Join, the nine weeks, workshops, tutor and attendance), then Schedule, then Chat.

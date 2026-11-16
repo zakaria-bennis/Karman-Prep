@@ -33,6 +33,7 @@ import { Fox } from "@/components/portal/Fox";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
+import Homework from "./Homework";
 import LibraryHero from "./LibraryHero";
 import MistakeLog, { type Trail } from "./MistakeLog";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
@@ -574,6 +575,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
+        {page === "homework" && <Homework rail={rail} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog
