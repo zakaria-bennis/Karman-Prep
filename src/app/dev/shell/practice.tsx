@@ -13,7 +13,6 @@
 //   Strategy     a compass: red to north, blue to south. It spins wildly, then settles north.
 // Everything is a stand-in: nothing starts yet, and the streak is a made-up number.
 import { useReducedMotion } from "framer-motion";
-import { ThinkingOrb } from "thinking-orbs";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
@@ -85,28 +84,26 @@ const ICONS = {
       <circle cx="12" cy="12" r="0.900" fill="#3b3442" stroke="none" />
     </>
   ),
-  // a stack of pale yellow index cards, lying flat; they fan out to the right and spring back
+  // pale yellow index cards stood on end; they fan out like a hand of cards and spring back
   cards: (
     <>
-      {[3, 2, 1, 0].map((n) => (
+      {[-2, -1, 0, 1, 2].map((n) => (
         <g key={n} data-a="card" style={{ "--n": n } as CSSProperties}>
           <rect
-            x="4"
-            y="7.500"
-            width="14"
-            height="9.500"
-            rx="1.200"
+            x="7.800"
+            y="4.500"
+            width="8.400"
+            height="13"
+            rx="1.100"
             fill="#fbe7a0"
             stroke="#b9902f"
-            strokeWidth="1"
+            strokeWidth="0.900"
           />
-          {n === 0 && (
-            <path
-              d="M6.200 10.300h9.600M6.200 12.600h9.600M6.200 14.900h6"
-              stroke="#c9a54a"
-              strokeWidth="0.800"
-            />
-          )}
+          <path
+            d="M9.500 8h5M9.500 10.300h5M9.500 12.600h3.200"
+            stroke="#c9a54a"
+            strokeWidth="0.700"
+          />
         </g>
       ))}
     </>
@@ -182,34 +179,42 @@ function TrialWatch({ size }: { size: number }) {
   return (
     <svg viewBox="-6 6 216 216" width={size} height={size} aria-hidden="true" focusable="false">
       <defs>
-        <linearGradient id="kp-fire-a" x1="1" x2="0">
-          <stop offset="0" stopColor="#ff7a1a" />
-          <stop offset="0.6" stopColor="#e6311b" />
-          <stop offset="1" stopColor="#b3170f" stopOpacity="0.5" />
-        </linearGradient>
-        <linearGradient id="kp-fire-b" x1="1" x2="0">
-          <stop offset="0" stopColor="#ffd23f" />
-          <stop offset="1" stopColor="#ff8a1c" />
-        </linearGradient>
-        <linearGradient id="kp-fire-c" x1="1" x2="0">
-          <stop offset="0" stopColor="#fffbe0" />
-          <stop offset="1" stopColor="#ffe066" />
-        </linearGradient>
+        {[
+          ["kp-fire-a", "#c81e0e", "#ff5a1a"],
+          ["kp-fire-b", "#ff7a1a", "#ffb62e"],
+          ["kp-fire-c", "#ffc93a", "#fff2b0"],
+        ].map(([id, tip, root]) => (
+          <linearGradient key={id} id={id} x1="0" x2="1">
+            <stop offset="0" stopColor={tip} stopOpacity="0" />
+            <stop offset="0.35" stopColor={tip} />
+            <stop offset="1" stopColor={root} />
+          </linearGradient>
+        ))}
       </defs>
-      {/* flames streaming off the back of the watch: three tongues, hot at the root, torn at the tip */}
+      {/* the fire behind the watch: tongues that taper to a point, long and red outside, short and
+          pale at the heart, each flickering in its own time */}
       <g data-a="fire">
-        <path
-          fill="url(#kp-fire-a)"
-          d="M96 44C70 40 44 52 22 46c10 8 12 18 4 28 12-6 22-4 28 4-14 2-30 12-42 30 14-8 28-10 38-6-12 8-22 22-26 40 12-12 26-18 38-18-8 10-12 22-10 36 10-14 24-22 44-22z"
-        />
-        <path
-          fill="url(#kp-fire-b)"
-          d="M96 66c-18-4-34 2-50 0 8 6 10 12 6 20 10-4 18-2 22 4-12 4-24 12-32 26 12-6 22-8 30-4-8 8-14 18-16 30 10-10 20-14 30-14-4 8-6 16-4 24 8-10 16-14 26-16z"
-        />
-        <path
-          fill="url(#kp-fire-c)"
-          d="M96 88c-10-2-20 2-30 2 6 4 8 8 6 14 6-2 12 0 14 4-8 4-14 10-18 18 8-4 16-4 22-2-4 6-6 12-6 18 6-6 12-10 18-10z"
-        />
+        {(
+          [
+            [-16, 84, 22, "a", 0],
+            [14, 78, 20, "a", 0.07],
+            [0, 94, 26, "a", 0.03],
+            [-9, 66, 17, "b", 0.11],
+            [9, 60, 16, "b", 0.05],
+            [0, 72, 18, "b", 0.09],
+            [-4, 44, 11, "c", 0.02],
+            [5, 38, 10, "c", 0.13],
+          ] as const
+        ).map(([turn, long, wide, tone, lag], i) => (
+          <path
+            key={i}
+            data-a="tongue"
+            style={{ "--lag": `${lag}s`, transformOrigin: "70px 116px" } as CSSProperties}
+            transform={`rotate(${turn} 70 116)`}
+            fill={`url(#kp-fire-${tone})`}
+            d={`M74 116C${74 - long * 0.25} ${116 - wide} ${74 - long * 0.7} ${116 - wide * 0.55} ${74 - long} 116C${74 - long * 0.7} ${116 + wide * 0.55} ${74 - long * 0.25} ${116 + wide} 74 116Z`}
+          />
+        ))}
       </g>
       <g fill="currentColor">
         <rect x="110" y="20" width="16" height="18" rx="4" />
@@ -241,7 +246,7 @@ function TrialWatch({ size }: { size: number }) {
   );
 }
 
-/** Endless: the sign itself, in marigold paint, with a shine that travels round it and a few glints. */
+/** Endless: the sign itself, in marigold paint, with a shine that travels round it. */
 function EndlessSign({ size }: { size: number }) {
   return (
     <svg
@@ -262,20 +267,6 @@ function EndlessSign({ size }: { size: number }) {
         strokeWidth="2"
         strokeLinecap="round"
       />
-      {[
-        [5.2, 9.2],
-        [12, 12],
-        [18.9, 14.7],
-        [16, 8.6],
-      ].map(([x, y], i) => (
-        <path
-          key={i}
-          data-a="glint"
-          style={{ "--n": i, transformOrigin: `${x}px ${y}px` } as CSSProperties}
-          d={`M${x} ${y - 1.5}l.4 1.100 1.100.4-1.100.4-.4 1.100-.4-1.100-1.100-.4 1.100-.4z`}
-          fill="#fffbe6"
-        />
-      ))}
     </svg>
   );
 }
@@ -407,7 +398,9 @@ export function GoButton({
     >
       {loading ? (
         <span className={styles.orb} role="img" aria-label="Loading">
-          <ThinkingOrb state="working" size={20} />
+          <i />
+          <i />
+          <i />
         </span>
       ) : (
         <>

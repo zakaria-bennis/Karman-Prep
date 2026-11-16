@@ -400,17 +400,23 @@
   border-radius: 12px;
 }
 
+/* the strip between the screen's edge and the rail, so the far edge opens the menu too */
+.edge {
+  position: fixed;
+  z-index: 4;
+  inset: 0 auto 0 0;
+  width: 14px;
+}
+
 /* ---- with a mouse and room: a slim rail at the left that opens when the pointer is on it ---- */
 @media (min-width: 960px) and (hover: hover) {
   .nav {
     --pad: 12px;
     --cell: 48px;
-    /* hard against the edge, so a pointer thrown to the far left opens it */
-    top: 0;
-    left: 0;
+    top: 12px;
+    left: 12px;
     right: auto;
-    bottom: 0;
-    border-radius: 0 24px 24px 0;
+    bottom: 12px;
     display: flex;
     flex-direction: column;
     gap: var(--pad);
@@ -546,7 +552,7 @@
   .main {
     gap: 16px;
     max-width: 1680px;
-    padding: 0 16px 16px calc(72px + 16px);
+    padding: 0 16px 16px calc(12px + 72px + 16px);
   }
 
   .title {

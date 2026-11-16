@@ -33,6 +33,7 @@ import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
+import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { Sticker, type StickerName } from "./stickers";
@@ -123,8 +124,16 @@ function Shell() {
   const [domain, setDomain] = useState<string | null>(null);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
+  // a domain, or (from the key beside the ring) every skill at one level across the side's domains
   const openDomain =
-    section && domain ? DOMAINS[section].find((d) => d.name === domain) : undefined;
+    section && domain
+      ? (DOMAINS[section].find((d) => d.name === domain) ?? {
+          name: domain,
+          skills: DOMAINS[section]
+            .flatMap((d) => d.skills)
+            .filter((sk) => LEVEL_NAMES[sk.level] === domain),
+        })
+      : undefined;
   const at = Math.max(0, items.indexOf(page));
   const [world] = useState(() => ({}));
 
@@ -270,6 +279,10 @@ function Shell() {
     >
       <PortalFlight world={world} />
 
+      {/* a strip along the very edge: a pointer thrown to the far left opens the menu */}
+      {rail && (
+        <div className={styles.edge} aria-hidden="true" onPointerEnter={() => setOpen(true)} />
+      )}
       <motion.nav
         className={styles.nav}
         aria-label="Portal"

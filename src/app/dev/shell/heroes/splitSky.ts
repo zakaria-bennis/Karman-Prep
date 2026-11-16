@@ -845,8 +845,12 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
           { z: stage.camera.position.z * 0.94, duration: 1.2, ease: "power2.inOut" },
           0
         )
-        .to(uniforms.uOpen, { value: 1, duration: 0.7, ease: "power2.inOut" }, 0.5);
-      if (side === 0) tl.add(book.leave(halfH * 2.6), 0);
+        .to(
+          uniforms.uOpen,
+          { value: 1, duration: 0.7, ease: "power2.inOut" },
+          side === 0 ? 0.9 : 0.5
+        );
+      if (side === 0) tl.add(book.leave(stage.stations[0]), 0);
       else {
         // the vectors brighten and the figures swell towards you as the night opens
         tl.to(shared.uSurge, { value: 2.2, duration: 0.5 }, 0)

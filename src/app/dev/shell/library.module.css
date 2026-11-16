@@ -12,7 +12,8 @@
   --cell: 48px;
   --r-lens: 10px;
   --r-piece: 16px;
-  --p0: rgb(255 255 255 / 0.5);
+  /* not started is see-through: the glass itself, inside an edge */
+  --p0: transparent;
   --p1: #a8dcc2;
   --p2: #38a47b;
   --p3: #0a5a43;
@@ -26,7 +27,7 @@
 }
 
 :global([data-kp-mode="dark"]) .library {
-  --p0: rgb(255 255 255 / 0.1);
+  --p0: transparent;
   --p1: #bfe9d4;
   --p2: #45b48a;
   --p3: #0e6f53;
@@ -98,13 +99,10 @@
 
 .band {
   display: flex;
-  /* the joins between levels are the same colour as the band's edge */
-  gap: 1px;
   width: 100%;
   height: 12px;
   border-radius: 4px;
   overflow: hidden;
-  background: var(--sq-edge);
   box-shadow: 0 0 0 1px var(--sq-edge);
 }
 
@@ -113,13 +111,36 @@
   box-shadow: none;
 }
 
+/* where two levels meet, a hairline in the colour of the band's edge */
+.band i + i {
+  border-left: 1px solid var(--sq-edge);
+}
+
 .key {
   display: grid;
   gap: 10px;
 }
 
-.key li {
+.key li > * {
   display: grid;
+  width: 100%;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 6px;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.key button:not(:disabled):hover,
+.key button:focus-visible {
+  background: var(--hover);
+}
+
+.key button:disabled {
+  cursor: default;
+}
+
+.key li > * {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
@@ -161,7 +182,6 @@
   width: 148px;
   height: 148px;
   border-radius: 50%;
-  background: var(--lens);
   box-shadow: 0 0 0 1px var(--sq-edge);
 }
 

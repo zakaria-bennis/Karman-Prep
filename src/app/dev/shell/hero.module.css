@@ -175,12 +175,12 @@
 
 @media (min-width: 960px) and (hover: hover) {
   .picks {
-    inset: 0 0 0 72px;
+    inset: 0 0 0 84px;
   }
 
   .heading {
     top: 28px;
-    left: 104px;
+    left: 116px;
     font-size: 52px;
   }
 

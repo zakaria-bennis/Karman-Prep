@@ -356,6 +356,18 @@ Known faults and gaps:
      - **One domain is recommended** ("Start here: the most to gain"): the one with the smallest
        share Proficient.
      - **A compact header:** the page's name sits on the same line as the back pill, smaller.
+   - **Sixth round (2026-11-15), applied; awaiting his verdict.** The Odyssey text must be
+     **readable from the page and glow** (the "very faint" idea is withdrawn); the book should feel
+     like "a book of great wisdom". Paper birds **fly off in every direction and never come back**.
+     Choosing Reading and Writing: **the book comes to the middle and closes**, and the page arrives
+     as it shuts. The ring opens fast and eases to a stop. **Not started is see-through** (glass
+     inside an edge), never grey. **The labels beside the ring are buttons**: each opens every skill
+     at that level across the side's domains. The desktop menu has its margin back, with an unseen
+     strip at the far left edge that opens it. Flashcards stand upright and fan like a hand of
+     cards; endless has no glints; he likes the exam, Word Line and compass icons. He did not like
+     the thinking-orbs package's look (it was removed): the loader is now three orbs circling in
+     step, drawn here. He points to how Claude's own thinking indicator moves as the model. The
+     time-trial flames were redrawn a third time as tapering tongues; still unconfirmed.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

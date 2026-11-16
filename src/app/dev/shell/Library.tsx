@@ -91,17 +91,30 @@ function Band({ skills }: { skills: Skill[] }) {
 }
 
 /** The key: each level's name, its mark, and how many skills are there. */
-function Key({ skills }: { skills: Skill[] }) {
+function Key({ skills, onLevel }: { skills: Skill[]; onLevel?: (level: number) => void }) {
   const counts = tally(skills);
   return (
     <ul className={styles.key}>
-      {[3, 2, 1, 0].map((level) => (
-        <li key={level}>
-          <i data-level={level} />
-          {LEVELS[level]}
-          <b>{counts[level]}</b>
-        </li>
-      ))}
+      {[3, 2, 1, 0].map((level) => {
+        const inner = (
+          <>
+            <i data-level={level} />
+            {LEVELS[level]}
+            <b>{counts[level]}</b>
+          </>
+        );
+        return (
+          <li key={level}>
+            {onLevel ? (
+              <button type="button" disabled={!counts[level]} onClick={() => onLevel(level)}>
+                {inner}
+              </button>
+            ) : (
+              <span>{inner}</span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -134,11 +147,11 @@ export default function Library({
     import("gsap").then(({ gsap }) => {
       if (gone || !root.current) return;
       const ctx = gsap.context(() => {
-        // the ring cranks its way round, notch by notch
+        // the ring opens fast and eases to a stop
         gsap.fromTo(
           "[data-ring]",
           { "--sweep": 0 },
-          { "--sweep": 1, duration: 2.2, ease: "steps(36)" }
+          { "--sweep": 1, duration: 1.6, ease: "expo.out" }
         );
         gsap.fromTo(
           "[data-grow]",
@@ -199,7 +212,13 @@ export default function Library({
               </p>
             </div>
             <div className={styles.standingWords}>
-              <Key skills={all} />
+              <Key
+                skills={all}
+                onLevel={(level) => {
+                  tick();
+                  onDomain(LEVELS[level]);
+                }}
+              />
               <p className={styles.bank}>
                 {bank.toLocaleString("en-US")} questions to practise from
               </p>

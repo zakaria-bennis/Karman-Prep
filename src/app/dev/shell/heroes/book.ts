@@ -12,11 +12,11 @@ const H = 2.1;
 const T = 0.2;
 const OPEN = 0.24;
 const SEG = 18;
-/* faint on purpose */
-const INK = "rgba(60, 44, 34, 0.27)";
+/* dark enough to read from the page (founder, 2026-11-15: "somewhat readable") */
+const INK = "rgba(48, 32, 22, 0.78)";
 
 /* The pages carry the opening of the Odyssey, Book I, in Samuel Butler's translation of 1900 (out of
-   copyright), set small and faint: it is there for whoever stops and looks closely (founder, 2026-11-15).
+   copyright), set to be read from the page, with a glow rising off it (founder, 2026-11-15).
    Typed from memory: check it against a printed Butler before this ships. */
 const ODYSSEY =
   "Tell me, O Muse, of that ingenious hero who travelled far and wide after he had sacked the famous town of Troy. " +
@@ -73,7 +73,7 @@ function page(n: number, mirrored = false): THREE.CanvasTexture {
   }
   // the text runs on from page to page, and comes round again when it ends
   g.textAlign = "left";
-  g.font = "13px Georgia, 'Times New Roman', serif";
+  g.font = "15px Georgia, 'Times New Roman', serif";
   let at = (n * 97) % WORDS.length;
   let line = "";
   while (y < c.height - 62) {
@@ -81,7 +81,7 @@ function page(n: number, mirrored = false): THREE.CanvasTexture {
     const next = line ? `${line} ${word}` : word;
     if (g.measureText(next).width > width && line) {
       g.fillText(line, x0, y);
-      y += 19;
+      y += 22;
       line = "";
     } else {
       line = next;
@@ -165,7 +165,7 @@ export interface Book {
   root: THREE.Group;
   lively(on: boolean): void;
   /** Chosen: the book opens towards the reader and lifts away. */
-  leave(rise: number): gsap.core.Timeline;
+  leave(station: THREE.Group): gsap.core.Timeline;
 }
 
 export function buildBook(stage: Stage, clip: THREE.Plane): Book {
@@ -213,10 +213,12 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
   const edge = new THREE.MeshStandardMaterial({ map: edges(), roughness: 0.9, clippingPlanes });
   const plain = new THREE.MeshStandardMaterial({ color: 0xf1e5cd, roughness: 0.9, clippingPlanes });
   const z0 = 0.04 + T;
+  const hinges: { hinge: THREE.Group; side: number }[] = [];
 
   for (const side of [-1, 1]) {
     const hinge = new THREE.Group();
     hinge.rotation.y = -side * OPEN;
+    hinges.push({ hinge, side });
     const cover = shaded(
       new THREE.Mesh(new RoundedBoxGeometry(W + 0.16, H + 0.18, 0.08, 3, 0.028), leather)
     );
@@ -262,6 +264,35 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
   );
   spine.position.z = -0.015;
   book.add(spine);
+
+  // the light of the book: a warm glow that lies on the open pages and breathes
+  const glowTex = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d")!;
+    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, "rgba(255, 226, 150, 0.75)");
+    grad.addColorStop(0.5, "rgba(255, 196, 96, 0.25)");
+    grad.addColorStop(1, "rgba(255, 180, 80, 0)");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  })();
+  const aura = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: glowTex,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+      clippingPlanes,
+    })
+  );
+  aura.position.set(0, 0.35, 0.9);
+  aura.scale.set(6.4, 4.6, 1);
+  root.add(aura);
 
   // a silk ribbon that hangs out of the foot of the book and sways
   const ribbonGeo = new THREE.PlaneGeometry(0.1, 1, 1, 12);
@@ -405,6 +436,7 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
 
   stage.onFrame((t, dt) => {
     leaves.forEach(bend);
+    aura.material.opacity = 0.2 + Math.sin(t * 1.4) * 0.06 + (rush.v - 1) * 0.06;
     // the ribbon: pinned at the top, swinging more the lower it hangs
     const rp = ribbonGeo.attributes.position;
     for (let i = 0; i <= 12; i++) {
@@ -438,17 +470,17 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       s.sprite.material.rotation = Math.sin(k * 5 + s.seed * 9) * 0.5;
       const fly = Math.max(0, (k - 0.4) / 0.6);
       s.dove.visible = fly > 0;
-      // towards the sun, which is low and a little to the right of the book
-      const far = fly * fly;
-      s.dove.position.set(
-        x + far * (2.2 - side),
-        y - far * 2.6 + Math.sin(fly * 10 + s.seed * 6) * 0.1 * (1 - fly),
-        0.8 - far * 2
-      );
-      s.dove.rotation.set(0.3, Math.PI / 2, -0.35 - fly * 0.3);
-      const kind = 0.55 + s.seed * 0.5;
+      // each bird leaves on its own heading (up, down, left, right, and between) and keeps going
+      // until it is off the stage; it is never seen coming back
+      const heading = s.seed * Math.PI * 2 + 0.6;
+      const far = fly * (0.4 + fly) * 9;
+      const hx = Math.cos(heading);
+      const hy = Math.sin(heading);
+      s.dove.position.set(x + hx * far, y + hy * far + Math.sin(fly * 12 + s.seed * 6) * 0.12, 0.8);
+      s.dove.rotation.set(0.3, hx >= 0 ? Math.PI / 2 : -Math.PI / 2, (hx >= 0 ? 1 : -1) * hy * 0.7);
+      const kind = 0.6 + s.seed * 0.6;
       s.dove.scale.set(kind, kind, kind * (1 + s.seed * 0.8));
-      s.dove.scale.multiplyScalar(Math.min(1, fly / 0.1) * (1 - far * 0.8));
+      s.dove.scale.multiplyScalar(Math.min(1, fly / 0.08));
       const beat = Math.sin(t * 11 + s.seed * 40) * 0.14;
       const dp = s.doveGeo.attributes.position;
       dp.setY(2, 0.03 + beat);
@@ -499,14 +531,29 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       gsap.to(flip, { timeScale: on ? 3.4 : 1, duration: 0.4 });
       gsap.to(rush, { v: on ? 3.2 : 1, duration: 0.5 });
     },
-    leave(rise) {
-      return gsap
+    leave(station) {
+      // the book comes to the middle of the stage, squares up, and closes; the page arrives as it shuts
+      const tl = gsap
         .timeline()
-        .to(flip, { timeScale: 6, duration: 0.3 }, 0)
-        .to(rush, { v: 5, duration: 0.3 }, 0)
-        .to(book.rotation, { x: -0.3, y: 0, z: 0, duration: 0.8, ease: "power2.inOut" }, 0)
-        .to(book.scale, { x: 1.25, y: 1.25, z: 1.25, duration: 0.8, ease: "power2.inOut" }, 0)
-        .to(root.position, { y: `+=${rise}`, duration: 0.75, ease: "power2.in" }, 0.75);
+        .to(rush, { v: 0.2, duration: 0.3 }, 0)
+        .to(leaves, { p: 0, duration: 0.3, ease: "power2.out", overwrite: true }, 0)
+        .to(station.position, { x: 0, y: 0, duration: 0.7, ease: "power3.inOut" }, 0)
+        .to(book.rotation, { x: -0.35, y: 0, z: 0, duration: 0.7, ease: "power3.inOut" }, 0)
+        .to(book.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.7, ease: "power3.inOut" }, 0)
+        .to(aura.scale, { x: 0.01, y: 0.01, duration: 0.5 }, 0.5);
+      flip.pause();
+      hinges.forEach(({ hinge, side }) =>
+        tl.to(
+          hinge.rotation,
+          { y: -side * (Math.PI / 2 - 0.02), duration: 0.55, ease: "power2.in" },
+          0.6
+        )
+      );
+      return tl.to(
+        book.scale,
+        { x: 0.001, y: 0.001, z: 0.001, duration: 0.25, ease: "power2.in" },
+        1.15
+      );
     },
   };
 }
