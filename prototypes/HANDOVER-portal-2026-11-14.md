@@ -526,3 +526,7 @@ like a stock ("really addictive"):
     1 year, all time. One is shown only once the history is that long; nothing is greyed out.
   - **Touch:** a finger dragged along the line keeps hold of it even if it strays off the graph;
     lifting returns to today. Vertical swipes still scroll the page.
+- **Passing an exam on the line names it by number**: "Full-length exam 3", not its score (Practice
+  has 1 to 5, Pro 1 to 20). The line it appears on is always kept, empty or not, so sliding across an
+  exam never shifts the sections, the spans or the graph. **Anything that appears on hover must have
+  its place reserved: nothing below may move.**

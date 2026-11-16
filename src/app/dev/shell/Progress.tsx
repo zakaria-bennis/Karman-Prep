@@ -404,7 +404,8 @@ export default function Progress({ student: key }: { student: StudentKey }) {
   const past = shown !== latest;
   const moved = shown ? shown[series] - first[series] : 0;
   const fell = latest ? latest[series] < first[series] : false;
-  const examOn = past ? student.exams.find((e) => e.day === shown.day) : undefined;
+  // which full-length exam, counted from 1, was taken on the day pointed at (0 for none)
+  const examOn = past ? student.exams.findIndex((e) => e.day === shown.day) + 1 : 0;
   const since = first ? `since ${short(dateOf(student, first.day))}` : "";
   const choose = (next: Series) => {
     setSeries(next);
@@ -441,11 +442,10 @@ export default function Progress({ student: key }: { student: StudentKey }) {
               >
                 {moved > 0 ? "+" : moved < 0 ? "−" : ""}
                 {Math.abs(moved)} {past ? since : span.said}
-                {examOn && (
-                  <span>
-                    Full-length exam that day <b>{split(examOn.day, examOn.score)[series]}</b>
-                  </span>
-                )}
+              </p>
+              {/* its place is always kept, so sliding across an exam never moves what is below */}
+              <p className={styles.examNote} aria-live="polite">
+                {examOn > 0 && `Full-length exam ${examOn}`}
               </p>
               <div className={styles.sections} role="group" aria-label="Score shown on the graph">
                 {(["total", "rw", "math"] as const)

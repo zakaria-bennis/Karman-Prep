@@ -67,15 +67,12 @@
   color: var(--down);
 }
 
-.ticker span {
-  display: block;
-  color: var(--ink);
+/* names the exam on the day pointed at. The line is always there, empty or not, so nothing shifts */
+.examNote {
+  min-height: 20px;
   font-size: 13px;
-  font-weight: 500;
-}
-
-.ticker span b {
-  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 /* the sections, inside the score and quieter than it. Each is a button: it swaps the graph to itself */
@@ -84,7 +81,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin: 14px 0 0;
+  margin: 6px 0 0;
 }
 
 .sections button {
