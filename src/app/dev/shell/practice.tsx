@@ -184,43 +184,42 @@ function TrialWatch({ size }: { size: number }) {
     <svg viewBox="-52 -54 340 340" width={size} height={size} aria-hidden="true" focusable="false">
       <defs>
         {[
-          ["kp-fire-a", "#c81e0e", "#ff5a1a"],
-          ["kp-fire-b", "#ff7a1a", "#ffb62e"],
-          ["kp-fire-c", "#ffc93a", "#fff2b0"],
+          ["kp-fire-a", "#c2200c", "#ff5c1c"],
+          ["kp-fire-b", "#ff7d1c", "#ffb93a"],
+          ["kp-fire-c", "#ffd75a", "#fff6cc"],
         ].map(([id, tip, root]) => (
-          <linearGradient key={id} id={id} x1="0" x2="1">
+          <linearGradient key={id} id={id} gradientUnits="userSpaceOnUse" x1="-172" x2="-58">
             <stop offset="0" stopColor={tip} stopOpacity="0" />
-            <stop offset="0.35" stopColor={tip} />
-            <stop offset="1" stopColor={root} />
+            <stop offset="0.45" stopColor={tip} stopOpacity="0.7" />
+            <stop offset="1" stopColor={root} stopOpacity="0.95" />
           </linearGradient>
         ))}
       </defs>
-      {/* the fire behind the watch: tongues that taper to a point, long and red outside, short and
-          pale at the heart, each flickering in its own time */}
-      <g data-a="fire">
-        {[-40, -30, -20, -10, 0, 10, 20, 30, 40].flatMap((turn, n) =>
-          (
+      {/* the fire: one body that wraps the left half of the watch and streams back from it, so no
+          flame can ever sit apart from the rim. Layers go from deep red outside to pale gold at the
+          heart; each fades to nothing at its tips and they show through one another, like real fire.
+          Every other layer is the same shape upside down, so the tongues never line up. */}
+      <g transform="translate(118 116)">
+        <g data-a="roar">
+          {(
             [
-              ["a", 100 - Math.abs(turn) * 0.9, 28],
-              ["b", 74 - Math.abs(turn) * 0.7, 21],
-              ["c", 46 - Math.abs(turn) * 0.45, 13],
+              ["a", 0.9, -1, 0.55],
+              ["a", 0.9, 1, 0.9],
+              ["b", 0.77, -1, 0.9],
+              ["b", 0.7, 1, 0.75],
+              ["c", 0.6, -1, 0.95],
             ] as const
-          ).map(([tone, long, wide], layer) => (
-            <path
-              key={`${turn} ${tone}`}
-              data-a="tongue"
-              style={
-                {
-                  "--lag": `${((n * 7 + layer * 3) % 10) / 40}s`,
-                  transformOrigin: "118px 116px",
-                } as CSSProperties
-              }
-              transform={`rotate(${turn} 118 116)`}
-              fill={`url(#kp-fire-${tone})`}
-              d={`M58 116C${58 - long * 0.25} ${116 - wide} ${58 - long * 0.7} ${116 - wide * 0.55} ${58 - long} 116C${58 - long * 0.7} ${116 + wide * 0.55} ${58 - long * 0.25} ${116 + wide} 58 116Z`}
-            />
-          ))
-        )}
+          ).map(([tone, by, flip, show], n) => (
+            <g key={n} transform={`scale(${by} ${by * flip})`} opacity={show}>
+              <path
+                data-a="flame"
+                style={{ "--lag": `${n * -0.11}s` } as CSSProperties}
+                fill={`url(#kp-fire-${tone})`}
+                d="M0-78C-34-86-72-82-122-110C-96-82-88-66-92-54C-114-60-142-56-166-68C-142-40-124-26-114-12C-134-8-154 4-168 24C-140 26-118 34-104 48C-118 60-126 74-128 94C-88 88-38 88 0 78Z"
+              />
+            </g>
+          ))}
+        </g>
       </g>
       {/* wind: streaks that rush past to the left, so the watch reads as flying to the right */}
       <g stroke="currentColor" strokeWidth="9" strokeLinecap="round" opacity="0.8">

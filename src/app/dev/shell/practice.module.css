@@ -167,9 +167,11 @@
   }
 }
 
-.tile [data-a="tongue"] {
-  transform-box: view-box;
-  animation: tongue 0.34s ease-in-out infinite alternate;
+/* the fire breathes from the watch's own edge: it stretches and settles about the watch's centre
+   (the origin of the group it is drawn in), so it never comes away from the rim */
+.tile [data-a="flame"] {
+  transform-origin: 0 0;
+  animation: flame 0.42s ease-in-out infinite alternate;
   animation-delay: var(--lag);
 }
 
@@ -212,10 +214,10 @@
   animation: flick 0.5s ease-in-out infinite alternate;
 }
 
-.tile [data-a="fire"] {
-  transform-box: fill-box;
-  transform-origin: 100% 50%;
-  animation: flick 0.3s ease-in-out infinite alternate;
+/* under the pointer the whole fire swells a little, still about the watch's centre */
+.tile [data-a="roar"] {
+  transform-origin: 0 0;
+  transition: transform 0.2s var(--out);
 }
 
 :is(.mode, .task):is(:hover, :focus-within) [data-a="watch"],
@@ -223,8 +225,8 @@
   animation: turn 1s cubic-bezier(0.5, 0, 0.3, 1) infinite;
 }
 
-:is(.mode, .task):is(:hover, :focus-within) [data-a="fire"] {
-  animation: blaze 0.16s ease-in-out infinite alternate;
+:is(.mode, .task):is(:hover, :focus-within) [data-a="roar"] {
+  transform: scale(1.1);
 }
 
 /* the compass goes wild, settles on north, rests, and begins again */
@@ -275,16 +277,6 @@
   }
 }
 
-@keyframes blaze {
-  from {
-    transform: scaleX(1.05);
-  }
-
-  to {
-    transform: scaleX(1.3) skewY(2deg);
-  }
-}
-
 @keyframes seek {
   0% {
     transform: rotate(0deg);
@@ -328,15 +320,13 @@
   }
 }
 
-@keyframes tongue {
+@keyframes flame {
   from {
-    scale: 0.9 1.06;
-    opacity: 0.92;
+    transform: scale(0.93, 1.04) skewY(-2deg);
   }
 
   to {
-    scale: 1.12 0.9;
-    opacity: 1;
+    transform: scale(1.07, 0.96) skewY(2deg);
   }
 }
 

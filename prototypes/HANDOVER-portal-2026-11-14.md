@@ -450,3 +450,8 @@ His rules from this round:
   160%, remembered on his computer (`kp-frost`). It sets `--frost-k` on the shell; every blur multiplies
   by it. When he settles on a number, make it the default and remove the dial.
 - He said after this round he is ready to move to the next page. Ask which one; do not pick for him.
+- **Time trials fire, redrawn (same day).** He sent two references: a stopwatch with one body of flame
+  wrapped round its rim, and a photo of real, see-through fire. Rule: every flame touches the clock's
+  circumference; none may sit apart. The fire is now one shape that starts behind the watch and streams
+  left, in five see-through layers from deep red to pale gold. He said that is all for the Library for
+  now.
