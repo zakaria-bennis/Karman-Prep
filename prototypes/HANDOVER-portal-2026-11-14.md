@@ -810,9 +810,10 @@ that is marked as one (`rewardsData.ts` lists which is which). Files: `Rewards.t
   other characters and their challenges**, which he asked me to draft on 2026-11-14 (Owl, Rabbit,
   Hedgehog, Deer, Otter, Squirrel, Heron, Badger, Lynx, Bear, Wolf, Crane, Red panda, Stag, Phoenix).
   None of the 15 is drawn; the owl still has to be redrawn so it reads as an owl.
-- **Open with him:** whether a box holds only things to wear or characters too (his 2026-10-30 rule
-  says characters come only from challenges; his 2026-11-14 list said boxes hold "characters and
-  accessories"); where a student sees and changes what they own; what a theme changes; and the
+- **A box holds only things to wear** (his answer, 2026-11-16: "Only things to wear"). Characters
+  come from their challenges and from nothing else. This settles the two statements of his that
+  differed (2026-10-30 and 2026-11-14).
+- **Open with him:** where a student sees and changes what they own; what a theme changes; and the
   question raised on 2026-11-15 and never answered, that a streak multiplier that resets and mystery
   boxes are patterns flagged for under-18s.
 - `plans.ts` now holds the menu lists that were in `page.tsx` (which is back to about 635 lines).

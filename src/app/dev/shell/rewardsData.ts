@@ -2,10 +2,12 @@
 //   Settled by the founder: coins are earned by leveling up skills, by the score on full-length
 //   exams, by time trials, endless mode and the Daily 10; a streak on the challenge question raises a
 //   multiplier in steps of 0.25x up to 5x, and a missed day returns it to 1x; coins buy mystery boxes,
-//   themes and quiz-engine skins; there are 16 characters, each unlocked by its own challenge; the
-//   fox is every student's first.
-//   Not settled, and made up here: every price and amount, what the themes and skins are, what a
-//   box holds, and the 15 other characters with their challenges (he asked for a draft of those).
+//   themes and quiz-engine skins; a box holds only things to wear, never a character (founder,
+//   2026-11-16); there are 16 characters, each unlocked by its own challenge and by nothing else;
+//   the fox is every student's first.
+//   Not settled, and made up here: every price and amount, what the themes and skins are, which
+//   things to wear there are, and the 15 other characters with their challenges (he asked for a
+//   draft of those).
 
 export const COINS = 1840;
 /** Days in a row with the challenge question answered. */
@@ -28,7 +30,8 @@ export const EARNED = [
 export const BOX_PRICE = 500;
 
 export type Wear = "glasses" | "hat" | "crown" | "leaf";
-/** What a mystery box can hold: things the student's character wears. */
+/** What a mystery box can hold: things the student's character wears, and nothing else. These four
+ *  are stand-ins. */
 export const PRIZES: { key: Wear; name: string }[] = [
   { key: "glasses", name: "Round glasses" },
   { key: "hat", name: "Party hat" },
