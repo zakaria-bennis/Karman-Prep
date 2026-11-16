@@ -5,25 +5,23 @@
 //   left    the number kept like a stock, as on the predicted score: what it stands at, a ticker, the
 //           spans, and the line. Pointing along the line shows the number as it stood that day.
 //   right   what stands behind the number, broken down for the same span (ProgressDetails.tsx).
-// Pacing also splits into Reading and Writing and Math, and draws the student's goal across the graph:
-// the pace the real SAT allows, longer for a student with extra time. It says how far over or under
-// that goal the student is.
-// The right-hand panes always end level with the trend: the last one takes any height left over and
-// simply stays empty there. Exams taken has no trend at all, only its list.
-// On a phone the two panes are two pages with buttons, so neither scrolls a long way.
+// Pacing splits into Reading and Writing and Math, and draws the student's goal across the graph: the
+// pace the real SAT allows, longer for a student with extra time. Questions answered carries accuracy
+// too: a second button swaps the number and the line to the share answered right.
+// The right-hand panes end level with the trend: the last one takes any height left over and stays
+// empty there. Exams taken has no trend at all, only its list.
+// On a phone nothing scrolls: the trend and each pane are pages of their own, with buttons.
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import styles from "./progress.module.css";
 import { PACE_GOAL, PACE_PARTS, paceOf, type Found, type PacePart } from "./progressBreakdowns";
 import { dateOf, long, short, type DayLog, type Student } from "./progressData";
-import Details from "./ProgressDetails";
+import Details, { Only, PANES } from "./ProgressDetails";
 import page from "./progressDetails.module.css";
 import { Graph, Spans, niceMarks, spanFor, type SpanKey } from "./ProgressGraph";
 import { STATS, ledger, minSec, wayOf, type StatKey } from "./progressStats";
 import { tick } from "./sound";
-
-const PAGES = ["Trend", "Breakdown"] as const;
 
 export default function ProgressStat({
   rail,
@@ -42,18 +40,21 @@ export default function ProgressStat({
   onSkill: (found: Found) => void;
 }) {
   const still = useReducedMotion() ?? false;
-  const stat = STATS[key];
   const book = useMemo(() => ledger(student, logs), [student, logs]);
   const [wanted, setWanted] = useState<SpanKey | null>(null);
   const [at, setAt] = useState<number | null>(null);
   const [part, setPart] = useState<PacePart>("all");
-  const [shown, setShown] = useState<(typeof PAGES)[number]>("Trend");
+  /** Questions answered shows its count, or the share of them answered right. */
+  const [rate, setRate] = useState(false);
+  const [shown, setShown] = useState("Trend");
+  const pacing = key === "pace";
+  const stat = STATS[key === "questions" && rate ? "accuracy" : key];
   const span = spanFor(wanted, student.days, stat.allTime);
   const from = span.days === Infinity ? 0 : student.days - span.days;
-  const pacing = key === "pace";
   const series = useMemo(
-    () => (pacing ? paceOf(book.pace, part) : book[key]),
-    [book, key, pacing, part]
+    () =>
+      pacing ? paceOf(book.pace, part) : key === "questions" && rate ? book.accuracy : book[key],
+    [book, key, pacing, part, rate]
   );
   const goal = pacing ? Math.round(PACE_GOAL[part] * extraTime) : null;
   const points = useMemo(
@@ -66,8 +67,12 @@ export default function ProgressStat({
   const over = goal === null ? 0 : series[day] - goal;
   // a count of exams over time says nothing, so that page is its list alone, across the whole page
   const lone = key === "exams";
-  const see = (name: (typeof PAGES)[number]) =>
-    lone ? name === "Breakdown" : rail || shown === name;
+  const pages = ["Trend", ...PANES[key]];
+  const swap = (go: () => void) => {
+    go();
+    setAt(null);
+    tick();
+  };
 
   return (
     <div
@@ -76,8 +81,8 @@ export default function ProgressStat({
       data-lone={lone || undefined}
     >
       {!rail && !lone && (
-        <div className={lib.pager} role="group" aria-label="Page">
-          {PAGES.map((name) => (
+        <div className={`${lib.pager} ${page.tabs}`} role="group" aria-label="Page">
+          {pages.map((name) => (
             <button
               key={name}
               type="button"
@@ -102,7 +107,7 @@ export default function ProgressStat({
         </div>
       )}
 
-      {see("Trend") && (
+      {!lone && (rail || shown === "Trend") && (
         <section
           className={`${lib.glass} ${styles.score} ${page.trend}`}
           aria-label={stat.name}
@@ -139,16 +144,28 @@ export default function ProgressStat({
                     key={k}
                     type="button"
                     aria-pressed={part === k}
-                    onClick={() => {
-                      setPart(k);
-                      setAt(null);
-                      tick();
-                    }}
+                    onClick={() => swap(() => setPart(k))}
                   >
                     {PACE_PARTS[k]}
                     <b>{minSec(paceOf(book.pace, k)[day])}</b>
                   </button>
                 ))}
+              </div>
+            )}
+            {key === "questions" && (
+              <div className={styles.sections} role="group" aria-label="Shown on the graph">
+                <button
+                  type="button"
+                  aria-pressed={!rate}
+                  onClick={() => swap(() => setRate(false))}
+                >
+                  Answered
+                  <b>{STATS.questions.show(book.questions[day])}</b>
+                </button>
+                <button type="button" aria-pressed={rate} onClick={() => swap(() => setRate(true))}>
+                  Accuracy
+                  <b>{STATS.accuracy.show(book.accuracy[day])}</b>
+                </button>
               </div>
             )}
           </div>
@@ -181,17 +198,20 @@ export default function ProgressStat({
         </section>
       )}
 
-      {see("Breakdown") && (
-        <div className={page.side}>
-          <Details
-            stat={key}
-            student={student}
-            logs={logs}
-            book={book}
-            from={from}
-            part={part}
-            onSkill={onSkill}
-          />
+      {(rail || lone || shown !== "Trend") && (
+        <div className={page.side} data-loose={key === "days" || undefined}>
+          {/* on a phone only the pane whose page is open is drawn */}
+          <Only.Provider value={rail || lone ? null : shown}>
+            <Details
+              stat={key}
+              student={student}
+              logs={logs}
+              book={book}
+              from={from}
+              part={part}
+              onSkill={onSkill}
+            />
+          </Only.Provider>
         </div>
       )}
     </div>

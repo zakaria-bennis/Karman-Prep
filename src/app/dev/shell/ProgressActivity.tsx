@@ -1,8 +1,9 @@
 "use client";
 
 // Progress, step 2 (founder, 2026-11-15 and 2026-11-16): the numbers and the calendar.
-//   Stats      seven numbers in his order: time invested, questions answered, skills Proficient, exams
-//              taken, pacing, accuracy, days practiced. Each is a button that opens the number's own
+//   Stats      six numbers in his order: time invested, questions answered, skills Proficient, exams
+//              taken, pacing, days practiced. Accuracy is inside Questions answered. Exams taken has
+//              no small line. Each is a button that opens the number's own
 //              page. Each reads like a stock: what it stands at, a ticker of how far it moved over
 //              the span chosen (7 days, 30 days; none for all time), and a small line with a fading
 //              fill. A line that rose is green and one that fell is red, for every number.
@@ -132,10 +133,13 @@ export function Stats({
                 <span className={styles.tick} data-way={way}>
                   {period.days === Infinity ? "" : moved === 0 ? "no change" : stat.moved(moved)}
                 </span>
-                <Spark
-                  values={thin(series.slice(from, to + 1))}
-                  way={way === "flat" ? "up" : way}
-                />
+                {/* a count of exams has no line worth drawing: its place is kept, empty */}
+                {key !== "exams" && (
+                  <Spark
+                    values={thin(series.slice(from, to + 1))}
+                    way={way === "flat" ? "up" : way}
+                  />
+                )}
                 <svg
                   className={styles.chev}
                   viewBox="0 0 24 24"

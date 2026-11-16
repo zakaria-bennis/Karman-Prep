@@ -151,6 +151,17 @@ function Shell() {
   }, [frost]);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
+  /* Escape steps back out of a number's page to Progress */
+  useEffect(() => {
+    if (!inStat) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      dir.current = -1;
+      setStat(null);
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [inStat]);
   // `domain` holds a domain's name or, from the key beside the ring, a level's name
   const openDomain =
     section && domain ? DOMAINS[section].find((d) => d.name === domain) : undefined;

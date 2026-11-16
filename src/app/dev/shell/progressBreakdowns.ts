@@ -6,8 +6,6 @@ import { QUESTION_BANK } from "@/lib/marketing/offer";
 import { split, type DayLog, type Student } from "./progressData";
 import { SECTIONS, SKILLS, type Section, type Skill } from "./skills72";
 
-export const LEVEL_COUNT = QUESTION_BANK.difficultyLevels;
-
 /** How the made-up student's work falls across the two sections, and the four domains of each. */
 const SECTION_SHARE: Record<Section, number> = { "Reading and Writing": 0.46, Math: 0.54 };
 const DOMAIN_SHARE: Record<Section, number[]> = {
@@ -42,19 +40,10 @@ export function byDomain(total: number): DomainPart[] {
 
 const clamp = (n: number, low: number, high: number) => Math.min(high, Math.max(low, n));
 const DOMAIN_LEAN = [6, -4, 2, -7, 5, -2, -9, 3];
-const LEVEL_LEAN = [14, 10, 6, 1, -5, -12, -20];
 
 /** Accuracy in each of the eight domains, around the student's own. */
 export const accuracyByDomain = (accuracy: number) =>
   byDomain(0).map((d, i) => ({ ...d, value: clamp(accuracy + DOMAIN_LEAN[i], 20, 99) }));
-
-/** Accuracy at each difficulty level, 1 the easiest: it falls as the questions get harder. */
-export const accuracyByLevel = (accuracy: number) =>
-  Array.from({ length: LEVEL_COUNT }, (_, i) => clamp(accuracy + LEVEL_LEAN[i], 15, 99));
-
-/** The hardest level the student has met so far. */
-export const hardestLevel = (student: Student) =>
-  Math.min(LEVEL_COUNT, 3 + Math.floor(student.days / 20));
 
 /** Questions by the kind of work they came from, with how many of each were right. */
 export function byMode(questions: number, exams: number, accuracy: number) {
@@ -113,9 +102,11 @@ export const recentSlips = (): Change[] =>
   }));
 /** The skills missed most often, with the accuracy on each. */
 export const mostMissed = () => atLevel(1, 3).map((f, i) => ({ ...f, accuracy: [38, 44, 51][i] }));
-/** The skills answered slowest, with the pace on each, in seconds. */
+/** The ten skills answered slowest, slowest first, with the pace on each, in seconds. */
 export const slowest = (pace: number, only?: Section) =>
-  atLevel(1, 3, only).map((f, i) => ({ ...f, pace: pace + [34, 27, 21][i] }));
+  [...atLevel(1, 10, only), ...atLevel(0, 10, only), ...atLevel(2, 10, only)]
+    .slice(0, 10)
+    .map((f, i) => ({ ...f, pace: pace + 34 - i * 3 }));
 
 /** Every skill of a section, for its ring. */
 export const skillsOf = (section: Section) => SKILLS[section].flatMap((d) => d.skills);

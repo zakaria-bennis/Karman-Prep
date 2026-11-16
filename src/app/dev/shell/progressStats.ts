@@ -1,19 +1,13 @@
 // The numbers beside the predicted score, in the founder's order (2026-11-16): time invested, questions
-// answered, skills Proficient, exams taken, pacing, accuracy, days practiced. Each is kept like a
+// answered (which carries accuracy), skills Proficient, exams taken, pacing, days practiced. Each is kept like a
 // stock: what it stands at now, how far it moved over a span, and a line of how it got there. A line
 // that fell is red and one that rose is green, whatever the number.
 import { SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
 
 export type StatKey = "time" | "questions" | "skills" | "exams" | "pace" | "accuracy" | "days";
-export const STAT_ORDER: StatKey[] = [
-  "time",
-  "questions",
-  "skills",
-  "exams",
-  "pace",
-  "accuracy",
-  "days",
-];
+/** The numbers shown beside the score, in his order. Accuracy is kept as a number but has no place of
+ *  its own there: it is shown inside Questions answered (founder, 2026-11-16). */
+export const STAT_ORDER: StatKey[] = ["time", "questions", "skills", "exams", "pace", "days"];
 
 export const clock = (minutes: number) =>
   minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;

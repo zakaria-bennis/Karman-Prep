@@ -8,28 +8,26 @@
 //               By weekday: upright bars, and the average day.
 //   questions   By domain and By mode: how many were answered, then one band for all of them, green
 //               for the share that was right and red for the share missed, beside the percent right.
+//               Missed most: the skills missed most often. Accuracy lives here; it has no page of
+//               its own, and nothing is shown by difficulty level (founder: students do not see it).
 //   skills      Sections: the Library's rings. Recent gains and Recent slips: the eight to ten latest
 //               changes of level, up or down, each skill opening in the Library.
 //   exams       Every exam with its total, sections, date and change; the exams left; Start. This
 //               page has no trend: a count of exams over time says nothing.
-//   pace        By outcome: pace on right answers and on missed ones. Slowest skills.
-//   accuracy    By domain and By difficulty as plain percents, no bars; Missed most.
+//   pace        By outcome: pace on right answers and on missed ones. Slowest skills: the ten slowest.
 //   days        Past year: a grid of small squares. Streaks, and the best weekday.
 // Every mark is the Library's one green. Every figure is a stand-in (progressBreakdowns.ts).
-import { type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { Pips, ringOf, tally } from "./Library";
 import lib from "./library.module.css";
 import { GoButton } from "./practice";
 import {
-  LEVEL_COUNT,
   accuracyByDomain,
-  accuracyByLevel,
   byDomain,
   byMode,
   byWeekday,
   examRows,
   examsInPlan,
-  hardestLevel,
   longestStreak,
   mostMissed,
   paceOf,
@@ -46,7 +44,23 @@ import styles from "./progressDetails.module.css";
 import { clock, minSec, type StatKey } from "./progressStats";
 import { LEVELS, SECTIONS } from "./skills72";
 
+/** The panes each number's page has, in order. On a phone each is a page of its own. */
+export const PANES: Record<StatKey, string[]> = {
+  time: ["By domain", "By weekday"],
+  questions: ["By domain", "By mode", "Missed most"],
+  skills: ["Sections", "Recent gains", "Recent slips"],
+  exams: ["Exams"],
+  pace: ["By outcome", "Slowest skills"],
+  accuracy: [],
+  days: ["Past year", "Streaks"],
+};
+
+/** On a phone, the one pane to draw; with room, none is named and all are drawn. */
+export const Only = createContext<string | null>(null);
+
 function Pane({ title, children }: { title: string; children: ReactNode }) {
+  const only = useContext(Only);
+  if (only !== null && only !== title) return null;
   return (
     <section className={`${lib.glass} ${styles.pane}`} aria-label={title}>
       <h2>{title}</h2>
@@ -256,7 +270,13 @@ export default function Details({
               share: kind.right / kind.asked,
             }))}
           />
-          <Fact value={`${hardestLevel(student)} of ${LEVEL_COUNT}`} label="Hardest level" />
+        </Pane>
+        <Pane title="Missed most">
+          <ul className={styles.rows}>
+            {mostMissed().map((f) => (
+              <SkillRow key={f.skill.name} found={f} value={`${f.accuracy}%`} onSkill={onSkill} />
+            ))}
+          </ul>
         </Pane>
       </>
     );
@@ -378,33 +398,6 @@ export default function Details({
           <ul className={styles.rows}>
             {slow.map((f) => (
               <SkillRow key={f.skill.name} found={f} value={minSec(f.pace)} onSkill={onSkill} />
-            ))}
-          </ul>
-        </Pane>
-      </>
-    );
-  }
-
-  if (stat === "accuracy") {
-    return (
-      <>
-        <Pane title="By domain">
-          <Table lines={domainLines(accuracyByDomain(accuracy), (p) => p.value / 100, false)} />
-        </Pane>
-        <Pane title="By difficulty">
-          <ol className={styles.levels}>
-            {accuracyByLevel(accuracy).map((value, i) => (
-              <li key={i}>
-                <b>{value}%</b>
-                Level {i + 1}
-              </li>
-            ))}
-          </ol>
-        </Pane>
-        <Pane title="Missed most">
-          <ul className={styles.rows}>
-            {mostMissed().map((f) => (
-              <SkillRow key={f.skill.name} found={f} value={`${f.accuracy}%`} onSkill={onSkill} />
             ))}
           </ul>
         </Pane>

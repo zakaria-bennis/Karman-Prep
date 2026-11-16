@@ -640,3 +640,19 @@ stand-in figures in `progressBreakdowns.ts`). On a phone they are two pages, Tre
 - **Accuracy:** no bars at all; By domain and By difficulty are plain percents.
 - **Exams taken has no trend** ("there doesn't need to be a trend for the full-length exams"): its
   page is the list alone, across the whole page.
+
+**Pages behind the numbers, fourth round (2026-11-16), applied; awaiting his verdict.**
+- **Six numbers now, not seven:** time invested, questions answered, skills Proficient, exams taken,
+  pacing, days practiced. **Accuracy has no tile and no page of its own.** It lives inside Questions
+  answered: a second button there swaps the number and the line to accuracy, By domain already shows
+  the share right, and Missed most moved there.
+- **Students never see anything by difficulty level**, "even though it's data that we collect". By
+  difficulty and "hardest level" are deleted. Do not show level 1 to 7 to a student anywhere.
+- **Exams taken has no line** on the main page either (its place in the row stays, empty).
+- **Slowest skills is the ten slowest**, not three.
+- **The big value is centered on the pane**; small words after it ("per question", "of 72") hang
+  beside it without shifting it.
+- **Escape goes back to Progress** from any number's page.
+- **Days practiced:** its right-hand panes keep their own height; they do not stretch to the trend.
+- **Phone: no scrolling.** A number's page has a button for the trend and one for each pane (up to
+  four), and every one fits the screen. Measured: none scrolls.
