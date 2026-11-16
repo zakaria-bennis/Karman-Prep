@@ -779,3 +779,42 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
 - Not built: the exam breakdown page (an exam in the log shows its questions; the exam rows on Exams
   taken still open nothing), saving bookmarks and flags, real data, the test date in Settings.
 - Next: his verdict; then the new-student page.
+
+**Rewards: first version built (2026-11-16), awaiting his verdict.** He said only "start making the
+rewards tab", so this is built from what he had already settled, with every gap filled by a stand-in
+that is marked as one (`rewardsData.ts` lists which is which). Files: `Rewards.tsx`, `RewardsBox.tsx`,
+`rewardsData.ts`, `rewards.module.css`.
+- **Settled by him earlier and used here:** coins are spent only on Rewards and appear nowhere else;
+  coins are gold in every theme; they are earned by leveling up skills, full-length exam scores,
+  time trials, endless mode and the Daily 10; the challenge-question streak raises a multiplier by
+  0.25x a day up to 5x and a missed day returns it to 1x; coins buy mystery boxes, themes and
+  quiz-engine skins; the box is a chunky gift box that bursts into blocks, one at a time, no shadow,
+  nothing unfolding like paper; the prize is shown on the fox and never put on for the student
+  ("Wear it" or "Keep for later"); 16 characters, each unlocked by its own challenge; the fox is
+  every student's first.
+- **The page.** With room, three panes on one screen: **Coins** (the number held, the multiplier
+  with a 16-step climb to 5x, and where this week's coins came from), the **mystery box** with the
+  **shop** under it (Themes and Skins, four each: a price to buy, then "Use" and "In use"), and
+  **Characters** (a 4 by 4 grid; a locked one shows a lock and a line along its foot for how far
+  along its challenge is; pressing one names it and its challenge in a card of fixed height). In the
+  medium-width window the box and shop sit side by side on top, with coins and characters under. On a
+  phone a slim line always shows the coins held, and Box, Coins, Shop and Characters are pages; none
+  scrolls.
+- **The box works:** Open takes the price, the box bursts into sixteen blocks, the prize appears on
+  the fox, and Wear it puts it on (it then shows on the fox in Characters). Buying a theme or skin
+  takes its price. Nothing is saved.
+- **Made up, for him to decide:** every price and amount (a box 500; themes 600 to 1,200; skins 400
+  to 900; this week's earnings); what the themes are (Sunrise, Golden hour, Night, First snow) and
+  what the skins are (Classic, Chalkboard, Paper, Midnight); what a box holds (four things the fox
+  wears, drawn in code: round glasses, party hat, crown, spring leaf); and the **draft of the 15
+  other characters and their challenges**, which he asked me to draft on 2026-11-14 (Owl, Rabbit,
+  Hedgehog, Deer, Otter, Squirrel, Heron, Badger, Lynx, Bear, Wolf, Crane, Red panda, Stag, Phoenix).
+  None of the 15 is drawn; the owl still has to be redrawn so it reads as an owl.
+- **Open with him:** whether a box holds only things to wear or characters too (his 2026-10-30 rule
+  says characters come only from challenges; his 2026-11-14 list said boxes hold "characters and
+  accessories"); where a student sees and changes what they own; what a theme changes; and the
+  question raised on 2026-11-15 and never answered, that a streak multiplier that resets and mystery
+  boxes are patterns flagged for under-18s.
+- `plans.ts` now holds the menu lists that were in `page.tsx` (which is back to about 635 lines).
+- The phone audit walks Rewards too.
+- Next: his verdict on Rewards; then the new-student page for Progress, or the characters.

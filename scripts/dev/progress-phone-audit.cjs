@@ -1,4 +1,4 @@
-// Walks every Progress screen in /dev/shell, and the Mistake Log, on three phone sizes and reports text that spills out of
+// Walks every Progress screen in /dev/shell, the Mistake Log and Rewards, on three phone sizes and reports text that spills out of
 // its pane, is cut off, overlaps other text, or makes the page scroll. Run with the dev server up:
 //   NODE_PATH=$PWD/node_modules node scripts/dev/progress-phone-audit.cjs <folder for screenshots>
 
@@ -127,6 +127,13 @@ const audit = () => {
       await main.getByRole("button", { name: "Geometry and Trigonometry" }).click(); await check("Mistake Log / skills menu, a domain open", true);
       await main.getByRole("menuitemcheckbox", { name: "Circle equations" }).click(); await p.keyboard.press("Escape");
       await lens("Bookmarks"); await check("Mistake Log / nothing here", true);
+      // Rewards: its four pages, and a box opened
+      await p.getByRole("navigation").getByRole("button", { name: "Rewards" }).click(); await p.waitForTimeout(900);
+      await check("Rewards / Box");
+      await main.getByRole("button", { name: /^Open/ }).click(); await p.waitForTimeout(1100); await check("Rewards / a prize");
+      await main.getByRole("button", { name: "Keep for later" }).click(); await p.waitForTimeout(500);
+      for (const pg of ["Coins", "Shop", "Characters"]) { await main.getByRole("button", { name: pg, exact: true }).click(); await check(`Rewards / ${pg}`); }
+      await main.getByRole("button", { name: /^Bear/ }).click(); await check("Rewards / a character pressed");
       await c.close();
     }
   }

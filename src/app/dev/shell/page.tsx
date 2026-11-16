@@ -41,64 +41,9 @@ import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
+import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
+import Rewards from "./Rewards";
 import { Sticker, type StickerName } from "./stickers";
-
-const LABEL: Record<StickerName, string> = {
-  homework: "Homework",
-  library: "Library",
-  class: "Class",
-  schedule: "Schedule",
-  progress: "Progress",
-  mistakes: "Mistake Log",
-  rewards: "Rewards",
-  chat: "Chat",
-  settings: "Settings",
-  more: "More",
-};
-
-/** On the phone's bar every name has a fifth of the width, so the one long name is said shorter
- *  there. The page and the desktop menu say it in full. */
-const ON_BAR: Partial<Record<StickerName, string>> = { mistakes: "Mistakes" };
-
-/** The founder's menus. `bar` is the phone's five; `rail` is the desktop's, which has room for what the
- *  phone keeps under More. `home` is where that student lands. The Mistake Log sits right
- *  under Progress (founder, 2026-11-16); where a phone's five are already taken, it opens from a button
- *  beside Progress's name instead. */
-const PLANS = {
-  practice: {
-    label: "Free, Practice, Pro",
-    name: "Practice",
-    // on a phone the Library is the middle of the five, with Progress and the Mistake Log at its left
-    // and Rewards and More at its right (founder, 2026-11-16)
-    bar: ["progress", "mistakes", "library", "rewards", "more"],
-    rail: ["library", "progress", "mistakes", "rewards"],
-    home: "library",
-  },
-  cohort: {
-    label: "Cohort",
-    name: "Cohort",
-    bar: ["homework", "library", "class", "progress", "more"],
-    home: "homework",
-    rail: ["homework", "library", "class", "chat", "progress", "mistakes", "rewards"],
-  },
-  private: {
-    label: "Private",
-    name: "Private",
-    bar: ["homework", "library", "schedule", "progress", "more"],
-    home: "homework",
-    rail: ["homework", "library", "schedule", "chat", "progress", "mistakes", "rewards"],
-  },
-} as const satisfies Record<
-  string,
-  {
-    label: string;
-    name: string;
-    bar: readonly StickerName[];
-    rail: readonly StickerName[];
-    home: StickerName;
-  }
->;
-type Plan = keyof typeof PLANS;
 
 /* Springs, in Apple's terms (Designing Fluid Interfaces): a quick response with a little bounce where a
    press or a flick carried the motion, none where a surface simply opens. */
@@ -623,6 +568,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
+        {page === "rewards" && <Rewards rail={rail} />}
         {page === "mistakes" && (
           <MistakeLog
             key={student}
