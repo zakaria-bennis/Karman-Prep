@@ -623,3 +623,20 @@ stand-in figures in `progressBreakdowns.ts`). On a phone they are two pages, Tre
 - **"All time" is not offered for a count that only adds up** (time invested, questions answered,
   skills Proficient, exams taken): there it is only the number again. Those open on the longest span
   the student has. Pacing, accuracy and days practiced keep it.
+
+**Pages behind the numbers, third round (2026-11-16), applied; awaiting his verdict.**
+- **A bug he caught:** the span picker sat "inside the trend". When a number reached a ceiling that
+  is not a round step (72 of 72 skills), the top mark of the graph stopped short of it and the line
+  was drawn up out of the graph, through the picker. `niceMarks` now always ends on a mark at or
+  above the highest value, and the line and its fill are clipped to the plot. Check a graph with a
+  student at the ceiling, not only the 9-week one.
+- **Skills Proficient:** "Recent gains" and "Recent slips" replace Gained and Slipped. Together they
+  are the eight to ten latest changes of level, up or down; every level counts, not only Proficient.
+  Each row shows the Library's three bars and the level the skill is at now.
+- **The right-hand panes end level with the trend**, always: the last pane takes the height left
+  over and stays empty there ("if there's not enough recents, just keep it as empty space").
+- **Questions answered:** each band is everything answered, green for right and red for missed. No
+  heading over the bands.
+- **Accuracy:** no bars at all; By domain and By difficulty are plain percents.
+- **Exams taken has no trend** ("there doesn't need to be a trend for the full-length exams"): its
+  page is the list alone, across the whole page.

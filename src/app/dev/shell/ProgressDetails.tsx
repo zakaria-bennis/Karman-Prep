@@ -6,16 +6,18 @@
 //   time        By domain: each section's time as one band cut into its four domains, darkest for
 //               the most, with the domains keyed under it. Never by skill, never by kind of work.
 //               By weekday: upright bars, and the average day.
-//   questions   By domain and By mode: a small table. How many were answered, and what share were
-//               right, as a band out of 100% beside the percent.
-//   skills      Sections: the Library's rings. Gained and Slipped: skills, each opening in the Library.
-//   exams       Every exam with its total, sections, date and change; the exams left; Start.
+//   questions   By domain and By mode: how many were answered, then one band for all of them, green
+//               for the share that was right and red for the share missed, beside the percent right.
+//   skills      Sections: the Library's rings. Recent gains and Recent slips: the eight to ten latest
+//               changes of level, up or down, each skill opening in the Library.
+//   exams       Every exam with its total, sections, date and change; the exams left; Start. This
+//               page has no trend: a count of exams over time says nothing.
 //   pace        By outcome: pace on right answers and on missed ones. Slowest skills.
-//   accuracy    By domain (a band out of 100%), By difficulty (upright bars), Missed most.
+//   accuracy    By domain and By difficulty as plain percents, no bars; Missed most.
 //   days        Past year: a grid of small squares. Streaks, and the best weekday.
 // Every mark is the Library's one green. Every figure is a stand-in (progressBreakdowns.ts).
 import { type CSSProperties, type ReactNode } from "react";
-import { ringOf, tally } from "./Library";
+import { Pips, ringOf, tally } from "./Library";
 import lib from "./library.module.css";
 import { GoButton } from "./practice";
 import {
@@ -27,13 +29,13 @@ import {
   byWeekday,
   examRows,
   examsInPlan,
-  gained,
   hardestLevel,
   longestStreak,
   mostMissed,
   paceOf,
   skillsOf,
-  slipped,
+  recentGains,
+  recentSlips,
   slowest,
   type DomainPart,
   type Found,
@@ -41,9 +43,8 @@ import {
 } from "./progressBreakdowns";
 import { dateOf, short, streak, type DayLog, type Student } from "./progressData";
 import styles from "./progressDetails.module.css";
-import type { Span } from "./ProgressGraph";
 import { clock, minSec, type StatKey } from "./progressStats";
-import { SECTIONS } from "./skills72";
+import { LEVELS, SECTIONS } from "./skills72";
 
 function Pane({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -91,30 +92,24 @@ function Shares({ parts, show }: { parts: DomainPart[]; show: (value: number) =>
 
 type Line = { name: string; head?: boolean; count?: number; share: number };
 
-/** A small table: a name, optionally how many, and a share out of 100% drawn as a band beside its
- *  percent. The column heads say what each is, so nothing has to be worked out. */
-function Table({ count, share, lines }: { count?: string; share: string; lines: Line[] }) {
+/** A small table of rows: a name, optionally how many, optionally a band, and a percent. The band is
+ *  the whole of what was answered: green for the share that was right, red for the share missed
+ *  (founder, 2026-11-16). There are no column heads: the colors say it. */
+function Table({ counted, band, lines }: { counted?: boolean; band?: boolean; lines: Line[] }) {
   return (
-    <table className={styles.table} data-counted={count ? true : undefined}>
-      <thead>
-        <tr>
-          <td />
-          {count && <th scope="col">{count}</th>}
-          <th scope="col" colSpan={2}>
-            {share}
-          </th>
-        </tr>
-      </thead>
+    <table className={styles.table} data-counted={counted || undefined}>
       <tbody>
         {lines.map((line) => (
           <tr key={line.name} data-head={line.head || undefined}>
             <th scope="row">{line.name}</th>
-            {count && <td>{line.count?.toLocaleString("en-US")}</td>}
-            <td>
-              <span className={styles.band} aria-hidden="true">
-                <i style={{ width: `${line.share * 100}%` }} />
-              </span>
-            </td>
+            {counted && <td>{line.count?.toLocaleString("en-US")}</td>}
+            {band && (
+              <td>
+                <span className={styles.band} aria-hidden="true">
+                  <i style={{ width: `${line.share * 100}%` }} />
+                </span>
+              </td>
+            )}
             <td>{Math.round(line.share * 100)}%</td>
           </tr>
         ))}
@@ -169,21 +164,24 @@ function Fact({ value, label }: { value: string; label: string }) {
   );
 }
 
-/** A skill that opens in the Library, with a figure about it. */
+/** A skill that opens in the Library, with a figure about it or the level it is at now. */
 function SkillRow({
   found,
   value,
+  level,
   onSkill,
 }: {
   found: Found;
-  value: string;
+  value?: string;
+  level?: number;
   onSkill: (found: Found) => void;
 }) {
   return (
     <li>
       <button type="button" className={styles.skill} onClick={() => onSkill(found)}>
         <span>{found.skill.name}</span>
-        <b>{value}</b>
+        {level !== undefined && <Pips level={level} />}
+        <b>{level === undefined ? value : LEVELS[level]}</b>
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
         </svg>
@@ -198,7 +196,6 @@ export default function Details({
   logs,
   book,
   from,
-  span,
   part,
   onSkill,
 }: {
@@ -207,7 +204,6 @@ export default function Details({
   logs: DayLog[];
   book: Record<StatKey, number[]>;
   from: number;
-  span: Span;
   part: PacePart;
   onSkill: (found: Found) => void;
 }) {
@@ -245,15 +241,15 @@ export default function Details({
       <>
         <Pane title="By domain">
           <Table
-            count="Answered"
-            share="Right"
+            counted
+            band
             lines={domainLines(byDomain(asked), (_, i) => lean[i].value / 100, true)}
           />
         </Pane>
         <Pane title="By mode">
           <Table
-            count="Answered"
-            share="Right"
+            counted
+            band
             lines={byMode(asked, inSpan("exams"), accuracy).map((kind) => ({
               name: kind.name,
               count: kind.asked,
@@ -267,8 +263,6 @@ export default function Details({
   }
 
   if (stat === "skills") {
-    const fresh = gained(inSpan("skills"));
-    const back = slipped(Math.min(span.days, to));
     return (
       <>
         <Pane title="Sections">
@@ -295,26 +289,21 @@ export default function Details({
             })}
           </div>
         </Pane>
-        <Pane title="Gained">
-          {fresh.length ? (
-            <ul className={styles.rows}>
-              {fresh.map((f) => (
-                <SkillRow key={f.skill.name} found={f} value="Proficient" onSkill={onSkill} />
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.quiet}>None in this span.</p>
-          )}
+        {/* the eight to ten latest changes of level, up and down: every level counts */}
+        <Pane title="Recent gains">
+          <ul className={styles.rows}>
+            {recentGains().map((c) => (
+              <SkillRow key={c.skill.name} found={c} level={c.to} onSkill={onSkill} />
+            ))}
+          </ul>
         </Pane>
-        {back.length > 0 && (
-          <Pane title="Slipped">
-            <ul className={styles.rows}>
-              {back.map((f) => (
-                <SkillRow key={f.skill.name} found={f} value="Understanding" onSkill={onSkill} />
-              ))}
-            </ul>
-          </Pane>
-        )}
+        <Pane title="Recent slips">
+          <ul className={styles.rows}>
+            {recentSlips().map((c) => (
+              <SkillRow key={c.skill.name} found={c} level={c.to} onSkill={onSkill} />
+            ))}
+          </ul>
+        </Pane>
       </>
     );
   }
@@ -397,19 +386,20 @@ export default function Details({
   }
 
   if (stat === "accuracy") {
-    const levels = accuracyByLevel(accuracy);
     return (
       <>
         <Pane title="By domain">
-          <Table
-            share="Right"
-            lines={domainLines(accuracyByDomain(accuracy), (p) => p.value / 100, false)}
-          />
+          <Table lines={domainLines(accuracyByDomain(accuracy), (p) => p.value / 100, false)} />
         </Pane>
         <Pane title="By difficulty">
-          <Bars
-            bars={levels.map((value, i) => ({ name: String(i + 1), value, said: `${value}%` }))}
-          />
+          <ol className={styles.levels}>
+            {accuracyByLevel(accuracy).map((value, i) => (
+              <li key={i}>
+                <b>{value}%</b>
+                Level {i + 1}
+              </li>
+            ))}
+          </ol>
         </Pane>
         <Pane title="Missed most">
           <ul className={styles.rows}>

@@ -95,9 +95,22 @@ const atLevel = (level: number, many: number, only?: Section): Found[] => {
   return out;
 };
 
-/** The skills that became Proficient in the span, and any that slipped back out of it. */
-export const gained = (many: number) => atLevel(3, Math.min(many, 6));
-export const slipped = (spanDays: number) => atLevel(2, spanDays >= 14 ? 2 : spanDays >= 7 ? 1 : 0);
+export type Change = Found & { from: number; to: number };
+/** The latest changes in level, newest first: skills that moved up one level, and skills that
+ *  slipped down one. Together they are the eight to ten most recent changes (founder, 2026-11-16);
+ *  every change of level counts, not only reaching Proficient. */
+export const recentGains = (): Change[] =>
+  [...atLevel(3, 3), ...atLevel(2, 2), ...atLevel(1, 2)].map((f) => ({
+    ...f,
+    from: f.skill.level - 1,
+    to: f.skill.level,
+  }));
+export const recentSlips = (): Change[] =>
+  [...atLevel(2, 4).slice(2, 4), ...atLevel(1, 3).slice(2, 3)].map((f) => ({
+    ...f,
+    from: f.skill.level + 1,
+    to: f.skill.level,
+  }));
 /** The skills missed most often, with the accuracy on each. */
 export const mostMissed = () => atLevel(1, 3).map((f, i) => ({ ...f, accuracy: [38, 44, 51][i] }));
 /** The skills answered slowest, with the pace on each, in seconds. */

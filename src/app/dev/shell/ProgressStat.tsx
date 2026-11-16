@@ -8,6 +8,8 @@
 // Pacing also splits into Reading and Writing and Math, and draws the student's goal across the graph:
 // the pace the real SAT allows, longer for a student with extra time. It says how far over or under
 // that goal the student is.
+// The right-hand panes always end level with the trend: the last one takes any height left over and
+// simply stays empty there. Exams taken has no trend at all, only its list.
 // On a phone the two panes are two pages with buttons, so neither scrolls a long way.
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
@@ -62,11 +64,18 @@ export default function ProgressStat({
   const past = day !== student.days;
   const moved = series[day] - series[from];
   const over = goal === null ? 0 : series[day] - goal;
-  const see = (name: (typeof PAGES)[number]) => rail || shown === name;
+  // a count of exams over time says nothing, so that page is its list alone, across the whole page
+  const lone = key === "exams";
+  const see = (name: (typeof PAGES)[number]) =>
+    lone ? name === "Breakdown" : rail || shown === name;
 
   return (
-    <div className={`${lib.library} ${styles.progress} ${page.statPage}`} data-single>
-      {!rail && (
+    <div
+      className={`${lib.library} ${styles.progress} ${page.statPage}`}
+      data-single
+      data-lone={lone || undefined}
+    >
+      {!rail && !lone && (
         <div className={lib.pager} role="group" aria-label="Page">
           {PAGES.map((name) => (
             <button
@@ -180,7 +189,6 @@ export default function ProgressStat({
             logs={logs}
             book={book}
             from={from}
-            span={span}
             part={part}
             onSkill={onSkill}
           />

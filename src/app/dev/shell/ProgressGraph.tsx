@@ -141,6 +141,9 @@ export function niceMarks(
   if (to <= from) to = from + step;
   const marks: number[] = [];
   for (let s = from; s <= to + step / 1000; s += step) marks.push(Math.round(s * 1000) / 1000);
+  // a ceiling that is not a round step (72 skills) still has to be the top mark: without it the top
+  // of the graph sat below the highest value and the line ran up out of the graph
+  if (marks[marks.length - 1] < high) marks.push(to >= high ? to : high);
   return marks;
 }
 
@@ -270,6 +273,15 @@ export function Graph({
           aria-hidden="true"
         >
           <defs>
+            {/* nothing drawn for the line may ever leave the plot, whatever the numbers */}
+            <clipPath id="kp-graph-plot">
+              <rect
+                x={pad.left - 4}
+                y={pad.top - 4}
+                width={inner + 8}
+                height={floor - pad.top + 8}
+              />
+            </clipPath>
             <linearGradient id="kp-graph-fill" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor="var(--trend)" stopOpacity="0.36" />
               <stop offset="1" stopColor="var(--trend)" stopOpacity="0" />
@@ -296,7 +308,12 @@ export function Graph({
               {(days.length - 1 - i) % skip ? "" : mark.label}
             </text>
           ))}
-          <path className={styles.area} d={area} fill="url(#kp-graph-fill)" />
+          <path
+            className={styles.area}
+            d={area}
+            fill="url(#kp-graph-fill)"
+            clipPath="url(#kp-graph-plot)"
+          />
           {goal && (
             <>
               <path
@@ -313,7 +330,7 @@ export function Graph({
               </text>
             </>
           )}
-          <path className={styles.line} d={line} pathLength={1} />
+          <path className={styles.line} d={line} pathLength={1} clipPath="url(#kp-graph-plot)" />
           {marked.map((mark, i) => (
             <g key={mark.day}>
               <circle
