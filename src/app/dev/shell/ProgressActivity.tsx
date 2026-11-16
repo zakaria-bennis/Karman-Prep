@@ -5,10 +5,11 @@
 //              taken, pacing, accuracy, days practiced. Each is a button that opens the number's own
 //              page. Each reads like a stock: what it stands at, a ticker of how far it moved over
 //              the span chosen (7 days, 30 days; none for all time), and a small line with a fading
-//              fill. Green is for the better and red for the worse; for pacing, faster is better.
+//              fill. A line that rose is green and one that fell is red, for every number.
 //   Calendar   one month at a time. Each day is a rounded square shaded by how much was done. Pressing
-//              a day shows what was done that day. Pressing the month's name opens the list of months.
-//              The streak counts days in a row with the Daily 10.
+//              a day shows what was done that day, with the streak on the same line as the date.
+//              Pressing the month's name opens the list of months; Today goes back in one press. The
+//              streak counts days in a row with the Daily 10.
 // A student is never compared with other students here. Time is active time only.
 // Anything that changes on a press has its place kept, so nothing below it moves. Today and the day
 // pressed are marked inside their own squares, so no square ever lies over its neighbor.
@@ -111,7 +112,7 @@ export function Stats({
           const stat: Stat = STATS[key];
           const series = book[key];
           const moved = series[to] - series[from];
-          const way = wayOf(stat, moved);
+          const way = wayOf(moved);
           return (
             <li key={key}>
               <button
@@ -153,7 +154,7 @@ export function Stats({
   );
 }
 
-const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const monthName = (d: Date) => d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
 export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }) {
@@ -204,6 +205,10 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
     const day = student.days - Math.round((TODAY.getTime() - at.getTime()) / DAY);
     return day >= 0 && day <= student.days ? day : -1;
   };
+  const sameMonth = month.getTime() === months[0].getTime();
+  // how many of the month's days that have come so far had practice on them
+  const monthDays = Array.from({ length }, (_, i) => logOf(i + 1)).filter((day) => day >= 0);
+  const practiced = monthDays.filter((day) => logs[day].questions > 0).length;
   const log = logs[picked];
   const when = dateOf(student, picked);
 
@@ -225,6 +230,20 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d="M6.500 9.500L12 15l5.500-5.500" />
           </svg>
+        </button>
+        {/* back to today in one press; shown only when there is somewhere to come back from */}
+        <button
+          type="button"
+          className={styles.today}
+          data-idle={(sameMonth && picked === student.days) || undefined}
+          tabIndex={sameMonth && picked === student.days ? -1 : 0}
+          onClick={() => {
+            setMonth(months[0]);
+            setPicked(student.days);
+            tick();
+          }}
+        >
+          Today
         </button>
         <button
           type="button"
@@ -261,9 +280,13 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
         )}
       </header>
 
+      <p className={styles.tally}>
+        <b>{practiced}</b> of {monthDays.length} days practiced
+      </p>
+
       <div className={styles.grid} role="group" aria-label="Days">
-        {WEEKDAYS.map((name, i) => (
-          <span key={i} className={styles.weekday} aria-hidden="true">
+        {WEEKDAYS.map((name) => (
+          <span key={name} className={styles.weekday} aria-hidden="true">
             {name}
           </span>
         ))}
@@ -278,6 +301,7 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
               className={styles.day}
               style={date === 1 ? ({ gridColumnStart: lead + 1 } as CSSProperties) : undefined}
               data-level={level}
+              data-out={day < 0 || undefined}
               data-today={day === student.days || undefined}
               aria-pressed={day === picked && day >= 0}
               aria-label={`${month.toLocaleDateString("en-US", { month: "long" })} ${date}${day >= 0 ? `, ${done} questions` : ""}`}
@@ -293,33 +317,38 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
         })}
       </div>
 
-      {/* what was done on the day pressed. Its height is fixed, so pressing a day moves nothing. */}
+      {/* what was done on the day pressed, with the streak on its first line. Its height is fixed, so
+          pressing a day moves nothing. */}
       <div className={styles.detail} aria-live="polite">
-        <h3>
-          {when.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-        </h3>
+        <div className={styles.detailHead}>
+          <h3>
+            {when.toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric" })}
+          </h3>
+          <p className={styles.streak}>
+            <Icon name="flame" size={18} />
+            <b>{run}</b> day streak
+          </p>
+        </div>
         {log.questions === 0 ? (
-          <p>Nothing logged.</p>
+          <p className={styles.none}>Nothing logged.</p>
         ) : (
-          <>
-            <p>
-              <b>{log.questions}</b> questions <b>{clock(log.minutes)}</b>{" "}
-              <b>{Math.round((log.correct / log.questions) * 100)}%</b> correct
-            </p>
-            <p>
-              {[log.daily10 && "Daily 10", log.exam > 0 && `Full-length exam ${log.exam}`]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          </>
+          <dl>
+            <div>
+              <dd>{log.questions}</dd>
+              <dt>questions</dt>
+            </div>
+            <div>
+              <dd>{clock(log.minutes)}</dd>
+              <dt>invested</dt>
+            </div>
+            <div>
+              <dd>{Math.round((log.correct / log.questions) * 100)}%</dd>
+              <dt>correct</dt>
+            </div>
+          </dl>
         )}
+        <p className={styles.examDay}>{log.exam > 0 && `Full-length exam ${log.exam}`}</p>
       </div>
-
-      <p className={styles.streak}>
-        <Icon name="flame" size={20} />
-        <b>{run}</b> day streak
-        <span>A day counts when you finish the Daily 10.</span>
-      </p>
     </section>
   );
 }

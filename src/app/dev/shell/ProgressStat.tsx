@@ -33,12 +33,12 @@ export default function ProgressStat({
   const day = at === null ? student.days : Math.min(student.days, from + at);
   const past = day !== student.days;
   const moved = series[day] - series[from];
-  const way = wayOf(stat, moved);
+  const way = wayOf(moved);
   return (
     <section
       className={`${lib.glass} ${styles.score}`}
       aria-label={stat.name}
-      data-trend={wayOf(stat, series[student.days] - series[from]) === "down" ? "down" : "up"}
+      data-trend={wayOf(series[student.days] - series[from]) === "down" ? "down" : "up"}
     >
       <div className={styles.head}>
         <h2>

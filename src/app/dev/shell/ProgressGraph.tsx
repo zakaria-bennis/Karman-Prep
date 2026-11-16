@@ -167,15 +167,21 @@ export function Graph({
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [tall, setTall] = useState(0);
   useEffect(() => {
     if (!box.current) return;
-    const watch = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)));
+    // the graph takes whatever height its piece of glass has left over, never less than its own
+    const watch = new ResizeObserver(([entry]) => {
+      setWidth(Math.round(entry.contentRect.width));
+      setTall(Math.round(entry.contentRect.height));
+    });
     watch.observe(box.current);
     return () => watch.disconnect();
   }, []);
 
   const narrow = width < 520;
-  const height = narrow ? 210 : 270;
+  const least = narrow ? 210 : 270;
+  const height = Math.max(least, tall);
   const pad = { left: 46, right: narrow ? 14 : 22, top: 30, bottom: 30 };
   const inner = Math.max(1, width - pad.left - pad.right);
   const days = useMemo(() => dayMarks(student, from), [student, from]);
@@ -221,7 +227,7 @@ export function Graph({
     <div
       ref={box}
       className={styles.graph}
-      style={{ height }}
+      style={{ minHeight: least }}
       role="slider"
       tabIndex={0}
       aria-label={`${label} over time`}

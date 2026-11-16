@@ -12,9 +12,12 @@
 }
 
 /* ---- the predicted score: first, and in the middle ---- */
+/* a column whose last piece, the graph, takes any height left over: when the pieces beside it are
+   taller, the graph grows and nothing else is stretched */
 .score {
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   max-width: 980px;
   padding: calc(var(--pad) * 2);
@@ -143,7 +146,7 @@
 
 /* the spans of time: one bar of choices, a hollow in the glass, with a lens on the chosen one */
 .progress .spans {
-  justify-self: center;
+  align-self: center;
   margin-top: 10px;
   background: var(--hover);
   -webkit-backdrop-filter: none;
@@ -159,30 +162,47 @@
   display: none;
 }
 
-/* the countdown: only for a student who has entered a test date. One quiet line above the score. */
+/* the countdown: only for a student who has entered a test date. A badge on the top right corner of
+   the score, lying over its edge, so it takes no line of its own and never meets the words inside. */
+.score {
+  position: relative;
+}
+
 .countdown {
+  position: absolute;
+  top: -12px;
+  right: 18px;
+  z-index: 1;
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 5px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: rgb(255 251 244 / 0.94);
+  box-shadow:
+    0 6px 16px -8px rgb(24 28 58 / 0.45),
+    inset 0 0 0 1px var(--glass-edge);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  line-height: 28px;
+  white-space: nowrap;
+}
+
+:global([data-kp-mode="dark"]) .countdown {
+  background: rgb(40 38 60 / 0.94);
 }
 
 .countdown b {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-
-.countdown span {
-  opacity: 0.78;
 }
 
 /* ---- the graph ---- */
 .graph {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
   border-radius: var(--r-lens);
   cursor: crosshair;
@@ -191,7 +211,10 @@
   -webkit-user-select: none;
 }
 
+/* the drawing lies inside the box without holding it open, so the box can shrink as well as grow */
 .graph svg {
+  position: absolute;
+  inset: 0;
   display: block;
   overflow: visible;
 }
@@ -392,7 +415,7 @@
   }
 
   .progress .spans {
-    justify-self: stretch;
+    align-self: stretch;
   }
 
   .spans button {

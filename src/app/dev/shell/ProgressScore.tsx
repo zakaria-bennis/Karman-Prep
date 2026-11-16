@@ -16,7 +16,7 @@
 //   - Pointing at (or dragging along, or arrowing through) the line turns the number above into that
 //     day's. Nothing floats over the graph, and there is no key.
 //   - A prediction needs two full-length exams. Before that the same place says so.
-//   - The countdown shows only when the student has entered a test date.
+//   - The countdown shows only when the student has entered a test date: a badge on the corner.
 // Every number is a stand-in (progressData.ts). The demo bar switches between four made-up students so
 // the scaling can be seen.
 import { useMemo, useState } from "react";
@@ -86,9 +86,11 @@ export default function ProgressScore({ student: key }: { student: StudentKey })
       data-trend={fell ? "down" : "up"}
     >
       {student.testIn !== null && (
-        <p className={styles.countdown}>
+        <p
+          className={styles.countdown}
+          title={`Your SAT is on ${long(new Date(TODAY.getTime() + student.testIn * DAY))}`}
+        >
           <b>{student.testIn}</b> days to your SAT
-          <span>{long(new Date(TODAY.getTime() + student.testIn * DAY))}</span>
         </p>
       )}
 

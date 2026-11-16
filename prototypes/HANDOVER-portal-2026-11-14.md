@@ -567,3 +567,20 @@ Files are now split: `progressData.ts` (the made-up students, the score line, a 
 - **Full width:** the three pieces share the whole width of the page (1 : 1.9 : 1), like the Library's.
   He said "matches the horizontal space of that first top tab"; this is my reading, to confirm.
 - The line explaining the colored numbers is gone ("reads as clutter").
+
+**Progress step 2, third round (2026-11-16), applied; awaiting his verdict.**
+- **A line that fell is red, always**, pacing included ("if there's a downward trend, it shouldn't be
+  in green"). Color follows the direction of the line, not whether the change is good. For pacing this
+  means getting faster shows red; he was told and can reverse it.
+- **Calendar redrawn:** no outlines; a day with practice is a filled rounded square (four greens), a
+  day without is the faintest glass, a day outside the student's time is only its number. Squares are
+  as wide as their columns, so three-letter weekday names sit exactly over the dates (the old squares
+  were capped at 44px and drifted left on wide screens). A line under the month says "15 of 15 days
+  practiced". A Today button appears when away from today. Today is a dot under its date.
+- **Day card:** the date and the streak share the first line; then that day's questions, time and
+  accuracy as three numbers in the serif. "Daily 10" is no longer written there; a full-length exam
+  still is. "A day counts when you finish the Daily 10" is removed.
+- **Countdown is a badge** lying over the top right corner of the score piece; it takes no line.
+- The score piece is now a column whose graph takes any spare height, so nothing else stretches.
+- **Each number's page: he wants more creative, useful pages** than a bigger graph. Ideas were put to
+  him for all seven; nothing more is built until he picks.

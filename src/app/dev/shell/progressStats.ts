@@ -1,6 +1,7 @@
 // The numbers beside the predicted score, in the founder's order (2026-11-16): time invested, questions
 // answered, skills Proficient, exams taken, pacing, accuracy, days practiced. Each is kept like a
-// stock: what it stands at now, how far it moved over a span, and a line of how it got there.
+// stock: what it stands at now, how far it moved over a span, and a line of how it got there. A line
+// that fell is red and one that rose is green, whatever the number.
 import { SAT_PACE, SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
 
 export type StatKey = "time" | "questions" | "skills" | "exams" | "pace" | "accuracy" | "days";
@@ -27,8 +28,6 @@ export type Stat = {
   after?: string;
   /** A quiet line under the ticker on the number's own page. */
   note?: string;
-  /** For pacing a lower number is the better one. */
-  lowerIsBetter?: boolean;
   /** The value as written. */
   show: (value: number) => string;
   /** A change in the value as written, with its sign. */
@@ -77,7 +76,6 @@ export const STATS: Record<StatKey, Stat> = {
     name: "Pacing",
     after: "per question",
     note: `The SAT allows ${minSec(SAT_PACE)} per question`,
-    lowerIsBetter: true,
     show: minSec,
     moved: (n) => `${sign(n)}${minSec(Math.abs(n))}`,
     plot: (v) => v,
@@ -153,6 +151,7 @@ export function ledger(student: Student, logs: DayLog[]): Record<StatKey, number
   return out;
 }
 
-/** Whether a change is for the better, for the worse, or neither. */
-export const wayOf = (stat: Stat, change: number): "up" | "down" | "flat" =>
-  change === 0 ? "flat" : change > 0 !== Boolean(stat.lowerIsBetter) ? "up" : "down";
+/** Which way a number moved. Up is green and down is red for every number, pacing included (founder,
+ *  2026-11-16: "if there's a downward trend, it shouldn't be in green"). */
+export const wayOf = (change: number): "up" | "down" | "flat" =>
+  change === 0 ? "flat" : change > 0 ? "up" : "down";
