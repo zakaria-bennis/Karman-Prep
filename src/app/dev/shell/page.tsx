@@ -4,7 +4,8 @@
 // Second version (founder, 2026-11-15): frosted glass, not paper; Karman's own stickers; spring physics;
 // a slim rail on desktop that opens when the pointer is on it. No screen is laid out yet.
 //   ?plan=practice|cohort|private   whose menu to show
-//   ?night=1                        dark mode
+//   ?night=0                        light mode (dark is the default for now: the founder looks at
+//                                   it that way, 2026-11-16)
 //   ?demo=0                         hide the demo switches (for pictures)
 //   ?open=1                         hold the desktop rail open (for pictures)
 // Production builds return 404.
@@ -79,7 +80,7 @@ function Shell() {
   const [plan, setPlan] = useState<Plan>(
     planQ !== null && planQ in PLANS ? (planQ as Plan) : "practice"
   );
-  const [dark, setDark] = useState(q.get("night") === "1");
+  const [dark, setDark] = useState(q.get("night") !== "0");
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
@@ -575,7 +576,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "homework" && <Homework rail={rail} />}
+        {page === "homework" && <Homework />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog

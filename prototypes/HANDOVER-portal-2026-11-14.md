@@ -938,3 +938,13 @@ strip shows dots in three fixed rows. **Music banner:** offered only from 8 PM (
 itself after 6 seconds, and after "Turn it on" its notes dance and it slides out to the right. The demo
 bar's "Offer music" shows it at any hour. Its line says "Studies show..." at his request; the research
 on this is mixed, and he has been told.
+
+**Homework, third version (same day), after his second verdict.** It opens on the **day**: at the left
+Karman in a ring that fills as work is done, the count left, seven bars for the week (press one to go to
+that day) and the next class; at the right the day's work, with arrows to other days and a Day / Week
+switch. The exam is a banner on top with Karman in a graduation cap, drifting lights and stars, and it
+says when it opens and closes. Only skill sets, strategy quizzes, flashcards and time trials are
+homework (no Daily 10, no challenge question). A piece says its name and "8 questions"; a small picture
+says its sort. Work is "liquid glass" in fuchsia, blue or green. Missed work is a red disc with a mark,
+done a check, closed a lock. Files: `Homework.tsx`, `HomeworkBits.tsx`, `homeworkData.ts`,
+`homework.module.css`. `/dev/shell` is now dark unless `?night=0`. He also asked for ideas for Settings.

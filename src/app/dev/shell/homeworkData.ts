@@ -1,31 +1,36 @@
-// Homework's data: a Cohort or Private student's week of work. All of it is a stand-in until
-// tutors assign real work. What is his (founder, 2026-11-16):
-//   - Homework opens on the whole week, every day laid out, with today marked.
-//   - A day is one list. Work is Reading and Writing (fuchsia), Math (blue) or Mixed (green), and
-//     nothing else: pacing and strategy work belongs to one of the three. No key explains the colors.
-//   - The Daily 10 is first in a day, except on Saturday: the full-length exam always comes first,
-//     at the top and made much of.
-//   - Only work still to do is listed. Done work is behind a Completed button at the foot of the day.
-//   - Earlier weeks are stepped back to. Done work reads Done; missed work reads Missing for a
-//     week, then it is closed and greyed out.
+// Homework's data: a Cohort or Private student's work. All of it is a stand-in until tutors assign
+// real work. What is his (founder, 2026-11-16):
+//   - Homework opens on the day: what matters at the left, the day's work at the right. The days
+//     ahead are stepped to, and a button shows the whole week.
+//   - Only four things are assigned: skill sets, strategy quizzes, flashcards and time trials. The
+//     Daily 10 and challenge questions are not homework.
+//   - Work is Reading and Writing (fuchsia), Math (blue) or Mixed (green). No key explains it.
+//   - A piece of work says its name and how much there is ("8 questions"), not what sort it is: a
+//     small picture says that.
+//   - The week's full-length exam is a banner of its own that says when it opens and closes
+//     (Saturday, 6 AM to midnight), not how long it takes.
+//   - Only work still to do is listed; done work is behind a Completed button. Missed work is marked
+//     with a sign, not a word; after a week it is closed.
 // What is mine: the names of the work, how much there is, and the class days and time.
 import { DAY, TODAY } from "./progressData";
 
-export const KINDS = {
-  rw: "Reading and Writing",
-  math: "Math",
-  mixed: "Mixed",
-} as const;
+export const KINDS = { rw: "Reading and Writing", math: "Math", mixed: "Mixed" } as const;
 export type Kind = keyof typeof KINDS;
+export const SORTS = {
+  skill: "Skill set",
+  strategy: "Strategy quiz",
+  cards: "Flashcards",
+  trial: "Time trial",
+} as const;
+export type Sort = keyof typeof SORTS;
 
 export type Work = {
   id: string;
   kind: Kind;
+  sort: Sort;
   name: string;
-  /** What sort of work it is and how long: "Skill set, 8 questions". */
-  what: string;
-  /** The week's full-length exam, which leads its day. */
-  exam?: boolean;
+  /** How much there is: "8 questions". */
+  much: string;
   state: "todo" | "done" | "missing" | "closed";
 };
 export type HomeworkDay = {
@@ -34,6 +39,8 @@ export type HomeworkDay = {
   from: number;
   /** A live class that day, by its time. */
   class?: string;
+  /** The week's full-length exam is taken this day. */
+  exam: boolean;
   work: Work[];
 };
 
@@ -62,6 +69,9 @@ const MATH = [
   "Circle equations",
 ];
 
+/** When the exam may be begun (his rule: Saturday only, 6 AM to midnight). */
+export const EXAM = { opens: "6 AM", closes: "midnight" };
+
 /** One week's days, Sunday to Saturday. `week` 0 is this week, -1 the one before. */
 export function weekOf(week: number): HomeworkDay[] {
   const sunday = new Date(TODAY.getTime() - TODAY.getDay() * DAY + week * 7 * DAY);
@@ -70,52 +80,43 @@ export function weekOf(week: number): HomeworkDay[] {
     const from = Math.round((date.getTime() - TODAY.getTime()) / DAY);
     const seed = week * 7 + i + 100;
     const drafts: Omit<Work, "id" | "state">[] = [];
-    if (i === 6)
-      drafts.push({
-        kind: "mixed",
-        name: "Full-length exam",
-        what: "2 hours 14 minutes",
-        exam: true,
-      });
-    drafts.push({ kind: "mixed", name: "Daily 10", what: "10 questions" });
     if (i !== 6) {
       drafts.push({
         kind: "rw",
+        sort: "skill",
         name: RW[Math.floor(noise(seed, 1) * RW.length)],
-        what: "Skill set, 8 questions",
+        much: "8 questions",
       });
       drafts.push({
         kind: "math",
+        sort: "skill",
         name: MATH[Math.floor(noise(seed, 2) * MATH.length)],
-        what: "Skill set, 8 questions",
+        much: "8 questions",
       });
       if (noise(seed, 3) < 0.5)
         drafts.push(
           noise(seed, 4) < 0.5
-            ? { kind: "math", name: "Math flashcards", what: "Flashcards, 12 cards" }
-            : { kind: "rw", name: "Grammar flashcards", what: "Flashcards, 12 cards" }
+            ? { kind: "math", sort: "cards", name: "Formulas", much: "12 cards" }
+            : { kind: "rw", sort: "cards", name: "Grammar rules", much: "12 cards" }
         );
       if (i === 2)
-        drafts.push({ kind: "math", name: "Math time trial", what: "Timed, 5 questions" });
-      if (i === 4)
-        drafts.push({ kind: "rw", name: "Reading time trial", what: "Timed, 5 questions" });
-      if (i === 3) drafts.push({ kind: "mixed", name: "Strategy exam", what: "12 questions" });
-      if (i === 1 || i === 5)
-        drafts.push({ kind: "mixed", name: "Challenge question", what: "1 question" });
-      if (i === 0)
-        drafts.push({ kind: "mixed", name: "Exam review", what: "Go over last Saturday" });
+        drafts.push({ kind: "math", sort: "trial", name: "Algebra", much: "5 questions" });
+      if (i === 4) drafts.push({ kind: "rw", sort: "trial", name: "Reading", much: "5 questions" });
+      if (i === 0 || i === 3)
+        drafts.push({ kind: "mixed", sort: "strategy", name: "Pacing", much: "12 questions" });
     }
     return {
       date,
       from,
       class: i === 2 || i === 4 ? "7:00 PM" : undefined,
+      exam: i === 6,
       work: drafts.map((draft, n) => {
-        const missed = noise(seed, 10 + n) < 0.14;
+        const missed = noise(seed, 10 + n) < 0.16;
         const state: Work["state"] =
           from > 0
             ? "todo"
             : from === 0
-              ? n < 2
+              ? n === 0
                 ? "done"
                 : "todo"
               : !missed
@@ -129,6 +130,6 @@ export function weekOf(week: number): HomeworkDay[] {
   });
 }
 
-/** How far back and forward the weeks go: the cohort is in its third week of nine. */
+/** The cohort is in its third week of nine. */
 export const WEEK_NOW = 3;
 export const WEEKS = 9;

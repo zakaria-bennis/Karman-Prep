@@ -1,23 +1,16 @@
 /*
- * Homework (Homework.tsx). Glass, corners and text sizes come from library.module.css, set on
- * .library. A piece of work is shaded glass laid on the day's glass, in its subject's color:
- * fuchsia for Reading and Writing, blue for Math, green for Mixed. The colors are as bright by night
- * as by day. (The shell clears every button's font and background, so a button with its own is named
- * through the page: .homework .work.)
+ * Homework (Homework.tsx, HomeworkBits.tsx). Glass, corners and text sizes come from
+ * library.module.css, set on .library. A piece of work is liquid glass laid on the pane: a clear
+ * pane tinted with its subject's color (fuchsia for Reading and Writing, blue for Math, green for
+ * Mixed), with light along its top edge and its color pooled along its foot. The colors are the same
+ * by day and by night. (The shell clears every button's font and background, so a button with its
+ * own is named through the page: .homework .work.)
  */
 .homework {
-  --rw: #e0218a;
-  --math: #2f7fe6;
-  --mixed: #22a35a;
-  --shade: 36%;
-}
-
-/* by night the colors are lighter and laid on thicker, so they glow and do not turn to mud */
-:global([data-kp-mode="dark"]) .homework {
-  --rw: #ff4fa8;
-  --math: #4f9dff;
-  --mixed: #3fd07c;
-  --shade: 46%;
+  --rw: #ff3d9a;
+  --math: #2f8bff;
+  --mixed: #22c36b;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .homework [data-kind="rw"] {
@@ -32,31 +25,328 @@
   --kind: var(--mixed);
 }
 
-/* ---- the week and its arrows ---- */
-.top {
+/* ---- the exam's banner ---- */
+.exam {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-self: start;
-  gap: 4px;
-  padding: 4px;
+  gap: 16px;
+  min-height: 96px;
+  padding: 10px 24px 10px 12px;
+  border-radius: var(--r-piece);
+  overflow: hidden;
+  color: #fff8e6;
+  background: linear-gradient(110deg, #2a1b52, #47206b 45%, #7a2a63);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.3);
+  isolation: isolate;
 }
 
-.top h2 {
+/* slow lights drifting behind the words */
+.lights {
+  position: absolute;
+  z-index: -1;
+  inset: -40%;
+  background:
+    radial-gradient(closest-side at 22% 40%, rgb(255 190 80 / 0.55), transparent),
+    radial-gradient(closest-side at 70% 60%, rgb(255 80 170 / 0.5), transparent),
+    radial-gradient(closest-side at 90% 30%, rgb(90 160 255 / 0.5), transparent);
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate(-6%, -4%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(6%, 5%) rotate(12deg);
+  }
+}
+
+.star {
+  position: absolute;
+  z-index: -1;
+  top: calc(14% + var(--n) * 17%);
+  left: calc(34% + var(--n) * 13%);
+  width: 6px;
+  height: 6px;
+  background: #fff3c4;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: twinkle 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--n) * -0.55s);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.6);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(40deg);
+  }
+}
+
+.examFox {
+  flex: none;
+  transform-origin: 50% 100%;
+  animation: nod 3.6s ease-in-out infinite;
+}
+
+@keyframes nod {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+
+  50% {
+    transform: rotate(5deg) translateY(-3px);
+  }
+}
+
+.exam > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.homework .exam h2 {
+  font: 400 26px/1.1 var(--font-serif);
+}
+
+.exam p {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.exam p b {
+  font-weight: 700;
+  color: #ffd76a;
+}
+
+.homework .until {
+  display: grid;
+  justify-items: center;
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.homework .until b {
+  color: #fff8e6;
+  font: 400 40px/1 var(--font-serif);
+  font-variant-numeric: lining-nums;
+}
+
+.homework .start {
+  height: 48px;
+  margin-left: auto;
+  padding: 0 28px;
+  border-radius: 24px;
+  background: #ffd76a;
+  color: #2a1b52;
+  font-size: 16px;
+  font-weight: 700;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgb(255 215 106 / 0.25);
+  }
+}
+
+/* ---- the left: the ring, the week, the next class ---- */
+.side {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 10px;
+  padding: calc(var(--pad) * 2);
+}
+
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 168px;
+  height: 168px;
+}
+
+.ring > svg {
+  position: absolute;
+  inset: 0;
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: var(--hover);
+}
+
+.fill {
+  stroke: var(--mixed);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--mixed) 70%, transparent));
+  transition: stroke-dashoffset 0.7s var(--out);
+}
+
+.bob {
+  animation: bob 3.2s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(2px) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+.homework .count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.count b {
+  font: 400 44px/1 var(--font-serif);
+  font-variant-numeric: lining-nums;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.homework .bars button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px 0 4px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s var(--out);
+}
+
+.homework .bars button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.bars button[data-today] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 18px;
+  height: 56px;
+  border-radius: 9px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  overflow: hidden;
+}
+
+.bar i {
+  width: 100%;
+  border-radius: 9px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mixed) 70%, white), var(--mixed));
+  transition: height 0.6s var(--out);
+}
+
+.bar:has(svg) {
+  align-items: center;
+  background: none;
+  box-shadow: none;
+}
+
+.bar svg {
+  fill: #ffcf4a;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.homework .weekly {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.weekly b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.homework .next {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.next b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---- the right: the day, or the week ---- */
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: calc(var(--pad) + 6px);
+}
+
+.main > header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.main h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: center;
   gap: 2px 10px;
-  min-width: 250px;
+  min-width: 150px;
   padding: 0 6px;
-  font-size: 16px;
-  text-align: center;
 }
 
-.top h2 small {
+.main h2 small {
   font-size: 13px;
   font-weight: 500;
   opacity: 0.8;
+}
+
+.homework .views {
+  margin-left: auto;
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
 .homework .arrow {
@@ -72,8 +362,10 @@
 }
 
 .arrow svg,
-.work svg,
-.completed svg {
+.completed svg,
+.class svg,
+.sort,
+.sign {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -90,153 +382,130 @@
   transform: scale(0.94);
 }
 
-/* ---- the days: side by side, all one height ---- */
-.week {
-  display: grid;
-  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
-  align-items: stretch;
-  gap: 8px;
-}
-
-.day {
+.dayBody {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  padding: var(--pad);
+  gap: 10px;
 }
 
-/* today is a little more glass than the days beside it: no line round it */
-.day[data-today] {
-  background: linear-gradient(var(--lens), var(--lens)), var(--glass);
-}
-
-.day header {
+.homework .class {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 24px;
-  padding: 2px 4px;
-}
-
-.day h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.day header span {
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-.class {
-  padding: 6px 10px;
-  border-radius: 10px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
   box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
 }
 
-.day ul {
+.class b {
+  font-weight: 700;
+}
+
+.homework .list {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   overflow: hidden;
 }
 
-.clear {
-  padding: 16px 4px;
-  font-size: 14px;
-  font-weight: 500;
-  opacity: 0.8;
+/* a day with room lays its work two across */
+.dayBody > .list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  overflow: visible;
 }
 
-/* a piece of work: glass shaded with its subject's color, on the day's glass */
+/* liquid glass: a clear pane tinted with the subject's color. Light runs along its top edge, the
+   color pools along its foot, and it throws a little of that color under itself. */
 .homework .work {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 14px;
   width: 100%;
-  min-height: 60px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--kind) var(--shade), transparent);
+  min-height: 84px;
+  padding: 12px 16px;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgb(255 255 255 / 0.28), transparent 55%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--kind) 50%, transparent),
+      color-mix(in srgb, var(--kind) 30%, transparent)
+    );
+  -webkit-backdrop-filter: blur(12px) saturate(1.9) brightness(1.08);
+  backdrop-filter: blur(12px) saturate(1.9) brightness(1.08);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--kind) 55%, transparent),
-    inset 0 1px 0 1px rgb(255 255 255 / 0.22);
+    0 12px 22px -14px color-mix(in srgb, var(--kind) 90%, black),
+    inset 0 1.5px 0 0 rgb(255 255 255 / 0.6),
+    inset 0 0 0 1px rgb(255 255 255 / 0.2),
+    inset 0 -14px 20px -12px color-mix(in srgb, var(--kind) 85%, transparent);
   text-align: left;
   transition:
-    background 0.2s var(--out),
-    transform 0.15s var(--out);
+    transform 0.25s cubic-bezier(0.3, 1.5, 0.45, 1),
+    filter 0.2s var(--out);
 }
 
 .work > span {
   display: grid;
   gap: 2px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .work b {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .work small {
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.25;
 }
 
-.work svg {
+/* the sort's picture: its filled parts take the ink faintly */
+.sort {
+  flex: none;
+}
+
+.sort [data-fill] {
+  fill: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.sort [data-ink] {
+  stroke-width: 1.4;
+}
+
+.sort [data-part="hand"] {
+  transform-origin: 14px 16px;
+}
+
+.sort [data-part="card"],
+.sort [data-part="bulb"] {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.sign {
   flex: none;
   stroke-width: 2.2;
 }
 
-.work em {
-  flex: none;
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 600;
+/* missed: a red disc with a mark, seen at once, no word */
+.sign[data-sign="missing"] {
+  stroke: #fff;
+  stroke-width: 2.4;
 }
 
-/* the exam leads its day and is made much of: tall, in gold, with a slow band of light across it */
-.homework .work[data-exam] {
-  min-height: 128px;
-  align-items: flex-end;
-  padding: 14px;
-  background:
-    linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.55) 50%, transparent 60%) 120% 0 /
-      300% 100% no-repeat,
-    linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
-  box-shadow:
-    0 10px 24px -12px rgb(190 120 0 / 0.8),
-    inset 0 0 0 1px #a66f00,
-    inset 0 1px 0 1px rgb(255 255 255 / 0.6);
-  color: #3a2500;
-  animation: gleam 4.5s var(--out) infinite;
+.sign[data-sign="missing"] [data-disc] {
+  fill: #f0412f;
+  stroke: none;
 }
 
-.work[data-exam] b {
-  font: 400 22px/1.1 var(--font-serif);
-}
-
-@keyframes gleam {
-  0%,
-  55% {
-    background-position:
-      120% 0,
-      0 0;
-  }
-
-  100% {
-    background-position:
-      -60% 0,
-      0 0;
-  }
+.homework .work[data-state="done"] {
+  opacity: 0.72;
 }
 
 .homework .work[data-state="closed"] {
@@ -245,16 +514,110 @@
   cursor: default;
 }
 
-.homework .work:active:not(:disabled) {
-  transform: scale(0.98);
+/* the week's pieces are small: a picture, a name on up to two lines, a sign */
+.homework .work[data-small] {
+  gap: 8px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-radius: 14px;
 }
 
-/* ---- at the foot of the day, inside its glass: what has been done ---- */
+.work[data-small] b {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.work[data-small] .sort {
+  width: 20px;
+  height: 20px;
+}
+
+.work[data-small] .sign {
+  width: 18px;
+  height: 18px;
+}
+
+.homework .work:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .homework .arrow:hover:not(:disabled),
+  .homework .completed:hover,
+  .homework .colHead:hover,
+  .homework .bars button:hover {
+    background: var(--hover);
+  }
+
+  .homework .work:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+  }
+
+  .work:hover [data-part="hand"] {
+    animation: turn 0.9s var(--out);
+  }
+
+  .work:hover [data-part="card"] {
+    animation: flick 0.5s var(--out);
+  }
+
+  .work:hover [data-part="bulb"] {
+    animation: lit 0.7s var(--out);
+  }
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes flick {
+  50% {
+    transform: rotate(-10deg) translateY(-2px);
+  }
+}
+
+@keyframes lit {
+  50% {
+    fill: #ffe38a;
+    transform: scale(1.12);
+  }
+}
+
+/* nothing left */
+.clear {
+  display: grid;
+  flex: 1 1 auto;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 0;
+  font: 400 22px/1.2 var(--font-serif);
+}
+
+.hop {
+  animation: hop 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+@keyframes hop {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(-14px) rotate(-6deg);
+  }
+}
+
+/* at the foot, inside the glass: what has been done */
 .done {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   margin-top: auto;
-  padding-top: 4px;
 }
 
 .homework .completed {
@@ -262,9 +625,10 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  width: 100%;
+  justify-self: start;
   height: 40px;
-  border-radius: 12px;
+  padding: 0 16px;
+  border-radius: 20px;
   box-shadow: inset 0 0 0 1px var(--lens-edge);
   font-size: 13px;
   font-weight: 600;
@@ -272,7 +636,6 @@
 }
 
 .completed b {
-  font-variant-numeric: tabular-nums;
   opacity: 0.8;
 }
 
@@ -284,89 +647,184 @@
   transform: rotate(180deg);
 }
 
-@media (hover: hover) {
-  .homework .arrow:hover:not(:disabled),
-  .homework .completed:hover {
-    background: var(--hover);
-  }
-
-  .homework .work:hover:not(:disabled):not([data-exam]) {
-    background: color-mix(in srgb, var(--kind) calc(var(--shade) + 12%), transparent);
-  }
-}
-
-/* with room, the days reach down the screen together */
-@media (min-width: 960px) and (hover: hover) {
-  .week {
-    min-height: calc(100dvh - 160px);
-  }
-}
-
-/* ---- a phone: a strip of the seven days, and the day pressed under it ---- */
-.strip {
+/* ---- the whole week ---- */
+.week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 2px;
-  padding: 4px;
+  gap: 8px;
+  flex: 1 1 auto;
 }
 
-.homework .strip button {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 2px;
-  padding: 8px 0;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px;
+  border-radius: 16px;
 }
 
-/* the words sit over the lens, which is the one empty piece */
-.strip button > :not(:empty) {
-  position: relative;
+.col[data-today] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
-.strip b {
-  font: 400 20px/1 var(--font-serif);
+.homework .colHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: background 0.2s var(--out);
+}
+
+.colHead b {
+  font-weight: 600;
+}
+
+.colHead span {
+  font: 400 18px/1 var(--font-serif);
   font-variant-numeric: lining-nums;
 }
 
-/* three rows, always in the same place: Reading and Writing, Math, Mixed */
-.strip .marks {
-  display: grid;
-  grid-template-rows: repeat(3, 6px);
-  gap: 3px;
-  margin-top: 6px;
-}
-
-.marks > span {
-  display: flex;
-  justify-content: center;
-  gap: 3px;
-  height: 6px;
-}
-
-.marks i {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--kind);
-}
-
-@media (max-width: 959px) {
-  .top {
-    justify-self: stretch;
-    justify-content: space-between;
+/* with room: the left beside the right, and both reach down the screen */
+@media (min-width: 960px) and (hover: hover) {
+  .homework {
+    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: calc(100dvh - 88px);
   }
 
-  .top h2 {
+  .exam,
+  .homework[data-whole] .main {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- a phone ---- */
+@media (max-width: 959px) {
+  .exam {
+    gap: 10px;
+    min-height: 0;
+    padding: 8px 14px 8px 4px;
+  }
+
+  .examFox {
+    zoom: 0.7;
+  }
+
+  .homework .exam h2 {
+    font-size: 19px;
+  }
+
+  .exam p {
+    font-size: 13px;
+  }
+
+  .homework .until b {
+    font-size: 28px;
+  }
+
+  /* the ring at the left, the count, bars and class at its right */
+  .side {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 2px 14px;
+    padding: var(--pad);
+  }
+
+  .ring {
+    grid-row: 1 / 4;
+    zoom: 0.62;
+  }
+
+  .count b {
+    font-size: 32px;
+  }
+
+  .bars {
+    margin-top: 0;
+  }
+
+  .bar {
+    width: 14px;
+    height: 30px;
+  }
+
+  .homework .bars button {
+    padding: 4px 0 2px;
+  }
+
+  .homework .weekly {
+    display: none;
+  }
+
+  .homework .next {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 6px;
+    padding: 8px 12px;
+  }
+
+  .main {
+    padding: var(--pad);
+  }
+
+  .main > header {
+    flex-wrap: wrap;
+  }
+
+  .main h2 {
+    flex: 1 1 0;
+    justify-content: center;
     min-width: 0;
+    text-align: center;
+  }
+
+  .homework .views {
+    flex: 1 1 100%;
+    margin: 4px 0 0;
+  }
+
+  .views button {
+    flex: 1 1 0;
+  }
+
+  .homework .work {
+    min-height: 68px;
+  }
+
+  /* the week on a phone: a day under a day, its work side by side */
+  .week {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .col .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .homework .work[data-exam] {
+  .lights,
+  .star,
+  .examFox,
+  .bob,
+  .hop,
+  .bar svg,
+  .homework .start {
     animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .homework .work {
+    background: color-mix(in srgb, var(--kind) 55%, var(--paper, #fbf6ee));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
