@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 export type StickerName =
   | "homework"
   | "library"
-  | "practice"
   | "class"
   | "schedule"
   | "progress"
@@ -74,21 +73,6 @@ const ART: Record<StickerName, ReactNode> = {
         />
       </g>
       <path d="M2 20.500h20" />
-    </>
-  ),
-  // a target with an arrow in the middle
-  practice: (
-    <>
-      <circle cx="11" cy="13" r="8" {...WASH} />
-      <circle cx="11" cy="13" r="4.300" />
-      <g data-move="dart" stroke={ACCENT}>
-        <path d="M11 13l7.500-7.500" strokeWidth="1.900" />
-        <path
-          d="M16.800 3.200l.7 2.800 2.800.7 1.500-1.700-2.200-.6-.6-2.200z"
-          fill={ACCENT}
-          strokeWidth="1"
-        />
-      </g>
     </>
   ),
   // the classroom: a chalkboard on its stand

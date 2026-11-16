@@ -43,7 +43,6 @@ import { Sticker, type StickerName } from "./stickers";
 const LABEL: Record<StickerName, string> = {
   homework: "Homework",
   library: "Library",
-  practice: "Practice",
   class: "Class",
   schedule: "Schedule",
   progress: "Progress",
@@ -59,8 +58,8 @@ const PLANS = {
   practice: {
     label: "Free, Practice, Pro",
     name: "Practice",
-    bar: ["library", "practice", "progress", "rewards", "more"],
-    rail: ["library", "practice", "progress", "rewards"],
+    bar: ["library", "progress", "rewards", "more"],
+    rail: ["library", "progress", "rewards"],
   },
   cohort: {
     label: "Cohort",

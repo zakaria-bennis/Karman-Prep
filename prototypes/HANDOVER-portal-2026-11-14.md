@@ -400,7 +400,8 @@ Known faults and gaps:
 
 ## Rules for the build, from his answers
 
-- **Menu by plan, five at most.** Free, Practice, Pro: Library, Practice, Progress, Rewards, More. Cohort:
+- **Menu by plan, five at most.** Free, Practice, Pro: Library, Progress, Rewards, More (Practice was
+  dropped on 2026-11-15). Cohort:
   Homework, Library, Class, Progress, More. Private 10 and 20: Homework, Library, Schedule, Progress, More.
   More holds settings, account and upgrade (and Rewards and Chat on the taught plans).
 - **Landing.** Practice and Pro land on the Library with a small progress overview. Cohort and Private land
@@ -460,3 +461,13 @@ His rules from this round:
   the wind start on hover (or keyboard focus). The fire leans to the upper left, more on the top half
   than the bottom, as if the clock were falling down and to the right. On a phone there is no hover, so
   the fire shows only while the button is pressed or focused.
+
+## Practice is dropped (founder, 2026-11-15)
+
+A first Practice section was built and then removed the same day. His reason: "everything that practice
+would be doing is exactly what library already does, but better, because it's all centralized." The
+menu for Free, Practice and Pro is now Library, Progress, Rewards, More. Do not rebuild it. The ways to
+practise stay in the Library. Next is Progress, planned with him by questions before anything is built.
+His opening brief for Progress: overall preparation for the SAT; an analytics view of the work, time
+and effort put in; a highlight of where the student is weak; and a history of past questions and
+mistakes, "like a mistake log".
