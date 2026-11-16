@@ -17,7 +17,7 @@
 //   Not settled, and made up here: every price, amount and limit, which things to wear there are,
 //   and every character's name, story and challenge (he asked for a draft of those).
 import type { FaceKind } from "./characters";
-import type { IconName } from "./practice";
+import type { PassKind } from "./RewardsPassIcon";
 
 export const TOKENS = 1840;
 /** Days in a row with the challenge question answered. */
@@ -32,7 +32,7 @@ export const DAYS_TO_TOP = (TOP - 1) / 0.25;
 export const EARNED = [
   { name: "Daily 10", tokens: 420 },
   { name: "Skill levels", tokens: 300 },
-  { name: "Full-length exam", tokens: 250 },
+  { name: "Exams", tokens: 250 },
   { name: "Time trials", tokens: 120 },
   { name: "Endless mode", tokens: 90 },
 ];
@@ -49,28 +49,24 @@ export const PRIZES: { key: Wear; name: string }[] = [
   { key: "leaf", name: "Spring leaf" },
 ];
 
-/** Things of real use that tokens buy. Each is dear and has a limit, so it cannot be leaned on. */
+/** Things of real use that tokens buy. Each has a limit, which he set (2026-11-16): the exam pass
+ *  once a month, the streak saver once a week, the second chance once in a skill set. The prices are
+ *  stand-ins. */
 export type Pass = {
   name: string;
   does: string;
   price: number;
   /** How often one may be bought. */
   limit: string;
-  icon: IconName;
+  icon: PassKind;
   /** Paid for at the moment it is needed, inside a skill set, so it is not bought ahead here. */
   inSet?: boolean;
 };
 export const PASSES: Pass[] = [
   {
-    name: "Early exam pass",
-    does: "Start a full-length exam before Saturday",
-    price: 3000,
-    limit: "1 a month",
-    icon: "exam",
-  },
-  {
-    name: "Late exam pass",
-    does: "Start a full-length exam after Saturday has passed",
+    // one pass for both, the early start and the late one (he asked for them to be one)
+    name: "Exam pass",
+    does: "Start a full-length exam before or after Saturday",
     price: 3000,
     limit: "1 a month",
     icon: "exam",
@@ -80,16 +76,26 @@ export const PASSES: Pass[] = [
     does: "Keeps your streak through one missed day",
     price: 1200,
     limit: "1 a week",
-    icon: "flame",
+    icon: "streak",
   },
   {
     name: "Second chance",
     does: "Correct a miss in a skill set and keep your run going",
     price: 300,
     limit: "1 a skill set",
-    icon: "check",
+    icon: "chance",
     inSet: true,
   },
+];
+
+/** Little things worth knowing about the student's tokens. */
+export const RECORDS = [
+  { name: "Lifetime tokens", value: "6,420" },
+  { name: "Earned today", value: "180" },
+  { name: "Best day", value: "640" },
+  { name: "Boxes opened", value: "7" },
+  { name: "Longest streak", value: "11 days" },
+  { name: "Top multiplier", value: "3.75x" },
 ];
 
 export type Character = {
@@ -103,11 +109,13 @@ export type Character = {
   /** How far along the student is: done, out of how many. */
   done: number;
   of: number;
-  /** Its face, if it has been drawn. */
-  face?: FaceKind;
+  face: FaceKind;
+  /** One of the three hardest to unlock: until then it is a black shape with no name. */
+  mystery?: boolean;
 };
-/** The 16 characters. Six have faces; the rest are names, stories and challenges only. Since most
- *  have no picture yet, the made-up student has unlocked only the fox. */
+/** The 16 characters, the easiest first. One not yet unlocked is seen grayed out, except the last
+ *  three, the hardest, which are black shapes with no name until they are unlocked (founder,
+ *  2026-11-16: "just like how Subway Surfers does it"). The made-up student has only the fox. */
 export const CHARACTERS: Character[] = [
   {
     name: "Ember",
@@ -157,10 +165,10 @@ export const CHARACTERS: Character[] = [
   {
     name: "Bruno",
     kind: "Bear",
-    story: "Thirty days without a miss. He will hibernate after the SAT.",
-    challenge: "Answer the challenge question 30 days in a row",
+    story: "Two weeks without a miss. He will hibernate after the SAT.",
+    challenge: "Answer the challenge question 14 days in a row",
     done: 6,
-    of: 30,
+    of: 14,
     face: "bear",
   },
   {
@@ -170,6 +178,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Answer 25 in a row in endless mode",
     done: 14,
     of: 25,
+    face: "otter",
   },
   {
     name: "Hazel",
@@ -178,6 +187,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Earn 5,000 tokens",
     done: 1840,
     of: 5000,
+    face: "squirrel",
   },
   {
     name: "Reed",
@@ -186,6 +196,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Finish 3 full-length exams",
     done: 2,
     of: 3,
+    face: "heron",
   },
   {
     name: "Barley",
@@ -194,6 +205,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Look back at 50 missed questions",
     done: 21,
     of: 50,
+    face: "badger",
   },
   {
     name: "Sable",
@@ -202,6 +214,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Get all 10 right in a Daily 10",
     done: 0,
     of: 1,
+    face: "lynx",
   },
   {
     name: "Flint",
@@ -210,6 +223,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Bring every skill in one domain to Proficient",
     done: 5,
     of: 9,
+    face: "wolf",
   },
   {
     name: "Willow",
@@ -218,14 +232,17 @@ export const CHARACTERS: Character[] = [
     challenge: "Raise your predicted score by 200",
     done: 170,
     of: 200,
+    face: "crane",
   },
   {
     name: "Saffron",
     kind: "Red panda",
     story: "Calm at five times the speed of everyone else.",
-    challenge: "Reach the 5x multiplier",
-    done: 6,
-    of: 16,
+    challenge: "Hold the 5x multiplier for 30 days",
+    done: 0,
+    of: 30,
+    face: "redpanda",
+    mystery: true,
   },
   {
     name: "Rowan",
@@ -234,6 +251,8 @@ export const CHARACTERS: Character[] = [
     challenge: "Finish 10 full-length exams",
     done: 5,
     of: 10,
+    face: "stag",
+    mystery: true,
   },
   {
     name: "Cinder",
@@ -242,5 +261,7 @@ export const CHARACTERS: Character[] = [
     challenge: "Bring all 72 skills to Proficient",
     done: 25,
     of: 72,
+    face: "phoenix",
+    mystery: true,
   },
 ];

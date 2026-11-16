@@ -795,31 +795,41 @@ what is made up), `rewards.module.css`.
   he may base themes on places such as countries; light and dark stay tied to day and night. He
   wants them to be valuable but has not decided how. Do not put the first version's four themes and
   four skins back.
-- **Passes take their place: things of real use.** His idea (2026-11-16): tokens buy an early or a
-  late start for a full-length exam, a way to keep a streak through a missed day, and a second
+- **Passes take their place: things of real use.** His idea (2026-11-16): tokens buy a start for a
+  full-length exam outside its window, a way to keep a streak through a missed day, and a second
   chance inside a skill set, each priced so it cannot be abused. **New product rule he stated:
-  full-length exams can only be started on Saturday, from 6 am to midnight.** Built as four rows:
-  Early exam pass and Late exam pass (3,000 each, 1 a month), Streak saver (1,200, 1 a week; once
-  one is held another cannot be bought; **he saw it and said it is fine**), and **Second chance**
-  (300, 1 a skill set). Second chance is his own addition after seeing the page: inside a skill set,
-  after a miss, the student corrects the mistake and pays tokens so the run of right answers still
-  counts and the skill can still level up (his example: three right, one wrong, corrected and paid
-  for, and on to Understanding). It is paid for inside the skill set, so on Rewards it only tells
-  its price and has nothing to press. The skill set screen that offers it is not built. Every price
-  and limit is mine.
-- **Characters have names and stories, and some can be seen before they are unlocked.** He asked
-  that they not be called by their animal, that each have a name and perhaps a little backstory, and
-  that some locked ones show their faces grayed out. Five new faces are drawn in code in the fox's
-  manner (`characters.tsx`): Juniper the owl, Clover the rabbit, Thistle the hedgehog, Maple the
-  deer, Bruno the bear. They show grayed out in the grid; the other ten are still a lock. Pressing
-  one gives its name, its animal, its story, its challenge and how far along it is. The fox is
-  Ember. All 16 names, stories and challenges are my draft (the other ten: Pebble the otter, Hazel
-  the squirrel, Reed the heron, Barley the badger, Sable the lynx, Flint the wolf, Willow the crane,
-  Saffron the red panda, Rowan the stag, Cinder the phoenix). **He has not judged the five faces.**
-- **The page.** With room, three panes on one screen: Tokens (held, multiplier with its 16-step
-  climb, this week's earnings), the mystery box with Passes under it, and Characters. In the
-  medium-width window the box and passes sit side by side on top. On a phone a slim line always
-  shows the tokens held, and Box, Tokens, Passes and Characters are pages; none scrolls.
+  full-length exams can only be started on Saturday, from 6 am to midnight.** Three rows, with the
+  limits he set: **Exam pass** (one pass for both the early and the late start; once a month),
+  **Streak saver** (once a week; once one is held another cannot be bought; he saw it and said it is
+  fine) and **Second chance** (once in a skill set). Second chance is his own addition: inside a
+  skill set, after a miss, the student corrects the mistake and pays tokens so the run of right
+  answers still counts and the skill can still level up (his example: three right, one wrong,
+  corrected and paid for, and on to Understanding). It is paid for inside the skill set, so on
+  Rewards it only tells its price and has nothing to press. The skill set screen that offers it is
+  not built. The prices are mine (3,000, 1,200, 300).
+- **Each pass has a small picture that moves when its row is hovered** (`RewardsPassIcon.tsx`): the
+  streak saver's flame "is alive", sinking to an ember and flaring back into a flame; the second
+  chance's circle with a cross pops into a green circle with a check mark. The exam pass keeps the
+  exam paper.
+- **Characters have names and stories, and all can be seen before they are unlocked.** He asked that
+  they not be called by their animal, that each have a name and a little backstory, that one not yet
+  unlocked show its face grayed out, and that **the last three, the hardest, be blacked out as
+  mystery characters** ("just like how Subway Surfers does it"). All 16 faces are now drawn in code
+  in the fox's manner (`characters.tsx`). Thirteen show grayed out until unlocked; the last three
+  (the red panda, the stag, the phoenix) are black shapes, and their card says "???" and "A mystery
+  until it is yours." with the challenge still told. The card that names the pressed character sits
+  **above** the faces, as he asked. All 16 names, stories and challenges are my draft: Ember the
+  fox, Juniper the owl, Clover the rabbit, Thistle the hedgehog, Maple the deer, Bruno the bear,
+  Pebble the otter, Hazel the squirrel, Reed the heron, Barley the badger, Sable the lynx, Flint the
+  wolf, Willow the crane, then Saffron, Rowan and Cinder. **He has not judged the fifteen new faces.**
+- **Records, a second pane on the left under Tokens,** to balance the page against Characters (his
+  ask): lifetime tokens, earned today, best day, boxes opened, longest streak, top multiplier. All
+  six figures are made up.
+- **The page.** With room, three columns on one screen: Tokens (held, multiplier with its 16-step
+  climb, this week's earnings) over Records; the mystery box with Passes under it; Characters. In
+  the medium-width window the box and passes sit side by side on top. On a phone a slim line always
+  shows the tokens held, and Box, Tokens, Passes and Characters are pages; none scrolls (the Tokens
+  page there starts at the multiplier, since the line above already shows the tokens held).
 - **Still made up:** every price, amount and limit; the four things to wear (round glasses, party
   hat, crown, spring leaf); every name, story and challenge.
 - **Open with him:** where a student sees and changes what they own;

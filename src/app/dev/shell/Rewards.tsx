@@ -6,12 +6,14 @@
 //                challenge-question streak has earned (a quarter more each day, up to 5x), and where
 //                this week's tokens came from.
 //   The box      the mystery box, opened for tokens: it holds things to wear (RewardsBox.tsx).
+//   Records      little things worth knowing (lifetime tokens, best day and so on), under Tokens.
 //   Passes       things of real use: starting a full-length exam outside Saturday's window,
 //                keeping a streak through a missed day, and a second chance after a miss inside a
 //                skill set (paid for there, so here it only tells its price). Each is limited.
 //   Characters   the 16, each with its own name and a little story, each unlocked by its own
-//                challenge. One still locked shows its face grayed out, if its face is drawn, so the
-//                student can see who is waiting. Pressing one tells its story and how to unlock it.
+//                challenge. One still locked shows its face grayed out, so the student can see who
+//                is waiting; the three hardest are black shapes with no name. The card above the
+//                faces tells the pressed one's story and how to unlock it.
 // With room, the three pieces stand side by side on one screen. On a phone each is a page of its own,
 // under a slim line that always shows the tokens held.
 // Tokens are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
@@ -20,9 +22,9 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
-import { Tile } from "./practice";
 import styles from "./rewards.module.css";
 import MysteryBox, { Token, Wearing } from "./RewardsBox";
+import { PassIcon } from "./RewardsPassIcon";
 import {
   BOX_PRICE,
   CHARACTERS,
@@ -30,6 +32,7 @@ import {
   EARNED,
   PASSES,
   PRIZES,
+  RECORDS,
   STREAK,
   TOKENS,
   multiplierFor,
@@ -62,6 +65,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
   const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
   const chosen = CHARACTERS[picked];
   const has = chosen.done >= chosen.of;
+  const hidden = chosen.mystery && !has;
 
   return (
     <div className={`${lib.library} ${styles.rewards}`}>
@@ -101,49 +105,63 @@ export default function Rewards({ rail }: { rail: boolean }) {
       )}
 
       {show("Tokens") && (
-        <section className={`${lib.glass} ${styles.tokens}`} aria-label="Tokens">
-          <h2>Tokens</h2>
-          <p className={styles.held}>
-            <Token size={52} />
-            {count(tokens)}
-          </p>
-
-          <div className={styles.part}>
-            <p className={styles.figure}>
-              <b>{times(multiplier)}</b> multiplier
+        <div className={styles.left}>
+          <section className={`${lib.glass} ${styles.tokens}`} aria-label="Tokens">
+            <h2>Tokens</h2>
+            <p className={styles.held}>
+              <Token size={52} />
+              {count(tokens)}
             </p>
-            {/* the climb from 1x to 5x, a step for each day in a row */}
-            <div
-              className={styles.climb}
-              role="img"
-              aria-label={`${STREAK} of ${DAYS_TO_TOP} days toward 5x`}
-            >
-              {Array.from({ length: DAYS_TO_TOP }, (_, i) => (
-                <i key={i} data-on={i < STREAK || undefined} />
-              ))}
+
+            <div className={styles.part}>
+              <p className={styles.figure}>
+                <b>{times(multiplier)}</b> multiplier
+              </p>
+              {/* the climb from 1x to 5x, a step for each day in a row */}
+              <div
+                className={styles.climb}
+                role="img"
+                aria-label={`${STREAK} of ${DAYS_TO_TOP} days toward 5x`}
+              >
+                {Array.from({ length: DAYS_TO_TOP }, (_, i) => (
+                  <i key={i} data-on={i < STREAK || undefined} />
+                ))}
+              </div>
+              <p className={styles.ends}>
+                <span>
+                  <b>{STREAK}</b> day streak
+                </span>
+                <span>
+                  {multiplier < 5 ? `${times(multiplierFor(STREAK + 1))} tomorrow` : "At the top"}
+                </span>
+              </p>
             </div>
-            <p className={styles.ends}>
-              <span>
-                <b>{STREAK}</b> day streak
-              </span>
-              <span>
-                {multiplier < 5 ? `${times(multiplierFor(STREAK + 1))} tomorrow` : "At the top"}
-              </span>
-            </p>
-          </div>
 
-          <div className={styles.part}>
-            <h3>This week</h3>
-            <ul className={styles.earned}>
-              {EARNED.map((row) => (
-                <li key={row.name}>
-                  <span>{row.name}</span>
-                  <b>+{count(row.tokens)}</b>
-                </li>
+            <div className={styles.part}>
+              <h3>This week</h3>
+              <ul className={styles.earned}>
+                {EARNED.map((row) => (
+                  <li key={row.name}>
+                    <span>{row.name}</span>
+                    <b>+{count(row.tokens)}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+          {/* little things worth knowing, which also balance the page against the characters */}
+          <section className={`${lib.glass} ${styles.records}`} aria-label="Records">
+            <h2>Records</h2>
+            <dl>
+              {RECORDS.map((record) => (
+                <div key={record.name}>
+                  <dd>{record.value}</dd>
+                  <dt>{record.name}</dt>
+                </div>
               ))}
-            </ul>
-          </div>
-        </section>
+            </dl>
+          </section>
+        </div>
       )}
 
       {(show("Box") || show("Passes")) && (
@@ -168,7 +186,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
                   const mine = held.includes(pass.name);
                   return (
                     <li key={pass.name} className={styles.pass}>
-                      <Tile name={pass.icon} />
+                      <PassIcon kind={pass.icon} />
                       <div>
                         <b>{pass.name}</b>
                         <span>{pass.does}</span>
@@ -213,53 +231,18 @@ export default function Rewards({ rail }: { rail: boolean }) {
               <b>{unlocked}</b> of {CHARACTERS.length}
             </p>
           </header>
-          <div className={styles.grid} role="group" aria-label="Characters">
-            {CHARACTERS.map((c, i) => {
-              const mine = c.done >= c.of;
-              return (
-                <button
-                  key={c.name}
-                  type="button"
-                  className={styles.face}
-                  data-mine={mine || undefined}
-                  aria-pressed={picked === i}
-                  aria-label={`${c.name} the ${c.kind.toLowerCase()}, ${mine ? "unlocked" : "locked"}`}
-                  onClick={() => {
-                    setPicked(i);
-                    tick();
-                  }}
-                >
-                  {i === 0 ? (
-                    <Wearing wear={wearing} size={44} />
-                  ) : c.face ? (
-                    // one still to unlock is seen, grayed out
-                    <span className={styles.peek}>
-                      <Face kind={c.face} size={44} />
-                    </span>
-                  ) : (
-                    <svg
-                      className={styles.lock}
-                      viewBox="0 0 24 24"
-                      width="22"
-                      height="22"
-                      aria-hidden="true"
-                    >
-                      <rect x="5.500" y="10.500" width="13" height="9.500" rx="2.500" />
-                      <path d="M8.500 10.500V8a3.500 3.500 0 0 1 7 0v2.500" />
-                    </svg>
-                  )}
-                  {/* how far along a locked one is, along the foot of its square */}
-                  {!mine && <i style={{ width: `${Math.round((c.done / c.of) * 100)}%` }} />}
-                </button>
-              );
-            })}
-          </div>
-          {/* who the pressed one is, its story, and how it is unlocked. Its height is fixed, so
-              pressing moves nothing. */}
+          {/* who the pressed one is, its story, and how it is unlocked, above the faces. Its height
+              is fixed, so pressing moves nothing. A mystery keeps its name and story to itself. */}
           <div className={styles.card} aria-live="polite">
             <div>
               <h3>
-                {chosen.name} <small>{chosen.kind}</small>
+                {hidden ? (
+                  "???"
+                ) : (
+                  <>
+                    {chosen.name} <small>{chosen.kind}</small>
+                  </>
+                )}
               </h3>
               <p className={styles.far}>
                 {has ? (
@@ -271,8 +254,43 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 )}
               </p>
             </div>
-            <p className={styles.story}>{chosen.story}</p>
+            <p className={styles.story}>{hidden ? "A mystery until it is yours." : chosen.story}</p>
             <p className={styles.how}>{chosen.challenge}</p>
+          </div>
+          <div className={styles.grid} role="group" aria-label="Characters">
+            {CHARACTERS.map((c, i) => {
+              const mine = c.done >= c.of;
+              const secret = c.mystery && !mine;
+              return (
+                <button
+                  key={c.name}
+                  type="button"
+                  className={styles.face}
+                  data-mine={mine || undefined}
+                  aria-pressed={picked === i}
+                  aria-label={
+                    secret
+                      ? "A mystery character, locked"
+                      : `${c.name} the ${c.kind.toLowerCase()}, ${mine ? "unlocked" : "locked"}`
+                  }
+                  onClick={() => {
+                    setPicked(i);
+                    tick();
+                  }}
+                >
+                  {i === 0 ? (
+                    <Wearing wear={wearing} size={44} />
+                  ) : (
+                    // one still to unlock is seen grayed out; the three hardest are black shapes
+                    <span className={mine ? undefined : secret ? styles.shade : styles.peek}>
+                      <Face kind={c.face} size={44} />
+                    </span>
+                  )}
+                  {/* how far along a locked one is, along the foot of its square */}
+                  {!mine && <i style={{ width: `${Math.round((c.done / c.of) * 100)}%` }} />}
+                </button>
+              );
+            })}
           </div>
         </section>
       )}

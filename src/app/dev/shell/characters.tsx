@@ -1,12 +1,28 @@
 // The characters' faces, drawn here in code on the fox's own grid and in the fox's manner: flat
 // facets, a lighter left side and a darker right, the same dark eyes with a point of light, a little
-// blush. The fox itself is the approved mark (Fox.tsx). The others are first drawings for the founder
-// to judge (2026-11-16): the owl, the rabbit, the deer, the bear and the hedgehog. The rest of the 16
-// are not drawn yet.
+// blush. The fox itself is the approved mark (Fox.tsx). The other fifteen are first drawings for the
+// founder to judge (2026-11-16). The last three (red panda, stag, phoenix) are seen only as black
+// shapes until they are unlocked, so their outlines matter most.
 import type { ReactNode } from "react";
 import { Fox } from "@/components/portal/Fox";
 
-export type FaceKind = "fox" | "owl" | "rabbit" | "deer" | "bear" | "hedgehog";
+export type FaceKind =
+  | "fox"
+  | "owl"
+  | "rabbit"
+  | "deer"
+  | "bear"
+  | "hedgehog"
+  | "otter"
+  | "squirrel"
+  | "heron"
+  | "badger"
+  | "lynx"
+  | "wolf"
+  | "crane"
+  | "redpanda"
+  | "stag"
+  | "phoenix";
 
 const INK = "#24180F";
 function Eyes({ x = 15, y = -28, r = 6 }: { x?: number; y?: number; r?: number }) {
@@ -138,6 +154,198 @@ const FACES: Record<Exclude<FaceKind, "fox">, ReactNode> = {
       <Blush x={21} y={-11} />
       <path d="M-7 -8L7 -8L0 4Z" fill="#dcc09a" />
       <circle cx="0" cy="-1" r="4.200" fill="#2a1c12" />
+    </>
+  ),
+  // small round ears set low, a wide pale lower face, a broad nose and whisker dots
+  otter: (
+    <>
+      <circle cx="-34" cy="-40" r="9" fill="#6f4f37" />
+      <circle cx="34" cy="-40" r="9" fill="#5c4130" />
+      <path d="M-36 -46L0 -56L0 12L-26 6L-42 -18Z" fill="#9a7352" />
+      <path d="M36 -46L0 -56L0 12L26 6L42 -18Z" fill="#84603f" />
+      <path d="M-26 -14L0 -24L26 -14L22 4L0 10L-22 4Z" fill="#f3e4cb" />
+      <Eyes x={15} y={-30} r={5.5} />
+      <Blush x={30} y={-18} />
+      <ellipse cx="0" cy="-14" rx="7.500" ry="4.800" fill="#2a1c12" />
+      <path
+        d="M0 -9V-5M-5 -3Q0 1 5 -3"
+        stroke="#2a1c12"
+        strokeWidth="1.800"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <circle cx="-13" cy="-7" r="1.300" fill="#b89b78" />
+      <circle cx="-17" cy="-3" r="1.300" fill="#b89b78" />
+      <circle cx="13" cy="-7" r="1.300" fill="#b89b78" />
+      <circle cx="17" cy="-3" r="1.300" fill="#b89b78" />
+    </>
+  ),
+  // tufted ears, full pale cheeks and two front teeth
+  squirrel: (
+    <>
+      <path d="M-30 -44L-36 -84L-12 -56Z" fill="#b9722b" />
+      <path d="M-36 -84L-33 -70L-24 -74Z" fill="#7a4416" />
+      <path d="M30 -44L36 -84L12 -56Z" fill="#a05f20" />
+      <path d="M36 -84L33 -70L24 -74Z" fill="#6a3a12" />
+      <path d="M-34 -48L0 -58L0 10L-22 4L-40 -20Z" fill="#d08a3e" />
+      <path d="M34 -48L0 -58L0 10L22 4L40 -20Z" fill="#b9722b" />
+      <ellipse cx="-20" cy="-8" rx="14" ry="12" fill="#f8e8cc" />
+      <ellipse cx="20" cy="-8" rx="14" ry="12" fill="#efdab6" />
+      <path d="M-9 -16L0 -21L9 -16L0 6Z" fill="#f8e8cc" />
+      <Eyes x={15} y={-31} />
+      <path d="M-4 -15L4 -15L0 -10Z" fill="#5a3414" />
+      <path d="M0 -10V-6" stroke="#5a3414" strokeWidth="1.600" strokeLinecap="round" />
+      <path d="M-3 -6H3V-1H-3Z" fill="#fff" stroke="#d9c7a6" strokeWidth="0.800" />
+    </>
+  ),
+  // a narrow pale head, dark brows that run back into a plume, and a long bill
+  heron: (
+    <>
+      <path d="M2 -54L36 -94L28 -62Z" fill="#2b3440" />
+      <path d="M-4 -54L20 -100L12 -62Z" fill="#3a4654" />
+      <path d="M-28 -50L0 -58L0 -4L-16 -10L-32 -30Z" fill="#f3f5f8" />
+      <path d="M28 -50L0 -58L0 -4L16 -10L32 -30Z" fill="#dfe5ec" />
+      <path d="M-30 -44L-6 -52L-4 -43L-28 -35Z" fill="#2b3440" />
+      <path d="M30 -44L6 -52L4 -43L28 -35Z" fill="#1f2630" />
+      <circle cx="-16" cy="-30" r="6.500" fill="#e9b23a" />
+      <circle cx="16" cy="-30" r="6.500" fill="#e9b23a" />
+      <Eyes x={16} y={-30} r={3.6} />
+      <path d="M-8 -20L0 -20L0 16Z" fill="#e9b23a" />
+      <path d="M8 -20L0 -20L0 16Z" fill="#c4860d" />
+    </>
+  ),
+  // a white face with two dark stripes running down through the eyes
+  badger: (
+    <>
+      <circle cx="-31" cy="-48" r="9.500" fill="#2b2622" />
+      <circle cx="-31" cy="-48" r="4.500" fill="#f7f3ea" />
+      <circle cx="31" cy="-48" r="9.500" fill="#1f1b18" />
+      <circle cx="31" cy="-48" r="4.500" fill="#e9e3d6" />
+      <path d="M-38 -46L0 -56L0 12L-18 6L-44 -16Z" fill="#f7f3ea" />
+      <path d="M38 -46L0 -56L0 12L18 6L44 -16Z" fill="#e9e3d6" />
+      <path d="M-32 -50L-9 -54L-9 -6L-22 2L-40 -18Z" fill="#2b2622" />
+      <path d="M32 -50L9 -54L9 -6L22 2L40 -18Z" fill="#1f1b18" />
+      <circle cx="-19" cy="-28" r="6.500" fill="#4a423c" />
+      <circle cx="19" cy="-28" r="6.500" fill="#3d3631" />
+      <Eyes x={19} y={-28} r={5} />
+      <path d="M-7 -6L7 -6L0 3Z" fill="#2b2622" />
+      <Smile y={5} />
+    </>
+  ),
+  // ears tipped with dark tufts, ruffs at the cheeks, and spots on the brow
+  lynx: (
+    <>
+      <path
+        d="M-36 -78L-42 -98M36 -78L42 -98"
+        stroke="#2b2622"
+        strokeWidth="3.500"
+        strokeLinecap="round"
+      />
+      <path d="M-30 -44L-36 -80L-12 -56Z" fill="#b89d77" />
+      <path d="M-29 -50L-33 -70L-18 -57Z" fill="#f1e3c8" />
+      <path d="M30 -44L36 -80L12 -56Z" fill="#a08660" />
+      <path d="M29 -50L33 -70L18 -57Z" fill="#e3d2b2" />
+      <path d="M-38 -24L-56 -2L-28 -2Z" fill="#efe3cd" />
+      <path d="M38 -24L56 -2L28 -2Z" fill="#e0d1b4" />
+      <path d="M-34 -48L0 -58L0 8L-20 4L-38 -22Z" fill="#cdb48f" />
+      <path d="M34 -48L0 -58L0 8L20 4L38 -22Z" fill="#b89d77" />
+      <path d="M-12 -14L0 -20L12 -14L8 2L0 6L-8 2Z" fill="#f6ecd9" />
+      <circle cx="-8" cy="-46" r="1.900" fill="#7a6548" />
+      <circle cx="8" cy="-46" r="1.900" fill="#7a6548" />
+      <circle cx="0" cy="-41" r="1.900" fill="#7a6548" />
+      <Eyes x={15} y={-29} />
+      <path d="M-4 -14L4 -14L0 -9Z" fill="#a8604f" />
+      <Smile y={-5} />
+    </>
+  ),
+  // the fox's cousin in gray: taller ears, a longer pale mask
+  wolf: (
+    <>
+      <path d="M-30 -42L-36 -84L-8 -56Z" fill="#8e959c" />
+      <path d="M-29 -48L-33 -72L-16 -57Z" fill="#dfe3e6" />
+      <path d="M30 -42L36 -84L8 -56Z" fill="#6c737b" />
+      <path d="M29 -48L33 -72L16 -57Z" fill="#c9cfd4" />
+      <path d="M-40 -32L0 -58L40 -32L0 -26Z" fill="#a9b0b7" />
+      <path d="M-40 -32L0 -26L-4 10L-30 0Z" fill="#8e959c" />
+      <path d="M40 -32L0 -26L4 10L30 0Z" fill="#737a82" />
+      <path d="M-40 -32L-16 -14L0 10L-30 0ZM40 -32L16 -14L0 10L30 0Z" fill="#f3f3f0" />
+      <path d="M-16 -14L0 -24L16 -14L0 10Z" fill="#f3f3f0" />
+      <Eyes x={15} y={-28} />
+      <path d="M-6 -13L6 -13L0 -6Z" fill="#24180F" />
+      <Smile y={-2} />
+    </>
+  ),
+  // a white head with a red crown, dark cheeks and a long gray bill
+  crane: (
+    <>
+      <path d="M-28 -48L0 -56L0 0L-16 -6L-32 -28Z" fill="#f7f5f0" />
+      <path d="M28 -48L0 -56L0 0L16 -6L32 -28Z" fill="#e6e2da" />
+      <path d="M-18 -51L0 -64L18 -51L0 -44Z" fill="#c8553d" />
+      <path d="M0 -64L18 -51L0 -44Z" fill="#a8412c" />
+      <path d="M-32 -28L-16 -6L0 0L0 -10L-20 -22Z" fill="#2b2622" />
+      <path d="M32 -28L16 -6L0 0L0 -10L20 -22Z" fill="#1f1b18" />
+      <Eyes x={15} y={-33} r={4.8} />
+      <path d="M-7 -20L0 -20L0 16Z" fill="#9aa1a8" />
+      <path d="M7 -20L0 -20L0 16Z" fill="#737a82" />
+    </>
+  ),
+  // wide pale ears, a rust head, white brows and cheeks, and dark marks under the eyes
+  redpanda: (
+    <>
+      <path d="M-30 -42L-50 -72L-14 -58Z" fill="#fbf3e6" />
+      <path d="M-31 -48L-43 -66L-21 -57Z" fill="#b85a22" />
+      <path d="M30 -42L50 -72L14 -58Z" fill="#efe4d2" />
+      <path d="M31 -48L43 -66L21 -57Z" fill="#9c4a1a" />
+      <path d="M-40 -44L0 -56L0 12L-28 6L-46 -18Z" fill="#cf6a2c" />
+      <path d="M40 -44L0 -56L0 12L28 6L46 -18Z" fill="#b85a22" />
+      <path d="M-46 -18L-22 -16L-10 6L-28 6Z" fill="#fbf3e6" />
+      <path d="M46 -18L22 -16L10 6L28 6Z" fill="#efe4d2" />
+      <circle cx="-15" cy="-43" r="4.500" fill="#fbf3e6" />
+      <circle cx="15" cy="-43" r="4.500" fill="#efe4d2" />
+      <path d="M-19 -22L-13 -8L-24 -8Z" fill="#8a3f16" />
+      <path d="M19 -22L13 -8L24 -8Z" fill="#7a3612" />
+      <ellipse cx="0" cy="-7" rx="13" ry="10.500" fill="#fbf3e6" />
+      <Eyes x={16} y={-29} />
+      <ellipse cx="0" cy="-12" rx="5.500" ry="3.800" fill="#2a1c12" />
+      <Smile y={-5} />
+    </>
+  ),
+  // the deer grown: a full head of antlers
+  stag: (
+    <>
+      <path
+        d="M-13 -56L-26 -90L-18 -110M-23 -82L-42 -92M-26 -90L-44 -106M13 -56L26 -90L18 -110M23 -82L42 -92M26 -90L44 -106"
+        stroke="#6a4c30"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M-32 -46L-58 -58L-40 -30Z" fill="#8f5f30" />
+      <path d="M32 -46L58 -58L40 -30Z" fill="#784e26" />
+      <path d="M-30 -52L0 -60L0 12L-16 6L-34 -28Z" fill="#a9743f" />
+      <path d="M30 -52L0 -60L0 12L16 6L34 -28Z" fill="#8f5f30" />
+      <path d="M-12 -12L0 -18L12 -12L8 6L0 10L-8 6Z" fill="#f6e6cf" />
+      <Eyes x={16} y={-30} />
+      <path d="M-6 -11L6 -11L0 -4Z" fill="#3a2a1c" />
+      <Smile y={0} />
+    </>
+  ),
+  // a bird of fire: a crest of flames, bright cheeks and a golden bill
+  phoenix: (
+    <>
+      <path d="M-14 -50L-26 -94L-2 -66Z" fill="#ee5a24" />
+      <path d="M-6 -54L0 -110L10 -64Z" fill="#f2a93b" />
+      <path d="M10 -50L28 -92L16 -60Z" fill="#d94a18" />
+      <path d="M-34 -26L-52 -12L-30 -6Z" fill="#ee5a24" />
+      <path d="M34 -26L52 -12L30 -6Z" fill="#d94a18" />
+      <path d="M-30 -48L0 -58L0 4L-16 -2L-34 -26Z" fill="#f08a2c" />
+      <path d="M30 -48L0 -58L0 4L16 -2L34 -26Z" fill="#d96a1c" />
+      <circle cx="-15" cy="-31" r="10.500" fill="#ffd24a" />
+      <circle cx="15" cy="-31" r="10.500" fill="#f6c038" />
+      <Eyes x={15} y={-31} r={5} />
+      <path d="M-7 -18L0 -18L0 4Z" fill="#ffd24a" />
+      <path d="M7 -18L0 -18L0 4Z" fill="#e3a21a" />
     </>
   ),
 };
