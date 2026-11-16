@@ -503,6 +503,22 @@
   }
 }
 
+/* a short phone: the calendar closes up a little so it still fits the screen */
+@media (max-width: 599px) and (max-height: 780px) {
+  .calendar {
+    gap: 10px;
+  }
+
+  .grid {
+    gap: 4px;
+  }
+
+  .detail {
+    min-height: 116px;
+    gap: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spark path {
     animation: none;

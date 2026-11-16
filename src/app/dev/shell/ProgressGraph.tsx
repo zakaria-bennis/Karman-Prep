@@ -59,13 +59,10 @@ export function Spans({
   id,
   history,
   all = true,
-  brief,
   span,
   onPick,
 }: {
   id: string;
-  /** Always the short names (1D, 7D, 2W), for a narrow pane. */
-  brief?: boolean;
   /** Whether all time is offered. */
   all?: boolean;
   /** How many days of history there are: longer spans stay hidden until it reaches them. */
@@ -75,12 +72,7 @@ export function Spans({
 }) {
   const still = useReducedMotion() ?? false;
   return (
-    <div
-      className={`${lib.filter} ${styles.spans}`}
-      data-brief={brief || undefined}
-      role="group"
-      aria-label="Span of time"
-    >
+    <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
       {spansFor(history, all).map((s) => (
         <button
           key={s.key}
@@ -99,10 +91,9 @@ export function Spans({
               transition={still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }}
             />
           )}
-          <span>
-            <span data-full>{s.label}</span>
-            <span data-brief>{s.brief}</span>
-          </span>
+          {/* the short name is what is shown everywhere, so up to eight fit any pane; the full
+              name is the button's label for a screen reader */}
+          <span>{s.brief}</span>
         </button>
       ))}
     </div>
@@ -207,8 +198,9 @@ export function Graph({
   }, []);
 
   const narrow = width < 520;
-  const least = narrow ? 210 : 270;
-  const height = Math.max(least, tall);
+  // its least height is set in the stylesheet (less on a phone, less again on a short phone); the
+  // drawing is as tall as the box turns out to be
+  const height = Math.max(120, tall);
   const pad = { left: 46, right: narrow ? 14 : 22, top: 30, bottom: 30 };
   const inner = Math.max(1, width - pad.left - pad.right);
   const days = useMemo(() => dayMarks(student, from), [student, from]);
@@ -223,6 +215,23 @@ export function Graph({
   const floor = height - pad.bottom;
   const area = `${line}L${x(points[points.length - 1].day)} ${floor}L${x(points[0].day)} ${floor}Z`;
   const shown = at === null ? null : (points[at] ?? null);
+  // where the goal's name goes: the end of the graph where the line is farther from the goal, and
+  // the side of the goal line away from the line there (but never down among the dates)
+  const ends = [points[0].value, points[points.length - 1].value];
+  const goalAtStart = goal
+    ? Math.abs(ends[0] - goal.value) > Math.abs(ends[1] - goal.value)
+    : false;
+  const goalBelow = goal ? ends[goalAtStart ? 0 : 1] > goal.value : false;
+  // up the side, a mark is written only if it clears the one above it by 16 pixels: on a low graph
+  // every second one is left as a line alone, and the top mark is always written
+  const written = new Set<number>();
+  let last = -Infinity;
+  [...ticks].reverse().forEach((value) => {
+    if (y(value) - last >= 16) {
+      written.add(value);
+      last = y(value);
+    }
+  });
   // name only as many days as fit: about 62 pixels each
   const skip = Math.max(1, Math.ceil((days.length * 62) / inner));
 
@@ -254,7 +263,6 @@ export function Graph({
     <div
       ref={box}
       className={styles.graph}
-      style={{ minHeight: least }}
       role="slider"
       tabIndex={0}
       aria-label={`${label} over time`}
@@ -299,9 +307,11 @@ export function Graph({
           {ticks.map((value) => (
             <g key={value}>
               <path className={styles.rule} d={`M${pad.left} ${y(value)}H${width - pad.right}`} />
-              <text className={styles.mark} x={pad.left - 10} y={y(value) + 4.5} textAnchor="end">
-                {format(value)}
-              </text>
+              {written.has(value) && (
+                <text className={styles.mark} x={pad.left - 10} y={y(value) + 4.5} textAnchor="end">
+                  {format(value)}
+                </text>
+              )}
             </g>
           ))}
           {days.map((mark, i) => (
@@ -329,11 +339,13 @@ export function Graph({
                 className={styles.goal}
                 d={`M${pad.left} ${y(goal.value)}H${width - pad.right}`}
               />
+              {/* the goal's name sits at the end where the line is farther from it, so the line never
+                  runs through the words */}
               <text
                 className={styles.goalName}
-                x={width - pad.right}
-                y={y(goal.value) - 7}
-                textAnchor="end"
+                x={goalAtStart ? pad.left + 4 : width - pad.right}
+                y={y(goal.value) + (goalBelow && y(goal.value) + 24 < floor ? 17 : -7)}
+                textAnchor={goalAtStart ? "start" : "end"}
               >
                 {goal.label}
               </text>

@@ -78,8 +78,8 @@ export function Stats({
   const from = period.days === Infinity ? 0 : Math.max(0, to - period.days);
   return (
     <section className={`${lib.glass} ${styles.stats}`} aria-label="Activity">
-      {/* the same choices as on the predicted score, in their short names; choosing here moves both */}
-      <Spans id="numbers-span" history={student.days} brief span={period} onPick={onSpan} />
+      {/* the same choices as on the predicted score; choosing here moves both */}
+      <Spans id="numbers-span" history={student.days} span={period} onPick={onSpan} />
 
       <ul className={styles.cells}>
         {STAT_ORDER.map((key) => {

@@ -684,3 +684,20 @@ and said to move on.
 - He looks at Progress in a window between 960 and 1199 wide, where the score is on top, the numbers
   at the bottom left and the calendar at the bottom right. Check that layout as well as 1440.
 - Next: step 4, History.
+
+**Progress: phone pass (2026-11-16), applied; awaiting his verdict.** He asked for "a lot of mobile
+checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
+- **Span names are short everywhere** (1D, 7D, 2W, 1M, 3M, 6M, 1Y, All). He liked seven fitting in
+  one pill; the full names overflowed on Pacing and Days practiced, which offer All time.
+- **The Frost slider is gone.** The glass is fixed at 70% (`--frost-k` in `shell.module.css`).
+- **An audit script, `scripts/dev/progress-phone-audit.cjs`**, walks every Progress screen for two
+  students on phones 360, 390 and 430 wide (180 screens) and reports text that spills from its pane,
+  is cut off, overlaps other text, or makes the page scroll. It found 34 bad screens; all are fixed
+  and it now reports none. Run it after any change to Progress. The same check passed on 42 desktop
+  screens at 1100, 1440 and 1728 wide.
+- What it found and what changed on a phone: the small words after a value ("per question") ran off
+  the pane, so they sit under the value; the section buttons wrapped to two rows, so they share one
+  row with the name over the value; the exams list wrapped each name over four lines and scrolled,
+  so each exam is two lines; a short phone (740 tall) scrolled, so the graph and the big number are
+  lower there; side labels on a low graph collided, so only those with room are written; the pacing
+  goal's name sat on the line, so it moves to the end of the graph where the line is farther away.

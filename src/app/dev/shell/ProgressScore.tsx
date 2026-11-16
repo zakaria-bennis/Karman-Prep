@@ -140,7 +140,6 @@ export default function ProgressScore({
           <Spans
             id="score-span"
             history={history}
-            brief
             span={span}
             onPick={(next) => {
               onSpan(next);
