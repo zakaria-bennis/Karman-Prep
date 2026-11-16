@@ -329,6 +329,33 @@ Known faults and gaps:
      letters fly out of the book glowing and fold into paper doves; a shorter, looser ribbon; many
      small birds in the dusk sky; the telescope is gone, the dome is raised and the dishes redrawn;
      the opening into a side is a plain soft circle, quicker.
+   - **Fifth round (2026-11-15, 24 notes), applied; awaiting his verdict.**
+     - **Hero is truly full screen**: it covers everything and only the menu lies over it. The seam
+       is drawn first, then the two skies open out from it. The **desktop menu sits hard against the
+       left edge** so a pointer thrown to the edge opens it.
+     - **The book's pages carry the opening of the Odyssey, Book I** (Samuel Butler's 1900
+       translation, out of copyright), set small and very faint; every turning leaf shows a
+       different page; no figures. It was typed from memory: **check it against a printed Butler
+       before it ships.** Letters rise glowing, fold into paper birds and fly off towards the sun;
+       none fall back.
+     - **Loader:** the `thinking-orbs` npm package (Jakub Antalik, MIT), state "working", shown only
+       for the moment a press takes (0.45s in the demo). **Pages must be snappy.**
+     - **Start buttons fill from an inner rectangle that grows outward.**
+     - **Icons he settled:** Daily 10 is a sun with ten rays; Word Line is six bordered squares that
+       hop and step through grey, two yellow, one green and two yellow, three green and one yellow,
+       five green, all green; flashcards are a stack of opaque pale yellow index cards that fan out
+       to the right and spring back; the compass has a white face, N E S W and notches between;
+       endless is the sign itself in marigold paint with a travelling shine and glints; time trials
+       keep the watch with redrawn flames; full-length exams are pages with lines of text and a
+       turning clock; the bolt is solid and bright.
+     - **More ways to practise is a grid of three by two.**
+     - **No stars on skills** ("I don't even know if I really like the star idea"): three bars only,
+       which glow and shimmer when filled.
+     - **The ring cranks its way round**; joins between levels in the ring and in the bands are the
+       colour of the edge.
+     - **One domain is recommended** ("Start here: the most to gain"): the one with the smallest
+       share Proficient.
+     - **A compact header:** the page's name sits on the same line as the back pill, smaller.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

@@ -240,21 +240,14 @@
 
 .title {
   margin: 0;
-  padding: 88px 12px 0;
+  padding: 0 4px;
   color: var(--ink);
-  font: 400 34px/1.1 var(--font-serif);
+  font: 400 28px/1.1 var(--font-serif);
   letter-spacing: -0.015em;
   text-shadow:
     0 0 28px var(--halo),
     0 0 8px var(--halo);
   animation: arrive 0.28s var(--out) both;
-}
-
-/* a skill's name is longer than a screen's, so it is set smaller and may wrap */
-.title[data-long] {
-  padding-top: 0;
-  font-size: 28px;
-  text-wrap: balance;
 }
 
 /* the way back: a small piece of glass above the name, naming where it goes */
@@ -276,8 +269,21 @@
 }
 
 .shell .back {
-  margin-top: 72px;
   background: var(--glass);
+}
+
+/* the way back and the page's name share one line: the name reads as coming out of the pill */
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 40px;
+  padding-top: 20px;
+}
+
+.crumbs:empty {
+  display: none;
 }
 
 .back svg {
@@ -399,10 +405,12 @@
   .nav {
     --pad: 12px;
     --cell: 48px;
-    top: 16px;
-    left: 16px;
+    /* hard against the edge, so a pointer thrown to the far left opens it */
+    top: 0;
+    left: 0;
     right: auto;
-    bottom: 16px;
+    bottom: 0;
+    border-radius: 0 24px 24px 0;
     display: flex;
     flex-direction: column;
     gap: var(--pad);
@@ -536,23 +544,17 @@
 
   /* the page starts one gap to the right of the closed rail; the open rail lies over it */
   .main {
-    gap: 24px;
+    gap: 16px;
     max-width: 1680px;
-    padding: 0 16px 16px calc(16px + 72px + 16px);
+    padding: 0 16px 16px calc(72px + 16px);
   }
 
   .title {
-    padding: 56px 12px 0;
-    font-size: 48px;
+    font-size: 30px;
   }
 
-  .title[data-long] {
-    padding-top: 0;
-    font-size: 40px;
-  }
-
-  .shell .back {
-    margin-top: 40px;
+  .crumbs {
+    padding-top: 16px;
   }
 
   .shell[data-mode="dark"] .nav:not([data-open]) {

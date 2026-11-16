@@ -407,36 +407,40 @@ function Shell() {
       </AnimatePresence>
 
       <main className={styles.main}>
-        {page === "library" && (inSkill || section) && (
-          <button
-            type="button"
-            className={styles.back}
-            onClick={() => {
-              dir.current = -1;
-              if (inSkill) setSkill(null);
-              else if (domain) setDomain(null);
-              else setSection(null);
-            }}
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M14.500 6.500L9 12l5.500 5.500" />
-            </svg>
-            {inSkill ? skill.domain : domain ? section : "Library"}
-          </button>
-        )}
-        {!(page === "library" && !section) && (
-          <h1
-            className={styles.title}
-            key={inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page}
-            data-long={(page === "library" && (inSkill || section !== null)) || undefined}
-          >
-            {inSkill
-              ? skill.name
-              : page === "library" && section
-                ? (domain ?? section)
-                : LABEL[page]}
-          </h1>
-        )}
+        <div className={styles.crumbs}>
+          {page === "library" && (inSkill || section) && (
+            <button
+              type="button"
+              className={styles.back}
+              onClick={() => {
+                dir.current = -1;
+                if (inSkill) setSkill(null);
+                else if (domain) setDomain(null);
+                else setSection(null);
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M14.500 6.500L9 12l5.500 5.500" />
+              </svg>
+              {inSkill ? skill.domain : domain ? section : "Library"}
+            </button>
+          )}
+          {!(page === "library" && !section) && (
+            <h1
+              className={styles.title}
+              key={
+                inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page
+              }
+              data-long={(page === "library" && (inSkill || section !== null)) || undefined}
+            >
+              {inSkill
+                ? skill.name
+                : page === "library" && section
+                  ? (domain ?? section)
+                  : LABEL[page]}
+            </h1>
+          )}
+        </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
         {page === "library" && section && (

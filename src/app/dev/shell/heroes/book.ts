@@ -12,21 +12,29 @@ const H = 2.1;
 const T = 0.2;
 const OPEN = 0.24;
 const SEG = 18;
-const INK = "rgba(52, 38, 30, 0.86)";
+/* faint on purpose */
+const INK = "rgba(60, 44, 34, 0.27)";
 
-const LEFT = [
-  "A careful reader does not hurry. She weighs each claim against the lines that came before it, and asks what the author most wants her to believe.",
-  "Some sentences carry the argument. Others only decorate it. The work is to tell the two apart, and to notice which words were chosen to persuade.",
-  "When a passage turns, a small word usually gives it away: however, yet, instead. Mark it. The point of the whole often sits just after.",
-];
-const RIGHT = [
-  "Evidence is not the same as agreement. A line supports a claim only when it would be hard to explain if the claim were false.",
-  "So read the question first, then the text, then the question once more. Most wrong answers are true statements that answer something else.",
-  "The figure shows how often each kind of error appeared across forty practice sets. Notice where the bars fall, and where they do not.",
-];
+/* The pages carry the opening of the Odyssey, Book I, in Samuel Butler's translation of 1900 (out of
+   copyright), set small and faint: it is there for whoever stops and looks closely (founder, 2026-11-15).
+   Typed from memory: check it against a printed Butler before this ships. */
+const ODYSSEY =
+  "Tell me, O Muse, of that ingenious hero who travelled far and wide after he had sacked the famous town of Troy. " +
+  "Many cities did he visit, and many were the nations with whose manners and customs he was acquainted; moreover " +
+  "he suffered much by sea while trying to save his own life and bring his men safely home; but do what he might he " +
+  "could not save his men, for they perished through their own sheer folly in eating the cattle of the Sun-god " +
+  "Hyperion; so the god prevented them from ever reaching home. Tell me, too, about all these things, oh daughter " +
+  "of Jove, from whatsoever source you may know them. So now all who escaped death in battle or by shipwreck had " +
+  "got safely home except Ulysses, and he, though he was longing to return to his wife and country, was detained by " +
+  "the goddess Calypso, who had got him into a large cave and wanted to marry him. But as years went by, there came " +
+  "a time when the gods settled that he should go back to Ithaca; even then, however, when he was among his own " +
+  "people, his troubles were not yet over; nevertheless all the gods had now begun to pity him except Neptune, who " +
+  "still persecuted him without ceasing and would not let him get home.";
+const WORDS = ODYSSEY.split(" ");
 
-/** One printed page, drawn on a canvas: heading, drop capital, paragraphs, a small figure, a folio. */
-function page(side: "left" | "right"): THREE.CanvasTexture {
+/** One printed page of the Odyssey, drawn on a canvas. Each page number begins further into the text,
+ *  so every leaf that turns shows a different page. Page 0 carries the heading. */
+function page(n: number, mirrored = false): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 704;
@@ -34,117 +42,64 @@ function page(side: "left" | "right"): THREE.CanvasTexture {
   g.fillStyle = "#f5ead6";
   g.fillRect(0, 0, c.width, c.height);
   // the paper's tooth, and the shade that falls into the gutter
-  let seed = side === "left" ? 5 : 9;
+  let seed = 5 + n * 4;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (let i = 0; i < 2600; i++) {
     g.fillStyle = `rgba(120, 92, 60, ${0.02 + rnd() * 0.05})`;
     g.fillRect(rnd() * c.width, rnd() * c.height, 1.4, 1.4);
   }
-  const gutter = g.createLinearGradient(
-    side === "left" ? c.width : 0,
-    0,
-    side === "left" ? c.width - 150 : 150,
-    0
-  );
+  const left = n % 2 === 0;
+  const gutter = g.createLinearGradient(left ? c.width : 0, 0, left ? c.width - 150 : 150, 0);
   gutter.addColorStop(0, "rgba(96, 66, 40, 0.38)");
   gutter.addColorStop(1, "rgba(96, 66, 40, 0)");
   g.fillStyle = gutter;
   g.fillRect(0, 0, c.width, c.height);
 
-  const left = side === "left" ? 54 : 62;
-  const width = c.width - 116;
-  let y = 70;
+  const x0 = left ? 50 : 60;
+  const width = c.width - 110;
+  let y = 64;
   g.fillStyle = INK;
   g.textBaseline = "alphabetic";
-  const wrap = (text: string, x: number, w: number, lead: number, indentFirst = 0) => {
-    const words = text.split(" ");
-    let line = "";
-    let first = true;
-    for (const word of words) {
-      const next = line ? `${line} ${word}` : word;
-      if (g.measureText(next).width > w - (first ? indentFirst : 0) && line) {
-        g.fillText(line, x + (first ? indentFirst : 0), y);
-        y += lead;
-        line = word;
-        first = false;
-      } else line = next;
-    }
-    g.fillText(line, x + (first ? indentFirst : 0), y);
-    y += lead;
-  };
-
-  if (side === "left") {
+  if (n === 0) {
     g.textAlign = "center";
-    g.font = "600 13px Georgia, 'Times New Roman', serif";
-    g.fillText("C H A P T E R   S E V E N", c.width / 2 - 6, y);
-    y += 34;
-    g.font = "italic 25px Georgia, 'Times New Roman', serif";
-    g.fillText("The Quiet Art of", c.width / 2 - 6, y);
+    g.font = "600 12px Georgia, 'Times New Roman', serif";
+    g.fillText("T H E   O D Y S S E Y", c.width / 2 - 5, y);
     y += 30;
-    g.fillText("Reading Closely", c.width / 2 - 6, y);
-    y += 22;
-    g.fillRect(c.width / 2 - 46, y, 80, 1.2);
-    y += 44;
-    g.textAlign = "left";
-    // a drop capital, with the first lines set round it
-    g.font = "62px Georgia, 'Times New Roman', serif";
-    g.fillText("A", left - 2, y + 26);
-    g.font = "15px Georgia, 'Times New Roman', serif";
-    const body = LEFT[0].slice(2);
-    const words = body.split(" ");
-    let line = "";
-    let row = 0;
-    for (const word of words) {
-      const inset = row < 2 ? 52 : 0;
-      const next = line ? `${line} ${word}` : word;
-      if (g.measureText(next).width > width - inset && line) {
-        g.fillText(line, left + inset, y);
-        y += 22;
-        row++;
-        line = word;
-      } else line = next;
-    }
-    g.fillText(line, left + (row < 2 ? 52 : 0), y);
-    y += 30;
-    LEFT.slice(1).forEach((p) => {
-      wrap(p, left, width, 22, 20);
-      y += 8;
-    });
-  } else {
-    g.textAlign = "left";
-    g.font = "15px Georgia, 'Times New Roman', serif";
-    wrap(RIGHT[0], left, width, 22, 20);
-    y += 8;
-    wrap(RIGHT[1], left, width, 22, 20);
+    g.font = "italic 22px Georgia, 'Times New Roman', serif";
+    g.fillText("Book I", c.width / 2 - 5, y);
     y += 18;
-    // a small bar figure, as a printed plate
-    const top = y;
-    g.strokeStyle = INK;
-    g.lineWidth = 1.2;
-    g.strokeRect(left + 40, top, width - 80, 150);
-    [0.82, 0.55, 0.38, 0.68, 0.24].forEach((h, i) => {
-      g.fillStyle = i === 0 ? "rgba(150, 70, 40, 0.75)" : "rgba(52, 38, 30, 0.55)";
-      g.fillRect(left + 70 + i * 52, top + 128 - h * 104, 30, h * 104);
-    });
-    g.fillStyle = INK;
-    g.fillRect(left + 58, top + 128, width - 116, 1.2);
-    y = top + 174;
-    g.font = "italic 12.5px Georgia, 'Times New Roman', serif";
-    g.textAlign = "center";
-    g.fillText("Fig. 3. Errors by kind, across forty sets.", c.width / 2 + 6, y);
-    y += 30;
-    g.textAlign = "left";
-    g.font = "15px Georgia, 'Times New Roman', serif";
-    wrap(RIGHT[2], left, width, 22, 20);
+    g.fillRect(c.width / 2 - 45, y, 80, 1);
+    y += 34;
   }
+  // the text runs on from page to page, and comes round again when it ends
+  g.textAlign = "left";
   g.font = "13px Georgia, 'Times New Roman', serif";
+  let at = (n * 97) % WORDS.length;
+  let line = "";
+  while (y < c.height - 62) {
+    const word = WORDS[at % WORDS.length];
+    const next = line ? `${line} ${word}` : word;
+    if (g.measureText(next).width > width && line) {
+      g.fillText(line, x0, y);
+      y += 19;
+      line = "";
+    } else {
+      line = next;
+      at++;
+    }
+  }
+  g.font = "12px Georgia, 'Times New Roman', serif";
   g.textAlign = "center";
-  g.fillStyle = INK;
-  g.fillText(side === "left" ? "112" : "113", c.width / 2, c.height - 34);
+  g.fillText(String(1 + n), c.width / 2, c.height - 34);
 
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
+  if (mirrored) {
+    t.wrapS = THREE.RepeatWrapping;
+    t.repeat.x = -1;
+    t.offset.x = 1;
+  }
   return t;
 }
 
@@ -238,12 +193,8 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     mesh.receiveShadow = true;
     return mesh;
   };
-  const texLeft = page("left");
-  const texRight = page("right");
-  const texBack = page("left");
-  texBack.wrapS = THREE.RepeatWrapping;
-  texBack.repeat.x = -1;
-  texBack.offset.x = 1;
+  const texLeft = page(0);
+  const texRight = page(1);
   const leather = new THREE.MeshPhysicalMaterial({
     color: 0x6f3423,
     roughness: 0.62,
@@ -329,22 +280,15 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
   book.add(ribbon);
 
   // leaves that lift, curl and turn. Each is one sheet with print on both faces.
-  const front = new THREE.MeshStandardMaterial({
-    map: texRight,
-    roughness: 0.92,
-    side: THREE.FrontSide,
-    clippingPlanes,
-  });
-  const back = new THREE.MeshStandardMaterial({
-    map: texBack,
-    roughness: 0.92,
-    side: THREE.BackSide,
-    clippingPlanes,
-  });
+  const leafMat = (map: THREE.CanvasTexture, side: THREE.Side) =>
+    new THREE.MeshStandardMaterial({ map, roughness: 0.92, side, clippingPlanes });
   const leaves = [0, 1, 2, 3, 4].map((i) => {
     const geo = new THREE.PlaneGeometry(W * 0.97, H * 0.975, SEG, 1);
     const group = new THREE.Group();
-    group.add(shaded(new THREE.Mesh(geo, front)), shaded(new THREE.Mesh(geo, back)));
+    group.add(
+      shaded(new THREE.Mesh(geo, leafMat(page(3 + i * 2), THREE.FrontSide))),
+      shaded(new THREE.Mesh(geo, leafMat(page(2 + i * 2, true), THREE.BackSide)))
+    );
     group.position.z = z0 + 0.012 + i * 0.005;
     book.add(group);
     return { geo, p: 0 };
@@ -447,7 +391,14 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
 
   const rush = { v: 1 };
   if (!stage.still) {
-    gsap.from(book.scale, { x: 0.5, y: 0.5, z: 0.5, duration: 1.4, ease: "elastic.out(1, 0.65)" });
+    gsap.from(book.scale, {
+      x: 0.001,
+      y: 0.001,
+      z: 0.001,
+      duration: 1.2,
+      ease: "elastic.out(1, 0.7)",
+      delay: 0.9,
+    });
     gsap.from(book.rotation, { y: book.rotation.y - 1.2, duration: 1.6, ease: "power3.out" });
     gsap.to(book.position, { y: 0.09, duration: 3.1, ease: "sine.inOut", repeat: -1, yoyo: true });
   }
@@ -469,33 +420,35 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     rp.needsUpdate = true;
     ribbonGeo.computeVertexNormals();
 
-    // each letter lifts off the page glowing and arcs outward; at the top of its arc it folds into a
-    // paper dove, which flies on and away (some letters turn back and settle into the book instead)
-    script.forEach((s, i) => {
+    // each letter lifts off the page glowing; at the top of its rise it folds into a paper bird (a dove,
+    // a crane or a swan, by its size and wing), which flies off towards the low sun and dwindles
+    script.forEach((s) => {
       s.phase = (s.phase + dt * s.speed * rush.v) % 1;
       const k = s.phase;
       const side = s.seed * 2 - 1;
-      const out = Math.min(1, k / 0.5);
-      const ease = 1 - (1 - out) ** 2;
-      const home = i % 3 === 0;
-      const back = home && k > 0.5 ? (k - 0.5) / 0.5 : 0;
-      const reach = ease * (1 - back);
-      const x = side * 0.5 + side * reach * 1.5 + Math.sin(k * 7 + s.seed * 20) * 0.12;
-      const y = 0.1 + reach * 1.7;
+      const rise = Math.min(1, k / 0.4);
+      const up = 1 - (1 - rise) ** 2;
+      const x = side * 0.6 + side * up * 0.9 + Math.sin(k * 7 + s.seed * 20) * 0.1;
+      const y = 0.1 + up * 1.5;
       s.sprite.position.set(x, y, 0.8);
-      const size = 0.15 + reach * 0.17;
+      const size = 0.16 + up * 0.2;
       s.sprite.scale.set(size, size, 1);
-      const folded = home ? 0 : Math.max(0, Math.min(1, (k - 0.5) / 0.1));
-      s.sprite.material.opacity =
-        Math.min(1, k / 0.08) * (1 - folded) * (home ? Math.min(1, (1 - k) / 0.1) : 1);
+      const folded = Math.max(0, Math.min(1, (k - 0.4) / 0.08));
+      s.sprite.material.opacity = Math.min(1, k / 0.06) * (1 - folded);
       s.sprite.material.rotation = Math.sin(k * 5 + s.seed * 9) * 0.5;
-      // the dove this letter becomes
-      const fly = home ? 0 : Math.max(0, (k - 0.5) / 0.5);
+      const fly = Math.max(0, (k - 0.4) / 0.6);
       s.dove.visible = fly > 0;
-      const dir = side < 0 ? -1 : 1;
-      s.dove.position.set(x + dir * fly * 2.6, y + fly * 1.3 + Math.sin(fly * 9) * 0.08, 0.8);
-      s.dove.rotation.set(0.25, (dir * Math.PI) / 2, -dir * 0.25);
-      s.dove.scale.setScalar(Math.min(1, fly / 0.12) * 0.7 * Math.min(1, (1 - fly) / 0.15));
+      // towards the sun, which is low and a little to the right of the book
+      const far = fly * fly;
+      s.dove.position.set(
+        x + far * (2.2 - side),
+        y - far * 2.6 + Math.sin(fly * 10 + s.seed * 6) * 0.1 * (1 - fly),
+        0.8 - far * 2
+      );
+      s.dove.rotation.set(0.3, Math.PI / 2, -0.35 - fly * 0.3);
+      const kind = 0.55 + s.seed * 0.5;
+      s.dove.scale.set(kind, kind, kind * (1 + s.seed * 0.8));
+      s.dove.scale.multiplyScalar(Math.min(1, fly / 0.1) * (1 - far * 0.8));
       const beat = Math.sin(t * 11 + s.seed * 40) * 0.14;
       const dp = s.doveGeo.attributes.position;
       dp.setY(2, 0.03 + beat);

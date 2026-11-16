@@ -21,6 +21,7 @@ const SKY = /* glsl */ `
   uniform float uS, uTime, uOpen, uSurge;
   uniform vec2 uN, uHalf, uFocus;
   uniform vec3 uObs;     // the observatory: where it stands (x), how big it is, unused
+  uniform float uLine, uReveal;   // the seam forms along its length, then the two skies open out from it
   uniform vec4 uShoot;   // where it starts (xy), how far along it is (z), how bright (w)
   varying vec2 vP; varying vec2 vUv;
 
@@ -161,8 +162,8 @@ const SKY = /* glsl */ `
     c = mix(c, glass, inside);
     c += vec3(0.6, 0.75, 1.0) * smoothstep(aa * 3.0, 0.0, abs(dome)) * 0.35 * step(dc.y, o.y);   // the glass's edge
     // the low wall it stands on, with one lit doorway
-    float wall = sdBox(o - vec2(0.0, 0.12), vec2(0.9, 0.1)) - 0.02;
-    c = mix(c, vec3(0.09, 0.10, 0.22), smoothstep(aa, -aa, wall));
+    float wall = sdBox(o - vec2(0.0, 0.14), vec2(0.84, 0.06)) - 0.03;
+    c = mix(c, vec3(0.20, 0.25, 0.44), smoothstep(aa, -aa, wall) * 0.85);   // a pale stone footing
     float door = sdBox(o - vec2(0.42, 0.11), vec2(0.07, 0.09));
     c = mix(c, vec3(1.0, 0.74, 0.36), smoothstep(aa, -aa, door) * 0.9);
     return c;
@@ -197,6 +198,11 @@ const SKY = /* glsl */ `
     float edge = uOpen * (length(uHalf) * 2.0 + 1.6) - 0.8;
     float alpha = uOpen <= 0.0 ? 1.0 : smoothstep(edge - 1.6, edge, r);
     // the sky is drawn first and solid, so it writes its own see-through: colour times alpha, then alpha
+    float along = dot(vP, vec2(-uN.y, uN.x)) / length(uHalf);
+    float seam = step(along, uLine * 2.4 - 1.2) * exp(-abs(d) * 46.0);
+    float open = 1.0 - smoothstep(uReveal * 40.0, uReveal * 40.0 + 0.3, abs(d));
+    col = mix(vec3(1.0, 0.92, 0.74), col, open);
+    alpha *= max(open, seam * (1.0 - open));
     gl_FragColor = vec4(col * alpha, alpha);
   }
 `;
@@ -601,7 +607,7 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     uS: { value: 0 },
     uN: { value: normal },
     uSurge: { value: 0 },
-    uFade: { value: 1 },
+    uFade: { value: stage.still ? 1 : 0 },
   };
   const uniforms = {
     ...shared,
@@ -610,6 +616,8 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     uFocus: { value: new THREE.Vector2() },
     uObs: { value: new THREE.Vector3(0, 0.5, 0) },
     uShoot: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uLine: { value: stage.still ? 1 : 0 },
+    uReveal: { value: stage.still ? 1 : 0 },
   };
   const sky = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
@@ -629,6 +637,13 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
   scene.add(sky);
 
   // ---- the Reading and Writing half ----
+  // the seam is drawn first, then the two skies open out from it, then the stars come up
+  if (!stage.still)
+    gsap
+      .timeline()
+      .to(uniforms.uLine, { value: 1, duration: 0.5, ease: "power2.inOut" })
+      .to(uniforms.uReveal, { value: 1, duration: 1.1, ease: "power2.inOut" }, 0.4)
+      .to(shared.uFade, { value: 1, duration: 0.8, ease: "power1.out" }, 0.9);
   const book = buildBook(stage, reading);
   stage.stations[0].add(book.root);
 

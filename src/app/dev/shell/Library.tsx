@@ -38,23 +38,27 @@ type Filter = keyof typeof FILTERS;
 
 const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
-const STAR =
-  "M12 2.800l2.850 5.900 6.450.900-4.700 4.500 1.150 6.400L12 17.450 6.250 20.500l1.150-6.400L2.700 9.600l6.450-.900z";
 
-/** A ring cut clean by level: Proficient first, then down the levels, each touching the next. */
+/** A ring cut clean by level: Proficient first, then down the levels. Where two levels meet there is a
+ *  hairline in the same colour as the ring's edge. */
 function ringOf(counts: number[]): string {
   const total = counts.reduce((a, b) => a + b, 0) || 1;
+  const line = 1.4;
   let at = 0;
-  const stops = [3, 2, 1, 0].map((level) => {
-    const from = at;
-    at += (counts[level] / total) * 360;
-    return `var(--p${level}) ${from}deg ${at}deg`;
+  const stops: string[] = [];
+  [3, 2, 1, 0].forEach((level) => {
+    if (!counts[level]) return;
+    const end = at + (counts[level] / total) * 360;
+    stops.push(
+      `var(--sq-edge) ${at}deg ${at + line}deg`,
+      `var(--p${level}) ${at + line}deg ${end}deg`
+    );
+    at = end;
   });
   return `conic-gradient(from 0deg, ${stops.join(", ")})`;
 }
 
-/** A skill's level as three bars, one for each level it climbs, and a star at Proficient. The star's
- *  place is always kept, so the bars line up down a column. */
+/** A skill's level as three bars, one for each level it climbs. A filled bar glows and shimmers. */
 export function Pips({ level }: { level: number }) {
   return (
     <span
@@ -67,9 +71,6 @@ export function Pips({ level }: { level: number }) {
       {[1, 2, 3].map((n) => (
         <i key={n} data-on={level >= n || undefined} />
       ))}
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d={STAR} />
-      </svg>
     </span>
   );
 }
@@ -123,6 +124,8 @@ export default function Library({
   const all = domains.flatMap((d) => d.skills);
   const bank = all.reduce((n, s) => n + s.questions, 0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
+  // the domain with the smallest share Proficient is the one to work on first
+  const weakest = [...domains].sort((x, y) => Number(share(x.skills)) - Number(share(y.skills)))[0];
 
   useEffect(() => {
     if (still || !root.current) return;
@@ -131,10 +134,11 @@ export default function Library({
     import("gsap").then(({ gsap }) => {
       if (gone || !root.current) return;
       const ctx = gsap.context(() => {
+        // the ring cranks its way round, notch by notch
         gsap.fromTo(
           "[data-ring]",
           { "--sweep": 0 },
-          { "--sweep": 1, duration: 0.6, ease: "power3.out" }
+          { "--sweep": 1, duration: 2.2, ease: "steps(36)" }
         );
         gsap.fromTo(
           "[data-grow]",
@@ -213,18 +217,23 @@ export default function Library({
           <ul>
             {domains.map((domain) => {
               const done = tally(domain.skills)[TOP];
+              const first = domain === weakest;
               return (
                 <li key={domain.name}>
                   <button
                     type="button"
                     className={styles.domain}
+                    data-first={first || undefined}
                     onClick={() => {
                       tick();
                       buzz(8);
                       onDomain(domain.name);
                     }}
                   >
-                    <span className={styles.name}>{domain.name}</span>
+                    <span className={styles.name}>
+                      {domain.name}
+                      {first && <small>Start here: the most to gain</small>}
+                    </span>
                     <span className={styles.grow} data-grow>
                       <Band skills={domain.skills} />
                     </span>
