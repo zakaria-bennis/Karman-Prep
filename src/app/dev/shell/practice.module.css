@@ -1,0 +1,466 @@
+/*
+ * Today's tasks, the ways to practise, the icon tiles and their movements, and the main button.
+ * Sizes, colours and corners come from the page (library.module.css sets them on .library).
+ */
+.glass {
+  padding: var(--pad);
+  border-radius: var(--r-piece);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  animation: settle 0.22s var(--out) both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.today,
+.modes {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: calc(var(--pad) * 2);
+}
+
+.today ul {
+  display: grid;
+  gap: 16px;
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.taskWords {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.taskWords b,
+.mode b {
+  font-weight: 600;
+}
+
+.taskWords > span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.taskWords .streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.modes ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 calc(var(--pad) * -1) calc(var(--pad) * -1);
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: var(--pad) calc(var(--pad) + 6px) var(--pad) var(--pad);
+  border-radius: var(--r-lens);
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.mode:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) {
+  .mode:hover {
+    background: var(--hover);
+  }
+}
+
+/* ---- the tile an icon sits on ---- */
+.tile {
+  --tint: var(--p2);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: var(--r-lens);
+  background: color-mix(in srgb, var(--tint) 16%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tint) 40%, var(--lens-edge));
+}
+
+.tile svg {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tile[data-done] {
+  background: var(--p3);
+  color: #fffdf8;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+  animation: pop 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+
+/* ---- each icon's own movement ---- */
+.tile [data-a],
+.streak [data-a] {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+
+.tile [data-a="fanL"],
+.tile [data-a="fanR"] {
+  transform-origin: 12px 20px;
+}
+
+.tile [data-a="fanL"] {
+  transform: rotate(-11deg);
+}
+
+.tile [data-a="fanR"] {
+  transform: rotate(11deg);
+}
+
+.tile [data-a="sweep"],
+.tile [data-a="draw"] {
+  stroke-dasharray: 1;
+}
+
+/* the endless loop's shader: a soft marigold stretch that runs round with the orb, always */
+.tile [data-a="shade"] {
+  stroke-dasharray: 0.22 0.78;
+  opacity: 0.55;
+  animation: run 2.6s linear infinite;
+}
+
+/* the flame flickers, always */
+.streak [data-a="flick"] {
+  transform-origin: 12px 20px;
+  animation: flick 0.5s ease-in-out infinite alternate;
+}
+
+.tile [data-a="fire"] {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: flick 0.3s ease-in-out infinite alternate;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="watch"],
+:is(.mode, .task):is(:hover, :focus-within) [data-a="hand"] {
+  animation: turn 1s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="fire"] {
+  animation: blaze 0.16s ease-in-out infinite alternate;
+}
+
+/* the compass goes wild, settles on north, rests, and begins again */
+:is(.mode, .task):is(:hover, :focus-within) [data-a="needle"] {
+  animation: seek 2.8s cubic-bezier(0.3, 0.1, 0.3, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="fanL"] {
+  animation: fan-left 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="fanR"] {
+  animation: fan-right 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="draw"],
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sweep"] {
+  animation: draw 1.3s var(--out) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sheet1"] {
+  animation: riffle 1.2s ease-in-out infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sheet2"] {
+  animation: riffle 1.2s ease-in-out 0.12s infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="jolt"] {
+  animation: jolt 0.9s ease-in-out infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes run {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes flick {
+  to {
+    transform: scale(1.06, 0.94) skewX(-3deg);
+  }
+}
+
+@keyframes blaze {
+  from {
+    transform: scaleX(1.05);
+  }
+
+  to {
+    transform: scaleX(1.3) skewY(2deg);
+  }
+}
+
+@keyframes seek {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  12% {
+    transform: rotate(230deg);
+  }
+
+  24% {
+    transform: rotate(-170deg);
+  }
+
+  36% {
+    transform: rotate(120deg);
+  }
+
+  47% {
+    transform: rotate(-60deg);
+  }
+
+  57% {
+    transform: rotate(24deg);
+  }
+
+  65% {
+    transform: rotate(-8deg);
+  }
+
+  72%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes fan-left {
+  30%,
+  60% {
+    transform: rotate(-30deg);
+  }
+}
+
+@keyframes fan-right {
+  30%,
+  60% {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  60%,
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes riffle {
+  40% {
+    transform: translate(1.4px, -1.4px);
+  }
+}
+
+@keyframes jolt {
+  20% {
+    transform: scale(1.18) rotate(-8deg);
+    fill-opacity: 0.8;
+  }
+
+  40% {
+    transform: scale(0.96) rotate(5deg);
+  }
+}
+
+/* ---- the main button: an outline that fills ---- */
+.gobtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 104px;
+  height: var(--cell);
+  padding: 0 16px 0 20px;
+  border-radius: var(--r-lens);
+  /* 1. resting: an outline */
+  background: transparent;
+  color: var(--go);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 2px var(--go);
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color 0.25s var(--out),
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    box-shadow 0.2s var(--out);
+}
+
+/* the fill, which rises from the foot when the button is hovered */
+.gobtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--go) 82%, #fff), var(--go));
+  transform: translateY(101%);
+  transition: transform 0.32s var(--out);
+}
+
+.gobtn[data-wide] {
+  width: 100%;
+  height: 56px;
+}
+
+.gobtn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+@media (hover: hover) {
+  /* 2. hovered: the colour fills in, and the arrow leans forward */
+  .gobtn:hover:not(:disabled, [data-loading]) {
+    color: var(--on-go);
+  }
+
+  .gobtn:hover:not(:disabled, [data-loading])::before {
+    transform: none;
+  }
+
+  .gobtn:hover:not(:disabled, [data-loading]) svg {
+    transform: translateX(4px);
+  }
+}
+
+/* 3. focused, from the keyboard */
+.gobtn:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* 4. pressed: filled, and it sinks */
+.gobtn:active:not(:disabled, [data-loading]) {
+  color: var(--on-go);
+  transform: scale(0.96);
+}
+
+.gobtn:active:not(:disabled, [data-loading])::before {
+  transform: none;
+}
+
+/* 5. loading: the orb turns and breathes while it works */
+.gobtn[data-loading] {
+  cursor: progress;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--go) 45%, transparent);
+}
+
+.orb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, rgb(255 255 255 / 0.9), transparent 42%),
+    conic-gradient(from 0deg, var(--p3), var(--p1), #e9f7ef, var(--p2), var(--p3));
+  box-shadow: 0 0 14px var(--pglow);
+  animation:
+    turn 1.1s linear infinite,
+    breathe 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+  from {
+    scale: 0.82;
+  }
+
+  to {
+    scale: 1.08;
+  }
+}
+
+/* 6. disabled */
+.gobtn:disabled {
+  color: inherit;
+  opacity: 0.5;
+  box-shadow: inset 0 0 0 2px var(--p0);
+  cursor: not-allowed;
+}
+
+@media (max-width: 479px) {
+  .task {
+    grid-template-columns: auto 1fr;
+  }
+
+  .task .gobtn {
+    grid-column: 2;
+    justify-self: start;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .tile[data-done],
+  .tile [data-a],
+  .streak [data-a="flick"],
+  .orb {
+    animation: none !important;
+  }
+
+  .gobtn,
+  .gobtn::before,
+  .gobtn svg {
+    transition: none;
+  }
+}

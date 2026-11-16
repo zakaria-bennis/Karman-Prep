@@ -31,7 +31,7 @@ import "@/components/portal/portal-lit.css";
 import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
-import Library, { type Section } from "./Library";
+import Library, { DOMAINS, DomainPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -120,6 +120,11 @@ function Shell() {
   const [sound, setSoundOn] = useState(true);
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
+  const [domain, setDomain] = useState<string | null>(null);
+  /* which way the next page slides: 1 going deeper, -1 coming back */
+  const dir = useRef(1);
+  const openDomain =
+    section && domain ? DOMAINS[section].find((d) => d.name === domain) : undefined;
   const at = Math.max(0, items.indexOf(page));
   const [world] = useState(() => ({}));
 
@@ -317,6 +322,7 @@ function Shell() {
                   setPage(item);
                   setSkill(null);
                   setSection(null);
+                  setDomain(null);
                 }}
                 onPointerEnter={(e) => {
                   setHover(i);
@@ -405,28 +411,33 @@ function Shell() {
           <button
             type="button"
             className={styles.back}
-            onClick={() => (inSkill ? setSkill(null) : setSection(null))}
+            onClick={() => {
+              dir.current = -1;
+              if (inSkill) setSkill(null);
+              else if (domain) setDomain(null);
+              else setSection(null);
+            }}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path d="M14.500 6.500L9 12l5.500 5.500" />
             </svg>
-            {inSkill ? skill.domain : "Library"}
+            {inSkill ? skill.domain : domain ? section : "Library"}
           </button>
         )}
         <h1
           className={styles.title}
-          key={inSkill ? skill.name : page === "library" && section ? section : page}
+          key={inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page}
           data-long={(page === "library" && (inSkill || section !== null)) || undefined}
         >
-          {inSkill ? skill.name : page === "library" && section ? section : LABEL[page]}
+          {inSkill ? skill.name : page === "library" && section ? (domain ?? section) : LABEL[page]}
         </h1>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
         {page === "library" && section && (
-          <AnimatePresence mode="wait" initial={false} custom={skill ? 1 : -1}>
+          <AnimatePresence mode="wait" initial={false} custom={dir.current}>
             <motion.div
-              key={skill ? `skill ${skill.name}` : section}
-              custom={skill ? 1 : -1}
+              key={skill ? `skill ${skill.name}` : (domain ?? section)}
+              custom={dir.current}
               variants={SLIDE_OVER}
               initial={still ? false : "from"}
               animate="here"
@@ -434,12 +445,22 @@ function Shell() {
             >
               {skill ? (
                 <SkillPage skill={skill} />
+              ) : openDomain ? (
+                <DomainPage
+                  domain={openDomain}
+                  onOpen={(next) => {
+                    dir.current = 1;
+                    setSkill(next);
+                    window.scrollTo({ top: 0 });
+                  }}
+                />
               ) : (
                 <Library
                   rail={rail}
                   section={section}
-                  onOpen={(next) => {
-                    setSkill(next);
+                  onDomain={(name) => {
+                    dir.current = 1;
+                    setDomain(name);
                     window.scrollTo({ top: 0 });
                   }}
                 />

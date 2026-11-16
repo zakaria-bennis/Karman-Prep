@@ -1,39 +1,39 @@
 /*
- * One side of the Library. It uses the menu's material and numbers (shell.module.css): the same glass,
- * one inset (--pad, 12) on every side of every piece, rows one --cell (48) tall with the lens corner (16),
- * so a piece's corner is 16 + 12 = 28 like the rail's.
- * Three text sizes, set a little larger than the menu's so everything reads easily: 13, 16 and 20.
- * Two weights: 500 and 600.
+ * One side of the Library and one domain. The menu's glass (shell.module.css), squarer: 16 outside, 10
+ * inside. One inset (--pad, 12) on every side of every piece; rows one --cell (48) tall.
+ * Text: 13, 16 and 20, in weights 500 and 600.
  *
- * One hue carries progress, in three clear steps (--p1 Learning, --p2 Understanding, --p3 Proficient):
- * deep evergreen by day, which reads on warm glass, and the same green lit up by night (founder,
- * 2026-11-15: he disliked marigold's dim steps, which turned bronze).
+ * Progress is one green in three steps, the same way round in both modes (founder, 2026-11-15): light
+ * for Learning, dark for Proficient. Every mark carries a thin edge (--sq-edge) so it stands clear of the
+ * glass by day and by night.
  */
 .library {
   --pad: 12px;
   --cell: 48px;
-  --p0: rgb(29 26 34 / 0.22);
-  --p1: #86c2a4;
-  --p2: #2a936d;
-  --p3: #0a5a43;
-  --pglow: rgb(10 90 67 / 0.3);
-  --on-p: #fffdf8;
-  /* squarer than the menu's glass (founder, 2026-11-15): 10 inside, 16 outside */
   --r-lens: 10px;
   --r-piece: 16px;
+  --p0: rgb(255 255 255 / 0.5);
+  --p1: #a8dcc2;
+  --p2: #38a47b;
+  --p3: #0a5a43;
+  --sq-edge: rgb(10 70 52 / 0.6);
+  --pglow: rgb(10 90 67 / 0.3);
+  --go: #0a5a43;
+  --on-go: #fffdf8;
   display: grid;
   gap: var(--pad);
   font-size: 16px;
 }
 
 :global([data-kp-mode="dark"]) .library {
-  --p0: rgb(246 241 231 / 0.26);
-  /* by night the same green family, lit: the brightest step is Proficient */
-  --p1: #2f7d66;
-  --p2: #4dbf97;
-  --p3: #9bf2cf;
-  --pglow: rgb(155 242 207 / 0.4);
-  --on-p: #0d241c;
+  --p0: rgb(255 255 255 / 0.1);
+  --p1: #bfe9d4;
+  --p2: #45b48a;
+  --p3: #0e6f53;
+  --sq-edge: rgb(255 255 255 / 0.62);
+  --pglow: rgb(120 230 190 / 0.35);
+  --go: #8fe6c3;
+  --on-go: #0d241c;
 }
 
 .library h2,
@@ -53,15 +53,6 @@
   line-height: 1.2;
 }
 
-.library svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* ---- one piece of glass ---- */
 .glass {
   padding: var(--pad);
   border-radius: var(--r-piece);
@@ -72,7 +63,6 @@
     var(--lift),
     inset 0 0 0 1px var(--glass-edge),
     inset 0 1px 0 1px var(--glass-shine);
-  /* it arrives quickly and plainly: a short rise, no long fade (founder, 2026-11-15) */
   animation: settle 0.22s var(--out) both;
 }
 
@@ -81,6 +71,70 @@
     opacity: 0;
     transform: translateY(6px);
   }
+}
+
+/* ---- marks: a square for a level, and the band and ring cut from the same four colours ---- */
+.key i,
+.band i,
+.pips i {
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.library i[data-level="0"] {
+  background: var(--p0);
+}
+
+.library i[data-level="1"] {
+  background: var(--p1);
+}
+
+.library i[data-level="2"] {
+  background: var(--p2);
+}
+
+.library i[data-level="3"] {
+  background: var(--p3);
+}
+
+.band {
+  display: flex;
+  gap: 1px;
+  width: 100%;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.band i {
+  flex: 0 0 0;
+  box-shadow: none;
+}
+
+.key {
+  display: grid;
+  gap: 10px;
+}
+
+.key li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.key i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.key b {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- the lead: where your skills stand, and today's two tasks ---- */
@@ -97,7 +151,6 @@
   padding: calc(var(--pad) * 2);
 }
 
-/* the ring: one band whose colours run into each other, round a pale disc, with the share in the middle */
 .ring {
   position: relative;
   display: grid;
@@ -107,7 +160,7 @@
   height: 148px;
   border-radius: 50%;
   background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  box-shadow: 0 0 0 1px var(--sq-edge);
 }
 
 .ring i {
@@ -123,6 +176,15 @@
     radial-gradient(farthest-side, transparent calc(100% - 17px), #000 calc(100% - 16px)),
     conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
   mask-composite: intersect;
+}
+
+/* the ring's inner edge */
+.ring::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--sq-edge);
 }
 
 .ring p {
@@ -145,6 +207,7 @@
   display: grid;
   gap: 14px;
   width: 100%;
+  max-width: 320px;
   min-width: 0;
 }
 
@@ -152,434 +215,153 @@
 .qty {
   font-size: 13px;
   font-weight: 500;
-  opacity: 0.74;
+  opacity: 0.78;
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- the lanes: a rounded square for each skill, in the lane of its level ---- */
-.lanes {
+/* ---- the domains, set side by side to compare: every band is the same width ---- */
+.domains {
   display: grid;
   gap: 4px;
 }
 
-.lane {
+.domains h2 {
+  padding: var(--pad) var(--pad) 8px;
+}
+
+.domain,
+.skill {
   display: grid;
-  grid-template-columns: 1fr;
   align-items: center;
-  min-height: 9px;
-}
-
-.dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-}
-
-.lane i {
-  width: 9px;
-  height: 9px;
-  border-radius: 3px;
-  transition: transform 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
-}
-
-.lane[data-level="0"] i {
-  box-shadow: inset 0 0 0 1.5px var(--p0);
-}
-
-.lane[data-level="1"] i {
-  background: var(--p1);
-}
-
-.lane[data-level="2"] i {
-  background: var(--p2);
-}
-
-.lane[data-level="3"] i {
-  background: var(--p3);
-}
-
-.lane i[data-hot] {
-  transform: scale(1.9);
-}
-
-/* in the lead the lanes are named and counted, so they are also the key to every other figure */
-.lanes[data-named] {
-  gap: 10px;
-}
-
-.lanes[data-named] .lane {
-  grid-template-columns: 112px 1fr auto;
-  gap: 12px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.lanes[data-named] .lane i {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-}
-
-.lanes[data-named] .dots {
-  gap: 4px;
-}
-
-.lanes[data-named] b {
-  min-width: 2ch;
-  font-size: 16px;
-  font-weight: 600;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---- today's tasks, and the other ways to practise: a tile with its icon, then the words ---- */
-.today,
-.modes {
-  display: grid;
-  align-content: start;
-  gap: 12px;
-  padding: calc(var(--pad) * 2);
-}
-
-.today ul {
-  display: grid;
   gap: 16px;
-}
-
-.today li {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-}
-
-.tile {
-  --tint: var(--p2);
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: var(--cell);
-  height: var(--cell);
-  border-radius: var(--r-lens);
-  background: color-mix(in srgb, var(--tint) 18%, var(--lens));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tint) 40%, var(--lens-edge));
-}
-
-.tile svg {
-  display: block;
-  overflow: visible;
-}
-
-.tile[data-done] {
-  background: var(--p3);
-  color: var(--on-p);
-  box-shadow: none;
-  animation: pop 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
-}
-
-/* ---- each icon's own movement, played while its row is hovered or focused ---- */
-.tile [data-a] {
-  transform-box: view-box;
-  transform-origin: 12px 12px;
-}
-
-.tile [data-a="hand"] {
-  transform-origin: 12px 13px;
-}
-
-.tile [data-a="fanL"],
-.tile [data-a="fanR"] {
-  transform-origin: 12px 20px;
-}
-
-/* the cards rest slightly fanned, so they read as a hand of index cards before they move */
-.tile [data-a="fanL"] {
-  transform: rotate(-11deg);
-}
-
-.tile [data-a="fanR"] {
-  transform: rotate(11deg);
-}
-
-.tile [data-a="sweep"],
-.tile [data-a="run"],
-.tile [data-a="draw"] {
-  stroke-dasharray: 1;
-}
-
-.tile [data-a="run"] {
-  stroke-dasharray: 0.16 0.84;
-}
-
-.tile [data-a="mark"] {
-  fill: currentColor;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="hand"] {
-  animation: turn 1.2s cubic-bezier(0.5, 0, 0.3, 1) infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="run"] {
-  animation: run 1.4s linear infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="needle"] {
-  animation: swing 1.3s ease-in-out infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="fanL"] {
-  animation: fan-left 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="fanR"] {
-  animation: fan-right 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="draw"],
-:is(.mode, .task):is(:hover, :focus-within) [data-a="sweep"] {
-  animation: draw 1.3s var(--out) infinite;
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="mark"] {
-  animation: mark 1.5s ease-in-out infinite;
-  animation-delay: calc(var(--n) * 0.18s);
-}
-
-:is(.mode, .task):is(:hover, :focus-within) [data-a="jolt"] {
-  animation: jolt 0.9s ease-in-out infinite;
-}
-
-@keyframes turn {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes run {
-  to {
-    stroke-dashoffset: -1;
-  }
-}
-
-@keyframes swing {
-  25% {
-    transform: rotate(38deg);
-  }
-
-  75% {
-    transform: rotate(-38deg);
-  }
-}
-
-@keyframes fan-left {
-  30%,
-  60% {
-    transform: rotate(-30deg);
-  }
-}
-
-@keyframes fan-right {
-  30%,
-  60% {
-    transform: rotate(30deg);
-  }
-}
-
-@keyframes draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-
-  60%,
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes mark {
-  40% {
-    fill: var(--tint);
-    transform: scale(1.5);
-  }
-}
-
-@keyframes jolt {
-  20% {
-    transform: scale(1.18) rotate(-8deg);
-    fill-opacity: 0.8;
-  }
-
-  40% {
-    transform: scale(0.96) rotate(5deg);
-  }
-}
-
-@keyframes pop {
-  from {
-    transform: scale(0.6);
-  }
-}
-
-.taskWords {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.taskWords b {
-  font-weight: 600;
-}
-
-.taskWords > span {
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0.86;
-}
-
-.taskWords .facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin-top: 4px;
-  opacity: 1;
-}
-
-.facts span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-/* ---- the main button, in all six states ---- */
-.library .gobtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: var(--cell);
-  padding: 0 18px 0 22px;
-  border-radius: var(--r-lens);
-  /* 1. resting */
-  background: var(--p3);
-  color: var(--on-p);
-  font-weight: 600;
-  box-shadow:
-    0 6px 16px -8px var(--pglow),
-    inset 0 1px 0 rgb(255 255 255 / 0.22);
-  transition:
-    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
-    box-shadow 0.2s var(--out),
-    filter 0.2s var(--out);
-}
-
-.gobtn[data-wide] {
   width: 100%;
-  height: 56px;
-}
-
-.gobtn svg {
-  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.45, 1);
-}
-
-@media (hover: hover) {
-  /* 2. hovered: it lifts, brightens, and its arrow leans forward */
-  .gobtn:hover:not(:disabled, [data-loading]) {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow:
-      0 12px 22px -8px var(--pglow),
-      inset 0 1px 0 rgb(255 255 255 / 0.22);
-  }
-
-  .gobtn:hover:not(:disabled, [data-loading]) svg {
-    transform: translateX(4px);
-  }
-}
-
-/* 3. focused, from the keyboard */
-.library .gobtn:focus-visible {
-  outline: 3px solid var(--p2);
-  outline-offset: 3px;
-}
-
-/* 4. pressed: it sinks */
-.gobtn:active:not(:disabled, [data-loading]) {
-  transform: translateY(1px) scale(0.97);
-  filter: brightness(0.94);
-  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.25);
-}
-
-/* 5. loading: it holds still and shows it is working */
-.gobtn[data-loading] {
-  cursor: progress;
-  filter: saturate(0.8);
-}
-
-.spin {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2.5px solid color-mix(in srgb, currentColor 30%, transparent);
-  border-top-color: currentColor;
-  animation: turn 0.7s linear infinite;
-}
-
-/* 6. disabled */
-.library .gobtn:disabled {
-  background: var(--p0);
-  color: inherit;
-  opacity: 0.6;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.modes ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 calc(var(--pad) * -1) calc(var(--pad) * -1);
-}
-
-.mode {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 72px;
-  padding: var(--pad) calc(var(--pad) + 6px) var(--pad) var(--pad);
+  min-height: 64px;
+  padding: 8px var(--pad);
   border-radius: var(--r-lens);
   text-align: left;
-  white-space: nowrap;
   transition:
     background 0.2s var(--out),
     transform 0.2s var(--out);
 }
 
-.mode b {
+.domain {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 72px auto;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.grow {
+  display: block;
+  transform-origin: 0 50%;
+}
+
+.tally {
+  font-size: 13px;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tally b {
+  font-size: 16px;
   font-weight: 600;
 }
 
-.mode:active {
-  transform: scale(0.98);
+.library .go {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
+}
+
+.domain:active,
+.skill:active {
+  transform: scale(0.985);
+  background: var(--hover);
 }
 
 @media (hover: hover) {
-  .mode:hover {
+  .domain:hover,
+  .skill:hover {
     background: var(--hover);
+  }
+
+  .domain:hover .go,
+  .skill:hover .go {
+    opacity: 1;
+    transform: translateX(3px);
   }
 }
 
-/* ---- three bars and a star, on one line: a skill's climb ---- */
+/* ---- one domain ---- */
+.summary {
+  display: grid;
+  gap: 14px;
+  padding: calc(var(--pad) * 2);
+}
+
+.summary .key {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 24px;
+}
+
+.count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.count b {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.count .bank {
+  margin-left: auto;
+}
+
+.skill {
+  grid-template-columns: 1fr auto auto auto;
+  min-height: var(--cell);
+  gap: 14px;
+  font-weight: 500;
+}
+
+.label {
+  text-wrap: pretty;
+}
+
+.none {
+  padding: var(--pad);
+  font-weight: 500;
+}
+
+/* three bars and a star, on one line */
 .pips {
   display: grid;
   grid-template-columns: repeat(3, 16px) 18px;
   align-items: center;
   flex: none;
-  gap: 3px;
+  gap: 4px;
   height: 18px;
 }
 
 .pips i {
-  height: 6px;
+  height: 7px;
   border-radius: 3px;
   background: var(--p0);
 }
@@ -596,21 +378,23 @@
   background: var(--p3);
 }
 
-.library .pips svg {
+.pips svg {
   display: block;
   width: 18px;
   height: 18px;
   fill: var(--p3);
-  stroke: none;
+  stroke: var(--sq-edge);
+  stroke-width: 1;
   visibility: hidden;
 }
 
-.library .pips[data-level="3"] svg {
+.pips[data-level="3"] svg {
   visibility: visible;
 }
 
-/* ---- the filter ---- */
-.filter {
+/* ---- the filter, and the phone's pager: one bar of choices with a lens on the chosen one ---- */
+.filter,
+.pager {
   display: flex;
   gap: 4px;
   justify-self: start;
@@ -625,7 +409,12 @@
     inset 0 0 0 1px var(--glass-edge);
 }
 
-.filter button {
+.pager {
+  justify-self: stretch;
+}
+
+.filter button,
+.pager button {
   position: relative;
   flex: none;
   height: 40px;
@@ -635,17 +424,17 @@
   white-space: nowrap;
 }
 
-.filter button > span:last-child {
+.pager button {
+  flex: 1 1 0;
+}
+
+.filter button > span:last-child,
+.pager button > span:last-child {
   position: relative;
 }
 
-.filter b {
-  font-weight: 600;
-  opacity: 0.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.filter button[aria-pressed="true"] {
+.filter button[aria-pressed="true"],
+.pager button[aria-pressed="true"] {
   font-weight: 600;
 }
 
@@ -659,156 +448,7 @@
     inset 0 0 0 1px var(--lens-edge);
 }
 
-/* ---- the domains ---- */
-.cols {
-  display: grid;
-  gap: var(--pad);
-  align-items: start;
-}
-
-.col {
-  display: grid;
-  gap: var(--pad);
-}
-
-.head {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  min-height: 64px;
-  padding: 8px var(--pad);
-  border-radius: var(--r-lens);
-  text-align: left;
-  transition:
-    background 0.2s var(--out),
-    transform 0.2s var(--out);
-}
-
-.name {
-  display: grid;
-  gap: 2px;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
-.name small {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 14px;
-  font-size: 13px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.name small b {
-  font-weight: 600;
-}
-
-.strip {
-  display: flex;
-  gap: 3px;
-}
-
-.strip i {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  transition: transform 0.3s cubic-bezier(0.3, 1.7, 0.45, 1);
-}
-
-.strip i[data-level="0"] {
-  box-shadow: inset 0 0 0 1.5px var(--p0);
-}
-
-.strip i[data-level="1"] {
-  background: var(--p1);
-}
-
-.strip i[data-level="2"] {
-  background: var(--p2);
-}
-
-.strip i[data-level="3"] {
-  background: var(--p3);
-}
-
-.strip i[data-hot] {
-  transform: scale(1.7);
-}
-
-.chev {
-  transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.45, 1);
-}
-
-.head[aria-expanded="true"] .chev {
-  transform: rotate(180deg);
-}
-
-.skills {
-  overflow: hidden;
-}
-
-.skills li:first-child {
-  margin-top: 4px;
-}
-
-.skill {
-  display: grid;
-  grid-template-columns: 1fr auto auto auto;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  min-height: var(--cell);
-  padding: 8px var(--pad);
-  border-radius: var(--r-lens);
-  font-weight: 500;
-  text-align: left;
-  transition:
-    background 0.2s var(--out),
-    transform 0.2s var(--out);
-}
-
-.label {
-  text-wrap: pretty;
-}
-
-.go {
-  opacity: 0.45;
-  transition:
-    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
-    opacity 0.2s var(--out);
-}
-
-.skill:active,
-.head:active {
-  transform: scale(0.985);
-}
-
-.skill:focus-visible,
-.skill:active {
-  background: var(--hover);
-}
-
-@media (hover: hover) {
-  .skill:hover,
-  .head:hover {
-    background: var(--hover);
-  }
-
-  .skill:hover .go {
-    opacity: 1;
-    transform: translateX(3px);
-  }
-}
-
-.none {
-  padding: calc(var(--pad) * 2);
-  font-weight: 500;
-}
-
-/* ---- with room: the lead in two pieces, the domains in two columns ---- */
+/* ---- with room: the lead in two pieces ---- */
 @media (min-width: 960px) and (hover: hover) {
   .lead {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -817,17 +457,11 @@
 
   .standing {
     grid-template-columns: auto 1fr;
-    justify-items: stretch;
+    justify-items: start;
     gap: 28px;
-  }
-
-  .cols {
-    grid-template-columns: 1fr 1fr;
   }
 }
 
-/* without room, the filter spans the width with its counts dropped (the lanes above already give them)
-   so all four choices fit */
 @media (max-width: 959px) {
   .filter {
     justify-self: stretch;
@@ -840,26 +474,22 @@
     padding: 0 10px;
   }
 
-  .filter b {
-    display: none;
+  .standingWords {
+    max-width: none;
   }
 }
 
-/* a narrow phone: a domain's lanes drop under its name, a row drops its question count, and the ways to
-   practise go in one column so no name is squeezed */
-@media (max-width: 479px) {
-  .head {
-    grid-template-columns: 1fr auto;
+/* a narrow phone: a domain's band drops under its name, and a skill row drops its question count */
+@media (max-width: 599px) {
+  .domain {
+    grid-template-columns: 1fr auto auto;
+    gap: 8px 12px;
+    padding: 12px var(--pad);
   }
 
-  .head .strip {
-    grid-column: 1;
+  .domain .grow {
+    grid-column: 1 / -1;
     grid-row: 2;
-  }
-
-  .chev {
-    grid-column: 2;
-    grid-row: 1 / span 2;
   }
 
   .skill {
@@ -869,36 +499,14 @@
   .skill .qty {
     display: none;
   }
-
-  .lanes[data-named] .lane {
-    grid-template-columns: 104px 1fr auto;
-  }
-
-  .today li {
-    grid-template-columns: auto 1fr;
-  }
-
-  .today .gobtn {
-    grid-column: 2;
-    justify-self: start;
-    height: 40px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glass,
-  .tile[data-done],
-  .tile [data-a],
-  .spin {
-    animation: none !important;
+  .glass {
+    animation: none;
   }
 
-  .chev,
-  .go,
-  .lane i,
-  .strip i,
-  .gobtn,
-  .gobtn svg {
+  .library .go {
     transition: none;
   }
 }

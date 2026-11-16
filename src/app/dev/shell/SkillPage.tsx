@@ -9,6 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useState, type CSSProperties } from "react";
 import lib from "./library.module.css";
 import { GoButton, Icon, Tile } from "./practice";
+import practice from "./practice.module.css";
 import styles from "./skill.module.css";
 
 const STEPS = ["Learning", "Understanding", "Proficient"] as const;
@@ -117,7 +118,7 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
             ["endless", "Endless mode"],
           ] as const
         ).map(([icon, name]) => (
-          <button key={name} type="button" className={`${lib.mode} ${styles.row}`}>
+          <button key={name} type="button" className={`${practice.mode} ${styles.row}`}>
             <Tile name={icon} />
             <b>{name}</b>
             <svg

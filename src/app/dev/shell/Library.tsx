@@ -1,21 +1,17 @@
 "use client";
 
-// One side of the Library (Reading and Writing, or Math). Every piece is frosted glass sized to what it
-// holds. From the top (founder's notes of 2026-11-15):
-//   Where your skills stand   a ring whose colour shows, at a glance, how much is Proficient,
-//                             Understanding, Learning and not started, with the share Proficient to one
-//                             decimal in the middle; beside it, a rounded square for each skill in the lane
-//                             of its level, which is also the key.
-//   Today                     the Daily 10 and the Challenge question, to start if not done (practice.tsx).
-//   More ways to practise     time trials, endless mode, strategy quizzes, full-length exams, and on the
-//                             Reading and Writing side flashcards and the word game (practice.tsx).
-//   A filter, then the domains and their skills. Each row: the skill, how many questions it holds, and
-//   three bars, one for each level it climbs, with a star at Proficient. Skill sets are never numbered.
-// One hue carries progress, in three clear steps: deep evergreen by day, marigold by night.
-// The levels and the question counts are stand-ins: no student data is read, and the bank is not yet
-// tagged to these 72 skills.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+// One side of the Library (Reading and Writing, or Math), in two pages so nothing is crowded (founder,
+// 2026-11-15: "we can have subpages. We'll just focus on the domains first"):
+//   Library      the side as a whole: a ring of where the skills stand, today's two tasks, the ways to
+//                practise, and the four domains set side by side to compare. Choosing a domain opens it.
+//   DomainPage   one domain: a filter, then its skills. Choosing a skill opens the skill's page.
+// On a phone the first page is itself split into three, with buttons to move between them, so nobody
+// scrolls a long way: Skills, Today, Practise.
+// Progress is one green, dark for Proficient and light for Learning in both modes, and every mark has a
+// thin edge so it stands clear of the glass. Bands are cut clean where two levels meet: no blending.
+// The levels and the question counts are stand-ins: no student data is read yet.
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
 import { Modes, Today } from "./practice";
 import type { OpenSkill } from "./SkillPage";
@@ -29,6 +25,7 @@ const TOP = LEVELS.length - 1;
 /** How many skills sit at each level, from Not started to Proficient. */
 export const tally = (skills: Skill[]) =>
   LEVELS.map((_, level) => skills.filter((s) => s.level === level).length);
+const share = (skills: Skill[]) => ((tally(skills)[TOP] / skills.length) * 100).toFixed(1);
 
 const FILTERS = {
   all: { label: "All", keep: () => true },
@@ -39,42 +36,25 @@ const FILTERS = {
 } as const;
 type Filter = keyof typeof FILTERS;
 
-/** Two columns of about the same height, keeping the domains in order. */
-function columns<T extends { skills: unknown[] }>(domains: T[]): [T[], T[]] {
-  if (domains.length < 2) return [domains, []];
-  const size = (list: T[]) => list.reduce((n, d) => n + d.skills.length + 2, 0);
-  let best = 1;
-  for (let k = 1; k < domains.length; k++) {
-    const gap = (i: number) => Math.abs(size(domains.slice(0, i)) - size(domains.slice(i)));
-    if (gap(k) < gap(best)) best = k;
-  }
-  return [domains.slice(0, best), domains.slice(best)];
-}
-
-const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
 const STAR =
   "M12 2.800l2.850 5.900 6.450.900-4.700 4.500 1.150 6.400L12 17.450 6.250 20.500l1.150-6.400L2.700 9.600l6.450-.900z";
 
-/** A gradient round a ring whose colours run into each other: Proficient first, then down the levels. */
-function flow(counts: number[]): string {
+/** A ring cut clean by level: Proficient first, then down the levels, each touching the next. */
+function ringOf(counts: number[]): string {
   const total = counts.reduce((a, b) => a + b, 0) || 1;
-  const order = [3, 2, 1, 0].filter((level) => counts[level] > 0);
-  const soft = 14;
   let at = 0;
-  const stops = order.map((level, i) => {
-    const end = at + (counts[level] / total) * 360;
-    const from = i === 0 ? 0 : at + soft / 2;
-    const to = i === order.length - 1 ? 360 : end - soft / 2;
-    at = end;
-    return `var(--p${level}) ${Math.min(from, to)}deg ${Math.max(from, to)}deg`;
+  const stops = [3, 2, 1, 0].map((level) => {
+    const from = at;
+    at += (counts[level] / total) * 360;
+    return `var(--p${level}) ${from}deg ${at}deg`;
   });
   return `conic-gradient(from 0deg, ${stops.join(", ")})`;
 }
 
-/** A skill's level as three bars, one for each level it climbs; Proficient earns its star. The star's
- *  place is always kept, so the bars line up down a column whether or not a row has one. */
+/** A skill's level as three bars, one for each level it climbs, and a star at Proficient. The star's
+ *  place is always kept, so the bars line up down a column. */
 export function Pips({ level }: { level: number }) {
   return (
     <span
@@ -94,166 +74,56 @@ export function Pips({ level }: { level: number }) {
   );
 }
 
-/** The lanes: one rounded square for each skill, in the lane of its level, Proficient at the top. */
-function Lanes({ skills, hot, named }: { skills: Skill[]; hot?: string | null; named?: boolean }) {
+/** A band cut clean by level, as wide as it is given: the same picture as the ring, laid flat. */
+function Band({ skills }: { skills: Skill[] }) {
+  const counts = tally(skills);
   return (
-    <span className={styles.lanes} data-named={named || undefined} aria-hidden="true">
-      {[3, 2, 1, 0].map((level) => {
-        const here = skills.filter((s) => s.level === level);
-        return (
-          <span key={level} className={styles.lane} data-level={level}>
-            {named && <span className={styles.laneName}>{LEVELS[level]}</span>}
-            <span className={styles.dots}>
-              {here.map((s) => (
-                <i
-                  key={s.name}
-                  data-dot
-                  data-hot={hot === s.name || undefined}
-                  title={`${s.name}: ${LEVELS[level]}`}
-                />
-              ))}
-            </span>
-            {named && <b>{here.length}</b>}
-          </span>
-        );
-      })}
+    <span className={styles.band} aria-hidden="true">
+      {[3, 2, 1, 0].map(
+        (level) =>
+          counts[level] > 0 && (
+            <i key={level} data-level={level} style={{ flexGrow: counts[level] }} />
+          )
+      )}
     </span>
   );
 }
 
-/** A domain at a glance: one row of rounded squares, one for each skill, the furthest along first. */
-function Strip({ skills, hot }: { skills: Skill[]; hot: string | null }) {
+/** The key: each level's name, its mark, and how many skills are there. */
+function Key({ skills }: { skills: Skill[] }) {
+  const counts = tally(skills);
   return (
-    <span className={styles.strip} aria-hidden="true">
-      {[...skills]
-        .sort((a, b) => b.level - a.level)
-        .map((s) => (
-          <i key={s.name} data-dot data-level={s.level} data-hot={hot === s.name || undefined} />
-        ))}
-    </span>
+    <ul className={styles.key}>
+      {[3, 2, 1, 0].map((level) => (
+        <li key={level}>
+          <i data-level={level} />
+          {LEVELS[level]}
+          <b>{counts[level]}</b>
+        </li>
+      ))}
+    </ul>
   );
 }
 
-function DomainGlass({
-  domain,
-  shown,
-  order,
-  startOpen,
-  onOpen,
-}: {
-  domain: Domain;
-  shown: Skill[];
-  order: number;
-  startOpen: boolean;
-  onOpen: (skill: OpenSkill) => void;
-}) {
-  const still = useReducedMotion() ?? false;
-  const [open, setOpen] = useState(startOpen);
-  const [hot, setHot] = useState<string | null>(null);
-  const done = domain.skills.filter((s) => s.level === TOP).length;
-  const questions = domain.skills.reduce((n, s) => n + s.questions, 0);
-  return (
-    <section className={styles.glass} style={{ "--i": order } as CSSProperties}>
-      <button
-        type="button"
-        className={styles.head}
-        aria-expanded={open}
-        aria-label={`${domain.name}: ${done} of ${domain.skills.length} skills Proficient`}
-        onClick={() => {
-          setOpen(!open);
-          tick();
-        }}
-      >
-        <span className={styles.name}>
-          {domain.name}
-          <small>
-            <span>
-              <b>{done}</b> of {domain.skills.length} Proficient
-            </span>
-            <span className={styles.qty}>{questions.toLocaleString("en-US")} questions</span>
-          </small>
-        </span>
-        <Strip skills={domain.skills} hot={hot} />
-        <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-          <path d="M6.500 9.500l5.500 5.500 5.500-5.500" />
-        </svg>
-      </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.ul
-            className={styles.skills}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={still ? STILL : OPEN}
-          >
-            {shown.map((skill) => (
-              <li key={skill.name}>
-                <button
-                  type="button"
-                  className={styles.skill}
-                  onClick={() => {
-                    tick();
-                    buzz(8);
-                    onOpen({
-                      name: skill.name,
-                      level: skill.level,
-                      domain: domain.name,
-                      tests: skill.tests,
-                      questions: skill.questions,
-                    });
-                  }}
-                  onPointerEnter={() => setHot(skill.name)}
-                  onPointerLeave={() => setHot(null)}
-                  onFocus={() => setHot(skill.name)}
-                  onBlur={() => setHot(null)}
-                >
-                  <span className={styles.label}>{skill.name}</span>
-                  <span className={styles.qty}>{skill.questions} questions</span>
-                  <Pips level={skill.level} />
-                  <svg
-                    className={styles.go}
-                    viewBox="0 0 24 24"
-                    width="18"
-                    height="18"
-                    aria-hidden="true"
-                  >
-                    <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
-                  </svg>
-                </button>
-              </li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-}
+const PAGES = ["Skills", "Today", "Practise"] as const;
 
 export default function Library({
   rail,
   section,
-  onOpen,
+  onDomain,
 }: {
   rail: boolean;
   section: Section;
-  onOpen: (skill: OpenSkill) => void;
+  onDomain: (domain: string) => void;
 }) {
   const still = useReducedMotion() ?? false;
   const root = useRef<HTMLDivElement>(null);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [page, setPage] = useState<(typeof PAGES)[number]>("Skills");
   const domains = DOMAINS[section];
   const all = domains.flatMap((d) => d.skills);
-  const counts = tally(all);
-  const share = ((counts[TOP] / all.length) * 100).toFixed(1);
-  const bank = all.reduce((n, sk) => n + sk.questions, 0);
+  const bank = all.reduce((n, s) => n + s.questions, 0);
+  const show = (name: (typeof PAGES)[number]) => rail || page === name;
 
-  const visible = domains
-    .map((domain) => ({ domain, skills: domain.skills.filter(FILTERS[filter].keep) }))
-    .filter((d) => d.skills.length > 0);
-  const [left, right] = columns(visible);
-
-  /* GSAP brings the figures in: the ring sweeps round, then the squares take their places lane by lane */
   useEffect(() => {
     if (still || !root.current) return;
     let revert = () => {};
@@ -263,13 +133,13 @@ export default function Library({
       const ctx = gsap.context(() => {
         gsap.fromTo(
           "[data-ring]",
-          { "--sweep": 0, rotate: -90 },
-          { "--sweep": 1, rotate: 0, duration: 0.7, ease: "power3.out" }
+          { "--sweep": 0 },
+          { "--sweep": 1, duration: 0.6, ease: "power3.out" }
         );
         gsap.fromTo(
-          "[data-dot]",
-          { scale: 0 },
-          { scale: 1, duration: 0.3, ease: "back.out(2)", delay: 0.05, stagger: 0.003 }
+          "[data-grow]",
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.5, ease: "power3.out", stagger: 0.04 }
         );
       }, root);
       revert = () => ctx.revert();
@@ -278,31 +148,131 @@ export default function Library({
       gone = true;
       revert();
     };
-  }, [still, section, rail]);
+  }, [still, section, rail, page]);
 
   return (
     <div ref={root} className={styles.library}>
+      {!rail && (
+        <div className={styles.pager} role="group" aria-label="Page">
+          {PAGES.map((name) => (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={page === name}
+              onClick={() => {
+                setPage(name);
+                tick();
+              }}
+            >
+              {page === name && (
+                <motion.span
+                  layoutId="library-pager"
+                  className={styles.lens}
+                  transition={still ? STILL : SLIDE}
+                />
+              )}
+              <span>{name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className={styles.lead}>
-        <section
-          className={`${styles.glass} ${styles.standing}`}
-          aria-label="Where your skills stand"
-        >
-          <div className={styles.ring} role="img" aria-label={`${share}% of skills Proficient`}>
-            <i data-ring style={{ background: flow(counts) }} />
-            <p>
-              <b>{share}%</b>
-              Proficient
-            </p>
-          </div>
-          <div className={styles.standingWords}>
-            <Lanes skills={all} named />
-            <p className={styles.bank}>{bank.toLocaleString("en-US")} questions to practise from</p>
-          </div>
-        </section>
-        <Today />
+        {show("Skills") && (
+          <section
+            className={`${styles.glass} ${styles.standing}`}
+            aria-label="Where your skills stand"
+          >
+            <div
+              className={styles.ring}
+              role="img"
+              aria-label={`${share(all)}% of skills Proficient`}
+            >
+              <i data-ring style={{ background: ringOf(tally(all)) }} />
+              <p>
+                <b>{share(all)}%</b>
+                Proficient
+              </p>
+            </div>
+            <div className={styles.standingWords}>
+              <Key skills={all} />
+              <p className={styles.bank}>
+                {bank.toLocaleString("en-US")} questions to practise from
+              </p>
+            </div>
+          </section>
+        )}
+        {show("Today") && <Today />}
       </div>
 
-      <Modes section={section} />
+      {show("Practise") && <Modes />}
+
+      {show("Skills") && (
+        <section className={`${styles.glass} ${styles.domains}`} aria-label="Domains">
+          <h2>Domains</h2>
+          <ul>
+            {domains.map((domain) => {
+              const done = tally(domain.skills)[TOP];
+              return (
+                <li key={domain.name}>
+                  <button
+                    type="button"
+                    className={styles.domain}
+                    onClick={() => {
+                      tick();
+                      buzz(8);
+                      onDomain(domain.name);
+                    }}
+                  >
+                    <span className={styles.name}>{domain.name}</span>
+                    <span className={styles.grow} data-grow>
+                      <Band skills={domain.skills} />
+                    </span>
+                    <span className={styles.tally}>
+                      <b>{done}</b> of {domain.skills.length}
+                    </span>
+                    <svg
+                      className={styles.go}
+                      viewBox="0 0 24 24"
+                      width="20"
+                      height="20"
+                      aria-hidden="true"
+                    >
+                      <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+                    </svg>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/** One domain: where it stands, a filter, and its skills. */
+export function DomainPage({
+  domain,
+  onOpen,
+}: {
+  domain: Domain;
+  onOpen: (skill: OpenSkill) => void;
+}) {
+  const still = useReducedMotion() ?? false;
+  const [filter, setFilter] = useState<Filter>("all");
+  const shown = domain.skills.filter(FILTERS[filter].keep);
+  const questions = domain.skills.reduce((n, s) => n + s.questions, 0);
+  return (
+    <div className={styles.library}>
+      <section className={`${styles.glass} ${styles.summary}`}>
+        <p className={styles.count}>
+          <b>{share(domain.skills)}%</b> Proficient
+          <span className={styles.bank}>{questions.toLocaleString("en-US")} questions</span>
+        </p>
+        <Band skills={domain.skills} />
+        <Key skills={domain.skills} />
+      </section>
 
       <div className={styles.filter} role="group" aria-label="Show">
         {(Object.keys(FILTERS) as Filter[]).map((key) => (
@@ -317,41 +287,53 @@ export default function Library({
           >
             {filter === key && (
               <motion.span
-                layoutId={`library-filter-${section}`}
+                layoutId="library-filter"
                 className={styles.lens}
                 transition={still ? STILL : SLIDE}
               />
             )}
-            <span>
-              {FILTERS[key].label} <b>{all.filter(FILTERS[key].keep).length}</b>
-            </span>
+            <span>{FILTERS[key].label}</span>
           </button>
         ))}
       </div>
 
-      {/* a phone reads one column, with the first domain open; a desktop gets two, all open */}
-      <div className={styles.cols} key={`${section} ${rail} ${filter}`}>
-        {(rail ? [left, right] : [visible]).map((col, c) => (
-          <div key={c} className={styles.col}>
-            {col.map(({ domain, skills }) => {
-              const order = visible.findIndex((v) => v.domain === domain);
-              return (
-                <DomainGlass
-                  key={domain.name}
-                  domain={domain}
-                  shown={skills}
-                  order={order}
-                  startOpen={rail || order === 0 || filter !== "all"}
-                  onOpen={onOpen}
-                />
-              );
-            })}
-          </div>
-        ))}
-        {visible.length === 0 && (
-          <p className={`${styles.glass} ${styles.none}`}>No skills here yet.</p>
-        )}
-      </div>
+      <section className={`${styles.glass} ${styles.skills}`}>
+        <ul>
+          {shown.map((skill) => (
+            <li key={skill.name}>
+              <button
+                type="button"
+                className={styles.skill}
+                onClick={() => {
+                  tick();
+                  buzz(8);
+                  onOpen({
+                    name: skill.name,
+                    level: skill.level,
+                    domain: domain.name,
+                    tests: skill.tests,
+                    questions: skill.questions,
+                  });
+                }}
+              >
+                <span className={styles.label}>{skill.name}</span>
+                <span className={styles.qty}>{skill.questions} questions</span>
+                <Pips level={skill.level} />
+                <svg
+                  className={styles.go}
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  aria-hidden="true"
+                >
+                  <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {shown.length === 0 && <p className={styles.none}>No skills here yet.</p>}
+      </section>
     </div>
   );
 }

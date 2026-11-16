@@ -1,22 +1,25 @@
 "use client";
 
 // Pieces of the Library that are about practising, not about one skill:
-//   Today   the Daily 10 and the Challenge question, each to start if it has not been done yet.
-//   Modes   where time trials, endless mode, strategy quizzes, flashcards, Word Line and full-length exams
-//           live. Names only, no subtitles (founder, 2026-11-15).
-//   GoButton  the one main button, with all six states a button has: resting, hovered, focused, pressed,
-//           loading and disabled.
-// The icons are Karman's own, drawn here on a 24 grid and centred on it by eye. Each has its own colour
-// (--tint) and a small movement of its own, played when its row is hovered or focused (the CSS is in
-// library.module.css, keyed on data-a).
-// Everything is a stand-in: nothing starts yet, and the streak and the coins are made-up numbers.
+//   Today     the Daily 10 and the Challenge question, each to start if it has not been done yet.
+//   Modes     time trials, endless mode, strategy quizzes, flashcards, Word Line and full-length exams,
+//             on both sides. Names only.
+//   GoButton  the one main button: an outline that fills when hovered, with an orb while it loads. Its
+//             six states are resting, hovered, focused, pressed, loading and disabled.
+// The icons are Karman's own, drawn here and centred on their tiles by eye. Each moves in its own way
+// while its row is hovered or focused (practice.module.css, keyed on data-a).
+//   Time trials  the home page's racing stopwatch with flames off its back (WayArt.tsx, way 5).
+//   Endless      a marigold light that never stops going round the sideways 8.
+//   Strategy     a compass: red to north, blue to south. It spins wildly, then settles north.
+// Everything is a stand-in: nothing starts yet, and the streak is a made-up number.
+import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import styles from "./library.module.css";
-import type { Section } from "./skills72";
+import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 
 const TINT = { fill: "var(--tint)", fillOpacity: 0.32 } as const;
-const SOLID = { fill: "var(--tint)", stroke: "none" } as const;
+const LOOP =
+  "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
 
 const ICONS = {
   // the day's ten: a ring that fills, with the number in it
@@ -49,32 +52,23 @@ const ICONS = {
   challenge: (
     <path data-a="jolt" d="M13.400 2.600L5.300 13.400h5.400l-1 8 8.900-11.600h-5.700z" {...TINT} />
   ),
-  // a stopwatch whose hand goes round
-  trial: (
-    <>
-      <circle cx="12" cy="13" r="7.300" {...TINT} />
-      <path d="M10 3.200h4M12 3.200v2.500" />
-      <path data-a="hand" d="M12 13V8.600" stroke="var(--tint)" strokeWidth="2.200" />
-    </>
-  ),
-  // a loop with a light that keeps running round it
-  endless: (
-    <>
-      <path d="M8 8.500c-2.200 0-3.800 1.600-3.800 3.500s1.600 3.500 3.800 3.500c3.600 0 4.400-7 8-7 2.200 0 3.800 1.600 3.800 3.500s-1.600 3.500-3.800 3.500c-3.600 0-4.400-7-8-7z" />
-      <path
-        data-a="run"
-        pathLength={1}
-        d="M8 8.500c-2.200 0-3.800 1.600-3.800 3.500s1.600 3.500 3.800 3.500c3.600 0 4.400-7 8-7 2.200 0 3.800 1.600 3.800 3.500s-1.600 3.500-3.800 3.500c-3.600 0-4.400-7-8-7z"
-        stroke="var(--tint)"
-        strokeWidth="2.600"
-      />
-    </>
-  ),
-  // a compass whose needle swings
+  // a compass: a ring with north marked, and a needle red to the north and blue to the south
   strategy: (
     <>
-      <circle cx="12" cy="12" r="8.800" {...TINT} />
-      <path data-a="needle" d="M15.800 8.200l-2.300 5.300-5.300 2.300 2.300-5.300z" {...SOLID} />
+      <circle
+        cx="12"
+        cy="12"
+        r="9.300"
+        fill="currentColor"
+        fillOpacity="0.08"
+        strokeWidth="1.800"
+      />
+      <path d="M12 1.500v2.400" strokeWidth="2.200" />
+      <g data-a="needle">
+        <path d="M12 4.800l2.700 7.200h-5.400z" fill="#d8453c" stroke="none" />
+        <path d="M12 19.200l2.700-7.200h-5.400z" fill="#3f73d6" stroke="none" />
+      </g>
+      <circle cx="12" cy="12" r="1.300" fill="currentColor" stroke="none" />
     </>
   ),
   // index cards that fan out and back
@@ -114,61 +108,160 @@ const ICONS = {
       ))}
     </>
   ),
-  // an answer sheet: rows of bubbles, some filled in
+  // a whole test: a booklet of stacked sheets, with a clock on its corner
   exam: (
     <>
-      <rect x="4" y="4" width="16" height="16" rx="2.400" {...TINT} />
-      {[8.3, 12, 15.7].map((y, row) =>
-        [8.3, 12, 15.7].map((x, col) => (
-          <circle
-            key={`${row}${col}`}
-            cx={x}
-            cy={y}
-            r="1.350"
-            strokeWidth="1.200"
-            data-a={col === (row * 2 + 1) % 3 ? "mark" : undefined}
-            style={{ "--n": row } as CSSProperties}
-          />
-        ))
-      )}
+      <rect data-a="sheet2" x="7.500" y="3" width="11" height="14" rx="1.500" {...TINT} />
+      <rect data-a="sheet1" x="5.700" y="4.800" width="11" height="14" rx="1.500" {...TINT} />
+      <rect
+        x="4"
+        y="6.600"
+        width="11"
+        height="14"
+        rx="1.500"
+        fill="var(--tint)"
+        fillOpacity="0.55"
+      />
+      <circle cx="17.300" cy="17.600" r="4" fill="var(--paper, #fffdf8)" />
+      <path
+        data-a="hand"
+        d="M17.300 17.600v-2.200"
+        stroke="var(--tint)"
+        strokeWidth="1.800"
+        style={{ transformOrigin: "17.3px 17.6px" }}
+      />
     </>
   ),
-  // small marks for the facts beside a task
-  list: <path d="M5 7h14M5 12h14M5 17h9" />,
+  // a flame with fire in it
   flame: (
-    <path
-      d="M12 3c1.500 4 6 5.500 6 11a6 6 0 0 1-12 0c0-3 2-4.500 2.800-7 1.200 1.800 1.600 3 2 4.500.9-2.500 1.500-5.500 1.200-8.500z"
-      fill="currentColor"
-      fillOpacity="0.14"
-    />
-  ),
-  coin: (
     <>
-      <circle cx="12" cy="12" r="8.500" fill="currentColor" fillOpacity="0.14" />
-      <path d="M10 8v8M14.500 8l-4.500 4 4.500 4" />
+      <path
+        data-a="flick"
+        d="M12 2.500c1.600 4.200 6.300 5.800 6.300 11.600a6.300 6.300 0 0 1-12.600 0c0-3.200 2.100-4.800 2.900-7.400 1.300 1.900 1.700 3.200 2.100 4.800 1-2.700 1.600-5.800 1.300-9z"
+        fill="#ee5a24"
+        stroke="none"
+      />
+      <path
+        d="M12 11c.9 2 3 3 3 5.700a3 3 0 0 1-6 0c0-1.500 1-2.300 1.500-3.500.5.800.8 1.400 1 2.100.4-1.400.6-2.800.5-4.300z"
+        fill="#ffd24a"
+        stroke="none"
+      />
     </>
   ),
-  up: <path d="M5 16l5-5.500 3.500 3L19 7M14.500 7H19v4.500" />,
   check: <path d="M5 12.500l4.500 4.500L19 7.500" strokeWidth="2.200" />,
   go: <path d="M5 12h13M12.500 6.500L18 12l-5.500 5.500" strokeWidth="2" />,
   written: <path d="M5 6.500h14M5 11h14M5 15.500h9" />,
   video: <path d="M9 6.500v11l9-5.500z" fill="currentColor" fillOpacity="0.14" />,
 } satisfies Record<string, ReactNode>;
-export type IconName = keyof typeof ICONS;
+export type IconName = keyof typeof ICONS | "trial" | "endless";
 
-/** Each practice icon's own colour. They sit beside the progress hue without being mistaken for it. */
+/** Each practice icon's own colour. */
 const TINTS: Partial<Record<IconName, string>> = {
   daily: "#e39a2d",
   challenge: "#e0683f",
-  trial: "#d8587a",
-  endless: "#8c6fd0",
-  strategy: "#c9862e",
   cards: "#d9713f",
   word: "#4f9b8f",
   exam: "#7a86c9",
 };
 
+/** The home page's racing stopwatch, flames streaming off its back, made small. */
+function TrialWatch({ size }: { size: number }) {
+  return (
+    <svg viewBox="-6 6 216 216" width={size} height={size} aria-hidden="true" focusable="false">
+      <g data-a="fire">
+        <path
+          fill="#ee5a24"
+          d="M70 62C46 54 30 64 4 58c14 10 24 12 30 22-12-2-22 2-32 10 16 0 26 6 34 16-12 0-22 6-30 16 14-2 26 2 34 10-10 4-18 12-22 22 14-8 28-8 40-2 8 6 16 8 22 6z"
+        />
+        <path
+          fill="#f7a531"
+          d="M72 78C54 72 40 78 20 76c10 6 18 10 22 18-10 0-18 4-24 10 12 0 22 4 28 12-8 2-16 8-20 16 12-4 24-4 34 2 6 4 12 4 16 2z"
+        />
+        <path
+          fill="#ffe27a"
+          d="M74 94c-12-4-22 0-34 0 8 4 12 8 14 14-6 0-12 4-16 8 10 0 18 2 24 8 6 2 10 2 14 0z"
+        />
+      </g>
+      <g fill="currentColor">
+        <rect x="110" y="20" width="16" height="18" rx="4" />
+        <rect x="102" y="14" width="32" height="10" rx="5" />
+        <rect x="166" y="52" width="14" height="20" rx="4" transform="rotate(42 173 62)" />
+        <circle cx="118" cy="116" r="76" />
+      </g>
+      <circle cx="118" cy="116" r="63" fill="#fffaf1" />
+      {Array.from({ length: 12 }, (_, i) => (
+        <path
+          key={i}
+          d="M118 60v10"
+          stroke="#3b3442"
+          strokeWidth={i % 3 === 0 ? 7 : 4}
+          strokeLinecap="round"
+          transform={`rotate(${i * 30} 118 116)`}
+        />
+      ))}
+      <path
+        data-a="watch"
+        d="M118 116V72"
+        stroke="#ee5a24"
+        strokeWidth="9"
+        strokeLinecap="round"
+        style={{ transformOrigin: "118px 116px" }}
+      />
+      <circle cx="118" cy="116" r="8" fill="#3b3442" />
+    </svg>
+  );
+}
+
+/** Endless: a marigold light, with its tail, that never stops going round the sideways 8. */
+function EndlessOrb({ size }: { size: number }) {
+  const still = useReducedMotion() ?? false;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+      style={{ overflow: "visible" }}
+    >
+      <defs>
+        <radialGradient id="kp-orb">
+          <stop offset="0" stopColor="#fff6d6" />
+          <stop offset="0.35" stopColor="#ffc24a" />
+          <stop offset="1" stopColor="#f08a1c" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <path d={LOOP} stroke="currentColor" strokeOpacity="0.28" strokeWidth="1.800" />
+      <path
+        d={LOOP}
+        data-a="shade"
+        pathLength={1}
+        stroke="#f5a623"
+        strokeWidth="2.600"
+        strokeLinecap="round"
+      />
+      {[0, 0.07, 0.14].map((lag, i) => (
+        <circle key={lag} r={3.4 - i * 0.9} fill="url(#kp-orb)" opacity={1 - i * 0.3}>
+          {still ? (
+            <set attributeName="cx" to="8" />
+          ) : (
+            <animateMotion
+              dur="2.6s"
+              begin={`${-2.6 * (1 - lag)}s`}
+              repeatCount="indefinite"
+              path={LOOP}
+            />
+          )}
+        </circle>
+      ))}
+    </svg>
+  );
+}
+
 export function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
+  if (name === "trial") return <TrialWatch size={size} />;
+  if (name === "endless") return <EndlessOrb size={size} />;
   return (
     <svg
       viewBox="0 0 24 24"
@@ -190,15 +283,16 @@ export function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
 /** An icon on its tile, in its own colour. */
 export function Tile({ name }: { name: IconName }) {
   return (
-    <span className={styles.tile} style={{ "--tint": TINTS[name] ?? "var(--p2)" } as CSSProperties}>
-      <Icon name={name} size={28} />
+    <span className={styles.tile} style={{ "--tint": TINTS[name] ?? "#d9a441" } as CSSProperties}>
+      <Icon name={name} size={name === "trial" ? 34 : 28} />
     </span>
   );
 }
 
 /**
- * The main button. Its six states: resting, hovered, focused, pressed, loading and disabled.
- * Pressing it shows the loading state for a moment (nothing really loads yet), then calls `onDone`.
+ * The main button: an outline that fills with green when hovered. Its six states are resting, hovered,
+ * focused, pressed, loading and disabled. Pressing it shows an orb while it loads (nothing really loads
+ * yet), then calls `onDone`.
  */
 export function GoButton({
   children,
@@ -234,11 +328,17 @@ export function GoButton({
           setLoading(false);
           chosen();
           onDone?.();
-        }, 1400);
+        }, 1600);
       }}
     >
-      <span className={styles.gobtnWords}>{loading ? "Loading" : children}</span>
-      {loading ? <i className={styles.spin} aria-hidden="true" /> : <Icon name="go" size={20} />}
+      {loading ? (
+        <span className={styles.orb} role="img" aria-label="Loading" />
+      ) : (
+        <>
+          <span>{children}</span>
+          <Icon name="go" size={20} />
+        </>
+      )}
     </button>
   );
 }
@@ -249,20 +349,14 @@ const TASKS = [
     icon: "daily",
     name: "Daily 10",
     what: "Ten questions across your skills.",
-    facts: [
-      ["list", "10 questions"],
-      ["up", "Keeps skills from slipping"],
-    ],
+    streak: null,
   },
   {
     key: "challenge",
     icon: "challenge",
     name: "Challenge question",
     what: "One hard question.",
-    facts: [
-      ["flame", "3 day streak"],
-      ["coin", "1.5x coins"],
-    ],
+    streak: "3 day streak",
   },
 ] as const;
 
@@ -274,7 +368,7 @@ export function Today() {
       <h2>Today</h2>
       <ul>
         {TASKS.map((task) => (
-          <li key={task.key} className={styles.task} data-done={done[task.key] || undefined}>
+          <li key={task.key} className={styles.task}>
             {done[task.key] ? (
               <span className={styles.tile} data-done>
                 <Icon name="check" size={28} />
@@ -285,14 +379,12 @@ export function Today() {
             <span className={styles.taskWords}>
               <b>{task.name}</b>
               <span>{done[task.key] ? "Done for today." : task.what}</span>
-              <span className={styles.facts}>
-                {task.facts.map(([icon, text]) => (
-                  <span key={text}>
-                    <Icon name={icon} size={16} />
-                    {text}
-                  </span>
-                ))}
-              </span>
+              {task.streak && (
+                <span className={styles.streak}>
+                  <Icon name="flame" size={18} />
+                  {task.streak}
+                </span>
+              )}
             </span>
             {!done[task.key] && (
               <GoButton
@@ -309,22 +401,22 @@ export function Today() {
   );
 }
 
-const MODES: { icon: IconName; name: string; only?: Section }[] = [
+const MODES: { icon: IconName; name: string }[] = [
   { icon: "trial", name: "Time trials" },
   { icon: "endless", name: "Endless mode" },
   { icon: "strategy", name: "Strategy quizzes" },
-  { icon: "cards", name: "Flashcards", only: "Reading and Writing" },
-  { icon: "word", name: "Word Line", only: "Reading and Writing" },
+  { icon: "cards", name: "Flashcards" },
+  { icon: "word", name: "Word Line" },
   { icon: "exam", name: "Full-length exams" },
 ];
 
-/** The other ways to practise this side: one row of names, each with its icon. */
-export function Modes({ section }: { section: Section }) {
+/** The other ways to practise: one row of names, each with its icon. The same six on both sides. */
+export function Modes() {
   return (
     <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practise">
       <h2>More ways to practise</h2>
       <ul>
-        {MODES.filter((m) => !m.only || m.only === section).map((mode) => (
+        {MODES.map((mode) => (
           <li key={mode.name}>
             <button type="button" className={styles.mode} onClick={() => tick()}>
               <Tile name={mode.icon} />
