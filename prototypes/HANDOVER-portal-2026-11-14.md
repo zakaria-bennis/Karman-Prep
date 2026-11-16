@@ -471,3 +471,29 @@ practise stay in the Library. Next is Progress, planned with him by questions be
 His opening brief for Progress: overall preparation for the SAT; an analytics view of the work, time
 and effort put in; a highlight of where the student is weak; and a history of past questions and
 mistakes, "like a mistake log".
+
+## Progress: planned by questions, step 1 built (2026-11-15), awaiting his verdict
+
+His full answers are in the memory note `project_progress_spec.md`; read it before any Progress work.
+Build order agreed with him, one step at a time, each shown before the next:
+1. Predicted score and its graph. **Built.**
+2. The six stats (questions answered, time invested, days practiced, accuracy, skills proficient, exams
+   taken; all time by default, switch to 7 and 30 days), a one-month calendar shaded by how much was
+   done with a day you can open, and a streak of days (a day counts only if the Daily 10 was done).
+3. The three weakest skills, each with "Start skill set"; pacing as its own piece.
+4. History on its own page behind a link: sessions, then one session's questions, filtered all,
+   correct or missed (never "incorrect"). Bookmarks live here; a flagged row carries a flag icon.
+5. The new-student page: the Daily 10 first.
+6. The phone: no scrolling except in History. It need not be four pages if everything fits.
+
+**Step 1** (`Progress.tsx`, `progress.module.css`, shown on `/dev/shell` under Progress): one centered
+piece of glass. The total in the title serif, the largest thing on the page; "Up 140 since September
+27"; Reading and Writing and Math smaller inside it; the countdown in the corner, only when a test date
+is set. One line over time with full-length exams marked as rounded squares at their real scores.
+Both axes fit the student (`dayMarks`, `scoreMarks`): days, then weeks, then months along the bottom;
+steps of 20, 50, 100 or 200 up the side. Pointing at, dragging along or arrowing through the line turns
+the score above it into that day's (total and both sections); a first version used a floating pop-up,
+which covered the section scores and was removed. With fewer than two exams the same place says "Take
+two full-length exams to see your predicted score". The demo bar has four made-up students (6 days, 3
+weeks, 9 weeks, 7 months) to show the scaling. All numbers are stand-ins. Not built: the Free plan's
+wording (the score comes with Practice or Pro), accommodations, changing the test date.

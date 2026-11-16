@@ -1,0 +1,300 @@
+/*
+ * Progress. Glass, inset (--pad, 12), corners (16 outside, 10 inside), text sizes (13, 16, 20) and the
+ * one green (--p1 to --p3, --go) come from library.module.css, set on .library. The predicted score is
+ * the one large thing on the page, set in the serif the page titles use.
+ */
+.progress {
+  justify-items: center;
+}
+
+/* ---- the predicted score: first, and in the middle ---- */
+.score {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  width: min(100%, 980px);
+  padding: calc(var(--pad) * 2);
+}
+
+.head {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.head h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.total {
+  font: 400 96px/1 var(--font-serif);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.moved {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.moved b {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--go);
+}
+
+/* the two sections, inside the score and quieter than it */
+.progress .sections {
+  display: flex;
+  gap: 12px;
+  margin: 14px 0 0;
+}
+
+.sections div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.sections dt {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sections dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the countdown: only for a student who has entered a test date */
+.countdown {
+  position: absolute;
+  top: calc(var(--pad) * 2);
+  right: calc(var(--pad) * 2);
+  display: grid;
+  justify-items: end;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.countdown b {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown span {
+  opacity: 0.78;
+}
+
+/* ---- the graph ---- */
+.graph {
+  position: relative;
+  width: 100%;
+  border-radius: var(--r-lens);
+  cursor: crosshair;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.graph svg {
+  display: block;
+  overflow: visible;
+}
+
+.rule {
+  fill: none;
+  stroke: var(--sq-edge);
+  stroke-width: 1;
+  opacity: 0.32;
+}
+
+.mark {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.78;
+}
+
+.area {
+  animation: show 0.5s var(--out) 0.25s both;
+}
+
+.line {
+  fill: none;
+  stroke: var(--p3);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: draw 0.8s var(--out) both;
+}
+
+:global([data-kp-mode="dark"]) .line {
+  stroke: var(--p1);
+}
+
+/* a full-length exam, at its real score: a rounded square, like every other mark in the portal */
+.exam {
+  fill: #fffdf8;
+  stroke: var(--p3);
+  stroke-width: 2.5;
+}
+
+.examScore {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hair {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.dot {
+  fill: var(--go);
+  stroke: #fffdf8;
+  stroke-width: 2.5;
+}
+
+.progress .legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 24px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend i[data-kind="line"] {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--p3);
+}
+
+:global([data-kp-mode="dark"]) .legend i[data-kind="line"] {
+  background: var(--p1);
+}
+
+.legend i[data-kind="exam"] {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: #fffdf8;
+  box-shadow: 0 0 0 2.5px var(--p3);
+}
+
+/* ---- before two exams: the same place says what to do ---- */
+.waiting {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 0 16px;
+  text-align: center;
+}
+
+.waiting h2 {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(2, 84px);
+  gap: 6px;
+}
+
+.slots i {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--p0);
+  box-shadow: 0 0 0 1px var(--sq-edge);
+  font-style: normal;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.slots i[data-on] {
+  background: var(--p3);
+  color: #fffdf8;
+}
+
+.waiting p {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.waiting p b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .score {
+    padding: calc(var(--pad) + 6px);
+  }
+
+  .total {
+    font-size: 76px;
+  }
+
+  /* on a phone the countdown sits above the score, in the middle */
+  .countdown {
+    position: static;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .progress .sections {
+    gap: 8px;
+  }
+
+  .sections div {
+    padding: 8px 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line,
+  .area {
+    animation: none;
+  }
+}

@@ -35,6 +35,7 @@ import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
+import Progress, { STUDENTS, type StudentKey } from "./Progress";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -123,6 +124,8 @@ function Shell() {
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
+  /* which made-up student the Progress page shows (demo only) */
+  const [student, setStudent] = useState<StudentKey>("weeks9");
   /* how frosted the glass is; the dial remembers its setting on this computer */
   const [frost, setFrost] = useState(0.7);
   useEffect(() => {
@@ -519,6 +522,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
+        {page === "progress" && <Progress student={student} />}
       </main>
 
       {q.get("demo") !== "0" && (
@@ -544,6 +548,17 @@ function Shell() {
               {PLANS[k].label}
             </button>
           ))}
+          {page === "progress" &&
+            (Object.keys(STUDENTS) as StudentKey[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={student === k}
+                onClick={() => setStudent(k)}
+              >
+                {STUDENTS[k].label}
+              </button>
+            ))}
           {!rail && (
             <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
               Night
