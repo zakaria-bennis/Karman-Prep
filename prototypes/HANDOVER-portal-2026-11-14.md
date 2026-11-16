@@ -948,3 +948,15 @@ homework (no Daily 10, no challenge question). A piece says its name and "8 ques
 says its sort. Work is "liquid glass" in fuchsia, blue or green. Missed work is a red disc with a mark,
 done a check, closed a lock. Files: `Homework.tsx`, `HomeworkBits.tsx`, `homeworkData.ts`,
 `homework.module.css`. `/dev/shell` is now dark unless `?night=0`. He also asked for ideas for Settings.
+
+**Homework, fourth version (same day).** The exam banner has a days, hours, minutes, seconds clock to
+Saturday 6 AM; then a Start exam button pops up with a clock to midnight under it (demo bar: "Exam open"
+shows that state). By day the banner is a dawn sky, by night the deep one. The week bars are gone. The
+character is the student's own (`equipped.ts`, set by Rewards), leans toward the pointer, perks at a
+press, and plays a trick when pressed (every fifth a somersault with stars). The next class is a big
+button with a self-drawing chalkboard and a countdown; a class day's list is led by a lit pill with
+Join on it (Join works from 10 minutes before; my number). Work is calmer tinted glass, one piece under
+another. Each Math domain has its own picture and movement; all picture movement is GSAP
+(`homeworkMotion.ts`; GSAP 3.15 was already installed). Pacing is not homework. **Pressing a piece still
+to do finishes it** (check drawn, slides away, character cheers) so he can judge the finishing; remove
+that once activities have their own screens.

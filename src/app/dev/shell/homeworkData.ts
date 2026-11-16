@@ -7,8 +7,9 @@
 //   - Work is Reading and Writing (fuchsia), Math (blue) or Mixed (green). No key explains it.
 //   - A piece of work says its name and how much there is ("8 questions"), not what sort it is: a
 //     small picture says that.
-//   - The week's full-length exam is a banner of its own that says when it opens and closes
-//     (Saturday, 6 AM to midnight), not how long it takes.
+//   - The week's full-length exam is a banner of its own with a clock counting down to when it
+//     opens (Saturday, 6 AM); then a Start exam button, and a clock counting down to midnight.
+//   - Pacing is not homework. Strategy quizzes are.
 //   - Only work still to do is listed; done work is behind a Completed button. Missed work is marked
 //     with a sign, not a word; after a week it is closed.
 // What is mine: the names of the work, how much there is, and the class days and time.
@@ -24,9 +25,24 @@ export const SORTS = {
 } as const;
 export type Sort = keyof typeof SORTS;
 
+/** Math's four domains: each has a small picture of its own on a piece of Math work. */
+export type MathDomain = "algebra" | "advanced" | "data" | "geometry";
+const DOMAIN: Record<string, MathDomain> = {
+  "Slope and rate of change": "algebra",
+  "Number of solutions": "algebra",
+  "Graphs of quadratics": "advanced",
+  "Rational expressions": "advanced",
+  Percentages: "data",
+  "Units and conversions": "data",
+  "Circle equations": "geometry",
+  Formulas: "geometry",
+  Algebra: "algebra",
+};
+
 export type Work = {
   id: string;
   kind: Kind;
+  domain?: MathDomain;
   sort: Sort;
   name: string;
   /** How much there is: "8 questions". */
@@ -69,8 +85,10 @@ const MATH = [
   "Circle equations",
 ];
 
-/** When the exam may be begun (his rule: Saturday only, 6 AM to midnight). */
-export const EXAM = { opens: "6 AM", closes: "midnight" };
+/** When the exam may be begun (his rule: Saturday only, 6 AM to midnight), in hours of the day. */
+export const EXAM = { opens: 6, closes: 24 };
+/** The live class: when it begins, how long it runs, and how early its door opens (mine). */
+export const CLASS = { hour: 19, minutes: 90, early: 10 };
 
 /** One week's days, Sunday to Saturday. `week` 0 is this week, -1 the one before. */
 export function weekOf(week: number): HomeworkDay[] {
@@ -103,7 +121,12 @@ export function weekOf(week: number): HomeworkDay[] {
         drafts.push({ kind: "math", sort: "trial", name: "Algebra", much: "5 questions" });
       if (i === 4) drafts.push({ kind: "rw", sort: "trial", name: "Reading", much: "5 questions" });
       if (i === 0 || i === 3)
-        drafts.push({ kind: "mixed", sort: "strategy", name: "Pacing", much: "12 questions" });
+        drafts.push({
+          kind: "mixed",
+          sort: "strategy",
+          name: i === 0 ? "Process of elimination" : "Plugging in numbers",
+          much: "12 questions",
+        });
     }
     return {
       date,
@@ -124,7 +147,7 @@ export function weekOf(week: number): HomeworkDay[] {
                 : from >= -7
                   ? "missing"
                   : "closed";
-        return { ...draft, id: `${week}-${i}-${n}`, state };
+        return { ...draft, domain: DOMAIN[draft.name], id: `${week}-${i}-${n}`, state };
       }),
     };
   });

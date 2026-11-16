@@ -103,6 +103,8 @@ function Shell() {
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
+  /* shows the exam's banner as it is once the exam has opened (demo only) */
+  const [examOpen, setExamOpen] = useState(false);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
   /* the Free plan, which has no predicted score (demo only) */
@@ -576,7 +578,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "homework" && <Homework />}
+        {page === "homework" && <Homework examOpen={examOpen} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog
@@ -633,6 +635,11 @@ function Shell() {
           {!rail && (
             <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
               Night
+            </button>
+          )}
+          {page === "homework" && (
+            <button type="button" aria-pressed={examOpen} onClick={() => setExamOpen(!examOpen)}>
+              Exam open
             </button>
           )}
           {/* shows the late-night offer of music now, whatever the hour and whatever was answered */}

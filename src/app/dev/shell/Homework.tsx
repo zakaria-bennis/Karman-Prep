@@ -2,19 +2,26 @@
 
 // Homework: where a Cohort or Private student lands (founder, 2026-11-16; the rules are in
 // homeworkData.ts). It opens on the day.
-//   The banner   the week's full-length exam, with Karman in his cap: when it opens and closes.
-//   The left     Karman inside a ring that fills as the day's work is done, and how much is left;
-//                the week as seven small bars that fill the same way (pressing one goes to that
-//                day); and the next class.
-//   The right    the day's work, each piece liquid glass in its subject's color with a picture of
-//                its sort. Arrows step to the days before and after. Done work is behind Completed.
-//   Week         a button lays the whole week out, a day beside a day; pressing a day goes to it.
+//   The banner   the week's full-length exam: a clock counting down to when it opens, then a Start
+//                exam button and a clock counting down to when it closes.
+//   The left     the student's own character, in what they have on, inside a ring that fills as the
+//                day's work is done. It watches the pointer, and pressing it plays a trick. Under
+//                it, how much is left, and the next class as a button with its own countdown.
+//   The right    the day's work, one piece under another, each tinted glass with a picture of its
+//                sort (and of its domain, for Math). Arrows step to other days. A class that day
+//                leads the list with Join on it. Done work is behind Completed.
+//   Week         a switch lays the whole week out; pressing a day goes to it.
+// Pressing a piece still to do finishes it, so the finishing can be looked at: each activity's own
+// screen is still to come.
 // On a phone the same pieces stack: banner, ring and bars side by side, then the day's work.
 // Pressing a piece of work leads nowhere yet: each activity's beginning screen is still to come.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Dressed } from "./accessories";
+import { useEquipped } from "./equipped";
 import { ExamBanner, Item, wearing } from "./HomeworkBits";
+import { Buddy, ClassButton, ClassPill } from "./HomeworkBuddy";
+import { useClock } from "./homeworkMotion";
 import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay } from "./homeworkData";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
@@ -45,34 +52,35 @@ const Chevron = ({ back = false }: { back?: boolean }) => (
 );
 
 /** The day's work: what is left, and at the foot what has been done. */
-function Work({ day }: { day: HomeworkDay }) {
+function Work({
+  day,
+  now,
+  onFinish,
+}: {
+  day: HomeworkDay;
+  now: number;
+  onFinish: (id: string) => void;
+}) {
+  const { face } = useEquipped();
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(false);
   const left = day.work.filter((w) => w.state !== "done");
   const done = day.work.filter((w) => w.state === "done");
   return (
     <>
-      {day.class && (
-        <p className={styles.class}>
-          {/* a chalkboard on its stand */}
-          <svg viewBox="0 0 28 28" width="28" height="28" aria-hidden="true">
-            <rect x="3.500" y="4.500" width="21" height="14" rx="2.500" />
-            <path d="M8 10.500c2-2.500 4 2.500 6 0s4 2.500 6 0M10 23.500l2-5M18 23.500l-2-5" />
-          </svg>
-          Class at <b>{day.class}</b>
-        </p>
-      )}
+      {/* a class that day leads its list, with Join on it */}
+      {day.class && <ClassPill day={day} now={now} />}
       {left.length > 0 ? (
         <ul className={styles.list}>
           {left.map((work) => (
-            <Item key={work.id} work={work} />
+            <Item key={work.id} work={work} onFinish={onFinish} />
           ))}
         </ul>
       ) : (
-        // nothing left: Karman in a party hat, hopping
+        // nothing left: the character in a party hat, hopping
         <div className={styles.clear}>
           <span className={styles.hop}>
-            <Dressed face="fox" outfit={wearing("Party hat")} size={96} />
+            <Dressed face={face} outfit={wearing("Party hat")} size={96} />
           </span>
           <p>{day.work.length ? "All done" : day.exam ? "Exam day" : "Nothing assigned"}</p>
         </div>
@@ -116,20 +124,30 @@ function Work({ day }: { day: HomeworkDay }) {
   );
 }
 
-export default function Homework() {
+export default function Homework({ examOpen }: { examOpen: boolean }) {
+  const now = useClock();
+  /** Work finished on this page by pressing it, until each activity has its own screen. */
+  const [finished, setFinished] = useState<string[]>([]);
+  const [cheer, setCheer] = useState(0);
   const still = useReducedMotion() ?? false;
   /** The day shown, in days from today. */
   const [at, setAt] = useState(0);
   const [whole, setWhole] = useState(false);
   const week = Math.floor((at + TODAY.getDay()) / 7);
-  const days = weekOf(week);
+  const mark = (list: HomeworkDay[]) =>
+    list.map((d) => ({
+      ...d,
+      work: d.work.map((w) => (finished.includes(w.id) ? { ...w, state: "done" as const } : w)),
+    }));
+  const days = mark(weekOf(week));
   const day = days[new Date(TODAY.getTime() + at * DAY).getDay()];
   const exam = days[6];
   const { all, done } = tally(day);
   const left = all - done;
-  const weekAll = days.reduce((n, d) => n + d.work.length, 0);
-  const weekDone = days.reduce((n, d) => n + tally(d).done, 0);
-  const next = [...days, ...weekOf(week + 1)].find((d) => d.class && d.from >= 0);
+  // the next class from now, whatever day is being looked at
+  const next = [...weekOf(0), ...weekOf(1)].find(
+    (d) => d.class && new Date(d.date).setHours(20, 30, 0, 0) > now
+  );
   const go = (to: number) => {
     setAt(Math.max(FIRST, Math.min(LAST, to)));
     tick();
@@ -139,7 +157,7 @@ export default function Homework() {
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
-      <ExamBanner day={exam} />
+      <ExamBanner day={exam} now={now} open={examOpen} />
 
       {!whole && (
         <section className={`${lib.glass} ${styles.side}`} aria-label="At a glance">
@@ -157,57 +175,15 @@ export default function Homework() {
                 transform="rotate(-90 84 84)"
               />
             </svg>
-            <span className={styles.bob}>
-              <Dressed face="fox" outfit={wearing("Pencil", left ? "" : "Party hat")} size={104} />
-            </span>
+            <Buddy size={104} cheer={cheer} />
           </div>
           <p className={styles.count} aria-live="polite">
             <b>{left}</b>
             {day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}
           </p>
 
-          {/* the week as seven bars, each filling as its day is done. Pressing one goes to it. */}
-          <div className={styles.bars} role="group" aria-label="This week">
-            {days.map((d) => {
-              const t = tally(d);
-              return (
-                <button
-                  key={d.from}
-                  type="button"
-                  aria-pressed={d.from === at}
-                  aria-label={`${d.date.toLocaleDateString("en-US", { weekday: "long" })}, ${t.done} of ${t.all} done`}
-                  data-today={d.from === 0 || undefined}
-                  onClick={() => go(d.from)}
-                >
-                  <span className={styles.bar}>
-                    {d.exam ? (
-                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                        <path d="M12 3l2.600 5.600 6.100.700-4.500 4.200 1.200 6-5.400-3-5.400 3 1.200-6L3.300 9.300l6.100-.700Z" />
-                      </svg>
-                    ) : (
-                      <i style={{ height: `${t.all ? (t.done / t.all) * 100 : 0}%` }} />
-                    )}
-                  </span>
-                  {d.date.toLocaleDateString("en-US", { weekday: "narrow" })}
-                </button>
-              );
-            })}
-          </div>
-          <p className={styles.weekly}>
-            <b>{weekDone}</b> of {weekAll} this week
-          </p>
-
-          {next && (
-            <p className={styles.next}>
-              Next class
-              <b>
-                {next.from === 0
-                  ? "Today"
-                  : next.date.toLocaleDateString("en-US", { weekday: "long" })}
-                , {next.class}
-              </b>
-            </p>
-          )}
+          {/* the next class: a button with a clock counting down to it */}
+          {next && <ClassButton day={next} now={now} />}
         </section>
       )}
 
@@ -301,8 +277,16 @@ export default function Homework() {
             ))}
           </div>
         ) : (
-          <div className={styles.dayBody} style={{ "--many": Math.max(1, left) } as CSSProperties}>
-            <Work key={day.from} day={day} />
+          <div className={styles.dayBody}>
+            <Work
+              key={day.from}
+              day={day}
+              now={now}
+              onFinish={(id) => {
+                setFinished([...finished, id]);
+                setCheer(cheer + 1);
+              }}
+            />
           </div>
         )}
       </section>

@@ -44,6 +44,39 @@
   isolation: isolate;
 }
 
+/* by day the banner is a dawn sky with dark words; by night it is the deep one above */
+:global([data-kp-mode="light"]) .exam {
+  color: #3a1d4a;
+  background: linear-gradient(110deg, #ffe7b0, #ffc9a8 45%, #f6a9cd);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px rgb(255 255 255 / 0.7),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.8);
+}
+
+:global([data-kp-mode="light"]) .lights {
+  background:
+    radial-gradient(closest-side at 22% 40%, rgb(255 255 255 / 0.75), transparent),
+    radial-gradient(closest-side at 70% 60%, rgb(255 150 120 / 0.5), transparent),
+    radial-gradient(closest-side at 90% 30%, rgb(150 190 255 / 0.6), transparent);
+}
+
+:global([data-kp-mode="light"]) .star {
+  background: #fff;
+}
+
+:global([data-kp-mode="light"]) .clock > span {
+  background: rgb(255 255 255 / 0.45);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.8),
+    0 6px 14px -10px rgb(120 50 90 / 0.5);
+}
+
+:global([data-kp-mode="light"]) .homework .start {
+  background: #3a1d4a;
+  color: #fff3d6;
+}
+
 /* slow lights drifting behind the words */
 .lights {
   position: absolute;
@@ -109,43 +142,80 @@
   }
 }
 
-.exam > div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
 .homework .exam h2 {
   font: 400 26px/1.1 var(--font-serif);
 }
 
-.exam p {
-  font-size: 14px;
-  font-weight: 500;
+.exam .over {
+  margin-left: auto;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.exam p b {
-  font-weight: 700;
-  color: #ffd76a;
+/* the clock: a pane for each of days, hours, minutes and seconds */
+.clock {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
 }
 
-.homework .until {
+.clock > span {
   display: grid;
   justify-items: center;
+  gap: 2px;
+  min-width: 58px;
+  padding: 8px 6px 6px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clock b {
+  font: 400 30px/1 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* open: the button, and under it the clock to closing, small */
+.go {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
   margin-left: auto;
+}
+
+.go p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
 }
 
-.homework .until b {
-  color: #fff8e6;
-  font: 400 40px/1 var(--font-serif);
-  font-variant-numeric: lining-nums;
+.go .clock {
+  gap: 4px;
+  margin: 0;
+}
+
+.go .clock > span {
+  grid-auto-flow: column;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 0;
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.go .clock b {
+  font-size: 16px;
 }
 
 .homework .start {
   height: 48px;
-  margin-left: auto;
   padding: 0 28px;
   border-radius: 24px;
   background: #ffd76a;
@@ -196,19 +266,35 @@
   transition: stroke-dashoffset 0.7s var(--out);
 }
 
-.bob {
-  animation: bob 3.2s ease-in-out infinite;
+/* the character: it leans toward the pointer, and pressing it plays a trick */
+.buddy {
+  position: relative;
+  display: grid;
+  place-items: center;
+  will-change: transform;
 }
 
-@keyframes bob {
-  0%,
-  100% {
-    transform: translateY(2px) rotate(-2deg);
-  }
+.homework .buddy button {
+  display: grid;
+  border-radius: 50%;
+  cursor: pointer;
+}
 
-  50% {
-    transform: translateY(-4px) rotate(2deg);
-  }
+.burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+}
+
+.burst i {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px;
+  background: #ffd76a;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: 0;
 }
 
 .homework .count {
@@ -224,91 +310,157 @@
   font-variant-numeric: lining-nums;
 }
 
-.bars {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+/* the next class: a big button with a chalkboard that draws itself and a clock counting down */
+.homework .classButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   width: 100%;
   margin-top: 14px;
-}
-
-.homework .bars button {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 6px 0 4px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.2s var(--out);
-}
-
-.homework .bars button[aria-pressed="true"] {
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.bars button[data-today] {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-}
-
-.bar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 18px;
-  height: 56px;
-  border-radius: 9px;
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  padding: 14px 16px;
+  border-radius: 22px;
   overflow: hidden;
+  background:
+    linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.2) 50%, transparent 60%) 130% 0 /
+      300% 100% no-repeat,
+    linear-gradient(140deg, rgb(255 190 80 / 0.34), rgb(255 110 150 / 0.3));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.4),
+    0 14px 24px -16px rgb(255 140 90 / 0.9);
+  text-align: left;
+  animation: sweep 5s var(--out) infinite;
+  transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.45, 1);
 }
 
-.bar i {
-  width: 100%;
-  border-radius: 9px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--mixed) 70%, white), var(--mixed));
-  transition: height 0.6s var(--out);
+@keyframes sweep {
+  0%,
+  60% {
+    background-position:
+      130% 0,
+      0 0;
+  }
+
+  100% {
+    background-position:
+      -60% 0,
+      0 0;
+  }
 }
 
-.bar:has(svg) {
-  align-items: center;
-  background: none;
-  box-shadow: none;
-}
-
-.bar svg {
-  fill: #ffcf4a;
-  animation: twinkle 3s ease-in-out infinite;
-}
-
-.homework .weekly {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.weekly b {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.homework .next {
+.classButton > span {
   display: grid;
   gap: 2px;
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 13px;
-  font-weight: 500;
+  min-width: 0;
 }
 
-.next b {
-  font-size: 16px;
+.classButton small {
+  font-size: 13px;
   font-weight: 600;
+  opacity: 0.85;
+}
+
+.classButton b {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.classButton em {
+  font: 400 20px/1.2 var(--font-serif);
+  font-style: normal;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.board {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.board [data-slate] {
+  fill: rgb(20 60 50 / 0.75);
+}
+
+.board [data-chalk] {
+  stroke: #fff8e6;
+}
+
+/* the class in its own day's list: lit, moving, with Join on it */
+.classPill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 22px;
+  background:
+    linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.2) 50%, transparent 60%) 130% 0 /
+      300% 100% no-repeat,
+    linear-gradient(140deg, rgb(255 190 80 / 0.34), rgb(255 110 150 / 0.3));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.4),
+    0 14px 24px -16px rgb(255 140 90 / 0.9);
+  animation: sweep 5s var(--out) infinite;
+}
+
+.homework .classPill p {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.classPill p b {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.classPill small {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.homework .classPill button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 22px;
+  background: #ffd76a;
+  color: #2a1b52;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.2s var(--out);
+}
+
+.homework .classPill button:disabled {
+  background: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+  color: inherit;
+  cursor: default;
+  opacity: 0.75;
+}
+
+.classPill button i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e2232f;
+  animation: live 1.2s ease-in-out infinite;
+}
+
+@keyframes live {
+  50% {
+    box-shadow: 0 0 0 6px rgb(226 35 47 / 0.25);
+  }
 }
 
 /* ---- the right: the day, or the week ---- */
@@ -363,7 +515,6 @@
 
 .arrow svg,
 .completed svg,
-.class svg,
 .sort,
 .sign {
   fill: none;
@@ -389,62 +540,33 @@
   gap: 10px;
 }
 
-.homework .class {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 14px;
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.class b {
-  font-weight: 700;
-}
-
 .homework .list {
   display: grid;
   gap: 8px;
   overflow: hidden;
 }
 
-/* a day with room lays its work two across */
-.dayBody > .list {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  overflow: visible;
-}
-
-/* liquid glass: a clear pane tinted with the subject's color. Light runs along its top edge, the
-   color pools along its foot, and it throws a little of that color under itself. */
+/* tinted glass, one piece under another: a pane of the subject's color laid on the day's glass,
+   with a fine light edge. It is not lit from inside, so it does not glare. */
 .homework .work {
   position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  min-height: 84px;
+  min-height: 72px;
   padding: 12px 16px;
-  border-radius: 20px;
-  background:
-    radial-gradient(120% 90% at 20% 0%, rgb(255 255 255 / 0.28), transparent 55%),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--kind) 50%, transparent),
-      color-mix(in srgb, var(--kind) 30%, transparent)
-    );
-  -webkit-backdrop-filter: blur(12px) saturate(1.9) brightness(1.08);
-  backdrop-filter: blur(12px) saturate(1.9) brightness(1.08);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--kind) 34%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  backdrop-filter: blur(10px) saturate(1.4);
   box-shadow:
-    0 12px 22px -14px color-mix(in srgb, var(--kind) 90%, black),
-    inset 0 1.5px 0 0 rgb(255 255 255 / 0.6),
-    inset 0 0 0 1px rgb(255 255 255 / 0.2),
-    inset 0 -14px 20px -12px color-mix(in srgb, var(--kind) 85%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--kind) 55%, rgb(255 255 255 / 0.25)),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.22);
   text-align: left;
   transition:
     transform 0.25s cubic-bezier(0.3, 1.5, 0.45, 1),
-    filter 0.2s var(--out);
+    background 0.2s var(--out);
 }
 
 .work > span {
@@ -474,23 +596,24 @@
   fill: color-mix(in srgb, currentColor 22%, transparent);
 }
 
-.sort [data-ink] {
-  stroke-width: 1.4;
+.sort [data-solid] {
+  fill: currentColor;
 }
 
-.sort [data-part="hand"] {
-  transform-origin: 14px 16px;
-}
-
-.sort [data-part="card"],
-.sort [data-part="bulb"] {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+/* the domain's picture stands a little apart, at the right */
+.work .sort + span + .sort {
+  opacity: 0.9;
 }
 
 .sign {
   flex: none;
   stroke-width: 2.2;
+}
+
+/* a piece still to do keeps room for its check, which is drawn when it is finished */
+.sign[data-sign="todo"] {
+  stroke: #fff;
+  stroke-width: 2.6;
 }
 
 /* missed: a red disc with a mark, seen at once, no word */
@@ -544,45 +667,21 @@
 @media (hover: hover) {
   .homework .arrow:hover:not(:disabled),
   .homework .completed:hover,
-  .homework .colHead:hover,
-  .homework .bars button:hover {
+  .homework .colHead:hover {
     background: var(--hover);
   }
 
   .homework .work:hover:not(:disabled) {
     transform: translateY(-2px);
-    filter: brightness(1.08);
+    background: color-mix(in srgb, var(--kind) 46%, transparent);
   }
 
-  .work:hover [data-part="hand"] {
-    animation: turn 0.9s var(--out);
+  .homework .classButton:hover {
+    transform: translateY(-2px) scale(1.01);
   }
 
-  .work:hover [data-part="card"] {
-    animation: flick 0.5s var(--out);
-  }
-
-  .work:hover [data-part="bulb"] {
-    animation: lit 0.7s var(--out);
-  }
-}
-
-@keyframes turn {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes flick {
-  50% {
-    transform: rotate(-10deg) translateY(-2px);
-  }
-}
-
-@keyframes lit {
-  50% {
-    fill: #ffe38a;
-    transform: scale(1.12);
+  .homework .classPill button:hover:not(:disabled) {
+    transform: scale(1.05);
   }
 }
 
@@ -723,8 +822,18 @@
     font-size: 13px;
   }
 
-  .homework .until b {
-    font-size: 28px;
+  .clock > span {
+    min-width: 38px;
+    padding: 6px 2px 4px;
+    font-size: 10px;
+  }
+
+  .clock b {
+    font-size: 20px;
+  }
+
+  .clock {
+    gap: 3px;
   }
 
   /* the ring at the left, the count, bars and class at its right */
@@ -737,7 +846,6 @@
   }
 
   .ring {
-    grid-row: 1 / 4;
     zoom: 0.62;
   }
 
@@ -745,30 +853,10 @@
     font-size: 32px;
   }
 
-  .bars {
-    margin-top: 0;
-  }
-
-  .bar {
-    width: 14px;
-    height: 30px;
-  }
-
-  .homework .bars button {
-    padding: 4px 0 2px;
-  }
-
-  .homework .weekly {
-    display: none;
-  }
-
-  .homework .next {
+  .homework .classButton {
     grid-column: 1 / -1;
-    grid-auto-flow: column;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-top: 6px;
-    padding: 8px 12px;
+    margin-top: 8px;
+    padding: 10px 14px;
   }
 
   .main {
@@ -813,9 +901,10 @@
   .lights,
   .star,
   .examFox,
-  .bob,
   .hop,
-  .bar svg,
+  .homework .classButton,
+  .classPill,
+  .classPill button i,
   .homework .start {
     animation: none;
   }

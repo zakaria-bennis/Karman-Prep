@@ -29,6 +29,7 @@ import styles from "./rewards.module.css";
 import cast from "./rewardsCast.module.css";
 import { ACCESSORIES, Dressed, type Accessory, type Outfit } from "./accessories";
 import type { Trail } from "./MistakeLog";
+import { getEquipped, setEquipped } from "./equipped";
 import MysteryBox, { Coin } from "./RewardsBox";
 import { PassIcon } from "./RewardsPassIcon";
 import Wardrobe from "./Wardrobe";
@@ -64,7 +65,9 @@ export default function Rewards({
   /** The things to wear that have been won from boxes, by id, newest last. */
   const [owned, setOwned] = useState<string[]>([]);
   /** What the fox has on: one thing, or none, in each place. */
-  const [outfit, setOutfit] = useState<Outfit>({});
+  const [outfit, setOutfit] = useState<Outfit>(() => getEquipped().outfit);
+  // other pages show the character in the same things
+  useEffect(() => setEquipped({ outfit }), [outfit]);
   const [wardrobe, setWardrobe] = useState(false);
   // the wardrobe is a screen of its own: the page's title names it and its back pill leaves it
   useEffect(() => {
