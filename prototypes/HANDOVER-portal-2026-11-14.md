@@ -283,6 +283,27 @@ Known faults and gaps:
      - **Opening a skill slides over to a second page** focused on that skill (`SkillPage.tsx`):
        what it tests, the three named steps, the rule for the next skill set ("Get 5 right to move
        up to Proficient"), one "Start skill set" button, the lesson, and more practice on the skill.
+   - **Library page, third round (2026-11-15), applied; awaiting his verdict.** He keeps evergreen
+     for light mode. Further rules:
+     - **Short, plain arrivals.** Fades were "way too prolonged": pieces now rise in 0.22s with no
+       blur or stagger, and the slide to a skill is quick.
+     - **Dark mode is not marigold** (its dim steps looked bronze, "poopy"): it is the same green
+       family lit up, brightest for Proficient.
+     - **Squarer boxes** on these pages: 16 outside, 10 inside.
+     - **Icons have colour and their own movement**, played on hover or focus: the stopwatch hand
+       turns, a light runs round the endless loop, the compass needle swings, the flashcards (a
+       fan of index cards) fan out and back, Word Line draws its line, the exam sheet's bubbles
+       fill, the Daily 10 ring sweeps, the bolt jolts. All centred on their tiles (measured).
+     - **"Word Line"** is the word game's name. Its icon is a W drawn as one line through points.
+     - **No subtitles on the practice modes**; they sit in one row, not a grid.
+     - **Full-length exams** icon is an answer sheet of bubbles (the page looked like Google Docs).
+     - **Daily 10** icon is a ring with "10" in it; the **Challenge** bolt has no star.
+     - **Filters, in order:** All, Not started, Learning, Understanding, Proficient.
+     - **A domain's squares are one row**, furthest along first (he disliked the stacked shape).
+     - **The main button has all six states** (`GoButton` in `practice.tsx`): resting, hovered,
+       focused, pressed, loading, disabled. It is filled with the progress colour and has an arrow.
+     - **The lesson has a switch: Written lesson (shown first) and Video lesson.**
+     - **No rule sentence on the skill page** ("an unnecessary detail").
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

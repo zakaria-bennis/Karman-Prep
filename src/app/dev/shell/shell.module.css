@@ -247,7 +247,7 @@
   text-shadow:
     0 0 28px var(--halo),
     0 0 8px var(--halo);
-  animation: arrive 0.55s var(--out) both;
+  animation: arrive 0.28s var(--out) both;
 }
 
 /* a skill's name is longer than a screen's, so it is set smaller and may wrap */
@@ -302,8 +302,7 @@
 @keyframes arrive {
   from {
     opacity: 0;
-    transform: translateY(10px);
-    filter: blur(8px);
+    transform: translateY(6px);
   }
 }
 

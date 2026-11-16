@@ -6,7 +6,8 @@
  * Two weights: 500 and 600.
  *
  * One hue carries progress, in three clear steps (--p1 Learning, --p2 Understanding, --p3 Proficient):
- * deep evergreen by day, which reads on warm glass, and marigold by night (founder, 2026-11-15).
+ * deep evergreen by day, which reads on warm glass, and the same green lit up by night (founder,
+ * 2026-11-15: he disliked marigold's dim steps, which turned bronze).
  */
 .library {
   --pad: 12px;
@@ -16,6 +17,10 @@
   --p2: #2a936d;
   --p3: #0a5a43;
   --pglow: rgb(10 90 67 / 0.3);
+  --on-p: #fffdf8;
+  /* squarer than the menu's glass (founder, 2026-11-15): 10 inside, 16 outside */
+  --r-lens: 10px;
+  --r-piece: 16px;
   display: grid;
   gap: var(--pad);
   font-size: 16px;
@@ -23,10 +28,12 @@
 
 :global([data-kp-mode="dark"]) .library {
   --p0: rgb(246 241 231 / 0.26);
-  --p1: #86692f;
-  --p2: #cf9d3a;
-  --p3: #ffc64a;
-  --pglow: rgb(255 198 74 / 0.5);
+  /* by night the same green family, lit: the brightest step is Proficient */
+  --p1: #2f7d66;
+  --p2: #4dbf97;
+  --p3: #9bf2cf;
+  --pglow: rgb(155 242 207 / 0.4);
+  --on-p: #0d241c;
 }
 
 .library h2,
@@ -57,7 +64,7 @@
 /* ---- one piece of glass ---- */
 .glass {
   padding: var(--pad);
-  border-radius: calc(var(--r-lens) + var(--pad));
+  border-radius: var(--r-piece);
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -65,15 +72,14 @@
     var(--lift),
     inset 0 0 0 1px var(--glass-edge),
     inset 0 1px 0 1px var(--glass-shine);
-  animation: settle 0.6s var(--out) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  /* it arrives quickly and plainly: a short rise, no long fade (founder, 2026-11-15) */
+  animation: settle 0.22s var(--out) both;
 }
 
 @keyframes settle {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
-    filter: blur(8px);
+    transform: translateY(6px);
   }
 }
 
@@ -248,24 +254,164 @@
 }
 
 .tile {
+  --tint: var(--p2);
   display: grid;
   place-items: center;
   flex: none;
   width: var(--cell);
   height: var(--cell);
   border-radius: var(--r-lens);
-  background: var(--lens);
-  box-shadow:
-    var(--lens-shade),
-    inset 0 0 0 1px var(--lens-edge);
-  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
+  background: color-mix(in srgb, var(--tint) 18%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tint) 40%, var(--lens-edge));
 }
 
-.today li[data-done] .tile {
+.tile svg {
+  display: block;
+  overflow: visible;
+}
+
+.tile[data-done] {
   background: var(--p3);
-  color: var(--on-ink);
-  box-shadow: 0 0 12px var(--pglow);
-  animation: pop 0.6s cubic-bezier(0.3, 1.7, 0.45, 1);
+  color: var(--on-p);
+  box-shadow: none;
+  animation: pop 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+/* ---- each icon's own movement, played while its row is hovered or focused ---- */
+.tile [data-a] {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+
+.tile [data-a="hand"] {
+  transform-origin: 12px 13px;
+}
+
+.tile [data-a="fanL"],
+.tile [data-a="fanR"] {
+  transform-origin: 12px 20px;
+}
+
+/* the cards rest slightly fanned, so they read as a hand of index cards before they move */
+.tile [data-a="fanL"] {
+  transform: rotate(-11deg);
+}
+
+.tile [data-a="fanR"] {
+  transform: rotate(11deg);
+}
+
+.tile [data-a="sweep"],
+.tile [data-a="run"],
+.tile [data-a="draw"] {
+  stroke-dasharray: 1;
+}
+
+.tile [data-a="run"] {
+  stroke-dasharray: 0.16 0.84;
+}
+
+.tile [data-a="mark"] {
+  fill: currentColor;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="hand"] {
+  animation: turn 1.2s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="run"] {
+  animation: run 1.4s linear infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="needle"] {
+  animation: swing 1.3s ease-in-out infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="fanL"] {
+  animation: fan-left 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="fanR"] {
+  animation: fan-right 1.6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="draw"],
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sweep"] {
+  animation: draw 1.3s var(--out) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="mark"] {
+  animation: mark 1.5s ease-in-out infinite;
+  animation-delay: calc(var(--n) * 0.18s);
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="jolt"] {
+  animation: jolt 0.9s ease-in-out infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes run {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes swing {
+  25% {
+    transform: rotate(38deg);
+  }
+
+  75% {
+    transform: rotate(-38deg);
+  }
+}
+
+@keyframes fan-left {
+  30%,
+  60% {
+    transform: rotate(-30deg);
+  }
+}
+
+@keyframes fan-right {
+  30%,
+  60% {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  60%,
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mark {
+  40% {
+    fill: var(--tint);
+    transform: scale(1.5);
+  }
+}
+
+@keyframes jolt {
+  20% {
+    transform: scale(1.18) rotate(-8deg);
+    fill-opacity: 0.8;
+  }
+
+  40% {
+    transform: scale(0.96) rotate(5deg);
+  }
 }
 
 @keyframes pop {
@@ -304,40 +450,112 @@
   gap: 5px;
 }
 
-.library .start {
+/* ---- the main button, in all six states ---- */
+.library .gobtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   height: var(--cell);
-  padding: 0 22px;
+  padding: 0 18px 0 22px;
   border-radius: var(--r-lens);
-  background: var(--ink);
-  color: var(--on-ink);
+  /* 1. resting */
+  background: var(--p3);
+  color: var(--on-p);
   font-weight: 600;
-  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+  box-shadow:
+    0 6px 16px -8px var(--pglow),
+    inset 0 1px 0 rgb(255 255 255 / 0.22);
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    box-shadow 0.2s var(--out),
+    filter 0.2s var(--out);
 }
 
-.start:active {
-  transform: scale(0.94);
+.gobtn[data-wide] {
+  width: 100%;
+  height: 56px;
+}
+
+.gobtn svg {
+  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+@media (hover: hover) {
+  /* 2. hovered: it lifts, brightens, and its arrow leans forward */
+  .gobtn:hover:not(:disabled, [data-loading]) {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow:
+      0 12px 22px -8px var(--pglow),
+      inset 0 1px 0 rgb(255 255 255 / 0.22);
+  }
+
+  .gobtn:hover:not(:disabled, [data-loading]) svg {
+    transform: translateX(4px);
+  }
+}
+
+/* 3. focused, from the keyboard */
+.library .gobtn:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* 4. pressed: it sinks */
+.gobtn:active:not(:disabled, [data-loading]) {
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.94);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.25);
+}
+
+/* 5. loading: it holds still and shows it is working */
+.gobtn[data-loading] {
+  cursor: progress;
+  filter: saturate(0.8);
+}
+
+.spin {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: turn 0.7s linear infinite;
+}
+
+/* 6. disabled */
+.library .gobtn:disabled {
+  background: var(--p0);
+  color: inherit;
+  opacity: 0.6;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .modes ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin: 0 calc(var(--pad) * -1) calc(var(--pad) * -1);
 }
 
 .mode {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   align-items: center;
-  gap: 14px;
-  width: 100%;
+  gap: 12px;
   min-height: 72px;
-  padding: var(--pad);
+  padding: var(--pad) calc(var(--pad) + 6px) var(--pad) var(--pad);
   border-radius: var(--r-lens);
   text-align: left;
+  white-space: nowrap;
   transition:
     background 0.2s var(--out),
     transform 0.2s var(--out);
+}
+
+.mode b {
+  font-weight: 600;
 }
 
 .mode:active {
@@ -345,16 +563,8 @@
 }
 
 @media (hover: hover) {
-  .start:hover {
-    transform: translateY(-2px);
-  }
-
   .mode:hover {
     background: var(--hover);
-  }
-
-  .mode:hover .tile {
-    transform: rotate(-6deg) scale(1.08);
   }
 }
 
@@ -406,7 +616,7 @@
   justify-self: start;
   max-width: 100%;
   padding: 4px;
-  border-radius: calc(12px + 4px);
+  border-radius: var(--r-piece);
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -420,7 +630,7 @@
   flex: none;
   height: 40px;
   padding: 0 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lens);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -442,7 +652,7 @@
 .lens {
   position: absolute;
   inset: 0;
-  border-radius: 12px;
+  border-radius: var(--r-lens);
   background: var(--lens);
   box-shadow:
     var(--lens-shade),
@@ -496,8 +706,36 @@
   font-weight: 600;
 }
 
-.head .lanes {
-  width: 120px;
+.strip {
+  display: flex;
+  gap: 3px;
+}
+
+.strip i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  transition: transform 0.3s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+.strip i[data-level="0"] {
+  box-shadow: inset 0 0 0 1.5px var(--p0);
+}
+
+.strip i[data-level="1"] {
+  background: var(--p1);
+}
+
+.strip i[data-level="2"] {
+  background: var(--p2);
+}
+
+.strip i[data-level="3"] {
+  background: var(--p3);
+}
+
+.strip i[data-hot] {
+  transform: scale(1.7);
 }
 
 .chev {
@@ -593,19 +831,17 @@
 @media (max-width: 959px) {
   .filter {
     justify-self: stretch;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   .filter button {
-    flex: 1 1 auto;
-    padding: 0 6px;
+    flex: 1 0 auto;
+    padding: 0 10px;
   }
 
   .filter b {
     display: none;
-  }
-
-  .modes ul {
-    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -616,10 +852,9 @@
     grid-template-columns: 1fr auto;
   }
 
-  .head .lanes {
+  .head .strip {
     grid-column: 1;
     grid-row: 2;
-    width: auto;
   }
 
   .chev {
@@ -639,15 +874,11 @@
     grid-template-columns: 104px 1fr auto;
   }
 
-  .modes ul {
-    grid-template-columns: 1fr;
-  }
-
   .today li {
     grid-template-columns: auto 1fr;
   }
 
-  .today .start {
+  .today .gobtn {
     grid-column: 2;
     justify-self: start;
     height: 40px;
@@ -656,15 +887,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .glass,
-  .today li[data-done] .tile {
-    animation: none;
+  .tile[data-done],
+  .tile [data-a],
+  .spin {
+    animation: none !important;
   }
 
   .chev,
   .go,
   .lane i,
-  .start,
-  .tile {
+  .strip i,
+  .gobtn,
+  .gobtn svg {
     transition: none;
   }
 }

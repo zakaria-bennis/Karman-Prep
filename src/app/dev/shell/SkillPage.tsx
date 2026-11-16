@@ -1,19 +1,19 @@
 "use client";
 
 // One skill's page. Opening a skill slides this in over the Library (page.tsx), and everything on it is
-// about that one skill (founder, 2026-11-15: "the focus is mainly put on that particular skill").
-// In his order: where the student stands, then the lesson, then practice.
-// Skill sets are never numbered: a student may do many, so the button only ever says "Start skill set".
-// The same glass, inset and level colours as the Library. Everything shown is a stand-in: no student
-// data, lesson or question is read yet, and the buttons lead nowhere.
-import type { CSSProperties } from "react";
+// about that one skill. In the founder's order: where the student stands, then the lesson, then practice.
+// Skill sets are never numbered, and the rule for moving up is not spelled out here (founder, 2026-11-15:
+// "an unnecessary detail"). The lesson has two forms, written and video, with written shown first.
+// Everything shown is a stand-in: no student data, lesson or question is read yet.
+import { motion, useReducedMotion } from "framer-motion";
+import { useState, type CSSProperties } from "react";
 import lib from "./library.module.css";
-import { Icon } from "./practice";
+import { GoButton, Icon, Tile } from "./practice";
 import styles from "./skill.module.css";
 
 const STEPS = ["Learning", "Understanding", "Proficient"] as const;
-/** Right answers a skill set needs to move a skill up to each level (founder, 2026-11-15). */
-const TO_PASS = [3, 4, 5];
+const LESSONS = { written: "Written lesson", video: "Video lesson" } as const;
+type Lesson = keyof typeof LESSONS;
 
 export interface OpenSkill {
   name: string;
@@ -26,11 +26,12 @@ export interface OpenSkill {
 }
 
 export default function SkillPage({ skill }: { skill: OpenSkill }) {
-  const top = skill.level === STEPS.length;
+  const still = useReducedMotion() ?? false;
+  const [lesson, setLesson] = useState<Lesson>("written");
   return (
     <div className={`${lib.library} ${styles.page}`}>
-      {/* 1. where the student stands, and what the next skill set is for */}
-      <section className={`${lib.glass} ${styles.level}`} style={{ "--i": 0 } as CSSProperties}>
+      {/* 1. where the student stands, and the one thing to do */}
+      <section className={`${lib.glass} ${styles.level}`}>
         {skill.tests && <p className={styles.tests}>{skill.tests}</p>}
         <ol
           className={styles.ladder}
@@ -48,62 +49,77 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
             </li>
           ))}
         </ol>
-        <p className={styles.rule}>
-          {top
-            ? "You are Proficient here. Keep it: a missed skill set can move it back a level."
-            : `A skill set is 8 questions. Get ${TO_PASS[skill.level]} right to move up to ${STEPS[skill.level]}.`}
-        </p>
-        <button type="button" className={styles.go}>
-          {top ? "Practise a skill set" : "Start skill set"}
-        </button>
+        <GoButton wide>Start skill set</GoButton>
         {skill.questions !== undefined && (
           <p className={lib.bank}>{skill.questions} questions in this skill</p>
         )}
       </section>
 
-      {/* 2. the lesson */}
-      <section className={`${lib.glass} ${styles.lesson}`} style={{ "--i": 1 } as CSSProperties}>
-        <div className={styles.video}>
-          <span className={styles.play} aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="26" height="26">
-              <path d="M9 6.500v11l9-5.500z" />
-            </svg>
-          </span>
-          <p>
-            Video lesson
-            <small>Coming this winter</small>
-          </p>
+      {/* 2. the lesson: written or video */}
+      <section className={`${lib.glass} ${styles.lesson}`}>
+        <div className={styles.toggle} role="group" aria-label="Lesson">
+          {(Object.keys(LESSONS) as Lesson[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={lesson === key}
+              onClick={() => setLesson(key)}
+            >
+              {lesson === key && (
+                <motion.span
+                  layoutId="lesson-toggle"
+                  className={styles.lens}
+                  transition={
+                    still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
+                  }
+                />
+              )}
+              <span>
+                <Icon name={key} size={18} />
+                {LESSONS[key]}
+              </span>
+            </button>
+          ))}
         </div>
-        <button type="button" className={styles.row}>
-          <Icon name="exam" />
-          Read the lesson
-          <svg
-            className={styles.chev}
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            aria-hidden="true"
-          >
-            <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
-          </svg>
-        </button>
+        {lesson === "written" ? (
+          <article className={styles.written}>
+            <h2>{skill.name}</h2>
+            {skill.tests && <p>{skill.tests}</p>}
+            {["What it is", "How to spot it", "A worked example"].map((part) => (
+              <div key={part}>
+                <h3>{part}</h3>
+                <i />
+                <i />
+                <i />
+              </div>
+            ))}
+            <p className={lib.bank}>This lesson is being written.</p>
+          </article>
+        ) : (
+          <div className={styles.video}>
+            <span className={styles.play} aria-hidden="true">
+              <Icon name="video" size={28} />
+            </span>
+            <p>
+              Video lesson
+              <small>Coming this winter</small>
+            </p>
+          </div>
+        )}
       </section>
 
       {/* 3. other ways to practise this one skill */}
-      <section className={`${lib.glass} ${styles.more}`} style={{ "--i": 2 } as CSSProperties}>
+      <section className={`${lib.glass} ${styles.more}`}>
         <h2>More practice on this skill</h2>
         {(
           [
-            ["trial", "Time trial", "Speed and accuracy, on the clock."],
-            ["endless", "Endless mode", "Keep going until you stop."],
+            ["trial", "Time trial"],
+            ["endless", "Endless mode"],
           ] as const
-        ).map(([icon, name, what]) => (
-          <button key={name} type="button" className={styles.row}>
-            <Icon name={icon} />
-            <span>
-              {name}
-              <small>{what}</small>
-            </span>
+        ).map(([icon, name]) => (
+          <button key={name} type="button" className={`${lib.mode} ${styles.row}`}>
+            <Tile name={icon} />
+            <b>{name}</b>
             <svg
               className={styles.chev}
               viewBox="0 0 24 24"

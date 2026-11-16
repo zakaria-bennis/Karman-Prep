@@ -86,16 +86,16 @@ const STILL = { duration: 0 } as const;
 /* a page that slides over: it comes in from the side it is headed (1 forward, -1 back) on a spring, and
    the page it replaces leaves quickly the other way */
 const SLIDE_OVER = {
-  from: (dir: number) => ({ x: dir * 120, opacity: 0 }),
+  from: (dir: number) => ({ x: dir * 56, opacity: 0 }),
   here: {
     x: 0,
     opacity: 1,
-    transition: { type: "spring" as const, stiffness: 300, damping: 30, mass: 1 },
+    transition: { type: "spring" as const, stiffness: 560, damping: 40, mass: 1 },
   },
   gone: (dir: number) => ({
-    x: dir * -120,
+    x: dir * -56,
     opacity: 0,
-    transition: { duration: 0.16, ease: "easeIn" as const },
+    transition: { duration: 0.09, ease: "easeIn" as const },
   }),
 };
 const RAIL = "(min-width: 960px) and (hover: hover)";

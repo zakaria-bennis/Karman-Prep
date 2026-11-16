@@ -32,8 +32,9 @@ export const tally = (skills: Skill[]) =>
 
 const FILTERS = {
   all: { label: "All", keep: () => true },
-  doing: { label: "In progress", keep: (s: Skill) => s.level > 0 && s.level < TOP },
   todo: { label: "Not started", keep: (s: Skill) => s.level === 0 },
+  learning: { label: "Learning", keep: (s: Skill) => s.level === 1 },
+  understanding: { label: "Understanding", keep: (s: Skill) => s.level === 2 },
   done: { label: "Proficient", keep: (s: Skill) => s.level === TOP },
 } as const;
 type Filter = keyof typeof FILTERS;
@@ -120,6 +121,19 @@ function Lanes({ skills, hot, named }: { skills: Skill[]; hot?: string | null; n
   );
 }
 
+/** A domain at a glance: one row of rounded squares, one for each skill, the furthest along first. */
+function Strip({ skills, hot }: { skills: Skill[]; hot: string | null }) {
+  return (
+    <span className={styles.strip} aria-hidden="true">
+      {[...skills]
+        .sort((a, b) => b.level - a.level)
+        .map((s) => (
+          <i key={s.name} data-dot data-level={s.level} data-hot={hot === s.name || undefined} />
+        ))}
+    </span>
+  );
+}
+
 function DomainGlass({
   domain,
   shown,
@@ -159,7 +173,7 @@ function DomainGlass({
             <span className={styles.qty}>{questions.toLocaleString("en-US")} questions</span>
           </small>
         </span>
-        <Lanes skills={domain.skills} hot={hot} />
+        <Strip skills={domain.skills} hot={hot} />
         <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M6.500 9.500l5.500 5.500 5.500-5.500" />
         </svg>
@@ -250,12 +264,12 @@ export default function Library({
         gsap.fromTo(
           "[data-ring]",
           { "--sweep": 0, rotate: -90 },
-          { "--sweep": 1, rotate: 0, duration: 1.4, ease: "power3.out", delay: 0.15 }
+          { "--sweep": 1, rotate: 0, duration: 0.7, ease: "power3.out" }
         );
         gsap.fromTo(
           "[data-dot]",
           { scale: 0 },
-          { scale: 1, duration: 0.5, ease: "back.out(3)", delay: 0.25, stagger: 0.008 }
+          { scale: 1, duration: 0.3, ease: "back.out(2)", delay: 0.05, stagger: 0.003 }
         );
       }, root);
       revert = () => ctx.revert();
