@@ -1,120 +1,63 @@
 "use client";
 
-// Rewards, first version (2026-11-16), built from what the founder has settled and marked where it is
-// a guess (rewardsData.ts says which is which).
-//   Coins        what the student holds, the multiplier their challenge-question streak has earned
-//                (a quarter more each day, up to 5x), and where this week's coins came from.
-//   The box      the mystery box, opened for coins (RewardsBox.tsx).
-//   Shop         themes and quiz-engine skins, bought with coins and then put on.
-//   Characters   the 16, each unlocked by its own challenge. Pressing one says how it is unlocked
-//                and how far along the student is. Only the fox is drawn so far.
+// Rewards (2026-11-16), built from what the founder has settled and marked where it is a guess
+// (rewardsData.ts says which is which).
+//   Tokens       what the student holds (he calls them tokens, not coins), the multiplier their
+//                challenge-question streak has earned (a quarter more each day, up to 5x), and where
+//                this week's tokens came from.
+//   The box      the mystery box, opened for tokens: it holds things to wear (RewardsBox.tsx).
+//   Passes       things of real use: starting a full-length exam outside Saturday's window,
+//                keeping a streak through a missed day, and a second chance after a miss inside a
+//                skill set (paid for there, so here it only tells its price). Each is limited.
+//   Characters   the 16, each with its own name and a little story, each unlocked by its own
+//                challenge. One still locked shows its face grayed out, if its face is drawn, so the
+//                student can see who is waiting. Pressing one tells its story and how to unlock it.
 // With room, the three pieces stand side by side on one screen. On a phone each is a page of its own,
-// under a slim line that always shows the coins held.
-// Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
+// under a slim line that always shows the tokens held.
+// Tokens are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
+// Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
+import { Face } from "./characters";
 import lib from "./library.module.css";
+import { Tile } from "./practice";
 import styles from "./rewards.module.css";
-import MysteryBox, { Coin, Wearing } from "./RewardsBox";
+import MysteryBox, { Token, Wearing } from "./RewardsBox";
 import {
   BOX_PRICE,
   CHARACTERS,
-  COINS,
   DAYS_TO_TOP,
   EARNED,
+  PASSES,
   PRIZES,
-  SKINS,
   STREAK,
-  THEMES,
+  TOKENS,
   multiplierFor,
-  type Good,
+  type Pass,
   type Wear,
 } from "./rewardsData";
 import { ping, tick } from "./sound";
 
-const PAGES = ["Box", "Coins", "Shop", "Characters"] as const;
+const PAGES = ["Box", "Tokens", "Passes", "Characters"] as const;
 const count = (n: number) => n.toLocaleString("en-US");
 const times = (n: number) => `${n}x`;
-
-/** A shelf of things to buy: each is bought once, then put on. */
-function Shelf({
-  title,
-  goods,
-  coins,
-  owned,
-  using,
-  onBuy,
-  onUse,
-}: {
-  title: string;
-  goods: Good[];
-  coins: number;
-  owned: string[];
-  using: string;
-  onBuy: (good: Good) => void;
-  onUse: (good: Good) => void;
-}) {
-  return (
-    <div className={styles.shelf}>
-      <h3>{title}</h3>
-      <ul>
-        {goods.map((good) => {
-          const mine = owned.includes(good.name);
-          return (
-            <li key={good.name} className={styles.good}>
-              <i style={{ background: good.look }} />
-              <b>{good.name}</b>
-              {mine ? (
-                <button
-                  type="button"
-                  className={styles.quiet}
-                  aria-pressed={using === good.name}
-                  onClick={() => {
-                    onUse(good);
-                    tick();
-                  }}
-                >
-                  {using === good.name ? "In use" : "Use"}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.price}
-                  disabled={coins < good.price}
-                  aria-label={`Buy ${good.name} for ${good.price} coins`}
-                  onClick={() => {
-                    onBuy(good);
-                    ping();
-                  }}
-                >
-                  <Coin size={16} />
-                  {count(good.price)}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
 
 export default function Rewards({ rail }: { rail: boolean }) {
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
-  const [coins, setCoins] = useState(COINS);
+  const [tokens, setTokens] = useState(TOKENS);
   const [opened, setOpened] = useState(0);
   const [wearing, setWearing] = useState<Wear | null>(null);
-  const [owned, setOwned] = useState([THEMES[0].name, SKINS[0].name]);
-  const [theme, setTheme] = useState(THEMES[0].name);
-  const [skin, setSkin] = useState(SKINS[0].name);
+  /** The passes bought on this page (nothing is saved yet). */
+  const [held, setHeld] = useState<string[]>([]);
   const [picked, setPicked] = useState(0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
 
   const multiplier = multiplierFor(STREAK);
-  const buy = (good: Good) => {
-    setCoins(coins - good.price);
-    setOwned([...owned, good.name]);
+  const buy = (pass: Pass) => {
+    setTokens(tokens - pass.price);
+    setHeld([...held, pass.name]);
+    ping();
   };
   const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
   const chosen = CHARACTERS[picked];
@@ -124,10 +67,10 @@ export default function Rewards({ rail }: { rail: boolean }) {
     <div className={`${lib.library} ${styles.rewards}`}>
       {!rail && (
         <>
-          {/* the coins held are always in sight on a phone, whatever page is open */}
+          {/* the tokens held are always in sight on a phone, whatever page is open */}
           <p className={styles.purse}>
-            <Coin size={22} />
-            <b>{count(coins)}</b>
+            <Token size={24} />
+            <b>{count(tokens)}</b>
             <span>{times(multiplier)} multiplier</span>
           </p>
           <div className={`${lib.pager} ${styles.tabs}`} role="group" aria-label="Page">
@@ -157,12 +100,12 @@ export default function Rewards({ rail }: { rail: boolean }) {
         </>
       )}
 
-      {show("Coins") && (
-        <section className={`${lib.glass} ${styles.coins}`} aria-label="Coins">
-          <h2>Coins</h2>
+      {show("Tokens") && (
+        <section className={`${lib.glass} ${styles.tokens}`} aria-label="Tokens">
+          <h2>Tokens</h2>
           <p className={styles.held}>
-            <Coin size={44} />
-            {count(coins)}
+            <Token size={52} />
+            {count(tokens)}
           </p>
 
           <div className={styles.part}>
@@ -195,7 +138,7 @@ export default function Rewards({ rail }: { rail: boolean }) {
               {EARNED.map((row) => (
                 <li key={row.name}>
                   <span>{row.name}</span>
-                  <b>+{count(row.coins)}</b>
+                  <b>+{count(row.tokens)}</b>
                 </li>
               ))}
             </ul>
@@ -203,40 +146,60 @@ export default function Rewards({ rail }: { rail: boolean }) {
         </section>
       )}
 
-      {(show("Box") || show("Shop")) && (
-        <section className={`${lib.glass} ${styles.middle}`} aria-label="Mystery box and shop">
+      {(show("Box") || show("Passes")) && (
+        <section className={`${lib.glass} ${styles.middle}`} aria-label="Mystery box and passes">
           {show("Box") && (
             <MysteryBox
-              coins={coins}
+              tokens={tokens}
               wearing={wearing}
               onOpen={() => {
-                setCoins(coins - BOX_PRICE);
+                setTokens(tokens - BOX_PRICE);
                 setOpened(opened + 1);
                 return PRIZES[opened % PRIZES.length].key;
               }}
               onWear={setWearing}
             />
           )}
-          {show("Shop") && (
-            <div className={styles.shop}>
-              <Shelf
-                title="Themes"
-                goods={THEMES}
-                coins={coins}
-                owned={owned}
-                using={theme}
-                onBuy={buy}
-                onUse={(good) => setTheme(good.name)}
-              />
-              <Shelf
-                title="Skins"
-                goods={SKINS}
-                coins={coins}
-                owned={owned}
-                using={skin}
-                onBuy={buy}
-                onUse={(good) => setSkin(good.name)}
-              />
+          {show("Passes") && (
+            <div className={styles.passes}>
+              <h3>Passes</h3>
+              <ul>
+                {PASSES.map((pass) => {
+                  const mine = held.includes(pass.name);
+                  return (
+                    <li key={pass.name} className={styles.pass}>
+                      <Tile name={pass.icon} />
+                      <div>
+                        <b>{pass.name}</b>
+                        <span>{pass.does}</span>
+                      </div>
+                      <div className={styles.buy}>
+                        {pass.inSet ? (
+                          // paid for inside a skill set, at the moment it is needed: its price is
+                          // told here, with nothing to press
+                          <p className={styles.tag} aria-label={`${pass.price} tokens`}>
+                            <Token size={18} />
+                            {count(pass.price)}
+                          </p>
+                        ) : (
+                          // one at a time: once held, another cannot be bought until it is used
+                          <button
+                            type="button"
+                            className={styles.price}
+                            disabled={mine || tokens < pass.price}
+                            aria-label={`Buy ${pass.name} for ${pass.price} tokens`}
+                            onClick={() => buy(pass)}
+                          >
+                            <Token size={18} />
+                            {count(pass.price)}
+                          </button>
+                        )}
+                        <small>{mine ? "You have 1" : pass.limit}</small>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </section>
@@ -260,16 +223,27 @@ export default function Rewards({ rail }: { rail: boolean }) {
                   className={styles.face}
                   data-mine={mine || undefined}
                   aria-pressed={picked === i}
-                  aria-label={`${c.name}, ${mine ? "unlocked" : "locked"}`}
+                  aria-label={`${c.name} the ${c.kind.toLowerCase()}, ${mine ? "unlocked" : "locked"}`}
                   onClick={() => {
                     setPicked(i);
                     tick();
                   }}
                 >
                   {i === 0 ? (
-                    <Wearing wear={wearing} size={40} />
+                    <Wearing wear={wearing} size={44} />
+                  ) : c.face ? (
+                    // one still to unlock is seen, grayed out
+                    <span className={styles.peek}>
+                      <Face kind={c.face} size={44} />
+                    </span>
                   ) : (
-                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <svg
+                      className={styles.lock}
+                      viewBox="0 0 24 24"
+                      width="22"
+                      height="22"
+                      aria-hidden="true"
+                    >
                       <rect x="5.500" y="10.500" width="13" height="9.500" rx="2.500" />
                       <path d="M8.500 10.500V8a3.500 3.500 0 0 1 7 0v2.500" />
                     </svg>
@@ -280,11 +254,13 @@ export default function Rewards({ rail }: { rail: boolean }) {
               );
             })}
           </div>
-          {/* what the pressed one is and how it is unlocked. Its height is fixed, so pressing moves
-              nothing. */}
+          {/* who the pressed one is, its story, and how it is unlocked. Its height is fixed, so
+              pressing moves nothing. */}
           <div className={styles.card} aria-live="polite">
             <div>
-              <h3>{chosen.name}</h3>
+              <h3>
+                {chosen.name} <small>{chosen.kind}</small>
+              </h3>
               <p className={styles.far}>
                 {has ? (
                   "Unlocked"
@@ -295,7 +271,8 @@ export default function Rewards({ rail }: { rail: boolean }) {
                 )}
               </p>
             </div>
-            <p>{chosen.challenge}</p>
+            <p className={styles.story}>{chosen.story}</p>
+            <p className={styles.how}>{chosen.challenge}</p>
           </div>
         </section>
       )}

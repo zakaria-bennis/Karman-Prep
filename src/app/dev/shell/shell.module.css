@@ -215,6 +215,25 @@
   transition: none;
 }
 
+/* the Progress arrow: its track and shade draw back to the foot of the line and grow out again, and
+   the arrow's tip stays on the end of the track the whole way (the two moves are the same shape) */
+.art [data-move="track"],
+.art [data-move="tip"] {
+  transition: none;
+}
+
+@keyframes track {
+  45% {
+    transform: scale(0.4);
+  }
+}
+
+@keyframes tip {
+  45% {
+    transform: translate(-8.7px, 6.6px);
+  }
+}
+
 @keyframes flip {
   0% {
     opacity: 0;
@@ -239,6 +258,14 @@
 @media (hover: hover) {
   .item:hover .art svg {
     transform: rotate(-4deg) scale(1.06);
+  }
+
+  .item:hover [data-move="track"] {
+    animation: track 0.9s cubic-bezier(0.45, 0, 0.25, 1);
+  }
+
+  .item:hover [data-move="tip"] {
+    animation: tip 0.9s cubic-bezier(0.45, 0, 0.25, 1);
   }
 
   .item:hover [data-move="page"] {
@@ -692,5 +719,9 @@
   .art svg,
   .art [data-move] {
     transition: none;
+  }
+
+  .item:hover [data-move] {
+    animation: none;
   }
 }

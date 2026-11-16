@@ -18,6 +18,13 @@ export type StickerName =
 
 const WASH = { fill: "currentColor", fillOpacity: 0.13 } as const;
 const ACCENT = "var(--clay)";
+// Each of the student's main icons has a color of its own (founder, 2026-11-16): green for Progress,
+// gold for Rewards, orange for the Mistake Log, and a red, a green and a blue book for the Library.
+const GREEN = "#2f9e6f";
+const GOLD = "#e3a21a";
+const ORANGE = "#e2772e";
+const RED = "#c8553d";
+const BLUE = "#4f7fc4";
 
 const ART: Record<StickerName, ReactNode> = {
   // a page with its corner folded and a tick
@@ -46,8 +53,8 @@ const ART: Record<StickerName, ReactNode> = {
         width="4.200"
         height="13.500"
         rx="0.900"
-        fill="#7fa98f"
-        fillOpacity="0.55"
+        fill={RED}
+        fillOpacity="0.6"
       />
       <rect
         x="7.800"
@@ -55,10 +62,10 @@ const ART: Record<StickerName, ReactNode> = {
         width="4.200"
         height="12"
         rx="0.900"
-        fill="#d9b06a"
+        fill={GREEN}
         fillOpacity="0.6"
       />
-      {/* the third leans left against them, its foot on the shelf: turned about its own lower left corner,
+      {/* the third, the blue one, is on its side: it leans left against them, its foot on the shelf: turned about its own lower left corner,
           so no part of it goes below the shelf or into the book beside it */}
       <g data-move="slip" style={{ transformBox: "view-box", transformOrigin: "17.6px 19.7px" }}>
         <rect
@@ -68,9 +75,9 @@ const ART: Record<StickerName, ReactNode> = {
           height="11.500"
           rx="0.900"
           transform="rotate(-17 17.600 19.700)"
-          fill={ACCENT}
-          fillOpacity="0.5"
-          stroke={ACCENT}
+          fill={BLUE}
+          fillOpacity="0.55"
+          stroke={BLUE}
         />
       </g>
       <path d="M2 20.500h20" />
@@ -92,17 +99,30 @@ const ART: Record<StickerName, ReactNode> = {
       <circle data-move="pop" cx="12" cy="15.200" r="2.100" fill={ACCENT} stroke="none" />
     </>
   ),
-  // a line that climbs across a graph, ending on a clay point (founder, 2026-11-16: he did not like
-  // the peak with a flag)
+  // an arrow climbing, with green shade under it (founder, 2026-11-16: no orange dot). Hovered, the
+  // arrow runs back down its track and up again, and the track and the shade form under it: the track
+  // and shade grow out of the foot of the line while the arrow's tip rides on its end.
   progress: (
     <>
-      <path d="M7 15.500l3.400-3.600 3 2.400 5-6.300v11.500H7z" {...WASH} stroke="none" />
-      <path d="M4 4.500v15H20.500" />
-      <path d="M7 15.500l3.400-3.600 3 2.400 5-6.300" />
-      <circle data-move="pop" cx="18.400" cy="8" r="2" fill={ACCENT} stroke="none" />
+      <defs>
+        <linearGradient id="kp-climb" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor={GREEN} stopOpacity="1" />
+          <stop offset="0.55" stopColor={GREEN} stopOpacity="0.55" />
+          <stop offset="1" stopColor={GREEN} stopOpacity="0.08" />
+        </linearGradient>
+      </defs>
+      <g data-move="track" style={{ transformBox: "view-box", transformOrigin: "4.5px 18.5px" }}>
+        <path
+          d="M4.500 18.500L9.500 13L12.500 15.500L19 7.500V19.500H4.500Z"
+          fill="url(#kp-climb)"
+          stroke="none"
+        />
+        <path d="M4.500 18.500L9.500 13L12.500 15.500L19 7.500" vectorEffect="non-scaling-stroke" />
+      </g>
+      <path data-move="tip" d="M14.300 7.300H19.200V12.200" />
     </>
   ),
-  // a trophy
+  // a trophy, its star in gold
   rewards: (
     <>
       <path d="M7.500 3.800h9v5.700a4.500 4.500 0 0 1-9 0z" {...WASH} />
@@ -111,8 +131,9 @@ const ART: Record<StickerName, ReactNode> = {
       <path
         data-move="pop"
         d="M12 5.700l.85 1.700 1.900.3-1.370 1.330.32 1.870L12 10l-1.700.9.320-1.870L9.250 7.700l1.900-.3z"
-        fill={ACCENT}
-        stroke="none"
+        fill={GOLD}
+        stroke={GOLD}
+        strokeWidth="0.600"
       />
     </>
   ),
@@ -155,7 +176,7 @@ const ART: Record<StickerName, ReactNode> = {
       <rect x="5" y="5" width="14" height="15.500" rx="2" {...WASH} />
       <path d="M8.500 3.300v3.200M12 3.300v3.200M15.500 3.300v3.200" />
       <path d="M8 10.800h8M8 13.800h8" />
-      <path d="M8 16.800h4.500" stroke={ACCENT} />
+      <path d="M8 16.800h4.500" stroke={ORANGE} strokeWidth="1.900" />
       {[1, 2, 3].map((n) => (
         <rect
           key={n}

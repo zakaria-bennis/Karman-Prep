@@ -4,6 +4,7 @@
 // Crossy Road's, pressed to open, one at a time. It bursts into blocks; nothing unfolds like paper and
 // it casts no shadow. The prize is shown on the fox and is never put on for the student: they choose
 // "Wear it" or "Keep for later". One sound for each real moment. Everything is drawn here in code.
+// It is opened with tokens, and it holds only things to wear (founder, 2026-11-16).
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Fox } from "@/components/portal/Fox";
@@ -11,26 +12,45 @@ import styles from "./rewards.module.css";
 import { BOX_PRICE, PRIZES, type Wear } from "./rewardsData";
 import { chosen, tick, whoosh } from "./sound";
 
-/** A gold coin: the same gold in every theme, lit from the upper left. */
-export function Coin({ size = 20 }: { size?: number }) {
+/** A token: a gold piece with the fox's head set into it (founder, 2026-11-16). The same gold in
+ *  every theme, lit from the upper left; the fox is a darker gold with a lighter left side. */
+export function Token({ size = 20 }: { size?: number }) {
   return (
-    <svg className={styles.coin} viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+    <svg className={styles.token} viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
       <defs>
-        <linearGradient id="kp-coin" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
+        <linearGradient id="kp-token" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
           <stop offset="0" stopColor="#fff3b8" />
           <stop offset="0.45" stopColor="#f2b632" />
           <stop offset="1" stopColor="#a66f00" />
         </linearGradient>
       </defs>
-      <circle cx="12" cy="12" r="10.500" fill="url(#kp-coin)" stroke="#8a5a00" strokeWidth="1" />
-      <circle cx="12" cy="12" r="7.200" fill="none" stroke="#fff3b8" strokeOpacity="0.7" />
-      <path
-        d="M9.800 8v8M9.800 12.400L14.300 8M11.300 11l3.200 5"
+      <circle cx="12" cy="12" r="10.500" fill="url(#kp-token)" stroke="#8a5a00" strokeWidth="1" />
+      <circle
+        cx="12"
+        cy="12"
+        r="8.800"
         fill="none"
-        stroke="#7a4d00"
-        strokeWidth="1.700"
-        strokeLinecap="round"
+        stroke="#fff3b8"
+        strokeOpacity="0.55"
+        strokeWidth="0.700"
       />
+      {/* the fox: ears, cheeks and chin, as on the mark */}
+      <path
+        d="M6.900 5.800L10.800 9.400L12 9.100L13.200 9.400L17.100 5.800L16.500 11.500L18 13L16.500 17.800L12 19L7.500 17.800L6 13L7.500 11.500Z"
+        fill="#b97c0a"
+      />
+      <path
+        d="M6.900 5.800L10.800 9.400L12 9.100L12 19L7.500 17.800L6 13L7.500 11.500Z"
+        fill="#d99a16"
+      />
+      <path
+        d="M6 13L9.600 15.700L12 19L7.500 17.800ZM18 13L14.400 15.700L12 19L16.500 17.800Z"
+        fill="#ffe28a"
+      />
+      <path d="M9.600 15.700L12 14.200L14.400 15.700L12 19Z" fill="#ffe9a3" />
+      <circle cx="9.750" cy="13.600" r="0.950" fill="#6b4300" />
+      <circle cx="14.250" cy="13.600" r="0.950" fill="#6b4300" />
+      <path d="M11.250 15.900H12.750L12 16.700Z" fill="#6b4300" />
     </svg>
   );
 }
@@ -128,12 +148,12 @@ const BLOCKS = Array.from({ length: 16 }, (_, i) => {
 });
 
 export default function MysteryBox({
-  coins,
+  tokens,
   wearing,
   onOpen,
   onWear,
 }: {
-  coins: number;
+  tokens: number;
   /** What the fox has on now. */
   wearing: Wear | null;
   /** Takes the price, and says which prize came out. */
@@ -143,7 +163,7 @@ export default function MysteryBox({
   const still = useReducedMotion() ?? false;
   const [stage, setStage] = useState<"closed" | "burst" | "prize">("closed");
   const [prize, setPrize] = useState<Wear | null>(null);
-  const short = coins < BOX_PRICE;
+  const short = tokens < BOX_PRICE;
   useEffect(() => {
     if (stage !== "burst") return;
     const done = setTimeout(
@@ -243,14 +263,14 @@ export default function MysteryBox({
                 }}
               >
                 Open
-                <Coin size={18} />
+                <Token size={20} />
                 {BOX_PRICE}
               </button>
             </div>
             {/* said only when it matters, in a place that is always kept */}
             <p className={styles.note}>
               {short
-                ? `${BOX_PRICE - coins} more coins to open one`
+                ? `${BOX_PRICE - tokens} more tokens to open one`
                 : wearing && `Wearing: ${PRIZES.find((p) => p.key === wearing)?.name}`}
             </p>
           </>
