@@ -1,6 +1,6 @@
 "use client";
 
-// The pieces the History page is made of (ProgressHistory.tsx):
+// The pieces the Mistake Log is made of (MistakeLog.tsx):
 //   Sifts          the four menus that narrow the log: kind of work, section, domain, skill. They are
 //                  the phone's own menus, so they open the way every other menu on the phone does.
 //   QuestionRow    one question in a list, with a mark for correct or missed, and a small bookmark
@@ -14,8 +14,15 @@ import type { ReactNode } from "react";
 import lib from "./library.module.css";
 import type { Found } from "./progressBreakdowns";
 import { dateOf, type Student } from "./progressData";
-import { MODES, MODES_MANY, type Asked, type Mode, type Session, type Sift } from "./historyData";
-import styles from "./history.module.css";
+import {
+  MODES,
+  MODES_MANY,
+  type Asked,
+  type Mode,
+  type Session,
+  type Sift,
+} from "./mistakeLogData";
+import styles from "./mistakeLog.module.css";
 import { clock, minSec } from "./progressStats";
 import { SECTIONS, SKILLS, type Section } from "./skills72";
 import { tick } from "./sound";
@@ -296,7 +303,7 @@ export function SessionView({
             >
               {shown === name && (
                 <motion.span
-                  layoutId="history-within"
+                  layoutId="mistakes-within"
                   className={lib.lens}
                   transition={
                     still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }

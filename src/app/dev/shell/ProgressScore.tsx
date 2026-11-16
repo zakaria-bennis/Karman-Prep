@@ -16,7 +16,10 @@
 //   - Pointing at (or dragging along, or arrowing through) the line turns the number above into that
 //     day's. Nothing floats over the graph, and there is no key.
 //   - A prediction needs two full-length exams. Before that the same place says so.
-//   - The countdown shows only when the student has entered a test date: a badge on the corner.
+//   - The countdown shows only when the student has entered a test date: a dark badge inside the
+//     top right corner, with the date under it. The days and the date are written in a color that
+//     says how near the test is, with a shine that passes over them: blue when it is more than a
+//     month away, gold within a month, red within a week (founder, 2026-11-16).
 // Every number is a stand-in (progressData.ts). The demo bar switches between four made-up students so
 // the scaling can be seen.
 import { useMemo, useState } from "react";
@@ -40,6 +43,31 @@ import {
   type StudentKey,
 } from "./progressData";
 import { tick } from "./sound";
+
+/** How near the test is, for the badge's color: within a week, within a month, or farther off. */
+const nearness = (days: number) => (days <= 7 ? "week" : days <= 31 ? "month" : "far");
+
+function Countdown({ days }: { days: number }) {
+  const on = new Date(TODAY.getTime() + days * DAY);
+  return (
+    <p className={styles.countdown} data-near={nearness(days)}>
+      <span>
+        {days === 0 ? (
+          "Your SAT is today"
+        ) : (
+          <>
+            <b>{days}</b> {days === 1 ? "day" : "days"} to your SAT
+          </>
+        )}
+      </span>
+      {/* the year is said only when it is not this one */}
+      <em>
+        {long(on)}
+        {on.getFullYear() !== TODAY.getFullYear() && `, ${on.getFullYear()}`}
+      </em>
+    </p>
+  );
+}
 
 export default function ProgressScore({
   student: key,
@@ -94,14 +122,7 @@ export default function ProgressScore({
       aria-label="Predicted score"
       data-trend={fell ? "down" : "up"}
     >
-      {student.testIn !== null && (
-        <p
-          className={styles.countdown}
-          title={`Your SAT is on ${long(new Date(TODAY.getTime() + student.testIn * DAY))}`}
-        >
-          <b>{student.testIn}</b> days to your SAT
-        </p>
-      )}
+      {student.testIn !== null && <Countdown days={student.testIn} />}
 
       {latest ? (
         <>

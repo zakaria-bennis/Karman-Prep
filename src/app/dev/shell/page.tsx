@@ -34,8 +34,10 @@ import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
-import Progress, { STUDENTS, type Opened, type StudentKey, type Trail } from "./Progress";
-import { STATS } from "./progressStats";
+import MistakeLog, { type Trail } from "./MistakeLog";
+import Progress, { STUDENTS, type StudentKey } from "./Progress";
+import type { Found } from "./progressBreakdowns";
+import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -47,6 +49,7 @@ const LABEL: Record<StickerName, string> = {
   class: "Class",
   schedule: "Schedule",
   progress: "Progress",
+  mistakes: "Mistake Log",
   rewards: "Rewards",
   chat: "Chat",
   settings: "Settings",
@@ -54,25 +57,27 @@ const LABEL: Record<StickerName, string> = {
 };
 
 /** The founder's menus. `bar` is the phone's five; `rail` is the desktop's, which has room for what the
- *  phone keeps under More. The first item is where that student lands. */
+ *  phone keeps under More. The first item is where that student lands. The Mistake Log sits right
+ *  under Progress (founder, 2026-11-16); where a phone's five are already taken, it opens from a button
+ *  beside Progress's name instead. */
 const PLANS = {
   practice: {
     label: "Free, Practice, Pro",
     name: "Practice",
-    bar: ["library", "progress", "rewards", "more"],
-    rail: ["library", "progress", "rewards"],
+    bar: ["library", "progress", "mistakes", "rewards", "more"],
+    rail: ["library", "progress", "mistakes", "rewards"],
   },
   cohort: {
     label: "Cohort",
     name: "Cohort",
     bar: ["homework", "library", "class", "progress", "more"],
-    rail: ["homework", "library", "class", "chat", "progress", "rewards"],
+    rail: ["homework", "library", "class", "chat", "progress", "mistakes", "rewards"],
   },
   private: {
     label: "Private",
     name: "Private",
     bar: ["homework", "library", "schedule", "progress", "more"],
-    rail: ["homework", "library", "schedule", "chat", "progress", "rewards"],
+    rail: ["homework", "library", "schedule", "chat", "progress", "mistakes", "rewards"],
   },
 } as const satisfies Record<
   string,
@@ -127,9 +132,11 @@ function Shell() {
   /* which made-up student the Progress page shows (demo only) */
   const [student, setStudent] = useState<StudentKey>("weeks9");
   /* the number whose own page is open in Progress, if any */
-  const [stat, setStat] = useState<Opened | null>(null);
-  /* what is open inside History on a phone: it names the page and the way back */
+  const [stat, setStat] = useState<StatKey | null>(null);
+  /* what is open inside the Mistake Log on a phone: it names the page and the way back */
   const [trail, setTrail] = useState<Trail | null>(null);
+  /* a phone whose five are taken reaches the Mistake Log from Progress, and comes back to it */
+  const tucked = page === "mistakes" && !items.includes("mistakes");
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
@@ -153,7 +160,17 @@ function Shell() {
     section && domain && !openDomain
       ? LEVEL_NAMES.indexOf(domain as (typeof LEVEL_NAMES)[number])
       : -1;
-  const at = Math.max(0, items.indexOf(page));
+  const at = Math.max(0, items.indexOf(tucked ? "progress" : page));
+  /* a skill named on Progress or in the Mistake Log opens on its own page in the Library */
+  const openSkill = (found: Found) => {
+    dir.current = 1;
+    setPage("library");
+    setSection(found.section);
+    setDomain(found.domain);
+    setSkill({ ...found.skill, domain: found.domain });
+    setStat(null);
+    window.scrollTo({ top: 0 });
+  };
   const [world] = useState(() => ({}));
 
   useEffect(() => {
@@ -346,7 +363,7 @@ function Shell() {
               <motion.button
                 type="button"
                 className={styles.item}
-                aria-current={item === page ? "page" : undefined}
+                aria-current={item === items[at] ? "page" : undefined}
                 aria-label={LABEL[item]}
                 whileTap={still ? undefined : { scale: 0.9 }}
                 transition={POP}
@@ -460,13 +477,14 @@ function Shell() {
               {inSkill ? skill.domain : domain ? section : "Library"}
             </button>
           )}
-          {inStat && (
+          {(inStat || trail || tucked) && (
             <button
               type="button"
               className={styles.back}
               onClick={() => {
                 dir.current = -1;
                 if (trail) trail.go();
+                else if (tucked) setPage("progress");
                 else setStat(null);
               }}
             >
@@ -482,11 +500,8 @@ function Shell() {
               key={
                 inSkill
                   ? skill.name
-                  : inStat
-                    ? (trail?.name ?? stat)
-                    : page === "library" && section
-                      ? (domain ?? section)
-                      : page
+                  : (trail?.name ??
+                    (inStat ? stat : page === "library" && section ? (domain ?? section) : page))
               }
               data-long={
                 (page === "library" && (inSkill || section !== null)) || trail !== null || undefined
@@ -494,25 +509,26 @@ function Shell() {
             >
               {inSkill
                 ? skill.name
-                : inStat
-                  ? (trail?.name ?? (stat === "history" ? "History" : STATS[stat].name))
-                  : page === "library" && section
-                    ? (domain ?? section)
-                    : LABEL[page]}
+                : (trail?.name ??
+                  (inStat
+                    ? STATS[stat].name
+                    : page === "library" && section
+                      ? (domain ?? section)
+                      : LABEL[page]))}
             </h1>
           )}
-          {/* History is its own page, a press away from Progress */}
-          {page === "progress" && !stat && (
+          {/* where the phone's five are taken, the Mistake Log is a press away from Progress */}
+          {page === "progress" && !stat && !items.includes("mistakes") && (
             <button
               type="button"
               className={`${styles.back} ${styles.forth}`}
               onClick={() => {
                 dir.current = 1;
-                setStat("history");
+                setPage("mistakes");
                 window.scrollTo({ top: 0 });
               }}
             >
-              History
+              {LABEL.mistakes}
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
               </svg>
@@ -587,21 +603,20 @@ function Shell() {
                   window.scrollTo({ top: 0 });
                 }}
                 extraTime={extraTime}
-                flags={plan !== "practice"}
-                onTrail={setTrail}
-                onSkill={(found) => {
-                  // a skill named on a Progress page opens on its own page in the Library
-                  dir.current = 1;
-                  setPage("library");
-                  setSection(found.section);
-                  setDomain(found.domain);
-                  setSkill({ ...found.skill, domain: found.domain });
-                  setStat(null);
-                  window.scrollTo({ top: 0 });
-                }}
+                onSkill={openSkill}
               />
             </motion.div>
           </AnimatePresence>
+        )}
+        {page === "mistakes" && (
+          <MistakeLog
+            key={student}
+            rail={rail}
+            student={STUDENTS[student]}
+            flags={plan !== "practice"}
+            onSkill={openSkill}
+            onTrail={setTrail}
+          />
         )}
       </main>
 
@@ -615,7 +630,7 @@ function Shell() {
               {PLANS[k].label}
             </button>
           ))}
-          {page === "progress" &&
+          {(page === "progress" || page === "mistakes") &&
             (Object.keys(STUDENTS) as StudentKey[]).map((k) => (
               <button
                 key={k}

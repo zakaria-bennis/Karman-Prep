@@ -1,10 +1,10 @@
-// The History page's data: every session a student sat and every question in it. All of it is a
+// The Mistake Log's data: every session a student sat and every question in it. All of it is a
 // stand-in, built from the same made-up daily log as the rest of Progress, so the counts agree with
-// the calendar. Real sessions and answers will replace `history` one for one.
+// the calendar. Real sessions and answers will replace `sittingsOf` one for one.
 //   A session is one sitting of one kind of work: a skill set (8 questions on one skill), the Daily
 //   10, a full-length exam, the challenge question, a time trial or a run of endless mode.
 //   The question shown for a past answer is one of eight samples, one for each domain: the bank's
-//   own questions take their place once History reads real answers.
+//   own questions take their place once the Mistake Log reads real answers.
 import { everySkill, type Found } from "./progressBreakdowns";
 import type { DayLog, Student } from "./progressData";
 import type { Section } from "./skills72";
@@ -122,7 +122,7 @@ const noise = (a: number, b: number, c = 0) => {
 const of = (section: Section) => everySkill.filter((f) => f.section === section);
 
 /** Every session, newest first. */
-export function history(student: Student, logs: DayLog[]): Session[] {
+export function sittingsOf(student: Student, logs: DayLog[]): Session[] {
   const rw = of("Reading and Writing");
   const math = of("Math");
   const all = everySkill;

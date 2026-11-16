@@ -175,41 +175,79 @@
   height: 36px;
 }
 
-/* the countdown: only for a student who has entered a test date. A badge on the top right corner of
-   the score, lying over its edge, so it takes no line of its own and never meets the words inside. */
-.score {
-  position: relative;
-}
-
+/* the countdown: only for a student who has entered a test date. A badge inside the top right corner
+   of the score, the same distance from the top edge as from the right one (the pane's own inset). The
+   days and the date take a color for how near the test is, and a shine passes over them. */
 .countdown {
-  position: absolute;
-  top: -12px;
-  right: 18px;
-  z-index: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 14px;
-  background: rgb(255 251 244 / 0.94);
+  --near: #8db6ff;
+  --near-lit: #ffffff;
+  display: grid;
+  align-self: flex-end;
+  justify-items: end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--r-lens);
+  /* a dark chip in both modes: gold, blue and red only read as metal against something dark */
+  background: rgb(29 26 34 / 0.86);
   box-shadow:
-    0 6px 16px -8px rgb(24 28 58 / 0.45),
-    inset 0 0 0 1px var(--glass-edge);
+    0 8px 18px -12px rgb(24 28 58 / 0.7),
+    inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  color: #f6f1e7;
   font-size: 13px;
   font-weight: 600;
-  line-height: 28px;
+  line-height: 1.25;
+  text-align: right;
   white-space: nowrap;
 }
 
-:global([data-kp-mode="dark"]) .countdown {
-  background: rgb(40 38 60 / 0.94);
+.countdown[data-near="month"] {
+  --near: #f2b632;
+  --near-lit: #fff6cf;
+}
+
+.countdown[data-near="week"] {
+  --near: #ff8672;
+  --near-lit: #fff0ea;
+}
+
+/* metal: lighter at the top of each letter than at its foot, with a band of light that crosses it */
+.countdown b,
+.countdown em {
+  background:
+    linear-gradient(105deg, transparent 42%, var(--near-lit) 50%, transparent 58%) 100% 0 / 300%
+      100% no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--near) 55%, var(--near-lit)), var(--near) 75%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-style: normal;
+  animation: shine 5s var(--out) infinite;
 }
 
 .countdown b {
   font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.countdown em {
+  font-weight: 700;
+}
+
+@keyframes shine {
+  0%,
+  40% {
+    background-position:
+      100% 0,
+      0 0;
+  }
+
+  80%,
+  100% {
+    background-position:
+      0 0,
+      0 0;
+  }
 }
 
 /* ---- the graph ---- */
@@ -416,6 +454,13 @@
 
 /* a narrower desktop: the score on top, the numbers and the calendar side by side under it */
 @media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
+  /* here the score is wide enough for the badge to share the top of the pane with its name */
+  .progress:not([data-single]) .countdown {
+    position: absolute;
+    top: calc(var(--pad) * 2);
+    right: calc(var(--pad) * 2);
+  }
+
   .progress:not([data-single]) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     max-width: 980px;
@@ -484,8 +529,9 @@
 
 /* a short phone: everything still fits the screen, with a lower graph and a smaller number */
 @media (max-width: 599px) and (max-height: 780px) {
+  /* a little lower again since the countdown's badge moved inside the pane */
   .graph {
-    min-height: 136px;
+    min-height: 124px;
   }
 
   .total {
@@ -507,5 +553,10 @@
     animation: none;
     transform: scale(1.8);
     opacity: 0.25;
+  }
+
+  .countdown b,
+  .countdown em {
+    animation: none;
   }
 }

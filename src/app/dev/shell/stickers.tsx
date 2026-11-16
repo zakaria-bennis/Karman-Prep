@@ -10,6 +10,7 @@ export type StickerName =
   | "class"
   | "schedule"
   | "progress"
+  | "mistakes"
   | "rewards"
   | "chat"
   | "settings"
@@ -150,6 +151,20 @@ const ART: Record<StickerName, ReactNode> = {
         stroke={ACCENT}
       />
       <circle cx="16.250" cy="17" r="2.250" {...WASH} />
+    </>
+  ),
+  // a bound notebook with a cross in it: the mistake log
+  mistakes: (
+    <>
+      <rect x="5" y="3.500" width="14.500" height="17" rx="2.200" {...WASH} />
+      <path d="M8.700 3.500v17" />
+      <path d="M3.600 8h2.800M3.600 12h2.800M3.600 16h2.800" />
+      <path
+        data-move="pop"
+        d="M11.800 9.300l4.400 4.400M16.200 9.300l-4.400 4.400"
+        stroke={ACCENT}
+        strokeWidth="1.900"
+      />
     </>
   ),
   // a satchel: everything else is kept in here

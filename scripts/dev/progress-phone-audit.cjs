@@ -1,4 +1,4 @@
-// Walks every Progress screen in /dev/shell, History included, on three phone sizes and reports text that spills out of
+// Walks every Progress screen in /dev/shell, and the Mistake Log, on three phone sizes and reports text that spills out of
 // its pane, is cut off, overlaps other text, or makes the page scroll. Run with the dev server up:
 //   NODE_PATH=$PWD/node_modules node scripts/dev/progress-phone-audit.cjs <folder for screenshots>
 
@@ -30,8 +30,8 @@ const audit = () => {
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
       if (!own) continue;
       if (el.closest("[role=listbox]")) continue;
-      // spills out of its pane (the countdown badge is meant to lie over the top edge)
-      if ((r.left < S.left - 1 || r.right > S.right + 1 || r.bottom > S.bottom + 1) && !/countdown/.test(el.className + el.parentElement.className)) issues.push(`SPILLS: "${say(el)}"`);
+      // spills out of its pane
+      if (r.left < S.left - 1 || r.right > S.right + 1 || r.bottom > S.bottom + 1) issues.push(`SPILLS: "${say(el)}"`);
       // cut off inside its own box
       if (el.scrollWidth > el.clientWidth + 1 && cs.overflowX !== "visible") issues.push(`CUT OFF: "${say(el)}"`);
       // the text itself, not its box
@@ -67,7 +67,7 @@ const audit = () => {
       await p.addStyleTag({ content: "[aria-label='Demo switches']{display:none!important}" });
       const main = p.locator("main");
       const tag = `${vp.width}-${who.replace(" ", "")}`;
-      // History is the one Progress page that may scroll down (founder, 2026-11-15)
+      // the Mistake Log is the one page here that may scroll down (founder, 2026-11-15)
       const check = async (label, mayScroll = false) => {
         await p.waitForTimeout(450);
         const found = (await p.evaluate(audit)).filter((issue) => !(mayScroll && issue.startsWith("scrolls down")));
@@ -99,23 +99,23 @@ const audit = () => {
         }
         await main.getByRole("button", { name: "Progress", exact: true }).click(); await p.waitForTimeout(600);
       }
-      // History: the log three ways, a sitting, a question, and a full-length exam
+      // the Mistake Log: the log three ways, a sitting, a question, and a full-length exam
       const back = () => main.locator("button").first().click();
       const lens = (name) => main.getByLabel("Shown", { exact: true }).getByRole("button", { name }).click();
       const log = main.getByRole("region", { name: "Log" });
-      await main.getByRole("button", { name: "History", exact: true }).click(); await p.waitForTimeout(900);
-      await check("History / Sessions", true);
-      await log.getByRole("button").filter({ hasText: "Daily 10" }).first().click(); await check("History / a sitting", true);
-      await main.getByRole("button", { name: /Question 3/ }).first().click(); await check("History / a question", true);
+      await p.getByRole("navigation").getByRole("button", { name: "Mistake Log" }).click(); await p.waitForTimeout(900);
+      await check("Mistake Log / Missed", true);
+      await log.locator("li button").first().click(); await check("Mistake Log / a missed question", true);
+      await back(); await p.waitForTimeout(300);
+      await lens("Sessions"); await check("Mistake Log / Sessions", true);
+      await log.getByRole("button").filter({ hasText: "Daily 10" }).first().click(); await check("Mistake Log / a sitting", true);
+      await main.getByRole("button", { name: /Question 3/ }).first().click(); await check("Mistake Log / a question", true);
       await back(); await p.waitForTimeout(300); await back(); await p.waitForTimeout(300);
-      await lens("Missed"); await check("History / Missed", true);
-      await log.locator("li button").first().click(); await check("History / a missed question", true);
+      await lens("Bookmarks"); await check("Mistake Log / Bookmarks", true);
+      await lens("Sessions"); await main.getByLabel("Kind of work").selectOption("exam"); await check("Mistake Log / exams only", true);
+      await log.locator("li button").first().click(); await check("Mistake Log / an exam", true);
       await back(); await p.waitForTimeout(300);
-      await lens("Bookmarks"); await check("History / Bookmarks", true);
-      await lens("Sessions"); await main.getByLabel("Kind of work").selectOption("exam"); await check("History / exams only", true);
-      await log.locator("li button").first().click(); await check("History / an exam", true);
-      await back(); await p.waitForTimeout(300);
-      await main.getByLabel("Skill").selectOption("Circle equations"); await lens("Bookmarks"); await check("History / nothing here", true);
+      await main.getByLabel("Skill").selectOption("Circle equations"); await lens("Bookmarks"); await check("Mistake Log / nothing here", true);
       await c.close();
     }
   }

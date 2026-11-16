@@ -1,19 +1,20 @@
 "use client";
 
-// History, Progress step 4 (founder, 2026-11-15 and 2026-11-16): a log of everything the student has
-// sat, and his "mistake log". It opens from Progress on its own page.
+// The Mistake Log (founder, 2026-11-15 and 2026-11-16). It began as History, a page inside Progress;
+// he renamed it and gave it its own place in the menu, right under Progress.
+//   Missed      every missed question, newest first. This is what the page is named for, so it
+//               opens here.
 //   Sessions    every sitting, newest first, by day: skill sets, the Daily 10, full-length exams,
 //               challenge questions, time trials and endless mode. Opening one shows how it went and
 //               its questions, which can be narrowed to correct or missed.
-//   Missed      every missed question, newest first: the mistake log.
 //   Bookmarks   every question the student kept. A Cohort or Private student can also flag a question
 //               for their tutor; a flagged question is a bookmark that carries a small flag.
 // Four menus narrow all three: kind of work, section, domain, skill. Never by difficulty.
 // Opening a question shows the student's answer, the right answer and the explanation. No retry.
 // With room, the log is at the left and what is open is at the right, each scrolling inside its own
 // piece of glass. On a phone each is a page of its own, and the page's own way back steps out of it
-// (the page is told through `onTrail`). History is the one Progress page that may scroll on a phone.
-// Everything here is a stand-in (historyData.ts).
+// (the page is told through `onTrail`). On a phone this page may scroll.
+// Everything here is a stand-in (mistakeLogData.ts).
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -25,29 +26,29 @@ import {
   within,
   type Marked,
   type Within,
-} from "./HistoryViews";
+} from "./MistakeLogViews";
 import lib from "./library.module.css";
 import type { Found } from "./progressBreakdowns";
-import type { DayLog, Student } from "./progressData";
+import { activity, type Student } from "./progressData";
 import {
   MODES,
   NO_SIFT,
   fits,
-  history,
   sifted,
+  sittingsOf,
   type Asked,
   type Session,
   type Sift,
-} from "./historyData";
-import styles from "./history.module.css";
+} from "./mistakeLogData";
+import styles from "./mistakeLog.module.css";
 import { tick } from "./sound";
 
-const LENSES = ["Sessions", "Missed", "Bookmarks"] as const;
+const LENSES = ["Missed", "Sessions", "Bookmarks"] as const;
 type Lens = (typeof LENSES)[number];
 /** How many rows are shown before "Show earlier" is pressed, and how many each press adds. */
 const STEP = 40;
 
-/** What the page's title and its way back should say while something inside History is open. */
+/** What the page's title and its way back should say while something in the log is open. */
 export type Trail = { name: string; back: string; go: () => void };
 
 /** Rows in day order, cut into one group for each day. */
@@ -61,25 +62,23 @@ function byDay<T extends { day: number }>(rows: T[]): { day: number; rows: T[] }
   return groups;
 }
 
-export default function ProgressHistory({
+export default function MistakeLog({
   rail,
   student,
-  logs,
   flags,
   onSkill,
   onTrail,
 }: {
   rail: boolean;
   student: Student;
-  logs: DayLog[];
   /** Whether this student can flag questions for a tutor (Cohort and Private). */
   flags: boolean;
   onSkill: (found: Found) => void;
   onTrail: (trail: Trail | null) => void;
 }) {
   const still = useReducedMotion() ?? false;
-  const sessions = useMemo(() => history(student, logs), [student, logs]);
-  const [lens, setLens] = useState<Lens>("Sessions");
+  const sessions = useMemo(() => sittingsOf(student, activity(student)), [student]);
+  const [lens, setLens] = useState<Lens>("Missed");
   const [sift, setSift] = useState<Sift>(NO_SIFT);
   const [openSession, setOpenSession] = useState<string | null>(null);
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
@@ -136,18 +135,18 @@ export default function ProgressHistory({
     if (question && (lens === "Sessions" || !rail))
       return {
         name: `Question ${question.number}`,
-        back: lens === "Sessions" ? (session?.name ?? "History") : lens,
+        back: lens === "Sessions" ? (session?.name ?? "Mistake Log") : "Mistake Log",
         go: () => setOpenQuestion(null),
       };
     if (session && !rail)
-      return { name: session.name, back: "History", go: () => setOpenSession(null) };
+      return { name: session.name, back: "Mistake Log", go: () => setOpenSession(null) };
     return null;
   }, [question, session, lens, rail]);
   useEffect(() => {
     onTrail(rail ? null : inner);
     return () => onTrail(null);
   }, [inner, rail, onTrail]);
-  // Escape steps out of what is open here before it leaves History
+  // Escape steps out of what is open here
   useEffect(() => {
     if (!inner) return;
     const key = (e: KeyboardEvent) => {
@@ -175,7 +174,7 @@ export default function ProgressHistory({
   const deep = rail ? 0 : inner ? 1 : 0;
 
   return (
-    <div className={`${lib.library} ${styles.history}`} data-alone={(rail && empty) || undefined}>
+    <div className={`${lib.library} ${styles.mistakes}`} data-alone={(rail && empty) || undefined}>
       {deep === 0 && (
         <section className={`${lib.glass} ${styles.log}`} aria-label="Log">
           <div className={`${lib.filter} ${styles.lenses}`} role="group" aria-label="Shown">
@@ -192,7 +191,7 @@ export default function ProgressHistory({
               >
                 {lens === name && (
                   <motion.span
-                    layoutId="history-lens"
+                    layoutId="mistakes-lens"
                     className={lib.lens}
                     transition={
                       still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }

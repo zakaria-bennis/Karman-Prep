@@ -8,8 +8,8 @@
 //   One span of time serves the whole page: chosen on the score or on the numbers, it sets both.
 //   A row of the three weakest skills was built and removed (founder, 2026-11-16: "I don't need that
 //   pane").
-//   4. History, on its own page behind the History button beside the page's name
-//      (ProgressHistory.tsx). Still to come: the new-student page.
+//   What was step 4, History, is now the Mistake Log, a page of its own in the menu (MistakeLog.tsx).
+//   Still to come: the new-student page.
 // With room, the score stands in the middle with the numbers at its left and the calendar at its
 // right, all on one screen. On a phone nothing scrolls: each piece is its own page, with buttons.
 import { motion, useReducedMotion } from "framer-motion";
@@ -18,7 +18,6 @@ import lib from "./library.module.css";
 import styles from "./progress.module.css";
 import { Calendar, Stats } from "./ProgressActivity";
 import { STUDENTS, activity, type Student, type StudentKey } from "./progressData";
-import ProgressHistory, { type Trail } from "./ProgressHistory";
 import ProgressStat from "./ProgressStat";
 import type { StatKey } from "./progressStats";
 import type { Found } from "./progressBreakdowns";
@@ -26,9 +25,7 @@ import type { SpanKey } from "./ProgressGraph";
 import ProgressScore from "./ProgressScore";
 import { tick } from "./sound";
 
-export { STUDENTS, type StudentKey, type Trail };
-/** What can be open on top of Progress: one number's own page, or History. */
-export type Opened = StatKey | "history";
+export { STUDENTS, type StudentKey };
 
 const PAGES = ["Score", "Activity", "Calendar"] as const;
 
@@ -39,22 +36,16 @@ export default function Progress({
   onStat,
   extraTime,
   onSkill,
-  flags,
-  onTrail,
 }: {
   rail: boolean;
   student: StudentKey;
-  /** The number whose own page is open, or History, if any. */
-  stat: Opened | null;
+  /** The number whose own page is open, if any. */
+  stat: StatKey | null;
   onStat: (stat: StatKey) => void;
   /** The student's accommodation: 1 for standard time, 1.5 or 2 for extra time. */
   extraTime: number;
   /** Opens a skill in the Library. */
   onSkill: (found: Found) => void;
-  /** Whether this student can flag questions for a tutor (Cohort and Private). */
-  flags: boolean;
-  /** Tells the page what its title and way back should say while something in History is open. */
-  onTrail: (trail: Trail | null) => void;
 }) {
   const still = useReducedMotion() ?? false;
   const student: Student = STUDENTS[key];
@@ -63,18 +54,6 @@ export default function Progress({
   // one span of time for the whole page: set on the score or on the numbers, it moves both
   const [span, setSpan] = useState<SpanKey | null>(null);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
-  if (stat === "history")
-    return (
-      <ProgressHistory
-        key={key}
-        rail={rail}
-        student={student}
-        logs={logs}
-        flags={flags}
-        onSkill={onSkill}
-        onTrail={onTrail}
-      />
-    );
   if (stat)
     return (
       <ProgressStat

@@ -180,11 +180,18 @@
   opacity: 1;
 }
 
+/* phones: five names, one of them two words long (Mistake Log), share the bar without leaving it */
+@media (max-width: 479px) {
+  .item {
+    padding: 0 4px;
+  }
+}
+
 /* narrow phones: the five still fit, with the same inset */
 @media (max-width: 379px) {
   .item {
     min-width: 54px;
-    padding: 0 5px;
+    padding: 0 2px;
     font-size: 10px;
   }
 }
@@ -298,7 +305,7 @@
   transform: scale(0.95);
 }
 
-/* a way onward from a page (Progress to its History): the same pill at the far end of the line, with
+/* a way onward from a page (Progress to the Mistake Log, on a phone whose five are taken): the same pill at the far end of the line, with
    its arrow after the word */
 .shell .forth {
   padding: 0 8px 0 14px;

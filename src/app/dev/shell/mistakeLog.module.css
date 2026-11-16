@@ -1,16 +1,16 @@
 /*
- * History: the log at the left, what is open at the right. Glass, inset, corners, text sizes (13, 16,
+ * The Mistake Log: the log at the left, what is open at the right. Glass, inset, corners, text sizes (13, 16,
  * 20) and the one green come from library.module.css, set on .library. Correct is the green and
  * missed is the red used across Progress.
  */
-.history {
+.mistakes {
   --up: var(--p3);
   --down: #c0392b;
   --on-mark: #fffdf8;
   align-items: start;
 }
 
-:global([data-kp-mode="dark"]) .history {
+:global([data-kp-mode="dark"]) .mistakes {
   --up: var(--p1);
   --down: #ff8d7e;
   --on-mark: #1d1a22;
@@ -25,14 +25,14 @@
   padding: calc(var(--pad) + 4px);
 }
 
-.history h3 {
+.mistakes h3 {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
 }
 
 /* ---- the bars of choices: hollows in the glass, as on the rest of Progress ---- */
-.history .lenses {
+.mistakes .lenses {
   justify-self: stretch;
   flex: none;
   background: var(--hover);
@@ -551,11 +551,11 @@
 /* with room: the log and what is open side by side, each as tall as the screen and scrolling inside
    itself, so the page never scrolls (72 above the panes, 16 below) */
 @media (min-width: 960px) and (hover: hover) {
-  .history {
+  .mistakes {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   }
 
-  .history[data-alone] {
+  .mistakes[data-alone] {
     grid-template-columns: minmax(0, 1fr);
   }
 

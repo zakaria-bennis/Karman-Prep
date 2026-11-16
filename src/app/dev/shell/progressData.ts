@@ -32,7 +32,8 @@ export const STUDENTS = {
       { day: 20, score: 1270 },
     ],
     now: 1270,
-    testIn: 48,
+    // their test is months off, the other two are near: the badge's three colors can all be seen
+    testIn: 118,
   },
   // this one slipped in the last week, so the 7-day span shows red
   weeks9: {
@@ -64,7 +65,7 @@ export const STUDENTS = {
       { day: 196, score: 1530 },
     ],
     now: 1550,
-    testIn: 20,
+    testIn: 6,
   },
 } as const satisfies Record<string, Student>;
 export type StudentKey = keyof typeof STUDENTS;
@@ -128,7 +129,7 @@ export type DayLog = {
   exam: number;
   /** Seconds a question took on timed work that day, on average; 0 if nothing was done. */
   pace: number;
-  /** What the day's practice was made of, for the History page: skill sets of 8 questions, bursts of
+  /** What the day's practice was made of, for the Mistake Log: skill sets of 8 questions, bursts of
    *  5 (a time trial or endless mode), and whether the challenge question was answered. */
   sets: number;
   fives: number;

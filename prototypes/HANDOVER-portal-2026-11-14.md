@@ -702,7 +702,7 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   lower there; side labels on a low graph collided, so only those with room are written; the pacing
   goal's name sat on the line, so it moves to the end of the graph where the line is farther away.
 
-**Progress: pacing drawn faster-side-up, and step 4, History, built (2026-11-16); awaiting his verdict.**
+**Progress: pacing drawn faster-side-up; the Mistake Log; the SAT badge (2026-11-16); awaiting his verdict.**
 - **Pacing's graph is upside down on purpose** (his words: "It makes good progress look bad, so I'd
   rather just not have it go red if things are actually getting better"). Faster is at the top, so a
   student getting faster sees a line that rises and is green; getting slower falls and is red. The
@@ -710,12 +710,19 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   goal line. In code: `lessIsBetter` on the stat (`progressStats.ts`), `flip` on `Graph` and `Spark`,
   and `wayOf(change, lessIsBetter)`. The ticker still shows the change in time ("−0:07 all time"),
   now in green when it is a gain. His earlier rule holds everywhere: a line that falls is never green.
-- **History** opens from a **History** button at the far end of the Progress title row
-  (`ProgressHistory.tsx`, `HistoryViews.tsx`, `history.module.css`; stand-in data in
-  `historyData.ts`). Three views, one bar: **Sessions** (every sitting, newest first, by day: skill
-  sets, Daily 10, full-length exams, challenge questions, time trials, endless mode), **Missed** (the
-  mistake log: every missed question) and **Bookmarks**. Four menus narrow all three: kind of work,
-  section, domain, skill (never difficulty). Choosing a skill sets its domain and section.
+- **The Mistake Log is its own page in the menu**, right under Progress and before Rewards
+  (`MistakeLog.tsx`, `MistakeLogViews.tsx`, `mistakeLog.module.css`; stand-in data in
+  `mistakeLogData.ts`; a notebook-with-a-cross icon in `stickers.tsx`). It was first built the same
+  day as "History", a page behind a button on Progress; he renamed it and moved it. Do not bring the
+  History name or the button back. On the desktop rail every plan has it. On a phone, Free, Practice
+  and Pro have it in the bar (Library, Progress, Mistake Log, Rewards, More). Cohort and Private
+  phones already have five in the bar, so there a "Mistake Log" button sits at the end of Progress's
+  title row and the page shows a way back to Progress. **He has not been asked where it should live
+  on Cohort and Private phones.**
+- Three views, one bar: **Missed** (every missed question, newest first; the page opens here),
+  **Sessions** (every sitting by day: skill sets, Daily 10, full-length exams, challenge questions,
+  time trials, endless mode) and **Bookmarks**. Four menus narrow all three: kind of work, section,
+  domain, skill (never difficulty). Choosing a skill sets its domain and section.
 - Opening a sitting shows its name, day, how it went (score for an exam, correct, time, pace) and its
   questions, with All, Correct, Missed (shown only when the sitting has both). Opening a question
   shows the student's answer, the right answer and the explanation, the skill (which opens it in the
@@ -724,15 +731,28 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   a small flag.
 - With room, the log is at the left and what is open at the right, each scrolling inside its own
   glass, so the page never scrolls. On a phone each is its own page: the title row's back pill steps
-  out one level (History, then the sitting), and so does Escape. History is the one Progress page
-  that scrolls on a phone. The list shows 40 rows and "Show earlier" adds 40.
-- The daily log now records what each day was made of (`sets`, `fives`, `challenge` on `DayLog`), so
-  History's counts agree with the calendar. The challenge question adds one to a day's questions.
+  out one level, and so does Escape. It is the one page here that scrolls on a phone. The list shows
+  40 rows and "Show earlier" adds 40.
+- The daily log records what each day was made of (`sets`, `fives`, `challenge` on `DayLog`), so the
+  log's counts agree with the calendar. The challenge question adds one to a day's questions.
 - **Stand-ins:** every sitting and answer is made up. The question shown for a past answer is one of
   eight samples written for this page, one per domain; the bank's real questions replace them when
-  History reads real answers. Bookmarks and flags changed on the page are not saved.
-- The phone audit (`scripts/dev/progress-phone-audit.cjs`) now walks History too: 234 screens, none
-  with anything wrong. It also checks the title row (the History button must not meet the title).
-- Not built: the exam breakdown page (an exam in History shows its questions, which may be most of
-  it; the exam rows on Exams taken still open nothing), saving bookmarks and flags, real data.
-- Next: his verdict on History; then step 5, the new-student page.
+  the log reads real answers. Bookmarks and flags changed on the page are not saved.
+- **The SAT countdown badge is inside the score pane**, in its top right corner, the same distance
+  from the top edge as from the right (24 on desktop, 18 on a phone). Under "20 days to your SAT" it
+  gives the date ("December 5"; the year is added only when it is not this one). The days and the
+  date are written in a color for how near the test is, with a band of light that crosses them every
+  five seconds: **blue** when it is more than a month away, **gold** within a month (31 days),
+  **red** within a week. The badge is a dark chip in both modes, because gold only reads as gold
+  against something dark (on the light glass it had to be brown to be legible). In the medium-width
+  layout he uses it shares the top of the pane with the title; elsewhere it has the top line to
+  itself, so a long title can never run into it. The demo students show all three: 3 weeks (118
+  days, March 13, 2027), 9 weeks (20 days, December 5), 7 months (6 days). His word for the colors
+  was "relative, like shiny"; I read it as reflective and shiny, and told him so.
+- The phone bar's items sit closer together (4 a side, 2 on narrow phones) so five names with "Mistake
+  Log" among them fit at 360, 390 and 430 wide.
+- The phone audit (`scripts/dev/progress-phone-audit.cjs`) walks the Mistake Log too, and now checks
+  the badge like any other text: 234 screens, none with anything wrong. Desktop: 42 screens, none.
+- Not built: the exam breakdown page (an exam in the log shows its questions; the exam rows on Exams
+  taken still open nothing), saving bookmarks and flags, real data, the test date in Settings.
+- Next: his verdict; then the new-student page.
