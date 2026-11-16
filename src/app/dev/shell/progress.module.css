@@ -415,6 +415,11 @@
     grid-column: 3;
     grid-row: 1;
   }
+
+  /* the weakest skills run under all three */
+  .progress:not([data-single]) > :nth-child(4) {
+    grid-column: 1 / -1;
+  }
 }
 
 /* a narrower desktop: the score on top, the numbers and the calendar side by side under it */

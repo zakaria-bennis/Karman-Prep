@@ -440,9 +440,14 @@
    a day with no practice is glass, a day before the student began is fainter glass */
 .year i {
   aspect-ratio: 1;
-  border-radius: 2.5px;
+  border-radius: 18%;
   background: var(--lens);
   box-shadow: inset 0 0 0 0.5px var(--sq-edge);
+}
+
+/* squares that only fill out the first week take their place and are not drawn */
+.year i[data-pad] {
+  visibility: hidden;
 }
 
 .year i[data-level="1"] {

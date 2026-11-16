@@ -15,7 +15,8 @@
 //   exams       Every exam with its total, sections, date and change; the exams left; Start. This
 //               page has no trend: a count of exams over time says nothing.
 //   pace        By outcome: pace on right answers and on missed ones. Slowest skills: the ten slowest.
-//   days        Past year: a grid of small squares. Streaks, and the best weekday.
+//   days        Past 100 days, then Past 200 days, then Past year, as the student goes on: a grid of
+//               squares. Streaks, and the best weekday.
 // Every mark is the Library's one green. Every figure is a stand-in (progressBreakdowns.ts).
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { Pips, ringOf, tally } from "./Library";
@@ -26,6 +27,7 @@ import {
   byDomain,
   byMode,
   byWeekday,
+  daysShown,
   examRows,
   examsInPlan,
   longestStreak,
@@ -45,15 +47,16 @@ import { clock, minSec, type StatKey } from "./progressStats";
 import { LEVELS, SECTIONS } from "./skills72";
 
 /** The panes each number's page has, in order. On a phone each is a page of its own. */
-export const PANES: Record<StatKey, string[]> = {
-  time: ["By domain", "By weekday"],
-  questions: ["By domain", "By mode", "Missed most"],
-  skills: ["Sections", "Recent gains", "Recent slips"],
-  exams: ["Exams"],
-  pace: ["By outcome", "Slowest skills"],
-  accuracy: [],
-  days: ["Past year", "Streaks"],
-};
+export const panesOf = (stat: StatKey, student: Student): string[] =>
+  ({
+    time: ["By domain", "By weekday"],
+    questions: ["By domain", "By mode", "Missed most"],
+    skills: ["Sections", "Recent gains", "Recent slips"],
+    exams: ["Exams"],
+    pace: ["By outcome", "Slowest skills"],
+    accuracy: [],
+    days: [daysShown(student).title, "Streaks"],
+  })[stat];
 
 /** On a phone, the one pane to draw; with room, none is named and all are drawn. */
 export const Only = createContext<string | null>(null);
@@ -405,23 +408,36 @@ export default function Details({
     );
   }
 
-  // days practiced: the last year, a column a week, today at the foot of the last column
-  const lastColumn = dateOf(student, to).getDay();
-  const cells = Array.from({ length: 52 * 7 + lastColumn + 1 }, (_, i) => {
-    const day = to - (52 * 7 + lastColumn - i);
-    const done = day < 0 ? -1 : logs[day].questions;
-    return done < 0 ? -1 : done === 0 ? 0 : done <= 18 ? 1 : done <= 36 ? 2 : 3;
-  });
+  // days practiced: the last 100 days, 200 days or year, a column a week, today the last square
+  const shownDays = daysShown(student);
+  const firstDay = to - (shownDays.many - 1);
+  // squares before the first day only fill out its week, so the columns line up; they are not drawn
+  const lead = new Date(dateOf(student, to).getTime() - (shownDays.many - 1) * 86_400_000).getDay();
+  const cells = [
+    ...Array.from({ length: lead }, () => -2),
+    ...Array.from({ length: shownDays.many }, (_, i) => {
+      const day = firstDay + i;
+      const done = day < 0 ? -1 : logs[day].questions;
+      return done < 0 ? -1 : done === 0 ? 0 : done <= 18 ? 1 : done <= 36 ? 2 : 3;
+    }),
+  ];
+  const columns = Math.ceil(cells.length / 7);
   const best = [...weekdays].sort((a, b) => b.practiced - a.practiced)[0];
   return (
     <>
-      <Pane title="Past year">
-        <div className={styles.year} role="img" aria-label={`${book.days[to]} days practiced`}>
+      <Pane title={shownDays.title}>
+        <div
+          className={styles.year}
+          style={{ maxWidth: columns * 30 } as CSSProperties}
+          role="img"
+          aria-label={`${book.days[to]} days practiced`}
+        >
           {cells.map((level, i) => (
             <i
               key={i}
               data-level={level < 0 ? undefined : level}
-              data-out={level < 0 || undefined}
+              data-out={level === -1 || undefined}
+              data-pad={level === -2 || undefined}
             />
           ))}
         </div>

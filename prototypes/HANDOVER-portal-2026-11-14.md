@@ -656,3 +656,17 @@ stand-in figures in `progressBreakdowns.ts`). On a phone they are two pages, Tre
 - **Days practiced:** its right-hand panes keep their own height; they do not stretch to the trend.
 - **Phone: no scrolling.** A number's page has a button for the trend and one for each pane (up to
   four), and every one fits the screen. Measured: none scrolls.
+
+**Progress step 3 built (2026-11-16), awaiting his verdict.** He closed step 2 with two last changes
+and said to move on.
+- **Days practiced grid grows with the student:** "Past 100 days" until they pass 100 days, then
+  "Past 200 days", then "Past year" (`daysShown` in `progressBreakdowns.ts`).
+- **Exams taken is the last of the six numbers** on the left.
+- **Step 3, the three weakest skills** (`Weakest` in `ProgressActivity.tsx`): one row under the
+  three panes, titled "Weakest skills". Each skill has its name (which opens it in the Library), why
+  it is here ("38% right"), and a "Start skill set" button. A student with under two weeks or under
+  150 questions gets three not-started skills, marked "Not started". Weakness is skills only; pacing
+  is its own number. On a phone it is a fourth page, Skills. The choice of skills is a stand-in: his
+  rule is least practice and exposure combined with accuracy.
+- Next: step 4, History on its own page behind a link (sessions, then one session's questions, with
+  all, correct and missed; bookmarks; a flag icon on flagged rows). Then the new-student page.

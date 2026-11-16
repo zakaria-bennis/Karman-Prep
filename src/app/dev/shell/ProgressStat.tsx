@@ -17,7 +17,7 @@ import lib from "./library.module.css";
 import styles from "./progress.module.css";
 import { PACE_GOAL, PACE_PARTS, paceOf, type Found, type PacePart } from "./progressBreakdowns";
 import { dateOf, long, short, type DayLog, type Student } from "./progressData";
-import Details, { Only, PANES } from "./ProgressDetails";
+import Details, { Only, panesOf } from "./ProgressDetails";
 import page from "./progressDetails.module.css";
 import { Graph, Spans, niceMarks, spanFor, type SpanKey } from "./ProgressGraph";
 import { STATS, ledger, minSec, wayOf, type StatKey } from "./progressStats";
@@ -67,7 +67,7 @@ export default function ProgressStat({
   const over = goal === null ? 0 : series[day] - goal;
   // a count of exams over time says nothing, so that page is its list alone, across the whole page
   const lone = key === "exams";
-  const pages = ["Trend", ...PANES[key]];
+  const pages = ["Trend", ...panesOf(key, student)];
   const swap = (go: () => void) => {
     go();
     setAt(null);

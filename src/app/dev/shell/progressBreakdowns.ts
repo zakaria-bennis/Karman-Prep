@@ -167,6 +167,24 @@ export function byWeekday(
   return out;
 }
 
+/** How far back the grid of days practiced reaches: 100 days until the student has more than that,
+ *  then 200, then a year (founder, 2026-11-16). The title says which. */
+export const daysShown = (student: Student) =>
+  student.days <= 100
+    ? { many: 100, title: "Past 100 days" }
+    : student.days <= 200
+      ? { many: 200, title: "Past 200 days" }
+      : { many: 365, title: "Past year" };
+
+/** The three skills to work on first: the ones seen least and missed most. With too little practice
+ *  to tell, three skills not started yet. Each says why it is here. */
+export function weakest(student: Student, logs: DayLog[]) {
+  const answered = logs.reduce((n, l) => n + l.questions, 0);
+  return student.days < 14 || answered < 150
+    ? atLevel(0, 3).map((f) => ({ ...f, why: "Not started" }))
+    : atLevel(1, 3).map((f, i) => ({ ...f, why: `${[38, 44, 51][i]}% right` }));
+}
+
 /** The longest run of days in a row with the Daily 10, anywhere in the log. */
 export function longestStreak(logs: DayLog[]): number {
   let best = 0;

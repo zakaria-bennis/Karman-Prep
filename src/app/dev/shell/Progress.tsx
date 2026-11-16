@@ -5,14 +5,16 @@
 //   1. The predicted score, first and centered (ProgressScore.tsx).
 //   2. The seven numbers, each opening its own page (ProgressStat.tsx), and the calendar with its
 //      streak (ProgressActivity.tsx).
-//   Still to come: the three weakest skills and pacing, the history page, the new-student page.
+//   3. The three weakest skills, each with Start skill set, in a row under them. Pacing is one of
+//      the numbers.
+//   Still to come: the history page, the new-student page.
 // With room, the score stands in the middle with the numbers at its left and the calendar at its
 // right, all on one screen. On a phone nothing scrolls: each piece is its own page, with buttons.
 import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import styles from "./progress.module.css";
-import { Calendar, Stats } from "./ProgressActivity";
+import { Calendar, Stats, Weakest } from "./ProgressActivity";
 import { STUDENTS, activity, type Student, type StudentKey } from "./progressData";
 import ProgressStat from "./ProgressStat";
 import type { StatKey } from "./progressStats";
@@ -22,7 +24,7 @@ import { tick } from "./sound";
 
 export { STUDENTS, type StudentKey };
 
-const PAGES = ["Score", "Activity", "Calendar"] as const;
+const PAGES = ["Score", "Activity", "Calendar", "Skills"] as const;
 
 export default function Progress({
   rail,
@@ -92,6 +94,7 @@ export default function Progress({
         <Stats key={`stats ${key}`} student={student} logs={logs} onStat={onStat} />
       )}
       {show("Calendar") && <Calendar key={`calendar ${key}`} student={student} logs={logs} />}
+      {show("Skills") && <Weakest student={student} logs={logs} onSkill={onSkill} />}
     </div>
   );
 }

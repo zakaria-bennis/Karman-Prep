@@ -1,8 +1,8 @@
 "use client";
 
 // Progress, step 2 (founder, 2026-11-15 and 2026-11-16): the numbers and the calendar.
-//   Stats      six numbers in his order: time invested, questions answered, skills Proficient, exams
-//              taken, pacing, days practiced. Accuracy is inside Questions answered. Exams taken has
+//   Stats      six numbers in his order: time invested, questions answered, skills Proficient,
+//              pacing, days practiced, exams taken last. Accuracy is inside Questions answered. Exams taken has
 //              no small line. Each is a button that opens the number's own
 //              page. Each reads like a stock: what it stands at, a ticker of how far it moved over
 //              the span chosen (7 days, 30 days; none for all time), and a small line with a fading
@@ -17,8 +17,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import lib from "./library.module.css";
-import { Icon } from "./practice";
+import { GoButton, Icon } from "./practice";
 import styles from "./progressActivity.module.css";
+import { weakest, type Found } from "./progressBreakdowns";
 import { DAY, TODAY, dateOf, streak, type DayLog, type Student } from "./progressData";
 import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from "./progressStats";
 import { tick } from "./sound";
@@ -153,6 +154,35 @@ export function Stats({
             </li>
           );
         })}
+      </ul>
+    </section>
+  );
+}
+
+/** Progress, step 3: the three skills to work on first, each with the one button that starts on it.
+ *  Weakness is skills only; pacing is its own number. The skill's name opens it in the Library. */
+export function Weakest({
+  student,
+  logs,
+  onSkill,
+}: {
+  student: Student;
+  logs: DayLog[];
+  onSkill: (found: Found) => void;
+}) {
+  return (
+    <section className={`${lib.glass} ${styles.weakest}`} aria-label="Weakest skills">
+      <h2>Weakest skills</h2>
+      <ul>
+        {weakest(student, logs).map((found) => (
+          <li key={found.skill.name}>
+            <button type="button" className={styles.weak} onClick={() => onSkill(found)}>
+              <span>{found.skill.name}</span>
+              <small>{found.why}</small>
+            </button>
+            <GoButton label={`Start skill set: ${found.skill.name}`}>Start skill set</GoButton>
+          </li>
+        ))}
       </ul>
     </section>
   );
