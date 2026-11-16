@@ -117,6 +117,62 @@
   transform: scale(0.95);
 }
 
+/* turned on: the two notes dance, and little ones float up beside the words */
+.offer[data-on] {
+  align-items: center;
+}
+
+.offer[data-on] .notes {
+  animation: dance 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
+}
+
+@keyframes dance {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  35% {
+    transform: translateY(-7px) rotate(-12deg) scale(1.18);
+  }
+
+  70% {
+    transform: translateY(1px) rotate(9deg) scale(0.96);
+  }
+}
+
+.rise {
+  position: absolute;
+  right: 28px;
+  bottom: 14px;
+  display: flex;
+  gap: 10px;
+  color: #e0a326;
+  font-size: 18px;
+}
+
+.rise i {
+  font-style: normal;
+  opacity: 0;
+  animation: rise 1s var(--out) both;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) rotate(14deg) scale(1.1);
+  }
+}
+
 @media (hover: hover) {
   .offer .on:hover {
     background: color-mix(in srgb, var(--go) 88%, var(--ink));
@@ -137,7 +193,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .notes {
+  .notes,
+  .offer[data-on] .notes,
+  .rise i {
     animation: none;
   }
 }

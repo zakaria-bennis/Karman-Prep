@@ -1,10 +1,11 @@
 // Homework's data: a Cohort or Private student's week of work. All of it is a stand-in until
 // tutors assign real work. What is his (founder, 2026-11-16):
 //   - Homework opens on the whole week, every day laid out, with today marked.
-//   - A day is one list. Each kind of work has a color of its own, so a glance says what there is
-//     most of: Reading and Writing, Math, mixed work, pacing and strategy, and tests.
-//   - The Daily 10 is always first in a day.
-//   - The week's full-length exam is on Saturday (the only day exams start).
+//   - A day is one list. Work is Reading and Writing (fuchsia), Math (blue) or Mixed (green), and
+//     nothing else: pacing and strategy work belongs to one of the three. No key explains the colors.
+//   - The Daily 10 is first in a day, except on Saturday: the full-length exam always comes first,
+//     at the top and made much of.
+//   - Only work still to do is listed. Done work is behind a Completed button at the foot of the day.
 //   - Earlier weeks are stepped back to. Done work reads Done; missed work reads Missing for a
 //     week, then it is closed and greyed out.
 // What is mine: the names of the work, how much there is, and the class days and time.
@@ -14,8 +15,6 @@ export const KINDS = {
   rw: "Reading and Writing",
   math: "Math",
   mixed: "Mixed",
-  pace: "Pacing and strategy",
-  test: "Tests",
 } as const;
 export type Kind = keyof typeof KINDS;
 
@@ -25,6 +24,8 @@ export type Work = {
   name: string;
   /** What sort of work it is and how long: "Skill set, 8 questions". */
   what: string;
+  /** The week's full-length exam, which leads its day. */
+  exam?: boolean;
   state: "todo" | "done" | "missing" | "closed";
 };
 export type HomeworkDay = {
@@ -68,12 +69,16 @@ export function weekOf(week: number): HomeworkDay[] {
     const date = new Date(sunday.getTime() + i * DAY);
     const from = Math.round((date.getTime() - TODAY.getTime()) / DAY);
     const seed = week * 7 + i + 100;
-    const drafts: Omit<Work, "id" | "state">[] = [
-      { kind: "mixed", name: "Daily 10", what: "10 questions" },
-    ];
-    if (i === 6) {
-      drafts.push({ kind: "test", name: "Full-length exam", what: "2 hours 14 minutes" });
-    } else {
+    const drafts: Omit<Work, "id" | "state">[] = [];
+    if (i === 6)
+      drafts.push({
+        kind: "mixed",
+        name: "Full-length exam",
+        what: "2 hours 14 minutes",
+        exam: true,
+      });
+    drafts.push({ kind: "mixed", name: "Daily 10", what: "10 questions" });
+    if (i !== 6) {
       drafts.push({
         kind: "rw",
         name: RW[Math.floor(noise(seed, 1) * RW.length)],
@@ -85,18 +90,20 @@ export function weekOf(week: number): HomeworkDay[] {
         what: "Skill set, 8 questions",
       });
       if (noise(seed, 3) < 0.5)
-        drafts.push({
-          kind: noise(seed, 4) < 0.5 ? "math" : "rw",
-          name: noise(seed, 4) < 0.5 ? "Math flashcards" : "Grammar flashcards",
-          what: "Flashcards, 12 cards",
-        });
-      if (i === 2 || i === 4)
-        drafts.push({ kind: "pace", name: "Time trial", what: "Timed, 5 questions" });
-      if (i === 3) drafts.push({ kind: "pace", name: "Strategy exam", what: "12 questions" });
+        drafts.push(
+          noise(seed, 4) < 0.5
+            ? { kind: "math", name: "Math flashcards", what: "Flashcards, 12 cards" }
+            : { kind: "rw", name: "Grammar flashcards", what: "Flashcards, 12 cards" }
+        );
+      if (i === 2)
+        drafts.push({ kind: "math", name: "Math time trial", what: "Timed, 5 questions" });
+      if (i === 4)
+        drafts.push({ kind: "rw", name: "Reading time trial", what: "Timed, 5 questions" });
+      if (i === 3) drafts.push({ kind: "mixed", name: "Strategy exam", what: "12 questions" });
       if (i === 1 || i === 5)
         drafts.push({ kind: "mixed", name: "Challenge question", what: "1 question" });
       if (i === 0)
-        drafts.push({ kind: "test", name: "Exam review", what: "Go over last Saturday" });
+        drafts.push({ kind: "mixed", name: "Exam review", what: "Go over last Saturday" });
     }
     return {
       date,
@@ -108,7 +115,7 @@ export function weekOf(week: number): HomeworkDay[] {
           from > 0
             ? "todo"
             : from === 0
-              ? n === 0
+              ? n < 2
                 ? "done"
                 : "todo"
               : !missed

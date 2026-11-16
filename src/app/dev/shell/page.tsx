@@ -589,8 +589,8 @@ function Shell() {
         )}
       </main>
 
-      {/* at night, the offer of classical music comes in at the top right (MusicOffer.tsx) */}
-      <MusicOffer key={offer} night={dark} />
+      {/* after 8 PM the offer of classical music comes in at the top right (MusicOffer.tsx) */}
+      <MusicOffer key={offer} force={offer > 0} />
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
@@ -634,18 +634,16 @@ function Shell() {
               Night
             </button>
           )}
-          {/* forgets what was answered, so the night offer of music can be seen again */}
-          {dark && (
-            <button
-              type="button"
-              onClick={() => {
-                forgetMusic();
-                setOffer(offer + 1);
-              }}
-            >
-              Offer music
-            </button>
-          )}
+          {/* shows the late-night offer of music now, whatever the hour and whatever was answered */}
+          <button
+            type="button"
+            onClick={() => {
+              forgetMusic();
+              setOffer(offer + 1);
+            }}
+          >
+            Offer music
+          </button>
         </div>
       )}
     </div>

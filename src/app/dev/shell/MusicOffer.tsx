@@ -1,8 +1,10 @@
 "use client";
 
 // The offer of classical music on late nights (founder, 2026-11-16): tired students focus better
-// with it, so at night a small friendly banner comes in at the top right and offers to turn it on.
-//   It gives one choice, "Turn it on", and a cross to send it away. Left alone, it leaves by itself.
+// with it, so after 8 PM a small friendly banner comes in at the top right and offers to turn it on.
+//   It gives one choice, "Turn it on", and a cross to send it away. Left alone for about six
+//   seconds, it leaves by itself. Turned on, its notes dance for a moment and it slides away to
+//   the right, as it does whenever it leaves.
 //   Sent away twice in a row, it is never shown again. Turning it on clears that count.
 //   Music can be turned off in Settings; the banner says so.
 // What is remembered is kept in this browser for now (it will move to the student's settings).
@@ -17,7 +19,14 @@ const KEY = "kp-music";
 const REFUSALS = 2;
 /** How long it waits before coming in, and how long it stays if nothing is pressed. */
 const WAIT = 1600;
-const STAY = 16000;
+const STAY = 6000;
+/** How long the notes dance once music is turned on, before the banner slides away. */
+const DANCE = 1300;
+/** It is offered from 8 PM until the small hours. */
+const late = () => {
+  const hour = new Date().getHours();
+  return hour >= 20 || hour < 4;
+};
 
 type Memory = { on: boolean; refused: number };
 const read = (): Memory => {
@@ -38,28 +47,28 @@ const keep = (memory: Memory) => {
 /** Forgets everything, so the offer can be seen again while the page is being designed. */
 export const forgetMusic = () => keep({ on: false, refused: 0 });
 
-export default function MusicOffer({ night }: { night: boolean }) {
+export default function MusicOffer({ force = false }: { force?: boolean }) {
   const still = useReducedMotion() ?? false;
   const [stage, setStage] = useState<"away" | "asking" | "on">("away");
   const [held, setHeld] = useState(false);
 
-  // at night, once, a moment after the page has settled: unless music is on or it was refused twice
+  // after 8 PM, once, a moment after the page has settled: unless music is on or it was refused
+  // twice. (`force` shows it at any hour, for looking at it while the page is being designed.)
   useEffect(() => {
-    if (!night) return;
     const memory = read();
-    if (memory.on || memory.refused >= REFUSALS) return;
+    if (!force && (!late() || memory.on || memory.refused >= REFUSALS)) return;
     const timer = window.setTimeout(() => setStage("asking"), WAIT);
     return () => {
       window.clearTimeout(timer);
       setStage("away");
     };
-  }, [night]);
+  }, [force]);
 
   // it gets out of the way by itself: left alone it leaves (which is not a refusal), and once
   // music is on it says so for a moment and goes. Pointing at it or tabbing into it holds it.
   useEffect(() => {
     if (stage === "away" || (held && stage === "asking")) return;
-    const timer = window.setTimeout(() => setStage("away"), stage === "on" ? 3200 : STAY);
+    const timer = window.setTimeout(() => setStage("away"), stage === "on" ? DANCE : STAY);
     return () => window.clearTimeout(timer);
   }, [stage, held]);
 
@@ -90,10 +99,15 @@ export default function MusicOffer({ night }: { night: boolean }) {
           className={styles.offer}
           role="status"
           aria-label="Classical music"
-          // it comes in from the corner it sits in, and leaves the way it came
-          initial={still ? { opacity: 0 } : { opacity: 0, x: 40, scale: 0.96 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={still ? { opacity: 0 } : { opacity: 0, x: 40, scale: 0.96 }}
+          data-on={stage === "on" || undefined}
+          // it comes in from the right and always leaves by sliding back out to the right, quickly
+          initial={still ? { opacity: 0 } : { opacity: 0, x: "110%" }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={
+            still
+              ? { opacity: 0 }
+              : { opacity: 0, x: "115%", transition: { duration: 0.32, ease: [0.5, 0, 0.9, 0.4] } }
+          }
           transition={still ? { duration: 0.2 } : { type: "spring", stiffness: 380, damping: 32 }}
           onPointerEnter={() => setHeld(true)}
           onPointerLeave={() => setHeld(false)}
@@ -117,7 +131,10 @@ export default function MusicOffer({ night }: { night: boolean }) {
             <>
               <div className={styles.words}>
                 <b>Studying late?</b>
-                <p>Classical music can help you focus. You can turn it off in Settings.</p>
+                <p>
+                  Studies show classical music can help you stay focused on late nights. You can
+                  turn it off in Settings.
+                </p>
                 <button type="button" className={styles.on} onClick={accept}>
                   Turn it on
                 </button>
@@ -136,7 +153,14 @@ export default function MusicOffer({ night }: { night: boolean }) {
           ) : (
             <div className={styles.words}>
               <b>Music is on</b>
-              <p>Turn it off any time in Settings.</p>
+              {/* little notes float up from the banner as it says so */}
+              <span className={styles.rise} aria-hidden="true">
+                {[0, 1, 2].map((n) => (
+                  <i key={n} style={{ animationDelay: `${n * 0.16}s` }}>
+                    ♪
+                  </i>
+                ))}
+              </span>
             </div>
           )}
         </motion.aside>

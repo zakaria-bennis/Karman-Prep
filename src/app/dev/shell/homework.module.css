@@ -1,15 +1,23 @@
 /*
  * Homework (Homework.tsx). Glass, corners and text sizes come from library.module.css, set on
- * .library. Each kind of work has a color of its own, the same in the band, the key, a phone's marks
- * and the work itself. (The shell clears every button's font and background, so a button with its own
- * is named through the page: .homework .work.)
+ * .library. A piece of work is shaded glass laid on the day's glass, in its subject's color:
+ * fuchsia for Reading and Writing, blue for Math, green for Mixed. The colors are as bright by night
+ * as by day. (The shell clears every button's font and background, so a button with its own is named
+ * through the page: .homework .work.)
  */
 .homework {
-  --rw: #3f86e0;
-  --math: #8f5fd6;
-  --mixed: #1ea896;
-  --pace: #e39a1b;
-  --test: #e2476a;
+  --rw: #e0218a;
+  --math: #2f7fe6;
+  --mixed: #22a35a;
+  --shade: 36%;
+}
+
+/* by night the colors are lighter and laid on thicker, so they glow and do not turn to mud */
+:global([data-kp-mode="dark"]) .homework {
+  --rw: #ff4fa8;
+  --math: #4f9dff;
+  --mixed: #3fd07c;
+  --shade: 46%;
 }
 
 .homework [data-kind="rw"] {
@@ -24,51 +32,31 @@
   --kind: var(--mixed);
 }
 
-.homework [data-kind="pace"] {
-  --kind: var(--pace);
-}
-
-.homework [data-kind="test"] {
-  --kind: var(--test);
-}
-
-/* ---- the week's name, its arrows, and what it is made of ---- */
+/* ---- the week and its arrows ---- */
 .top {
-  display: grid;
-  gap: 12px;
-  padding: calc(var(--pad) + 6px);
-}
-
-.top header {
   display: flex;
   align-items: center;
+  justify-self: start;
   gap: 4px;
+  padding: 4px;
 }
 
 .top h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
+  justify-content: center;
   gap: 2px 10px;
+  min-width: 250px;
   padding: 0 6px;
+  font-size: 16px;
+  text-align: center;
 }
 
 .top h2 small {
   font-size: 13px;
   font-weight: 500;
   opacity: 0.8;
-}
-
-.top .far {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.far b {
-  font-size: 16px;
-  font-weight: 600;
 }
 
 .homework .arrow {
@@ -84,7 +72,8 @@
 }
 
 .arrow svg,
-.work svg {
+.work svg,
+.completed svg {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -101,65 +90,25 @@
   transform: scale(0.94);
 }
 
-.band {
-  display: flex;
-  gap: 3px;
-  height: 12px;
-}
-
-.band i {
-  flex: 1 1 0;
-  border-radius: 4px;
-  background: var(--kind);
-}
-
-.key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.key li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.key i {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  background: var(--kind);
-}
-
-.key b {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---- the days ---- */
+/* ---- the days: side by side, all one height ---- */
 .week {
   display: grid;
   grid-template-columns: repeat(var(--days), minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: 8px;
 }
 
 .day {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   min-width: 0;
   padding: var(--pad);
 }
 
-/* today is glass laid on glass, with an edge in ink */
+/* today is a little more glass than the days beside it: no line round it */
 .day[data-today] {
-  box-shadow:
-    var(--lift),
-    inset 0 0 0 2px var(--ink);
+  background: linear-gradient(var(--lens), var(--lens)), var(--glass);
 }
 
 .day header {
@@ -167,6 +116,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  min-height: 24px;
   padding: 2px 4px;
 }
 
@@ -177,8 +127,9 @@
 }
 
 .day header span {
-  font: 400 20px/1 var(--font-serif);
-  font-variant-numeric: lining-nums;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
 }
 
 .class {
@@ -192,22 +143,30 @@
 .day ul {
   display: grid;
   gap: 6px;
+  overflow: hidden;
 }
 
-/* a piece of work: tinted with its kind's color, and a solid edge of it at the left */
+.clear {
+  padding: 16px 4px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* a piece of work: glass shaded with its subject's color, on the day's glass */
 .homework .work {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  min-height: 56px;
-  padding: 8px 10px 8px 14px;
+  min-height: 60px;
+  padding: 8px 12px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--kind) 24%, var(--lens));
+  background: color-mix(in srgb, var(--kind) var(--shade), transparent);
   box-shadow:
-    inset 4px 0 0 var(--kind),
-    inset 0 0 0 1px color-mix(in srgb, var(--kind) 45%, var(--lens-edge));
+    inset 0 0 0 1px color-mix(in srgb, var(--kind) 55%, transparent),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.22);
   text-align: left;
   transition:
     background 0.2s var(--out),
@@ -230,7 +189,6 @@
   font-size: 13px;
   font-weight: 500;
   line-height: 1.25;
-  opacity: 0.85;
 }
 
 .work svg {
@@ -245,13 +203,40 @@
   font-weight: 600;
 }
 
-/* done work steps back; closed work is grey and cannot be opened */
-.homework .work[data-state="done"] {
-  background: color-mix(in srgb, var(--kind) 10%, var(--hover));
+/* the exam leads its day and is made much of: tall, in gold, with a slow band of light across it */
+.homework .work[data-exam] {
+  min-height: 128px;
+  align-items: flex-end;
+  padding: 14px;
+  background:
+    linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.55) 50%, transparent 60%) 120% 0 /
+      300% 100% no-repeat,
+    linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
+  box-shadow:
+    0 10px 24px -12px rgb(190 120 0 / 0.8),
+    inset 0 0 0 1px #a66f00,
+    inset 0 1px 0 1px rgb(255 255 255 / 0.6);
+  color: #3a2500;
+  animation: gleam 4.5s var(--out) infinite;
 }
 
-.work[data-state="done"] b {
-  font-weight: 500;
+.work[data-exam] b {
+  font: 400 22px/1.1 var(--font-serif);
+}
+
+@keyframes gleam {
+  0%,
+  55% {
+    background-position:
+      120% 0,
+      0 0;
+  }
+
+  100% {
+    background-position:
+      -60% 0,
+      0 0;
+  }
 }
 
 .homework .work[data-state="closed"] {
@@ -264,13 +249,56 @@
   transform: scale(0.98);
 }
 
+/* ---- at the foot of the day, inside its glass: what has been done ---- */
+.done {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.homework .completed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s var(--out);
+}
+
+.completed b {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.completed svg {
+  transition: transform 0.3s var(--out);
+}
+
+.completed[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
 @media (hover: hover) {
-  .homework .arrow:hover:not(:disabled) {
+  .homework .arrow:hover:not(:disabled),
+  .homework .completed:hover {
     background: var(--hover);
   }
 
-  .homework .work:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--kind) 34%, var(--lens));
+  .homework .work:hover:not(:disabled):not([data-exam]) {
+    background: color-mix(in srgb, var(--kind) calc(var(--shade) + 12%), transparent);
+  }
+}
+
+/* with room, the days reach down the screen together */
+@media (min-width: 960px) and (hover: hover) {
+  .week {
+    min-height: calc(100dvh - 160px);
   }
 }
 
@@ -288,8 +316,7 @@
   justify-items: center;
   align-content: start;
   gap: 2px;
-  min-height: 76px;
-  padding: 8px 0 6px;
+  padding: 8px 0;
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
@@ -305,55 +332,41 @@
   font-variant-numeric: lining-nums;
 }
 
-.strip button[data-today] b {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
+/* three rows, always in the same place: Reading and Writing, Math, Mixed */
+.strip .marks {
+  display: grid;
+  grid-template-rows: repeat(3, 6px);
+  gap: 3px;
+  margin-top: 6px;
 }
 
-.marks {
+.marks > span {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 2px;
-  max-width: 34px;
-  margin-top: 4px;
+  gap: 3px;
+  height: 6px;
 }
 
 .marks i {
   width: 6px;
   height: 6px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--kind);
-}
-
-.marks i[data-state="done"] {
-  opacity: 0.4;
 }
 
 @media (max-width: 959px) {
   .top {
-    gap: 10px;
-    padding: var(--pad);
-  }
-
-  .top header {
-    flex-wrap: wrap;
+    justify-self: stretch;
+    justify-content: space-between;
   }
 
   .top h2 {
-    flex: 1 1 0;
-    justify-content: center;
-    font-size: 16px;
-    text-align: center;
+    min-width: 0;
   }
+}
 
-  .far {
-    flex: 1 1 100%;
-    text-align: center;
-  }
-
-  .key {
-    gap: 4px 12px;
+@media (prefers-reduced-motion: reduce) {
+  .homework .work[data-exam] {
+    animation: none;
   }
 }

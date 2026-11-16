@@ -929,3 +929,12 @@ Saturday; Done, Missing and Closed states. On a phone: a strip of seven days and
 All the work is made up. Pressing work leads nowhere yet. **Not done:** on Cohort and Private phones he
 wants the Mistake Log and Rewards under More, and there is no More page yet. Next after his verdict:
 Class (next class and Join, the nine weeks, workshops, tutor and attendance), then Schedule, then Chat.
+
+**Homework, second version (same day), after his verdict.** Three colors only (Reading and Writing
+fuchsia, Math blue, Mixed green), no key, no bar, no done count. Work is shaded glass on the day's
+glass, as bright by night as by day. The exam leads Saturday as a tall gold card. A day lists only what
+is left; a Completed button at its foot opens done work. Columns are one height on desktop. The phone
+strip shows dots in three fixed rows. **Music banner:** offered only from 8 PM (real clock), leaves by
+itself after 6 seconds, and after "Turn it on" its notes dance and it slides out to the right. The demo
+bar's "Offer music" shows it at any hour. Its line says "Studies show..." at his request; the research
+on this is mixed, and he has been told.
