@@ -23,7 +23,9 @@
   --halo: rgb(255 250 240 / 0.85);
   --on-ink: #fffdf8;
   --lift: 0 18px 44px -18px rgb(24 28 58 / 0.5), 0 2px 8px rgb(24 28 58 / 0.1);
-  --frost: blur(22px) saturate(1.7) brightness(1.06);
+  /* how frosted the glass is: 1 is the first setting, 0 is clear. The dial in the demo bar sets it. */
+  --frost-k: 0.7;
+  --frost: blur(calc(22px * var(--frost-k))) saturate(1.7) brightness(1.06);
   --out: cubic-bezier(0.16, 1, 0.3, 1);
   --pad: 12px;
   --cell: 48px;
@@ -47,7 +49,7 @@
   --halo: rgb(8 10 24 / 0.8);
   --on-ink: #171a2a;
   --lift: 0 18px 44px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.3);
-  --frost: blur(22px) saturate(1.5) brightness(0.9);
+  --frost: blur(calc(22px * var(--frost-k))) saturate(1.5) brightness(0.9);
 }
 
 .shell *,
@@ -114,7 +116,7 @@
   border-radius: calc(var(--r-lens) + var(--pad));
   /* the page scrolls under the bar, so the bar is thicker glass than the pieces beneath it */
   --glass: rgb(255 251 244 / 0.66);
-  --frost: blur(30px) saturate(1.7) brightness(1.06);
+  --frost: blur(calc(30px * var(--frost-k))) saturate(1.7) brightness(1.06);
   animation: settle 0.7s var(--out) both;
 }
 
@@ -346,6 +348,19 @@
   height: 0;
 }
 
+.demo label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font-weight: 600;
+}
+
+.demo input[type="range"] {
+  width: 120px;
+  accent-color: var(--ink);
+}
+
 .demo button {
   height: 32px;
   padding: 0 12px;
@@ -425,7 +440,7 @@
     margin: 0;
     overflow: hidden;
     --glass: rgb(255 251 244 / 0.44);
-    --frost: blur(22px) saturate(1.7) brightness(1.06);
+    --frost: blur(calc(22px * var(--frost-k))) saturate(1.7) brightness(1.06);
   }
 
   /* brand, rows and profile are all one --cell tall, so the top and the bottom of the rail match */
@@ -567,18 +582,18 @@
 
   .shell[data-mode="dark"] .nav:not([data-open]) {
     --glass: rgb(14 16 34 / 0.46);
-    --frost: blur(22px) saturate(1.5) brightness(0.9);
+    --frost: blur(calc(22px * var(--frost-k))) saturate(1.5) brightness(0.9);
   }
 
   /* opened over the page, the rail is thicker glass, so nothing under it shows through as clutter */
   .nav[data-open] {
     --glass: rgb(255 251 244 / 0.74);
-    --frost: blur(30px) saturate(1.7) brightness(1.06);
+    --frost: blur(calc(30px * var(--frost-k))) saturate(1.7) brightness(1.06);
   }
 
   .shell[data-mode="dark"] .nav[data-open] {
     --glass: rgb(14 16 34 / 0.74);
-    --frost: blur(30px) saturate(1.5) brightness(0.9);
+    --frost: blur(calc(30px * var(--frost-k))) saturate(1.5) brightness(0.9);
   }
 
   .demo {
@@ -591,7 +606,7 @@
 
 .shell[data-mode="dark"] .nav {
   --glass: rgb(14 16 34 / 0.68);
-  --frost: blur(30px) saturate(1.5) brightness(0.9);
+  --frost: blur(calc(30px * var(--frost-k))) saturate(1.5) brightness(0.9);
 }
 
 @media (prefers-reduced-transparency: reduce) {

@@ -29,7 +29,7 @@
   border-radius: inherit;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 0.6s var(--out);
+  transition: opacity 0.25s var(--out);
 }
 
 .hero[data-ready] .canvas {
@@ -48,6 +48,24 @@
 }
 
 /* the page's name is part of the scene, on the dusk sky */
+/* the name and the two signs come up with the scene, not before it */
+.heading,
+.plaque {
+  opacity: 0;
+}
+
+.hero[data-ready] .heading,
+.hero[data-ready] .plaque {
+  opacity: 1;
+  transition: opacity 0.4s var(--out) 0.3s;
+}
+
+.hero[data-ready][data-leaving] .heading,
+.hero[data-ready][data-leaving] .plaque {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
 .heading {
   position: absolute;
   z-index: 1;

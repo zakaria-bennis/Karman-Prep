@@ -24,6 +24,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import "@/components/portal/portal.css";
@@ -123,6 +124,23 @@ function Shell() {
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
+  /* how frosted the glass is; the dial remembers its setting on this computer */
+  const [frost, setFrost] = useState(0.7);
+  useEffect(() => {
+    try {
+      const saved = Number(localStorage.getItem("kp-frost"));
+      if (saved || localStorage.getItem("kp-frost") === "0") setFrost(saved);
+    } catch {
+      /* no storage: the default stands */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("kp-frost", String(frost));
+    } catch {
+      /* no storage */
+    }
+  }, [frost]);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
   // `domain` holds a domain's name or, from the key beside the ring, a level's name
@@ -274,6 +292,7 @@ function Shell() {
     <div
       className={`kp-shell ${portalFontVars} ${styles.shell}`}
       data-mode={dark ? "dark" : "light"}
+      style={{ "--frost-k": frost } as CSSProperties}
     >
       <PortalFlight world={world} />
 
@@ -505,6 +524,19 @@ function Shell() {
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
+          <label>
+            Frost
+            <input
+              type="range"
+              min={0}
+              max={1.6}
+              step={0.05}
+              value={frost}
+              aria-valuetext={`${Math.round(frost * 100)} percent`}
+              onChange={(e) => setFrost(Number(e.target.value))}
+            />
+            {Math.round(frost * 100)}%
+          </label>
           <button type="button" aria-pressed={sound} onClick={() => setSoundOn(!sound)}>
             Sound
           </button>

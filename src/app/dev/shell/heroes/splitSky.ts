@@ -641,9 +641,9 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
   if (!stage.still)
     gsap
       .timeline()
-      .to(uniforms.uLine, { value: 1, duration: 0.5, ease: "power2.inOut" })
-      .to(uniforms.uReveal, { value: 1, duration: 1.1, ease: "power2.inOut" }, 0.4)
-      .to(shared.uFade, { value: 1, duration: 0.8, ease: "power1.out" }, 0.9);
+      .to(uniforms.uLine, { value: 1, duration: 0.22, ease: "power2.out" })
+      .to(uniforms.uReveal, { value: 1, duration: 0.6, ease: "power3.out" }, 0.12)
+      .to(shared.uFade, { value: 1, duration: 0.45, ease: "power1.out" }, 0.35);
   const book = buildBook(stage, reading);
   stage.stations[0].add(book.root);
 

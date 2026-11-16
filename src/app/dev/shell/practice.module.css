@@ -145,6 +145,28 @@
   transform: rotate(calc(var(--n) * 7deg));
 }
 
+.tile [data-a="wind"] {
+  transform-box: fill-box;
+  animation: wind 0.7s linear infinite;
+  animation-delay: var(--lag);
+}
+
+@keyframes wind {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(-70px);
+    opacity: 0;
+  }
+}
+
 .tile [data-a="tongue"] {
   transform-box: view-box;
   animation: tongue 0.34s ease-in-out infinite alternate;

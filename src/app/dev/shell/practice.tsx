@@ -181,7 +181,7 @@ const TINTS: Partial<Record<IconName, string>> = {
 /** The home page's racing stopwatch, flames streaming off its back, made small. */
 function TrialWatch({ size }: { size: number }) {
   return (
-    <svg viewBox="-90 -34 300 300" width={size} height={size} aria-hidden="true" focusable="false">
+    <svg viewBox="-52 -54 340 340" width={size} height={size} aria-hidden="true" focusable="false">
       <defs>
         {[
           ["kp-fire-a", "#c81e0e", "#ff5a1a"],
@@ -198,12 +198,12 @@ function TrialWatch({ size }: { size: number }) {
       {/* the fire behind the watch: tongues that taper to a point, long and red outside, short and
           pale at the heart, each flickering in its own time */}
       <g data-a="fire">
-        {[-78, -58, -38, -19, 0, 19, 38, 58, 78].flatMap((turn, n) =>
+        {[-40, -30, -20, -10, 0, 10, 20, 30, 40].flatMap((turn, n) =>
           (
             [
-              ["a", 132 - Math.abs(turn) * 0.75, 30],
-              ["b", 96 - Math.abs(turn) * 0.6, 22],
-              ["c", 58 - Math.abs(turn) * 0.4, 13],
+              ["a", 100 - Math.abs(turn) * 0.9, 28],
+              ["b", 74 - Math.abs(turn) * 0.7, 21],
+              ["c", 46 - Math.abs(turn) * 0.45, 13],
             ] as const
           ).map(([tone, long, wide], layer) => (
             <path
@@ -221,6 +221,23 @@ function TrialWatch({ size }: { size: number }) {
             />
           ))
         )}
+      </g>
+      {/* wind: streaks that rush past to the left, so the watch reads as flying to the right */}
+      <g stroke="currentColor" strokeWidth="9" strokeLinecap="round" opacity="0.8">
+        {[
+          [140, -22, 70],
+          [222, 34, 46],
+          [228, 198, 50],
+          [140, 254, 76],
+          [240, 116, 34],
+        ].map(([x, y, long], i) => (
+          <path
+            key={i}
+            data-a="wind"
+            style={{ "--lag": `${i * 0.13}s` } as CSSProperties}
+            d={`M${x} ${y}h${long}`}
+          />
+        ))}
       </g>
       <g fill="currentColor">
         <rect x="110" y="20" width="16" height="18" rx="4" />

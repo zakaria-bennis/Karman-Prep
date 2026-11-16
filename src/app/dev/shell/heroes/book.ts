@@ -13,7 +13,7 @@ const T = 0.2;
 const OPEN = 0.24;
 const SEG = 18;
 /* dark enough to read from the page (founder, 2026-11-15: "somewhat readable") */
-const INK = "rgba(48, 32, 22, 0.78)";
+const INK = "rgba(34, 22, 14, 0.95)";
 
 /* The pages carry the opening of the Odyssey, Book I, in Samuel Butler's translation of 1900 (out of
    copyright), set to be read from the page, with a glow rising off it (founder, 2026-11-15).
@@ -73,7 +73,10 @@ function page(n: number, mirrored = false): THREE.CanvasTexture {
   }
   // the text runs on from page to page, and comes round again when it ends
   g.textAlign = "left";
-  g.font = "15px Georgia, 'Times New Roman', serif";
+  g.font = "600 16px Georgia, 'Times New Roman', serif";
+  // a warm glow under every word, as if the ink were lit from the page
+  g.shadowColor = "rgba(255, 176, 60, 0.9)";
+  g.shadowBlur = 7;
   let at = (n * 97) % WORDS.length;
   let line = "";
   while (y < c.height - 62) {
@@ -81,7 +84,7 @@ function page(n: number, mirrored = false): THREE.CanvasTexture {
     const next = line ? `${line} ${word}` : word;
     if (g.measureText(next).width > width && line) {
       g.fillText(line, x0, y);
-      y += 22;
+      y += 24;
       line = "";
     } else {
       line = next;
@@ -426,11 +429,10 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       x: 0.001,
       y: 0.001,
       z: 0.001,
-      duration: 1.2,
-      ease: "elastic.out(1, 0.7)",
-      delay: 0.9,
+      duration: 0.55,
+      ease: "back.out(1.4)",
+      delay: 0.3,
     });
-    gsap.from(book.rotation, { y: book.rotation.y - 1.2, duration: 1.6, ease: "power3.out" });
     gsap.to(book.position, { y: 0.09, duration: 3.1, ease: "sine.inOut", repeat: -1, yoyo: true });
   }
 

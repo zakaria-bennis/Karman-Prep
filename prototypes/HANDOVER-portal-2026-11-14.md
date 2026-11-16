@@ -435,3 +435,18 @@ Known faults and gaps:
   (`DEV_IMPERSONATE_CLERK_ID` in its `.env.local`). It is not a branch: files are copied into it by hand.
 - **A temporary Cloudflare tunnel** to the test copy may still be running, and its address is on Stripe's
   payment method domain list (live and test). Both can go.
+
+## Library, eighth round (2026-11-15)
+
+His rules from this round:
+
+- **Time trials icon.** He likes the flame look. Flames always come off the left side of the clock. The
+  clock is always optically centred in its box. Wind lines show it flying fast to the right.
+- **Opening the Library** (first open, reload, going back) must feel like one quick, joined-up move. The
+  seam, the reveal, the book and the signs now arrive together in about half a second.
+- **Library icon:** no book may ever clip into another. Checked frame by frame through the hover.
+- **Words on the book's pages:** slightly darker, with a warm glow.
+- **Frost:** a little less by default (70% of the first setting). The demo bar has a Frost dial, 0% to
+  160%, remembered on his computer (`kp-frost`). It sets `--frost-k` on the shell; every blur multiplies
+  by it. When he settles on a number, make it the default and remove the dial.
+- He said after this round he is ready to move to the next page. Ask which one; do not pick for him.
