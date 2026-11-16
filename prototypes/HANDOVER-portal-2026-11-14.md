@@ -455,3 +455,8 @@ His rules from this round:
   circumference; none may sit apart. The fire is now one shape that starts behind the watch and streams
   left, in five see-through layers from deep red to pale gold. He said that is all for the Library for
   now.
+- **Last Library changes (same day).** Each of the six "More ways to practise" buttons fills its whole
+  third of the row, so most of the 3x2 is clickable. Time trials is only a clock at rest; the fire and
+  the wind start on hover (or keyboard focus). The fire leans to the upper left, more on the top half
+  than the bottom, as if the clock were falling down and to the right. On a phone there is no hover, so
+  the fire shows only while the button is pressed or focused.

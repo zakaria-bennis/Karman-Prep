@@ -77,6 +77,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   min-height: 72px;
   padding: var(--pad) calc(var(--pad) + 6px) var(--pad) var(--pad);
   border-radius: var(--r-lens);
@@ -214,10 +215,19 @@
   animation: flick 0.5s ease-in-out infinite alternate;
 }
 
-/* under the pointer the whole fire swells a little, still about the watch's centre */
+/* at rest it is only a clock. Under the pointer the fire grows out of the rim and the wind starts. */
 .tile [data-a="roar"] {
+  transform: scale(0.4);
   transform-origin: 0 0;
-  transition: transform 0.2s var(--out);
+  opacity: 0;
+  transition:
+    transform 0.25s var(--out),
+    opacity 0.18s var(--out);
+}
+
+.tile [data-a="gust"] {
+  opacity: 0;
+  transition: opacity 0.18s var(--out);
 }
 
 :is(.mode, .task):is(:hover, :focus-within) [data-a="watch"],
@@ -226,7 +236,12 @@
 }
 
 :is(.mode, .task):is(:hover, :focus-within) [data-a="roar"] {
-  transform: scale(1.1);
+  transform: scale(1);
+  opacity: 1;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="gust"] {
+  opacity: 0.8;
 }
 
 /* the compass goes wild, settles on north, rests, and begins again */

@@ -199,7 +199,7 @@ function TrialWatch({ size }: { size: number }) {
           flame can ever sit apart from the rim. Layers go from deep red outside to pale gold at the
           heart; each fades to nothing at its tips and they show through one another, like real fire.
           Every other layer is the same shape upside down, so the tongues never line up. */}
-      <g transform="translate(118 116)">
+      <g transform="translate(118 116) rotate(32)">
         <g data-a="roar">
           {(
             [
@@ -222,7 +222,7 @@ function TrialWatch({ size }: { size: number }) {
         </g>
       </g>
       {/* wind: streaks that rush past to the left, so the watch reads as flying to the right */}
-      <g stroke="currentColor" strokeWidth="9" strokeLinecap="round" opacity="0.8">
+      <g data-a="gust" stroke="currentColor" strokeWidth="9" strokeLinecap="round">
         {[
           [140, -22, 70],
           [222, 34, 46],
