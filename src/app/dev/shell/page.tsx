@@ -35,6 +35,7 @@ import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
+import PracticePage, { MODES, ModePage, type ModeKey } from "./PracticePage";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -124,6 +125,9 @@ function Shell() {
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
+  /* the way to practise that is open in the Practice section, if any */
+  const [mode, setMode] = useState<ModeKey | null>(null);
+  const inMode = page === "practice" && mode !== null;
   /* how frosted the glass is; the dial remembers its setting on this computer */
   const [frost, setFrost] = useState(0.7);
   useEffect(() => {
@@ -353,6 +357,7 @@ function Shell() {
                   setSkill(null);
                   setSection(null);
                   setDomain(null);
+                  setMode(null);
                 }}
                 onPointerEnter={(e) => {
                   setHover(i);
@@ -457,19 +462,42 @@ function Shell() {
               {inSkill ? skill.domain : domain ? section : "Library"}
             </button>
           )}
+          {inMode && (
+            <button
+              type="button"
+              className={styles.back}
+              onClick={() => {
+                dir.current = -1;
+                setMode(null);
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M14.500 6.500L9 12l5.500 5.500" />
+              </svg>
+              Practice
+            </button>
+          )}
           {!(page === "library" && !section) && (
             <h1
               className={styles.title}
               key={
-                inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page
+                inSkill
+                  ? skill.name
+                  : inMode
+                    ? mode
+                    : page === "library" && section
+                      ? (domain ?? section)
+                      : page
               }
               data-long={(page === "library" && (inSkill || section !== null)) || undefined}
             >
               {inSkill
                 ? skill.name
-                : page === "library" && section
-                  ? (domain ?? section)
-                  : LABEL[page]}
+                : inMode
+                  ? MODES[mode].name
+                  : page === "library" && section
+                    ? (domain ?? section)
+                    : LABEL[page]}
             </h1>
           )}
         </div>
@@ -513,6 +541,32 @@ function Shell() {
                   onDomain={(name) => {
                     dir.current = 1;
                     setDomain(name);
+                    window.scrollTo({ top: 0 });
+                  }}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        )}
+        {/* Practice: choosing a way to practise slides its page in, the same way a skill does */}
+        {page === "practice" && (
+          <AnimatePresence mode="wait" initial={false} custom={dir.current}>
+            <motion.div
+              key={mode ?? "practice"}
+              custom={dir.current}
+              variants={SLIDE_OVER}
+              initial={still ? false : "from"}
+              animate="here"
+              exit={still ? undefined : "gone"}
+            >
+              {mode ? (
+                <ModePage mode={mode} />
+              ) : (
+                <PracticePage
+                  rail={rail}
+                  onMode={(next) => {
+                    dir.current = 1;
+                    setMode(next);
                     window.scrollTo({ top: 0 });
                   }}
                 />
