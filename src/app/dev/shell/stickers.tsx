@@ -92,19 +92,14 @@ const ART: Record<StickerName, ReactNode> = {
       <circle data-move="pop" cx="12" cy="15.200" r="2.100" fill={ACCENT} stroke="none" />
     </>
   ),
-  // a peak with a flag on top
+  // a line that climbs across a graph, ending on a clay point (founder, 2026-11-16: he did not like
+  // the peak with a flag)
   progress: (
     <>
-      <path d="M8.200 20.500L15.500 8l6.300 12.500z" {...WASH} />
-      <path d="M2.200 20.500l5.800-9.300 2.300 3.700" />
-      <path d="M15.500 8V2.800" />
-      <path
-        data-move="flag"
-        d="M15.500 2.800l4.200 1.600-4.200 1.600z"
-        fill={ACCENT}
-        stroke={ACCENT}
-        strokeWidth="1.200"
-      />
+      <path d="M7 15.500l3.400-3.600 3 2.400 5-6.300v11.500H7z" {...WASH} stroke="none" />
+      <path d="M4 4.500v15H20.500" />
+      <path d="M7 15.500l3.400-3.600 3 2.400 5-6.300" />
+      <circle data-move="pop" cx="18.400" cy="8" r="2" fill={ACCENT} stroke="none" />
     </>
   ),
   // a trophy
@@ -153,18 +148,27 @@ const ART: Record<StickerName, ReactNode> = {
       <circle cx="16.250" cy="17" r="2.250" {...WASH} />
     </>
   ),
-  // a bound notebook with a cross in it: the mistake log
+  // a little notepad, bound along its top, with lines of writing on it (founder, 2026-11-16: no
+  // cross). Hovered, its pages flip up over the binding, quickly, one after another.
   mistakes: (
     <>
-      <rect x="5" y="3.500" width="14.500" height="17" rx="2.200" {...WASH} />
-      <path d="M8.700 3.500v17" />
-      <path d="M3.600 8h2.800M3.600 12h2.800M3.600 16h2.800" />
-      <path
-        data-move="pop"
-        d="M11.800 9.300l4.400 4.400M16.200 9.300l-4.400 4.400"
-        stroke={ACCENT}
-        strokeWidth="1.900"
-      />
+      <rect x="5" y="5" width="14" height="15.500" rx="2" {...WASH} />
+      <path d="M8.500 3.300v3.200M12 3.300v3.200M15.500 3.300v3.200" />
+      <path d="M8 10.800h8M8 13.800h8" />
+      <path d="M8 16.800h4.500" stroke={ACCENT} />
+      {[1, 2, 3].map((n) => (
+        <rect
+          key={n}
+          data-move="page"
+          x="5"
+          y="5"
+          width="14"
+          height="15.500"
+          rx="2"
+          fill="currentColor"
+          fillOpacity="0.22"
+        />
+      ))}
     </>
   ),
   // a satchel: everything else is kept in here

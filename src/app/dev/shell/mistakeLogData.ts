@@ -228,22 +228,21 @@ export function sittingsOf(student: Student, logs: DayLog[]): Session[] {
   return out;
 }
 
-/** What the log is narrowed to: a kind of work, and a section, a domain or one skill. */
-export type Sift = {
-  mode: Mode | null;
-  section: Section | null;
-  domain: string | null;
-  skill: string | null;
-};
-export const NO_SIFT: Sift = { mode: null, section: null, domain: null, skill: null };
-export const sifted = (sift: Sift) => Object.values(sift).some((v) => v !== null);
+/** What the log is narrowed to. Each list may hold several choices, and an empty list means all of
+ *  them (founder, 2026-11-16: "you should be able to select multiple, so I can look at my mistakes on
+ *  daily 10 and skill sets if I want"). Domains and skills add to one another: a question fits if it
+ *  is in any chosen domain or is any chosen skill. */
+export type Sift = { modes: Mode[]; domains: string[]; skills: string[] };
+export const NO_SIFT: Sift = { modes: [], domains: [], skills: [] };
+export const sifted = (sift: Sift) =>
+  sift.modes.length + sift.domains.length + sift.skills.length > 0;
 export const fits = (q: Asked, sift: Sift) =>
-  (!sift.mode || q.mode === sift.mode) &&
-  (!sift.section || q.found.section === sift.section) &&
-  (!sift.domain || q.found.domain === sift.domain) &&
-  (!sift.skill || q.found.skill.name === sift.skill);
+  (!sift.modes.length || sift.modes.includes(q.mode)) &&
+  ((!sift.domains.length && !sift.skills.length) ||
+    sift.domains.includes(q.found.domain) ||
+    sift.skills.includes(q.found.skill.name));
 
-/** The kinds of work as a filter names them. */
+/** The activities as a filter names them. */
 export const MODES_MANY: Record<Mode, string> = {
   skill: "Skill sets",
   daily: "Daily 10",

@@ -366,6 +366,41 @@
   transform: translateX(-50%);
 }
 
+/* the two days that matter: the SAT in ruby and the day 30 days before it in gold, the colors of the
+   countdown badge. A ring of metal drawn just inside the square's edge, lighter where the light
+   catches it, so it never lies over the squares around it. */
+.day[data-mark] {
+  opacity: 1;
+}
+
+.day[data-mark]::before {
+  --metal: #c98a0a, #ffe9a3 38%, #f2b632 55%, #a66f00;
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--metal));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.day[data-mark="sat"]::before {
+  --metal: #a3231b, #ffb3a6 38%, #e0453a 55%, #7d140e;
+}
+
+/* the SAT's day is still to come, so it has no fill; its date is written in full strength */
+.day[data-mark="sat"][data-out] {
+  font-weight: 700;
+}
+
 /* the day pressed: a ring drawn inside its own edge, dark then light, so it shows on every shade and
    never lies over the squares around it */
 .day[aria-pressed="true"] {

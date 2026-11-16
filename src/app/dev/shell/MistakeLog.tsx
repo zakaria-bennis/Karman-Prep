@@ -1,49 +1,50 @@
 "use client";
 
 // The Mistake Log (founder, 2026-11-15 and 2026-11-16). It began as History, a page inside Progress;
-// he renamed it and gave it its own place in the menu, right under Progress.
-//   Missed      every missed question, newest first. This is what the page is named for, so it
-//               opens here.
+// he renamed it and gave it its own place in the menu.
 //   Sessions    every sitting, newest first, by day: skill sets, the Daily 10, full-length exams,
-//               challenge questions, time trials and endless mode. Opening one shows how it went and
-//               its questions, which can be narrowed to correct or missed.
+//               challenge questions, time trials and endless mode.
+//   Missed      every missed question, newest first.
 //   Bookmarks   every question the student kept. A Cohort or Private student can also flag a question
 //               for their tutor; a flagged question is a bookmark that carries a small flag.
-// Four menus narrow all three: kind of work, section, domain, skill. Never by difficulty.
-// Opening a question shows the student's answer, the right answer and the explanation. No retry.
-// With room, the log is at the left and what is open is at the right, each scrolling inside its own
-// piece of glass. On a phone each is a page of its own, and the page's own way back steps out of it
-// (the page is told through `onTrail`). On a phone this page may scroll.
-// Everything here is a stand-in (mistakeLogData.ts).
-import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+// Three menus narrow all three: activities, domains, skills, each taking several choices
+// (MistakeLogSift.tsx). Never by difficulty.
+// Nothing is open until it is picked (founder, 2026-11-16: "we don't just have questions populating
+// for no reason"). The way through it:
+//   1. The log alone, across the whole page.
+//   2. Pick a sitting: the log draws in to the left and a pane comes in from the right with an
+//      overview of that sitting. It lists no questions.
+//   3. From the overview, go on to its questions (all, or the missed), and from those to one
+//      question: the student's answer, the right answer and the explanation. No retry.
+// In Missed and Bookmarks a row is a question, so picking one opens that question.
+// With room, both panes scroll inside their own glass. On a phone each step is a page of its own and
+// the page's own way back steps out of it (told through `onTrail`); this page may scroll there.
+// Escape steps back one level everywhere. Everything here is a stand-in (mistakeLogData.ts).
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import lib from "./library.module.css";
+import { MODES, NO_SIFT, fits, sifted, sittingsOf, type Asked, type Sift } from "./mistakeLogData";
+import styles from "./mistakeLog.module.css";
+import { Sifts } from "./MistakeLogSift";
 import {
+  Chevron,
   QuestionRow,
   QuestionView,
-  SessionView,
-  Sifts,
+  SessionOverview,
+  SessionQuestions,
   dayName,
+  took,
   within,
   type Marked,
+  type Ways,
   type Within,
 } from "./MistakeLogViews";
-import lib from "./library.module.css";
 import type { Found } from "./progressBreakdowns";
 import { activity, type Student } from "./progressData";
-import {
-  MODES,
-  NO_SIFT,
-  fits,
-  sifted,
-  sittingsOf,
-  type Asked,
-  type Session,
-  type Sift,
-} from "./mistakeLogData";
-import styles from "./mistakeLog.module.css";
+import { minSec } from "./progressStats";
 import { tick } from "./sound";
 
-const LENSES = ["Missed", "Sessions", "Bookmarks"] as const;
+const LENSES = ["Sessions", "Missed", "Bookmarks"] as const;
 type Lens = (typeof LENSES)[number];
 /** How many rows are shown before "Show earlier" is pressed, and how many each press adds. */
 const STEP = 40;
@@ -78,9 +79,11 @@ export default function MistakeLog({
 }) {
   const still = useReducedMotion() ?? false;
   const sessions = useMemo(() => sittingsOf(student, activity(student)), [student]);
-  const [lens, setLens] = useState<Lens>("Missed");
+  const [lens, setLens] = useState<Lens>("Sessions");
   const [sift, setSift] = useState<Sift>(NO_SIFT);
   const [openSession, setOpenSession] = useState<string | null>(null);
+  /** Whether the open sitting shows its questions, not its overview. */
+  const [listing, setListing] = useState(false);
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [shown, setShown] = useState<Within>("All");
   const [many, setMany] = useState(STEP);
@@ -90,7 +93,8 @@ export default function MistakeLog({
   const sittings = useMemo(
     () =>
       sessions.filter(
-        (s) => (!sift.mode || s.mode === sift.mode) && s.asked.some((q) => fits(q, sift))
+        (s) =>
+          (!sift.modes.length || sift.modes.includes(s.mode)) && s.asked.some((q) => fits(q, sift))
       ),
     [sessions, sift]
   );
@@ -108,109 +112,127 @@ export default function MistakeLog({
   }, [lens, questions, marks]);
   const markOf = (q: Asked): Marked => marks[q.id] ?? q;
 
-  // with room, the first row is open from the start, so the right side is never empty; on a phone
   // nothing is open until it is pressed
-  const session: Session | undefined =
+  const session = lens === "Sessions" ? sittings.find((s) => s.id === openSession) : undefined;
+  // a bookmark taken off the open question drops it from the list, but it stays open
+  const question =
     lens === "Sessions"
-      ? (sittings.find((s) => s.id === openSession) ?? (rail ? sittings[0] : undefined))
-      : undefined;
-  const question: Asked | undefined =
-    lens === "Sessions"
-      ? session?.asked.find((q) => q.id === openQuestion)
-      : (listed.find((q) => q.id === openQuestion) ?? (rail ? listed[0] : undefined));
+      ? listing
+        ? session?.asked.find((q) => q.id === openQuestion)
+        : undefined
+      : questions.find((q) => q.id === openQuestion);
   // the list a question was opened from: the questions before and after it are its neighbors there
-  const around = lens === "Sessions" ? (session ? within(session.asked, shown) : []) : listed;
+  const around = lens === "Sessions" ? (session ? within(session, shown) : []) : listed;
   const place = question ? around.findIndex((q) => q.id === question.id) : -1;
   const step = (by: number) =>
-    around[place + by]
+    place >= 0 && around[place + by]
       ? () => {
           setOpenQuestion(around[place + by].id);
           tick();
         }
       : undefined;
 
-  // what is open on top of the list, and the way out of it: on a phone that is the page's own way
-  // back; with room it is only a question opened from a sitting, which has its own way back
-  const inner = useMemo<Trail | null>(() => {
-    if (question && (lens === "Sessions" || !rail))
+  // one step back out of whatever is open, and what the page should be called meanwhile
+  const back = useMemo<Trail | null>(() => {
+    if (question)
       return {
         name: `Question ${question.number}`,
-        back: lens === "Sessions" ? (session?.name ?? "Mistake Log") : "Mistake Log",
+        back: lens === "Sessions" ? "Questions" : "Mistake Log",
         go: () => setOpenQuestion(null),
       };
-    if (session && !rail)
-      return { name: session.name, back: "Mistake Log", go: () => setOpenSession(null) };
+    if (session && listing)
+      return { name: "Questions", back: session.name, go: () => setListing(false) };
+    if (session) return { name: session.name, back: "Mistake Log", go: () => setOpenSession(null) };
     return null;
-  }, [question, session, lens, rail]);
+  }, [question, session, listing, lens]);
+  const open = back !== null;
   useEffect(() => {
-    onTrail(rail ? null : inner);
+    onTrail(rail ? null : back);
     return () => onTrail(null);
-  }, [inner, rail, onTrail]);
-  // Escape steps out of what is open here
+  }, [back, rail, onTrail]);
   useEffect(() => {
-    if (!inner) return;
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopPropagation();
-      inner.go();
-    };
-    window.addEventListener("keydown", key, true);
-    return () => window.removeEventListener("keydown", key, true);
-  }, [inner]);
+    if (!back) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && back.go();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [back]);
 
-  const fresh = () => {
+  const close = () => {
     setOpenSession(null);
+    setListing(false);
     setOpenQuestion(null);
+  };
+  const fresh = () => {
+    close();
     setShown("All");
     setMany(STEP);
   };
-  const open = (go: () => void) => {
+  // a phone goes to the top of the page it opens, and comes back to where the list was left
+  const left = useRef(0);
+  const deep = !rail && open;
+  const pick = (go: () => void) => {
+    if (!deep) left.current = window.scrollY;
     go();
     tick();
     if (!rail) window.scrollTo({ top: 0 });
   };
+  useEffect(() => {
+    if (!rail && !deep) window.scrollTo({ top: left.current });
+  }, [rail, deep]);
+
   const empty = lens === "Sessions" ? sittings.length === 0 : listed.length === 0;
   const rows = lens === "Sessions" ? sittings : listed;
-  const deep = rail ? 0 : inner ? 1 : 0;
+  // with room, the pane beside the log has its own way back a level and its own way to close
+  const ways: Ways = rail
+    ? {
+        back:
+          back && (listing || (question && lens === "Sessions"))
+            ? { label: back.back, go: back.go }
+            : undefined,
+        close,
+      }
+    : {};
 
   return (
-    <div className={`${lib.library} ${styles.mistakes}`} data-alone={(rail && empty) || undefined}>
-      {deep === 0 && (
+    <div className={`${lib.library} ${styles.mistakes}`} data-open={(rail && open) || undefined}>
+      {!deep && (
         <section className={`${lib.glass} ${styles.log}`} aria-label="Log">
-          <div className={`${lib.filter} ${styles.lenses}`} role="group" aria-label="Shown">
-            {LENSES.map((name) => (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={lens === name}
-                onClick={() => {
-                  setLens(name);
-                  fresh();
-                  tick();
-                }}
-              >
-                {lens === name && (
-                  <motion.span
-                    layoutId="mistakes-lens"
-                    className={lib.lens}
-                    transition={
-                      still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
-                    }
-                  />
-                )}
-                <span>{name}</span>
-              </button>
-            ))}
+          <div className={styles.top}>
+            <div className={`${lib.filter} ${styles.lenses}`} role="group" aria-label="Shown">
+              {LENSES.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={lens === name}
+                  onClick={() => {
+                    setLens(name);
+                    fresh();
+                    tick();
+                  }}
+                >
+                  {lens === name && (
+                    <motion.span
+                      layoutId="mistakes-lens"
+                      className={lib.lens}
+                      transition={
+                        still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 34 }
+                      }
+                    />
+                  )}
+                  <span>{name}</span>
+                </button>
+              ))}
+            </div>
+            <Sifts
+              sift={sift}
+              onSift={(next) => {
+                setSift(next);
+                fresh();
+              }}
+            />
           </div>
-          <Sifts
-            sift={sift}
-            onSift={(next) => {
-              setSift(next);
-              fresh();
-            }}
-          />
           <div className={styles.scroll}>
-            {empty && (
+            {empty ? (
               <div className={styles.none}>
                 <h2>
                   {sifted(sift)
@@ -239,6 +261,19 @@ export default function MistakeLog({
                   )
                 )}
               </div>
+            ) : (
+              // the names of the columns that show when the log has the page to itself
+              <div
+                className={styles.heads}
+                data-q={lens !== "Sessions" || undefined}
+                aria-hidden="true"
+              >
+                <span />
+                {lens === "Sessions" && <span>Correct</span>}
+                <span>Time</span>
+                {lens === "Sessions" && <span>Pace</span>}
+                <span />
+              </div>
             )}
             {lens === "Sessions"
               ? byDay(sittings.slice(0, many)).map((group) => (
@@ -252,8 +287,9 @@ export default function MistakeLog({
                             className={styles.row}
                             aria-current={(rail && session?.id === s.id) || undefined}
                             onClick={() =>
-                              open(() => {
+                              pick(() => {
                                 setOpenSession(s.id);
+                                setListing(false);
                                 setOpenQuestion(null);
                                 setShown("All");
                               })
@@ -272,15 +308,11 @@ export default function MistakeLog({
                             <span className={styles.got}>
                               <b>{s.right}</b> of {s.asked.length}
                             </span>
-                            <svg
-                              className={styles.chev}
-                              viewBox="0 0 24 24"
-                              width="20"
-                              height="20"
-                              aria-hidden="true"
-                            >
-                              <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
-                            </svg>
+                            <span className={styles.wide}>{took(s.seconds)}</span>
+                            <span className={styles.wide}>
+                              {s.asked.length > 1 && minSec(s.seconds / s.asked.length)}
+                            </span>
+                            <Chevron />
                           </button>
                         </li>
                       ))}
@@ -300,7 +332,7 @@ export default function MistakeLog({
                           marked={markOf(q)}
                           flags={flags}
                           current={rail && question?.id === q.id}
-                          onOpen={() => open(() => setOpenQuestion(q.id))}
+                          onOpen={() => pick(() => setOpenQuestion(q.id))}
                         />
                       ))}
                     </ul>
@@ -322,42 +354,67 @@ export default function MistakeLog({
         </section>
       )}
 
-      {(rail ? !empty : deep === 1) && (
-        <section
-          className={`${lib.glass} ${styles.reading}`}
-          aria-label={question ? `Question ${question.number}` : (session?.name ?? "Open")}
-        >
-          {/* the glass stays; only what is on it turns */}
-          <div key={question?.id ?? session?.id} className={styles.sheet}>
-            {question ? (
-              <QuestionView
-                student={student}
-                q={question}
-                marked={markOf(question)}
-                flags={flags}
-                named={!rail}
-                back={rail && inner ? { label: inner.back, go: inner.go } : undefined}
-                onMark={(next) => setMarks({ ...marks, [question.id]: next })}
-                onStep={{ before: step(-1), after: step(1) }}
-                onSkill={onSkill}
-              />
-            ) : (
-              session && (
-                <SessionView
+      {/* what was picked comes in from the right; the log draws in to the left to make room */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.section
+            key="open"
+            className={`${lib.glass} ${styles.reading}`}
+            aria-label={question ? `Question ${question.number}` : (session?.name ?? "Open")}
+            initial={still || !rail ? false : { x: 72, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={
+              still || !rail ? undefined : { x: 72, opacity: 0, transition: { duration: 0.16 } }
+            }
+            transition={{ type: "spring", stiffness: 420, damping: 38 }}
+          >
+            {/* the glass stays; only what is on it turns */}
+            <div
+              key={question?.id ?? `${session?.id} ${listing ? "questions" : "overview"}`}
+              className={styles.sheet}
+            >
+              {question ? (
+                <QuestionView
                   student={student}
+                  q={question}
+                  marked={markOf(question)}
+                  flags={flags}
+                  named={!rail}
+                  ways={ways}
+                  onMark={(next) => setMarks({ ...marks, [question.id]: next })}
+                  onStep={{ before: step(-1), after: step(1) }}
+                  onSkill={onSkill}
+                />
+              ) : session && listing ? (
+                <SessionQuestions
                   session={session}
                   shown={shown}
                   onShown={setShown}
                   markOf={markOf}
                   flags={flags}
-                  named={!rail}
-                  onOpen={(q) => open(() => setOpenQuestion(q.id))}
+                  ways={ways}
+                  onOpen={(q) => pick(() => setOpenQuestion(q.id))}
                 />
-              )
-            )}
-          </div>
-        </section>
-      )}
+              ) : (
+                session && (
+                  <SessionOverview
+                    student={student}
+                    session={session}
+                    named={!rail}
+                    ways={ways}
+                    onQuestions={(next) => {
+                      setShown(next);
+                      setListing(true);
+                      if (!rail) window.scrollTo({ top: 0 });
+                    }}
+                    onSkill={onSkill}
+                  />
+                )
+              )}
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

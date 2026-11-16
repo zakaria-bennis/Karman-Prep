@@ -56,32 +56,47 @@ const LABEL: Record<StickerName, string> = {
   more: "More",
 };
 
+/** On the phone's bar every name has a fifth of the width, so the one long name is said shorter
+ *  there. The page and the desktop menu say it in full. */
+const ON_BAR: Partial<Record<StickerName, string>> = { mistakes: "Mistakes" };
+
 /** The founder's menus. `bar` is the phone's five; `rail` is the desktop's, which has room for what the
- *  phone keeps under More. The first item is where that student lands. The Mistake Log sits right
+ *  phone keeps under More. `home` is where that student lands. The Mistake Log sits right
  *  under Progress (founder, 2026-11-16); where a phone's five are already taken, it opens from a button
  *  beside Progress's name instead. */
 const PLANS = {
   practice: {
     label: "Free, Practice, Pro",
     name: "Practice",
-    bar: ["library", "progress", "mistakes", "rewards", "more"],
+    // on a phone the Library is the middle of the five, with Progress and the Mistake Log at its left
+    // and Rewards and More at its right (founder, 2026-11-16)
+    bar: ["progress", "mistakes", "library", "rewards", "more"],
     rail: ["library", "progress", "mistakes", "rewards"],
+    home: "library",
   },
   cohort: {
     label: "Cohort",
     name: "Cohort",
     bar: ["homework", "library", "class", "progress", "more"],
+    home: "homework",
     rail: ["homework", "library", "class", "chat", "progress", "mistakes", "rewards"],
   },
   private: {
     label: "Private",
     name: "Private",
     bar: ["homework", "library", "schedule", "progress", "more"],
+    home: "homework",
     rail: ["homework", "library", "schedule", "chat", "progress", "mistakes", "rewards"],
   },
 } as const satisfies Record<
   string,
-  { label: string; name: string; bar: readonly StickerName[]; rail: readonly StickerName[] }
+  {
+    label: string;
+    name: string;
+    bar: readonly StickerName[];
+    rail: readonly StickerName[];
+    home: StickerName;
+  }
 >;
 type Plan = keyof typeof PLANS;
 
@@ -122,7 +137,7 @@ function Shell() {
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
   const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
-  const [page, setPage] = useState<StickerName>(PLANS[plan].bar[0]);
+  const [page, setPage] = useState<StickerName>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
   const [sound, setSoundOn] = useState(true);
@@ -290,7 +305,7 @@ function Shell() {
 
   const choosePlan = (next: Plan) => {
     setPlan(next);
-    setPage(PLANS[next].bar[0]);
+    setPage(PLANS[next].home);
   };
   const wide = rail && (open || held || menu);
 
@@ -387,7 +402,7 @@ function Shell() {
                   <Sticker name={item} />
                 </motion.span>
                 <span className={styles.word} data-word>
-                  {LABEL[item]}
+                  {rail ? LABEL[item] : (ON_BAR[item] ?? LABEL[item])}
                 </span>
               </motion.button>
             </li>

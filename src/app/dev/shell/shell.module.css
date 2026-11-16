@@ -180,18 +180,21 @@
   opacity: 1;
 }
 
-/* phones: five names, one of them two words long (Mistake Log), share the bar without leaving it */
-@media (max-width: 479px) {
-  .item {
-    padding: 0 4px;
-  }
+/* on the bar every item has the same share of the width, so the names sit evenly with air between
+   them (founder, 2026-11-16: the names looked crowded) */
+.items li[data-item] {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
-/* narrow phones: the five still fit, with the same inset */
+.items li[data-item] .item {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
 @media (max-width: 379px) {
   .item {
-    min-width: 54px;
-    padding: 0 2px;
     font-size: 10px;
   }
 }
@@ -204,9 +207,54 @@
   transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
+/* the notepad's loose pages: unseen until the row is hovered, then they flip up over the binding one
+   after another, quickly */
+.art [data-move="page"] {
+  opacity: 0;
+  transform-origin: 50% 0;
+  transition: none;
+}
+
+@keyframes flip {
+  0% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+    transform: scaleY(0.08) skewX(-12deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(-0.4) skewX(-5deg);
+  }
+}
+
 @media (hover: hover) {
   .item:hover .art svg {
     transform: rotate(-4deg) scale(1.06);
+  }
+
+  .item:hover [data-move="page"] {
+    animation: flip 0.32s cubic-bezier(0.4, 0, 0.6, 1) both;
+  }
+
+  .item:hover [data-move="page"]:nth-of-type(2) {
+    animation-delay: 0.1s;
+  }
+
+  .item:hover [data-move="page"]:nth-of-type(3) {
+    animation-delay: 0.2s;
+  }
+
+  .item:hover [data-move="page"]:nth-of-type(4) {
+    animation-delay: 0.3s;
   }
 
   /* the leaning book slips a little further, its foot sliding along the shelf */

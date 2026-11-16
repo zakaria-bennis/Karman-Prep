@@ -710,29 +710,42 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   goal line. In code: `lessIsBetter` on the stat (`progressStats.ts`), `flip` on `Graph` and `Spark`,
   and `wayOf(change, lessIsBetter)`. The ticker still shows the change in time ("−0:07 all time"),
   now in green when it is a gain. His earlier rule holds everywhere: a line that falls is never green.
-- **The Mistake Log is its own page in the menu**, right under Progress and before Rewards
-  (`MistakeLog.tsx`, `MistakeLogViews.tsx`, `mistakeLog.module.css`; stand-in data in
-  `mistakeLogData.ts`; a notebook-with-a-cross icon in `stickers.tsx`). It was first built the same
-  day as "History", a page behind a button on Progress; he renamed it and moved it. Do not bring the
-  History name or the button back. On the desktop rail every plan has it. On a phone, Free, Practice
-  and Pro have it in the bar (Library, Progress, Mistake Log, Rewards, More). Cohort and Private
-  phones already have five in the bar, so there a "Mistake Log" button sits at the end of Progress's
-  title row and the page shows a way back to Progress. **He has not been asked where it should live
-  on Cohort and Private phones.**
-- Three views, one bar: **Missed** (every missed question, newest first; the page opens here),
-  **Sessions** (every sitting by day: skill sets, Daily 10, full-length exams, challenge questions,
-  time trials, endless mode) and **Bookmarks**. Four menus narrow all three: kind of work, section,
-  domain, skill (never difficulty). Choosing a skill sets its domain and section.
-- Opening a sitting shows its name, day, how it went (score for an exam, correct, time, pace) and its
-  questions, with All, Correct, Missed (shown only when the sitting has both). Opening a question
-  shows the student's answer, the right answer and the explanation, the skill (which opens it in the
-  Library), a bookmark button, and arrows to the question before and after. No retry. Cohort and
-  Private students also get a flag button; flagging bookmarks the question, and a flagged row carries
-  a small flag.
-- With room, the log is at the left and what is open at the right, each scrolling inside its own
-  glass, so the page never scrolls. On a phone each is its own page: the title row's back pill steps
-  out one level, and so does Escape. It is the one page here that scrolls on a phone. The list shows
-  40 rows and "Show earlier" adds 40.
+- **The Mistake Log is its own page in the menu** (`MistakeLog.tsx`, `MistakeLogViews.tsx`,
+  `MistakeLogSift.tsx`, `mistakeLog.module.css`; stand-in data in `mistakeLogData.ts`). It was first
+  built the same day as "History", a page behind a button on Progress; he renamed it and moved it.
+  Do not bring the History name or the button back.
+- **Where it sits.** Desktop menu, every plan: right under Progress, before Rewards. Phone bar for
+  Free, Practice and Pro, in his order: **Progress, Mistake Log, Library, Rewards, More**, with the
+  Library in the middle; the student still lands on the Library (`home` in `PLANS`). Each of the
+  five has an equal fifth of the bar. The bar says "Mistakes" because "Mistake Log" does not fit a
+  fifth of a phone; the page title and the desktop menu say "Mistake Log". He asked for the names to
+  be less crowded and left the way open ("smaller or something else"); **he has not seen or agreed
+  the short name.** Cohort and Private phones already have five in the bar, so there a "Mistake
+  Log" button sits at the end of Progress's title row and the page shows a way back to Progress;
+  **he has not been asked where it should live on those phones.**
+- **The way through it** (his words: "we don't just have questions populating for no reason").
+  Nothing is open until it is picked. (1) The log alone, across the whole page; with that width each
+  sitting also shows its time and pace. (2) Pick a sitting: the log draws in to the left and a pane
+  comes in from the right with an **overview**: score for an exam, correct, time, pace, one small
+  square per question (green correct, red missed; a line per section when there are two), and the
+  skills missed with their levels, each opening in the Library. It lists no questions. (3) "View
+  questions" or "Missed only" goes on to the questions (All, Correct, Missed), and a question opens
+  from there: the student's answer, the right answer, the explanation, a bookmark, arrows to the
+  question before and after. No retry. Cohort and Private students also get a flag; flagging
+  bookmarks the question. The pane has a close button, and Escape steps back one level at a time.
+  **He likes the question view and means to build the quiz engine on it.**
+- Three views, one bar: **Sessions** (opens here, since his way through starts by picking a
+  sitting), **Missed** (every missed question, newest first) and **Bookmarks**. In the last two a
+  row is a question, so picking one opens that question.
+- **Three menus narrow all three views**, drawn in the app's own glass (he called the first ones "a
+  random preset list"): **Activities** (he renamed it from "work"), **Domains** and **Skills**.
+  Each takes several choices at once. Domains lists the eight under their two sections, and a
+  section's own row takes all four. Skills opens on the eight domains only; a domain is opened to
+  choose skills inside it. Domains and skills add to one another. A button says how many are chosen
+  ("2 activities"), never the names, so nothing is cut short. Never by difficulty.
+- With room, both panes scroll inside their own glass, so the page never scrolls. On a phone each
+  step is its own page with the title row's back pill; the list shows 40 rows and "Show earlier"
+  adds 40; coming back to the list returns to where it was left.
 - The daily log records what each day was made of (`sets`, `fives`, `challenge` on `DayLog`), so the
   log's counts agree with the calendar. The challenge question adds one to a day's questions.
 - **Stand-ins:** every sitting and answer is made up. The question shown for a past answer is one of
@@ -749,10 +762,20 @@ checks": no spillage, no overlaps, as good to look at on a phone as on desktop.
   itself, so a long title can never run into it. The demo students show all three: 3 weeks (118
   days, March 13, 2027), 9 weeks (20 days, December 5), 7 months (6 days). His word for the colors
   was "relative, like shiny"; I read it as reflective and shiny, and told him so.
-- The phone bar's items sit closer together (4 a side, 2 on narrow phones) so five names with "Mistake
-  Log" among them fit at 360, 390 and 430 wide.
-- The phone audit (`scripts/dev/progress-phone-audit.cjs`) walks the Mistake Log too, and now checks
-  the badge like any other text: 234 screens, none with anything wrong. Desktop: 42 screens, none.
+- **The calendar rings two days** in the badge's colors (`data-mark` on a day in
+  `ProgressActivity.tsx`): the day of the SAT in ruby and the day 30 days before it in gold. The
+  calendar now goes forward as far as the month of the SAT. Pressing the gold day says "30 days to
+  your SAT" in the day's card.
+- **Menu icons** (`stickers.tsx`): the Mistake Log is a little notepad with lines of writing, no
+  cross; hovered, three pages flip up over its binding one after another (`flip` in
+  `shell.module.css`). Progress is a line climbing across a graph to a clay point; he did not like
+  the peak with a flag. **He has not chosen the Progress icon**: four drawings were shown to him
+  (climbing line, rising bars, ring filling up, steps to a flag;
+  `prototypes/portals/progress/progress-icon-options.png`) and the climbing line is in place until
+  he picks.
+- The phone audit (`scripts/dev/progress-phone-audit.cjs`) walks the Mistake Log's whole way
+  through, with each menu open: 264 screens, none with anything wrong. Desktop: 42 screens, none.
+- `page.tsx` is at 689 lines: split it before adding anything more to it.
 - Not built: the exam breakdown page (an exam in the log shows its questions; the exam rows on Exams
   taken still open nothing), saving bookmarks and flags, real data, the test date in Settings.
 - Next: his verdict; then the new-student page.

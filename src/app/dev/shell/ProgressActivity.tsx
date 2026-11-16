@@ -153,17 +153,26 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
   const head = useRef<HTMLElement>(null);
   const run = useMemo(() => streak(logs), [logs]);
 
-  /** Every month the student has been here, the newest first. */
+  // the two days the calendar rings (founder, 2026-11-16), in the countdown badge's own colors: the
+  // day of the SAT in ruby, and the day 30 days before it in gold. Counted as days of the log, so the
+  // SAT's day lies past today.
+  const satDay = student.testIn === null ? null : student.days + student.testIn;
+  const thisMonth = useMemo(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), []);
+
+  /** Every month the student has been here, the newest first, and on to the month of their SAT. */
   const months = useMemo(() => {
     const out: Date[] = [];
-    const at = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    const sat = satDay === null ? TODAY : dateOf(student, satDay);
+    const at = new Date(
+      Math.max(thisMonth.getTime(), new Date(sat.getFullYear(), sat.getMonth(), 1).getTime())
+    );
     const stop = new Date(first.getFullYear(), first.getMonth(), 1);
     while (at >= stop) {
       out.push(new Date(at));
       at.setMonth(at.getMonth() - 1);
     }
     return out;
-  }, [first]);
+  }, [first, satDay, student, thisMonth]);
 
   useEffect(() => {
     if (!listing) return;
@@ -187,13 +196,26 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
     setMonth(new Date(month.getFullYear(), month.getMonth() + by, 1));
     tick();
   };
+  /** A date in the month shown, counted as a day of the student's log (it may lie outside it). */
+  const dayOf = (date: number) =>
+    student.days -
+    Math.round(
+      (TODAY.getTime() - new Date(month.getFullYear(), month.getMonth(), date).getTime()) / DAY
+    );
   /** The place in the student's log of a date in the month shown, or -1 if it is outside their time. */
   const logOf = (date: number) => {
-    const at = new Date(month.getFullYear(), month.getMonth(), date);
-    const day = student.days - Math.round((TODAY.getTime() - at.getTime()) / DAY);
+    const day = dayOf(date);
     return day >= 0 && day <= student.days ? day : -1;
   };
-  const sameMonth = month.getTime() === months[0].getTime();
+  const markOf = (day: number) =>
+    satDay === null
+      ? undefined
+      : day === satDay
+        ? "sat"
+        : day === satDay - 30
+          ? "month"
+          : undefined;
+  const sameMonth = month.getTime() === thisMonth.getTime();
   // how many of the month's days that have come so far had practice on them
   const monthDays = Array.from({ length }, (_, i) => logOf(i + 1)).filter((day) => day >= 0);
   const practiced = monthDays.filter((day) => logs[day].questions > 0).length;
@@ -226,7 +248,7 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
           data-idle={(sameMonth && picked === student.days) || undefined}
           tabIndex={sameMonth && picked === student.days ? -1 : 0}
           onClick={() => {
-            setMonth(months[0]);
+            setMonth(thisMonth);
             setPicked(student.days);
             tick();
           }}
@@ -268,8 +290,13 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
         )}
       </header>
 
+      {/* a month still to come has nothing to count; its line is kept, empty */}
       <p className={styles.tally}>
-        <b>{practiced}</b> of {monthDays.length} days practiced
+        {monthDays.length > 0 && (
+          <>
+            <b>{practiced}</b> of {monthDays.length} days practiced
+          </>
+        )}
       </p>
 
       <div className={styles.grid} role="group" aria-label="Days">
@@ -282,6 +309,9 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
           const day = logOf(date);
           const done = day < 0 ? 0 : logs[day].questions;
           const level = done === 0 ? 0 : done <= 18 ? 1 : done <= 36 ? 2 : 3;
+          const mark = markOf(dayOf(date));
+          const marked =
+            mark === "sat" ? ", your SAT" : mark === "month" ? ", 30 days to your SAT" : "";
           return (
             <button
               key={date}
@@ -291,8 +321,10 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
               data-level={level}
               data-out={day < 0 || undefined}
               data-today={day === student.days || undefined}
+              data-mark={mark}
+              title={marked ? marked.slice(2).replace(/^y/, "Y") : undefined}
               aria-pressed={day === picked && day >= 0}
-              aria-label={`${month.toLocaleDateString("en-US", { month: "long" })} ${date}${day >= 0 ? `, ${done} questions` : ""}`}
+              aria-label={`${month.toLocaleDateString("en-US", { month: "long" })} ${date}${day >= 0 ? `, ${done} questions` : ""}${marked}`}
               disabled={day < 0}
               onClick={() => {
                 setPicked(day);
@@ -335,7 +367,11 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
             </div>
           </dl>
         )}
-        <p className={styles.examDay}>{log.exam > 0 && `Full-length exam ${log.exam}`}</p>
+        <p className={styles.examDay}>
+          {log.exam > 0
+            ? `Full-length exam ${log.exam}`
+            : markOf(picked) === "month" && "30 days to your SAT"}
+        </p>
       </div>
     </section>
   );

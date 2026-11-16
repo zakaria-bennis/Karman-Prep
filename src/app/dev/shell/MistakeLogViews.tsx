@@ -1,30 +1,24 @@
 "use client";
 
 // The pieces the Mistake Log is made of (MistakeLog.tsx):
-//   Sifts          the four menus that narrow the log: kind of work, section, domain, skill. They are
-//                  the phone's own menus, so they open the way every other menu on the phone does.
-//   QuestionRow    one question in a list, with a mark for correct or missed, and a small bookmark
-//                  and flag when it carries them.
-//   SessionView    one sitting: what it was, how it went, and its questions (all, correct, missed).
-//   QuestionView   one past question: the student's answer, the right answer and the explanation.
-//                  There is no retry here (founder, 2026-11-15).
+//   QuestionRow        one question in a list, with a mark for correct or missed, and a small
+//                      bookmark and flag when it carries them.
+//   SessionOverview    what opens when a sitting is picked: how it went, at a glance. No questions
+//                      are listed here (founder, 2026-11-16: "it does not show questions. Instead, it
+//                      shows an overview of that particular session"). Two buttons lead on to them.
+//   SessionQuestions   the sitting's questions: all, correct or missed.
+//   QuestionView       one past question: the student's answer, the right answer and the
+//                      explanation. There is no retry here (founder, 2026-11-15). He likes this
+//                      layout and means to build the quiz engine on it (2026-11-16).
 // The words are "correct" and "missed", never "incorrect" (founder, 2026-11-15).
 import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { Pips } from "./Library";
 import lib from "./library.module.css";
 import type { Found } from "./progressBreakdowns";
 import { dateOf, type Student } from "./progressData";
-import {
-  MODES,
-  MODES_MANY,
-  type Asked,
-  type Mode,
-  type Session,
-  type Sift,
-} from "./mistakeLogData";
+import { MODES, type Asked, type Session } from "./mistakeLogData";
 import styles from "./mistakeLog.module.css";
 import { clock, minSec } from "./progressStats";
-import { SECTIONS, SKILLS, type Section } from "./skills72";
 import { tick } from "./sound";
 
 export const dayName = (student: Student, day: number) =>
@@ -38,105 +32,11 @@ export const dayName = (student: Student, day: number) =>
           day: "numeric",
         });
 
-const DOMAINS = SECTIONS.flatMap((section) =>
-  SKILLS[section].map((domain) => ({ section, name: domain.name, skills: domain.skills }))
-);
+/** How long a sitting took: minutes and seconds, or hours and minutes for an exam. */
+export const took = (seconds: number) =>
+  seconds >= 3600 ? clock(Math.round(seconds / 60)) : minSec(seconds);
 
-export function Sifts({ sift, onSift }: { sift: Sift; onSift: (next: Sift) => void }) {
-  const domains = DOMAINS.filter((d) => !sift.section || d.section === sift.section);
-  const skilled = domains.filter((d) => !sift.domain || d.name === sift.domain);
-  const menu = (label: string, value: string, set: (value: string) => void, body: ReactNode) => (
-    <span className={styles.pick} data-on={value !== "" || undefined}>
-      <select aria-label={label} value={value} onChange={(e) => set(e.target.value)}>
-        {body}
-      </select>
-    </span>
-  );
-  return (
-    <div className={styles.sift} role="group" aria-label="Narrow the log">
-      {menu(
-        "Kind of work",
-        sift.mode ?? "",
-        (v) => onSift({ ...sift, mode: (v || null) as Mode | null }),
-        <>
-          <option value="">All work</option>
-          {(Object.keys(MODES_MANY) as Mode[]).map((mode) => (
-            <option key={mode} value={mode}>
-              {MODES_MANY[mode]}
-            </option>
-          ))}
-        </>
-      )}
-      {menu(
-        "Section",
-        sift.section ?? "",
-        (v) => {
-          const section = (v || null) as Section | null;
-          // a domain or skill of the other section no longer fits
-          const keep =
-            !section || DOMAINS.some((d) => d.name === sift.domain && d.section === section);
-          onSift({
-            ...sift,
-            section,
-            domain: keep ? sift.domain : null,
-            skill: keep ? sift.skill : null,
-          });
-        },
-        <>
-          <option value="">All sections</option>
-          {SECTIONS.map((section) => (
-            <option key={section}>{section}</option>
-          ))}
-        </>
-      )}
-      {menu(
-        "Domain",
-        sift.domain ?? "",
-        (v) => {
-          const domain = DOMAINS.find((d) => d.name === v);
-          const keep = !domain || domain.skills.some((s) => s.name === sift.skill);
-          onSift({
-            ...sift,
-            section: domain?.section ?? sift.section,
-            domain: domain?.name ?? null,
-            skill: keep ? sift.skill : null,
-          });
-        },
-        <>
-          <option value="">All domains</option>
-          {domains.map((d) => (
-            <option key={d.name}>{d.name}</option>
-          ))}
-        </>
-      )}
-      {menu(
-        "Skill",
-        sift.skill ?? "",
-        (v) => {
-          const domain = DOMAINS.find((d) => d.skills.some((s) => s.name === v));
-          onSift({
-            ...sift,
-            section: domain?.section ?? sift.section,
-            domain: domain?.name ?? sift.domain,
-            skill: v || null,
-          });
-        },
-        <>
-          <option value="">All skills</option>
-          {skilled.map((d) => (
-            <optgroup key={d.name} label={d.name}>
-              {d.skills.map((s) => (
-                <option key={s.name}>{s.name}</option>
-              ))}
-            </optgroup>
-          ))}
-        </>
-      )}
-    </div>
-  );
-}
-
-const Chevron = ({ back = false }: { back?: boolean }) => (
+export const Chevron = ({ back = false }: { back?: boolean }) => (
   <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
     <path d={back ? "M14.500 6.500L9 12l5.500 5.500" : "M9.500 6.500l5.500 5.500-5.500 5.500"} />
   </svg>
@@ -170,6 +70,29 @@ export const Flag = ({ size = 16 }: { size?: number }) => (
     <path d="M6.500 20.500v-16M6.500 5h11l-2.400 3.600 2.400 3.600h-11" />
   </svg>
 );
+
+/** The top line of what is open beside the log: a way back a level, and a way to close it. Either
+ *  may be missing: a phone has both in the page's own title row. */
+export type Ways = { back?: { label: string; go: () => void }; close?: () => void };
+
+function BackIn({ back }: { back: NonNullable<Ways["back"]> }) {
+  return (
+    <button type="button" className={styles.backIn} onClick={back.go}>
+      <Chevron back />
+      {back.label}
+    </button>
+  );
+}
+
+function Close({ close }: { close: () => void }) {
+  return (
+    <button type="button" className={styles.tool} aria-label="Close" title="Close" onClick={close}>
+      <svg className={styles.chev} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M7 7l10 10M17 7L7 17" />
+      </svg>
+    </button>
+  );
+}
 
 export type Marked = { bookmarked: boolean; flagged: boolean };
 
@@ -226,42 +149,66 @@ export function QuestionRow({
 
 export const WITHIN = ["All", "Correct", "Missed"] as const;
 export type Within = (typeof WITHIN)[number];
-export const within = (asked: Asked[], shown: Within) =>
-  shown === "All" ? asked : asked.filter((q) => q.right === (shown === "Correct"));
+/** A choice between correct and missed only says something when the sitting has both. */
+export const mixedOf = (session: Session) =>
+  session.right > 0 && session.right < session.asked.length;
+export const within = (session: Session, shown: Within) =>
+  shown === "All" || !mixedOf(session)
+    ? session.asked
+    : session.asked.filter((q) => q.right === (shown === "Correct"));
 
-export function SessionView({
+/** One small square for each question, in the order they were asked: green correct, red missed. */
+function Strip({ asked }: { asked: Asked[] }) {
+  const right = asked.filter((q) => q.right).length;
+  return (
+    <p
+      className={styles.strip}
+      role="img"
+      aria-label={`${right} correct, ${asked.length - right} missed`}
+    >
+      {asked.map((q) => (
+        <i key={q.id} data-right={q.right} />
+      ))}
+    </p>
+  );
+}
+
+export function SessionOverview({
   student,
   session,
-  shown,
-  onShown,
-  markOf,
-  flags,
   named,
-  onOpen,
+  ways,
+  onQuestions,
+  onSkill,
 }: {
   student: Student;
   session: Session;
   /** Whether the page's own title already names this sitting (a phone): it is not said twice. */
   named: boolean;
-  shown: Within;
-  onShown: (shown: Within) => void;
-  markOf: (q: Asked) => Marked;
-  flags: boolean;
-  onOpen: (q: Asked) => void;
+  ways: Ways;
+  /** Goes on to the sitting's questions: all of them, or only the missed. */
+  onQuestions: (shown: Within) => void;
+  onSkill: (found: Found) => void;
 }) {
-  const still = useReducedMotion() ?? false;
   const many = session.asked.length;
-  // a choice between correct and missed only says something when the sitting has both
-  const mixed = session.right > 0 && session.right < many;
-  const rows = within(session.asked, mixed ? shown : "All");
+  const sections = [...new Set(session.asked.map((q) => q.found.section))];
+  // the skills missed, each once, in the order they were first missed
+  const missed = session.asked
+    .filter((q) => !q.right)
+    .map((q) => q.found)
+    .filter((f, i, all) => all.findIndex((x) => x.skill.name === f.skill.name) === i);
+  const one = session.mode === "skill" ? session.asked[0].found : null;
   return (
     <>
-      <header className={styles.head}>
-        {!named && <h2>{session.name}</h2>}
-        <p className={styles.when}>
-          {session.mode === "skill" && `${MODES.skill}, `}
-          {dayName(student, session.day)}
-        </p>
+      <header className={styles.qhead}>
+        <div className={styles.head}>
+          {!named && <h2>{session.name}</h2>}
+          <p className={styles.when}>
+            {session.mode === "skill" && `${MODES.skill}, `}
+            {dayName(student, session.day)}
+          </p>
+        </div>
+        {ways.close && <Close close={ways.close} />}
       </header>
       <div className={styles.facts}>
         {session.score !== undefined && (
@@ -276,11 +223,7 @@ export function SessionView({
           Correct
         </div>
         <div className={styles.fact}>
-          <b>
-            {session.seconds >= 3600
-              ? clock(Math.round(session.seconds / 60))
-              : minSec(session.seconds)}
-          </b>
+          <b>{took(session.seconds)}</b>
           Time
         </div>
         {many > 1 && (
@@ -289,7 +232,107 @@ export function SessionView({
           </div>
         )}
       </div>
-      {mixed && (
+
+      {/* the sitting at a glance: each question as a square, a section to a line in an exam */}
+      {many > 1 && (
+        <div className={styles.part}>
+          <h3>Answers</h3>
+          {sections.length > 1 ? (
+            sections.map((section) => (
+              <div key={section} className={styles.lineOf}>
+                <span>{section}</span>
+                <Strip asked={session.asked.filter((q) => q.found.section === section)} />
+              </div>
+            ))
+          ) : (
+            <Strip asked={session.asked} />
+          )}
+        </div>
+      )}
+
+      {one ? (
+        <div className={styles.part}>
+          <h3>Skill</h3>
+          <button type="button" className={styles.link} onClick={() => onSkill(one)}>
+            <span>{one.skill.name}</span>
+            <Pips level={one.skill.level} />
+            <Chevron />
+          </button>
+        </div>
+      ) : (
+        missed.length > 0 && (
+          <div className={styles.part}>
+            <h3>Missed skills</h3>
+            <ul className={styles.rows}>
+              {missed.slice(0, 6).map((found) => (
+                <li key={found.skill.name}>
+                  <button type="button" className={styles.link} onClick={() => onSkill(found)}>
+                    <span>{found.skill.name}</span>
+                    <Pips level={found.skill.level} />
+                    <Chevron />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      )}
+
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.primary}
+          onClick={() => {
+            onQuestions("All");
+            tick();
+          }}
+        >
+          View questions
+        </button>
+        {mixedOf(session) && (
+          <button
+            type="button"
+            className={styles.more}
+            onClick={() => {
+              onQuestions("Missed");
+              tick();
+            }}
+          >
+            Missed only
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+export function SessionQuestions({
+  session,
+  shown,
+  onShown,
+  markOf,
+  flags,
+  ways,
+  onOpen,
+}: {
+  session: Session;
+  shown: Within;
+  onShown: (shown: Within) => void;
+  markOf: (q: Asked) => Marked;
+  flags: boolean;
+  ways: Ways;
+  onOpen: (q: Asked) => void;
+}) {
+  const still = useReducedMotion() ?? false;
+  return (
+    <>
+      {(ways.back || ways.close) && (
+        <div className={styles.qhead}>
+          {ways.back ? <BackIn back={ways.back} /> : <span />}
+          {ways.close && <Close close={ways.close} />}
+        </div>
+      )}
+      {mixedOf(session) && (
         <div className={`${lib.filter} ${styles.lenses}`} role="group" aria-label="Questions shown">
           {WITHIN.map((name) => (
             <button
@@ -316,7 +359,7 @@ export function SessionView({
         </div>
       )}
       <ul className={styles.rows}>
-        {rows.map((q) => (
+        {within(session, shown).map((q) => (
           <QuestionRow
             key={q.id}
             q={q}
@@ -339,19 +382,18 @@ export function QuestionView({
   marked,
   flags,
   named,
-  back,
+  ways,
   onMark,
   onStep,
   onSkill,
 }: {
   student: Student;
   q: Asked;
-  /** Whether the page's own title already names this question (a phone): it is not said twice. */
-  named: boolean;
   marked: Marked;
   flags: boolean;
-  /** The way back to the sitting, when the list it came from is not on the screen beside it. */
-  back?: { label: string; go: () => void };
+  /** Whether the page's own title already names this question (a phone): it is not said twice. */
+  named: boolean;
+  ways: Ways;
   onMark: (next: Marked) => void;
   /** Goes to the question before or after this one in the list it was opened from, if there is one. */
   onStep: { before?: () => void; after?: () => void };
@@ -360,12 +402,7 @@ export function QuestionView({
   const { sample } = q;
   return (
     <>
-      {back && (
-        <button type="button" className={styles.backIn} onClick={back.go}>
-          <Chevron back />
-          {back.label}
-        </button>
-      )}
+      {ways.back && <BackIn back={ways.back} />}
       <header className={styles.qhead}>
         <div className={styles.head}>
           {!named && <h2>Question {q.number}</h2>}
@@ -377,6 +414,7 @@ export function QuestionView({
           {flags && (
             <button
               type="button"
+              className={styles.tool}
               aria-label="Flag for your tutor"
               title="Flag for your tutor"
               aria-pressed={marked.flagged}
@@ -395,6 +433,7 @@ export function QuestionView({
           )}
           <button
             type="button"
+            className={styles.tool}
             aria-label="Bookmark"
             title="Bookmark"
             aria-pressed={marked.bookmarked}
@@ -411,6 +450,7 @@ export function QuestionView({
           </button>
           <button
             type="button"
+            className={styles.tool}
             aria-label="Question before"
             disabled={!onStep.before}
             onClick={onStep.before}
@@ -419,12 +459,14 @@ export function QuestionView({
           </button>
           <button
             type="button"
+            className={styles.tool}
             aria-label="Question after"
             disabled={!onStep.after}
             onClick={onStep.after}
           >
             <Chevron />
           </button>
+          {ways.close && <Close close={ways.close} />}
         </div>
       </header>
       <p className={styles.verdict} data-right={q.right}>
