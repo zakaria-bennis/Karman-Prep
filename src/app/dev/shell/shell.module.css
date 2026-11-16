@@ -193,6 +193,129 @@
   padding: 0;
 }
 
+/* the Homework icon: its rows slide off one after another, a tick lands with confetti flying out from
+   the middle, and it begins again. It plays while Homework is open, or pointed at. */
+.item [data-move="done"],
+.item [data-move="bit"] {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.item:hover [data-move="row"],
+.item[aria-current="page"] [data-move="row"] {
+  animation: hwRow 5s var(--out) infinite;
+}
+
+.item [data-move="row"][data-n="1"] {
+  animation-delay: 0.45s;
+}
+
+.item [data-move="row"][data-n="2"] {
+  animation-delay: 0.9s;
+}
+
+.item:hover [data-move="done"],
+.item[aria-current="page"] [data-move="done"] {
+  animation: hwDone 5s cubic-bezier(0.3, 1.6, 0.45, 1) infinite;
+}
+
+.item:hover [data-move="bit"],
+.item[aria-current="page"] [data-move="bit"] {
+  animation: hwBit 5s var(--out) infinite;
+}
+
+@keyframes hwRow {
+  0%,
+  12% {
+    opacity: 1;
+    transform: none;
+  }
+
+  24%,
+  84% {
+    opacity: 0;
+    transform: translateX(9px);
+  }
+
+  85% {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  96%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hwDone {
+  0%,
+  42% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  56%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes hwBit {
+  0%,
+  46% {
+    opacity: 0;
+    transform: none;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--bx), var(--by));
+  }
+}
+
+/* ---- the phone's bar: pictures only, and the middle one larger ---- */
+/* The page's title already says where the student is, so the bar carries no words (they are still
+   read out). The bar is fixed to the bottom of the screen and keeps clear of the browser's own bars
+   and the phone's home line. */
+@media not ((min-width: 960px) and (hover: hover)) {
+  .nav {
+    --cell: 56px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .items .word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .items li[data-mid] .art {
+    scale: 1.42;
+  }
+}
+
 @media (max-width: 379px) {
   .item {
     font-size: 10px;
@@ -747,7 +870,13 @@
     transition: none;
   }
 
-  .item:hover [data-move] {
+  .item:hover [data-move],
+  .item[aria-current="page"] [data-move] {
     animation: none;
+  }
+
+  .item [data-move="done"],
+  .item [data-move="bit"] {
+    opacity: 0;
   }
 }

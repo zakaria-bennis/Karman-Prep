@@ -2,7 +2,7 @@
 // (1.6) with round ends, a faint wash of the text colour inside each main shape, and one small clay accent.
 // They take the text colour, so they work on glass by day and by night.
 // A part marked data-move is the piece that stirs when its row is hovered (see shell.module.css).
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 export type StickerName =
   | "homework"
@@ -27,19 +27,38 @@ const RED = "#c8553d";
 const BLUE = "#4f7fc4";
 
 const ART: Record<StickerName, ReactNode> = {
-  // a page with its corner folded and a tick
+  // a page with its homework as rows. The rows slide off one by one as if each were finished, a
+  // tick lands with confetti flying out from its middle, and it begins again (founder, 2026-11-16)
   homework: (
     <>
+      <rect x="5" y="3" width="14" height="18" rx="2.600" {...WASH} />
+      {[8, 12, 16].map((y, n) => (
+        <path key={y} data-move="row" data-n={n} d={`M8.500 ${y}h7`} strokeWidth="1.900" />
+      ))}
+      {[
+        [-9, -7, ACCENT],
+        [9, -8, GOLD],
+        [-10, 4, GREEN],
+        [10, 5, BLUE],
+        [-3, -11, GOLD],
+        [3, 10, ACCENT],
+      ].map(([x, y, color], n) => (
+        <circle
+          key={n}
+          data-move="bit"
+          cx="12"
+          cy="12"
+          r="1.100"
+          fill={color as string}
+          stroke="none"
+          style={{ "--bx": `${x}px`, "--by": `${y}px` } as CSSProperties}
+        />
+      ))}
       <path
-        d="M7 3.500h7l4.500 4.500v10.500a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z"
-        {...WASH}
-      />
-      <path d="M14 3.500V8h4.500" />
-      <path
-        data-move="pop"
-        d="M8.500 14.200l2.200 2.200 4.400-4.800"
+        data-move="done"
+        d="M8.500 12.300l2.500 2.500 4.800-5.300"
         stroke={ACCENT}
-        strokeWidth="1.900"
+        strokeWidth="2.100"
       />
     </>
   ),

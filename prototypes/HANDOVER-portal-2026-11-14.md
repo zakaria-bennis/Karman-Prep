@@ -960,3 +960,15 @@ another. Each Math domain has its own picture and movement; all picture movement
 (`homeworkMotion.ts`; GSAP 3.15 was already installed). Pacing is not homework. **Pressing a piece still
 to do finishes it** (check drawn, slides away, character cheers) so he can judge the finishing; remove
 that once activities have their own screens.
+
+**Homework, fifth version (same day).** The character's eyes look at the pointer (the fox's `.m-eyes`
+group is moved; other faces have no such group yet) and it is raised to sit at the ring's middle. Math
+domain pictures are gone. Every piece has a Start button (which, for now, finishes it). Strategy quizzes
+have a compass and five questions. The exam banner is a window onto space: round stars, a ringed planet,
+a moon, a shooting star; **no four-pointed stars anywhere on Homework** (he dislikes them; Rewards'
+sparkles have not been changed). The class pill in the day's list is gone; in its place today's Daily 10,
+until done, is a card with Start. Under the character a line of words changes every few seconds. The
+class button always goes to Zoom (no link exists yet; it says "Opening Zoom"). Stepping days or weeks
+slides the pieces in. **Phone bar:** pictures only, the middle one larger, fixed to the bottom with the
+safe area (`layout.tsx` sets `viewport-fit=cover`). **Homework icon:** rows slide off, a tick lands with
+confetti, and it loops while Homework is open.

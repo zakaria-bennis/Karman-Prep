@@ -6,22 +6,24 @@
 //                exam button and a clock counting down to when it closes.
 //   The left     the student's own character, in what they have on, inside a ring that fills as the
 //                day's work is done. It watches the pointer, and pressing it plays a trick. Under
-//                it, how much is left, and the next class as a button with its own countdown.
+//                it, a line of words that changes (what is left, about how long), and the next
+//                class as a button with its own countdown that goes to the class.
 //   The right    the day's work, one piece under another, each tinted glass with a picture of its
-//                sort (and of its domain, for Math). Arrows step to other days. A class that day
-//                leads the list with Join on it. Done work is behind Completed.
+//                sort and a Start button. Today's Daily 10, until it is done, leads the day as a
+//                card of its own. Arrows step to other days, and the pieces slide in from the
+//                side stepped toward. Done work is behind Completed.
 //   Week         a switch lays the whole week out; pressing a day goes to it.
-// Pressing a piece still to do finishes it, so the finishing can be looked at: each activity's own
+// Pressing Start on a piece finishes it, so the finishing can be looked at: each activity's own
 // screen is still to come.
 // On a phone the same pieces stack: banner, ring and bars side by side, then the day's work.
 // Pressing a piece of work leads nowhere yet: each activity's beginning screen is still to come.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dressed } from "./accessories";
 import { useEquipped } from "./equipped";
-import { ExamBanner, Item, wearing } from "./HomeworkBits";
-import { Buddy, ClassButton, ClassPill } from "./HomeworkBuddy";
-import { useClock } from "./homeworkMotion";
+import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
+import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
+import { arrive, useClock } from "./homeworkMotion";
 import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay } from "./homeworkData";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
@@ -54,11 +56,14 @@ const Chevron = ({ back = false }: { back?: boolean }) => (
 /** The day's work: what is left, and at the foot what has been done. */
 function Work({
   day,
-  now,
+  daily,
+  onDaily,
   onFinish,
 }: {
   day: HomeworkDay;
-  now: number;
+  /** Today's Daily 10 is still to do. */
+  daily: boolean;
+  onDaily: () => void;
   onFinish: (id: string) => void;
 }) {
   const { face } = useEquipped();
@@ -68,8 +73,8 @@ function Work({
   const done = day.work.filter((w) => w.state === "done");
   return (
     <>
-      {/* a class that day leads its list, with Join on it */}
-      {day.class && <ClassPill day={day} now={now} />}
+      {/* today's Daily 10, until it is done, leads the day */}
+      {daily && <DailyTen onStart={onDaily} />}
       {left.length > 0 ? (
         <ul className={styles.list}>
           {left.map((work) => (
@@ -78,7 +83,7 @@ function Work({
         </ul>
       ) : (
         // nothing left: the character in a party hat, hopping
-        <div className={styles.clear}>
+        <div className={styles.clear} data-in>
           <span className={styles.hop}>
             <Dressed face={face} outfit={wearing("Party hat")} size={96} />
           </span>
@@ -129,6 +134,10 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
   /** Work finished on this page by pressing it, until each activity has its own screen. */
   const [finished, setFinished] = useState<string[]>([]);
   const [cheer, setCheer] = useState(0);
+  const [dailyDone, setDailyDone] = useState(false);
+  /** Which way the last step went, so what arrives comes in from that side. */
+  const body = useRef<HTMLDivElement>(null);
+  const from = useRef(0);
   const still = useReducedMotion() ?? false;
   /** The day shown, in days from today. */
   const [at, setAt] = useState(0);
@@ -149,9 +158,26 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
     (d) => d.class && new Date(d.date).setHours(20, 30, 0, 0) > now
   );
   const go = (to: number) => {
+    from.current = to > at ? 1 : -1;
     setAt(Math.max(FIRST, Math.min(LAST, to)));
     tick();
   };
+  // stepping to another day or week, or switching between them, brings the pieces in from the side
+  useEffect(() => {
+    if (from.current !== 0) arrive(body.current, from.current);
+  }, [at, whole]);
+  // the words under the character: what is left, about how long it will take, and the class
+  const minutes = day.work
+    .filter((w) => w.state !== "done")
+    .reduce((n, w) => n + (w.sort === "cards" ? 4 : parseInt(w.much, 10) * 1.3), 0);
+  const lines =
+    left === 0
+      ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
+      : [
+          `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
+          `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
+          ...(day.class ? [`Class at ${day.class}`] : []),
+        ];
   const R = 74;
   const round = 2 * Math.PI * R;
 
@@ -177,10 +203,7 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
             </svg>
             <Buddy size={104} cheer={cheer} />
           </div>
-          <p className={styles.count} aria-live="polite">
-            <b>{left}</b>
-            {day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}
-          </p>
+          <Ticker lines={lines} />
 
           {/* the next class: a button with a clock counting down to it */}
           {next && <ClassButton day={next} now={now} />}
@@ -228,6 +251,7 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
                 type="button"
                 aria-pressed={whole === w}
                 onClick={() => {
+                  from.current = w ? 1 : -1;
                   setWhole(w);
                   tick();
                 }}
@@ -248,14 +272,20 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
         </header>
 
         {whole ? (
-          <div className={styles.week}>
+          <div ref={body} className={styles.week}>
             {days.map((d) => (
-              <div key={d.from} className={styles.col} data-today={d.from === 0 || undefined}>
+              <div
+                key={d.from}
+                className={styles.col}
+                data-today={d.from === 0 || undefined}
+                data-in
+              >
                 {/* pressing a day's name goes to that day */}
                 <button
                   type="button"
                   className={styles.colHead}
                   onClick={() => {
+                    from.current = -1;
                     setAt(d.from);
                     setWhole(false);
                     tick();
@@ -277,11 +307,15 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
             ))}
           </div>
         ) : (
-          <div className={styles.dayBody}>
+          <div ref={body} className={styles.dayBody}>
             <Work
               key={day.from}
               day={day}
-              now={now}
+              daily={day.from === 0 && !dailyDone}
+              onDaily={() => {
+                setDailyDone(true);
+                setCheer(cheer + 1);
+              }}
               onFinish={(id) => {
                 setFinished([...finished, id]);
                 setCheer(cheer + 1);

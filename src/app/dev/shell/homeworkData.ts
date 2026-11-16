@@ -9,7 +9,9 @@
 //     small picture says that.
 //   - The week's full-length exam is a banner of its own with a clock counting down to when it
 //     opens (Saturday, 6 AM); then a Start exam button, and a clock counting down to midnight.
-//   - Pacing is not homework. Strategy quizzes are.
+//   - Pacing is not homework. Strategy quizzes are: five questions at most, under a compass.
+//   - Every piece has a Start button. Today's Daily 10, if not yet done, leads the day as a card of
+//     its own (it is not assigned homework, but it is started from here).
 //   - Only work still to do is listed; done work is behind a Completed button. Missed work is marked
 //     with a sign, not a word; after a week it is closed.
 // What is mine: the names of the work, how much there is, and the class days and time.
@@ -25,24 +27,9 @@ export const SORTS = {
 } as const;
 export type Sort = keyof typeof SORTS;
 
-/** Math's four domains: each has a small picture of its own on a piece of Math work. */
-export type MathDomain = "algebra" | "advanced" | "data" | "geometry";
-const DOMAIN: Record<string, MathDomain> = {
-  "Slope and rate of change": "algebra",
-  "Number of solutions": "algebra",
-  "Graphs of quadratics": "advanced",
-  "Rational expressions": "advanced",
-  Percentages: "data",
-  "Units and conversions": "data",
-  "Circle equations": "geometry",
-  Formulas: "geometry",
-  Algebra: "algebra",
-};
-
 export type Work = {
   id: string;
   kind: Kind;
-  domain?: MathDomain;
   sort: Sort;
   name: string;
   /** How much there is: "8 questions". */
@@ -125,7 +112,7 @@ export function weekOf(week: number): HomeworkDay[] {
           kind: "mixed",
           sort: "strategy",
           name: i === 0 ? "Process of elimination" : "Plugging in numbers",
-          much: "12 questions",
+          much: "5 questions",
         });
     }
     return {
@@ -147,7 +134,7 @@ export function weekOf(week: number): HomeworkDay[] {
                 : from >= -7
                   ? "missing"
                   : "closed";
-        return { ...draft, domain: DOMAIN[draft.name], id: `${week}-${i}-${n}`, state };
+        return { ...draft, id: `${week}-${i}-${n}`, state };
       }),
     };
   });

@@ -29,53 +29,13 @@ const MOVES: Record<string, (svg: SVGElement) => void> = {
       { rotate: 0, svgOrigin: "14 16" },
       { rotate: 360, duration: 0.9, ease: "power2.inOut" }
     ),
-  // the bulb swells and glows
+  // the compass's needle swings and settles
   strategy: (svg) =>
     gsap.fromTo(
       svg.querySelector("[data-part]"),
-      { scale: 1, fill: "rgba(255,227,138,0)", transformOrigin: "50% 100%" },
-      { scale: 1.14, fill: "rgba(255,227,138,0.95)", duration: 0.28, yoyo: true, repeat: 1 }
+      { rotate: -70, svgOrigin: "14 14" },
+      { rotate: 0, duration: 1.1, ease: "elastic.out(1, 0.3)" }
     ),
-  // Algebra: the line is drawn up its graph, and its point lands
-  algebra: (svg) => {
-    gsap.fromTo(
-      svg.querySelector("[data-draw]"),
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.6, ease: "power2.out" }
-    );
-    gsap.fromTo(
-      svg.querySelector("circle"),
-      { scale: 0, transformOrigin: "50% 50%" },
-      { scale: 1, delay: 0.45, duration: 0.35, ease: "back.out(3)" }
-    );
-  },
-  // Advanced Math: the curve swings through
-  advanced: (svg) =>
-    gsap.fromTo(
-      svg.querySelector("[data-draw]"),
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.8, ease: "power1.inOut" }
-    ),
-  // Problem-Solving and Data Analysis: the bars grow from the ground
-  data: (svg) =>
-    gsap.fromTo(
-      svg.querySelectorAll("rect"),
-      { scaleY: 0, transformOrigin: "50% 100%" },
-      { scaleY: 1, duration: 0.45, stagger: 0.1, ease: "back.out(2)" }
-    ),
-  // Geometry and Trigonometry: the triangle turns a third of the way round, and the circle pops
-  geometry: (svg) => {
-    gsap.fromTo(
-      svg.querySelector("path"),
-      { rotate: 0, svgOrigin: "14 16.500" },
-      { rotate: 120, duration: 0.7, ease: "back.inOut(1.6)" }
-    );
-    gsap.fromTo(
-      svg.querySelector("circle"),
-      { scale: 0.4, transformOrigin: "50% 50%" },
-      { scale: 1, duration: 0.6, ease: "elastic.out(1, 0.5)" }
-    );
-  },
 };
 
 /** Plays every small picture inside `root`. */
@@ -102,7 +62,7 @@ export const finish = (el: HTMLElement, then: () => void) => {
     )
     .to(el, { scale: 1, duration: 0.3, ease: "elastic.out(1, 0.45)" })
     .to(el, { x: 60, opacity: 0, duration: 0.28, ease: "power2.in" }, "+=0.12")
-    .to(li, { height: 0, marginBottom: -8, duration: 0.25, ease: "power2.inOut" });
+    .to(li ?? el, { height: 0, marginBottom: -8, duration: 0.25, ease: "power2.inOut" });
 };
 
 /** The time on the page's own day (the stand-in "today", at the real time of day), each second. */
@@ -131,3 +91,20 @@ export const cut = (ms: number) => {
 };
 export const two = (n: number) => String(n).padStart(2, "0");
 export { DAY };
+
+/** The pieces of a day or a week come in from the side they were stepped toward. */
+export const arrive = (root: Element | null, from: number) => {
+  if (!root || calm()) return;
+  gsap.fromTo(
+    root.querySelectorAll("[data-in]"),
+    { x: from * 44, opacity: 0 },
+    {
+      x: 0,
+      opacity: 1,
+      duration: 0.45,
+      stagger: 0.045,
+      ease: "power3.out",
+      clearProps: "transform,opacity",
+    }
+  );
+};

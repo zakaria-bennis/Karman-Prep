@@ -8,7 +8,7 @@
 //   ClassButton  the next class as a big button with a chalkboard that draws itself and a clock
 //                counting down. It joins the class once the door is open; before that it shakes
 //                its head.
-//   ClassPill    the class inside its own day's list, lit and moving, with Join on it.
+//   Ticker       a line of words under the character that changes every few seconds.
 // All of the motion is GSAP's.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
@@ -36,17 +36,36 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
     const x = gsap.quickTo(el, "x", { duration: 0.5, ease: "power3.out" });
     const y = gsap.quickTo(el, "y", { duration: 0.5, ease: "power3.out" });
     const turn = gsap.quickTo(el, "rotation", { duration: 0.6, ease: "power3.out" });
+    // its eyes look at the pointer: they slide inside the face toward it, and the face a little too
+    const eyes = el.querySelector(".m-eyes");
+    const head = el.querySelector(".m-face");
+    const ex = eyes && gsap.quickTo(eyes, "x", { duration: 0.25, ease: "power3.out" });
+    const ey = eyes && gsap.quickTo(eyes, "y", { duration: 0.25, ease: "power3.out" });
+    const hx = head && gsap.quickTo(head, "x", { duration: 0.4, ease: "power3.out" });
+    const hy = head && gsap.quickTo(head, "y", { duration: 0.4, ease: "power3.out" });
     const toward = (e: PointerEvent) => {
       const box = el.getBoundingClientRect();
-      const dx = (e.clientX - (box.left + box.width / 2)) / window.innerWidth;
-      const dy = (e.clientY - (box.top + box.height / 2)) / window.innerHeight;
-      return { dx: Math.max(-1, Math.min(1, dx * 2)), dy: Math.max(-1, Math.min(1, dy * 2)) };
+      const px = e.clientX - (box.left + box.width / 2);
+      const py = e.clientY - (box.top + box.height / 2);
+      const far = Math.hypot(px, py) || 1;
+      // which way the pointer is, and how far (full from 160px away)
+      const reach = Math.min(1, far / 160);
+      return {
+        dx: Math.max(-1, Math.min(1, (px / window.innerWidth) * 2)),
+        dy: Math.max(-1, Math.min(1, (py / window.innerHeight) * 2)),
+        lx: (px / far) * reach,
+        ly: (py / far) * reach,
+      };
     };
     const move = (e: PointerEvent) => {
-      const { dx, dy } = toward(e);
+      const { dx, dy, lx, ly } = toward(e);
       x(dx * 9);
       y(dy * 7);
       turn(dx * 10);
+      ex?.(lx * 4.2);
+      ey?.(ly * 3.4);
+      hx?.(lx * 1.6);
+      hy?.(ly * 1.2);
     };
     const press = (e: PointerEvent) => {
       if (body.current?.contains(e.target as Node)) return;
@@ -71,7 +90,7 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerdown", press);
     };
-  }, []);
+  }, [face]);
 
   const stars = () => {
     if (!burst.current) return;
@@ -83,7 +102,6 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
         y: (i) => Math.sin((i / 8) * Math.PI * 2) * 86,
         scale: 1.3,
         opacity: 0,
-        rotate: 180,
         duration: 0.8,
         ease: "power2.out",
       }
@@ -134,7 +152,7 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
     <span ref={lean} className={styles.buddy}>
       <span ref={burst} className={styles.burst} aria-hidden="true">
         {Array.from({ length: 8 }, (_, i) => (
-          <i key={i} />
+          <i key={i} style={{ background: ["#ffd76a", "#ff5fa8", "#5aa8ff", "#4fd68a"][i % 4] }} />
         ))}
       </span>
       <button
@@ -196,20 +214,21 @@ const chalk = (root: Element | null) => {
 
 export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
   const ref = useRef<HTMLButtonElement>(null);
-  const [no, setNo] = useState(false);
+  const [going, setGoing] = useState(false);
   const live = doorOpen(day, now);
   useEffect(() => chalk(ref.current), []);
   useEffect(() => {
-    if (!no) return;
-    const timer = window.setTimeout(() => setNo(false), 1800);
+    if (!going) return;
+    const timer = window.setTimeout(() => setGoing(false), 1800);
     return () => window.clearTimeout(timer);
-  }, [no]);
+  }, [going]);
   return (
     <button
       ref={ref}
       type="button"
       className={styles.classButton}
       data-live={live || undefined}
+      aria-label={`Join class, ${day.class}`}
       onPointerEnter={() =>
         !calm() &&
         gsap.fromTo(
@@ -218,16 +237,15 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
           { rotate: 0, duration: 0.8, ease: "elastic.out(1, 0.3)" }
         )
       }
+      // pressing it goes to the class's Zoom room (there is no link to open yet, so it only says so)
       onClick={() => {
-        if (live) return ping();
-        tick();
-        setNo(true);
-        // not yet: it shakes its head
+        ping();
+        setGoing(true);
         if (!calm())
           gsap.fromTo(
             ref.current,
-            { x: -7 },
-            { x: 0, duration: 0.5, ease: "elastic.out(1, 0.25)" }
+            { scale: 0.96 },
+            { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.4)" }
           );
       }}
     >
@@ -238,41 +256,54 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
           {day.from === 0 ? "Today" : day.date.toLocaleDateString("en-US", { weekday: "long" })},{" "}
           {day.class}
         </b>
-        <em aria-live="polite">
-          {live
-            ? "Join now"
-            : no
-              ? `Opens ${CLASS.early} minutes before`
-              : countdown(when(day) - now)}
+        <em aria-live="polite" suppressHydrationWarning>
+          {going ? "Opening Zoom" : live ? "Join now" : countdown(when(day) - now)}
         </em>
       </span>
+      <svg
+        className={styles.joinArrow}
+        viewBox="0 0 24 24"
+        width="22"
+        height="22"
+        aria-hidden="true"
+      >
+        <path d="M5 12h13M12.500 6.500L18 12l-5.500 5.500" />
+      </svg>
     </button>
   );
 }
 
-export function ClassPill({ day, now }: { day: HomeworkDay; now: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const live = doorOpen(day, now);
-  const past = now >= when(day) + CLASS.minutes * MIN;
-  useEffect(() => chalk(ref.current), []);
+/** A line of words that changes every few seconds: the old one rises away and the next comes up. */
+export function Ticker({ lines }: { lines: string[] }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [at, setAt] = useState(0);
+  const key = lines.join("|");
+  useEffect(() => {
+    if (lines.length < 2) return;
+    const timer = window.setInterval(() => {
+      const el = ref.current;
+      const next = () => setAt((n) => n + 1);
+      if (!el || calm()) return next();
+      gsap.to(el, {
+        y: -14,
+        opacity: 0,
+        duration: 0.25,
+        ease: "power2.in",
+        onComplete: () => {
+          next();
+          gsap.fromTo(
+            el,
+            { y: 14, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.45, ease: "back.out(2)" }
+          );
+        },
+      });
+    }, 3400);
+    return () => window.clearInterval(timer);
+  }, [key, lines.length]);
   return (
-    <div ref={ref} className={styles.classPill} data-live={live || undefined}>
-      <Board />
-      <p>
-        <b>Class at {day.class}</b>
-        <small>{past ? "Finished" : live ? "On now" : `In ${countdown(when(day) - now)}`}</small>
-      </p>
-      {!past && (
-        <button
-          type="button"
-          disabled={!live}
-          aria-label={live ? "Join class" : `Join class, opens ${CLASS.early} minutes before`}
-          onClick={() => ping()}
-        >
-          {live && <i aria-hidden="true" />}
-          Join
-        </button>
-      )}
-    </div>
+    <p className={styles.ticker} aria-live="off">
+      <span ref={ref}>{lines[at % lines.length]}</span>
+    </p>
   );
 }

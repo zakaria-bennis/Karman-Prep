@@ -328,7 +328,7 @@ function Shell() {
             aria-hidden="true"
           />
           {items.map((item, i) => (
-            <li key={item} data-item>
+            <li key={item} data-item data-mid={(!rail && i === 2) || undefined}>
               <motion.button
                 type="button"
                 className={styles.item}

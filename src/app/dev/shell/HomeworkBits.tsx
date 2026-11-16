@@ -7,20 +7,25 @@ import gsap from "gsap";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { ACCESSORIES, Dressed, type Outfit } from "./accessories";
 import { useEquipped } from "./equipped";
-import {
-  EXAM,
-  KINDS,
-  SORTS,
-  type HomeworkDay,
-  type MathDomain,
-  type Sort,
-  type Work,
-} from "./homeworkData";
+import { EXAM, KINDS, SORTS, type HomeworkDay, type Sort, type Work } from "./homeworkData";
 import { calm, cut, finish, stir, two } from "./homeworkMotion";
 import styles from "./homework.module.css";
 import { chosen, tick } from "./sound";
 
 const HOUR = 3_600_000;
+/** The banner's stars: round, of several sizes, always in the same places. */
+const STARS = Array.from({ length: 46 }, (_, n) => {
+  const at = (k: number) => {
+    const x = Math.sin((n + 1) * 91.7 + k * 37.3) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  return {
+    x: Math.round(at(1) * 1000) / 10,
+    y: Math.round(at(2) * 1000) / 10,
+    r: at(3) < 0.75 ? 1.5 : at(3) < 0.94 ? 2.5 : 3.5,
+    w: Math.round(at(4) * 40) / 10,
+  };
+});
 
 /** A small picture for each sort of work, so its name need not be written. */
 export function SortIcon({ sort }: { sort: Sort }) {
@@ -60,66 +65,19 @@ export function SortIcon({ sort }: { sort: Sort }) {
       )}
       {sort === "strategy" && (
         <>
-          <path
-            d="M14 3.500a7.500 7.500 0 0 0-4.500 13.500c.9.800 1.300 1.700 1.300 2.800h6.400c0-1.100.4-2 1.300-2.800A7.500 7.500 0 0 0 14 3.500Z"
-            data-part="bulb"
-          />
-          <path d="M11.500 23h5M12.500 25.500h3" />
+          {/* a compass, for a strategy quiz */}
+          <circle cx="14" cy="14" r="10.500" />
+          <path d="M14 6.500l3 7.500-3 7.500-3-7.500Z" data-fill data-part="needle" />
+          <circle cx="14" cy="14" r="1" data-solid />
         </>
       )}
     </svg>
   );
 }
 
-/** Each of Math's four domains has a picture of its own, with its own movement. */
-export function DomainIcon({ domain }: { domain: MathDomain }) {
-  return (
-    <svg
-      className={styles.sort}
-      data-move={domain}
-      viewBox="0 0 28 28"
-      width="28"
-      height="28"
-      aria-hidden="true"
-    >
-      {domain === "algebra" && (
-        // a straight line on its graph
-        <>
-          <path d="M5 4V23H24" opacity="0.6" />
-          <path d="M7 20L21 8" pathLength={1} strokeDasharray="1" data-draw />
-          <circle cx="21" cy="8" r="2.400" data-solid />
-        </>
-      )}
-      {domain === "advanced" && (
-        // a parabola
-        <>
-          <path d="M5 4V23H24" opacity="0.6" />
-          <path d="M8 6Q15 34 22 6" pathLength={1} strokeDasharray="1" data-draw />
-        </>
-      )}
-      {domain === "data" && (
-        // a bar chart
-        <>
-          <path d="M4 24H24" opacity="0.6" />
-          <rect x="5.500" y="15" width="4.500" height="9" rx="1.200" data-fill />
-          <rect x="11.800" y="8" width="4.500" height="16" rx="1.200" data-fill />
-          <rect x="18" y="12" width="4.500" height="12" rx="1.200" data-fill />
-        </>
-      )}
-      {domain === "geometry" && (
-        // a triangle round a circle
-        <>
-          <path d="M14 4L25 23H3Z" />
-          <circle cx="14" cy="16.500" r="3.600" data-fill />
-        </>
-      )}
-    </svg>
-  );
-}
-
-/** A piece of work: tinted glass on the pane, the sort's picture, its name and how much. A piece
- *  still to do is finished by pressing it (until each activity has a screen of its own, so the
- *  finishing can be looked at). */
+/** A piece of work: tinted glass on the pane, the sort's picture, its name and how much, and a
+ *  Start button. Until each activity has a screen of its own, Start finishes the piece, so the
+ *  finishing can be looked at. The week's small pieces have no button. */
 export function Item({
   work,
   small = false,
@@ -130,33 +88,25 @@ export function Item({
   onFinish?: (id: string) => void;
 }) {
   const state = { todo: "", done: "Done", missing: "Missing", closed: "Closed" }[work.state];
+  const open = work.state === "todo" || work.state === "missing";
   return (
-    <li>
-      <button
-        type="button"
+    <li data-in>
+      <div
         className={styles.work}
         data-kind={work.kind}
         data-state={work.state}
         data-small={small || undefined}
-        disabled={work.state === "closed"}
-        aria-label={`${work.name}, ${SORTS[work.sort]}, ${KINDS[work.kind]}, ${work.much}${
-          state ? `, ${state}` : ""
-        }`}
         onPointerEnter={(e) => e.pointerType === "mouse" && stir(e.currentTarget)}
-        onClick={(e) => {
-          stir(e.currentTarget);
-          if (work.state === "todo" && onFinish) {
-            chosen();
-            finish(e.currentTarget, () => onFinish(work.id));
-          } else tick();
-        }}
       >
         <SortIcon sort={work.sort} />
         <span>
           <b>{work.name}</b>
           {!small && <small>{work.much}</small>}
+          <span className={styles.said}>
+            {SORTS[work.sort]}, {KINDS[work.kind]}
+            {state && `, ${state}`}
+          </span>
         </span>
-        {work.domain && !small && <DomainIcon domain={work.domain} />}
         {/* its state is a sign, not a word: a check for done, a mark for missed, a lock for closed.
             A piece still to do carries a check that is drawn when it is finished. */}
         <svg
@@ -189,8 +139,70 @@ export function Item({
             </>
           )}
         </svg>
-      </button>
+        {open && !small && onFinish && (
+          <button
+            type="button"
+            className={styles.begin}
+            aria-label={`Start ${work.name}`}
+            onClick={(e) => {
+              const piece = e.currentTarget.closest<HTMLElement>("[data-kind]");
+              if (!piece) return;
+              stir(piece);
+              chosen();
+              e.currentTarget.disabled = true;
+              finish(piece, () => onFinish(work.id));
+            }}
+          >
+            Start
+          </button>
+        )}
+      </div>
     </li>
+  );
+}
+
+/** Today's Daily 10, when it is not yet done: a card of its own at the head of the day, with ten
+ *  lights that run in a wave, and Start on it. */
+export function DailyTen({ onStart }: { onStart: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current || calm()) return;
+    const wave = gsap.to(ref.current.querySelectorAll("[data-dot]"), {
+      keyframes: [
+        { y: -6, scale: 1.25, opacity: 1, duration: 0.3, ease: "power2.out" },
+        { y: 0, scale: 1, opacity: 0.55, duration: 0.5, ease: "bounce.out" },
+      ],
+      stagger: { each: 0.09, repeat: -1, repeatDelay: 1.8 },
+    });
+    return () => {
+      wave.kill();
+    };
+  }, []);
+  return (
+    <div ref={ref} className={styles.daily} data-in>
+      <span className={styles.dailyLights} aria-hidden="true" />
+      <p>
+        <b>Daily 10</b>
+        <span className={styles.dots} aria-hidden="true">
+          {Array.from({ length: 10 }, (_, i) => (
+            <i key={i} data-dot />
+          ))}
+        </span>
+      </p>
+      <button
+        type="button"
+        className={styles.begin}
+        aria-label="Start the Daily 10"
+        onClick={(e) => {
+          chosen();
+          e.currentTarget.disabled = true;
+          if (ref.current) finish(ref.current, onStart);
+          else onStart();
+        }}
+      >
+        Start
+      </button>
+    </div>
   );
 }
 
@@ -206,7 +218,8 @@ function Clock({ ms, days = true }: { ms: number; days?: boolean }) {
     <span className={styles.clock} role="timer" aria-live="off">
       {cells.map(([n, word]) => (
         <span key={word}>
-          <b>{two(n)}</b>
+          {/* the server and the browser read the time a moment apart */}
+          <b suppressHydrationWarning>{two(n)}</b>
           {word}
         </span>
       ))}
@@ -244,16 +257,28 @@ export function ExamBanner({
   }, [open]);
   return (
     <section className={styles.exam} data-open={open || undefined} aria-label="Full-length exam">
-      {/* slow lights drift behind the glass, and small stars come and go */}
-      <span className={styles.lights} aria-hidden="true" />
-      {[0, 1, 2, 3, 4].map((n) => (
-        <i
-          key={n}
-          className={styles.star}
-          style={{ "--n": n } as CSSProperties}
-          aria-hidden="true"
-        />
-      ))}
+      {/* a window onto outer space: a far glow, round stars of many sizes that come and go, a ringed
+          planet, a small moon, and now and then a shooting star */}
+      <span className={styles.space} aria-hidden="true">
+        <span className={styles.lights} />
+        {STARS.map((s, n) => (
+          <i
+            key={n}
+            className={styles.star}
+            style={
+              {
+                left: `${s.x}%`,
+                top: `${s.y}%`,
+                "--size": `${s.r}px`,
+                "--wait": `${s.w}s`,
+              } as CSSProperties
+            }
+          />
+        ))}
+        <span className={styles.planet} />
+        <span className={styles.moon} />
+        <span className={styles.shoot} />
+      </span>
       <span className={styles.examFox} aria-hidden="true">
         <Dressed
           face={face}
