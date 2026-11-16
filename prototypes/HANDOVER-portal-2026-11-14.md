@@ -516,3 +516,13 @@ like a stock ("really addictive"):
   today"). A signed number and its span in one size, one weight and one color: "+150 all time",
   "−30 past 7 days", "+90 past month". Green up, red down. While a day is pointed at it reads
   "+80 since Sep 27".
+- **Third round on the score (same day), applied:**
+  - **Exam points are small**, with no white edge; the breathing ring stays. **The point being looked
+    at is gray.**
+  - **No empty stretch of graph.** Once the second exam is taken, the line runs from the first exam
+    (the starting point) to today, with texture between exams from practice. The graph starts at the
+    first exam, never before it.
+  - **Spans appear as the student studies longer**: 7 days, 2 weeks, 1 month, 3 months, 6 months,
+    1 year, all time. One is shown only once the history is that long; nothing is greyed out.
+  - **Touch:** a finger dragged along the line keeps hold of it even if it strays off the graph;
+    lifting returns to today. Vertical swipes still scroll the page.

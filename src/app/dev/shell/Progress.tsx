@@ -7,10 +7,12 @@
 //     Total, goes back.
 //   - The ticker is a signed number and its span in one weight and one color, like a stock app:
 //     "+150 all time", "−30 past 7 days". Green up, red down. It is not a sentence.
-//   - Spans: 7 days, 2 weeks, 1 month, 3 months, 6 months, all time. A span longer than the student's
-//     own history cannot be chosen. The line and its fill turn red when the score fell over the span.
+//   - Spans: 7 days, 2 weeks, 1 month, 3 months, 6 months, 1 year, all time. A span appears only once
+//     the student has studied that long. The line and its fill turn red when the score fell over it.
+//   - The line starts at the first exam, never before it: no part of the graph is empty.
 //   - Both axes fit what is shown: the days and the scores each fill the graph.
-//   - Full-length exams are marked at their real scores: a point with a ring that breathes out from it.
+//   - Full-length exams are marked at their real scores: a small point with a ring breathing out from
+//     it. The point being looked at is gray.
 //   - Pointing at (or dragging along, or arrowing through) the line turns the number above into that
 //     day's. Nothing floats over the graph, and there is no key.
 //   - A prediction needs two full-length exams. Before that the same place says so.
@@ -115,16 +117,17 @@ const split = (day: number, total: number): Point => {
   return { day, total, math, rw: total - math };
 };
 
-/** The prediction for every day from the second exam to today: it follows the exams, with a little
- *  life in it, in tens. */
+/** The line for every day from the first exam to today. A prediction needs two exams, but once the
+ *  second is taken the line is drawn back to the first, the student's starting point, so no part of
+ *  the graph is empty. Between exams it rises and dips with practice (stand-in texture), in tens. */
 function predict(student: Student): Point[] {
   const { exams, days, now } = student;
   if (exams.length < 2) return [];
-  const marks = [...exams.slice(1), ...(student.turns ?? []), { day: days, score: now }].sort(
+  const marks = [...exams, ...(student.turns ?? []), { day: days, score: now }].sort(
     (a, b) => a.day - b.day
   );
   const points: Point[] = [];
-  for (let day = exams[1].day; day <= days; day++) {
+  for (let day = exams[0].day; day <= days; day++) {
     const next = marks.findIndex((m) => m.day >= day);
     const a = marks[Math.max(0, next - 1)];
     const b = marks[next];
@@ -148,6 +151,7 @@ const SPANS = [
   { key: "1m", label: "1 month", brief: "1M", days: 30, said: "past month" },
   { key: "3m", label: "3 months", brief: "3M", days: 91, said: "past 3 months" },
   { key: "6m", label: "6 months", brief: "6M", days: 182, said: "past 6 months" },
+  { key: "1y", label: "1 year", brief: "1Y", days: 365, said: "past year" },
   { key: "all", label: "All time", brief: "All", days: Infinity, said: "all time" },
 ] as const;
 type SpanKey = (typeof SPANS)[number]["key"];
@@ -255,11 +259,8 @@ function Graph({
       from +
       ((e.clientX - left - pad.left) / Math.max(1, width - pad.left - pad.right)) *
         (student.days - from);
-    let best = 0;
-    points.forEach((p, i) => {
-      if (Math.abs(p.day - day) < Math.abs(points[best].day - day)) best = i;
-    });
-    setAt(best);
+    // there is one point a day, so the nearest one is found by counting, not by searching
+    setAt(Math.min(points.length - 1, Math.max(0, Math.round(day - points[0].day))));
   };
   const key = (e: KeyboardEvent<HTMLDivElement>) => {
     const last = points.length - 1;
@@ -293,7 +294,13 @@ function Graph({
       aria-valuenow={at ?? points.length - 1}
       aria-valuetext={`${long(dateOf(student, told.day))}: ${told.total}. Reading and Writing ${told.rw}, Math ${told.math}.`}
       onPointerMove={find}
-      onPointerDown={find}
+      onPointerDown={(e) => {
+        // a finger keeps hold of the graph even if it strays above or below it
+        e.currentTarget.setPointerCapture(e.pointerId);
+        find(e);
+      }}
+      onPointerUp={(e) => e.pointerType !== "mouse" && setAt(null)}
+      onPointerCancel={() => setAt(null)}
       onPointerLeave={(e) => e.pointerType === "mouse" && setAt(null)}
       onBlur={() => setAt(null)}
       onKeyDown={key}
@@ -343,14 +350,14 @@ function Graph({
                 style={{ "--lag": `${(i % 4) * -0.6}s` } as CSSProperties}
                 cx={x(exam.day)}
                 cy={y(exam[series])}
-                r="5.500"
+                r="3.500"
               />
-              <circle className={styles.exam} cx={x(exam.day)} cy={y(exam[series])} r="5.500" />
+              <circle className={styles.exam} cx={x(exam.day)} cy={y(exam[series])} r="3.500" />
               {labelled && (
                 <text
                   className={styles.examScore}
                   x={Math.max(pad.left + 16, x(exam.day))}
-                  y={y(exam[series]) - 14}
+                  y={y(exam[series]) - 11}
                   textAnchor="middle"
                 >
                   {exam[series]}
@@ -361,7 +368,7 @@ function Graph({
           {shown && (
             <>
               <path className={styles.hair} d={`M${x(shown.day)} ${pad.top - 8}V${floor}`} />
-              <circle className={styles.dot} cx={x(shown.day)} cy={y(shown[series])} r="6" />
+              <circle className={styles.dot} cx={x(shown.day)} cy={y(shown[series])} r="5" />
             </>
           )}
         </svg>
@@ -384,11 +391,11 @@ export default function Progress({ student: key }: { student: StudentKey }) {
     setWanted("all");
   }
 
-  // a span can be chosen only if the prediction has run at least that long
+  // a span is offered only once the student has studied that long: the choices grow with them
   const history = all.length ? student.days - all[0].day : 0;
   const open = (days: number) => days === Infinity || history >= days;
   const span = SPANS.find((s) => s.key === wanted && open(s.days)) ?? SPANS[SPANS.length - 1];
-  const from = span.days === Infinity ? 0 : student.days - span.days;
+  const from = span.days === Infinity ? (all[0]?.day ?? 0) : student.days - span.days;
   const points = useMemo(() => all.filter((p) => p.day >= from), [all, from]);
   const latest = points[points.length - 1];
   const first = points[0];
@@ -458,13 +465,12 @@ export default function Progress({ student: key }: { student: StudentKey }) {
             </div>
 
             <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
-              {SPANS.map((s) => (
+              {SPANS.filter((s) => open(s.days)).map((s) => (
                 <button
                   key={s.key}
                   type="button"
                   aria-label={s.label}
                   aria-pressed={span.key === s.key}
-                  disabled={!open(s.days)}
                   onClick={() => {
                     setWanted(s.key);
                     setAt(null);

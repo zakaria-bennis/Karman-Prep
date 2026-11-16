@@ -140,11 +140,6 @@
   height: 36px;
 }
 
-.spans button:disabled {
-  opacity: 0.38;
-  cursor: default;
-}
-
 .spans [data-brief] {
   display: none;
 }
@@ -215,12 +210,10 @@
   animation: draw 0.8s var(--out) both;
 }
 
-/* a full-length exam at its real score: a point the size of the old square, and a ring that breathes
-   out from it */
+/* a full-length exam at its real score: a small point with no edge, and a ring that breathes out
+   from it */
 .exam {
   fill: var(--trend);
-  stroke: #fffdf8;
-  stroke-width: 2;
 }
 
 .ring {
@@ -239,7 +232,7 @@
 
   70%,
   to {
-    transform: scale(2.8);
+    transform: scale(3.2);
     opacity: 0;
   }
 }
@@ -258,10 +251,13 @@
   opacity: 0.5;
 }
 
+/* the day being looked at: gray, so it is never mistaken for an exam */
 .dot {
-  fill: var(--trend);
-  stroke: #fffdf8;
-  stroke-width: 2.5;
+  fill: #6f6b78;
+}
+
+:global([data-kp-mode="dark"]) .dot {
+  fill: #cfccd8;
 }
 
 /* ---- before two exams: the same place says what to do ---- */
