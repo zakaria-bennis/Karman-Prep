@@ -18,9 +18,11 @@
   --down: #ff8d7e;
 }
 
-/* ---- the six numbers: they spread to fill the height the score gives them ---- */
+/* ---- the numbers: seven buttons, each a number kept like a stock ---- */
 .stats {
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  padding: var(--pad);
 }
 
 .stats .periods {
@@ -37,26 +39,65 @@
   padding: 0 6px;
 }
 
-/* a number and, right beside it, what it counts; then its ticker on a line that is always kept */
-.figure {
+.stats .cells {
   display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  gap: 0 8px;
-  font-size: 13px;
-  font-weight: 500;
+  grid-auto-rows: 1fr;
+  gap: 2px;
 }
 
-.figure b {
-  font-size: 28px;
+.cells li {
+  display: grid;
+}
+
+/* name over value, the ticker under them, the small line at the right */
+.stat {
+  --way: var(--up);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px 20px;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  align-items: center;
+  gap: 0 12px;
+  width: 100%;
+  padding: 6px 4px 6px 10px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.stat:active {
+  transform: scale(0.985);
+  background: var(--hover);
+}
+
+.name {
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.15;
+  opacity: 0.8;
+}
+
+/* the value is set in the serif of the predicted score, so the two read as one family */
+.value {
+  grid-column: 1;
+  font: 400 30px/1.1 var(--font-serif);
   letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.value small {
+  margin-left: 6px;
+  font:
+    500 13px/1 var(--font-hanken),
+    system-ui,
+    sans-serif;
+  letter-spacing: 0;
 }
 
 .tick {
-  grid-column: 1 / -1;
+  grid-column: 1;
   min-height: 18px;
   font-size: 13px;
   font-weight: 600;
@@ -76,67 +117,124 @@
   opacity: 0.7;
 }
 
-.accuracy {
-  display: grid;
-  grid-template-columns: 1fr 120px;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--r-lens);
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.accuracy b {
-  font-size: 40px;
-}
-
 .spark {
-  width: 120px;
-  height: 30px;
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 104px;
+  height: 36px;
   overflow: visible;
 }
 
-.spark path {
+.spark[data-way="down"] {
+  --way: var(--down);
+}
+
+.spark path:last-child {
   fill: none;
-  stroke: var(--up);
-  stroke-width: 2.5;
+  stroke: var(--way);
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
   stroke-dasharray: 1;
   animation: draw 0.7s var(--out) both;
 }
 
-.spark[data-way="down"] path {
-  stroke: var(--down);
+.chev {
+  grid-column: 3;
+  grid-row: 1 / -1;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
 }
 
-.stats .cells {
-  display: grid;
-  align-content: space-between;
-  gap: 10px;
-}
+@media (hover: hover) {
+  .stat:hover {
+    background: var(--hover);
+  }
 
-.note {
-  min-height: 18px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
-  opacity: 0.78;
+  .stat:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
 /* ---- the calendar ---- */
 .calendar header {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 4px;
 }
 
-.calendar header button {
+.calendar header .month {
+  display: flex;
+  justify-self: start;
+  gap: 4px;
+  width: auto;
+  padding: 0 8px 0 10px;
+  margin-left: -10px;
+}
+
+/* the list of months lies over the calendar, so opening it moves nothing */
+.calendar .months {
+  position: absolute;
+  top: 44px;
+  left: -10px;
+  z-index: 2;
   display: grid;
-  place-items: center;
+  gap: 2px;
+  width: min(100%, 240px);
+  max-height: 252px;
+  padding: 6px;
+  margin: 0;
+  overflow-y: auto;
+  border-radius: var(--r-piece);
+  /* thicker glass than the calendar under it, so the dates beneath never read through the names */
+  background: rgb(255 251 244 / 0.9);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    0 18px 40px -16px rgb(24 28 58 / 0.55),
+    inset 0 0 0 1px var(--glass-edge);
+  list-style: none;
+  animation: drop 0.18s var(--out);
+}
+
+.calendar .months button {
+  justify-content: start;
+  width: 100%;
+  padding: 0 12px;
+  font-weight: 500;
+}
+
+.months li[aria-selected="true"] button {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-weight: 600;
+}
+
+:global([data-kp-mode="dark"]) .calendar .months {
+  background: rgb(34 32 52 / 0.92);
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.calendar header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   border-radius: var(--r-lens);
@@ -188,8 +286,8 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   transition:
-    transform 0.2s cubic-bezier(0.3, 1.6, 0.45, 1),
-    box-shadow 0.2s var(--out);
+    transform 0.15s var(--out),
+    box-shadow 0.15s var(--out);
 }
 
 .day[data-level="1"] {
@@ -212,18 +310,29 @@
   cursor: default;
 }
 
-.day[data-today] {
-  box-shadow:
-    0 0 0 1px var(--sq-edge),
-    0 0 0 3px var(--ink);
+/* today: a small bar under the date, inside the square */
+.day {
+  position: relative;
 }
 
+.day[data-today]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 12px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+/* the day pressed: a ring drawn inside its own edge, dark then light, so it shows on every shade and
+   never lies over the squares around it */
 .day[aria-pressed="true"] {
-  transform: scale(1.12);
   box-shadow:
-    0 0 0 2px var(--on-ink, #fffdf8),
-    0 0 0 4px var(--ink),
-    0 6px 14px -6px rgb(24 28 58 / 0.5);
+    inset 0 0 0 2.5px var(--ink),
+    inset 0 0 0 4.5px #fffdf8;
 }
 
 .day:not(:disabled):active {
@@ -232,7 +341,9 @@
 
 @media (hover: hover) {
   .day:not(:disabled, [aria-pressed="true"]):hover {
-    transform: scale(1.08);
+    box-shadow:
+      0 0 0 1px var(--sq-edge),
+      inset 0 0 0 2px var(--ink);
   }
 
   .calendar header button:not(:disabled):hover {
@@ -300,6 +411,37 @@
 @keyframes draw {
   from {
     stroke-dashoffset: 1;
+  }
+}
+
+/* a phone: the ticker sits beside the value, so all seven fit the screen */
+@media (max-width: 599px) {
+  .stat {
+    grid-template-columns: auto minmax(0, 1fr) 104px 20px;
+    grid-template-rows: auto auto;
+    padding: 5px 4px 5px 8px;
+  }
+
+  .name {
+    grid-column: 1 / 3;
+  }
+
+  .value {
+    font-size: 28px;
+  }
+
+  .tick {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .spark {
+    grid-column: 3;
+  }
+
+  .chev {
+    grid-column: 4;
   }
 }
 

@@ -126,7 +126,13 @@ export type DayLog = {
   daily10: boolean;
   /** Which full-length exam was taken that day, counted from 1; 0 for none. */
   exam: number;
+  /** Seconds a question took on timed work that day, on average; 0 if nothing was done. */
+  pace: number;
 };
+
+/** Seconds a question the real SAT allows, on average: 134 minutes for 98 questions. Standard time;
+ *  a student's accommodations will change this once Settings holds them. */
+export const SAT_PACE = Math.round((134 * 60) / 98);
 
 /** The same "random" number every time for the same day and purpose, so the page never flickers. */
 const noise = (day: number, k: number) => {
@@ -156,6 +162,9 @@ export function activity(student: Student): DayLog[] {
       minutes: Math.round(practice * (1 + noise(day, 6) * 0.5)) + (exam ? 134 : 0),
       daily10,
       exam,
+      pace: questions
+        ? Math.round(98 - 18 * (day / Math.max(1, student.days)) + (noise(day, 7) - 0.5) * 14)
+        : 0,
     });
   }
   return logs;

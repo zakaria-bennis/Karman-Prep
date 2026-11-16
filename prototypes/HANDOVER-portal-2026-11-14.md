@@ -549,3 +549,21 @@ Files are now split: `progressData.ts` (the made-up students, the score line, a 
 - The countdown is now one quiet line above the score at every width.
 - Stand-ins: the whole daily log (`activity()`), the skills count, time. Not built: real idle-time
   tracking (his rule: only active time counts, mouse jigglers must not inflate it).
+
+**Progress step 2, second round (2026-11-16), applied; awaiting his verdict.**
+- **Seven numbers, in his order:** time invested, questions answered, skills Proficient, exams taken,
+  pacing (added: "we should be tracking the pacing as well"), accuracy, days practiced. Accuracy is not
+  the lead.
+- **Each number is kept like a stock** (`progressStats.ts`): what it stands at now, a ticker of how
+  far it moved over 7 or 30 days (none for all time), and a small line with a fading fill. Values are
+  set in the serif of the predicted score. Green is for the better, red for the worse; for pacing,
+  faster is better.
+- **Each number is a button that opens its own page** (`ProgressStat.tsx`, his call left to me): the
+  score piece again for that number, with the spans and the full stock line (`ProgressGraph.tsx`, now
+  shared). Pacing's page states the SAT's 1:22 a question (standard time).
+- **Calendar marks never overlap a neighbor:** today is a small bar under its date; the pressed day is
+  a ring drawn inside its own square. No scaling.
+- **The month's name is a button** that opens a list of every month the student has been here.
+- **Full width:** the three pieces share the whole width of the page (1 : 1.9 : 1), like the Library's.
+  He said "matches the horizontal space of that first top tab"; this is my reading, to confirm.
+- The line explaining the colored numbers is gone ("reads as clutter").

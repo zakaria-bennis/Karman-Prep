@@ -36,6 +36,7 @@ import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import LibraryHero from "./LibraryHero";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
+import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -126,6 +127,9 @@ function Shell() {
   const [domain, setDomain] = useState<string | null>(null);
   /* which made-up student the Progress page shows (demo only) */
   const [student, setStudent] = useState<StudentKey>("weeks9");
+  /* the number whose own page is open in Progress, if any */
+  const [stat, setStat] = useState<StatKey | null>(null);
+  const inStat = page === "progress" && stat !== null;
   /* how frosted the glass is; the dial remembers its setting on this computer */
   const [frost, setFrost] = useState(0.7);
   useEffect(() => {
@@ -355,6 +359,7 @@ function Shell() {
                   setSkill(null);
                   setSection(null);
                   setDomain(null);
+                  setStat(null);
                 }}
                 onPointerEnter={(e) => {
                   setHover(i);
@@ -459,19 +464,42 @@ function Shell() {
               {inSkill ? skill.domain : domain ? section : "Library"}
             </button>
           )}
+          {inStat && (
+            <button
+              type="button"
+              className={styles.back}
+              onClick={() => {
+                dir.current = -1;
+                setStat(null);
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M14.500 6.500L9 12l5.500 5.500" />
+              </svg>
+              Progress
+            </button>
+          )}
           {!(page === "library" && !section) && (
             <h1
               className={styles.title}
               key={
-                inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page
+                inSkill
+                  ? skill.name
+                  : inStat
+                    ? stat
+                    : page === "library" && section
+                      ? (domain ?? section)
+                      : page
               }
               data-long={(page === "library" && (inSkill || section !== null)) || undefined}
             >
               {inSkill
                 ? skill.name
-                : page === "library" && section
-                  ? (domain ?? section)
-                  : LABEL[page]}
+                : inStat
+                  ? STATS[stat].name
+                  : page === "library" && section
+                    ? (domain ?? section)
+                    : LABEL[page]}
             </h1>
           )}
         </div>
@@ -522,7 +550,30 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "progress" && <Progress rail={rail} student={student} />}
+        {/* Progress: choosing a number slides its own page in, the same way a skill does */}
+        {page === "progress" && (
+          <AnimatePresence mode="wait" initial={false} custom={dir.current}>
+            <motion.div
+              key={stat ?? "progress"}
+              custom={dir.current}
+              variants={SLIDE_OVER}
+              initial={still ? false : "from"}
+              animate="here"
+              exit={still ? undefined : "gone"}
+            >
+              <Progress
+                rail={rail}
+                student={student}
+                stat={stat}
+                onStat={(next) => {
+                  dir.current = 1;
+                  setStat(next);
+                  window.scrollTo({ top: 0 });
+                }}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
       </main>
 
       {q.get("demo") !== "0" && (

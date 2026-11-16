@@ -1,30 +1,24 @@
 "use client";
 
-// Progress, step 2 (founder, 2026-11-15): the six numbers and the calendar.
-//   Stats      questions answered, time invested, days practiced, accuracy, skills Proficient and exams
-//              taken. All time by default, with a switch to 30 days and 7 days. On a shorter span each
-//              number carries a ticker: how it compares with the span before, green up and red down.
-//              Accuracy always shows today's percent, with a small line of how it has moved.
+// Progress, step 2 (founder, 2026-11-15 and 2026-11-16): the numbers and the calendar.
+//   Stats      seven numbers in his order: time invested, questions answered, skills Proficient, exams
+//              taken, pacing, accuracy, days practiced. Each is a button that opens the number's own
+//              page. Each reads like a stock: what it stands at, a ticker of how far it moved over
+//              the span chosen (7 days, 30 days; none for all time), and a small line with a fading
+//              fill. Green is for the better and red for the worse; for pacing, faster is better.
 //   Calendar   one month at a time. Each day is a rounded square shaded by how much was done. Pressing
-//              a day shows what was done that day. The streak counts days in a row with the Daily 10.
+//              a day shows what was done that day. Pressing the month's name opens the list of months.
+//              The streak counts days in a row with the Daily 10.
 // A student is never compared with other students here. Time is active time only.
-// Anything that changes on a press has its place kept, so nothing below it moves.
+// Anything that changes on a press has its place kept, so nothing below it moves. Today and the day
+// pressed are marked inside their own squares, so no square ever lies over its neighbor.
 import { motion, useReducedMotion } from "framer-motion";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./progressActivity.module.css";
-import {
-  DAY,
-  SKILLS,
-  TODAY,
-  dateOf,
-  proficientBy,
-  streak,
-  sumOver,
-  type DayLog,
-  type Student,
-} from "./progressData";
+import { DAY, TODAY, dateOf, streak, type DayLog, type Student } from "./progressData";
+import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from "./progressStats";
 import { tick } from "./sound";
 
 const SLIDE = { type: "spring", stiffness: 520, damping: 34 } as const;
@@ -37,87 +31,56 @@ const PERIODS = [
 ] as const;
 type PeriodKey = (typeof PERIODS)[number]["key"];
 
-const clock = (minutes: number) =>
-  minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n)}`;
-
-/** A small line of accuracy over the days shown: each point is the week ending on that day. It takes
- *  the ticker's color when there is one, so the two never disagree. */
-function Spark({
-  logs,
-  from,
-  to,
-  moved,
-}: {
-  logs: DayLog[];
-  from: number;
-  to: number;
-  moved: number | null;
-}) {
-  const values = useMemo(() => {
-    const out: number[] = [];
-    const start = Math.max(from, 6);
-    const step = Math.max(1, Math.round((to - start) / 16));
-    for (let day = to; day >= start; day -= step) out.unshift(sumOver(logs, day - 6, day).accuracy);
-    if (out.length < 2) out.unshift(out[0] ?? 0);
-    return out;
-  }, [logs, from, to]);
+/** A number's small stock line over the span shown, with a fill that fades out under it. */
+function Spark({ values, way }: { values: number[]; way: "up" | "down" | "flat" }) {
+  const id = useId();
+  const w = 104;
+  const h = 36;
   const low = Math.min(...values);
   const high = Math.max(...values);
-  const w = 120;
-  const h = 30;
-  const d = values
+  const line = values
     .map((v, i) => {
       const x = (i / Math.max(1, values.length - 1)) * w;
-      const y = 3 + (1 - (v - low) / Math.max(1, high - low)) * (h - 6);
+      const y = 4 + (1 - (high === low ? 0.5 : (v - low) / (high - low))) * (h - 8);
       return `${i ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
     })
     .join("");
   return (
-    <svg
-      className={styles.spark}
-      data-way={(moved ?? values[values.length - 1] - values[0]) < 0 ? "down" : "up"}
-      viewBox={`0 0 ${w} ${h}`}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path d={d} pathLength={1} />
+    <svg className={styles.spark} data-way={way} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="var(--way)" stopOpacity="0.4" />
+          <stop offset="1" stopColor="var(--way)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line}L${w} ${h}L0 ${h}Z`} fill={`url(#${id})`} stroke="none" />
+      <path d={line} pathLength={1} />
     </svg>
   );
 }
 
-export function Stats({ student, logs }: { student: Student; logs: DayLog[] }) {
+/** At most `most` values from a run, evenly spaced, always ending on the last one. */
+const thin = (values: number[], most = 30) => {
+  if (values.length <= most) return values;
+  const step = (values.length - 1) / (most - 1);
+  return Array.from({ length: most }, (_, i) => values[Math.round(i * step)]);
+};
+
+export function Stats({
+  student,
+  logs,
+  onStat,
+}: {
+  student: Student;
+  logs: DayLog[];
+  onStat: (stat: StatKey) => void;
+}) {
   const still = useReducedMotion() ?? false;
+  const book = useMemo(() => ledger(student, logs), [student, logs]);
   const [wanted, setWanted] = useState<PeriodKey>("all");
   const period = PERIODS.find((p) => p.key === wanted) ?? PERIODS[2];
   const to = student.days;
-  const from = period.days === Infinity ? 0 : to - period.days + 1;
-  const now = sumOver(logs, from, to);
-  // the span just before this one, to compare with (none for all time)
-  const before = period.days === Infinity ? null : sumOver(logs, from - period.days, from - 1);
-  const cells: { value: string; label: string; moved: number | null }[] = [
-    {
-      value: now.questions.toLocaleString("en-US"),
-      label: "questions answered",
-      moved: before && now.questions - before.questions,
-    },
-    {
-      value: clock(now.minutes),
-      label: "invested",
-      moved: before && Math.round((now.minutes - before.minutes) / 6) / 10,
-    },
-    {
-      value: String(now.practiced),
-      label: "days practiced",
-      moved: before && now.practiced - before.practiced,
-    },
-    {
-      value: `${proficientBy(to)}`,
-      label: `of ${SKILLS} skills Proficient`,
-      moved: before && now.proficient,
-    },
-    { value: String(now.exams), label: "exams taken", moved: before && now.exams - before.exams },
-  ];
+  const from = period.days === Infinity ? 0 : Math.max(0, to - period.days);
   return (
     <section className={`${lib.glass} ${styles.stats}`} aria-label="Activity">
       <div className={`${lib.filter} ${styles.periods}`} role="group" aria-label="Span of time">
@@ -143,58 +106,94 @@ export function Stats({ student, logs }: { student: Student; logs: DayLog[] }) {
         ))}
       </div>
 
-      {/* accuracy leads: the percent right now, how it compares, and a small line of how it has moved */}
-      <div className={styles.accuracy}>
-        <p className={styles.figure}>
-          <b>{now.accuracy}%</b>
-          accuracy
-          <Tick moved={before && now.accuracy - before.accuracy} />
-        </p>
-        <Spark logs={logs} from={from} to={to} moved={before && now.accuracy - before.accuracy} />
-      </div>
-
       <ul className={styles.cells}>
-        {cells.map((cell) => (
-          <li key={cell.label} className={styles.figure}>
-            <b>{cell.value}</b>
-            {cell.label}
-            <Tick moved={cell.moved} hours={cell.label === "invested"} />
-          </li>
-        ))}
+        {STAT_ORDER.map((key) => {
+          const stat: Stat = STATS[key];
+          const series = book[key];
+          const moved = series[to] - series[from];
+          const way = wayOf(stat, moved);
+          return (
+            <li key={key}>
+              <button
+                type="button"
+                className={styles.stat}
+                onClick={() => {
+                  tick();
+                  onStat(key);
+                }}
+              >
+                <span className={styles.name}>{stat.name}</span>
+                <span className={styles.value}>
+                  {stat.show(series[to])}
+                  {stat.after && <small>{stat.after}</small>}
+                </span>
+                {/* the ticker's place is kept for all time, when there is nothing to compare */}
+                <span className={styles.tick} data-way={way}>
+                  {period.days === Infinity ? "" : moved === 0 ? "no change" : stat.moved(moved)}
+                </span>
+                <Spark
+                  values={thin(series.slice(from, to + 1))}
+                  way={way === "flat" ? "up" : way}
+                />
+                <svg
+                  className={styles.chev}
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  aria-hidden="true"
+                >
+                  <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+                </svg>
+              </button>
+            </li>
+          );
+        })}
       </ul>
-
-      {/* always there, so choosing a span never moves anything */}
-      <p className={styles.note}>
-        {period.days === Infinity ? "" : `Colored numbers compare with the ${period.label} before.`}
-      </p>
     </section>
   );
 }
 
-/** A stat's ticker: how it compares with the span before. Its place is kept when there is none. */
-function Tick({ moved, hours }: { moved: number | null; hours?: boolean }) {
-  return (
-    <span
-      className={styles.tick}
-      data-way={moved === null || moved === 0 ? "flat" : moved > 0 ? "up" : "down"}
-    >
-      {moved === null ? "" : moved === 0 ? "no change" : `${signed(moved)}${hours ? "h" : ""}`}
-    </span>
-  );
-}
-
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const monthName = (d: Date) => d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
 export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }) {
   const first = dateOf(student, 0);
   const [month, setMonth] = useState(() => new Date(TODAY.getFullYear(), TODAY.getMonth(), 1));
   const [picked, setPicked] = useState(student.days);
+  const [listing, setListing] = useState(false);
+  const head = useRef<HTMLElement>(null);
   const run = useMemo(() => streak(logs), [logs]);
+
+  /** Every month the student has been here, the newest first. */
+  const months = useMemo(() => {
+    const out: Date[] = [];
+    const at = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    const stop = new Date(first.getFullYear(), first.getMonth(), 1);
+    while (at >= stop) {
+      out.push(new Date(at));
+      at.setMonth(at.getMonth() - 1);
+    }
+    return out;
+  }, [first]);
+
+  useEffect(() => {
+    if (!listing) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setListing(false);
+    const away = (e: PointerEvent) => {
+      if (!head.current?.contains(e.target as Node)) setListing(false);
+    };
+    window.addEventListener("keydown", key);
+    window.addEventListener("pointerdown", away);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("pointerdown", away);
+    };
+  }, [listing]);
 
   const lead = month.getDay();
   const length = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  const canBack = month > new Date(first.getFullYear(), first.getMonth(), 1);
-  const canNext = month < new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  const canBack = month > months[months.length - 1];
+  const canNext = month < months[0];
   const turn = (by: number) => {
     setMonth(new Date(month.getFullYear(), month.getMonth() + by, 1));
     tick();
@@ -210,8 +209,23 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
 
   return (
     <section className={`${lib.glass} ${styles.calendar}`} aria-label="Calendar">
-      <header>
-        <h2>{month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h2>
+      <header ref={head}>
+        {/* the month's name opens the list of months, for going further back in one press */}
+        <button
+          type="button"
+          className={styles.month}
+          aria-haspopup="listbox"
+          aria-expanded={listing}
+          onClick={() => {
+            setListing(!listing);
+            tick();
+          }}
+        >
+          <h2>{monthName(month)}</h2>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M6.500 9.500L12 15l5.500-5.500" />
+          </svg>
+        </button>
         <button
           type="button"
           aria-label="Month before"
@@ -227,6 +241,24 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
             <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
           </svg>
         </button>
+        {listing && (
+          <ul className={styles.months} role="listbox" aria-label="Month">
+            {months.map((m) => (
+              <li key={m.getTime()} role="option" aria-selected={m.getTime() === month.getTime()}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMonth(m);
+                    setListing(false);
+                    tick();
+                  }}
+                >
+                  {monthName(m)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </header>
 
       <div className={styles.grid} role="group" aria-label="Days">
