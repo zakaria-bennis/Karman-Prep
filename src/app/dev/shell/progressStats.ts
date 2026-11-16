@@ -2,7 +2,7 @@
 // answered, skills Proficient, exams taken, pacing, accuracy, days practiced. Each is kept like a
 // stock: what it stands at now, how far it moved over a span, and a line of how it got there. A line
 // that fell is red and one that rose is green, whatever the number.
-import { SAT_PACE, SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
+import { SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
 
 export type StatKey = "time" | "questions" | "skills" | "exams" | "pace" | "accuracy" | "days";
 export const STAT_ORDER: StatKey[] = [
@@ -26,8 +26,8 @@ export type Stat = {
   name: string;
   /** Small words after the value: "of 72", "per question". */
   after?: string;
-  /** A quiet line under the ticker on the number's own page. */
-  note?: string;
+  /** Whether "all time" is a span worth choosing: not for a count that only ever adds up. */
+  allTime: boolean;
   /** The value as written. */
   show: (value: number) => string;
   /** A change in the value as written, with its sign. */
@@ -40,11 +40,18 @@ export type Stat = {
   most?: number;
 };
 
-const plain = { plot: (v: number) => v, mark: (v: number) => count(v), finest: 1, least: 0 };
+const plain = {
+  allTime: false,
+  plot: (v: number) => v,
+  mark: (v: number) => count(v),
+  finest: 1,
+  least: 0,
+};
 
 export const STATS: Record<StatKey, Stat> = {
   time: {
     name: "Time invested",
+    allTime: false,
     show: clock,
     moved: (n) => `${sign(n)}${clock(Math.abs(n))}`,
     plot: (v) => Math.round((v / 60) * 10) / 10,
@@ -75,7 +82,7 @@ export const STATS: Record<StatKey, Stat> = {
   pace: {
     name: "Pacing",
     after: "per question",
-    note: `The SAT allows ${minSec(SAT_PACE)} per question`,
+    allTime: true,
     show: minSec,
     moved: (n) => `${sign(n)}${minSec(Math.abs(n))}`,
     plot: (v) => v,
@@ -85,6 +92,7 @@ export const STATS: Record<StatKey, Stat> = {
   },
   accuracy: {
     name: "Accuracy",
+    allTime: true,
     show: (v) => `${v}%`,
     moved: (n) => `${sign(n)}${Math.abs(n)}%`,
     plot: (v) => v,
@@ -98,6 +106,7 @@ export const STATS: Record<StatKey, Stat> = {
     show: count,
     moved: (n) => `${sign(n)}${Math.abs(n)}`,
     ...plain,
+    allTime: true,
   },
 };
 

@@ -609,3 +609,17 @@ stand-in figures in `progressBreakdowns.ts`). On a phone they are two pages, Tre
   strongest weekday.
 - Not done: the Breakdown page on a phone scrolls for four of the seven (60 to 240 pixels); History
   links wait for the History page; every breakdown figure is a stand-in.
+
+**Pages behind the numbers, second round (2026-11-16), applied; awaiting his verdict.** His rules:
+- **A title is one or two words.** "The days it went on" is "not a title". Now: By domain, By weekday,
+  By mode, Sections, Gained, Slipped, Exams, By outcome, Slowest skills, By difficulty, Missed most,
+  Past year, Streaks. **No subtitle unless it is needed** (the domain under each skill name and the
+  line restating the pacing goal are gone).
+- **A figure must be readable at once, with nothing to work out.** The bands filled against the
+  largest domain were "unreasonable and illogical", and a band whose length meant one thing and whose
+  cut meant another made him "think a lot". Now: time is each section's whole as one band cut into
+  its four domains, with the domains keyed under it; questions and accuracy are a small table with
+  column heads (Answered, Right), where Right is a band out of 100% beside its percent.
+- **"All time" is not offered for a count that only adds up** (time invested, questions answered,
+  skills Proficient, exams taken): there it is only the number again. Those open on the longest span
+  the student has. Pacing, accuracy and days practiced keep it.

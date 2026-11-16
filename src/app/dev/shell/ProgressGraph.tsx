@@ -39,19 +39,31 @@ export const SPANS = [
 export type SpanKey = (typeof SPANS)[number]["key"];
 export type Span = (typeof SPANS)[number];
 
-/** The span to show: the one wanted if the student has that much history, otherwise all time. */
-export const spanFor = (wanted: SpanKey, history: number): Span =>
-  SPANS.find((s) => s.key === wanted && (s.days === Infinity || history >= s.days)) ??
-  SPANS[SPANS.length - 1];
+/** The spans a student can choose from: each appears once they have that much history. `all` says
+ *  whether all time is one of them. It is not for a count that only ever adds up (time, questions,
+ *  skills, exams): there "all time" is just the number again (founder, 2026-11-16). */
+export const spansFor = (history: number, all = true): Span[] => {
+  const open = SPANS.filter((s) => (s.days === Infinity ? all : history >= s.days));
+  return open.length ? open : [SPANS[0]];
+};
+
+/** The span to show: the one wanted if it can be chosen, otherwise the longest that can. */
+export const spanFor = (wanted: SpanKey | null, history: number, all = true): Span => {
+  const open = spansFor(history, all);
+  return open.find((s) => s.key === wanted) ?? open[open.length - 1];
+};
 
 /** The bar of spans, with a lens on the chosen one. `id` keeps one bar's lens apart from another's. */
 export function Spans({
   id,
   history,
+  all = true,
   span,
   onPick,
 }: {
   id: string;
+  /** Whether all time is offered. */
+  all?: boolean;
   /** How many days of history there are: longer spans stay hidden until it reaches them. */
   history: number;
   span: Span;
@@ -60,7 +72,7 @@ export function Spans({
   const still = useReducedMotion() ?? false;
   return (
     <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
-      {SPANS.filter((s) => s.days === Infinity || history >= s.days).map((s) => (
+      {spansFor(history, all).map((s) => (
         <button
           key={s.key}
           type="button"

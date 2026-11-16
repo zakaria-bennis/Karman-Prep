@@ -42,11 +42,11 @@ export default function ProgressStat({
   const still = useReducedMotion() ?? false;
   const stat = STATS[key];
   const book = useMemo(() => ledger(student, logs), [student, logs]);
-  const [wanted, setWanted] = useState<SpanKey>("all");
+  const [wanted, setWanted] = useState<SpanKey | null>(null);
   const [at, setAt] = useState<number | null>(null);
   const [part, setPart] = useState<PacePart>("all");
   const [shown, setShown] = useState<(typeof PAGES)[number]>("Trend");
-  const span = spanFor(wanted, student.days);
+  const span = spanFor(wanted, student.days, stat.allTime);
   const from = span.days === Infinity ? 0 : student.days - span.days;
   const pacing = key === "pace";
   const series = useMemo(
@@ -146,6 +146,7 @@ export default function ProgressStat({
           <Spans
             id="stat-span"
             history={student.days}
+            all={stat.allTime}
             span={span}
             onPick={(next) => {
               setWanted(next);
@@ -181,7 +182,6 @@ export default function ProgressStat({
             from={from}
             span={span}
             part={part}
-            goal={goal}
             onSkill={onSkill}
           />
         </div>

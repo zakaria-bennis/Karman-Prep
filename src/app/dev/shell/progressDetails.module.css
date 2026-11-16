@@ -18,8 +18,8 @@
   --down: #c0392b;
   display: grid;
   align-content: start;
-  gap: 14px;
-  padding: calc(var(--pad) + 6px);
+  gap: 12px;
+  padding: calc(var(--pad) + 4px);
   font-size: 13px;
   font-weight: 500;
 }
@@ -35,16 +35,19 @@
   font-weight: 600;
 }
 
-/* ---- rows: a name, a band, a value ---- */
-.rows,
-.group ul {
+/* ---- lists of rows ---- */
+.rows {
   display: grid;
-  gap: 8px;
+  gap: 2px;
 }
 
 .group {
   display: grid;
   gap: 8px;
+}
+
+.group + .group {
+  margin-top: 6px;
 }
 
 /* a section's name with its own total right beside it */
@@ -55,22 +58,118 @@
   font-size: 16px;
 }
 
-.group h3 b,
-.row b {
+.group h3 b {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 64px;
-  align-items: center;
-  gap: 12px;
+/* ---- a whole cut into its parts: one band, darkest for the largest ---- */
+.stack {
+  display: flex;
+  height: 14px;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+  overflow: hidden;
 }
 
-.row > b {
+.stack i {
+  flex: 0 0 0;
+  transform-origin: 0 50%;
+  animation: grow 0.45s var(--out) both;
+}
+
+.stack i + i {
+  border-left: 1px solid var(--sq-edge);
+}
+
+.pane i[data-shade="0"] {
+  background: var(--p3);
+}
+
+.pane i[data-shade="1"] {
+  background: var(--p2);
+}
+
+.pane i[data-shade="2"] {
+  background: var(--p1);
+}
+
+.pane i[data-shade="3"] {
+  background: var(--p0);
+}
+
+/* the parts, each named beside the mark it has in the band, with its value at the right */
+.keyed {
+  display: grid;
+  gap: 6px;
+}
+
+.keyed li {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.keyed i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.keyed b {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- a small table: a name, how many, and a share out of 100% as a band beside its percent ---- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 5px 0;
+  font-weight: 500;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  padding-bottom: 6px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* how many: right-aligned, so the digits line up */
+.table[data-counted] :is(thead th:nth-child(2), tbody td:nth-child(2)) {
+  width: 76px;
+  padding-right: 20px;
   text-align: right;
-  white-space: nowrap;
+}
+
+.table td:has(.band) {
+  width: 34%;
+}
+
+.table tbody td:last-child {
+  width: 46px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* a section: larger, with room above it */
+.table tr[data-head] :is(th, td) {
+  padding-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.table tbody tr:first-child[data-head] :is(th, td) {
+  padding-top: 2px;
 }
 
 .band {
@@ -86,20 +185,9 @@
   display: block;
   height: 100%;
   background: var(--p3);
+  border-right: 1px solid var(--sq-edge);
   transform-origin: 0 50%;
   animation: grow 0.45s var(--out) both;
-}
-
-/* cut in two: answered right in the dark green, missed in the light */
-.band i[data-cut] {
-  background: var(--p1);
-}
-
-.band i b {
-  display: block;
-  height: 100%;
-  background: var(--p3);
-  border-right: 1px solid var(--sq-edge);
 }
 
 /* ---- upright bars ---- */
@@ -108,7 +196,7 @@
   grid-template-columns: repeat(var(--n), minmax(0, 1fr));
   align-items: end;
   gap: 6px;
-  height: 116px;
+  height: 104px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -167,10 +255,6 @@
   opacity: 0.78;
 }
 
-.sub {
-  margin-top: 4px;
-}
-
 /* ---- a skill that opens in the Library ---- */
 .skill {
   display: grid;
@@ -188,12 +272,6 @@
   transition:
     background 0.2s var(--out),
     transform 0.2s var(--out);
-}
-
-.skill small {
-  display: block;
-  font-size: 13px;
-  opacity: 0.78;
 }
 
 .skill b {
@@ -398,6 +476,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .band i,
+  .stack i,
   .bars i {
     animation: none;
   }
