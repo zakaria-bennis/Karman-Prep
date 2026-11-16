@@ -1,11 +1,11 @@
 "use client";
 
 // Progress, step 2 (founder, 2026-11-15 and 2026-11-16): the numbers and the calendar.
-//   Stats      six numbers in his order: time invested, questions answered, skills Proficient,
+//   Stats      the span is the predicted score's own: one setting for the whole page. Six numbers in his order: time invested, questions answered, skills Proficient,
 //              pacing, days practiced, exams taken last. Accuracy is inside Questions answered. Exams taken has
 //              no small line. Each is a button that opens the number's own
 //              page. Each reads like a stock: what it stands at, a ticker of how far it moved over
-//              the span chosen (7 days, 30 days; none for all time), and a small line with a fading
+//              the span chosen (none for all time), and a small line with a fading
 //              fill. A line that rose is green and one that fell is red, for every number.
 //   Calendar   one month at a time. Each day is a rounded square shaded by how much was done. Pressing
 //              a day shows what was done that day, with the streak on the same line as the date.
@@ -14,25 +14,14 @@
 // A student is never compared with other students here. Time is active time only.
 // Anything that changes on a press has its place kept, so nothing below it moves. Today and the day
 // pressed are marked inside their own squares, so no square ever lies over its neighbor.
-import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from "react";
 import lib from "./library.module.css";
-import { GoButton, Icon } from "./practice";
+import { Icon } from "./practice";
 import styles from "./progressActivity.module.css";
-import { weakest, type Found } from "./progressBreakdowns";
 import { DAY, TODAY, dateOf, streak, type DayLog, type Student } from "./progressData";
+import { Spans, spanFor, type SpanKey } from "./ProgressGraph";
 import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from "./progressStats";
 import { tick } from "./sound";
-
-const SLIDE = { type: "spring", stiffness: 520, damping: 34 } as const;
-const STILL = { duration: 0 } as const;
-
-const PERIODS = [
-  { key: "7", label: "7 days", days: 7 },
-  { key: "30", label: "30 days", days: 30 },
-  { key: "all", label: "All time", days: Infinity },
-] as const;
-type PeriodKey = (typeof PERIODS)[number]["key"];
 
 /** A number's small stock line over the span shown, with a fill that fades out under it. */
 function Spark({ values, way }: { values: number[]; way: "up" | "down" | "flat" }) {
@@ -72,42 +61,25 @@ const thin = (values: number[], most = 30) => {
 export function Stats({
   student,
   logs,
+  wanted,
+  onSpan,
   onStat,
 }: {
   student: Student;
   logs: DayLog[];
+  /** The span chosen on the predicted score: these numbers always show the same one. */
+  wanted: SpanKey | null;
+  onSpan: (span: SpanKey) => void;
   onStat: (stat: StatKey) => void;
 }) {
-  const still = useReducedMotion() ?? false;
   const book = useMemo(() => ledger(student, logs), [student, logs]);
-  const [wanted, setWanted] = useState<PeriodKey>("all");
-  const period = PERIODS.find((p) => p.key === wanted) ?? PERIODS[2];
+  const period = spanFor(wanted, student.days);
   const to = student.days;
   const from = period.days === Infinity ? 0 : Math.max(0, to - period.days);
   return (
     <section className={`${lib.glass} ${styles.stats}`} aria-label="Activity">
-      <div className={`${lib.filter} ${styles.periods}`} role="group" aria-label="Span of time">
-        {PERIODS.map((p) => (
-          <button
-            key={p.key}
-            type="button"
-            aria-pressed={period.key === p.key}
-            onClick={() => {
-              setWanted(p.key);
-              tick();
-            }}
-          >
-            {period.key === p.key && (
-              <motion.span
-                layoutId="progress-period"
-                className={lib.lens}
-                transition={still ? STILL : SLIDE}
-              />
-            )}
-            <span>{p.label}</span>
-          </button>
-        ))}
-      </div>
+      {/* the same choices as on the predicted score, in their short names; choosing here moves both */}
+      <Spans id="numbers-span" history={student.days} brief span={period} onPick={onSpan} />
 
       <ul className={styles.cells}>
         {STAT_ORDER.map((key) => {
@@ -154,35 +126,6 @@ export function Stats({
             </li>
           );
         })}
-      </ul>
-    </section>
-  );
-}
-
-/** Progress, step 3: the three skills to work on first, each with the one button that starts on it.
- *  Weakness is skills only; pacing is its own number. The skill's name opens it in the Library. */
-export function Weakest({
-  student,
-  logs,
-  onSkill,
-}: {
-  student: Student;
-  logs: DayLog[];
-  onSkill: (found: Found) => void;
-}) {
-  return (
-    <section className={`${lib.glass} ${styles.weakest}`} aria-label="Weakest skills">
-      <h2>Weakest skills</h2>
-      <ul>
-        {weakest(student, logs).map((found) => (
-          <li key={found.skill.name}>
-            <button type="button" className={styles.weak} onClick={() => onSkill(found)}>
-              <span>{found.skill.name}</span>
-              <small>{found.why}</small>
-            </button>
-            <GoButton label={`Start skill set: ${found.skill.name}`}>Start skill set</GoButton>
-          </li>
-        ))}
       </ul>
     </section>
   );

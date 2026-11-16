@@ -41,23 +41,32 @@ import {
 } from "./progressData";
 import { tick } from "./sound";
 
-export default function ProgressScore({ student: key }: { student: StudentKey }) {
+export default function ProgressScore({
+  student: key,
+  wanted,
+  onSpan,
+}: {
+  student: StudentKey;
+  /** The span chosen for the whole Progress page: the numbers beside the score follow it too. */
+  wanted: SpanKey | null;
+  onSpan: (span: SpanKey) => void;
+}) {
   const student: Student = STUDENTS[key];
   const all = useMemo(() => predict(student), [student]);
   const [series, setSeries] = useState<Series>("total");
-  const [wanted, setWanted] = useState<SpanKey>("all");
   const [at, setAt] = useState<number | null>(null);
   const [was, setWas] = useState(key);
   if (was !== key) {
     setWas(key);
     setAt(null);
-    setWanted("all");
   }
 
-  // a span is offered only once the student has studied that long: the choices grow with them
-  const history = all.length ? student.days - all[0].day : 0;
+  // a span is offered only once the student has studied that long: the choices grow with them. The
+  // line never starts before the first exam, whatever the span.
+  const history = student.days;
   const span = spanFor(wanted, history);
-  const from = span.days === Infinity ? (all[0]?.day ?? 0) : student.days - span.days;
+  const first0 = all[0]?.day ?? 0;
+  const from = span.days === Infinity ? first0 : Math.max(first0, student.days - span.days);
   const points = useMemo(() => all.filter((p) => p.day >= from), [all, from]);
   const exams = useMemo(
     () => student.exams.filter((e) => e.day >= from).map((e) => split(e.day, e.score)),
@@ -131,9 +140,10 @@ export default function ProgressScore({ student: key }: { student: StudentKey })
           <Spans
             id="score-span"
             history={history}
+            brief
             span={span}
             onPick={(next) => {
-              setWanted(next);
+              onSpan(next);
               setAt(null);
             }}
           />

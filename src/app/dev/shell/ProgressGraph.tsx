@@ -4,8 +4,8 @@
 // the numbers beside it. It reads like a stock: a line with a fill that starts strong and fades out,
 // green when it ended better than it began over the span shown and red when it ended worse (the color
 // is --trend, set by the piece of glass it sits on).
-//   Spans   7 days, 2 weeks, 1 month, 3 months, 6 months, 1 year, all time. One appears only once the
-//           student has that much history; nothing is ever greyed out.
+//   Spans   today, 7 days, 2 weeks, 1 month, 3 months, 6 months, 1 year, all time. One appears only
+//           once the student has that much history; nothing is ever greyed out.
 //   Graph   both axes fit what is shown. Pointing at, dragging along or arrowing through the line
 //           reports the day to the caller, which shows that day's value above the graph: nothing
 //           floats over it, and there is no key. Marked days (full-length exams) are small points
@@ -28,6 +28,7 @@ import { tick } from "./sound";
 /** The spans of time a graph can show. `said` follows the number on a ticker: "+150 all time",
  *  "−30 past 7 days". It is not a sentence (founder, 2026-11-15). */
 export const SPANS = [
+  { key: "1d", label: "Today", brief: "1D", days: 1, said: "today" },
   { key: "7d", label: "7 days", brief: "7D", days: 7, said: "past 7 days" },
   { key: "2w", label: "2 weeks", brief: "2W", days: 14, said: "past 2 weeks" },
   { key: "1m", label: "1 month", brief: "1M", days: 30, said: "past month" },
@@ -58,10 +59,13 @@ export function Spans({
   id,
   history,
   all = true,
+  brief,
   span,
   onPick,
 }: {
   id: string;
+  /** Always the short names (1D, 7D, 2W), for a narrow pane. */
+  brief?: boolean;
   /** Whether all time is offered. */
   all?: boolean;
   /** How many days of history there are: longer spans stay hidden until it reaches them. */
@@ -71,7 +75,12 @@ export function Spans({
 }) {
   const still = useReducedMotion() ?? false;
   return (
-    <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
+    <div
+      className={`${lib.filter} ${styles.spans}`}
+      data-brief={brief || undefined}
+      role="group"
+      aria-label="Span of time"
+    >
       {spansFor(history, all).map((s) => (
         <button
           key={s.key}

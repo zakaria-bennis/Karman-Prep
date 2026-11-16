@@ -340,91 +340,71 @@
   text-align: center;
 }
 
-/* ---- exams ---- */
-.pane .exams {
-  display: grid;
-  gap: 2px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
+/* ---- exams: a plain list with column heads ---- */
+.exams {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* the exam's name, its total and its change on one line; its date and sections under them */
-.exams li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px 48px;
-  align-items: baseline;
-  gap: 2px 12px;
-  padding: 8px 0;
-  font-size: 16px;
+.exams :is(th, td) {
+  padding: 12px 8px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.exams thead th {
+  padding-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.exams tbody th {
   font-weight: 600;
 }
 
-.exams li + li {
+.exams tbody tr {
+  cursor: pointer;
+  transition: background 0.2s var(--out);
+}
+
+.exams tbody tr + tr :is(th, td) {
   border-top: 1px solid var(--lens-edge);
 }
 
-.parts {
-  display: flex;
-  flex-wrap: wrap;
-  grid-column: 1 / -1;
-  grid-row: 2;
-  gap: 2px 14px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.parts b {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.examTotal {
+/* the score, in the serif of the predicted score */
+.exams tbody td:nth-child(4) {
   font: 400 24px/1 var(--font-serif);
   font-variant-numeric: tabular-nums lining-nums;
-  text-align: right;
 }
 
-.moved {
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+.exams td:last-child {
+  width: 28px;
+  padding-inline: 0;
 }
 
-.moved[data-way="up"] {
-  color: var(--up);
+.exams svg {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
-.moved[data-way="down"] {
-  color: var(--down);
-}
+@media (hover: hover) {
+  .exams tbody tr:hover {
+    background: var(--hover);
+  }
 
-.left {
-  display: grid;
-  gap: 8px;
-}
-
-.left b {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.slots {
-  display: grid;
-  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
-  gap: 4px;
-}
-
-.slots i {
-  height: 14px;
-  border-radius: 4px;
-  background: var(--p0);
-  box-shadow: 0 0 0 1px var(--sq-edge);
-}
-
-.slots i[data-on] {
-  background: var(--p3);
+  .exams tbody tr:hover svg {
+    opacity: 1;
+    transform: translateX(3px);
+  }
 }
 
 /* ---- the year: a column a week, seven squares tall ---- */

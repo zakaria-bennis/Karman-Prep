@@ -670,3 +670,17 @@ and said to move on.
   rule is least practice and exposure combined with accuracy.
 - Next: step 4, History on its own page behind a link (sessions, then one session's questions, with
   all, correct and missed; bookmarks; a flag icon on flagged rows). Then the new-student page.
+
+**Progress, round after step 3 (2026-11-16), applied; awaiting his verdict.**
+- **The Weakest skills pane is removed** ("I don't need that pane"). Do not rebuild it. Step 3 of the
+  plan is closed without it; the weakest skills still appear as "Missed most" inside Questions
+  answered.
+- **Exams taken is a plain list:** exam, date, pace per question, score. No bar, no sections, no
+  change, no Start button. Each row is ready to open that exam's breakdown once that page exists.
+- **One time setting for the whole Progress page.** The score and the numbers show the same bar and
+  choosing a span on either sets both (`span` in `Progress.tsx`). **"Today" is a new first span**
+  (1D), so a 7-month student has seven: Today, 7 days, 2 weeks, 1 month, 3 months, 6 months, all time.
+  Both bars use the short names (1D, 7D, 2W, 1M, 3M, 6M, All) so seven fit their panes.
+- He looks at Progress in a window between 960 and 1199 wide, where the score is on top, the numbers
+  at the bottom left and the calendar at the bottom right. Check that layout as well as 1440.
+- Next: step 4, History.

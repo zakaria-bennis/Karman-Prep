@@ -12,8 +12,8 @@
 //               its own, and nothing is shown by difficulty level (founder: students do not see it).
 //   skills      Sections: the Library's rings. Recent gains and Recent slips: the eight to ten latest
 //               changes of level, up or down, each skill opening in the Library.
-//   exams       Every exam with its total, sections, date and change; the exams left; Start. This
-//               page has no trend: a count of exams over time says nothing.
+//   exams       A plain list: each exam, its date, its pace per question and its score. No bar, no
+//               trend. Each row will open the exam's own breakdown once that page exists.
 //   pace        By outcome: pace on right answers and on missed ones. Slowest skills: the ten slowest.
 //   days        Past 100 days, then Past 200 days, then Past year, as the student goes on: a grid of
 //               squares. Streaks, and the best weekday.
@@ -21,7 +21,6 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { Pips, ringOf, tally } from "./Library";
 import lib from "./library.module.css";
-import { GoButton } from "./practice";
 import {
   accuracyByDomain,
   byDomain,
@@ -29,7 +28,6 @@ import {
   byWeekday,
   daysShown,
   examRows,
-  examsInPlan,
   longestStreak,
   mostMissed,
   paceOf,
@@ -41,7 +39,7 @@ import {
   type Found,
   type PacePart,
 } from "./progressBreakdowns";
-import { dateOf, short, streak, type DayLog, type Student } from "./progressData";
+import { dateOf, streak, type DayLog, type Student } from "./progressData";
 import styles from "./progressDetails.module.css";
 import { clock, minSec, type StatKey } from "./progressStats";
 import { LEVELS, SECTIONS } from "./skills72";
@@ -332,53 +330,40 @@ export default function Details({
   }
 
   if (stat === "exams") {
-    const rows = examRows(student);
-    const plan = examsInPlan(student);
     return (
       <Pane title="Exams">
-        <ol className={styles.exams}>
-          {rows.map((row) => (
-            <li key={row.number}>
-              <span>Full-length exam {row.number}</span>
-              <span className={styles.parts}>
-                {short(dateOf(student, row.day))}
-                <span>
-                  Reading and Writing <b>{row.rw}</b>
-                </span>
-                <span>
-                  Math <b>{row.math}</b>
-                </span>
-              </span>
-              <b className={styles.examTotal}>{row.total}</b>
-              {/* its place is kept on the first exam, which has nothing before it to compare with */}
-              <b
-                className={styles.moved}
-                data-way={
-                  row.moved === null || row.moved === 0 ? "flat" : row.moved > 0 ? "up" : "down"
-                }
-              >
-                {row.moved === null
-                  ? ""
-                  : `${row.moved > 0 ? "+" : row.moved < 0 ? "−" : ""}${Math.abs(row.moved)}`}
-              </b>
-            </li>
-          ))}
-        </ol>
-        <div className={styles.left}>
-          <p>
-            <b>{plan - rows.length}</b> of {plan} left
-          </p>
-          <span
-            className={styles.slots}
-            style={{ "--n": plan } as CSSProperties}
-            aria-hidden="true"
-          >
-            {Array.from({ length: plan }, (_, i) => (
-              <i key={i} data-on={i < rows.length || undefined} />
+        <table className={styles.exams}>
+          <thead>
+            <tr>
+              <th scope="col">Exam</th>
+              <th scope="col">Date</th>
+              <th scope="col">Pace per question</th>
+              <th scope="col">Score</th>
+              <td />
+            </tr>
+          </thead>
+          <tbody>
+            {examRows(student).map((row) => (
+              // each exam will open its own breakdown once that page exists
+              <tr key={row.number} tabIndex={0} role="button">
+                <th scope="row">Full-length exam {row.number}</th>
+                <td>
+                  {dateOf(student, row.day).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </td>
+                <td>{minSec(row.pace)}</td>
+                <td>{row.total}</td>
+                <td>
+                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                    <path d="M9.500 6.500l5.500 5.500-5.500 5.500" />
+                  </svg>
+                </td>
+              </tr>
             ))}
-          </span>
-        </div>
-        {rows.length < plan && <GoButton wide>Start full-length exam {rows.length + 1}</GoButton>}
+          </tbody>
+        </table>
       </Pane>
     );
   }

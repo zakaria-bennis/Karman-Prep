@@ -179,6 +179,15 @@
   display: none;
 }
 
+/* a narrow pane always uses the short names */
+.spans[data-brief] [data-full] {
+  display: none;
+}
+
+.spans[data-brief] [data-brief] {
+  display: inline;
+}
+
 /* the countdown: only for a student who has entered a test date. A badge on the top right corner of
    the score, lying over its edge, so it takes no line of its own and never meets the words inside. */
 .score {
@@ -414,11 +423,6 @@
   .progress:not([data-single]) > :nth-child(3) {
     grid-column: 3;
     grid-row: 1;
-  }
-
-  /* the weakest skills run under all three */
-  .progress:not([data-single]) > :nth-child(4) {
-    grid-column: 1 / -1;
   }
 }
 

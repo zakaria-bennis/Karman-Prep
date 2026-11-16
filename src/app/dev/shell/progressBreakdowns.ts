@@ -2,8 +2,7 @@
 // weekday, by exam. Everything here is a stand-in worked out from the made-up student, so the pages can
 // be designed; real answers will replace these functions one for one. The weekday and streak figures
 // are counted from the daily log, so they agree with the calendar.
-import { QUESTION_BANK } from "@/lib/marketing/offer";
-import { split, type DayLog, type Student } from "./progressData";
+import type { DayLog, Student } from "./progressData";
 import { SECTIONS, SKILLS, type Section, type Skill } from "./skills72";
 
 /** How the made-up student's work falls across the two sections, and the four domains of each. */
@@ -111,21 +110,14 @@ export const slowest = (pace: number, only?: Section) =>
 /** Every skill of a section, for its ring. */
 export const skillsOf = (section: Section) => SKILLS[section].flatMap((d) => d.skills);
 
-/** The exams taken, each with its sections and how far it moved from the one before. */
+/** The exams taken: when, the pace a question took in it (seconds), and the score. */
 export const examRows = (student: Student) =>
   student.exams.map((exam, i) => ({
     number: i + 1,
     day: exam.day,
+    pace: Math.round(96 - (i / Math.max(1, student.exams.length - 1)) * 12),
     total: exam.score,
-    rw: split(exam.day, exam.score).rw,
-    math: split(exam.day, exam.score).math,
-    moved: i ? exam.score - student.exams[i - 1].score : null,
   }));
-/** How many full-length exams the student's plan holds: five on Practice, twenty on Pro. */
-export const examsInPlan = (student: Student) =>
-  student.exams.length > QUESTION_BANK.practiceTests
-    ? QUESTION_BANK.proTests
-    : QUESTION_BANK.practiceTests;
 
 export type PacePart = "all" | "rw" | "math";
 export const PACE_PARTS: Record<PacePart, string> = {
@@ -175,15 +167,6 @@ export const daysShown = (student: Student) =>
     : student.days <= 200
       ? { many: 200, title: "Past 200 days" }
       : { many: 365, title: "Past year" };
-
-/** The three skills to work on first: the ones seen least and missed most. With too little practice
- *  to tell, three skills not started yet. Each says why it is here. */
-export function weakest(student: Student, logs: DayLog[]) {
-  const answered = logs.reduce((n, l) => n + l.questions, 0);
-  return student.days < 14 || answered < 150
-    ? atLevel(0, 3).map((f) => ({ ...f, why: "Not started" }))
-    : atLevel(1, 3).map((f, i) => ({ ...f, why: `${[38, 44, 51][i]}% right` }));
-}
 
 /** The longest run of days in a row with the Daily 10, anywhere in the log. */
 export function longestStreak(logs: DayLog[]): number {
