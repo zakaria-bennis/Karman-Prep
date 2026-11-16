@@ -380,7 +380,14 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     );
 
   // script that lifts off the page and drifts up, letter by letter
-  const LETTERS = "aegkRnstwy&?;".split("");
+  const doveMat = new THREE.MeshStandardMaterial({
+    color: 0xfff3dd,
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+    flatShading: true,
+    clippingPlanes,
+  });
+  const LETTERS = "aegkRnstwy&?;QmfbdhAxz".split("");
   const script = LETTERS.map((char, i) => {
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({
@@ -391,11 +398,26 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
       })
     );
     root.add(sprite);
+    const doveGeo = new THREE.BufferGeometry();
+    doveGeo.setAttribute(
+      "position",
+      new THREE.BufferAttribute(
+        new Float32Array([
+          0, 0, 0.17, 0, 0, -0.13, -0.22, 0.05, -0.03, 0, 0, 0.17, 0.22, 0.05, -0.03, 0, 0, -0.13,
+        ]),
+        3
+      )
+    );
+    const dove = new THREE.Mesh(doveGeo, doveMat);
+    dove.visible = false;
+    root.add(dove);
     return {
       sprite,
+      dove,
+      doveGeo,
       phase: i / LETTERS.length,
       seed: (i * 0.618) % 1,
-      speed: 0.07 + ((i * 37) % 10) * 0.004,
+      speed: 0.09 + ((i * 37) % 10) * 0.006,
     };
   });
 
@@ -436,28 +458,50 @@ export function buildBook(stage: Stage, clip: THREE.Plane): Book {
     const rp = ribbonGeo.attributes.position;
     for (let i = 0; i <= 12; i++) {
       const v = i / 12;
-      const sway = Math.sin(t * 1.5 + v * 2.6) * 0.07 * v;
+      const sway =
+        (Math.sin(t * 1.3 + v * 3.4) * 0.12 + Math.sin(t * 2.9 + v * 6.0) * 0.04) * v * v;
       for (const k of [i * 2, i * 2 + 1]) {
         rp.setX(k, (k % 2 ? 0.05 : -0.05) + sway);
-        rp.setY(k, -v * 0.72);
+        rp.setY(k, -v * 0.5);
         rp.setZ(k, -v * v * 0.35);
       }
     }
     rp.needsUpdate = true;
     ribbonGeo.computeVertexNormals();
 
-    script.forEach((s) => {
+    // each letter lifts off the page glowing and arcs outward; at the top of its arc it folds into a
+    // paper dove, which flies on and away (some letters turn back and settle into the book instead)
+    script.forEach((s, i) => {
       s.phase = (s.phase + dt * s.speed * rush.v) % 1;
       const k = s.phase;
-      s.sprite.position.set(
-        (s.seed * 2 - 1) * 1.25 + Math.sin(k * 6 + s.seed * 20) * 0.28,
-        -0.25 + k * 3.1,
-        0.75
-      );
-      const size = 0.16 + k * 0.16;
+      const side = s.seed * 2 - 1;
+      const out = Math.min(1, k / 0.5);
+      const ease = 1 - (1 - out) ** 2;
+      const home = i % 3 === 0;
+      const back = home && k > 0.5 ? (k - 0.5) / 0.5 : 0;
+      const reach = ease * (1 - back);
+      const x = side * 0.5 + side * reach * 1.5 + Math.sin(k * 7 + s.seed * 20) * 0.12;
+      const y = 0.1 + reach * 1.7;
+      s.sprite.position.set(x, y, 0.8);
+      const size = 0.15 + reach * 0.17;
       s.sprite.scale.set(size, size, 1);
-      s.sprite.material.opacity = Math.sin(Math.PI * k) ** 0.7 * 0.95;
+      const folded = home ? 0 : Math.max(0, Math.min(1, (k - 0.5) / 0.1));
+      s.sprite.material.opacity =
+        Math.min(1, k / 0.08) * (1 - folded) * (home ? Math.min(1, (1 - k) / 0.1) : 1);
       s.sprite.material.rotation = Math.sin(k * 5 + s.seed * 9) * 0.5;
+      // the dove this letter becomes
+      const fly = home ? 0 : Math.max(0, (k - 0.5) / 0.5);
+      s.dove.visible = fly > 0;
+      const dir = side < 0 ? -1 : 1;
+      s.dove.position.set(x + dir * fly * 2.6, y + fly * 1.3 + Math.sin(fly * 9) * 0.08, 0.8);
+      s.dove.rotation.set(0.25, (dir * Math.PI) / 2, -dir * 0.25);
+      s.dove.scale.setScalar(Math.min(1, fly / 0.12) * 0.7 * Math.min(1, (1 - fly) / 0.15));
+      const beat = Math.sin(t * 11 + s.seed * 40) * 0.14;
+      const dp = s.doveGeo.attributes.position;
+      dp.setY(2, 0.03 + beat);
+      dp.setY(4, 0.03 + beat);
+      dp.needsUpdate = true;
+      s.doveGeo.computeVertexNormals();
     });
     birds.forEach((b, i) => {
       // each crosses once, slowly, then waits out of sight for most of its turn

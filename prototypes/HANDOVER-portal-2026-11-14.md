@@ -304,6 +304,31 @@ Known faults and gaps:
        focused, pressed, loading, disabled. It is filled with the progress colour and has an arrow.
      - **The lesson has a switch: Written lesson (shown first) and Video lesson.**
      - **No rule sentence on the skill page** ("an unnecessary detail").
+   - **Fourth round (2026-11-15, 23 notes), applied; awaiting his verdict.** Library pages:
+     - **Green is the colour.** The same way round in both modes: **dark for Proficient, light for
+       Learning**. Every mark has a thin edge so it stands clear of the glass. Bands and the ring are
+       **cut clean where levels meet, no blending**.
+     - **Domains first, then skills** (`Library` then `DomainPage` in `Library.tsx`): the side page
+       shows the ring, Today, the ways to practise and the four domains as equal bands to compare;
+       choosing a domain opens its skills with the filter; choosing a skill opens the skill page.
+       The desktop side page fits one screen. **On a phone it is three pages** (Skills, Today,
+       Practise) with buttons, not one long scroll.
+     - **Start buttons are outlines that fill with green on hover**, with an orb while loading
+       (`GoButton`). He asked for Claude's own orb or one from 21st.dev: 21st.dev was searched
+       ("ai loader", "Orb Loader" exist, their code is paid) and the orb was drawn here instead.
+     - **Icons:** time trials is the home page's racing stopwatch with flames (`WayArt.tsx`, way 5);
+       endless is a marigold light running round the sideways 8; the compass has a red north and
+       blue south and spins wildly before settling north; full-length exams is a booklet with a
+       clock (a proposal); flashcards and Word Line are on both sides. No coins by the Challenge
+       question, only the streak with a real flame. The Daily 10 icon is still undecided: ideas
+       were put to him.
+     - The lesson switch is one pill. The two right-hand boxes on the skill page end level with the
+       lesson.
+     Hero: it **fills the screen beside the menu** with the word "Library" inside it; shooting stars
+     cross the sky; **sixteen kinds of constellation, with more stars each, all over the night**;
+     letters fly out of the book glowing and fold into paper doves; a shorter, looser ribbon; many
+     small birds in the dusk sky; the telescope is gone, the dome is raised and the dishes redrawn;
+     the opening into a side is a plain soft circle, quicker.
    - **Skill page: first version built 2026-11-15, awaiting his verdict.** `SkillPage.tsx` and
      `skill.module.css`. Pressing a skill in the Library opens it; a small glass button above the name
      goes back to the domain. In his order: the level first (three named steps that fill), then the

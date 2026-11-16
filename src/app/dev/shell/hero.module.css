@@ -9,10 +9,10 @@
   --gold: #0a5a43;
   --gold-glow: rgb(10 90 67 / 0.35);
   --l0: rgb(29 26 34 / 0.2);
-  position: relative;
-  /* the screen, less the page's name above and the bar below */
-  height: calc(100dvh - 145px - 100px);
-  min-height: 440px;
+  /* it fills the screen beside the menu: on a phone, everything above the bar */
+  position: fixed;
+  inset: 12px 12px calc(max(12px, env(safe-area-inset-bottom)) + 76px + 12px);
+  z-index: 1;
   border-radius: 36px;
   touch-action: pan-y;
 }
@@ -73,6 +73,25 @@
     filter 0.45s var(--out);
 }
 
+/* the page's name is part of the scene, on the dusk sky */
+.heading {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 24px;
+  margin: 0;
+  color: #1d1a22;
+  font: 400 34px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+  text-shadow: 0 0 24px rgb(255 240 220 / 0.8);
+  pointer-events: none;
+  transition: opacity 0.3s var(--out);
+}
+
+.hero[data-leaving] .heading {
+  opacity: 0;
+}
+
 .picks {
   position: absolute;
   inset: 0;
@@ -110,7 +129,7 @@
    middle of its half. Both signs sit at the foot of their halves; the book stands above its sign and never under it. */
 .hero .pick[data-side="0"] {
   /* at the foot of its half, lifted clear of the seam, which slopes up to the right */
-  padding-bottom: 66px;
+  padding-bottom: 40px;
 }
 
 /* the Math sign lies on the night, so it is dark glass with pale words in either mode */
@@ -181,8 +200,13 @@
 
 @media (min-width: 960px) and (hover: hover) {
   .hero {
-    height: calc(100dvh - 56px - 53px - 24px - 16px);
-    min-height: 520px;
+    inset: 16px 16px 16px calc(16px + 72px + 16px);
+  }
+
+  .heading {
+    top: 28px;
+    left: 36px;
+    font-size: 52px;
   }
 
   .picks {

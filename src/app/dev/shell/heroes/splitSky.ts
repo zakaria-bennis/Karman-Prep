@@ -52,6 +52,19 @@ const SKY = /* glsl */ `
     float bank = smoothstep(0.50, 0.78, cl) * smoothstep(0.18, 0.62, y);
     c = mix(c, vec3(1.0, 0.87, 0.78), bank * 0.6);
     c = mix(c, vec3(0.78, 0.50, 0.62), smoothstep(0.64, 0.9, cl) * smoothstep(0.3, 0.8, y) * 0.4);
+    // a scatter of small birds on the wing, far off, crossing at their own heights and speeds
+    for (int i = 0; i < 14; i++) {
+      float fi = float(i);
+      float sp = 0.035 + hash(vec2(fi, 3.0)) * 0.05;
+      float bx = (fract(uTime * sp + hash(vec2(fi, 7.0))) * 2.4 - 1.2) * uHalf.x * (mod(fi, 2.0) < 1.0 ? 1.0 : -1.0);
+      float by = (0.05 + hash(vec2(fi, 11.0)) * 0.8) * uHalf.y + sin(uTime * 0.7 + fi) * 0.06;
+      float sz = 0.05 + hash(vec2(fi, 5.0)) * 0.06;
+      vec2 q = (p - vec2(bx, by)) / sz;
+      float flap = 0.35 + 0.45 * sin(uTime * (7.0 + fi) + fi * 3.0);
+      float wing = abs(q.y - abs(q.x) * flap + 0.25 * q.x * q.x);
+      float bird = smoothstep(0.16, 0.06, wing) * smoothstep(1.0, 0.8, abs(q.x));
+      c = mix(c, vec3(0.30, 0.20, 0.30), bird * 0.75);
+    }
     return c;
   }
 
@@ -88,38 +101,47 @@ const SKY = /* glsl */ `
       c += tint * (core * (0.35 + bright * 1.7) + glow) * tw * there;
     }
     // a shooting star: a short bright streak with a fading tail
-    vec2 dir = normalize(vec2(-0.86, -0.5));
-    vec2 head = uShoot.xy + dir * uShoot.z * 4.2;
+    vec2 dir = normalize(vec2(-0.99, -0.13));                       // across the sky, barely falling
+    vec2 head = uShoot.xy + dir * uShoot.z * uHalf.x * 1.7;
     vec2 pa = p - head; float hh = clamp(dot(pa, -dir) / 1.1, 0.0, 1.0);
     float streak = exp(-length(pa + dir * hh * 1.1) * 70.0) * (1.0 - hh);
     c += vec3(1.0, 0.96, 0.86) * streak * uShoot.w * sin(3.1416 * uShoot.z) * 2.2;
     return c;
   }
 
-  // a dish on its mast, tipped up at the sky
-  float dish(vec2 o, float r) {
-    vec2 up = normalize(vec2(-0.45, 0.89));
-    vec2 c = vec2(0.0, 0.62);
-    float bowl = max(length(o - c - up * r * 0.72) - r, dot(o - c - up * r * 0.72, up) + r * 0.62);   // a solid shallow bowl
-    float mast = sdSeg(o, vec2(0.0, -0.3), c) - 0.07;
-    float horn = min(sdSeg(o, c, c + up * r * 0.7) - 0.028, length(o - c - up * r * 0.7) - 0.07);
-    return min(min(bowl, mast), horn);
+  // a radio dish seen from the side: tower, yoke, the bowl tipped up, and its feed held on struts
+  vec3 dish(vec3 c, vec2 o, float aa) {
+    vec2 up = normalize(vec2(-0.5, 0.87));
+    vec2 across = vec2(up.y, -up.x);
+    vec2 hub = vec2(0.0, 0.55);
+    float tower = sdBox(o - vec2(0.0, 0.1), vec2(0.09 + (0.3 - o.y) * 0.12, 0.42));
+    float yoke = sdSeg(o, hub - across * 0.2, hub + across * 0.2) - 0.05;
+    c = mix(c, vec3(0.13, 0.15, 0.30), smoothstep(aa, -aa, min(tower, yoke)));
+    // the bowl: the part of a big circle below a chord, so it is a shallow dish and not a ball
+    vec2 q = vec2(dot(o - hub, across), dot(o - hub, up));
+    float bowl = max(length(q - vec2(0.0, 0.62)) - 0.74, q.y - 0.2);
+    float face = smoothstep(aa, -aa, bowl);
+    vec3 metal = mix(vec3(0.20, 0.24, 0.42), vec3(0.50, 0.58, 0.82), smoothstep(-0.5, 0.5, q.x));
+    c = mix(c, metal, face);
+    c += vec3(0.7, 0.8, 1.0) * smoothstep(aa * 2.5, 0.0, abs(q.y - 0.2)) * step(abs(q.x), 0.47) * 0.5;   // its lit rim
+    // the feed, out in front, on three struts
+    vec2 feed = vec2(0.0, 0.62);
+    float struts = min(min(sdSeg(q, vec2(-0.44, 0.2), feed), sdSeg(q, vec2(0.44, 0.2), feed)), sdSeg(q, vec2(0.0, 0.0), feed)) - 0.016;
+    c = mix(c, vec3(0.42, 0.48, 0.70), smoothstep(aa, -aa, min(struts, length(q - feed) - 0.06)));
+    return c;
   }
   // the observatory, set into the middle ridge: a glass dome you could stand in and look up through,
   // its frame of struts catching the sky, a small telescope inside, and two dishes beside it
   vec3 observatory(vec3 c, vec2 p) {
     float s = uObs.y;
     float aa = 1.5 / (s * 120.0);
-    vec2 o = (p - vec2(uObs.x, (ridge2(uObs.x) * 2.0 - 1.0) * uHalf.y - s * 0.04)) / s;
+    vec2 o = (p - vec2(uObs.x, (ridge2(uObs.x) * 2.0 - 1.0) * uHalf.y + s * 0.08)) / s;   // raised a little on its hill
     // the dishes first, a little behind the dome, each standing on the ground where it is
     for (int i = 0; i < 2; i++) {
-      float dx = i == 0 ? 1.55 : -1.5;
-      float size = i == 0 ? 0.46 : 0.34;
+      float dx = i == 0 ? 1.7 : -1.6;
       float gx = uObs.x + dx * s;
-      vec2 q = (p - vec2(gx, (ridge2(gx) * 2.0 - 1.0) * uHalf.y - s * 0.1)) / (s * (i == 0 ? 1.0 : 0.8));
-      float d = dish(q, size);
-      c = mix(c, vec3(0.20, 0.24, 0.42), smoothstep(aa, -aa, d));
-      c += vec3(0.45, 0.6, 0.9) * smoothstep(aa * 2.0, 0.0, abs(d)) * 0.16;
+      float k = i == 0 ? 0.95 : 0.7;
+      c = dish(c, (p - vec2(gx, (ridge2(gx) * 2.0 - 1.0) * uHalf.y - s * 0.02)) / (s * k), aa / k);
     }
     vec2 dc = vec2(0.0, 0.2);                     // the dome's centre, low, so it sits down in the hill
     float rad = length(o - dc);
@@ -138,10 +160,6 @@ const SKY = /* glsl */ `
     glass = mix(glass, vec3(0.55, 0.66, 0.9), frame * 0.6);
     c = mix(c, glass, inside);
     c += vec3(0.6, 0.75, 1.0) * smoothstep(aa * 3.0, 0.0, abs(dome)) * 0.35 * step(dc.y, o.y);   // the glass's edge
-    // inside it, a telescope on its mount, looking up
-    vec2 up = normalize(vec2(-0.42, 0.9));
-    float scope = min(sdSeg(o, vec2(0.05, 0.42), vec2(0.05, 0.42) + up * 0.5) - 0.06, sdSeg(o, vec2(0.05, 0.2), vec2(0.05, 0.42)) - 0.035);
-    c = mix(c, vec3(0.05, 0.06, 0.14), smoothstep(aa, -aa, scope) * inside);
     // the low wall it stands on, with one lit doorway
     float wall = sdBox(o - vec2(0.0, 0.12), vec2(0.9, 0.1)) - 0.02;
     c = mix(c, vec3(0.09, 0.10, 0.22), smoothstep(aa, -aa, wall));
@@ -175,10 +193,9 @@ const SKY = /* glsl */ `
     col += vec3(1.0, 0.86, 0.62) * exp(-abs(d) * 22.0) * 0.8;     // the seam, and its hot core
     col += vec3(1.0, 0.93, 0.78) * exp(-abs(d) * 170.0) * 0.6;
     // chosen: the sky opens like an iris, with a torn edge, onto whatever is behind the stage
-    float r = length(vP - uFocus) + (fbm(vP * 1.4 + 2.0) - 0.5) * 0.9;
+    float r = length(vP - uFocus);
     float edge = uOpen * (length(uHalf) * 2.0 + 1.6) - 0.8;
-    float alpha = uOpen <= 0.0 ? 1.0 : smoothstep(edge - 0.7, edge, r);
-    col += vec3(1.0, 0.9, 0.7) * (1.0 - smoothstep(0.0, 0.5, abs(r - edge))) * step(0.001, uOpen) * 0.5;
+    float alpha = uOpen <= 0.0 ? 1.0 : smoothstep(edge - 1.6, edge, r);
     // the sky is drawn first and solid, so it writes its own see-through: colour times alpha, then alpha
     gl_FragColor = vec4(col * alpha, alpha);
   }
@@ -257,83 +274,233 @@ interface Shape {
   pts: P[];
   segs: P[];
 }
-const SHAPES: Shape[] = [
-  {
-    name: "isosceles triangle",
-    pts: [
-      [-0.5, -0.42],
-      [0.5, -0.42],
-      [0, 0.62],
+/** A figure from its corners, joined in order (and back to the start when `closed`). */
+const path = (name: string, pts: P[], closed = false): Shape => ({
+  name,
+  pts,
+  segs: pts
+    .map((_, i) => [i, (i + 1) % pts.length] as P)
+    .slice(0, closed ? pts.length : pts.length - 1),
+});
+const ring = (n: number, r = 0.62, turn = 0): P[] =>
+  Array.from({ length: n }, (_, i) => {
+    const a = turn + (i / n) * Math.PI * 2;
+    return [Math.sin(a) * r, Math.cos(a) * r] as P;
+  });
+const BASE: Shape[] = [
+  path(
+    "isosceles triangle",
+    [
+      [-0.5, -0.45],
+      [0.5, -0.45],
+      [0, 0.65],
     ],
+    true
+  ),
+  path(
+    "parallelogram",
+    [
+      [-0.7, -0.36],
+      [0.3, -0.36],
+      [0.7, 0.36],
+      [-0.3, 0.36],
+    ],
+    true
+  ),
+  path("sideways M", [
+    [-0.4, 0.62],
+    [0.42, 0.62],
+    [-0.34, 0],
+    [0.42, -0.62],
+    [-0.4, -0.62],
+  ]),
+  path("sum sign", [
+    [0.46, 0.42],
+    [0.46, 0.62],
+    [-0.46, 0.62],
+    [0.08, 0],
+    [-0.46, -0.62],
+    [0.46, -0.62],
+    [0.46, -0.42],
+  ]),
+  path("square root", [
+    [-0.75, 0.05],
+    [-0.5, 0.05],
+    [-0.28, -0.6],
+    [0.02, 0.6],
+    [0.78, 0.6],
+  ]),
+  path("hexagon", ring(6), true),
+  path("pentagon", ring(5), true),
+  {
+    name: "five-pointed star",
+    pts: ring(5, 0.68),
     segs: [
-      [0, 1],
-      [1, 2],
-      [2, 0],
+      [0, 2],
+      [2, 4],
+      [4, 1],
+      [1, 3],
+      [3, 0],
     ],
   },
   {
-    name: "parallelogram",
+    name: "pi",
     pts: [
-      [-0.68, -0.36],
-      [0.32, -0.36],
-      [0.68, 0.36],
-      [-0.32, 0.36],
+      [-0.6, 0.5],
+      [0.6, 0.5],
+      [-0.25, 0.5],
+      [-0.3, -0.6],
+      [0.25, 0.5],
+      [0.32, -0.6],
+    ],
+    segs: [
+      [0, 1],
+      [2, 3],
+      [4, 5],
+    ],
+  },
+  {
+    name: "cube",
+    pts: [
+      [-0.5, -0.5],
+      [0.3, -0.5],
+      [0.3, 0.3],
+      [-0.5, 0.3],
+      [-0.15, -0.2],
+      [0.65, -0.2],
+      [0.65, 0.6],
+      [-0.15, 0.6],
     ],
     segs: [
       [0, 1],
       [1, 2],
       [2, 3],
       [3, 0],
+      [0, 4],
+      [4, 5],
+      [5, 1],
+      [5, 6],
+      [6, 2],
+      [6, 7],
+      [7, 3],
+      [7, 4],
     ],
   },
   {
-    name: "sideways M",
+    name: "pyramid",
     pts: [
-      [-0.4, 0.62],
-      [0.42, 0.62],
-      [-0.34, 0],
-      [0.42, -0.62],
-      [-0.4, -0.62],
+      [0, 0.7],
+      [-0.6, -0.4],
+      [0.2, -0.6],
+      [0.65, -0.25],
+    ],
+    segs: [
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [1, 2],
+      [2, 3],
+    ],
+  },
+  {
+    name: "axes and a line",
+    pts: [
+      [-0.6, 0.6],
+      [-0.6, -0.55],
+      [0.7, -0.55],
+      [-0.45, -0.4],
+      [0.6, 0.5],
     ],
     segs: [
       [0, 1],
       [1, 2],
-      [2, 3],
       [3, 4],
     ],
   },
   {
-    name: "sum sign",
+    name: "right angle",
     pts: [
-      [0.46, 0.44],
-      [0.46, 0.62],
-      [-0.46, 0.62],
-      [0.08, 0],
-      [-0.46, -0.62],
-      [0.46, -0.62],
-      [0.46, -0.44],
+      [-0.6, -0.5],
+      [0.6, -0.5],
+      [-0.6, 0.6],
+      [-0.6, -0.28],
+      [-0.38, -0.28],
+      [-0.38, -0.5],
     ],
     segs: [
       [0, 1],
       [1, 2],
-      [2, 3],
+      [2, 0],
       [3, 4],
       [4, 5],
-      [5, 6],
     ],
   },
+  path("less than", [
+    [0.5, 0.55],
+    [-0.5, 0],
+    [0.5, -0.55],
+  ]),
+  {
+    name: "plus and minus",
+    pts: [
+      [-0.5, 0.25],
+      [0.5, 0.25],
+      [0, 0.65],
+      [0, -0.15],
+      [-0.5, -0.55],
+      [0.5, -0.55],
+    ],
+    segs: [
+      [0, 1],
+      [2, 3],
+      [4, 5],
+    ],
+  },
+  path(
+    "rhombus",
+    [
+      [0, 0.7],
+      [0.45, 0],
+      [0, -0.7],
+      [-0.45, 0],
+    ],
+    true
+  ),
 ];
-/* Where the constellations sit, as fractions of the stage from its centre, on a desktop (wide) and on a
-   phone (tall). The first five are on the Math half; the last two are across the seam and only show when
-   it is moved. They are joined up in this order as more skills become Proficient. */
+/** More stars: every long vector is broken into shorter ones, each joint a star of its own. */
+const SHAPES: Shape[] = BASE.map((shape) => {
+  const pts = [...shape.pts];
+  const segs: P[] = [];
+  shape.segs.forEach(([a, b]) => {
+    const [ax, ay] = shape.pts[a];
+    const [bx, by] = shape.pts[b];
+    const parts = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 0.42));
+    let from = a;
+    for (let k = 1; k < parts; k++) {
+      pts.push([ax + ((bx - ax) * k) / parts, ay + ((by - ay) * k) / parts]);
+      segs.push([from, pts.length - 1]);
+      from = pts.length - 1;
+    }
+    segs.push([from, b]);
+  });
+  return { name: shape.name, pts, segs };
+});
+/* Where the constellations sit: all over the night, high and low, as fractions of the stage from its
+   centre on a desktop (wide) and on a phone (tall). They are joined up in this order as more skills
+   become Proficient. */
 const SLOTS: { wide: P; tall: P }[] = [
-  { wide: [0.5, 0.36], tall: [0.0, -0.3] },
-  { wide: [0.26, 0.64], tall: [-0.55, -0.16] },
-  { wide: [0.8, 0.66], tall: [0.58, -0.14] },
-  { wide: [0.3, 0.06], tall: [-0.4, -0.5] },
-  { wide: [0.76, 0.16], tall: [0.5, -0.42] },
-  { wide: [-0.36, 0.56], tall: [0.4, 0.62] },
-  { wide: [-0.74, 0.2], tall: [-0.5, 0.36] },
+  { wide: [0.5, 0.4], tall: [0.0, -0.3] },
+  { wide: [0.22, 0.7], tall: [-0.6, -0.14] },
+  { wide: [0.84, 0.72], tall: [0.62, -0.12] },
+  { wide: [0.3, 0.1], tall: [-0.42, -0.46] },
+  { wide: [0.78, 0.2], tall: [0.5, -0.4] },
+  { wide: [0.56, 0.8], tall: [0.2, -0.56] },
+  { wide: [0.12, 0.38], tall: [-0.75, -0.6] },
+  { wide: [0.92, 0.44], tall: [0.78, -0.62] },
+  { wide: [0.4, -0.2], tall: [-0.1, -0.7] },
+  { wide: [0.66, -0.06], tall: [-0.8, -0.34] },
+  { wide: [0.36, 0.56], tall: [0.34, -0.2] },
+  { wide: [0.7, 0.52], tall: [-0.28, -0.2] },
 ];
 const WIDTH = 0.11;
 
@@ -511,7 +678,7 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     vectors.visible = i < joined;
     group.add(vectors, stars);
     scene.add(group);
-    let at = i % SHAPES.length;
+    let at = (i * 5 + 2) % SHAPES.length;
     const take = (n: number) => {
       const shape = SHAPES[n % SHAPES.length];
       vectors.geometry.dispose();
@@ -534,7 +701,7 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
             { value: 0, duration: 0.5 * count, ease: "sine.inOut" },
             `+=${6 + i * 1.3}`
           )
-          .call(() => take(++at))
+          .call(() => take((at += 3 + (i % 4))))
           .to({}, { duration: 0.6 });
       };
       gsap.delayedCall(0.6 + i * 0.7, cycle);
@@ -545,15 +712,15 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
   const shoot = () => {
     const { halfW, halfH } = stage.layout;
     const v = uniforms.uShoot.value;
-    // it starts somewhere high on the night side and falls down and to the left
+    // it starts at the far edge of the night and crosses it
     const base = stage.layout.portrait
-      ? [halfW * 0.6, -halfH * 0.05]
-      : [halfW * (0.55 + Math.random() * 0.4), halfH * (0.75 + Math.random() * 0.2)];
+      ? [halfW, -halfH * (0.1 + Math.random() * 0.45)]
+      : [halfW, halfH * (0.2 + Math.random() * 0.7)];
     v.set(base[0], base[1], 0, 1);
     gsap.fromTo(
       v,
       { z: 0 },
-      { z: 1, duration: 0.95, ease: "power1.in", onComplete: () => void (v.w = 0) }
+      { z: 1, duration: 1.3, ease: "power1.inOut", onComplete: () => void (v.w = 0) }
     );
   };
   if (!stage.still) {
@@ -573,14 +740,14 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     uniforms.uHalf.value.set(l.halfW, l.halfH);
     uniforms.uObs.value.set(
       l.portrait ? l.halfW * 0.3 : l.halfW * 0.62,
-      l.halfH * (l.portrait ? 0.15 : 0.3),
+      l.halfH * (l.portrait ? 0.17 : 0.34),
       0
     );
     const px = (renderer.domElement.height / (2 * l.halfH)) * (l.portrait ? 0.26 : 0.34);
     slots.forEach((s) => {
       const at = l.portrait ? s.slot.tall : s.slot.wide;
       s.group.userData.home = [at[0] * l.halfW, at[1] * l.halfH];
-      s.group.scale.setScalar(l.portrait ? 0.34 : 0.44);
+      s.group.scale.setScalar(l.portrait ? 0.3 : 0.4);
       s.px.value = px;
     });
   });
@@ -652,7 +819,7 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
           state,
           {
             s: (side === 0 ? 1 : -1) * state.range * 1.25,
-            duration: 0.9,
+            duration: 0.65,
             ease: "power3.inOut",
             overwrite: true,
           },
@@ -660,10 +827,10 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
         )
         .to(
           stage.camera.position,
-          { z: stage.camera.position.z * 0.9, duration: 1.7, ease: "power2.inOut" },
+          { z: stage.camera.position.z * 0.94, duration: 1.2, ease: "power2.inOut" },
           0
         )
-        .to(uniforms.uOpen, { value: 1, duration: 1.0, ease: "power2.inOut" }, 0.75);
+        .to(uniforms.uOpen, { value: 1, duration: 0.7, ease: "power2.inOut" }, 0.5);
       if (side === 0) tl.add(book.leave(halfH * 2.6), 0);
       else {
         // the vectors brighten and the figures swell towards you as the night opens

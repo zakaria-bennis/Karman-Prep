@@ -424,13 +424,19 @@ function Shell() {
             {inSkill ? skill.domain : domain ? section : "Library"}
           </button>
         )}
-        <h1
-          className={styles.title}
-          key={inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page}
-          data-long={(page === "library" && (inSkill || section !== null)) || undefined}
-        >
-          {inSkill ? skill.name : page === "library" && section ? (domain ?? section) : LABEL[page]}
-        </h1>
+        {!(page === "library" && !section) && (
+          <h1
+            className={styles.title}
+            key={inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page}
+            data-long={(page === "library" && (inSkill || section !== null)) || undefined}
+          >
+            {inSkill
+              ? skill.name
+              : page === "library" && section
+                ? (domain ?? section)
+                : LABEL[page]}
+          </h1>
+        )}
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
         {page === "library" && section && (

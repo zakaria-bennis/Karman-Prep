@@ -110,6 +110,7 @@ export default function LibraryHero({ onPick }: { onPick: (section: Section) => 
       onPointerCancel={lifted}
     >
       <div ref={host} className={styles.canvas} aria-hidden="true" />
+      <h1 className={styles.heading}>Library</h1>
       <div className={styles.picks}>
         {SECTIONS.map((section, i) => {
           const side = i as Side;
