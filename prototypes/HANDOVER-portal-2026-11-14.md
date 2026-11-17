@@ -981,3 +981,15 @@ fading to black with ten rounded squares breathing green. The character's whole 
 eyes look. The words under it stay ten seconds each. The class countdown ends five minutes before class.
 The compass has eight edge marks and a one-line needle, red and blue. The profile picture is a plain
 head and shoulders until a student sets one (no fox).
+
+**Homework, seventh version (same day).** Daily 10: its dot wave is back, on a quieter orange with flowing
+molten light and embers rising (his reference: the Nuclear Fallout finish in Call of Duty: Mobile).
+**Challenge question** (`HomeworkChallenge.tsx`): a full-screen banner when Homework opens if it is not
+done; sent away with Later, it sits beside the Daily 10 in one row; when either is done the other takes
+the row; both land in Completed. Opened Completed work sits right under the remaining work at the same
+width. Compass needle is two arrowheads, red and blue. The chalkboard writes and wipes smoothly. Title is
+"Full-length exam 3" on desktop and "Exam 3" on phones. Phone bar at night is lighter frosted glass and
+the middle icon stands in a lighter circle. **The exam banner's scene is still drawn; he wants real
+looping footage of a beach (dusk for dark, sunset for light): a free-license clip must be found and he
+must OK the download.** Twice in this session a style edit cut out the `.main`/`.arrow`/`.sort` rules of
+`homework.module.css`; look at a picture after every CSS patch there.

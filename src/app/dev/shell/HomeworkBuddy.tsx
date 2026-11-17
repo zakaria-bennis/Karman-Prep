@@ -201,15 +201,21 @@ function Board() {
 /** Draws the chalk on a board, again and again; returns how to stop. */
 const chalk = (root: Element | null) => {
   if (!root || calm()) return () => {};
-  const tl = gsap
-    .timeline({ repeat: -1, repeatDelay: 2.2 })
-    .fromTo(
-      root.querySelectorAll("[data-chalk]"),
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 1.1, stagger: 0.35, ease: "power1.inOut" }
-    )
-    .to(root.querySelectorAll("[data-chalk]"), { opacity: 0, duration: 0.4 }, "+=2.4")
-    .set(root.querySelectorAll("[data-chalk]"), { opacity: 1, strokeDashoffset: 1 });
+  // the chalk writes the squiggle, then the line over it, rests, and is wiped away the way it came.
+  // Until its turn each stroke is unseen (a round-ended stroke of no length would show as a dot).
+  const marks = gsap.utils.toArray<SVGElement>(root.querySelectorAll("[data-chalk]"));
+  gsap.set(marks, { strokeDashoffset: 1, opacity: 0 });
+  const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.6 });
+  marks.forEach((mark) =>
+    tl
+      .set(mark, { opacity: 1 })
+      .to(mark, { strokeDashoffset: 0, duration: 1.1, ease: "sine.inOut" })
+  );
+  tl.to(
+    marks,
+    { strokeDashoffset: -1, duration: 0.8, ease: "sine.in", stagger: 0.12 },
+    "+=2.6"
+  ).set(marks, { opacity: 0, strokeDashoffset: 1 });
   return () => tl.kill();
 };
 

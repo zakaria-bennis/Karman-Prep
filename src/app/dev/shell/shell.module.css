@@ -312,7 +312,19 @@
   }
 
   .items li[data-mid] .art {
-    scale: 1.42;
+    position: relative;
+    scale: 1.3;
+  }
+
+  /* the middle one stands in a circle of lighter glass */
+  .items li[data-mid] .art::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -8px;
+    border-radius: 50%;
+    background: var(--lens);
+    box-shadow: inset 0 0 0 1px var(--lens-edge);
   }
 }
 
@@ -833,6 +845,14 @@
 .shell[data-mode="dark"] .nav {
   --glass: rgb(14 16 34 / 0.68);
   --frost: blur(calc(30px * var(--frost-k))) saturate(1.5) brightness(0.9);
+}
+
+/* on a phone the bar at night is frosted glass, not a dark slab: thinner, and well blurred */
+@media not ((min-width: 960px) and (hover: hover)) {
+  .shell[data-mode="dark"] .nav {
+    --glass: rgb(70 74 110 / 0.34);
+    --frost: blur(calc(34px * var(--frost-k))) saturate(1.8) brightness(1.08);
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {

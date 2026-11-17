@@ -66,17 +66,19 @@ export function SortIcon({ sort }: { sort: Sort }) {
       {sort === "strategy" && (
         <>
           {/* a compass, for a strategy quiz: marks round its edge for the eight directions (the four
-              main ones longer), and a needle that is one line, red toward north and blue toward
-              south */}
+              main ones longer) */}
           <circle cx="14" cy="14" r="11" />
           <path d="M14 3v3M14 22v3M3 14h3M22 14h3" />
           <path
             d="M6.200 6.200l1.300 1.300M21.800 6.200l-1.300 1.300M6.200 21.800l1.300-1.300M21.800 21.800l-1.300-1.300"
             strokeWidth="1.200"
           />
+          {/* the needle: two arrowheads joined at the middle, red toward north, blue toward south */}
           <g data-part="needle">
-            <path d="M14 14L17.500 8.500" stroke="#ff5a4f" strokeWidth="2.400" />
-            <path d="M14 14L10.500 19.500" stroke="#4f9dff" strokeWidth="2.400" />
+            <g transform="rotate(28 14 14)" stroke="none">
+              <path d="M14 5.500L16.800 14H11.200Z" fill="#ff5a4f" />
+              <path d="M14 22.500L11.200 14H16.800Z" fill="#4f9dff" />
+            </g>
           </g>
         </>
       )}
@@ -182,31 +184,60 @@ export function Item({
   );
 }
 
-/** Today's Daily 10, when it is not yet done: a card of its own at the head of the day, orange
- *  fading into black, with ten rounded squares breathing green (as if all ten will be right), and
- *  Start on it. */
+/** Today's Daily 10, when it is not yet done: a card of its own at the head of the day, glowing
+ *  orange like hot metal, with embers rising through it (his reference: the Nuclear Fallout finish
+ *  in Call of Duty: Mobile), ten dots that light in a wave, and Start on it. */
 export function DailyTen({ onStart }: { onStart: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current || calm()) return;
-    // the ten squares breathe green, one a little after another, very gently
-    const wave = gsap.fromTo(
-      ref.current.querySelectorAll("[data-dot]"),
-      { opacity: 0.45, scale: 0.94 },
-      {
-        opacity: 0.95,
-        scale: 1,
-        duration: 2.2,
-        ease: "sine.inOut",
-        stagger: { each: 0.18, repeat: -1, yoyo: true },
-      }
+    // ten dots light in a wave, one after another, and rest
+    const wave = gsap.to(ref.current.querySelectorAll("[data-dot]"), {
+      keyframes: [
+        { y: -6, scale: 1.25, opacity: 1, duration: 0.3, ease: "power2.out" },
+        { y: 0, scale: 1, opacity: 0.55, duration: 0.5, ease: "bounce.out" },
+      ],
+      stagger: { each: 0.09, repeat: -1, repeatDelay: 1.8 },
+    });
+    // embers drift up through the card and wink out, each on a path of its own
+    const embers = gsap.utils.toArray<HTMLElement>(ref.current.querySelectorAll("[data-ember]"));
+    const rises = embers.map((el, n) =>
+      gsap.fromTo(
+        el,
+        { x: 0, y: 0, opacity: 0, scale: 0.6 },
+        {
+          keyframes: [
+            { opacity: 1, scale: 1, duration: 0.5 },
+            { opacity: 0, scale: 0.4, duration: 1.6 },
+          ],
+          x: () => gsap.utils.random(-26, 26),
+          y: () => gsap.utils.random(-70, -40),
+          duration: 2.1,
+          ease: "sine.out",
+          repeat: -1,
+          repeatRefresh: true,
+          delay: n * 0.37,
+        }
+      )
     );
     return () => {
       wave.kill();
+      rises.forEach((r) => r.kill());
     };
   }, []);
   return (
     <div ref={ref} className={styles.daily} data-in>
+      {/* molten light that flows, and embers that rise through it */}
+      <span className={styles.molten} aria-hidden="true" />
+      {Array.from({ length: 9 }, (_, n) => (
+        <i
+          key={n}
+          className={styles.ember}
+          style={{ left: `${8 + n * 10.5}%`, top: `${58 + ((n * 37) % 34)}%` }}
+          data-ember
+          aria-hidden="true"
+        />
+      ))}
       <p>
         <b>Daily 10</b>
         <span className={styles.dots} aria-hidden="true">
@@ -259,9 +290,12 @@ function Clock({ ms, days = true }: { ms: number; days?: boolean }) {
 export function ExamBanner({
   day,
   now,
+  number,
   open: forced,
 }: {
   day: HomeworkDay;
+  /** Which of the nine weekly exams it is. */
+  number: number;
   now: number;
   open: boolean;
 }) {
@@ -333,7 +367,11 @@ export function ExamBanner({
           size={84}
         />
       </span>
-      <h2>Full-length exam</h2>
+      {/* a phone has room for the short name only */}
+      <h2>
+        <span className={styles.long}>Full-length exam</span>
+        <span className={styles.short}>Exam</span> {number}
+      </h2>
       {over ? (
         <p className={styles.over}>Done</p>
       ) : open ? (

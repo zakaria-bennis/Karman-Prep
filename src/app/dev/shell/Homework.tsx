@@ -23,13 +23,15 @@ import { Dressed } from "./accessories";
 import { useEquipped } from "./equipped";
 import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
+import { ChallengeBanner, ChallengeCard } from "./HomeworkChallenge";
 import { arrive, useClock } from "./homeworkMotion";
-import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay } from "./homeworkData";
+import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay, type Work as WorkPiece } from "./homeworkData";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import { DAY, TODAY } from "./progressData";
 import { tick } from "./sound";
 
+const DONE = { kind: "mixed", sort: "skill", state: "done" } as const;
 const FIRST = -(WEEK_NOW - 1) * 7 - TODAY.getDay();
 const LAST = 13 - TODAY.getDay();
 const name = (day: HomeworkDay) =>
@@ -58,23 +60,37 @@ function Work({
   day,
   daily,
   onDaily,
+  challenge,
+  onChallenge,
+  extra,
   onFinish,
 }: {
   day: HomeworkDay;
   /** Today's Daily 10 is still to do. */
   daily: boolean;
   onDaily: () => void;
+  /** Today's challenge question is still to do (and its banner has been sent away). */
+  challenge: boolean;
+  onChallenge: () => void;
+  /** The Daily 10 and the challenge question, once done, are listed with the day's done work. */
+  extra: WorkPiece[];
   onFinish: (id: string) => void;
 }) {
   const { face } = useEquipped();
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(false);
   const left = day.work.filter((w) => w.state !== "done");
-  const done = day.work.filter((w) => w.state === "done");
+  const done = [...extra, ...day.work.filter((w) => w.state === "done")];
   return (
     <>
-      {/* today's Daily 10, until it is done, leads the day */}
-      {daily && <DailyTen onStart={onDaily} />}
+      {/* today's Daily 10 and the challenge question lead the day, side by side, until each is done;
+          when one is, the other has the whole row */}
+      {(daily || challenge) && (
+        <div className={styles.lead}>
+          {daily && <DailyTen onStart={onDaily} />}
+          {challenge && <ChallengeCard onStart={onChallenge} />}
+        </div>
+      )}
       {left.length > 0 ? (
         <ul className={styles.list}>
           {left.map((work) => (
@@ -90,25 +106,26 @@ function Work({
           <p>{day.work.length ? "All done" : day.exam ? "Exam day" : "Nothing assigned"}</p>
         </div>
       )}
+      {/* opened, the done work rises to sit right under what is left, the same width */}
+      {done.length > 0 && (
+        <AnimatePresence initial={false}>
+          {open && (
+            <motion.ul
+              className={styles.list}
+              initial={still ? false : { height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={still ? undefined : { height: 0, opacity: 0 }}
+              transition={still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38 }}
+            >
+              {done.map((work) => (
+                <Item key={work.id} work={work} />
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+      )}
       {done.length > 0 && (
         <div className={styles.done}>
-          <AnimatePresence initial={false}>
-            {open && (
-              <motion.ul
-                className={`${styles.list} ${styles.grid}`}
-                initial={still ? false : { height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={still ? undefined : { height: 0, opacity: 0 }}
-                transition={
-                  still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38 }
-                }
-              >
-                {done.map((work) => (
-                  <Item key={work.id} work={work} />
-                ))}
-              </motion.ul>
-            )}
-          </AnimatePresence>
           <button
             type="button"
             className={styles.completed}
@@ -135,6 +152,8 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
   const [finished, setFinished] = useState<string[]>([]);
   const [cheer, setCheer] = useState(0);
   const [dailyDone, setDailyDone] = useState(false);
+  /** The challenge question: its banner is up, or sent away, or the question is done. */
+  const [challenge, setChallenge] = useState<"banner" | "later" | "done">("banner");
   /** Which way the last step went, so what arrives comes in from that side. */
   const body = useRef<HTMLDivElement>(null);
   const from = useRef(0);
@@ -183,7 +202,16 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
-      <ExamBanner day={exam} now={now} open={examOpen} />
+      <ExamBanner day={exam} now={now} number={WEEK_NOW + week} open={examOpen} />
+      {challenge === "banner" && (
+        <ChallengeBanner
+          onStart={() => {
+            setChallenge("done");
+            setCheer(cheer + 1);
+          }}
+          onLater={() => setChallenge("later")}
+        />
+      )}
 
       {!whole && (
         <section className={`${lib.glass} ${styles.side}`} aria-label="At a glance">
@@ -311,6 +339,30 @@ export default function Homework({ examOpen }: { examOpen: boolean }) {
             <Work
               key={day.from}
               day={day}
+              challenge={day.from === 0 && challenge === "later"}
+              onChallenge={() => {
+                setChallenge("done");
+                setCheer(cheer + 1);
+              }}
+              extra={
+                day.from === 0
+                  ? [
+                      ...(dailyDone
+                        ? [{ ...DONE, id: "daily", name: "Daily 10", much: "10 questions" }]
+                        : []),
+                      ...(challenge === "done"
+                        ? [
+                            {
+                              ...DONE,
+                              id: "challenge",
+                              name: "Challenge question",
+                              much: "1 question",
+                            },
+                          ]
+                        : []),
+                    ]
+                  : []
+              }
               daily={day.from === 0 && !dailyDone}
               onDaily={() => {
                 setDailyDone(true);
