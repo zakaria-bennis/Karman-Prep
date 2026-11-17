@@ -1082,3 +1082,19 @@ and `shellBits.tsx` (the badge, the default profile picture, the demo switches).
 **Everything said in these chats is made up, and nothing is sent anywhere.** People's names are
 stand-ins. Not built: wiring to the live chat and its moderation, the parent's view, Chat for Private
 students on phones (their bar has no Chat; it would be under More, which does not exist yet).
+
+**Chat, second version (2026-11-16), after his twelve notes.** New chat closes on a press anywhere or
+Escape. Questions: "Bring a question" opens a full-screen grid of bookmarked and flagged questions with
+sorts (All, Flagged, Reading and Writing, Math), each card saying its skill, side, source and opening;
+a chosen question waits in the composer so words can be sent with it; a sent question opens to the
+whole screen with its choices (`ChatQuestions.tsx`). No rings round pictures, a plain megaphone, a plain
+red badge everywhere (no gold). Tutor presence: a dot by the name and a pill, green Online, red Offline,
+yellow After hours (9 PM to 9 AM Central, assistant answers). **Checks (stand-ins in `judge`,
+chatStore.ts):** contact details and social accounts are not sent and say why; vulgar or sexual words
+are not sent and say only "Not sent" (tutor reviews; no warning, no second chance); passing answers is
+not sent, brings one warning dialog, and the second time pauses the student's chats until the tutor
+approves (demo bar: "Tutor approves"). **In a quiz** (demo bar) there is no chat and no badge. The
+flicker he saw at the left of the message pane could not be reproduced here; the pane no longer fades in
+per chat, its scrolling part has its own layer, and the Chat icon's dots bob only on hover.
+**Must be built for real, not done:** the live moderation needs an answer-sharing check, a socials check
+and the pause-until-reviewed state with a tutor review screen; quiz engines must switch Chat off.

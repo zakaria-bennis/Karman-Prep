@@ -6,12 +6,13 @@
 // private chat it says Delivered, then Read. Whoever is writing shows as three bobbing dots.
 // Under the messages is the place to write, with a photo and a question to attach.
 import { useEffect, useRef, useState } from "react";
+import { Card, QuestionPicker, QuestionView } from "./ChatQuestions";
 import {
-  BROUGHT,
   PEOPLE,
   REACTIONS,
   chat,
   type Msg,
+  type Presence,
   type Reaction,
   type Shared,
   type Thread,
@@ -73,28 +74,43 @@ function Tapback({ how }: { how: Reaction }) {
   return <b aria-label={how}>{{ ha: "Ha", wow: "!!", what: "?" }[how]}</b>;
 }
 
-function Card({ q }: { q: Shared }) {
-  return (
-    <span className={styles.card}>
-      <small>{q.flagged ? "Flagged question" : "Bookmarked question"}</small>
-      <b>{q.skill}</b>
-      <span>{q.prompt}</span>
+/** The tutor's presence, as a word on a colored pill: green Online, red Offline, and yellow After
+ *  hours (9 PM to 9 AM Central), when the assistant answers. */
+const HERE: Record<Presence, string> = {
+  online: "Online",
+  offline: "Offline",
+  after: "After hours",
+};
+export function Here({ presence, dot = false }: { presence: Presence; dot?: boolean }) {
+  return dot ? (
+    <i className={styles.dot} data-here={presence} aria-label={HERE[presence]} />
+  ) : (
+    <span className={styles.here} data-here={presence}>
+      <i />
+      {HERE[presence]}
     </span>
   );
 }
 
 export default function ChatThread({
   thread,
-  afterHours,
+  presence,
+  paused,
 }: {
   thread: Thread;
-  afterHours: boolean;
+  presence: Presence;
+  /** The check has paused this student's chats until the tutor has looked. */
+  paused: boolean;
 }) {
+  const afterHours = presence === "after";
   const end = useRef<HTMLDivElement>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [bringing, setBringing] = useState(false);
+  /** A question chosen to send, waiting for a few words to go with it. */
+  const [held, setHeld] = useState<Shared | null>(null);
+  const [viewing, setViewing] = useState<Shared | null>(null);
   const group = thread.kind === "class" || thread.kind === "news";
   const lastMine = [...thread.msgs].reverse().find((m) => m.from === "me");
   const quoted = thread.msgs.find((m) => m.id === replyTo);
@@ -108,11 +124,11 @@ export default function ChatThread({
     if (thread.unread) chat.read(thread.id);
   }, [thread.id, thread.unread]);
 
-  const send = (body: { text?: string; photo?: string; question?: Shared }) => {
-    chat.send(thread.id, { ...body, replyTo: replyTo ?? undefined });
+  const send = (body: { text?: string; photo?: string }) => {
+    chat.send(thread.id, { ...body, question: held ?? undefined, replyTo: replyTo ?? undefined });
     setDraft("");
     setReplyTo(null);
-    setBringing(false);
+    setHeld(null);
     tick();
   };
 
@@ -135,19 +151,21 @@ export default function ChatThread({
           <Face who={thread.with ?? "tutor"} size={36} />
         )}
         <p>
-          <b>{thread.name}</b>
+          <b>
+            {thread.name}
+            {thread.kind === "tutor" && <Here presence={presence} dot />}
+          </b>
           <span>
             {thread.kind === "news"
               ? "Only your tutor posts here"
               : thread.kind === "class"
                 ? "You, your classmates and your tutor"
                 : thread.kind === "tutor"
-                  ? afterHours
-                    ? "Your tutor, back at 9 AM"
-                    : "Your tutor, here until 9 PM"
+                  ? "Your tutor"
                   : "Classmate"}
           </span>
         </p>
+        {thread.kind === "tutor" && <Here presence={presence} />}
       </header>
 
       <div className={styles.flow} onClick={() => setPicked(null)}>
@@ -192,7 +210,21 @@ export default function ChatThread({
                     setPicked(picked === m.id ? null : m.id);
                   }}
                 >
-                  {m.question && <Card q={m.question} />}
+                  {m.question && (
+                    <span
+                      className={styles.opens}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Open the question: ${m.question.skill}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewing(m.question ?? null);
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && setViewing(m.question ?? null)}
+                    >
+                      <Card q={m.question} />
+                    </span>
+                  )}
                   {/* a photo the student chose from their own device, shown as it is */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {m.photo && <img src={m.photo} alt="" />}
@@ -239,9 +271,14 @@ export default function ChatThread({
                   </div>
                 )}
               </div>
+              {/* why it was not sent. Vulgar or sexual words get no explanation at all. */}
               {mine && m.state === "blocked" && (
                 <p className={styles.stopped}>
-                  Not sent. Phone numbers and email addresses can&apos;t be shared here.
+                  {m.why === "contact"
+                    ? "Not sent. Contact details and social accounts can't be shared here."
+                    : m.why === "answers"
+                      ? "Not sent. Chat is for working questions out, not for passing answers."
+                      : "Not sent."}
                 </p>
               )}
               {mine && m === lastMine && m.state !== "blocked" && (
@@ -278,6 +315,8 @@ export default function ChatThread({
 
       {thread.kind === "news" ? (
         <p className={styles.closed}>Only your tutor can post here.</p>
+      ) : paused ? (
+        <p className={styles.closed}>Your chats are paused until your tutor has reviewed them.</p>
       ) : (
         <footer>
           {thread.kind === "tutor" && afterHours && (
@@ -298,23 +337,27 @@ export default function ChatThread({
               </button>
             </p>
           )}
-          {/* the questions the student bookmarked or flagged, to bring one into the chat */}
-          {bringing && (
-            <ul className={styles.bring} aria-label="Your questions">
-              {BROUGHT.map((q) => (
-                <li key={q.skill}>
-                  <button type="button" onClick={() => send({ question: q })}>
-                    <Card q={q} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {/* a question chosen to send: it waits here while the student writes a few words to go
+              with it, and can be taken off again */}
+          {held && (
+            <p className={styles.holding}>
+              <Card q={held} />
+              <button
+                type="button"
+                aria-label="Take the question off"
+                onClick={() => setHeld(null)}
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path d="M7 7l10 10M17 7L7 17" />
+                </svg>
+              </button>
+            </p>
           )}
           <form
             className={styles.write}
             onSubmit={(e) => {
               e.preventDefault();
-              if (draft.trim()) send({ text: draft.trim() });
+              if (draft.trim() || held) send({ text: draft.trim() || undefined });
             }}
           >
             <label className={styles.tool} aria-label="Send a photo">
@@ -348,7 +391,7 @@ export default function ChatThread({
               className={styles.field}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Message"
+              placeholder={held ? "Say what you need help with" : "Message"}
               aria-label="Message"
               enterKeyHint="send"
             />
@@ -365,6 +408,17 @@ export default function ChatThread({
           </form>
         </footer>
       )}
+      {bringing && (
+        <QuestionPicker
+          onPick={(q) => {
+            setHeld(q);
+            setBringing(false);
+            tick();
+          }}
+          onLeave={() => setBringing(false)}
+        />
+      )}
+      {viewing && <QuestionView q={viewing} onLeave={() => setViewing(null)} />}
     </section>
   );
 }

@@ -294,9 +294,8 @@
   }
 }
 
-/* the Chat icon's dots bob while its row is pointed at or Chat is open */
-.item:hover [data-move="dot"],
-.item[aria-current="page"] [data-move="dot"] {
+/* the Chat icon's dots bob while its row is pointed at */
+.item:hover [data-move="dot"] {
   animation: typing 1.3s ease-in-out infinite;
 }
 
@@ -382,8 +381,7 @@
   stroke: #1d1a22;
 }
 
-/* what is unread in Chat: a red mark with how many messages, or a gold one when an announcement
-   has been missed */
+/* what is unread in Chat: a small red mark with how many messages */
 .badge {
   position: absolute;
   /* on the upper right corner of the blue bubble, half over its edge */
@@ -396,7 +394,6 @@
   padding: 0 3.5px;
   border-radius: 7px;
   background: #e5484d;
-  box-shadow: 0 0 0 1.5px rgb(20 22 40 / 0.4);
   color: #fff;
   font-size: 9.5px;
   font-style: normal;
@@ -405,11 +402,6 @@
   line-height: 1;
   transition: background 0.3s var(--out);
   animation: badge 0.4s cubic-bezier(0.3, 1.7, 0.45, 1) both;
-}
-
-.badge[data-kind="gold"] {
-  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
-  color: #3a2500;
 }
 
 @keyframes badge {

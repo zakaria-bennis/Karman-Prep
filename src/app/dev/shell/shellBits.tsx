@@ -1,6 +1,6 @@
 // Small pieces of the portal's frame, kept out of page.tsx.
 import { useEffect } from "react";
-import { chat, closedNow, useChat, waiting } from "./chatStore";
+import { chat, presenceNow, useChat, waiting } from "./chatStore";
 import type { Plan } from "./plans";
 import styles from "./shell.module.css";
 
@@ -27,19 +27,15 @@ export function Me() {
   );
 }
 
-/** What is waiting in Chat, on its icon: a small red mark with how many messages there are, gold
- *  while an announcement is among them, and nothing at all when everything has been read (founder,
- *  2026-11-16). It sits on the corner of the blue bubble, inside the icon's own box, so it does not
- *  move when the menu opens. */
+/** What is waiting in Chat, on its icon: a small red mark with how many messages there are, and
+ *  nothing at all when everything has been read or the student is in a quiz (founder, 2026-11-16).
+ *  It sits on the corner of the blue bubble, inside the icon's own box, so it does not move when
+ *  the menu opens. */
 export function Unread() {
-  const { count, news } = waiting(useChat());
+  const count = waiting(useChat());
   if (count === 0) return null;
   return (
-    <i
-      className={styles.badge}
-      data-kind={news ? "gold" : "red"}
-      aria-label={`${count} unread${news ? ", with an announcement" : ""}`}
-    >
+    <i className={styles.badge} aria-label={`${count} unread`}>
       {count > 9 ? "9+" : count}
     </i>
   );
@@ -50,13 +46,14 @@ export function Unread() {
 export function useChatPlan(plan: Plan) {
   useEffect(() => {
     if (plan !== "practice") chat.start(plan);
-    chat.afterHours(closedNow());
+    chat.presence(presenceNow());
   }, [plan]);
 }
 
 /** Demo switches for Chat: someone writes, the tutor announces, or it is after the tutor's hours. */
 export function ChatDemo({ plan }: { plan: Plan }) {
-  const late = useChat().afterHours;
+  const { presence, inQuiz, paused } = useChat();
+  const next = { online: "offline", offline: "after", after: "online" } as const;
   return (
     <>
       {plan === "cohort" && (
@@ -75,9 +72,17 @@ export function ChatDemo({ plan }: { plan: Plan }) {
           </button>
         </>
       )}
-      <button type="button" aria-pressed={late} onClick={() => chat.afterHours(!late)}>
-        After hours
+      <button type="button" onClick={() => chat.presence(next[presence])}>
+        Tutor: {presence === "after" ? "after hours" : presence}
       </button>
+      <button type="button" aria-pressed={inQuiz} onClick={() => chat.quiz(!inQuiz)}>
+        In a quiz
+      </button>
+      {paused && (
+        <button type="button" onClick={() => chat.approve()}>
+          Tutor approves
+        </button>
+      )}
     </>
   );
 }

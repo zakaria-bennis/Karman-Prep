@@ -77,10 +77,9 @@
 
 .faces > * + * {
   margin-left: -15px;
-  box-shadow: 0 0 0 2px rgb(40 40 60 / 0.35);
 }
 
-/* Announcements: a horn on gold */
+/* Announcements: a megaphone, plain, on a little glass */
 .horn {
   display: grid;
   flex: none;
@@ -88,8 +87,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
-  color: #3a2500;
+  background: var(--hover);
 }
 
 .words {
@@ -140,11 +138,6 @@
   font-weight: 700;
 }
 
-.end i[data-kind="gold"] {
-  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
-  color: #3a2500;
-}
-
 .fresh {
   display: grid;
   gap: 4px;
@@ -172,6 +165,10 @@
   min-height: 0;
   padding: 0;
   overflow: hidden;
+  /* it does not fade in each time a chat is opened, and what scrolls inside it is kept on a layer
+     of its own, so the glass behind is not redrawn as the messages move */
+  animation: none;
+  isolation: isolate;
 }
 
 .thread {
@@ -198,6 +195,7 @@
 
 .thread > header p {
   display: grid;
+  flex: 1 1 auto;
   gap: 1px;
   margin: 0;
 }
@@ -222,6 +220,7 @@
   padding: 12px 14px 6px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  transform: translateZ(0);
 }
 
 .chat .note,
@@ -339,30 +338,13 @@
   border-radius: 12px;
 }
 
-/* a question brought into the chat */
-.card {
-  display: grid;
-  gap: 3px;
-  min-width: 200px;
-  max-width: 340px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgb(255 255 255 / 0.16);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
-  font-size: 13px;
-  line-height: 1.35;
-  text-align: left;
-}
-
-.card small {
-  font-size: 11px;
-  font-weight: 700;
-  opacity: 0.85;
-}
-
-.card b {
-  font-size: 15px;
-  font-weight: 700;
+/* a question in a message: pressing it opens it to the whole screen */
+.opens {
+  display: block;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.9);
+  color: #1d1a22;
+  cursor: pointer;
 }
 
 /* the reactions a message has, on its upper corner */
@@ -377,7 +359,6 @@
   padding: 0 7px;
   border-radius: 11px;
   background: var(--theirs);
-  box-shadow: 0 0 0 2px rgb(30 30 46 / 0.25);
   color: var(--theirs-ink);
   font-size: 11px;
   font-weight: 700;
@@ -503,6 +484,109 @@
   opacity: 1;
 }
 
+/* the tutor's presence: a dot beside the name, and a pill that says it */
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--here);
+  vertical-align: 1px;
+}
+
+.here {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--here) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--here) 60%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.here i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--here);
+}
+
+.dot[data-here="online"],
+.here[data-here="online"] {
+  --here: #22c36b;
+}
+
+.dot[data-here="offline"],
+.here[data-here="offline"] {
+  --here: #e5484d;
+}
+
+.dot[data-here="after"],
+.here[data-here="after"] {
+  --here: #f2b632;
+}
+
+/* closed while in a quiz */
+.shut {
+  margin: 0;
+  padding: 40px 24px;
+  font: 400 22px/1.3 var(--font-serif);
+  text-align: center;
+}
+
+/* the one warning */
+.warn {
+  position: fixed;
+  z-index: 9;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(8 8 22 / 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.warn > div {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  width: min(440px, 100%);
+  padding: 28px;
+  border-radius: 28px;
+  background: #fff8ec;
+  color: #1d1a22;
+  box-shadow:
+    0 40px 80px -30px rgb(0 0 0 / 0.8),
+    inset 0 0 0 2px #f2b632;
+}
+
+.warn h2 {
+  margin: 0;
+  font: 400 26px/1.1 var(--font-serif);
+}
+
+.warn p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.chat .warn button {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 22px;
+  background: #1d1a22;
+  color: #fff8ec;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 /* ---- where a message is written ---- */
 .thread > footer {
   display: grid;
@@ -555,22 +639,28 @@
   border-radius: 16px;
 }
 
-.bring {
+/* a question waiting to be sent with a few words */
+.chat .holding {
+  position: relative;
   display: grid;
-  gap: 6px;
-  max-height: 240px;
-  overflow-y: auto;
+  margin: 0;
 }
 
-.chat .bring button {
-  width: 100%;
-  border-radius: 12px;
+/* room for the button that takes it off again */
+.holding small {
+  padding-right: 40px;
 }
 
-.bring .card {
-  max-width: none;
+.chat .holding button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
   background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
 }
 
 .write {

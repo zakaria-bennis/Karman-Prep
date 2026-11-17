@@ -8,8 +8,10 @@
 //   A message can be reacted to and replied to. A private chat shows Delivered, then Read.
 //   Outside the tutor's hours (9 AM to 9 PM Central) an assistant answers at once, marked as not a
 //   person, and the tutor follows up in the morning.
-//   Sending is checked first. The live check is three layers; here only its first rule is shown:
-//   a phone number or an email address is not sent.
+//   Sending is checked first (see `judge`): contact details and social accounts are not sent; vulgar
+//   or sexual words are not sent, with nothing said, and go to the tutor; passing answers about is
+//   not sent, warned about once, and the second time pauses the chats until the tutor has looked.
+//   While the student is in a skill set, a quiz or an exam there is no chat and no sign of it.
 import { useSyncExternalStore } from "react";
 
 export type Person = { id: string; name: string; tint: string; role?: "tutor" | "assistant" };
@@ -23,7 +25,15 @@ export const PEOPLE: Record<string, Person> = {
 };
 export const CLASSMATES = ["priya", "sam", "leo", "amara"];
 
-export type Shared = { skill: string; prompt: string; flagged: boolean };
+export type Shared = {
+  skill: string;
+  section: "Reading and Writing" | "Math";
+  /** Where the student met it: "Daily 10, Nov 14". */
+  from: string;
+  prompt: string;
+  choices: string[];
+  flagged: boolean;
+};
 export const REACTIONS = ["heart", "up", "ha", "wow", "what"] as const;
 export type Reaction = (typeof REACTIONS)[number];
 export type Msg = {
@@ -38,6 +48,8 @@ export type Msg = {
   reactions: Record<string, Reaction>;
   /** A message of the student's own: on its way, sent, read, or stopped by the check. */
   state?: "sending" | "sent" | "read" | "blocked";
+  /** Why it was stopped: contact details or a social account, or something not fit to send. */
+  why?: "contact" | "content" | "answers";
 };
 export type ThreadKind = "news" | "class" | "tutor" | "dm";
 export type Thread = {
@@ -49,7 +61,20 @@ export type Thread = {
   unread: number;
   typing?: string;
 };
-type State = { threads: Thread[]; afterHours: boolean };
+/** The tutor: online, offline within their hours, or after hours (9 PM to 9 AM Central), when the
+ *  assistant answers. */
+export type Presence = "online" | "offline" | "after";
+type State = {
+  threads: Thread[];
+  presence: Presence;
+  /** How many times the check has caught answer-sharing. The first brings a warning; the second
+   *  pauses the student's chats until the tutor has looked. */
+  strikes: number;
+  warning: boolean;
+  paused: boolean;
+  /** The student is in a skill set, a quiz or an exam: no chat and no sign of it. */
+  inQuiz: boolean;
+};
 
 const MIN = 60_000;
 let n = 0;
@@ -130,7 +155,14 @@ const cohort = (): Thread[] => [
 ];
 const alone = (): Thread[] => cohort().filter((t) => t.kind === "tutor");
 
-let state: State = { threads: cohort(), afterHours: false };
+let state: State = {
+  threads: cohort(),
+  presence: "online",
+  strikes: 0,
+  warning: false,
+  paused: false,
+  inQuiz: false,
+};
 const heard = new Set<() => void>();
 const set = (next: State) => {
   state = next;
@@ -150,16 +182,40 @@ export const useChat = () =>
   );
 
 /** What is waiting: how many messages, and whether an announcement is among them. */
-export const waiting = (s: State) => ({
-  count: s.threads.reduce((sum, t) => sum + t.unread, 0),
-  news: s.threads.some((t) => t.kind === "news" && t.unread > 0),
-});
+export const waiting = (s: State) =>
+  // in a quiz nothing is shown at all
+  s.inQuiz ? 0 : s.threads.reduce((sum, t) => sum + t.unread, 0);
+
+/** The check, as far as this page shows it. The live one must do far more (the project's notes say
+ *  what he asked for): these few patterns only show what each outcome looks like.
+ *    contact   a phone number, an email address, a social account or its name: not sent
+ *    content   vulgar or sexual words: not sent, nothing said, the tutor reviews it
+ *    answers   passing answers about instead of working the question out: not sent, and counted */
+const CONTACT =
+  /(\+?\d[\d\s().-]{8,}\d)|([\w.+-]+@[\w-]+\.[\w.]+)|(^|\s)@\w{2,}|\b(insta(gram)?|ig|discord|snap(chat)?|tik\s?tok|whats\s?app|telegram|face\s?time|my (number|handle|username))\b/i;
+const CONTENT =
+  /\b(f+u+c+k+\w*|s+h+i+t+\w*|b+i+t+c+h+\w*|a+s+s+h+o+l+e+\w*|d+i+c+k+\w*|porn\w*|nudes?|sex\w*|horny)\b/i;
+const ANSWERS =
+  /\b(what(')?s|whats|send|give|tell|share|drop)\b.{0,24}\banswers?\b|\banswer (key|is|was)\b|\b(it'?s|its|is|was|pick|choose|put) [abcd]\b|\b(number |#)?\d{1,2} (is|was|=) [abcd]\b|\ball the answers\b/i;
+export const judge = (text: string): Msg["why"] | undefined =>
+  CONTACT.test(text)
+    ? "contact"
+    : CONTENT.test(text)
+      ? "content"
+      : ANSWERS.test(text)
+        ? "answers"
+        : undefined;
 
 export const chat = {
   /** A Cohort student has every kind of chat; a Private student has their tutor only. */
   start: (plan: "cohort" | "private") =>
     set({ ...state, threads: plan === "cohort" ? cohort() : alone() }),
-  afterHours: (on: boolean) => set({ ...state, afterHours: on }),
+  presence: (presence: Presence) => set({ ...state, presence }),
+  quiz: (inQuiz: boolean) => set({ ...state, inQuiz }),
+  /** The warning has been read. */
+  heard: () => set({ ...state, warning: false }),
+  /** The tutor has looked and lets the chats go on. */
+  approve: () => set({ ...state, strikes: 0, warning: false, paused: false }),
   read: (id: string) => change(id, (t) => (t.unread ? { ...t, unread: 0 } : t)),
   /** A chat with a classmate, begun if there is none yet. Returns its id. */
   open: (who: string) => {
@@ -202,15 +258,25 @@ export const chat = {
         ...t,
         msgs: t.msgs.map((m) => (m.id === mine.id ? { ...m, state: to } : m)),
       }));
-    // the check: a phone number or an email address is stopped (the live check does much more)
-    const personal = /(\+?\d[\d\s().-]{8,}\d)|([\w.+-]+@[\w-]+\.[\w.]+)/.test(body.text ?? "");
+    const why = judge(body.text ?? "");
     window.setTimeout(() => {
-      if (personal) return mark("blocked");
+      if (why) {
+        change(thread, (t) => ({
+          ...t,
+          msgs: t.msgs.map((m) => (m.id === mine.id ? { ...m, state: "blocked", why } : m)),
+        }));
+        // answer-sharing is counted: a warning the first time, then the chats are paused
+        if (why === "answers") {
+          const strikes = state.strikes + 1;
+          set({ ...state, strikes, warning: strikes === 1, paused: strikes >= 2 });
+        }
+        return;
+      }
       mark("sent");
       const t = state.threads.find((x) => x.id === thread);
       if (!t || t.kind === "news") return;
       // who answers: the assistant after hours in the tutor's chat, else the tutor or a classmate
-      const off = t.kind === "tutor" && state.afterHours;
+      const off = t.kind === "tutor" && state.presence === "after";
       const who = off ? "assistant" : (t.with ?? (body.question ? "tutor" : "priya"));
       const says = off
         ? "I am Karman's assistant, not a person. Here is a first step: write down what the question gives you and what it asks for. Your tutor will see this at 9 AM and follow up."
@@ -230,8 +296,9 @@ export const chat = {
   },
 };
 
-/** Whether it is outside the tutor's hours right now: before 9 AM or from 9 PM, Central time. */
-export const closedNow = () => {
+/** The tutor's presence by the clock: after hours before 9 AM and from 9 PM, Central time; online
+ *  otherwise (whether a tutor is really at their desk will come from the live chat). */
+export const presenceNow = (): Presence => {
   const hour = Number(
     new Intl.DateTimeFormat("en-US", {
       hour: "numeric",
@@ -239,25 +306,65 @@ export const closedNow = () => {
       timeZone: "America/Chicago",
     }).format(new Date())
   );
-  return hour < 9 || hour >= 21;
+  return hour < 9 || hour >= 21 ? "after" : "online";
 };
 
 /** The questions a student can bring into a chat: the ones they bookmarked or flagged (stand-ins). */
 export const BROUGHT: Shared[] = [
   {
     skill: "Circle equations",
+    section: "Math",
+    from: "Full-length exam 2, Nov 14",
     prompt: "A circle has the equation x² + y² − 6x + 8y = 0. What is its radius?",
+    choices: ["3", "4", "5", "25"],
     flagged: true,
   },
   {
     skill: "Transitions",
-    prompt: "Which choice completes the text with the most logical transition?",
+    section: "Reading and Writing",
+    from: "Daily 10, Nov 15",
+    prompt:
+      "The survey found fewer nesting sites than expected. ______ the team extended its search to nearby beaches. Which choice completes the text with the most logical transition?",
+    choices: ["For example,", "As a result,", "In contrast,", "Similarly,"],
     flagged: false,
   },
   {
     skill: "Percentages",
+    section: "Math",
+    from: "Skill set, Nov 13",
     prompt:
       "A store raises the price of a $40 jacket by 25%. Later it takes 20% off the new price. What is the final price?",
+    choices: ["$38", "$40", "$42", "$45"],
+    flagged: true,
+  },
+  {
+    skill: "Key details",
+    section: "Reading and Writing",
+    from: "Skill set, Nov 12",
+    prompt:
+      "According to the text, why do sea turtles choose dark beaches over lit ones when they nest?",
+    choices: [
+      "The sand is cooler.",
+      "Light draws predators.",
+      "Hatchlings follow the brightest horizon.",
+      "Dark sand holds more water.",
+    ],
+    flagged: false,
+  },
+  {
+    skill: "Slope and rate of change",
+    section: "Math",
+    from: "Time trial, Nov 11",
+    prompt: "A line passes through (2, 5) and (6, 13). What is its slope?",
+    choices: ["1/2", "2", "4", "8"],
+    flagged: false,
+  },
+  {
+    skill: "Verb agreement",
+    section: "Reading and Writing",
+    from: "Daily 10, Nov 10",
+    prompt: "The collection of early maps ______ on display through March.",
+    choices: ["are", "is", "were", "have been"],
     flagged: true,
   },
 ];

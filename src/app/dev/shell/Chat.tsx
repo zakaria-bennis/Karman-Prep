@@ -5,9 +5,9 @@
 // they write to. A Private student has their tutor only, so there is no list.
 // With room, the chats are listed at the left and the open one is at the right. On a phone the list
 // has the page, and a chat opened from it takes the page, with the way back in the title row.
-import { useEffect, useState } from "react";
-import ChatThread, { Face, gist } from "./ChatThread";
-import { CLASSMATES, PEOPLE, chat, useChat, type Thread } from "./chatStore";
+import { useEffect, useRef, useState } from "react";
+import ChatThread, { Face, Here, gist } from "./ChatThread";
+import { CLASSMATES, PEOPLE, chat, useChat, type Presence, type Thread } from "./chatStore";
 import styles from "./chat.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -26,7 +26,17 @@ const when = (at: number) => {
       : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 };
 
-function Row({ thread, open, onOpen }: { thread: Thread; open: boolean; onOpen: () => void }) {
+function Row({
+  thread,
+  open,
+  presence,
+  onOpen,
+}: {
+  thread: Thread;
+  open: boolean;
+  presence: Presence;
+  onOpen: () => void;
+}) {
   const last = thread.msgs[thread.msgs.length - 1];
   return (
     <li>
@@ -52,7 +62,10 @@ function Row({ thread, open, onOpen }: { thread: Thread; open: boolean; onOpen: 
           <Face who={thread.with ?? "tutor"} size={40} />
         )}
         <span className={styles.words}>
-          <b>{thread.name}</b>
+          <b>
+            {thread.name}
+            {thread.kind === "tutor" && <Here presence={presence} dot />}
+          </b>
           <span>
             {thread.typing
               ? "Writing"
@@ -63,14 +76,7 @@ function Row({ thread, open, onOpen }: { thread: Thread; open: boolean; onOpen: 
         </span>
         <span className={styles.end}>
           {last && <small>{when(last.at)}</small>}
-          {thread.unread > 0 && (
-            <i
-              data-kind={thread.kind === "news" ? "gold" : "red"}
-              aria-label={`${thread.unread} unread`}
-            >
-              {thread.unread}
-            </i>
-          )}
+          {thread.unread > 0 && <i aria-label={`${thread.unread} unread`}>{thread.unread}</i>}
         </span>
       </button>
     </li>
@@ -87,7 +93,7 @@ export default function Chat({
   alone: boolean;
   onTrail: (trail: Trail | null) => void;
 }) {
-  const { threads, afterHours } = useChat();
+  const { threads, presence, paused, warning, inQuiz } = useChat();
   const [openId, setOpenId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   // with room a chat is always open: the one chosen, or the class chat to begin with
@@ -101,8 +107,30 @@ export default function Chat({
     return () => onTrail(null);
   }, [onPhone, shown?.name, onTrail]);
 
+  // "New chat" is left by pressing anywhere outside it, or Escape: there is no button to close it
+  const fresh = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!starting) return;
+    const away = (e: PointerEvent) =>
+      !fresh.current?.contains(e.target as Node) && setStarting(false);
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setStarting(false);
+    window.addEventListener("pointerdown", away);
+    window.addEventListener("keydown", key);
+    return () => {
+      window.removeEventListener("pointerdown", away);
+      window.removeEventListener("keydown", key);
+    };
+  }, [starting]);
+
   const strangers = CLASSMATES.filter((id) => !threads.some((t) => t.with === id));
 
+  // in a skill set, a quiz or an exam there is no chat, and nothing of it to see
+  if (inQuiz)
+    return (
+      <div className={`${lib.library} ${styles.chat}`}>
+        <p className={`${lib.glass} ${styles.shut}`}>Chat is closed while you are in a quiz.</p>
+      </div>
+    );
   return (
     <div
       className={`${lib.library} ${styles.chat}`}
@@ -117,6 +145,7 @@ export default function Chat({
                 key={t.id}
                 thread={t}
                 open={rail && shown?.id === t.id}
+                presence={presence}
                 onOpen={() => {
                   setOpenId(t.id);
                   setStarting(false);
@@ -127,7 +156,7 @@ export default function Chat({
           </ul>
           {/* a classmate not yet written to */}
           {strangers.length > 0 && (
-            <div className={styles.fresh}>
+            <div ref={fresh} className={styles.fresh}>
               <button
                 type="button"
                 className={styles.start}
@@ -168,9 +197,24 @@ export default function Chat({
           )}
         </section>
       )}
+      {/* the check has caught answer-sharing once: the student is told, plainly, one time */}
+      {warning && (
+        <div className={styles.warn} role="alertdialog" aria-modal="true" aria-label="A warning">
+          <div>
+            <h2>That was flagged</h2>
+            <p>
+              It looked like passing answers, not working the question out. Your tutor has been
+              told. If it happens again, your chats pause until your tutor has reviewed them.
+            </p>
+            <button type="button" autoFocus onClick={() => chat.heard()}>
+              I understand
+            </button>
+          </div>
+        </div>
+      )}
       {shown && (
         <div className={`${lib.glass} ${styles.pane}`}>
-          <ChatThread key={shown.id} thread={shown} afterHours={afterHours} />
+          <ChatThread key={shown.id} thread={shown} presence={presence} paused={paused} />
         </div>
       )}
     </div>
