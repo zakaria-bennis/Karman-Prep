@@ -121,7 +121,9 @@ export function Item({
           height="22"
           aria-hidden="true"
         >
-          {(work.state === "done" || work.state === "todo") && (
+          {/* in the day's list a finished piece says Review and needs no check beside it; in the
+              week's small pieces, which have no button, the check is how it says it is done */}
+          {(work.state === "todo" || (work.state === "done" && small)) && (
             <path
               d="M5.500 12.500l4.200 4.200L18.500 8"
               pathLength={1}

@@ -1016,3 +1016,9 @@ on canvases and slid at four speeds, with very varied heights and roofs, small m
 floor with glow, haze with distance, street trees and lamps, and rooftops passing in front of the fox.
 The scene fills the whole card; the words are at the top and the buttons at the foot. The challenge card
 on the Homework page has its hexagon mark back (he asked for that).
+
+**Last touches before Chat (2026-11-16).** He called the city flight "amazing". The flying fox now has a
+small bobblehead body: a blue suit with a gold K, red trunks and boots, short thick arms and legs, one
+fist out, his tail behind (`HomeworkHero.tsx`). By day the Daily 10 fades from orange into light, not
+dark. A finished piece shows Review with no check beside it. **Prices are his now:** mystery box 250,
+second chance 500, streak saver 1,500, exam pass 3,000 (`rewardsData.ts`). **Next, by his word: Chat.**

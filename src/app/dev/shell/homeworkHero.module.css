@@ -166,6 +166,7 @@
 }
 
 .cape,
+.body,
 .mask {
   position: absolute;
   inset: 0;
@@ -205,6 +206,88 @@
 
   to {
     transform: skewY(6deg) scaleX(1.06);
+  }
+}
+
+/* the body: a suit of the mask's blue, red trunks and boots, a gold belt and mark */
+.body [data-suit] {
+  fill: #2c4fd6;
+  stroke: #17297c;
+  stroke-width: 2;
+}
+
+.body [data-sleeve],
+.body [data-leg] {
+  fill: none;
+  stroke: #2c4fd6;
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+
+.body [data-leg] {
+  stroke-width: 12;
+}
+
+.body [data-boot] {
+  fill: none;
+  stroke: #e23a44;
+  stroke-width: 12.6;
+  stroke-linecap: round;
+}
+
+.body [data-trunks] {
+  fill: #e23a44;
+}
+
+.body [data-belt] {
+  fill: none;
+  stroke: #ffd76a;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.body [data-badge] {
+  fill: #ffd76a;
+  stroke: #a66f00;
+  stroke-width: 1.2;
+}
+
+.body [data-letter] {
+  fill: none;
+  stroke: #17297c;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.body [data-paw] {
+  fill: #f6b652;
+  stroke: #cc8020;
+  stroke-width: 1.4;
+}
+
+.body [data-fur] {
+  fill: #e89a2c;
+}
+
+.body [data-tip] {
+  fill: #fff8ee;
+}
+
+/* his tail streams and swings a little behind him */
+.body [data-tail] {
+  transform-box: fill-box;
+  transform-origin: 30% 0%;
+  animation: wag 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes wag {
+  from {
+    transform: rotate(-9deg);
+  }
+
+  to {
+    transform: rotate(8deg);
   }
 }
 

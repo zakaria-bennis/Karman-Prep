@@ -44,11 +44,12 @@ export const EARNED = [
   { name: "Endless mode", coins: 90 },
 ];
 
-export const BOX_PRICE = 500;
+export const BOX_PRICE = 250;
 
 /** Things of real use that coins buy. His rules (2026-11-16): an exam pass may be bought once a
  *  month and a streak saver once every two weeks, and three of each may be kept. Second chances
- *  may be bought in any number, but only one may be used in a skill. The prices are stand-ins. */
+ *  may be bought in any number, but only one may be used in a skill. The prices are his (2026-11-16): a box 250, a second chance 500, a streak saver 1,500, an exam
+ *  pass 3,000. */
 export type Pass = {
   name: string;
   does: string;
@@ -75,7 +76,7 @@ export const PASSES: Pass[] = [
   {
     name: "Streak saver",
     does: "Keeps your streak through one missed day",
-    price: 1200,
+    price: 1500,
     limit: "1 every 2 weeks",
     next: "in 2 weeks",
     bank: 3,
@@ -85,7 +86,7 @@ export const PASSES: Pass[] = [
     // bought here and kept for later; it cannot be bought in the middle of a skill set
     name: "Second chance",
     does: "Correct a miss in a skill set and keep your run going",
-    price: 300,
+    price: 500,
     limit: "Use 1 per skill",
     icon: "chance",
   },

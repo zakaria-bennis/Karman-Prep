@@ -62,13 +62,45 @@ export function HeroFlight() {
         <svg className={styles.cape} viewBox="-60 -112 120 128">
           <path
             data-under
-            d="M-6 4C-40 -2 -78 20 -118 2C-124 14 -126 26 -122 40C-86 52 -44 30 -4 20Z"
+            d="M-6 6C-40 0 -78 20 -118 2C-124 14 -126 26 -122 40C-86 52 -44 34 -4 26Z"
           />
           <path
             data-over
-            d="M-4 -4C-38 -16 -76 6 -116 -12C-122 0 -124 12 -120 26C-84 38 -42 16 -2 8Z"
+            d="M-4 -2C-38 -16 -76 6 -116 -12C-122 0 -124 12 -120 26C-84 38 -42 18 -2 12Z"
           />
           <path data-fold d="M-20 -4C-46 -8 -74 8 -104 -2M-18 6C-46 4 -76 20 -108 12" />
+        </svg>
+        {/* his body: small under a big head, like a bobblehead, with short thick arms and legs, in a
+            hero's suit. He flies with one fist out ahead, his legs and his tail trailing behind. */}
+        <svg className={styles.body} viewBox="-60 -112 120 128">
+          {/* everything that trails back from the shoulders is drawn along its own line, tilted */}
+          <g transform="translate(-24 27) rotate(56)">
+            {/* the tail, behind the legs */}
+            <g data-tail>
+              <path d="M2 14C14 22 20 40 10 54C2 46 -4 30 2 14Z" data-fur />
+              <path d="M10 54C16 46 17 40 15 34C10 38 8 44 10 54Z" data-tip />
+            </g>
+            {/* the far arm, back along his side */}
+            <path d="M-13 -6C-22 -2 -24 8 -20 16" data-sleeve />
+            <circle cx="-20" cy="17" r="5.600" data-paw />
+            {/* two short thick legs in boots */}
+            <path d="M-7 16V30" data-leg />
+            <path d="M7 16V31" data-leg />
+            <path d="M-7 27V33" data-boot />
+            <path d="M7 28V34" data-boot />
+            {/* the suit, with trunks, a belt and his mark on the chest */}
+            <rect x="-15" y="-14" width="30" height="33" rx="12" data-suit />
+            <path
+              d="M-14.200 10C-8 13.500 8 13.500 14.200 10V13C12 21 -12 21 -14.200 13Z"
+              data-trunks
+            />
+            <path d="M-14.600 8.500C-8 12 8 12 14.600 8.500" data-belt />
+            <circle cx="0" cy="-2" r="6.600" data-badge />
+            <path d="M-2 -5.500V1.500M2.600 -5.500L-1.600 -2L2.800 1.500" data-letter />
+          </g>
+          {/* the near arm, out ahead, in a fist */}
+          <path d="M-12 22C2 20 18 24 32 30" data-sleeve />
+          <circle cx="35" cy="31" r="7" data-paw />
         </svg>
         <span className={styles.head}>
           <Fox size={150} />
