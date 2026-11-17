@@ -85,7 +85,10 @@ void main(){
     // night, made from the day's photograph: most of the color drains away, what is left turns
     // to moonlit blue, and the sky, the brightest thing by day, becomes the deep part
     vec3 n = mix(vec3(l), col, 0.50) * vec3(0.30, 0.43, 0.82);
-    n *= mix(1.0, 0.68, smoothstep(0.35, 0.85, l) * smoothstep(0.25, 0.75, uv.y));
+    // (blossom and pale sand are warm, not sky: they keep their light and glow a little)
+    float warm = smoothstep(0.0, 0.10, col.r - col.b);
+    n *= mix(1.0, 0.68, smoothstep(0.35, 0.85, l) * smoothstep(0.25, 0.75, uv.y) * (1.0 - warm));
+    n += warm * smoothstep(0.45, 0.90, l) * vec3(0.10, 0.09, 0.15);
     // open blue sky goes deepest of all; cloud stays a little lighter than it, as under a moon
     n *= mix(1.0, 0.66, smoothstep(0.0, 0.40, col.b - col.r) * smoothstep(0.20, 0.80, l));
     n = pow(n, vec3(1.10)) * 1.45;

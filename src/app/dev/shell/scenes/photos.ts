@@ -91,6 +91,52 @@ export const PLACES = {
     sunset: shot("desert-sunset", { horizon: 0.33, swing: 0, life: ["sand", "birds"] }),
     night: shot("desert-night", { horizon: 0.72, swing: 0, life: ["sand"] }),
   },
+  sakura: {
+    day: shot("sakura-day", { horizon: 0.6, sway: [0.3, 0.62], life: ["petals", "birds"] }),
+    sunset: shot("sakura-sunset", { horizon: 0.45, sway: [0.35, 0.85], life: ["petals", "birds"] }),
+    // made from the day's photograph: the night photographs found were floodlit and crowded
+    night: shot(
+      "sakura-night",
+      { horizon: 0.6, sway: [0.3, 0.62], life: ["petals", "fireflies"] },
+      "sakura-day"
+    ),
+  },
+  orchard: {
+    day: shot("orchard-day", { horizon: 0.02, sway: [0, 0.6], life: ["petals", "butterflies"] }),
+    sunset: shot("orchard-sunset", { horizon: 0.5, sway: [0.05, 0.6], life: ["petals", "birds"] }),
+    // made from the day's photograph: no photograph of a blossoming orchard at night was found
+    night: shot(
+      "orchard-night",
+      { horizon: 0.02, sway: [0, 0.6], life: ["petals", "fireflies"] },
+      "orchard-day"
+    ),
+  },
+  garden: {
+    sunrise: shot("garden-sunrise", {
+      horizon: 0.14,
+      sway: [0.2, 1],
+      swing: 1.5,
+      life: ["butterflies", "birds"],
+    }),
+    day: shot("garden-day", {
+      horizon: 0.32,
+      sway: [0.4, 1],
+      swing: 1.5,
+      life: ["butterflies", "birds"],
+    }),
+    sunset: shot("garden-sunset", {
+      horizon: 0.3,
+      sway: [0.35, 1],
+      swing: 1.5,
+      life: ["butterflies", "birds"],
+    }),
+    night: shot("garden-night", {
+      horizon: 0.72,
+      sway: [0.45, 0.78],
+      swing: 1.5,
+      life: ["fireflies"],
+    }),
+  },
 } satisfies Record<string, Partial<Record<Sky, Picture>>>;
 
 export type Place = keyof typeof PLACES;
