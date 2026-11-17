@@ -57,22 +57,24 @@
   font-weight: 600;
 }
 
-/* a square an hour, ten to a row (20 hours: two rows of ten), sized to fit as many as fifty */
+/* a square an hour, ten to a row, spread over the same width as the button under them (20
+   hours: two rows of ten, edge to edge with Add hours). On a wide card they stop growing and sit
+   centered over the button. More than thirty hours go fifteen to a row, so fifty still fit. */
 .cells {
-  --s: 24px;
+  --across: 10;
+  --s: 28px;
   grid-column: 1 / -1;
+  justify-self: center;
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, var(--s)));
+  grid-template-columns: repeat(var(--across), minmax(0, 1fr));
   align-items: center;
-  gap: calc(var(--s) * 0.3);
-}
-
-.cells[data-size="m"] {
-  --s: 20px;
+  gap: clamp(4px, 2.2%, 8px);
+  width: min(100%, 420px);
 }
 
 .cells[data-size="s"] {
-  --s: 16px;
+  --across: 15;
+  --s: 20px;
 }
 
 .cells i {

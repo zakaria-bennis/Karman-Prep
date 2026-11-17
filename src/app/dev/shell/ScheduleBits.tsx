@@ -337,7 +337,7 @@ export function Hours({
       <div
         className={hrs.cells}
         ref={cells}
-        data-size={drawn.length > 40 ? "s" : drawn.length > 20 ? "m" : "l"}
+        data-size={drawn.length > 30 ? "s" : "l"}
         role="img"
         aria-label={`${hoursText(left)} hours free, ${hoursText(booked)} booked, ${hoursText(used)} used`}
       >
