@@ -366,8 +366,38 @@
 }
 
 .art [data-move="stand"] {
-  transform-origin: 16.4px 19.7px;
-  transform: rotate(27deg);
+  transform-origin: 17px 19.7px;
+  transform: rotate(-21deg);
+}
+
+/* the Class board: a chalkboard by night, a whiteboard with a blue marker by day */
+.art [data-pen] {
+  stroke: #fff8ea;
+}
+
+:global([data-kp-mode="light"]) .art [data-board] {
+  fill: #ffffff;
+  fill-opacity: 0.95;
+}
+
+:global([data-kp-mode="light"]) .art [data-writing],
+:global([data-kp-mode="light"]) .art [data-pen] {
+  stroke: #1f6fe0;
+}
+
+/* nothing in the portal can be selected or copied (founder, 2026-11-16), except what a student
+   types themselves */
+.shell {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.shell input,
+.shell textarea,
+.shell [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .art [data-move="dot"],
@@ -378,19 +408,19 @@
 /* the blue book swings up and knocks against the others */
 @keyframes stand {
   0% {
-    transform: rotate(27deg);
+    transform: rotate(-21deg);
   }
 
   55% {
-    transform: rotate(-4deg);
+    transform: translateX(-4.6px) rotate(4deg);
   }
 
   75% {
-    transform: rotate(2deg);
+    transform: translateX(-4.6px) rotate(-2deg);
   }
 
   100% {
-    transform: rotate(0deg);
+    transform: translateX(-4.6px) rotate(0deg);
   }
 }
 

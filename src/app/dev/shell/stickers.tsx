@@ -118,9 +118,10 @@ const ART: Record<StickerName, ReactNode> = {
       />
     </>
   ),
-  // three books on a shelf: a red and a green standing together, and a blue one that has tipped away
-  // and is about to fall. Hovered, the blue one swings up against the others and all three give a
-  // little bounce (founder, 2026-11-16). Each is a real book: a spine, two bands and a label.
+  // three books on a shelf: a red and a green standing together, and a blue one tipped over toward
+  // them, leaning on the green and about to fall. Hovered, the blue one stands itself up against
+  // the others and all three give a little bounce (founder, 2026-11-16). Each is a real book: a
+  // spine, two bands and a label.
   library: (
     <>
       <g data-move="book" data-n="0">
@@ -130,17 +131,26 @@ const ART: Record<StickerName, ReactNode> = {
         {book(7.8, 8, 4.2, GREEN)}
       </g>
       <g data-move="book" data-n="2">
-        <g data-move="stand">{book(12.4, 6.9, 4, BLUE)}</g>
+        <g data-move="stand">{book(17, 6.9, 4, BLUE)}</g>
       </g>
       <path d="M2 20.500h20" />
     </>
   ),
-  // the classroom: a chalkboard on its stand
+  // the classroom: by night a chalkboard with chalk writing and a stick of chalk; by day a
+  // whiteboard with marker writing and a marker (founder, 2026-11-16). The colors are set in
+  // shell.module.css by the page's light or dark.
   class: (
     <>
-      <rect x="3" y="4" width="18" height="12" rx="2.200" {...WASH} />
+      <rect x="3" y="4" width="18" height="12" rx="2.200" {...WASH} data-board />
       <path d="M8.500 16l-2 4.500M15.500 16l2 4.500" />
-      <path data-move="chalk" d="M7 8.500h5M7 11.800h8" stroke={ACCENT} strokeWidth="1.900" />
+      <path
+        data-move="chalk"
+        d="M7 8.500h5M7 11.800h8"
+        stroke={ACCENT}
+        strokeWidth="1.900"
+        data-writing
+      />
+      <path d="M16.600 9.300l1.900-2" strokeWidth="2.200" data-pen />
     </>
   ),
   // a calendar page with a red band, showing today's date
@@ -195,22 +205,23 @@ const ART: Record<StickerName, ReactNode> = {
       />
     </>
   ),
-  // a message thread: a blue bubble behind (sent) and a gray one in front (coming in), with the
-  // three white dots of someone typing, which bob one after another (founder, 2026-11-16)
+  // a message thread: a smaller blue bubble behind, its tail to the left, and a bigger gray one in
+  // front, its tail to the right, with the three white dots of someone typing, which bob one after
+  // another (founder, 2026-11-16)
   chat: (
     <>
       <path
-        d="M5.500 3h8.500a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H8.300l-3.600 2.600.600-2.700A3 3 0 0 1 2.500 10V6a3 3 0 0 1 3-3z"
+        d="M5.300 2.800h5.900a2.800 2.800 0 0 1 2.800 2.800v2.600a2.800 2.800 0 0 1-2.800 2.800H7.600l-3.400 2.300.5-2.500A2.800 2.800 0 0 1 2.500 8.200V5.600a2.800 2.800 0 0 1 2.800-2.800z"
         fill={SENT}
       />
       <path
-        d="M11 9.500h7.500a3 3 0 0 1 3 3v3.200a3 3 0 0 1-2.200 2.900l.5 2.600-3.500-2.500H11a3 3 0 0 1-3-3v-3.200a3 3 0 0 1 3-3z"
+        d="M9.800 8h8.700a3 3 0 0 1 3 3v4.400a3 3 0 0 1-2.300 2.900l.6 2.700-3.800-2.600H9.800a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3z"
         fill={COMING}
       />
       <g fill="#ffffff" stroke="none">
-        <circle data-move="dot" data-n="0" cx="11.800" cy="14.100" r="1.050" />
-        <circle data-move="dot" data-n="1" cx="14.750" cy="14.100" r="1.050" />
-        <circle data-move="dot" data-n="2" cx="17.700" cy="14.100" r="1.050" />
+        <circle data-move="dot" data-n="0" cx="10.900" cy="13.200" r="1.100" />
+        <circle data-move="dot" data-n="1" cx="14.150" cy="13.200" r="1.100" />
+        <circle data-move="dot" data-n="2" cx="17.400" cy="13.200" r="1.100" />
       </g>
     </>
   ),

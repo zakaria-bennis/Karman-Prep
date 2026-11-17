@@ -1032,3 +1032,9 @@ mask's stitching is gone. The beach has no dry sand: all the sand in view is wet
 Library is three real books, the blue one tipped and about to fall until hovered, when it swings up and
 all three bounce; the Mistake Log's pages turn over the binding; Schedule shows today's date under a red
 band; Chat is a blue bubble behind and a gray one in front with three white dots that bob.
+
+**Same day, later.** Text in the portal cannot be selected or copied (`.shell { user-select: none }`,
+except in fields a student types in). The Library's blue book now leans toward the stack, on the green
+one. Chat: the smaller blue bubble is behind with its tail to the left; the bigger gray one is in front
+with its tail to the right. The Class icon and the Homework class button are a chalkboard by night and a
+whiteboard with a blue marker by day.

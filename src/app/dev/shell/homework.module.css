@@ -385,6 +385,15 @@
   stroke: #fff8e6;
 }
 
+/* by day it is a whiteboard, written on in blue marker */
+:global([data-kp-mode="light"]) .board [data-slate] {
+  fill: rgb(255 255 255 / 0.95);
+}
+
+:global([data-kp-mode="light"]) .board [data-chalk] {
+  stroke: #1f6fe0;
+}
+
 /* today's Daily 10: a card at the head of the day, orange fading into black */
 .daily {
   position: relative;
