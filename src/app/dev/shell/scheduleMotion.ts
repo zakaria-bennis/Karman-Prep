@@ -141,6 +141,23 @@ export function fold(el: HTMLElement | null, then: () => void) {
   });
 }
 
+/** The beads of hours pop in, one after another, when the hours change. */
+export function pop(row: HTMLElement | null) {
+  if (!row || calm()) return;
+  gsap.fromTo(
+    row.children,
+    { scale: 0.2, opacity: 0 },
+    {
+      scale: 1,
+      opacity: 1,
+      duration: 0.38,
+      stagger: 0.012,
+      ease: "back.out(2.2)",
+      clearProps: "transform,opacity",
+    }
+  );
+}
+
 /** A number that counts to its new value (hours left, a price). */
 export function useCount(value: number, places = 1) {
   const [shown, setShown] = useState(value);

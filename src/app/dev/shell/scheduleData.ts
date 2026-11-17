@@ -266,6 +266,17 @@ export const WEAKEST: string[] = SECTIONS.flatMap((section) =>
   .slice(0, 4)
   .map(({ skill }) => skill.name);
 
+/** Which subject a skill belongs to, for its color (fuchsia for Reading and Writing, blue for Math). */
+export const subjectOf = (skill: string): "rw" | "math" =>
+  SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill)) ? "math" : "rw";
+
+/** The part of the day a time falls in: each has a color of its own. */
+export type Tod = "morning" | "afternoon" | "evening";
+export const todOf = (t: number): Tod => {
+  const hour = new Date(t).getHours();
+  return hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+};
+
 // ---- words ----
 
 export const zone = () => {

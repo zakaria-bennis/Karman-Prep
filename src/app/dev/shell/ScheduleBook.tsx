@@ -1,18 +1,24 @@
 "use client";
 
 // Booking a session, or moving one (founder, 2026-11-16: "a smooth user experience when scheduling
-// sessions ... while seeing the availability of the tutor"; like Calendly, 2026-11-12: a row of dates
-// to flick through, then the open times, then the date and time right above Confirm, then an
-// animated confirmation).
-//   Days     the next four weeks, from 24 hours out. A day with nothing open is dimmed; the SAT's
-//            day wears a ruby ring.
-//   Length   60, 90 or 120 minutes (Private 10: 60 only, so the choice is not shown).
-//   Times    the tutor's open times that fit the length, in the student's own time zone.
-//   Work on  the student's weakest skills to tap, and a line of their own.
-//   Weekly   the same time in the weeks after, where it is open and the hours allow.
-import { useEffect, useMemo, useRef, useState } from "react";
-import { confirm, bring, press, wave } from "./scheduleMotion";
+// sessions ... while seeing the availability of the tutor"; 2026-11-17: "the calendar to look very
+// modern and have very clean animations ... not too much unnecessary text").
+//   Calendar  the four weeks that can be booked, as whole weeks under the weekday letters. A dot
+//             under a date means the tutor has time that day; a filled mark is a session of the
+//             student's own; the SAT's day wears a ruby ring. The chosen day is a pill that glides
+//             from date to date.
+//   Length    60, 90 or 120 minutes (Private 10: 60 only, so the choice is not shown).
+//   Times     the tutor's open times that fit, in the student's own time zone, each with a small
+//             sun or moon for its part of the day.
+//   Work on   the student's weakest skills to tap, in their subject's color, and a line of their own.
+//   Weekly    the same time in the weeks after, where it is open and the hours allow.
+import gsap from "gsap";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { calm } from "./homeworkMotion";
+import { confirm, press, wave } from "./scheduleMotion";
 import {
+  DAY,
+  HOUR,
   RULES,
   SAT_DAY,
   TUTOR,
@@ -24,29 +30,56 @@ import {
   hours,
   lengthText,
   lengthsFor,
+  subjectOf,
+  todOf,
+  weekStart,
   weeklyAfter,
   zone,
   type Account,
   type Length,
   type Session,
+  type Tod,
 } from "./scheduleData";
 import { schedule } from "./scheduleStore";
 import { chosen, tick } from "./sound";
 import page from "./schedule.module.css";
 import styles from "./scheduleBook.module.css";
 
-const Arrow = ({ back = false }: { back?: boolean }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="20"
-    height="20"
-    fill="none"
-    stroke="currentColor"
-    aria-hidden="true"
-  >
-    <path d={back ? "M14.500 6.500L9 12l5.500 5.500" : "M9.500 6.500L15 12l-5.500 5.500"} />
-  </svg>
-);
+const tutor = TUTOR.split(" ")[0];
+const sameDay = (a: number, b: number) => new Date(a).toDateString() === new Date(b).toDateString();
+
+/** A small sun for the morning and afternoon, a moon for the evening. */
+export function TodIcon({ tod }: { tod: Tod }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+      data-tod={tod}
+    >
+      {tod === "evening" ? (
+        <path
+          d="M12.800 9.600A5.200 5.200 0 0 1 6.400 3.200a5.200 5.200 0 1 0 6.400 6.400z"
+          fill="currentColor"
+          stroke="none"
+        />
+      ) : tod === "morning" ? (
+        <>
+          <path d="M4.500 11.500a3.500 3.500 0 0 1 7 0z" fill="currentColor" stroke="none" />
+          <path d="M1.500 13.500h13M8 3.500V5M3.200 6.200l1.100 1.100M12.800 6.200l-1.100 1.100" />
+        </>
+      ) : (
+        <>
+          <circle cx="8" cy="8" r="3.200" fill="currentColor" stroke="none" />
+          <path d="M8 1.500V3M8 13v1.500M1.500 8H3M13 8h1.500M3.400 3.400l1 1M11.600 11.600l1 1M12.600 3.400l-1 1M4.400 11.600l-1 1" />
+        </>
+      )}
+    </svg>
+  );
+}
 
 /** The ticket shown when a session has been booked or moved. */
 function Booked({
@@ -73,24 +106,24 @@ function Booked({
   }, []);
   return (
     <div className={styles.booked} role="status">
-      <div className={styles.ticket} ref={card}>
+      <div className={styles.ticket} ref={card} data-tod={todOf(start)}>
         <span className={styles.seal}>
           <svg viewBox="0 0 64 64" width="64" height="64" fill="none" aria-hidden="true">
             <circle data-ring cx="32" cy="32" r="27" pathLength={1} />
             <path data-check d="M20.500 33l8 8 15.500-17" pathLength={1} />
           </svg>
           {Array.from({ length: 8 }, (_, i) => (
-            <i key={i} data-spark />
+            <i key={i} data-spark data-n={i % 4} />
           ))}
         </span>
         <b data-line>{moved ? "Moved" : "Booked"}</b>
         <p data-line>{dateLong(start)}</p>
         <p data-line>
-          {clock(start)} {zone()}, {lengthText(minutes)} with {TUTOR.split(" ")[0]}
+          {clock(start)}, {lengthText(minutes)}
         </p>
         {more.length > 0 && (
           <p data-line className={styles.also}>
-            And every week after: {more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}
+            Also {more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}
           </p>
         )}
         <button type="button" data-line className={page.quiet} onClick={onDone}>
@@ -106,6 +139,7 @@ export default function Book({
   now,
   moving,
   full,
+  onBooked,
   onMoved,
   onBuy,
   onChat,
@@ -116,6 +150,7 @@ export default function Book({
   moving: Session | null;
   /** The tutor has nothing open (shown as its own state). */
   full: boolean;
+  onBooked: () => void;
   onMoved: () => void;
   onBuy: () => void;
   onChat: () => void;
@@ -147,18 +182,71 @@ export default function Book({
   const nothing = days.every((d) => d.times.length === 0);
   const short = nothing && days.every((d) => d.why === "hours");
 
-  const row = useRef<HTMLDivElement>(null);
+  // the calendar: whole weeks, Monday first, from the first day that can be booked to the last
+  const cells = useMemo(() => {
+    if (days.length === 0) return [];
+    const from = weekStart(days[0].day);
+    const to = weekStart(days[days.length - 1].day) + 6 * DAY;
+    const out: number[] = [];
+    for (let t = from; t <= to + HOUR; t += DAY) out.push(new Date(t + HOUR).setHours(0, 0, 0, 0));
+    return out;
+  }, [days]);
+  const mine = account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id);
+
+  // the pill that marks the chosen day glides to it
+  const grid = useRef<HTMLDivElement>(null);
+  const pill = useRef<HTMLElement>(null);
+  const placed = useRef(false);
+  useLayoutEffect(() => {
+    const move = () => {
+      const cell = grid.current?.querySelector<HTMLElement>("[aria-pressed=true] [data-face]");
+      if (!cell || !pill.current || !grid.current) return;
+      const box = cell.getBoundingClientRect();
+      const frame = grid.current.getBoundingClientRect();
+      const to = {
+        x: box.left - frame.left,
+        y: box.top - frame.top,
+        width: box.width,
+        height: box.height,
+      };
+      if (!placed.current || calm()) gsap.set(pill.current, { ...to, opacity: 1 });
+      else
+        gsap.to(pill.current, {
+          ...to,
+          opacity: 1,
+          duration: 0.5,
+          ease: "back.out(1.5)",
+          overwrite: true,
+        });
+      placed.current = true;
+    };
+    move();
+    const sized = new ResizeObserver(() => {
+      placed.current = false;
+      move();
+    });
+    if (grid.current) sized.observe(grid.current);
+    return () => sized.disconnect();
+  }, [day, cells]);
+  // the dates come in as a wave once, when the calendar opens
+  useEffect(() => {
+    if (calm() || !grid.current) return;
+    gsap.fromTo(
+      grid.current.querySelectorAll("button"),
+      { opacity: 0, y: 8 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.4,
+        stagger: { each: 0.012, from: "start" },
+        ease: "power3.out",
+        clearProps: "transform,opacity",
+      }
+    );
+  }, []);
+
   const times = useRef<HTMLUListElement>(null);
   useEffect(() => wave(times.current), [day, minutes]);
-  useEffect(() => {
-    bring(row.current, row.current?.querySelector<HTMLElement>("[aria-pressed=true]") ?? null);
-  }, [day]);
-
-  const step = (by: number) => {
-    const el = row.current;
-    if (!el) return;
-    el.scrollBy({ left: by * el.clientWidth * 0.8, behavior: "smooth" });
-  };
 
   const send = () => {
     if (start === null) return;
@@ -172,6 +260,7 @@ export default function Book({
         note: note.trim() || undefined,
         weekly: more,
       });
+    onBooked();
     setDone({ start, minutes, more });
   };
 
@@ -191,30 +280,26 @@ export default function Book({
       />
     );
 
+  const month = new Date(day).toLocaleDateString("en-US", { month: "long" });
   return (
     <div className={styles.book}>
       <header className={styles.head}>
         <h2>{moving ? "Move" : "Book"}</h2>
-        <p>
-          {TUTOR} <span>Times in {zone() || "your time zone"}</span>
-        </p>
-      </header>
-      {moving && (
-        <p className={styles.moving}>
-          <span>
-            Moving {dateShort(moving.start)}, {clock(moving.start)}
-          </span>
+        {moving ? (
           <button type="button" className={page.quiet} onClick={onMoved}>
-            Keep it
+            Keep {dateShort(moving.start)}
           </button>
-        </p>
-      )}
+        ) : (
+          <p>
+            {month} <span>{zone()}</span>
+          </p>
+        )}
+      </header>
 
       {nothing ? (
         short ? (
           <div className={styles.none}>
             <b>No hours left</b>
-            <p>Add hours to book your next session.</p>
             <button type="button" className={page.go} onClick={onBuy}>
               Add hours
             </button>
@@ -222,122 +307,119 @@ export default function Book({
         ) : (
           <div className={styles.none}>
             <b>Nothing open</b>
-            <p>
-              {TUTOR.split(" ")[0]} has no open times in the next four weeks. Send a message and you
-              will work out a time together.
-            </p>
+            <p>{tutor} has no open times in the next four weeks.</p>
             <button type="button" className={page.go} onClick={onChat}>
-              Message {TUTOR.split(" ")[0]}
+              Message {tutor}
             </button>
           </div>
         )
       ) : (
         <>
-          <div className={styles.days}>
-            <button
-              type="button"
-              className={styles.step}
-              aria-label="Earlier days"
-              onClick={() => step(-1)}
-            >
-              <Arrow back />
-            </button>
-            <div className={styles.row} ref={row} role="group" aria-label="Day">
-              {days.map((d, i) => {
-                const date = new Date(d.day);
-                const open = d.times.length;
-                const sat = new Date(SAT_DAY).toDateString() === date.toDateString();
-                return (
+          <div className={styles.pick}>
+            <div className={styles.cal}>
+              <div className={styles.week} aria-hidden="true">
+                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                  <span key={i}>{d}</span>
+                ))}
+              </div>
+              <div className={styles.grid} ref={grid} role="group" aria-label="Day">
+                <i className={styles.pill} ref={pill} aria-hidden="true" />
+                {cells.map((cell) => {
+                  const info = days.find((d) => d.day === cell);
+                  const date = new Date(cell);
+                  const open = info?.times.length ?? 0;
+                  const sat = sameDay(SAT_DAY, cell);
+                  const own = mine.find((s) => sameDay(s.start, cell));
+                  const can = !!info && (open > 0 || !!info.why);
+                  return (
+                    <button
+                      key={cell}
+                      type="button"
+                      className={styles.day}
+                      aria-pressed={cell === day}
+                      disabled={!can}
+                      data-open={open > 0 || undefined}
+                      data-sat={sat || undefined}
+                      aria-label={`${dateLong(cell)}${open > 0 ? `, ${open} open` : ", nothing open"}${own ? ", you have a session" : ""}${sat ? ", your SAT" : ""}`}
+                      onClick={(e) => {
+                        tick();
+                        press(e.currentTarget.querySelector("[data-face]"));
+                        setPicked(cell);
+                        setTime(null);
+                      }}
+                    >
+                      {date.getDate() === 1 && (
+                        <small>{date.toLocaleDateString("en-US", { month: "short" })}</small>
+                      )}
+                      <span data-face>
+                        <b>{date.getDate()}</b>
+                        <span>
+                          {sat ? (
+                            <em>SAT</em>
+                          ) : own ? (
+                            <i data-mark="mine" data-tod={todOf(own.start)} />
+                          ) : open > 0 ? (
+                            <i data-mark="open" />
+                          ) : null}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {lengths.length > 1 && !moving && (
+              <div className={styles.lengths} role="group" aria-label="Length">
+                {lengths.map((m) => (
                   <button
-                    key={d.day}
+                    key={m}
                     type="button"
-                    className={styles.day}
-                    aria-pressed={d.day === day}
-                    data-open={open > 0 || undefined}
-                    data-sat={sat || undefined}
-                    aria-label={`${dateLong(d.day)}, ${open === 0 ? "nothing open" : `${open} open`}${sat ? ", your SAT" : ""}`}
+                    aria-pressed={m === minutes}
+                    disabled={left < m / 60}
                     onClick={(e) => {
                       tick();
                       press(e.currentTarget);
-                      setPicked(d.day);
+                      setMinutes(m);
                       setTime(null);
                     }}
                   >
-                    <small>
-                      {i === 0 || date.getDate() === 1
-                        ? date.toLocaleDateString("en-US", { month: "short" })
-                        : date.toLocaleDateString("en-US", { weekday: "short" })}
-                    </small>
-                    <b>{date.getDate()}</b>
-                    <i>
-                      {sat
-                        ? "SAT"
-                        : i === 0 || date.getDate() === 1
-                          ? date.toLocaleDateString("en-US", { weekday: "short" })
-                          : ""}
-                    </i>
+                    {m} min
                   </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              className={styles.step}
-              aria-label="Later days"
-              onClick={() => step(1)}
-            >
-              <Arrow />
-            </button>
+                ))}
+              </div>
+            )}
+
+            {today && today.times.length > 0 ? (
+              <ul className={styles.times} ref={times} aria-label={`Open times, ${dateLong(day)}`}>
+                {today.times.map((t) => (
+                  <li key={t}>
+                    <button
+                      type="button"
+                      aria-pressed={t === start}
+                      data-tod={todOf(t)}
+                      onClick={(e) => {
+                        tick();
+                        press(e.currentTarget);
+                        setTime(t);
+                      }}
+                    >
+                      <TodIcon tod={todOf(t)} />
+                      {clock(t)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.shut}>
+                {today?.why === "week"
+                  ? "This week's session is booked. Private 10 has one a week."
+                  : today?.why === "hours"
+                    ? "Not enough hours left for this length."
+                    : "Nothing open this day."}
+              </p>
+            )}
           </div>
-
-          {lengths.length > 1 && !moving && (
-            <div className={styles.lengths} role="group" aria-label="Length">
-              {lengths.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  aria-pressed={m === minutes}
-                  disabled={left < m / 60}
-                  onClick={(e) => {
-                    tick();
-                    press(e.currentTarget);
-                    setMinutes(m);
-                    setTime(null);
-                  }}
-                >
-                  {m} min
-                </button>
-              ))}
-            </div>
-          )}
-
-          {today && today.times.length > 0 ? (
-            <ul className={styles.times} ref={times} aria-label={`Open times, ${dateLong(day)}`}>
-              {today.times.map((t) => (
-                <li key={t}>
-                  <button
-                    type="button"
-                    aria-pressed={t === start}
-                    onClick={(e) => {
-                      tick();
-                      press(e.currentTarget);
-                      setTime(t);
-                    }}
-                  >
-                    {clock(t)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.shut}>
-              {today?.why === "week"
-                ? "Private 10 has 60 minutes a week, and this week's session is booked."
-                : today?.why === "hours"
-                  ? "Not enough hours left for a session this long."
-                  : `Nothing open on ${dateLong(day)}.`}
-            </p>
-          )}
 
           {!moving && (
             <div className={styles.focus}>
@@ -348,6 +430,7 @@ export default function Book({
                     key={skill}
                     type="button"
                     aria-pressed={focus.includes(skill)}
+                    data-kind={subjectOf(skill)}
                     onClick={(e) => {
                       tick();
                       press(e.currentTarget);
@@ -365,8 +448,8 @@ export default function Book({
                 value={note}
                 maxLength={120}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Anything else for your tutor"
-                aria-label="A note for your tutor"
+                placeholder={`Note for ${tutor}`}
+                aria-label={`A note for ${tutor}`}
               />
             </div>
           )}
@@ -379,33 +462,33 @@ export default function Book({
                 onChange={(e) => setWeekly(e.target.checked)}
               />
               <span aria-hidden="true" />
-              <b>Every week at this time</b>
+              <b>Every week</b>
               {weekly && start !== null && (
                 <small>
                   {more.length > 0
-                    ? `Also books ${more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}. Each can be moved.`
+                    ? `Also ${more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}`
                     : "No later week has this time open."}
                 </small>
               )}
             </label>
           )}
 
-          <footer className={styles.foot}>
+          <footer className={styles.foot} data-set={start !== null || undefined}>
             <p aria-live="polite">
               {start === null ? (
                 "Pick a time"
               ) : (
                 <>
-                  <b>{dateLong(start)}</b> at {clock(start)}, {lengthText(minutes)}
-                  {more.length > 0 && `, and ${more.length} more`}
+                  <b>{dateShort(start)}</b> {clock(start)}, {lengthText(minutes)}
+                  {more.length > 0 && ` + ${more.length} more`}
                 </>
               )}
             </p>
             <button type="button" className={page.go} disabled={start === null} onClick={send}>
-              {moving ? "Move session" : "Confirm session"}
+              {moving ? "Move session" : "Confirm"}
             </button>
-            {moving && start !== null && moving.start - now < RULES.noticeHours * 3_600_000 && (
-              <small>This uses your one late change.</small>
+            {moving && start !== null && moving.start - now < RULES.noticeHours * HOUR && (
+              <small>Uses your one late change.</small>
             )}
           </footer>
         </>

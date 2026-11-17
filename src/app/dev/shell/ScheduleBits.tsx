@@ -5,7 +5,9 @@
 // in the family's own calendar.
 import { useEffect, useRef, useState } from "react";
 import { cut, two } from "./homeworkMotion";
-import { breathe, fold, press, useCount } from "./scheduleMotion";
+import { Buddy } from "./HomeworkBuddy";
+import { TodIcon } from "./ScheduleBook";
+import { breathe, fold, pop, press, useCount } from "./scheduleMotion";
 import {
   MIN,
   RULES,
@@ -21,8 +23,9 @@ import {
   monthDay,
   movesBack,
   movesLeft,
-  priceOf,
   recordingUntil,
+  subjectOf,
+  todOf,
   zone,
   type Account,
   type Session,
@@ -30,6 +33,7 @@ import {
 import { schedule, type Sync } from "./scheduleStore";
 import { chosen, tick } from "./sound";
 import styles from "./schedule.module.css";
+import past from "./schedulePast.module.css";
 
 const first = TUTOR.split(" ")[0];
 
@@ -50,18 +54,13 @@ export function Changes({
   const left = movesLeft(account, now);
   if (change.why === "started") return null;
   if (change.why === "pass")
-    return (
-      <p className={styles.rule}>
-        Inside {RULES.noticeHours} hours, and your one late change is used. Message {first} if
-        something has come up.
-      </p>
-    );
+    return <p className={styles.rule}>Inside 24 hours. Message {first} to change it.</p>;
   if (asking)
     return (
       <div className={styles.ask}>
         <p>
-          Cancel this session? {lengthText(session.minutes)} goes back to your hours.
-          {change.late && " This uses your one late change."}
+          Cancel? {lengthText(session.minutes)} goes back.
+          {change.late && " Uses your one late change."}
         </p>
         <button
           type="button"
@@ -97,10 +96,10 @@ export function Changes({
       </button>
       <small>
         {change.late
-          ? "Inside 24 hours: a change uses your one late change."
+          ? "Uses your one late change"
           : change.why === "moves"
-            ? `No moves left this month. They come back ${monthDay(movesBack(now)).replace(/, \d+$/, "")}.`
-            : `${left} of ${RULES.movesAMonth} moves left this month`}
+            ? `Moves return ${monthDay(movesBack(now)).replace(/, \d+$/, "")}`
+            : `${left} ${left === 1 ? "move" : "moves"} left`}
       </small>
     </div>
   );
@@ -141,15 +140,21 @@ export function Next({
   return (
     <>
       <div className={styles.when}>
+        <p className={styles.with}>
+          <i aria-hidden="true">{first[0]}</i>
+          {TUTOR}
+        </p>
         <h2>{dateLong(session.start)}</h2>
         <p>
+          <TodIcon tod={todOf(session.start)} />
           {clock(session.start)} to {clock(endOf(session))} {zone()}
-          <span>with {TUTOR}</span>
         </p>
         {(session.focus.length > 0 || session.note) && (
           <p className={styles.tags}>
             {session.focus.map((f) => (
-              <span key={f}>{f}</span>
+              <span key={f} data-kind={subjectOf(f)}>
+                {f}
+              </span>
             ))}
             {session.note && <em>{session.note}</em>}
           </p>
@@ -196,132 +201,92 @@ export function Next({
       )}
       {door === "open" && now >= session.start && (
         <p className={styles.rule}>
-          After {RULES.graceMinutes} minutes the session closes and its time is used. It still ends
-          at {clock(endOf(session))}.
+          Closes {clock(session.start + RULES.graceMinutes * MIN)}. Ends {clock(endOf(session))}.
         </p>
       )}
     </>
   );
 }
 
-/** How many hours are left, counted to when they change, with what is booked and when they end. */
+/** The hours: the student's own character, the number left, and a bead for every hour of the
+ *  package (green is free to book, blue is booked, clear is used). The beads pop in when they
+ *  change. */
 export function Hours({
   left,
   booked,
+  used,
   account,
+  cheer,
   onBuy,
 }: {
   left: number;
   booked: number;
+  used: number;
   account: Account;
+  cheer: number;
   onBuy: () => void;
 }) {
   const shown = useCount(left);
+  const beads = useRef<HTMLDivElement>(null);
+  // half hours are drawn as half beads, so the row is counted in halves
+  const halves = (n: number) => Math.round(n * 2);
+  const row: ("used" | "booked" | "left")[] = [
+    ...Array<"used">(halves(used)).fill("used"),
+    ...Array<"booked">(halves(booked)).fill("booked"),
+    ...Array<"left">(halves(left)).fill("left"),
+  ];
+  const key = `${halves(used)}-${halves(booked)}-${halves(left)}`;
+  useEffect(() => pop(beads.current), [key]);
   return (
-    <div className={styles.hours}>
-      <p className={styles.count}>
-        <b>{hoursText(shown)}</b>
-        <span>{left === 1 ? "hour left" : "hours left"}</span>
-      </p>
-      <p className={styles.fine}>
-        {booked > 0 && <span>{hoursText(booked)} booked</span>}
-        <span>Use by {monthDay(expiresAt(account))}</span>
-        {account.pack === "private-10" && <span>60 minutes a week</span>}
-      </p>
+    <>
+      <div className={styles.buddy}>
+        <Buddy size={92} cheer={cheer} />
+      </div>
+      <div className={styles.hours}>
+        <p className={styles.count}>
+          <b>{hoursText(shown)}</b>
+          <span>{left === 1 ? "hour left" : "hours left"}</span>
+        </p>
+        <div
+          className={styles.beads}
+          ref={beads}
+          role="img"
+          aria-label={`${hoursText(left)} hours free, ${hoursText(booked)} booked, ${hoursText(used)} used`}
+        >
+          {Array.from({ length: Math.ceil(row.length / 2) }, (_, n) => (
+            <span key={n}>
+              <i data-kind={row[n * 2]} />
+              {row[n * 2 + 1] && <i data-kind={row[n * 2 + 1]} />}
+            </span>
+          ))}
+        </div>
+        <p className={styles.fine}>
+          <span>Use by {monthDay(expiresAt(account)).replace(/ \d+,/, "")}</span>
+          {account.pack === "private-10" && <span>60 min a week</span>}
+        </p>
+      </div>
       <button
         type="button"
-        className={left < 1 ? styles.go : styles.add}
+        className={styles.plus}
         onClick={(e) => {
           tick();
           press(e.currentTarget);
           onBuy();
         }}
       >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14M12 5v14" />
+        </svg>
         Add hours
       </button>
-    </div>
-  );
-}
-
-/** Adding hours: how many, what it comes to, and the button that pays. Either the student or a
- *  parent may buy. (A stand-in: pressing Pay adds the hours; no card is asked for yet.) */
-export function Buy({ onDone }: { onDone: (bought: boolean) => void }) {
-  const [count, setCount] = useState(2);
-  const total = useCount(count * RULES.hourPrice, 2);
-  const change = (by: number) => {
-    tick();
-    setCount(Math.min(40, Math.max(1, count + by)));
-  };
-  return (
-    <div className={styles.buy}>
-      <header className={styles.paneHead}>
-        <h2>Add hours</h2>
-        <button type="button" className={styles.quiet} onClick={() => onDone(false)}>
-          Back
-        </button>
-      </header>
-      <div className={styles.stepper}>
-        <button
-          type="button"
-          aria-label="One hour fewer"
-          disabled={count <= 1}
-          onClick={() => change(-1)}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M6 12h12" />
-          </svg>
-        </button>
-        <p aria-live="polite">
-          <b>{count}</b>
-          <span>{count === 1 ? "hour" : "hours"}</span>
-        </p>
-        <button
-          type="button"
-          aria-label="One hour more"
-          disabled={count >= 40}
-          onClick={() => change(1)}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M6 12h12M12 6v12" />
-          </svg>
-        </button>
-      </div>
-      <ul className={styles.terms}>
-        <li>{priceOf(1)} an hour</li>
-        <li>Good for {RULES.expiryMonths} months</li>
-        <li>Sessions of 60, 90 or 120 minutes</li>
-      </ul>
-      <button
-        type="button"
-        className={styles.go}
-        onClick={() => {
-          chosen();
-          schedule.buy(count);
-          onDone(true);
-        }}
-      >
-        Pay{" "}
-        {total.toLocaleString("en-US", {
-          style: "currency",
-          currency: "USD",
-          minimumFractionDigits: Number.isInteger(count * RULES.hourPrice) ? 0 : 2,
-        })}
-      </button>
-    </div>
+    </>
   );
 }
 
@@ -355,21 +320,21 @@ export function Past({
   }, [playing, length]);
   const recap = session.recap;
   return (
-    <div className={styles.past}>
-      <header className={styles.paneHead}>
+    <div className={past.past}>
+      <header className={past.paneHead}>
         <h2>{dateLong(session.start)}</h2>
         <button type="button" className={styles.quiet} onClick={onDone}>
           Back
         </button>
       </header>
       {session.state === "missed" ? (
-        <p className={styles.gone}>
+        <p className={past.gone}>
           You had not joined {RULES.graceMinutes} minutes in, so this session closed and its time
           was used.
         </p>
       ) : kept ? (
-        <div className={styles.player} data-playing={playing || undefined}>
-          <div className={styles.screen}>
+        <div className={past.player} data-playing={playing || undefined}>
+          <div className={past.screen}>
             <span>{first[0]}</span>
             <span>You</span>
             <button
@@ -412,7 +377,7 @@ export function Past({
           </p>
         </div>
       ) : (
-        <p className={styles.gone}>
+        <p className={past.gone}>
           Recordings are kept for {RULES.recordingMonths} months. This one is no longer here.
         </p>
       )}
@@ -420,14 +385,16 @@ export function Past({
         <>
           <section>
             <h3>Notes</h3>
-            <p className={styles.notes}>{recap.notes}</p>
+            <p className={past.notes}>{recap.notes}</p>
           </section>
           {recap.covered.length > 0 && (
             <section>
               <h3>Covered</h3>
-              <p className={styles.tags}>
+              <p className={styles.tags} style={{ marginTop: 0 }}>
                 {recap.covered.map((skill) => (
-                  <span key={skill}>{skill}</span>
+                  <span key={skill} data-kind={subjectOf(skill)}>
+                    {skill}
+                  </span>
                 ))}
               </p>
             </section>
@@ -435,7 +402,7 @@ export function Past({
           {recap.homework.length > 0 && (
             <section>
               <h3>Homework</h3>
-              <ul className={styles.set}>
+              <ul className={past.set}>
                 {recap.homework.map((work) => (
                   <li key={work}>
                     <button type="button" onClick={onHomework}>
@@ -490,20 +457,19 @@ export function SyncOffer({ sync }: { sync: Sync }) {
       </svg>
       {said ? (
         <p role="status">
-          <b>Done.</b> Your sessions will show in {said === "apple" ? "Apple" : "Google"} Calendar.
+          <b>Added to {said === "apple" ? "Apple" : "Google"} Calendar</b>
         </p>
       ) : (
         <>
           <p>
-            <b>Keep sessions in your own calendar</b>
-            <span>Booked, moved and canceled sessions stay in step.</span>
+            <b>Add sessions to your calendar</b>
           </p>
           <div>
             <button type="button" className={styles.add} onClick={() => answer("apple")}>
-              Apple Calendar
+              Apple
             </button>
             <button type="button" className={styles.add} onClick={() => answer("google")}>
-              Google Calendar
+              Google
             </button>
             <button type="button" className={styles.quiet} onClick={() => answer("later")}>
               Not now

@@ -1239,36 +1239,44 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
-## Schedule (2026-11-17)
+## Schedule (2026-11-17, second version)
 
-The Private student's Schedule tab is built on `/dev/shell?plan=private` (founder, 2026-11-16: "put
-all your effort into making one complete schedule tab", no options first). His answers, round by
-round, are in the memory note `project_calendar_spec.md`. Awaiting his verdict.
+The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers are in the memory note
+`project_calendar_spec.md`. The first version led with a three.js hourglass; he said it did not need
+to be fancy and asked for "more color, more life, and characters", a modern calendar with clean GSAP
+motion, fewer words, and buying hours in a tap. The hourglass is gone. Awaiting his verdict.
 
-- **Hours:** an hourglass drawn in three.js (`ScheduleGlass.tsx`). The sand in the top bulb is the
-  share of hours still free to book, by volume. Booking runs sand through; canceling or buying
-  brings it back. It turns, leans toward a near pointer, and spins when pressed. Beside it: hours
-  left, hours booked, the use-by date (12 months), and Add hours.
-- **Next:** the next session, a countdown, Join from 5 minutes before with 10 minutes of grace, then
-  Move and Cancel with the rule that applies (3 moves a month, one late change inside 24 hours).
-- **Book:** a row of days to flick through (24 hours to 4 weeks ahead; the SAT's day has a ruby
-  ring), a length (60, 90, 120; Private 10 has 60 only and one a week), the tutor's open times in
-  the student's own time zone, what to work on (weakest skills and a note), the same time every
-  week, then the date and time right above Confirm, and a ticket that draws itself.
-- **Past:** the recording (kept 6 months, watched here), the tutor's notes, what was covered and the
-  homework set, which goes to Homework.
-- **Add hours:** any number at the price in `offer.ts`.
-- **Calendar offer:** a banner on first opening for Apple or Google Calendar; answered, it is not
-  shown again (`kp-schedule-sync` in the browser).
+- **Hours:** the student's own character (the same one as on Homework; it cheers when a session is
+  booked or hours are bought), the hours left, and a bead for every hour: green is free to book,
+  blue is booked, clear is used. A half hour is half a bead.
+- **Next:** the tutor, the date and time, a countdown, Join from 5 minutes before with 10 minutes of
+  grace, then Move and Cancel. The card is washed with its time of day's color.
+- **Book:** four whole weeks under the weekday letters. A green dot means the tutor has time that
+  day, a bar is one of the student's own sessions, the SAT's day has a ruby ring. The chosen day is
+  one pill that glides between dates (GSAP). Times carry a sun or a moon and their time of day's
+  color; skills to work on carry their subject's color. On a wide pane the calendar and the times
+  sit side by side.
+- **Past:** the recording (kept 6 months), the tutor's notes, what was covered, the homework set.
+- **Add hours is real** (`SchedulePay.tsx`, `src/lib/schedule/hours.ts`, `/api/schedule/hours`): a
+  sheet from the bottom on a phone, a card in the middle on a wide screen. Stripe's one-tap buttons
+  (Apple Pay, Link, Google Pay, whichever the device has) come first; every other way to pay is
+  behind "More ways to pay". The payment is opened when the Schedule tab opens, so the buttons are
+  there at once; changing the number of hours changes the same payment. $149.50 an hour from
+  `offer.ts`; quick picks of 1, 5, 10 and 20 and a stepper up to 40. The webhook keeps each paid
+  purchase in `private_hour_purchases` (migration `20261117060000`, not on production until merge).
+  **On a live Stripe key it refuses until `PRIVATE_HOURS_SALES=on`**, because bookings are not real
+  yet. Tested in Stripe's test mode with the published test card: 5 hours bought, hours went 12 to
+  17. Apple Pay itself cannot be tried on localhost: it needs the registered domain and Safari.
 - Rules are pure functions in `scheduleData.ts` with tests; motion is GSAP in `scheduleMotion.ts`.
 - States to look at: `&pack=10`, `&soon=3` (Join open), `&soon=-4` (already begun), `&empty=1` (no
   hours), `&full=1` (nothing open).
 
-Everything is a stand-in held in memory. Not built: real bookings against the tutor's calendar
+Sessions are still a stand-in held in memory. Not built: real bookings against the tutor's calendar
 (the old `src/components/student-portal/calendar/` reads real bookings and is not connected here),
-paying for hours, the real calendar feeds, a real recording player, the reminders (email the day
-before, a text an hour before: texting needs a provider and his OK), the parent's side, the tutor
-giving the late change back, and the 30 minutes added when a tutor misses a session (the rule is in
-the data, with no button for it). The 12-month expiry and the 30 minutes are promises to families
-and are not in `offer.ts` or the terms yet. His "monthly limit or 3" was read as three moves a
-month and is not confirmed.
+counting hours from real purchases, the real calendar feeds, a real recording player, the reminders
+(email the day before, a text an hour before: texting needs a provider and his OK), the parent's
+side, the tutor giving the late change back, and the 30 minutes added when a tutor misses a session.
+The 12-month expiry and the 30 minutes are promises to families and are not in `offer.ts` or the
+terms yet. No bulk price exists: 20 hours bought here is 20 times the hour's price ($2,990), while
+the Private 20 package is $2,495; he has not said whether bulk should be cheaper. His "monthly limit
+or 3" was read as three moves a month and is not confirmed.

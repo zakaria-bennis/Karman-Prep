@@ -23,6 +23,8 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { recordPurchaseGrant } from "@/lib/plans";
+import { recordHoursPurchase } from "@/lib/schedule/hours";
+import { HOURS_KIND } from "@/lib/schedule/hours-shared";
 import { trackServer } from "@/lib/analytics/server";
 import Stripe from "stripe";
 
@@ -164,6 +166,12 @@ export const POST = withWebhookInstrumentation(
           if (session.payment_status === "unpaid") {
             // A delayed payment method: async_payment_succeeded follows.
             console.log(`[webhook] checkout ${session.id} completed unpaid; waiting for payment`);
+            break;
+          }
+          // Extra tutoring hours bought from the Schedule tab (src/lib/schedule/hours.ts).
+          if (session.metadata?.kind === HOURS_KIND) {
+            const outcome = await recordHoursPurchase(session);
+            console.log(`[webhook] tutoring hours ${session.id}: ${outcome}`);
             break;
           }
           // A cohort seat reserved from the marketing site, before the student has an account

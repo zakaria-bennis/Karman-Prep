@@ -14,6 +14,8 @@ import {
   priceOf,
   recordingUntil,
   standIn,
+  subjectOf,
+  todOf,
   weekStart,
   weeklyAfter,
   type Account,
@@ -178,6 +180,25 @@ describe("changing a session", () => {
 
   it("once it has begun it cannot be changed", () => {
     expect(changeOf(fresh(), session(-0.1), NOW)).toMatchObject({ move: false, cancel: false });
+  });
+});
+
+describe("colors", () => {
+  it("a time's part of the day", () => {
+    const at = (h: number) => todOf(TODAY.getTime() + h * HOUR);
+    expect([at(9), at(11.5), at(12), at(16.5), at(17), at(20)]).toEqual([
+      "morning",
+      "morning",
+      "afternoon",
+      "afternoon",
+      "evening",
+      "evening",
+    ]);
+  });
+
+  it("a skill's subject", () => {
+    expect(subjectOf("Solving linear equations")).toBe("math");
+    expect(subjectOf("Main idea")).toBe("rw");
   });
 });
 

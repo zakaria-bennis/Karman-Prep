@@ -7,6 +7,7 @@ const m = vi.hoisted(() => ({
   writes: vi.fn(),
   welcome: vi.fn(),
   grant: vi.fn(),
+  hours: vi.fn(),
 }));
 vi.mock("@sentry/nextjs", () => ({
   setTag: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("@/lib/integrations/stripe/client", () => ({
 }));
 vi.mock("@/lib/integrations/resend/emails", () => ({ sendWelcomeEmail: m.welcome }));
 vi.mock("@/lib/plans", () => ({ recordPurchaseGrant: m.grant }));
+vi.mock("@/lib/schedule/hours", () => ({ recordHoursPurchase: m.hours }));
 vi.mock("@/lib/supabase/server", () => ({
   createAdminClient: () => {
     if (m.clientError) throw new Error("Synthetic client failure");
@@ -203,6 +205,16 @@ it.each([
 ])("does not grant anything for %s", async (_label, overrides) => {
   setEvent("checkout.session.completed", session(overrides));
   expect((await POST(request())).status).toBe(200);
+  expect(m.grant).not.toHaveBeenCalled();
+});
+it("keeps a purchase of tutoring hours, and grants no plan for it", async () => {
+  m.hours.mockResolvedValue("5 hours");
+  setEvent(
+    "checkout.session.completed",
+    session({ metadata: { kind: "private_hours", userId: "synthetic" } })
+  );
+  expect((await POST(request())).status).toBe(200);
+  expect(m.hours).toHaveBeenCalledWith(expect.objectContaining({ id: "cs_fixture" }));
   expect(m.grant).not.toHaveBeenCalled();
 });
 it("preserves retryable failure for unexpected errors outside the handler try block", async () => {

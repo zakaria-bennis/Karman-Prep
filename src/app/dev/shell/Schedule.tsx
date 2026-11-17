@@ -2,36 +2,31 @@
 
 // Schedule: where a Private student, or their parent, books and moves sessions and sees the hours
 // they have left (founder, 2026-11-16; the rules are in scheduleData.ts).
-//   The hours   sand in an hourglass that turns in three dimensions, with the number beside it and
-//               a button to add hours.
+//   The hours   the student's own character, the number of hours left, a bead for every hour
+//               (free, booked, used) and a button to add hours, paid for on the spot.
 //   Next        the next session, a clock counting down to it, Join from five minutes before, and
 //               Move and Cancel.
-//   The pane    booking (or moving) a session; a past session's recording and notes; adding hours.
+//   The pane    booking (or moving) a session, or a past session's recording and notes.
 //   Sessions    what is booked, and what is behind.
-// On first opening a banner offers the family's own calendar. Everything is a stand-in held in
-// memory: no real session is booked, moved, paid for or synced from here yet.
+// On first opening a banner offers the family's own calendar. Sessions are a stand-in held in
+// memory: no real session is booked, moved or synced from here yet. Buying hours is real (Stripe;
+// see SchedulePay.tsx), and the hours bought are added to the stand-in.
 // To look at its states: ?pack=10 (Private 10), ?soon=3 (next session in 3 minutes), ?soon=-4
 // (already begun), ?empty=1 (no hours left), ?full=1 (the tutor has nothing open).
-import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useClock } from "./homeworkMotion";
 import lib from "./library.module.css";
 import Book from "./ScheduleBook";
-import { Buy, Changes, Hours, Next, Past, SyncOffer } from "./ScheduleBits";
+import { Changes, Hours, Next, Past, SyncOffer } from "./ScheduleBits";
+import Pay, { warm } from "./SchedulePay";
 import { arrive, flash, press } from "./scheduleMotion";
-import { clock, doorOf, hours, lengthText, type Pack, type Session } from "./scheduleData";
+import { clock, doorOf, hours, lengthText, todOf, type Pack, type Session } from "./scheduleData";
 import { schedule, split, useSchedule } from "./scheduleStore";
 import { tick } from "./sound";
 import styles from "./schedule.module.css";
 
-const HourGlass = dynamic(() => import("./ScheduleGlass"), { ssr: false });
-
-type Pane =
-  | { kind: "book" }
-  | { kind: "move"; id: string }
-  | { kind: "past"; id: string }
-  | { kind: "buy" };
+type Pane = { kind: "book" } | { kind: "move"; id: string } | { kind: "past"; id: string };
 
 function Row({
   session,
@@ -54,7 +49,7 @@ function Row({
   return (
     <li ref={el} className={styles.item} data-open={open || undefined}>
       <button type="button" aria-expanded={open} onClick={onPress}>
-        <span className={styles.date}>
+        <span className={styles.date} data-tod={todOf(session.start)}>
           <small>{date.toLocaleDateString("en-US", { weekday: "short" })}</small>
           <b>{date.getDate()}</b>
           <small>{date.toLocaleDateString("en-US", { month: "short" })}</small>
@@ -111,7 +106,10 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
   const [pane, setPane] = useState<Pane>({ kind: "book" });
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [openRow, setOpenRow] = useState<string | null>(null);
-  const [bump, setBump] = useState(0);
+  const [cheer, setCheer] = useState(0);
+  const [paying, setPaying] = useState(false);
+  // the payment is made ready now, so its buttons are there the moment hours are wanted
+  useEffect(warm, []);
 
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -144,24 +142,27 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
       <SyncOffer sync={sync} />
 
       <section className={`${lib.glass} ${styles.left}`} aria-label="Hours" data-arrive>
-        <div className={styles.glass}>
-          <HourGlass share={h.total > 0 ? h.left / h.total : 0} bump={bump} />
-        </div>
         <Hours
           left={h.left}
           booked={h.booked}
+          used={h.used}
           account={account}
-          onBuy={() => show({ kind: "buy" })}
+          cheer={cheer}
+          onBuy={() => setPaying(true)}
         />
       </section>
 
-      <section className={`${lib.glass} ${styles.next}`} aria-label="Next session" data-arrive>
+      <section
+        className={`${lib.glass} ${styles.next}`}
+        aria-label="Next session"
+        data-tod={next ? todOf(next.start) : undefined}
+        data-arrive
+      >
         {next ? (
           <Next account={account} session={next} now={now} onMove={move} />
         ) : (
           <div className={styles.when}>
             <h2>Nothing booked</h2>
-            <p>Pick a day and a time to book your next session.</p>
           </div>
         )}
       </section>
@@ -172,14 +173,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
         aria-label="Booking"
         data-arrive
       >
-        {pane.kind === "buy" ? (
-          <Buy
-            onDone={(bought) => {
-              if (bought) setBump(bump + 1);
-              setPane({ kind: "book" });
-            }}
-          />
-        ) : viewed ? (
+        {viewed ? (
           <Past
             key={viewed.id}
             session={viewed}
@@ -194,8 +188,9 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
             now={now}
             moving={moving}
             full={full}
+            onBooked={() => setCheer((n) => n + 1)}
             onMoved={() => setPane({ kind: "book" })}
-            onBuy={() => show({ kind: "buy" })}
+            onBuy={() => setPaying(true)}
             onChat={() => onGo("chat")}
           />
         )}
@@ -254,6 +249,16 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
           </ul>
         )}
       </section>
+
+      {paying && (
+        <Pay
+          onPaid={(bought) => {
+            schedule.buy(bought);
+            setCheer((n) => n + 1);
+          }}
+          onClose={() => setPaying(false)}
+        />
+      )}
     </div>
   );
 }

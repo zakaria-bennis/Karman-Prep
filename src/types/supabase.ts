@@ -1747,6 +1747,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      private_hour_purchases: {
+        Row: {
+          amount_cents: number;
+          created_at: string;
+          hours: number;
+          id: string;
+          stripe_checkout_session_id: string;
+          user_id: string;
+        };
+        Insert: {
+          amount_cents: number;
+          created_at?: string;
+          hours: number;
+          id?: string;
+          stripe_checkout_session_id: string;
+          user_id: string;
+        };
+        Update: {
+          amount_cents?: number;
+          created_at?: string;
+          hours?: number;
+          id?: string;
+          stripe_checkout_session_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "private_hour_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "tutor_earnings_summary";
+            referencedColumns: ["tutor_user_id"];
+          },
+          {
+            foreignKeyName: "private_hour_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       progress: {
         Row: {
           concept_id: string;
