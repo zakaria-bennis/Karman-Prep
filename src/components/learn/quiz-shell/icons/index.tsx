@@ -209,13 +209,9 @@ export function CalculatorIcon(p: IconProps) {
 export function ReferenceIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      {/* an open book, three lines on each page */}
-      <path d="M12 6.2C10 5 7 4.600 4 5v14c3-.4 6 0 8 1.200 2-1.200 5-1.600 8-1.200V5c-3-.4-6 0-8 1.200z" />
+      {/* an open book */}
+      <path d="M12 6.200C10 5 7 4.600 4 5v14c3-.4 6 0 8 1.200 2-1.200 5-1.600 8-1.200V5c-3-.4-6 0-8 1.200z" />
       <path d="M12 6.200v14" />
-      <path
-        d="M6.500 9.200h3M6.500 12h3M6.500 14.800h3M14.500 9.200h3M14.500 12h3M14.500 14.800h3"
-        strokeWidth={1.4}
-      />
     </Svg>
   );
 }
@@ -293,7 +289,11 @@ export function CrossIcon(p: IconProps) {
 export function ExitIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />
+      {/* leaving: a doorway with its door swung open */}
+      <path d="M3.500 21h17" />
+      <path d="M6.500 21V4h10.500v17" />
+      <path d="M6.500 4l6.500 2.300v16.400" />
+      <path d="M10.500 13.300v.6" />
     </Svg>
   );
 }
@@ -302,11 +302,11 @@ export function ExitIcon(p: IconProps) {
 export function HighlightIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      {/* a marker with a broad slanted tip, laying down a wide stroke */}
-      <path d="M13.8 3.2l7 7-6.6 6.6-7-7z" />
-      <path d="M8.9 11.5l-2.6 4.7 1.5 1.5 4.7-2.6" />
-      <path d="M16 5.400l2.600 2.600" />
-      <path d="M3.500 20.500h11" strokeWidth={3.4} opacity={0.45} />
+      {/* a slim marker with a slanted tip, laying down a wide stroke */}
+      <path d="M16.400 4.400l3.200 3.200-8 8-3.200-3.200z" />
+      <path d="M8.400 12.400l-2.300 4.300 1.200 1.200 4.300-2.300" />
+      <path d="M14.200 6.600l3.200 3.200" />
+      <path d="M3.500 20.500h10" strokeWidth={3.4} opacity={0.45} />
     </Svg>
   );
 }

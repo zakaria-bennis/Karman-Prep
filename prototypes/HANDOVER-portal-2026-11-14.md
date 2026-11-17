@@ -1308,6 +1308,36 @@ sent a long list (memory: `feedback_quiz_engine_nov17.md`, every point in his wo
   `CalculatorScope`); the top bar's own Calculator button opens it.
 - **Pens:** by day a black pen and a blue highlighter first; by night white and yellow.
 
+**Third slice (2026-11-17): his second round of notes** (memory: the same file). Done:
+
+- **Reference sheet:** angle arcs and a right-angle square on every right triangle; the 30°, 60°
+  and 45° labels are small and sit beside their arcs. Escape closes any pop-up wherever the
+  cursor is (`NavigatorDialog`).
+- **Header (wide screens):** the question's number at the far left of the page, the tools at
+  the far right (it measures the page with a container query).
+- **The explanation is never under the answers.** Wide: its own page at the right for any graded
+  answer, right or wrong. Narrower: an "Explanation" tab above the bottom bar opens it as a
+  sheet; after a miss the sheet rises by itself.
+- **More menu:** hangs under the top bar, its right side in line with the page (`--quiz-bar-h`);
+  Sounds and Question animations are switches; "Ask my tutor" reads **"Flag for my tutor"**
+  (it does not promise an answer right away); Keyboard shortcuts opens as a pop-up like the
+  reference.
+- **Icons:** Exit is a door swung open; the clock is a stopwatch (a crown on top, a button at
+  its shoulder); the highlighter is slimmer; the reference book has no lines.
+- **Answers:** the picked letter's fill is a bright blue (`--quiz-pick`), red on a wrong pick,
+  green on the right answer. Filled dots glow.
+- **Send to the calculator:** one drawing (an arrow carrying the answer into a calculator), a
+  small piece of the quiz's frosted glass, **inside the answer at its right**, shown while the
+  pointer is on that answer; pressed, the arrow runs into the calculator. The quiz dresses the
+  control from its own sheet (`pane.module.css`); the calculator's sheet keeps to its rule of
+  using only its own colours (test TH-2). Test AR-12 now expects the new drawing.
+- **Typed answers:** the phone and tablet keys are three across like a dial, **low on the
+  screen** (put in a slot above the bottom bar), with a clear press and a short buzz where the
+  device can (Android; iPhones do not let a web page vibrate). No keys on a desktop. The device's
+  own keyboard is never called up. The box takes only digits, a point, a fraction bar and a
+  minus (he listed the first three; the minus is kept because SAT answers can be negative).
+- **Powers typed with a caret** in an explanation ("9x^3") are shown raised (`raisePowers`).
+
 **Still open from his list** (none started): the calculator's own look and behavior (slide in
 from the left taking half the screen on desktop, rise from the bottom with a small margin on a
 phone, Escape to close, memory kept for the question and for bookmarked questions); the

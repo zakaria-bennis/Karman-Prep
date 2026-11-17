@@ -7,6 +7,12 @@
   padding-bottom: 10px;
   border-bottom: 1px solid color-mix(in srgb, var(--quiz-line) 60%, transparent);
 }
+/* On a wide screen the header runs the width of the page of glass: the number at its far left,
+   the tools at its far right (founder, 2026-11-17). 100cqw is the pane's own width. */
+[data-layout="wide"] [data-quiz-scroll] > [data-quiz-pane]:only-child .header {
+  width: calc(100cqw + 16px);
+  margin-left: calc((100% - 100cqw) / 2 - 8px);
+}
 .number {
   display: inline-flex;
   align-items: center;
@@ -113,8 +119,8 @@
     opacity 200ms ease;
 }
 .choice[aria-checked="true"] {
-  border-color: var(--quiz-accent);
-  box-shadow: inset 0 0 0 1px var(--quiz-accent);
+  border-color: var(--quiz-pick);
+  box-shadow: inset 0 0 0 1px var(--quiz-pick);
 }
 .choice:disabled {
   cursor: default;
@@ -165,7 +171,30 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--quiz-accent);
+  background: var(--quiz-pick);
+  transition: background-color 260ms ease;
+}
+/* graded: the letter's fill turns red on a wrong pick and green on the right answer */
+.wrong .badgeFill {
+  background: var(--quiz-wrong);
+}
+.correct .badgeFill {
+  background: var(--quiz-correct);
+}
+.choice[aria-checked="true"] .badge {
+  border-color: var(--quiz-pick);
+}
+.wrong .badge,
+.choice.wrong[aria-checked="true"] .badge {
+  border-color: var(--quiz-wrong);
+}
+.correct .badge,
+.choice.correct[aria-checked="true"] .badge {
+  border-color: var(--quiz-correct);
+  background: var(--quiz-correct);
+}
+.correct .badgeLetter {
+  color: var(--quiz-bg);
 }
 .badgeLetter {
   position: relative;
@@ -219,6 +248,51 @@
   align-items: center;
   gap: 4px;
 }
+/* Beside an answer the tools sit inside the pill, at its right (founder, 2026-11-17). */
+.choiceRow > .tools {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+.choiceRow:has(> .tools) > .choice {
+  padding-right: 64px;
+}
+/* The "send to the calculator" control the quiz hosts: here it is a small piece of the quiz's
+   own frosted glass, and beside an answer it shows while the pointer is anywhere on that answer.
+   (The calculator's own sheet keeps its own colours; these rules are the quiz's.) */
+.choiceRow :global([data-transfer-control]) > button,
+.tableChoice :global([data-transfer-control]) > button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--quiz-line);
+  border-radius: 12px;
+  background: var(--quiz-lens);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+  color: var(--quiz-text);
+  transition:
+    background-color 160ms ease,
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.choiceRow :global([data-transfer-control]) > button:active,
+.tableChoice :global([data-transfer-control]) > button:active {
+  transform: scale(0.92);
+}
+.choiceRow :global([data-transfer-glyph]),
+.tableChoice :global([data-transfer-glyph]) {
+  width: 22px;
+  height: 22px;
+}
+@media (hover: hover) {
+  .choiceRow :global([data-transfer-control]) > button:hover {
+    background: color-mix(in srgb, var(--quiz-text) 16%, var(--quiz-lens));
+  }
+  .choiceRow:hover :global([data-transfer-control][data-placement="cluster"]) {
+    opacity: 1;
+  }
+}
 .tableChoice {
   min-width: 0;
   padding: 10px 12px;
@@ -259,6 +333,7 @@
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--quiz-text-muted);
+  white-space: nowrap;
   pointer-events: none;
   transition:
     top 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -300,32 +375,44 @@
   outline: none;
 }
 
-/* The phone's own keys for a typed answer: the numbers, a point, a minus and the fraction bar. */
+/* A phone's or a tablet's own keys for a typed answer: three across like a dial, low on the
+   screen (they are put just above the bottom bar), each big enough for a thumb and plainly
+   pressed when it is. */
 .keys {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 10px;
+  width: min(100%, 460px);
+  margin: 0 auto;
+  padding: 10px 12px;
 }
 .key {
-  height: 52px;
+  height: 54px;
   border: 1.5px solid var(--quiz-line);
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--quiz-lens);
   color: var(--quiz-text);
   font: inherit;
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
   touch-action: manipulation;
   transition:
-    transform 90ms ease,
-    background-color 120ms ease;
+    transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.key[data-wide] {
+  grid-column: span 2;
 }
 .key:active {
-  transform: scale(0.94);
-  background: color-mix(in srgb, var(--quiz-text) 16%, var(--quiz-lens));
+  transform: scale(0.9);
+  border-color: var(--quiz-pick);
+  background: color-mix(in srgb, var(--quiz-pick) 38%, var(--quiz-lens));
+  transition-duration: 40ms;
 }
 
 .figure {
@@ -339,6 +426,15 @@
   padding-top: 18px;
   border-top: 1px solid var(--quiz-line);
   line-height: 1.6;
+}
+/* In its own sheet the explanation is already named by the sheet. */
+[role="dialog"] .explanation {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+[role="dialog"] .explanationTitle {
+  display: none;
 }
 .explanationTitle {
   margin: 0 0 10px;

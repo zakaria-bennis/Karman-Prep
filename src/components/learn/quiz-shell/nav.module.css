@@ -169,8 +169,31 @@
   flex: none;
   width: 18px;
   height: 18px;
+  margin-top: 3px;
   border: 1.8px solid currentColor;
   border-radius: 50%;
+}
+/* a stopwatch: the crown on top and the button at its shoulder */
+.face::before,
+.face::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+  border-radius: 1px;
+}
+.face::before {
+  left: 50%;
+  top: -5.5px;
+  width: 6px;
+  height: 2.6px;
+  margin-left: -3px;
+}
+.face::after {
+  right: -2.6px;
+  top: -1.8px;
+  width: 4px;
+  height: 2.4px;
+  transform: rotate(45deg);
 }
 .face i {
   position: absolute;

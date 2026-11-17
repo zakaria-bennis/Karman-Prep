@@ -142,6 +142,16 @@ export function NavigatorDialog({
     box.current?.focus();
     return () => previous?.focus?.();
   }, []);
+  // Escape closes it, wherever the cursor happens to be
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      onClose();
+    };
+    window.addEventListener("keydown", key, true);
+    return () => window.removeEventListener("keydown", key, true);
+  }, [onClose]);
   return (
     <div className={styles.scrim} onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <motion.div
@@ -160,7 +170,6 @@ export function NavigatorDialog({
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={{ top: 0.08, bottom: 0.5 }}
         onDragEnd={(_, info) => info.offset.y > 120 && onClose()}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
       >
         <div className={styles.dialogHead}>
           <h2 className={styles.dialogTitle}>{title}</h2>

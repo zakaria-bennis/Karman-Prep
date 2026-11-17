@@ -11,6 +11,8 @@ const S = {
   strokeLinejoin: "round" as const,
 };
 const L = { fontSize: 11, fill: "currentColor", fontStyle: "italic" as const };
+/** An angle's size, small enough to sit beside its arc without touching a side. */
+const A = { fontSize: 6.5, fill: "currentColor" };
 
 const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
   {
@@ -48,10 +50,12 @@ const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
       <>
         <path d="M14 64 L86 64 L58 14 Z" {...S} />
         <path d="M58 14 V64" {...S} strokeDasharray="3 3" />
+        {/* the height meets the base at a right angle */}
+        <path d="M58 58 H64 V64" {...S} strokeWidth={1.1} />
         <text x="46" y="76" {...L}>
           b
         </text>
-        <text x="61" y="44" {...L}>
+        <text x="48" y="46" {...L}>
           h
         </text>
       </>
@@ -63,11 +67,11 @@ const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
     svg: (
       <>
         <path d="M18 64 L82 64 L82 18 Z" {...S} />
-        <path d="M74 64 V56 H82" {...S} />
-        <text x="44" y="38" {...L}>
+        <path d="M75 64 V57 H82" {...S} strokeWidth={1.1} />
+        <text x="42" y="36" {...L}>
           c
         </text>
-        <text x="86" y="44" {...L}>
+        <text x="87" y="44" {...L}>
           a
         </text>
         <text x="48" y="76" {...L}>
@@ -81,15 +85,27 @@ const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
     formula: "$x,\\ x\\sqrt{3},\\ 2x$ and $s,\\ s,\\ s\\sqrt{2}$",
     svg: (
       <>
-        <path d="M8 64 L48 64 L48 22 Z" {...S} />
-        <text x="12" y="60" {...L} fontSize="9">
+        {/* 30-60-90: an arc at each acute angle, a square at the right angle, and each label
+            beside its arc, clear of the sides */}
+        <path d="M4 66 L46 66 L46 42 Z" {...S} />
+        <path d="M40 66 V60 H46" {...S} strokeWidth={1.1} />
+        <path d="M16 66 A12 12 0 0 0 14.400 60.100" {...S} strokeWidth={1.1} />
+        <path d="M46 50 A8 8 0 0 0 39 46" {...S} strokeWidth={1.1} />
+        <text x="18" y="63.500" {...A}>
           30°
         </text>
-        <text x="38" y="32" {...L} fontSize="9">
+        <text x="34" y="40" {...A}>
           60°
         </text>
-        <path d="M56 64 L94 64 L94 26 Z" {...S} />
-        <text x="62" y="60" {...L} fontSize="9">
+        {/* 45-45-90 */}
+        <path d="M56 66 L92 66 L92 30 Z" {...S} />
+        <path d="M86 66 V60 H92" {...S} strokeWidth={1.1} />
+        <path d="M67 66 A11 11 0 0 0 63.800 58.200" {...S} strokeWidth={1.1} />
+        <path d="M92 41 A11 11 0 0 0 84.200 37.800" {...S} strokeWidth={1.1} />
+        <text x="69" y="63.500" {...A}>
+          45°
+        </text>
+        <text x="78" y="33" {...A}>
           45°
         </text>
       </>

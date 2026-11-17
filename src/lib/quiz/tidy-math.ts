@@ -14,3 +14,28 @@ export function tidyMathText(text: string): string {
     .replace(new RegExp(`(\\d) ([a-zA-Z])(?=[${RAISED}])`, "g"), "$1$2")
     .replace(new RegExp(`([${RAISED}\\w)]) ([−+])(?=[\\da-zA-Z(])`, "g"), "$1 $2 ");
 }
+
+const UP: Record<string, string> = {
+  "0": "⁰",
+  "1": "¹",
+  "2": "²",
+  "3": "³",
+  "4": "⁴",
+  "5": "⁵",
+  "6": "⁶",
+  "7": "⁷",
+  "8": "⁸",
+  "9": "⁹",
+};
+
+/** A power typed with a caret in plain text ("9x^3") is shown raised ("9x³"), and a hyphen
+ *  between two terms as a minus sign. Only whole-number powers; LaTeX is left to the typesetter. */
+export function raisePowers(text: string): string {
+  if (/[\\$]/.test(text)) return text;
+  return (
+    text
+      .replace(/\^(\d+)/g, (_, digits: string) => [...digits].map((d) => UP[d]).join(""))
+      // a hyphen between two terms of math (a number or a power before it, a number after)
+      .replace(new RegExp(`(\\d[a-zA-Z]?|[${RAISED})]) - (?=[\\d(])`, "g"), "$1 − ")
+  );
+}

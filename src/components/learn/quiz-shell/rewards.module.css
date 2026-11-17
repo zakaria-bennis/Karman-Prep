@@ -47,13 +47,16 @@
   border-color: var(--quiz-text);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--quiz-text) 28%, transparent);
 }
+/* a filled dot glows a little in its own colour */
 .dot[data-state="correct"] {
   border-color: var(--quiz-correct);
   background: var(--quiz-correct);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--quiz-correct) 65%, transparent);
 }
 .dot[data-state="wrong"] {
   border-color: var(--quiz-wrong);
   background: var(--quiz-wrong);
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--quiz-wrong) 60%, transparent);
 }
 .dot[data-state="locked"] {
   opacity: 0.4;

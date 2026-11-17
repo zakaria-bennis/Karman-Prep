@@ -1,6 +1,7 @@
 "use client";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import MathText from "../MathText";
+import { raisePowers } from "@/lib/quiz/tidy-math";
 import styles from "./pane.module.css";
 
 /** The explanation after grading (instant mode) or in review (locked mode). */
@@ -13,7 +14,10 @@ export function Explanation({ q, review }: { q: StudentQuizQuestion; review: Stu
     <section aria-label="Explanation" className={styles.explanation} data-ink-block="explanation">
       <h3 className={styles.explanationTitle}>Explanation</h3>
       {review.explanation_text && (
-        <MathText text={review.explanation_text} className="block whitespace-pre-wrap" />
+        <MathText
+          text={raisePowers(review.explanation_text)}
+          className="block whitespace-pre-wrap"
+        />
       )}
       {perChoice &&
         q.answer_format === "multiple_choice" &&
@@ -21,7 +25,7 @@ export function Explanation({ q, review }: { q: StudentQuizQuestion; review: Stu
           perChoice[letter] ? (
             <p key={letter} style={{ marginTop: 10 }}>
               <strong>{letter}. </strong>
-              <MathText text={perChoice[letter]!} />
+              <MathText text={raisePowers(perChoice[letter]!)} />
             </p>
           ) : null
         )}

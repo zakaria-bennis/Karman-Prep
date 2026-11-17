@@ -22,7 +22,7 @@ import { BottomBar } from "./BottomBar";
 import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
 import { ChevronIcon, ExitIcon, HighlightIcon, PenIcon, ReferenceIcon } from "./icons";
-import { MoreMenu, TEXT_SIZES } from "./MoreMenu";
+import { MoreMenu, ShortcutsList, TEXT_SIZES } from "./MoreMenu";
 import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
 import { PassageBlock, hasPassage } from "./PassageBlock";
 import { PencilContext } from "./pencil-context";
@@ -40,6 +40,7 @@ import { LevelUpCard } from "./LevelUpCard";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
+import { KEYS_SLOT_ID } from "./NumericEntry";
 import { useAnswerRecord } from "./use-answer-record";
 import type { NoteSignals } from "@/lib/quiz/signals";
 
@@ -95,7 +96,9 @@ export function QuizShell(props: QuizShellProps) {
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
   const [eliminatorOn, setEliminatorOn] = useState(false);
-  const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
+  const [dialog, setDialog] = useState<
+    "nav" | "reference" | "shortcuts" | "explain" | "exit" | null
+  >(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   // The record of how each question is answered (use-answer-record.ts), for the host to save.
@@ -122,7 +125,6 @@ export function QuizShell(props: QuizShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q?.id, props.loading]);
   /** Bumped by "?" to open the shortcuts list in the More menu. */
-  const [shortcutsAsked, setShortcutsAsked] = useState(0);
   // The host's server start time wins; otherwise the first start this session (survives reloads).
   // Nothing is recorded while the host is still loading (its attempt key is not real yet).
   const startedAt = useMemo(
@@ -165,6 +167,8 @@ export function QuizShell(props: QuizShellProps) {
     if (seenMissed.has(qid)) return;
     seenMissed.add(qid);
     setCalcOpen(false);
+    // where there is no room beside the question, the explanation rises over it
+    if (layout !== "wide") setDialog("explain");
     setHeld(qid);
     const done = window.setTimeout(() => setHeld(null), NEXT_HOLD_MS);
     return () => window.clearTimeout(done);
@@ -304,7 +308,7 @@ export function QuizShell(props: QuizShellProps) {
       const nextSize = TEXT_SIZES[Math.min(TEXT_SIZES.length - 1, Math.max(0, i + step))];
       if (nextSize) s.setTextSize(nextSize);
     },
-    help: () => setShortcutsAsked((n) => n + 1),
+    help: () => setDialog((d) => (d === "shortcuts" ? null : "shortcuts")),
   });
 
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
@@ -312,7 +316,11 @@ export function QuizShell(props: QuizShellProps) {
   const answer = ws?.answer ?? null;
   const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
   const math = q.subject === "math";
-  const missAside = instant && layout === "wide" && !!review && !review.isCorrect;
+  // The explanation is never under the answers (founder, 2026-11-17). Once a question is graded
+  // it has a page of its own: at the right on a wide screen, and on a narrower one a sheet that
+  // rises over the question (by itself after a miss; from the Explanation tab at any time).
+  const explained = instant && !!review;
+  const missAside = explained && layout === "wide";
   const dots: DotState[] = Array.from({ length: total }, (_, i) => {
     const item = questions[i];
     const r = item ? props.reviews[item.id] : undefined;
@@ -402,7 +410,12 @@ export function QuizShell(props: QuizShellProps) {
           data-highlighter={s.highlighterOn || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
           className={`${styles.shell} ${styles[layout]}`}
-          style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
+          style={
+            {
+              "--quiz-text-scale": s.textSize / 100,
+              "--quiz-bar-h": `${dockTop}px`,
+            } as React.CSSProperties
+          }
         >
           <QuizWorld />
           <div ref={header} className={styles.barGroup}>
@@ -460,8 +473,7 @@ export function QuizShell(props: QuizShellProps) {
                   <MoreMenu
                     textSize={s.textSize}
                     onTextSize={s.setTextSize}
-                    shortcutsAsked={shortcutsAsked}
-                    math={math}
+                    onShortcuts={() => setDialog("shortcuts")}
                     showSounds={mode.grading === "instant"}
                     tutor={
                       mode.showTutorFlag && props.onFlagForTutor
@@ -528,7 +540,7 @@ export function QuizShell(props: QuizShellProps) {
                       figureHere={!hasPassage(q)}
                       hasCalculator={!!props.hasCalculator}
                       pickOffer={s.pickOffer}
-                      explanationAside={missAside}
+                      explanationAside={explained}
                       onAnswer={answerWith}
                       onCross={(letter) => s.act({ type: "toggleCross", letter })}
                       onToggleReview={() =>
@@ -562,6 +574,19 @@ export function QuizShell(props: QuizShellProps) {
                 </p>
               )}
               {s.pencilOn && layout === "compact" && strip}
+              {explained && layout !== "wide" && !checking && (
+                <button
+                  type="button"
+                  className={styles.explainTab}
+                  aria-haspopup="dialog"
+                  onClick={() => setDialog("explain")}
+                >
+                  Explanation
+                  <ChevronIcon dir="up" size={16} />
+                </button>
+              )}
+              {/* a phone's keys for a typed answer are put here, low on the screen */}
+              <div id={KEYS_SLOT_ID} className={styles.keysSlot} />
               {instant && review && !checking && (
                 // Nothing is shown about an answer but the answer itself (founder, 2026-11-17:
                 // no updates during a quiz). A screen reader is still told.
@@ -610,6 +635,24 @@ export function QuizShell(props: QuizShellProps) {
               onClose={() => setDialog(null)}
             >
               <ReferenceSheet />
+            </NavigatorDialog>
+          )}
+          {dialog === "explain" && review && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title="Explanation"
+              onClose={() => setDialog(null)}
+            >
+              <Explanation q={q} review={review} />
+            </NavigatorDialog>
+          )}
+          {dialog === "shortcuts" && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title="Keyboard shortcuts"
+              onClose={() => setDialog(null)}
+            >
+              <ShortcutsList math={math} />
             </NavigatorDialog>
           )}
           {dialog === "exit" && (

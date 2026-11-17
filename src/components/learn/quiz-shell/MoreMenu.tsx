@@ -64,8 +64,7 @@ export function MoreMenu({
   showSounds,
   onReport,
   tutor,
-  shortcutsAsked = 0,
-  math = false,
+  onShortcuts,
 }: {
   textSize: number;
   onTextSize(size: number): void;
@@ -73,24 +72,17 @@ export function MoreMenu({
   onReport?(note: string): Promise<unknown>;
   /** Tutored students can send this question to their tutor, with a note if they like. */
   tutor?: { asked: boolean; onAsk(note: string): void };
-  /** Bumped by the "?" key: opens the shortcuts list. */
-  shortcutsAsked?: number;
-  /** Math questions list the calculator and reference keys. */
-  math?: boolean;
+  /** Opens the list of keyboard shortcuts, a pop-up of its own. */
+  onShortcuts(): void;
 }) {
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<"menu" | "report" | "shortcuts" | "tutor">("menu");
+  const [panel, setPanel] = useState<"menu" | "report" | "tutor">("menu");
   const [ask, setAsk] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [sending, setSending] = useState(false);
-  useEffect(() => {
-    if (!shortcutsAsked) return;
-    setOpen(true);
-    setPanel("shortcuts");
-  }, [shortcutsAsked]);
   const animations = useQuizAnimations();
   const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
@@ -187,7 +179,7 @@ export function MoreMenu({
                     disabled={tutor.asked}
                     onClick={() => setPanel("tutor")}
                   >
-                    {tutor.asked ? "Sent to your tutor" : "Ask my tutor"}
+                    {tutor.asked ? "Flagged for your tutor" : "Flag for my tutor"}
                   </button>
                 )}
                 {onReport && (
@@ -199,7 +191,10 @@ export function MoreMenu({
                   <button
                     type="button"
                     className={styles.item}
-                    onClick={() => setPanel("shortcuts")}
+                    onClick={() => {
+                      setOpen(false);
+                      onShortcuts();
+                    }}
                   >
                     Keyboard shortcuts
                   </button>
@@ -293,7 +288,7 @@ export function MoreMenu({
                 }}
               >
                 <label className={styles.label} htmlFor="quiz-ask-tutor">
-                  Question for your tutor (optional)
+                  A note for your tutor (optional)
                 </label>
                 <textarea
                   id="quiz-ask-tutor"
@@ -309,42 +304,43 @@ export function MoreMenu({
                     Back
                   </button>
                   <button type="submit" className={shell.tool}>
-                    Send to tutor
+                    Flag it
                   </button>
                 </div>
               </form>
-            )}
-            {panel === "shortcuts" && (
-              <>
-                {SHORTCUT_GROUPS.map((g) => (
-                  <section key={g.title} className={styles.keyGroup}>
-                    <h3 className={styles.keyTitle}>{g.title}</h3>
-                    <dl className={styles.keys}>
-                      {g.items
-                        .filter((it) => math || !it.math)
-                        .map((it) => (
-                          <div key={it.does}>
-                            <dt>
-                              {it.keys.map((k) => (
-                                <kbd key={k} className={styles.kbd}>
-                                  {k}
-                                </kbd>
-                              ))}
-                            </dt>
-                            <dd>{it.does}</dd>
-                          </div>
-                        ))}
-                    </dl>
-                  </section>
-                ))}
-                <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
-                  Back
-                </button>
-              </>
             )}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** Every keyboard shortcut, for the pop-up the "?" key and the More menu open. */
+export function ShortcutsList({ math }: { math: boolean }) {
+  return (
+    <>
+      {SHORTCUT_GROUPS.map((g) => (
+        <section key={g.title} className={styles.keyGroup}>
+          <h3 className={styles.keyTitle}>{g.title}</h3>
+          <dl className={styles.keys}>
+            {g.items
+              .filter((it) => math || !it.math)
+              .map((it) => (
+                <div key={it.does}>
+                  <dt>
+                    {it.keys.map((k) => (
+                      <kbd key={k} className={styles.kbd}>
+                        {k}
+                      </kbd>
+                    ))}
+                  </dt>
+                  <dd>{it.does}</dd>
+                </div>
+              ))}
+          </dl>
+        </section>
+      ))}
+    </>
   );
 }

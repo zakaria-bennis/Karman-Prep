@@ -84,16 +84,16 @@ describe("question header", () => {
     fireEvent.click(mark);
     expect(mark).toHaveAttribute("aria-pressed", "true");
   });
-  it("offers Ask my tutor, in the More menu, only to tutored students", () => {
+  it("offers Flag for my tutor, in the More menu, only to tutored students", () => {
     setup({ onFlagForTutor: () => undefined });
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    expect(screen.queryByRole("button", { name: "Ask my tutor" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Flag for my tutor" })).toBeNull();
   });
-  it("tutored students can ask their tutor from More; bookmark is a toggle", () => {
+  it("tutored students can flag a question for their tutor from More; bookmark is a toggle", () => {
     setup({ mode: modeFor("skill", { hasTutor: true }), onFlagForTutor: () => undefined });
-    expect(screen.queryByRole("button", { name: "Ask my tutor" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Flag for my tutor" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    expect(screen.getByRole("button", { name: "Ask my tutor" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Flag for my tutor" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Bookmark" })).toHaveAttribute(
       "aria-pressed",
       "false"

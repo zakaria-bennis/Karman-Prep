@@ -18,6 +18,8 @@
   --quiz-text-muted: #4b4552;
   --quiz-line: rgb(29 26 34 / 0.2);
   --quiz-accent: #2a4fc4;
+  /* a picked answer: a bright blue */
+  --quiz-pick: #2f6bff;
   --quiz-correct: #1f6b45;
   --quiz-correct-soft: rgb(31 107 69 / 0.16);
   --quiz-wrong: #a5372c;
@@ -65,6 +67,7 @@
     --quiz-text-muted: #cfc9d8;
     --quiz-line: rgb(255 255 255 / 0.2);
     --quiz-accent: #a9c1ff;
+    --quiz-pick: #5b94ff;
     --quiz-correct: #8fe0b0;
     --quiz-correct-soft: rgb(143 224 176 / 0.18);
     --quiz-wrong: #ff9d8c;
@@ -95,6 +98,7 @@
   --quiz-text-muted: #cfc9d8;
   --quiz-line: rgb(255 255 255 / 0.2);
   --quiz-accent: #a9c1ff;
+  --quiz-pick: #5b94ff;
   --quiz-correct: #8fe0b0;
   --quiz-correct-soft: rgb(143 224 176 / 0.18);
   --quiz-wrong: #ff9d8c;
@@ -785,7 +789,9 @@
     0 24px 60px -30px rgb(0 0 0 / 0.55);
 }
 .wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
-  padding-top: 36px;
+  padding: 36px 48px 48px;
+  /* the header measures the page by this (pane.module.css) */
+  container-type: inline-size;
 }
 
 /* A tool's drawing answers the pointer: it lifts and tips a little under a mouse, and dips when
@@ -824,4 +830,37 @@
 }
 .compact .bottomBar .barButton[data-flow="row"] {
   padding: 0 6px 0 2px;
+}
+
+/* Where a phone's number keys sit: a strip of the bar's own glass, just above the bottom bar.
+   Empty, it takes no room. */
+.keysSlot:not(:empty) {
+  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
+  background: var(--quiz-bar);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+}
+
+/* On a phone or a tablet the explanation has a tab of its own above the bottom bar: pressed, it
+   rises over the question as a sheet. */
+.explainTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
+  background: var(--quiz-bar);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+  color: var(--quiz-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.explainTab:active {
+  background: color-mix(in srgb, var(--quiz-text) 12%, var(--quiz-bar));
 }
