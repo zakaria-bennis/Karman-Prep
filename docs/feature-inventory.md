@@ -135,6 +135,8 @@ Vocabulary an AI ingesting this doc cold should learn first. Code mappings in `m
 
 - **Channel** — Slack-backed chat surface tied to a cohort. Two per cohort: `cohort_chat` (general) and `qa` (tutor-moderated Q&A). `chat_channels` table.
 - **DM** — direct message between two users in the same cohort. Supabase-only, no Slack. `direct_messages` table.
+- **Chat extras** (2026-11-16, on the rebuilt Chat page; migration `20261117050000_chat_extras.sql`) — announcements (a `chat_messages.message_type` only tutors and admins may post), reactions (`chat_reactions`), a question kept on a message (`question` column), replies in private chats, read marks for a class (`chat_channel_reads`), typing and presence (`chat_presence`), and chats between a student and their own tutor. Routes: `/api/chat/me`, `react`, `read`, `presence`. Tutors and admins are not held to the two student-only moderation rules (answer-sharing, contact details).
+- **After-hours assistant** — from 9 PM to 9 AM Central, a student's message to their tutor is answered in the same chat by Claude Haiku (`src/lib/chat-assistant/`), stored with `direct_messages.from_assistant = true` and shown as automated. An urgent message emails `MODERATION_ALERT_EMAIL`.
 - **Moderation pipeline** — 3-layer chat content review. Layer 1 (keyword), Layer 2 (OpenAI Moderation, fail-CLOSED), Layer 2.5 (Karman bullying classifier, additive). Run on every send via `src/lib/moderation/pipeline.ts`.
 - **Flagged** — `moderation_status='flagged'`. Held back from delivery; admin must approve at `/admin/moderation` for Slack post. Outcome of `approved_with_flag` from the pipeline.
 - **Rejected** — `moderation_status='rejected'`. Permanently hidden. Sender sees a rejection notice; recipient never sees the content.

@@ -849,3 +849,9 @@
     animation: none;
   }
 }
+
+/* a message's words keep the line breaks they were written with */
+.bubble .words {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

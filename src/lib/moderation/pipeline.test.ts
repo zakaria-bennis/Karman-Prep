@@ -339,3 +339,57 @@ describe("moderateMessage — academic dishonesty", () => {
     if (r.decision === "rejected") expect(r.layer).toBe("karman");
   });
 });
+
+// ============================================================
+// Staff: the two student-only rules are not held against a tutor.
+// ============================================================
+
+describe("moderateMessage — a tutor or admin sending", () => {
+  const clean = { flagged: false, isHighSeverity: false, worstCategory: null, worstScore: 0 };
+
+  it("lets a tutor explain an answer", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "cheating",
+      reason: "gives the answer",
+    });
+    const r = await moderateMessage(
+      baseInput({ content: "It is B, because the radius is squared", staff: true })
+    );
+    expect(r.decision).toBe("approved");
+  });
+
+  it("lets a tutor share a link, with staff known only later", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "contact",
+      reason: "a meeting link",
+    });
+    const r = await moderateMessage(
+      baseInput({ content: "Class link is in the calendar", staff: Promise.resolve(true) })
+    );
+    expect(r.decision).toBe("approved");
+  });
+
+  it("still stops a tutor for sexual content or other conduct", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    for (const category of ["sexual", "conduct"] as const) {
+      callKarmanClassifierMock.mockResolvedValue({ flagged: true, category, reason: "no" });
+      const r = await moderateMessage(baseInput({ content: "something", staff: true }));
+      expect(r.decision).toBe("rejected");
+    }
+  });
+
+  it("holds a student to both rules", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "contact",
+      reason: "a handle",
+    });
+    const r = await moderateMessage(baseInput({ content: "add me", staff: false }));
+    expect(r.decision).toBe("rejected");
+  });
+});

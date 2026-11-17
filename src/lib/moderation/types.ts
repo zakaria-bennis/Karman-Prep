@@ -48,7 +48,12 @@ export interface ModerationInput {
    *  for DMs (caller passes the recipient context separately). */
   channelId: string | null;
   /** chat_messages.message_type or 'direct_message'. */
-  messageType: "cohort_message" | "qa_question" | "qa_answer" | "direct_message";
+  messageType: "cohort_message" | "qa_question" | "qa_answer" | "announcement" | "direct_message";
+  /** The sender is the tutor here, or an admin. Two rules are for students only and are not held
+   *  against staff: answer-sharing (a tutor explains answers) and contact details (a tutor shares
+   *  class links). Every other rule applies to everyone. May be a promise, so the caller can look
+   *  the sender up while the checks run. */
+  staff?: boolean | Promise<boolean>;
 }
 
 export class ModerationError extends Error {

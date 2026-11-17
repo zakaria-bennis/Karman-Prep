@@ -12,7 +12,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
@@ -44,14 +44,24 @@ export async function GET() {
     .limit(1)
     .maybeSingle();
 
-  if (!membership?.cohort_id) {
+  // A tutor is in no class of their own: the students of the classes they teach are who they
+  // may write to.
+  let cohortIds: string[] = membership?.cohort_id ? [membership.cohort_id] : [];
+  if (cohortIds.length === 0) {
+    const { data: taught } = await supa
+      .from("cohorts")
+      .select("id")
+      .eq("tutor_user_id", callerUuid);
+    cohortIds = (taught ?? []).map((c) => c.id);
+  }
+  if (cohortIds.length === 0) {
     return NextResponse.json({ peers: [] satisfies PeerEntry[] });
   }
 
   const { data: rows, error } = await supa
     .from("cohort_members")
     .select("user_id, users!inner(id, clerk_id, first_name, last_name, email, role)")
-    .eq("cohort_id", membership.cohort_id)
+    .in("cohort_id", cohortIds)
     .is("left_at", null);
 
   if (error) {

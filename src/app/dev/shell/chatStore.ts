@@ -1,7 +1,8 @@
 // Chat's messages, kept in one place so that the Chat page and the mark on its menu icon read the
-// same thing (founder, 2026-11-16; his answers are in the project's notes). Everything here is a
-// stand-in held in memory: the live chat (Slack behind the scenes, with its own moderation) is not
-// wired to this page yet.
+// same thing (founder, 2026-11-16; his answers are in the project's notes). Signed in, with a class
+// or a tutor, the messages are the real ones (chatLive.ts fills this store and sends through the
+// live routes). Signed out, everything here is a stand-in held in memory, with made-up classmates;
+// the founder will say when those are to be removed.
 //   Who a Cohort student can write to: Announcements (only the tutor posts there), the class chat,
 //   their tutor, and any classmate. A Private student has their tutor only.
 //   What can be sent: words, a photo, or a question they bookmarked or flagged.
@@ -79,6 +80,8 @@ export type Thread = {
   peerId?: string;
   /** Live mode: its messages have been fetched. */
   loaded?: boolean;
+  /** Live mode, Announcements: the person here is the tutor, who may post. */
+  canPost?: boolean;
 };
 /** The tutor: online, offline within their hours, or after hours (9 PM to 9 AM Central), when the
  *  assistant answers. */
@@ -93,9 +96,7 @@ type State = {
   paused: boolean;
   /** The student is in a skill set, a quiz or an exam: no chat and no sign of it. */
   inQuiz: boolean;
-  /** True when the messages are real ones from the live chat (see chatLive.ts). Then reactions,
-   *  replies, announcements and attached questions are not offered: the live chat cannot keep them
-   *  yet. */
+  /** True when the messages are real ones from the live chat (see chatLive.ts). */
   live: boolean;
   /** Who a new private chat may be begun with. */
   peers: string[];
@@ -200,7 +201,13 @@ const change = (id: string, with_: (t: Thread) => Thread) =>
 
 /** What the live chat does in place of the stand-ins (chatLive.ts sets it while connected). */
 export interface Remote {
-  send(thread: Thread, body: { text?: string; photo?: File }): void;
+  send(
+    thread: Thread,
+    body: { text?: string; photo?: File; question?: Shared; replyTo?: string }
+  ): void;
+  /** `how` is null when the reaction is taken back. */
+  react(thread: Thread, msg: string, how: Reaction | null): void;
+  typing(thread: Thread): void;
   read(thread: Thread): void;
   open(thread: Thread): void;
 }
@@ -308,7 +315,15 @@ export const chat = {
       });
     return id;
   },
-  react: (thread: string, msg: string, how: Reaction) =>
+  /** The student is writing in a chat: in live mode the others see the dots. */
+  typing: (id: string) => {
+    const thread = state.threads.find((t) => t.id === id);
+    if (thread && remote) remote.typing(thread);
+  },
+  react: (thread: string, msg: string, how: Reaction) => {
+    const real = state.threads.find((t) => t.id === thread);
+    const had = real?.msgs.find((m) => m.id === msg)?.reactions.me;
+    if (real && remote) remote.react(real, msg, had === how ? null : how);
     change(thread, (t) => ({
       ...t,
       msgs: t.msgs.map((m) => {
@@ -318,7 +333,8 @@ export const chat = {
         else reactions.me = how;
         return { ...m, reactions };
       }),
-    })),
+    }));
+  },
   /** Someone else writes. `seen` is true when the student has that chat open. */
   arrive: (thread: string, from: string, text: string, seen = false) =>
     // the stand-in classmates never write into a live chat
@@ -332,7 +348,8 @@ export const chat = {
   /** The student sends. It is checked, sent, and then answered as that chat would be. */
   send: (thread: string, body: Pick<Msg, "text" | "photo" | "question" | "replyTo">) => {
     const real = state.threads.find((x) => x.id === thread);
-    if (real && remote) return remote.send(real, { text: body.text });
+    if (real && remote)
+      return remote.send(real, { text: body.text, question: body.question, replyTo: body.replyTo });
     const mine = made("me", 0, body.text ?? "", { ...body, state: "sending" });
     change(thread, (t) => ({ ...t, msgs: [...t.msgs, mine] }));
     const mark = (to: Msg["state"]) =>

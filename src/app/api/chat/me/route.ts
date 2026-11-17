@@ -1,14 +1,16 @@
 // ============================================================
 // GET /api/chat/me
 //
-// What the chat page needs to begin: who the caller is, their
-// class's chat channel if they have one, and whether their chats
-// are paused. 401 when signed out.
+// What the chat page needs to begin, and to keep its marks right: who the caller is, the chat
+// channel of their class (or of every class they teach), their tutor, what is unread, and whether their chats are paused.
+// 401 when signed out.
 // ============================================================
 
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
+import { channelUnread, isHere, shortName, tutorOf } from "@/lib/chat/extras";
 import { getStanding } from "@/lib/chat/standing";
+import { isAfterHours } from "@/lib/chat-assistant/model";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -19,7 +21,7 @@ export async function GET() {
   if (!selfUuid) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
 
   const supa = createAdminClient();
-  const [{ data: membership }, standing] = await Promise.all([
+  const [{ data: membership }, standing, mine] = await Promise.all([
     supa
       .from("cohort_members")
       .select("cohort_id")
@@ -29,18 +31,51 @@ export async function GET() {
       .limit(1)
       .maybeSingle(),
     getStanding(selfUuid),
+    tutorOf(selfUuid),
   ]);
 
-  let classChannel: { id: string; name: string } | null = null;
-  if (membership?.cohort_id) {
-    const { data: channel } = await supa
+  // A student has their one class; a tutor has every class they teach.
+  const { data: taught } = membership?.cohort_id
+    ? { data: null }
+    : await supa.from("cohorts").select("id").eq("tutor_user_id", selfUuid);
+  const staff = (taught ?? []).length > 0;
+  const cohortIds = membership?.cohort_id
+    ? [membership.cohort_id]
+    : (taught ?? []).map((c) => c.id);
+  let classes: { id: string; name: string }[] = [];
+  let unread = { chat: 0, announcements: 0 };
+  if (cohortIds.length > 0) {
+    const { data: channels } = await supa
       .from("chat_channels")
       .select("id, display_name")
-      .eq("cohort_id", membership.cohort_id)
+      .in("cohort_id", cohortIds)
       .eq("channel_type", "cohort_chat")
-      .maybeSingle();
-    if (channel) classChannel = { id: channel.id, name: channel.display_name };
+      .order("display_name");
+    classes = (channels ?? []).map((c) => ({ id: c.id, name: c.display_name }));
+    if (!staff && classes[0]) unread = await channelUnread(selfUuid, classes[0].id);
   }
 
-  return NextResponse.json({ selfUuid, classChannel, paused: standing.paused });
+  let tutor: { clerkId: string; name: string; here: boolean } | null = null;
+  if (mine) {
+    const [{ data: person }, here] = await Promise.all([
+      supa
+        .from("users")
+        .select("clerk_id, first_name, last_name, email")
+        .eq("id", mine.tutorUuid)
+        .maybeSingle(),
+      isHere(mine.tutorUuid),
+    ]);
+    if (person?.clerk_id) tutor = { clerkId: person.clerk_id, name: shortName(person), here };
+  }
+
+  return NextResponse.json({
+    selfUuid,
+    classes,
+    // a tutor: may post announcements, and writes to their students
+    staff,
+    tutor,
+    unread,
+    afterHours: isAfterHours(),
+    paused: standing.paused,
+  });
 }

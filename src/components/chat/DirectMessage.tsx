@@ -41,6 +41,8 @@ interface DmMessage {
   moderation_status: "pending" | "approved" | "flagged" | "rejected";
   rejection_message: string | null;
   created_at: string;
+  /** Written by the after-hours assistant, not by the person it is filed under. */
+  from_assistant?: boolean;
 }
 
 const PAGE_SIZE = 30;
@@ -364,6 +366,9 @@ function DmBubble({ message, self }: { message: DmMessage; self: boolean }) {
   return (
     <div className={["flex w-full", self ? "justify-end" : "justify-start"].join(" ")}>
       <div className={["flex max-w-[78%] flex-col", self ? "items-end" : "items-start"].join(" ")}>
+        {message.from_assistant && (
+          <p className="mb-1 px-1 text-[11px] text-ivory/60">Karman assistant, automated</p>
+        )}
         <div className={["relative px-3.5 py-2", bubbleColor, bubbleShape, bubbleShadow].join(" ")}>
           {!rejected && self && (
             <div

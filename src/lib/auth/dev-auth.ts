@@ -30,8 +30,11 @@
 // ============================================================
 
 import { auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 
 const DEV_IMPERSONATE_ENV = "DEV_IMPERSONATE_CLERK_ID";
+/** Request header a local test sets to act as another account while the bypass is on. */
+export const DEV_AS_HEADER = "x-dev-as";
 
 /** True when the dev bypass is active for the current process. */
 export function isDevAuthBypassActive(): boolean {
@@ -53,7 +56,11 @@ export function devBypassClerkId(): string | null {
 export async function safeAuth(): Promise<{ userId: string | null }> {
   const overrideId = devBypassClerkId();
   if (overrideId) {
-    return { userId: overrideId };
+    // A test may name another seeded account for one request, so that two people can be tried
+    // against the same local server (a student and their tutor in a chat, say). Like the bypass
+    // itself, this exists only outside production and only while the bypass is on.
+    const asked = (await headers()).get(DEV_AS_HEADER);
+    return { userId: asked?.trim() || overrideId };
   }
   const real = await auth();
   return { userId: real.userId };

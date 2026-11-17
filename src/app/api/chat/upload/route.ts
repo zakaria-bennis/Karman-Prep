@@ -12,7 +12,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 5 * 1024 * 1024;

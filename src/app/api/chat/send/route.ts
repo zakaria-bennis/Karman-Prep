@@ -24,7 +24,10 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
+import { createAdminClient } from "@/lib/supabase/server";
+import { questionText } from "@/lib/chat/shared";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import {
   findChatChannelById,
@@ -102,6 +105,17 @@ function formatDisplayName(
   return last ? `${first} ${last}` : first;
 }
 
+async function senderName(
+  senderUuid: string
+): Promise<{ first_name: string | null; last_name: string | null } | null> {
+  const { data } = await createAdminClient()
+    .from("users")
+    .select("first_name, last_name")
+    .eq("id", senderUuid)
+    .maybeSingle();
+  return data ?? null;
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -141,20 +155,32 @@ export async function POST(req: NextRequest) {
   // out to be unauthorized we paid for one OpenAI call we'll discard,
   // but the typical authorized send saves ~500-2000ms of wall-clock.
   const isAnonymous = body.isAnonymous === true && body.messageType !== "qa_answer";
+  const checkedText = [body.content ?? "", body.question ? questionText(body.question) : ""]
+    .filter(Boolean)
+    .join("\n");
+  // kept only when there is one, so a send still works before the column exists
+  const extras = body.question ? { question: body.question } : {};
+  const roleLookup = fetchUserRole(userId);
+  const tutorLookup = isTutorOfChannel(senderUuid, channel.id);
   const [role, isMember, isTutor, muted, clerkUser, standing, outcome] = await Promise.all([
-    fetchUserRole(userId),
+    roleLookup,
     isStudentInCohort(senderUuid, channel.cohort_id),
-    isTutorOfChannel(senderUuid, channel.id),
+    tutorLookup,
     isStudentMuted(senderUuid, channel.id),
-    currentUser(),
+    // the name is a nicety: a sign-in service hiccup must not stop the message
+    currentUser().catch(() => null),
     getStanding(senderUuid),
     moderateMessage({
-      content: body.content ?? "",
+      // a question sent with the message is read by the check along with it
+      content: checkedText,
       mediaUrls: body.mediaUrls ?? [],
       senderId: userId,
       senderUuid,
       channelId: channel.id,
       messageType: body.messageType,
+      staff: Promise.all([roleLookup, tutorLookup]).then(
+        ([role, teaches]) => role === "admin" || teaches
+      ),
     }),
   ]);
   const isAdmin = role === "admin";
@@ -181,9 +207,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Resolve sender's display name for the post.
+  // (the sign-in service's name, or Karman's own record of it when that is not to hand)
+  const onFile = clerkUser?.firstName ? null : await senderName(senderUuid);
   const displayName = formatDisplayName(
-    clerkUser?.firstName ?? null,
-    clerkUser?.lastName ?? null,
+    clerkUser?.firstName ?? onFile?.first_name ?? null,
+    clerkUser?.lastName ?? onFile?.last_name ?? null,
     isAnonymous
   );
 
@@ -193,7 +221,7 @@ export async function POST(req: NextRequest) {
   const clientMsgId = deriveClientMsgId({
     senderUuid,
     channelId: channel.id,
-    content: body.content ?? "",
+    content: checkedText,
     mediaUrls: body.mediaUrls ?? [],
   });
 
@@ -212,6 +240,7 @@ export async function POST(req: NextRequest) {
       content: body.content ?? "",
       media_urls: body.mediaUrls ?? [],
       parent_message_id: body.parentMessageId ?? null,
+      ...extras,
       moderation_status: "rejected",
       keyword_flagged: outcome.layer === "keyword",
       // Karman classifier rejections are AI-driven too — record them
@@ -253,6 +282,7 @@ export async function POST(req: NextRequest) {
       content: body.content ?? "",
       media_urls: body.mediaUrls ?? [],
       parent_message_id: body.parentMessageId ?? null,
+      ...extras,
       moderation_status: "flagged",
       keyword_flagged: false,
       ai_flagged: true,
@@ -280,6 +310,7 @@ export async function POST(req: NextRequest) {
     content: body.content ?? "",
     media_urls: body.mediaUrls ?? [],
     parent_message_id: body.parentMessageId ?? null,
+    ...extras,
     moderation_status: "approved",
     keyword_flagged: false,
     ai_flagged: false,
@@ -298,12 +329,21 @@ export async function POST(req: NextRequest) {
   // never made it to Slack (prior failure). In both cases the
   // Slack post needs to fire — we pass the same client_msg_id so
   // Slack dedupes if it actually received the prior attempt.
+  // A local test server has no Slack: the message is kept and shown, and nothing is posted.
+  if (process.env.NODE_ENV !== "production" && !process.env.SLACK_BOT_TOKEN) {
+    const kept = await updateChatMessageSlackTs(row.id, "local-" + Date.now());
+    return NextResponse.json({ message: kept }, { status: 201 });
+  }
+
   let slackTs: string;
   try {
     const result = await slackPostMessage({
       channelId: channel.slack_channel_id,
       displayName,
-      content: body.content ?? "",
+      content:
+        (body.messageType === "announcement" ? "Announcement: " : "") +
+        (body.content ?? "") +
+        (body.question ? `\n[Question] ${body.question.prompt}` : ""),
       imageUrls: body.mediaUrls ?? [],
       clientMsgId,
     });

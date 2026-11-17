@@ -12,7 +12,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 
@@ -133,6 +133,8 @@ export async function GET() {
     const lastInitial = last ? `${last[0].toUpperCase()}.` : "";
     const realFull = [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.email;
     const preview = (() => {
+      // held for review: the other person's words are not shown until someone has looked
+      if (lastRow.moderation_status === "flagged" && lastRow.sender_id !== callerUuid) return null;
       if (!lastRow.content) {
         return lastRow.media_urls && lastRow.media_urls.length > 0 ? "📷 Photo" : null;
       }

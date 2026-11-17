@@ -77,7 +77,7 @@ export default function ChatThread({
   live,
 }: {
   thread: Thread;
-  /** Real messages: what the live chat cannot keep (reactions, replies, questions) is not offered. */
+  /** Real messages: a private chat says so while its messages are being fetched. */
   live: boolean;
   presence: Presence;
   /** The check has paused this student's chats until the tutor has looked. */
@@ -144,7 +144,9 @@ export default function ChatThread({
           </b>
           <span>
             {thread.kind === "news"
-              ? "Only your tutor posts here"
+              ? thread.canPost
+                ? "You post here. Your class reads it."
+                : "Only your tutor posts here"
               : thread.kind === "class"
                 ? "You, your classmates and your tutor"
                 : thread.kind === "tutor"
@@ -195,7 +197,6 @@ export default function ChatThread({
                   aria-expanded={picked === m.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (live) return;
                     setMore(false);
                     setPicked(picked === m.id ? null : m.id);
                   }}
@@ -218,7 +219,7 @@ export default function ChatThread({
                   {/* a photo the student chose from their own device, shown as it is */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {m.photo && <img src={m.photo} alt="" />}
-                  {m.text}
+                  {m.text && <span className={styles.words}>{m.text}</span>}
                   {tallies.length > 0 && (
                     <span className={styles.tally} ref={stirEmoji}>
                       {[...new Set(tallies)].map((how) => (
@@ -325,7 +326,7 @@ export default function ChatThread({
         <div ref={end} />
       </div>
 
-      {thread.kind === "news" ? (
+      {thread.kind === "news" && !thread.canPost ? (
         <p className={styles.closed}>Only your tutor can post here.</p>
       ) : paused ? (
         <p className={styles.closed}>Your chats are paused until your tutor has reviewed them.</p>
@@ -390,23 +391,24 @@ export default function ChatThread({
                 }}
               />
             </label>
-            {!live && (
-              <button
-                type="button"
-                className={styles.tool}
-                aria-label="Bring a question"
-                aria-expanded={bringing}
-                onClick={() => setBringing(!bringing)}
-              >
-                <svg viewBox="0 0 24 24" width="22" height="22">
-                  <path d="M7 4h10v16l-5-3.500L7 20z" />
-                </svg>
-              </button>
-            )}
+            <button
+              type="button"
+              className={styles.tool}
+              aria-label="Bring a question"
+              aria-expanded={bringing}
+              onClick={() => setBringing(!bringing)}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22">
+                <path d="M7 4h10v16l-5-3.500L7 20z" />
+              </svg>
+            </button>
             <input
               className={styles.field}
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                chat.typing(thread.id);
+              }}
               // Enter sends: words, or a question on its own
               onKeyDown={(e) => {
                 if (e.key !== "Enter" || e.nativeEvent.isComposing) return;

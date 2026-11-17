@@ -1185,20 +1185,56 @@ images (never generate or fetch any; rely on the model and OpenAI's check), real
   mine (a vague "dm me, I have the thing" came back contact, not cheating) but were still blocked.
 - Production needs `ANTHROPIC_API_KEY` as a Worker secret before deploy (noted in wrangler.toml).
 
-## Chat with real messages (2026-11-16, late)
+## Chat is fully connected (2026-11-16, night)
 
-The new Chat page (`/dev/shell`) now uses the live chat when a student is signed in and their class
-has a chat channel. Signed out, or with no class chat, it keeps its stand-ins.
+The new Chat page (`/dev/shell`, still a dev-only page) uses the live chat whenever someone is
+signed in and has a class chat or a tutor. Signed out it shows made-up classmates; the founder will
+say when to remove them ("once I'm ready to take live students").
 
-- `src/app/dev/shell/chatLive.ts` fills the page's store from the live routes and sends through them.
-  `GET /api/chat/me` (new) says who the caller is, their class channel and whether they are paused.
-- Live: the class chat, private chats with classmates, photos (through `preparePhoto` and
-  `/api/chat/upload`), unread counts on private chats, marking a private chat read, the check's own
-  words on a stopped message, the warning dialog and the pause.
-- Not live, and hidden while live: reactions, replies, attached questions. The database has no place
-  for them yet. Announcements, the tutor chat, typing dots and the after-hours assistant are also not
-  connected. New messages are fetched every five seconds; the old page's instant updates (Supabase
-  Realtime) are not used here yet.
-- Tested only against stand-in server answers in a browser script. No real message has been sent
-  through it, because local dev writes to the real database. A first real try needs the founder's OK
-  and a signed-in test student in a class.
+What is live, all through the real checks:
+
+- Announcements (a kind of message in the class's own channel; only the tutor or an admin posts).
+- The class chat, private chats with classmates, and the chat with the tutor.
+- Photos, attached questions (kept on the message as they looked when sent), reactions, replies.
+- Typing dots, the tutor's Online / Offline / After hours pill, unread marks, Delivered and Read.
+- The after-hours assistant: from 9 PM to 9 AM Central a student's message to their tutor is
+  answered in the same chat, marked "Automated, not a person". If it judges the student may be in
+  danger it emails `MODERATION_ALERT_EMAIL` (the message itself is not copied into the email).
+- A tutor can use the same page: their classes, their students, posting announcements.
+- Tutors and admins are not held to the two student-only rules (answer-sharing, contact details).
+  Every other rule applies to them.
+
+Where things are:
+
+- `src/app/dev/shell/chatLive.ts`: the page's connection. It asks for news every 5 seconds and for
+  typing every 3 seconds while a chat is open and the page is in view.
+- Routes: `/api/chat/me`, `react`, `read`, `presence` are new; `send`, `dm`, `messages`,
+  `cohort-members`, `dm/threads` were extended. Helpers in `src/lib/chat/extras.ts` and
+  `shared.ts`; the assistant's hook is `src/lib/chat-assistant/answer.ts`.
+- Migration `20261117050000_chat_extras.sql` (reactions, questions, announcements, replies in
+  private chats, assistant mark, read marks, presence). It is NOT on production: it runs when the
+  branch is merged. Until then the new columns and tables do not exist there, and the code is
+  written to keep working without them.
+
+How it was tested:
+
+- One real message was sent from the page as a test student in the test class "Stress Small Group
+  1" on the real database (founder's OK, 2026-11-16). It was approved, stored and reached Slack.
+- Everything new was tested against the local test database, never production: a 31-step
+  two-person script (student, tutor, classmate, outsider) and a browser run with a student and a
+  tutor side by side. Start that server with the `chat-local` entry in `.claude/launch.json`. A
+  request header `x-dev-as: <seeded clerk id>` picks the person; it works only outside production
+  and only while the local sign-in bypass is on.
+
+Still open for Chat:
+
+- Parents reading the tutor chat: waits for the parent portal.
+- Switching Chat off during a skill set, quiz or exam: waits for the quiz engine.
+- Tutors writing from Slack still do not appear in Karman; they use the page.
+- The old chat page (`/dashboard/student/chat`) is still the one live students would see until the
+  rebuilt portal moves to real addresses. It shows assistant messages with a label, but has no
+  reactions, replies or questions.
+- Removing a student from a class, and holding every photo until a person has looked, are not built.
+- The test class holds old test messages with sexual words that the old check approved in May.
+  They should be deleted before real students join that class.
+- After merge: run `npm run db:types`.

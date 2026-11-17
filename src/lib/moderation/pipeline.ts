@@ -157,7 +157,9 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   // prompt is stricter than OpenAI's safety categories — if it says
   // a parent would be uncomfortable, we don't second-guess.
   // Academic dishonesty is reported apart from other conduct, so the caller can count it.
-  if (karman.flagged && karman.category === "cheating") {
+  const studentRule = karman.category === "cheating" || karman.category === "contact";
+  const karmanFlagged = karman.flagged && !(studentRule && (await input.staff) === true);
+  if (karmanFlagged && karman.category === "cheating") {
     return {
       decision: "rejected",
       layer: "integrity",
@@ -166,7 +168,7 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     };
   }
 
-  if (karman.flagged) {
+  if (karmanFlagged) {
     return {
       decision: "rejected",
       layer: "karman",
