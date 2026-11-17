@@ -1,31 +1,126 @@
-/* The quiz shell. Every colour is a --quiz-* role from the account theme (spec: Look and themes). */
+/* The quiz shell. It sits on the portal's live landscape (QuizWorld.tsx), and everything on it
+   is frosted glass: the bars, the question's page, the tools (founder, 2026-11-17: "keep the
+   frosted background and drop the opaque colors"). Every colour is a --quiz-* role, set here for
+   day and for night; an account theme no longer colours the quiz. */
 .shell {
+  --quiz-bg: #fffaf3;
+  --quiz-panel: rgb(255 251 244 / 0.62);
+  /* a choice, or any small piece, on the page: a lighter lens of the same glass */
+  --quiz-lens: rgb(255 255 255 / 0.34);
+  /* a menu or a note that floats over the page: glass dense enough to read on */
+  --quiz-sheet: rgb(255 251 244 / 0.88);
+  --quiz-text: #1d1a22;
+  --quiz-text-muted: #4b4552;
+  --quiz-line: rgb(29 26 34 / 0.2);
+  --quiz-accent: #2a4fc4;
+  --quiz-correct: #1f6b45;
+  --quiz-correct-soft: rgb(31 107 69 / 0.16);
+  --quiz-wrong: #a5372c;
+  --quiz-highlight-1: rgb(242 182 50 / 0.45);
+  --quiz-highlight-2: rgb(47 139 255 / 0.32);
+  --quiz-highlight-3: rgb(255 61 154 / 0.28);
+  --quiz-pen-1: #1d1a22;
+  --quiz-pen-2: #a86a00;
+  --quiz-pen-3: #a5372c;
+  --quiz-pen-4: #1f5fd0;
+  --quiz-pen-5: #1f6b45;
+  /* the one button to press, in the portal's own green */
+  --quiz-go: #0a5a43;
+  --quiz-on-go: #fffdf8;
+  --quiz-frost: blur(20px) saturate(1.6) brightness(1.06);
+  --quiz-edge: rgb(255 255 255 / 0.6);
+  /* behind the landscape until it has drawn */
+  --quiz-sky: #cdd6ea;
   position: fixed;
   inset: 0;
   z-index: 70;
   display: grid;
-  /* One column that may shrink: without it the bars' widest content sets the screen's width,
-     and on a phone the question slid off the right edge. */
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
   /* One column, never wider than the screen: an auto column grew to its content (682px on a
      390px phone), pushing Submit and the passage off screen (QA 2026-11-08). */
   grid-template-columns: minmax(0, 1fr);
-  background: var(--quiz-bg);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--quiz-sky);
   color: var(--quiz-text);
   font-size: calc(1rem * var(--quiz-text-scale, 1));
   -webkit-text-size-adjust: 100%;
 }
 
-/* Liquid glass for the bars and tool buttons (rule 50, app only): it bends the background,
-   carries a bright top edge and sits slightly raised. Panels stay solid. */
+/* Night: the device is dark and nobody chose day, or somebody chose night (the portal's rule). */
+@media (prefers-color-scheme: dark) {
+  :global(:root:not([data-kp-mode="light"])) .shell {
+    --quiz-bg: #12142a;
+    --quiz-panel: rgb(14 16 34 / 0.72);
+    --quiz-lens: rgb(255 255 255 / 0.07);
+    --quiz-sheet: rgb(22 24 46 / 0.9);
+    --quiz-text: #f6f1e7;
+    --quiz-text-muted: #cfc9d8;
+    --quiz-line: rgb(255 255 255 / 0.2);
+    --quiz-accent: #a9c1ff;
+    --quiz-correct: #8fe0b0;
+    --quiz-correct-soft: rgb(143 224 176 / 0.18);
+    --quiz-wrong: #ff9d8c;
+    --quiz-highlight-1: rgb(242 182 50 / 0.38);
+    --quiz-highlight-2: rgb(90 169 255 / 0.36);
+    --quiz-highlight-3: rgb(255 110 180 / 0.32);
+    --quiz-pen-1: #f6f1e7;
+    --quiz-pen-2: #ffd27a;
+    --quiz-pen-3: #ff9d8c;
+    --quiz-pen-4: #8fbcff;
+    --quiz-pen-5: #9be0c0;
+    --quiz-go: #8fe6c3;
+    --quiz-on-go: #0d241c;
+    --quiz-frost: blur(20px) saturate(1.5) brightness(0.8);
+    --quiz-edge: rgb(255 255 255 / 0.16);
+    --quiz-sky: #141627;
+  }
+}
+:global(:root[data-kp-mode="dark"]) .shell {
+  --quiz-bg: #12142a;
+  --quiz-panel: rgb(14 16 34 / 0.72);
+  --quiz-lens: rgb(255 255 255 / 0.07);
+  --quiz-sheet: rgb(22 24 46 / 0.9);
+  --quiz-text: #f6f1e7;
+  --quiz-text-muted: #cfc9d8;
+  --quiz-line: rgb(255 255 255 / 0.2);
+  --quiz-accent: #a9c1ff;
+  --quiz-correct: #8fe0b0;
+  --quiz-correct-soft: rgb(143 224 176 / 0.18);
+  --quiz-wrong: #ff9d8c;
+  --quiz-highlight-1: rgb(242 182 50 / 0.38);
+  --quiz-highlight-2: rgb(90 169 255 / 0.36);
+  --quiz-highlight-3: rgb(255 110 180 / 0.32);
+  --quiz-pen-1: #f6f1e7;
+  --quiz-pen-2: #ffd27a;
+  --quiz-pen-3: #ff9d8c;
+  --quiz-pen-4: #8fbcff;
+  --quiz-pen-5: #9be0c0;
+  --quiz-go: #8fe6c3;
+  --quiz-on-go: #0d241c;
+  --quiz-frost: blur(20px) saturate(1.5) brightness(0.8);
+  --quiz-edge: rgb(255 255 255 / 0.16);
+  --quiz-sky: #141627;
+}
+
+/* The landscape, behind everything on the screen. */
+.world {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+/* Frosted glass: the landscape shows through it, blurred, under a bright top edge. (The
+   -webkit- line comes first, here and below: written the other way round, the build drops both.) */
 .glass {
-  background: color-mix(in srgb, var(--quiz-panel) 72%, transparent);
-  backdrop-filter: blur(18px) saturate(1.6);
-  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--quiz-text) 22%, transparent),
-    0 6px 18px -10px color-mix(in srgb, black 60%, transparent);
+    inset 0 1px 0 var(--quiz-edge),
+    0 6px 18px -10px rgb(0 0 0 / 0.5);
+}
+/* Glass that floats over the page (a menu, a note, the pencil's tools) is denser. */
+.glass:not(.topBar, .bottomBar) {
+  background: var(--quiz-sheet);
 }
 
 .topBar,
@@ -308,9 +403,9 @@
   min-width: 112px;
   padding: 0 14px 0 22px;
   border: 0;
-  border-radius: 10px;
-  background: var(--quiz-accent);
-  color: var(--quiz-bg);
+  border-radius: 24px;
+  background: var(--quiz-go);
+  color: var(--quiz-on-go);
   font: inherit;
   font-weight: 750;
   cursor: pointer;
@@ -363,6 +458,8 @@
   padding: 28px 32px 48px;
   border-left: 1px solid var(--quiz-line);
   background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
   color: var(--quiz-text);
 }
 .aside section {
@@ -388,6 +485,8 @@
   position: relative;
   isolation: isolate;
   background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
   min-height: 100%;
   padding: 24px clamp(16px, 4vw, 48px) 48px;
 }
@@ -438,7 +537,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--quiz-bg);
   touch-action: none;
 }
 .wide .divider {
@@ -478,43 +576,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
-    animation: none;
-  }
-}
-
-/* The sky shows only around the content on wide screens. */
-.sky {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  display: none;
-}
-.wide .sky {
-  display: block;
-}
-.skyStar {
-  fill: var(--quiz-text);
-}
-.skyLine {
-  stroke: var(--quiz-text);
-  stroke-width: 0.04;
-  opacity: 0.12;
-}
-.skyDrift {
-  animation: drift 120s linear infinite alternate;
-}
-.shell[data-drawing="true"] .skyDrift {
-  animation-play-state: paused;
-}
-@keyframes drift {
-  to {
-    transform: translate(-2px, 1px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .skyDrift {
     animation: none;
   }
 }
@@ -569,119 +630,53 @@
   background: color-mix(in srgb, var(--quiz-accent) 14%, var(--quiz-panel));
 }
 
-/* The painting window (the Challenge questions): the day's painting, still, shows around the
-   question on wide screens and as a strip under the top bar elsewhere. The bars are solid and
-   tinted by the painting's hue, so the painting never sits behind text. */
-.painting {
+/* On a wide screen a question with nothing beside it is one page of glass in the middle, and
+   the landscape is clear at its sides. The pane itself stays full width, so pencil notes in the
+   margins keep their place; the glass is drawn behind the column. */
+.wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 50%;
+  z-index: -1;
+  width: min(calc(44rem + 98px), calc(100% - 24px));
+  transform: translateX(-50%);
+  border-radius: 22px;
+  background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+  box-shadow:
+    inset 0 0 0 1px var(--quiz-edge),
+    0 24px 60px -30px rgb(0 0 0 / 0.55);
+  transition: opacity 300ms ease;
+}
+.wide.split .frame {
+  max-width: 1280px;
+}
+
+/* Pencil on: the glass spreads over the whole screen, more deeply frosted, so the margins can be
+   written on and the pen always stands out. */
+.shell[data-pencil]::before {
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transition: opacity 400ms ease;
   pointer-events: none;
+  background: var(--quiz-panel);
+  -webkit-backdrop-filter: blur(36px) saturate(0.8);
+  backdrop-filter: blur(36px) saturate(0.8);
 }
-.painting[data-ready] {
-  opacity: 1;
-}
-/* With the painting behind it, the whole quiz takes the painting's colours (founder,
-   2026-11-08: "a matching color theme to the background … you don't need to stick exclusively
-   to marigold"). Light and dark still follow the device: each has its own painted set. The
-   accent is light in dark mode and dark in light mode, so text on it (--quiz-bg) stays legible.
-   Right and wrong keep their own colours. */
-.shell[data-backdrop="painting"] {
-  --window-bar: hsl(var(--hue, 208) 34% 95%);
-  --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 95%);
-  --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.4) 98%);
-  --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 80%);
-  --quiz-text: hsl(var(--hue, 208) 30% 12%);
-  --quiz-text-muted: hsl(var(--hue, 208) 14% 36%);
-  --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 34%);
-}
-@media (prefers-color-scheme: dark) {
-  .shell[data-backdrop="painting"] {
-    --window-bar: hsl(var(--hue, 208) 26% 12%);
-    --quiz-bg: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 8%);
-    --quiz-panel: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.35) 11%);
-    --quiz-line: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.3) 24%);
-    --quiz-text: hsl(var(--hue, 208) 20% 93%);
-    --quiz-text-muted: hsl(var(--hue, 208) 12% 70%);
-    --quiz-accent: hsl(var(--hue, 208) calc(var(--hs, 55%) * 0.9) 68%);
-  }
-}
-.shell[data-backdrop="painting"] .barGroup,
-.shell[data-backdrop="painting"] .body {
+.shell[data-pencil] .barGroup,
+.shell[data-pencil] .body {
   position: relative;
   z-index: 1;
 }
-.shell[data-backdrop="painting"] .topBar,
-.shell[data-backdrop="painting"] .bottomBar {
-  background: var(--window-bar);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.shell[data-backdrop="painting"] .sky {
-  display: none;
-}
-/* The page stays full width (so pencil notes in the margins keep their place), and the reading
-   panel is drawn behind the column instead. */
-.shell[data-backdrop="painting"].wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
-  background: transparent;
-}
-.shell[data-backdrop="painting"].wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  /* Always reaches the bottom of the screen, even when the page is shorter (calculator open). */
-  height: max(100%, 100vh);
-  left: 50%;
-  z-index: -1;
-  width: min(calc(44rem + 98px), 100%);
-  transform: translateX(-50%);
-  border-left: 1px solid var(--quiz-line);
-  border-right: 1px solid var(--quiz-line);
-  background: var(--quiz-panel);
-  box-shadow: 0 0 60px -20px rgb(0 0 0 / 0.35);
-  transition: opacity 300ms ease;
-}
-.shell[data-backdrop="painting"] .wide.split .frame {
-  max-width: 1280px;
-}
-.shell[data-backdrop="painting"]:not(.wide) .area {
-  margin-top: 10px;
-  border-top: 1px solid var(--quiz-line);
-}
-
-/* Pencil on, untimed (founder, 2026-11-08): the painting turns to frosted glass, heavily blurred
-   and tinted toward the mode's background, and the question's page widens to the edges so the
-   margins can be written on. Dark enough (or light enough) that the pen always stands out. */
-.shell[data-backdrop="painting"] .painting {
-  transition:
-    opacity 400ms ease,
-    filter 360ms ease;
-}
-.shell[data-backdrop="painting"][data-pencil] .painting {
-  filter: blur(36px) saturate(0.7) brightness(1.25) contrast(0.6);
-}
-.shell[data-backdrop="painting"][data-pencil]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--quiz-bg) 62%, transparent);
-}
-@media (prefers-color-scheme: dark) {
-  .shell[data-backdrop="painting"][data-pencil] .painting {
-    filter: blur(36px) saturate(0.7) brightness(0.55);
-  }
-  .shell[data-backdrop="painting"][data-pencil]::before {
-    background: color-mix(in srgb, var(--quiz-bg) 58%, transparent);
-  }
-}
-.shell[data-backdrop="painting"][data-pencil].wide
-  [data-quiz-scroll]
-  > [data-quiz-pane]:only-child::before {
+.shell[data-pencil].wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
   opacity: 0;
 }

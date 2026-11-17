@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useIsPresent } from "framer-motion";
 import { useRef, useState, type ReactNode } from "react";
 import styles from "./quiz-shell.module.css";
 import { Divider } from "./Divider";
-import { Sky } from "./Sky";
 import { InkLayer } from "./InkLayer";
 import { AnnotationLayer } from "./AnnotationLayer";
 import { DUR, useShellMotion } from "./motion";
@@ -67,7 +66,6 @@ export function QuestionArea({
       className={`${styles.area} ${styles[layout]} ${split2 ? styles.split : ""}`}
       data-aside={aside ? "" : undefined}
     >
-      <Sky />
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={questionKey}

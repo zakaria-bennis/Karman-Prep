@@ -32,7 +32,7 @@ import { QuestionContent } from "./QuestionContent";
 import { ReferenceSheet } from "./ReferenceSheet";
 import { Timer } from "./Timer";
 import { BarButton, TopBar } from "./TopBar";
-import { PaintingWindow } from "./PaintingWindow";
+import { QuizWorld } from "./QuizWorld";
 import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
 import { Explanation } from "./Explanation";
 import { FeedbackBar, ProgressDots } from "./Rewards";
@@ -41,6 +41,8 @@ import { DRAWING_NAMES } from "./drawings";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
+import { useAnswerRecord } from "./use-answer-record";
+import type { NoteSignals } from "@/lib/quiz/signals";
 
 export type QuizShellProps = {
   mode: QuizMode;
@@ -53,6 +55,9 @@ export type QuizShellProps = {
   topic?: string;
   onNavigate(index: number): void;
   onSelectAnswer?(questionId: string, answer: string | null): void;
+  /** How a question was answered (time worked, time away, changes of mind and so on), each time
+   *  there is more to keep. The host saves it; nothing waits on it. */
+  onSignals?(signals: NoteSignals): void;
   onSubmit?(questionId: string, answer: string): void | Promise<void>;
   /** "time" when a countdown ran out and the section submitted itself. */
   onFinish?(reason?: "time"): void;
@@ -77,9 +82,6 @@ export type QuizShellProps = {
   /** A completed skill set moved the skill's band (skill practice only). */
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
-  /** The day's painting, still, around the question. Untimed practice (instant grading, no
-   *  countdown) gets it by default (founder, 2026-11-08); "none" turns it off. */
-  backdrop?: "painting" | "none";
 };
 
 function seedOf(text: string): number {
@@ -92,8 +94,6 @@ export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
   const layout = useQuizLayout();
   const q = questions[index];
-  const untimed = mode.grading === "instant" && !props.hideClock;
-  const backdrop = props.backdrop ?? (untimed ? "painting" : "none");
   const total = props.total ?? questions.length;
   const review = q ? props.reviews[q.id] : undefined;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
@@ -102,6 +102,24 @@ export function QuizShell(props: QuizShellProps) {
   const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
+  // The record of how each question is answered (use-answer-record.ts), for the host to save.
+  const working = q ? s.workspaces[q.id] : undefined;
+  const letters = useMemo(
+    () => (q?.answer_format === "multiple_choice" ? q.answer_choices.map((c) => c.letter) : []),
+    [q]
+  );
+  useAnswerRecord({
+    attemptKey,
+    mode: mode.grading,
+    enabled: !props.loading && mode.grading !== "locked",
+    question: q ? { id: q.id, order: letters } : undefined,
+    answer: working?.answer ?? null,
+    crossedOut: working?.crossedOut ?? [],
+    marked: working?.markedForReview ?? false,
+    calculatorOpen: calcOpen,
+    answered: mode.grading === "instant" && !!review,
+    onSignals: props.onSignals,
+  });
   // Analytics: which questions were seen (skips and time to first answer, with the answer tables).
   useEffect(() => {
     if (q && !props.loading) track("question_viewed", { questionId: q.id, mode: mode.grading });
@@ -359,11 +377,10 @@ export function QuizShell(props: QuizShellProps) {
           data-pencil={s.pencilOn || undefined}
           data-highlighter={s.highlighterOn || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
-          data-backdrop={backdrop}
           className={`${styles.shell} ${styles[layout]}`}
           style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
         >
-          {backdrop === "painting" && <PaintingWindow />}
+          <QuizWorld />
           <div ref={header} className={styles.barGroup}>
             <TopBar
               section={props.section}

@@ -19,6 +19,7 @@ import { PlanLimitError } from "@/lib/assembler/plan-gate";
 import { startTimeTrial, trialSectionSchema } from "@/lib/assembler/time-trial-run";
 import type { RunView } from "@/lib/assembler/run-types";
 import { trackServer } from "@/lib/analytics/server";
+import { saveSignals } from "@/lib/assembler/signals-store";
 
 async function studentId(): Promise<string> {
   const { userId } = await safeAuth();
@@ -128,4 +129,11 @@ export async function actionSubmitRunSection(
   input: z.input<typeof sectionSchema>
 ): Promise<RunActionResult<RunView>> {
   return wrap(async () => submitSection(await studentId(), sectionSchema.parse(input)));
+}
+
+/** How questions of a run were answered, as the browser saw it (time worked, time away, changes
+ *  of mind, the calculator and so on; src/lib/quiz/signals.ts). Never needed for the quiz to go
+ *  on: a failure here is quiet. */
+export async function actionNoteAnswerSignals(input: unknown) {
+  return wrap(async () => saveSignals(await studentId(), input));
 }

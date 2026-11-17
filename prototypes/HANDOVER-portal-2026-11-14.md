@@ -1239,6 +1239,61 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
+## Quiz engine and data (2026-11-17, first slice)
+
+He chose this first from his long list (memory: `project_big_list_nov17.md`), adding: "keep the
+frosted background and drop the opaque colors and also redesign the calculator UI around as well
+to match." **The live site already has a working quiz engine** (`src/components/quiz-flows/`,
+`src/components/learn/quiz-shell/`, `src/lib/assembler/`): practice sets, the Daily 10, domain
+quizzes, full-length tests, the diagnostic, time trials and the challenge question, on real
+questions, graded on the server. So this is a restyle and an extension of that engine, not a new
+one. Done in this slice:
+
+- **The look.** Every quiz now sits on the portal's live landscape with frosted glass over it
+  (`QuizWorld.tsx`; colors and glass in `quiz-shell.module.css`, day and night, following
+  `data-kp-mode` like the portal). The opaque white page, the opaque bars, the still painting
+  (`PaintingWindow.tsx`) and the stars in the margins (`Sky.tsx`) are deleted. An account theme
+  no longer colors the quiz. The main button is the portal's green. He has not judged it yet.
+  Note: in the build, `backdrop-filter` must be written with the `-webkit-` line first, or both
+  lines are dropped.
+- **What is recorded on every answer** (it was: the final answer, right or wrong, and seconds).
+  Now also, in `quiz_response_signals` (migration `20261117070000`, one row a question a run,
+  **not on production until merge**): time really worked, time away from the page and how many
+  times it was left, idle time, time to the first action, every choice picked in order (so a
+  change of mind and which way it went), what was crossed out, calculator opens and time, time
+  on the explanation, visits, pastes, copies, mark for review, touch or mouse or keys, and the
+  screen. Code: `src/lib/quiz/record.ts` (the record, pure and tested), `signals.ts` (what is
+  sent), `use-answer-record.ts` (watches the quiz screen), `actionNoteAnswerSignals` and
+  `src/lib/assembler/signals-store.ts` (saves it for a run that is the student's own).
+- **What a tutor may want to look at:** `src/lib/quiz/integrity.ts` reads those records and lists
+  facts (right sooner than it could be read, long away then right, pasted, left many times,
+  copied) and calls it a pattern only across several questions. It is evidence for a person,
+  never proof; it changes no grade and is never shown to the student. Nothing shows it yet: that
+  is for the tutor's portal.
+- **Tested** on the local test database (below): a real practice set recorded a changed answer,
+  three seconds away, a copy and time on the explanation.
+
+**Not done, in this order:**
+1. **The calculator** restyled to match (its window is opaque: `--kcc-chrome`; it has 20 themes
+   of its own in `src/lib/calculator/theme/themes.ts`, built by `npm run calculator:build`; read
+   `docs/superpowers/specs/2026-10-16-calculator-design.md` first; contrast rule D9 must hold;
+   never cut a feature). Waiting on his verdict on the quiz's look.
+2. **Start buttons in the new portal** (`/dev/shell`) do not open the engine yet. The portal's 72
+   skills (`skills72.ts`) do not line up with the bank's 39 skills and 92 sub-skills
+   (`src/data/curriculum/skill-catalog.ts`, `src/lib/subskills/taxonomy.ts`): there is no id
+   mapping, and making one is a decision for him (no retagging without his say).
+3. **History:** the new Mistake Log runs on made-up sessions; the real ones are in `quiz_runs`
+   and `quiz_run_responses`.
+4. **Gaps still not recorded:** the order of choices is never shuffled; a question's version;
+   time remaining; the full-length test's second-module route on each answer.
+5. **Before this merges:** the privacy policy and parents must say what is recorded and why (the
+   students are minors), and the lawyer should see it. He has been told; he has not answered.
+
+**The local test database.** `docs/overnight/local-db.md`: a copy of the question bank and fake
+accounts, on this Mac. The launch entry `chat-local` runs the app against it on port 3000 as a
+seeded Cohort student, so quizzes can be answered without touching production. A real practice
+set is at `/learn/set/<skill id>` (for example `ma-skill-circles`).
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened

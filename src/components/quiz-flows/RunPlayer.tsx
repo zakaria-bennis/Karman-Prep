@@ -14,6 +14,7 @@ import {
 } from "@/app/learn/saved-question-actions";
 import {
   actionAnswerRunQuestion,
+  actionNoteAnswerSignals,
   actionResumeRun,
   actionSubmitRunSection,
   type RunActionResult,
@@ -250,6 +251,7 @@ function InstantRun({
       questions={questions}
       total={section.total}
       attemptKey={run.id}
+      onSignals={(signals) => void actionNoteAnswerSignals(signals)}
       index={index}
       section={run.kind === "daily-ten" ? "Daily 10" : run.title}
       /* Only a skill's own practice names its topic: anywhere else it gives the answer away
@@ -354,6 +356,7 @@ function TimedRun({
       questions={section.questions}
       total={section.total}
       attemptKey={`${run.id}:${section.key}`}
+      onSignals={(signals) => void actionNoteAnswerSignals(signals)}
       index={index}
       section={section.title}
       topic={undefined}

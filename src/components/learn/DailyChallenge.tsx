@@ -156,7 +156,6 @@ function DailyQuestion({ value }: { value: Extract<DailySlot, { state: "ready" }
           attemptKey={attemptKey}
           index={0}
           section="Challenge question"
-          backdrop="painting"
           reviews={review ? { [q.id]: review } : {}}
           saved={student.saved}
           hasCalculator={subject === "math"}
