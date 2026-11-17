@@ -63,9 +63,11 @@
   }
 }
 
-.hero {
-  display: grid;
-  margin-bottom: 4px;
+/* the picture: the hero over the city, across the top of the card */
+.scene {
+  display: block;
+  width: calc(100% + 48px);
+  margin: -28px -24px 8px;
 }
 
 .card h2 {
@@ -134,7 +136,7 @@
   align-items: center;
   gap: 12px;
   min-height: 84px;
-  padding: 12px 16px;
+  padding: 10px 12px 10px 10px;
   border-radius: 20px;
   overflow: hidden;
   background: linear-gradient(120deg, rgb(122 76 255 / 0.5), rgb(196 70 200 / 0.4));

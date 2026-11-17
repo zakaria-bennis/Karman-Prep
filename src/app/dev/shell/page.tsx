@@ -83,6 +83,31 @@ function Shell() {
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
+  // The menu opens when the pointer rests on it, not when it only passes over: coming back to the
+  // browser from another screen sweeps the pointer across the left edge, and that used to open it.
+  // It also closes when the pointer or the window leaves, since no "leave" is told then.
+  const opening = useRef(0);
+  const openSoon = () => {
+    window.clearTimeout(opening.current);
+    opening.current = window.setTimeout(() => setOpen(true), 110);
+  };
+  const notYet = () => window.clearTimeout(opening.current);
+  useEffect(() => {
+    if (held) return;
+    const shut = () => {
+      window.clearTimeout(opening.current);
+      setOpen(false);
+    };
+    const gone = () => document.hidden && shut();
+    window.addEventListener("blur", shut);
+    document.documentElement.addEventListener("mouseleave", shut);
+    document.addEventListener("visibilitychange", gone);
+    return () => {
+      window.removeEventListener("blur", shut);
+      document.documentElement.removeEventListener("mouseleave", shut);
+      document.removeEventListener("visibilitychange", gone);
+    };
+  }, [held]);
   const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
   const [page, setPage] = useState<StickerName>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
@@ -285,7 +310,12 @@ function Shell() {
 
       {/* a strip along the very edge: a pointer thrown to the far left opens the menu */}
       {rail && (
-        <div className={styles.edge} aria-hidden="true" onPointerEnter={() => setOpen(true)} />
+        <div
+          className={styles.edge}
+          aria-hidden="true"
+          onPointerEnter={openSoon}
+          onPointerLeave={notYet}
+        />
       )}
       <motion.nav
         className={styles.nav}
@@ -294,12 +324,15 @@ function Shell() {
         initial={false}
         animate={rail ? { width: wide ? 232 : 72 } : { width: "auto" }}
         transition={still ? STILL : OPEN}
-        onPointerEnter={() => setOpen(true)}
+        onPointerEnter={openSoon}
         onPointerLeave={() => {
+          notYet();
           setOpen(false);
           setHover(null);
         }}
-        onFocus={() => setOpen(true)}
+        // the keyboard opens it by tabbing in. Focus that only comes back because the window did
+        // (a button pressed earlier is focused again when the browser is returned to) does not.
+        onFocus={(e) => e.target.matches(":focus-visible") && setOpen(true)}
         onBlur={() => setOpen(false)}
       >
         <span className={styles.brand} aria-label="Karman">
@@ -372,10 +405,23 @@ function Shell() {
         >
           <span className={styles.face} aria-hidden="true">
             <b>
-              {/* no picture has been set, so this is the plain one: a head and shoulders */}
+              {/* until a student sets a picture of their own: Karman's plain one, a soft violet
+                  sky and a figure, its head at the circle's middle */}
               <svg viewBox="0 0 34 34" width="34" height="34">
-                <circle cx="17" cy="13.500" r="5.500" />
-                <path d="M6 31c1.500-6.500 5.700-9.500 11-9.500s9.500 3 11 9.500Z" />
+                <defs>
+                  <linearGradient id="kp-me-sky" x1="0.2" y1="0" x2="0.5" y2="1">
+                    <stop offset="0" stopColor="#9a86ea" />
+                    <stop offset="0.6" stopColor="#8a8fe6" />
+                    <stop offset="1" stopColor="#62c4e8" />
+                  </linearGradient>
+                </defs>
+                <rect width="34" height="34" fill="url(#kp-me-sky)" />
+                <circle cx="17" cy="15.500" r="5.600" fill="#3b3a6e" fillOpacity="0.88" />
+                <path
+                  d="M5 35c0-7.200 5.200-10.600 12-10.600S29 27.800 29 35Z"
+                  fill="#3b4f78"
+                  fillOpacity="0.85"
+                />
               </svg>
             </b>
           </span>

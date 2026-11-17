@@ -993,3 +993,14 @@ the middle icon stands in a lighter circle. **The exam banner's scene is still d
 looping footage of a beach (dusk for dark, sunset for light): a free-license clip must be found and he
 must OK the download.** Twice in this session a style edit cut out the `.main`/`.arrow`/`.sort` rules of
 `homework.module.css`; look at a picture after every CSS patch there.
+
+**Homework, eighth version (same day).** The exam banner now plays **real film** of waves on a beach in
+a loop: `public/portal/exam-shore-day.mp4` (Pexels 5288655) by day and `exam-shore-night.mp4` (Pexels
+3179024, darkened) by night, each with a `.jpg` poster; he approved the downloads; Pexels' license is
+free with no credit needed. Cut to about 9 seconds with a cross-faded join, 1280 wide, 0.7 MB and 2 MB.
+The old drawn beach is hidden (`.shore`), to delete once he approves the film. **The menu no longer
+opens by itself:** it opens only when the pointer rests on it (110 ms) or on keyboard focus, and it shuts
+when the window loses focus or the pointer leaves the page (`page.tsx`). The challenge's picture is the
+fox flying over a city with a detailed mask and a rippling cape (`HomeworkHero.tsx`), night or day with
+the page. The Daily 10 has most of the head row. The default profile picture is a violet sky with a
+figure. Every small picture now carries `fill="none"` itself, so a lost style rule cannot turn it black.

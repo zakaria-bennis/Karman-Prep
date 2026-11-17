@@ -50,7 +50,14 @@ const tally = (day: HomeworkDay) => ({
 });
 
 const Chevron = ({ back = false }: { back?: boolean }) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    aria-hidden="true"
+  >
     <path d={back ? "M14.500 6.500L9 12l5.500 5.500" : "M9.500 6.500L15 12l-5.500 5.500"} />
   </svg>
 );
@@ -136,7 +143,14 @@ function Work({
             }}
           >
             Completed <b>{done.length}</b>
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
               <path d="M6.500 14.500L12 9l5.500 5.500" />
             </svg>
           </button>

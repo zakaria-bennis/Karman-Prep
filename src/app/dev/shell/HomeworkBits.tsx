@@ -4,7 +4,7 @@
 // picture of a Math domain, the sign of a piece's state, a piece of work itself, and the exam's
 // banner. Everything is drawn here in code and moved with GSAP (homeworkMotion.ts).
 import gsap from "gsap";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ACCESSORIES, Dressed, type Outfit } from "./accessories";
 import { useEquipped } from "./equipped";
 import { EXAM, KINDS, SORTS, type HomeworkDay, type Sort, type Work } from "./homeworkData";
@@ -13,25 +13,14 @@ import styles from "./homework.module.css";
 import { chosen, tick } from "./sound";
 
 const HOUR = 3_600_000;
-/** The banner's stars: round, of several sizes, always in the same places. */
-const STARS = Array.from({ length: 26 }, (_, n) => {
-  const at = (k: number) => {
-    const x = Math.sin((n + 1) * 91.7 + k * 37.3) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  return {
-    x: Math.round(at(1) * 1000) / 10,
-    y: Math.round(at(2) * 1000) / 10,
-    r: at(3) < 0.75 ? 1.5 : at(3) < 0.94 ? 2.5 : 3.5,
-    w: Math.round(at(4) * 40) / 10,
-  };
-});
 
 /** A small picture for each sort of work, so its name need not be written. */
 export function SortIcon({ sort }: { sort: Sort }) {
   return (
     <svg
       className={styles.sort}
+      fill="none"
+      stroke="currentColor"
       data-move={sort}
       viewBox="0 0 28 28"
       width="28"
@@ -123,6 +112,8 @@ export function Item({
             A piece still to do carries a check that is drawn when it is finished. */}
         <svg
           className={styles.sign}
+          fill="none"
+          stroke="currentColor"
           data-sign={work.state}
           viewBox="0 0 24 24"
           width="22"
@@ -306,6 +297,16 @@ export function ExamBanner({
   const open = forced || (now >= opens && now < closes);
   const over = !forced && now >= closes;
   const start = useRef<HTMLButtonElement>(null);
+  // which film: the page's own light or dark
+  const [mode, setMode] = useState<"day" | "night">("night");
+  useEffect(() => {
+    const root = document.documentElement;
+    const read = () => setMode(root.getAttribute("data-kp-mode") === "light" ? "day" : "night");
+    read();
+    const watch = new MutationObserver(read);
+    watch.observe(root, { attributes: true, attributeFilter: ["data-kp-mode"] });
+    return () => watch.disconnect();
+  }, []);
   // the button pops up when the exam opens
   useEffect(() => {
     if (!open || !start.current || calm()) return;
@@ -317,49 +318,19 @@ export function ExamBanner({
   }, [open]);
   return (
     <section className={styles.exam} data-open={open || undefined} aria-label="Full-length exam">
-      {/* the scene: a beach as the light goes. Dusk with a moon and a few round stars by night,
-          sunset by day. Waves roll in and wash up the sand, one after another. */}
-      <span className={styles.shore} aria-hidden="true">
-        {STARS.map((s, n) => (
-          <i
-            key={n}
-            className={styles.star}
-            style={
-              {
-                left: `${s.x}%`,
-                top: `${s.y * 0.42}%`,
-                "--size": `${s.r}px`,
-                "--wait": `${s.w}s`,
-              } as CSSProperties
-            }
-          />
-        ))}
-        <span className={styles.orb} />
-        <span className={styles.glitter} />
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-          {/* far swell, nearer swell, then the wave that breaks on the sand with its foam */}
-          <path
-            className={styles.swell}
-            d="M0 52 Q150 44 300 52 T600 52 T900 52 T1200 52 T1500 52 T1800 52 V120 H0Z"
-          />
-          <path
-            className={styles.swell2}
-            d="M0 66 Q100 58 200 66 T400 66 T600 66 T800 66 T1000 66 T1200 66 T1400 66 T1600 66 V120 H0Z"
-          />
-          <path className={styles.sand} d="M0 96 Q300 84 600 92 T1200 88 V120 H0Z" />
-          <g className={styles.wash}>
-            <path className={styles.water} d="M0 78 Q200 70 400 80 T800 78 T1200 80 V120 H0Z" />
-            <path className={styles.foam} d="M0 78 Q200 70 400 80 T800 78 T1200 80" />
-          </g>
-          <g className={styles.wash2}>
-            <path
-              className={styles.water}
-              d="M0 84 Q150 78 300 86 T600 84 T900 86 T1200 84 V120 H0Z"
-            />
-            <path className={styles.foam} d="M0 84 Q150 78 300 86 T600 84 T900 86 T1200 84" />
-          </g>
-        </svg>
-      </span>
+      {/* the scene: real film of waves on a beach, looping (Pexels, free license: 5288655 by day,
+          3179024 by night; cut and compressed in public/portal). Still when motion is unwanted. */}
+      <video
+        key={mode}
+        className={styles.reel}
+        src={`/portal/exam-shore-${mode}.mp4`}
+        poster={`/portal/exam-shore-${mode}.jpg`}
+        autoPlay={!calm()}
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
       <span className={styles.examFox} aria-hidden="true">
         <Dressed
           face={face}
