@@ -26,6 +26,18 @@ export const PEOPLE: Record<string, Person> = {
 };
 export const CLASSMATES = ["priya", "sam", "leo", "amara"];
 
+/** Everyone a message may come from. The made-up people above, and in live mode the real ones,
+ *  added as they are met. */
+const people: Record<string, Person> = { ...PEOPLE };
+const TINTS = ["#7a5cf0", "#e0218a", "#22a35a", "#2f7fe6", "#e2772e", "#1ea896", "#c2477f"];
+export const personOf = (id: string): Person | undefined => people[id];
+/** Adds a real person, with a color that is always the same for the same name. */
+export const meet = (id: string, name: string, role?: Person["role"]) => {
+  if (people[id]) return;
+  const sum = [...id].reduce((n, ch) => n + ch.charCodeAt(0), 0);
+  people[id] = { id, name, tint: TINTS[sum % TINTS.length], role };
+};
+
 export type Shared = {
   skill: string;
   section: "Reading and Writing" | "Math";
@@ -50,6 +62,8 @@ export type Msg = {
   state?: "sending" | "sent" | "read" | "blocked";
   /** Why it was stopped: contact details or a social account, or something not fit to send. */
   why?: "contact" | "content" | "answers";
+  /** What the live check said to the sender, in its own words. */
+  note?: string;
 };
 export type ThreadKind = "news" | "class" | "tutor" | "dm";
 export type Thread = {
@@ -60,6 +74,11 @@ export type Thread = {
   msgs: Msg[];
   unread: number;
   typing?: string;
+  /** Live mode: the class's channel, or the other person's account, that this chat is. */
+  channelId?: string;
+  peerId?: string;
+  /** Live mode: its messages have been fetched. */
+  loaded?: boolean;
 };
 /** The tutor: online, offline within their hours, or after hours (9 PM to 9 AM Central), when the
  *  assistant answers. */
@@ -74,6 +93,12 @@ type State = {
   paused: boolean;
   /** The student is in a skill set, a quiz or an exam: no chat and no sign of it. */
   inQuiz: boolean;
+  /** True when the messages are real ones from the live chat (see chatLive.ts). Then reactions,
+   *  replies, announcements and attached questions are not offered: the live chat cannot keep them
+   *  yet. */
+  live: boolean;
+  /** Who a new private chat may be begun with. */
+  peers: string[];
 };
 
 const MIN = 60_000;
@@ -162,6 +187,8 @@ let state: State = {
   warning: false,
   paused: false,
   inQuiz: false,
+  live: false,
+  peers: CLASSMATES,
 };
 const heard = new Set<() => void>();
 const set = (next: State) => {
@@ -170,6 +197,31 @@ const set = (next: State) => {
 };
 const change = (id: string, with_: (t: Thread) => Thread) =>
   set({ ...state, threads: state.threads.map((t) => (t.id === id ? with_(t) : t)) });
+
+/** What the live chat does in place of the stand-ins (chatLive.ts sets it while connected). */
+export interface Remote {
+  send(thread: Thread, body: { text?: string; photo?: File }): void;
+  read(thread: Thread): void;
+  open(thread: Thread): void;
+}
+let remote: Remote | null = null;
+/** For chatLive.ts: the store's own hands. */
+export const store = {
+  get: () => state,
+  set: (patch: Partial<State>) => set({ ...state, ...patch }),
+  change,
+  remote: (next: Remote) => {
+    remote = next;
+  },
+  /** Lets go of a connection, unless a newer one has already taken its place. */
+  release: (mine: Remote) => {
+    if (remote === mine) remote = null;
+  },
+};
+export const newId = () => `m${n++}`;
+/** The three faces on the class chat: real classmates when the chat is live. */
+export const classFaces = (): string[] =>
+  state.live && state.peers.length ? state.peers.slice(0, 3) : ["priya", "leo", "tutor"];
 
 export const useChat = () =>
   useSyncExternalStore(
@@ -208,15 +260,32 @@ export const judge = (text: string): Msg["why"] | undefined =>
 
 export const chat = {
   /** A Cohort student has every kind of chat; a Private student has their tutor only. */
-  start: (plan: "cohort" | "private") =>
-    set({ ...state, threads: plan === "cohort" ? cohort() : alone() }),
+  start: (plan: "cohort" | "private") => {
+    if (state.live) return;
+    set({ ...state, threads: plan === "cohort" ? cohort() : alone() });
+  },
   presence: (presence: Presence) => set({ ...state, presence }),
   quiz: (inQuiz: boolean) => set({ ...state, inQuiz }),
   /** The warning has been read. */
   heard: () => set({ ...state, warning: false }),
   /** The tutor has looked and lets the chats go on. */
   approve: () => set({ ...state, strikes: 0, warning: false, paused: false }),
-  read: (id: string) => change(id, (t) => (t.unread ? { ...t, unread: 0 } : t)),
+  read: (id: string) => {
+    const thread = state.threads.find((t) => t.id === id);
+    if (thread && remote) remote.read(thread);
+    change(id, (t) => (t.unread ? { ...t, unread: 0 } : t));
+  },
+  /** A chat has been opened: in live mode its messages are fetched. */
+  opened: (id: string) => {
+    const thread = state.threads.find((t) => t.id === id);
+    if (thread && remote) remote.open(thread);
+  },
+  /** A photo chosen from the device. */
+  sendPhoto: (thread: string, file: File) => {
+    const t = state.threads.find((x) => x.id === thread);
+    if (t && remote) return remote.send(t, { photo: file });
+    chat.send(thread, { photo: URL.createObjectURL(file) });
+  },
   /** A chat with a classmate, begun if there is none yet. Returns its id. */
   open: (who: string) => {
     const id = `dm-${who}`;
@@ -225,7 +294,16 @@ export const chat = {
         ...state,
         threads: [
           ...state.threads,
-          { id, kind: "dm", name: PEOPLE[who].name, with: who, unread: 0, msgs: [] },
+          {
+            id,
+            kind: "dm",
+            name: personOf(who)?.name ?? who,
+            with: who,
+            peerId: state.live ? who : undefined,
+            loaded: true,
+            unread: 0,
+            msgs: [],
+          },
         ],
       });
     return id;
@@ -243,6 +321,8 @@ export const chat = {
     })),
   /** Someone else writes. `seen` is true when the student has that chat open. */
   arrive: (thread: string, from: string, text: string, seen = false) =>
+    // the stand-in classmates never write into a live chat
+    !state.live &&
     change(thread, (t) => ({
       ...t,
       typing: undefined,
@@ -251,6 +331,8 @@ export const chat = {
     })),
   /** The student sends. It is checked, sent, and then answered as that chat would be. */
   send: (thread: string, body: Pick<Msg, "text" | "photo" | "question" | "replyTo">) => {
+    const real = state.threads.find((x) => x.id === thread);
+    if (real && remote) return remote.send(real, { text: body.text });
     const mine = made("me", 0, body.text ?? "", { ...body, state: "sending" });
     change(thread, (t) => ({ ...t, msgs: [...t.msgs, mine] }));
     const mark = (to: Msg["state"]) =>

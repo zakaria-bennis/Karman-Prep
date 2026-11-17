@@ -8,17 +8,25 @@
 import { useEffect, useRef, useState } from "react";
 import { EMOJI, EmojiArt, FIRST, said, stirEmoji } from "./ChatEmoji";
 import { Card, QuestionPicker, QuestionView } from "./ChatQuestions";
-import { PEOPLE, chat, type Msg, type Presence, type Shared, type Thread } from "./chatStore";
+import {
+  classFaces,
+  personOf,
+  chat,
+  type Msg,
+  type Presence,
+  type Shared,
+  type Thread,
+} from "./chatStore";
 import styles from "./chat.module.css";
 import { timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 
-const nameOf = (id: string) => (id === "me" ? "You" : (PEOPLE[id]?.name ?? id));
+const nameOf = (id: string) => (id === "me" ? "You" : (personOf(id)?.name ?? id));
 export const gist = (m: Msg) =>
   m.question ? `Question: ${m.question.skill}` : m.photo ? "Photo" : (m.text ?? "");
 
 export function Face({ who, size = 28 }: { who: string; size?: number }) {
-  const p = PEOPLE[who];
+  const p = personOf(who);
   return (
     <span
       className={styles.face}
@@ -66,8 +74,11 @@ export default function ChatThread({
   thread,
   presence,
   paused,
+  live,
 }: {
   thread: Thread;
+  /** Real messages: what the live chat cannot keep (reactions, replies, questions) is not offered. */
+  live: boolean;
   presence: Presence;
   /** The check has paused this student's chats until the tutor has looked. */
   paused: boolean;
@@ -94,8 +105,9 @@ export default function ChatThread({
   useEffect(() => {
     if (thread.unread) chat.read(thread.id);
   }, [thread.id, thread.unread]);
+  useEffect(() => chat.opened(thread.id), [thread.id]);
 
-  const send = (body: { text?: string; photo?: string }) => {
+  const send = (body: { text?: string }) => {
     chat.send(thread.id, { ...body, question: held ?? undefined, replyTo: replyTo ?? undefined });
     setDraft("");
     setReplyTo(null);
@@ -118,9 +130,9 @@ export default function ChatThread({
             data-talking={thread.typing ? "" : undefined}
             aria-hidden="true"
           >
-            <Face who="priya" size={28} />
-            <Face who="leo" size={28} />
-            <Face who="tutor" size={28} />
+            {classFaces().map((who) => (
+              <Face key={who} who={who} size={28} />
+            ))}
           </span>
         ) : (
           <Face who={thread.with ?? "tutor"} size={36} />
@@ -146,10 +158,11 @@ export default function ChatThread({
       <div className={styles.flow} onClick={() => setPicked(null)}>
         {/* a parent can read this one chat, and the student is told so */}
         {thread.kind === "tutor" && <p className={styles.note}>Your parent can read this chat.</p>}
+        {live && !thread.loaded && <p className={styles.note}>Loading</p>}
         {thread.msgs.map((m, i) => {
           const before = thread.msgs[i - 1];
           const mine = m.from === "me";
-          const person = PEOPLE[m.from];
+          const person = personOf(m.from);
           const first = !before || before.from !== m.from || m.at - before.at > 45 * 60_000;
           const reply = m.replyTo && thread.msgs.find((x) => x.id === m.replyTo);
           const tallies = Object.values(m.reactions);
@@ -182,6 +195,7 @@ export default function ChatThread({
                   aria-expanded={picked === m.id}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (live) return;
                     setMore(false);
                     setPicked(picked === m.id ? null : m.id);
                   }}
@@ -271,11 +285,12 @@ export default function ChatThread({
               {/* why it was not sent. Vulgar or sexual words get no explanation at all. */}
               {mine && m.state === "blocked" && (
                 <p className={styles.stopped}>
-                  {m.why === "contact"
-                    ? "Not sent. Contact details and social accounts can't be shared here."
-                    : m.why === "answers"
-                      ? "Not sent. Chat is for working questions out, not for passing answers."
-                      : "Not sent."}
+                  {m.note ??
+                    (m.why === "contact"
+                      ? "Not sent. Contact details and social accounts can't be shared here."
+                      : m.why === "answers"
+                        ? "Not sent. Chat is for working questions out, not for passing answers."
+                        : "Not sent.")}
                 </p>
               )}
               {mine && m === lastMine && m.state !== "blocked" && (
@@ -368,22 +383,26 @@ export default function ChatThread({
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) send({ photo: URL.createObjectURL(file) });
+                  if (file) {
+                    chat.sendPhoto(thread.id, file);
+                  }
                   e.target.value = "";
                 }}
               />
             </label>
-            <button
-              type="button"
-              className={styles.tool}
-              aria-label="Bring a question"
-              aria-expanded={bringing}
-              onClick={() => setBringing(!bringing)}
-            >
-              <svg viewBox="0 0 24 24" width="22" height="22">
-                <path d="M7 4h10v16l-5-3.500L7 20z" />
-              </svg>
-            </button>
+            {!live && (
+              <button
+                type="button"
+                className={styles.tool}
+                aria-label="Bring a question"
+                aria-expanded={bringing}
+                onClick={() => setBringing(!bringing)}
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M7 4h10v16l-5-3.500L7 20z" />
+                </svg>
+              </button>
+            )}
             <input
               className={styles.field}
               value={draft}

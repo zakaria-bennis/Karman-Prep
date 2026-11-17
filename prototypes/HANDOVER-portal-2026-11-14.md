@@ -1184,3 +1184,21 @@ images (never generate or fetch any; rely on the model and OpenAI's check), real
   after finishing is fine) the 16 rechecked cases were all right. Categories sometimes differ from
   mine (a vague "dm me, I have the thing" came back contact, not cheating) but were still blocked.
 - Production needs `ANTHROPIC_API_KEY` as a Worker secret before deploy (noted in wrangler.toml).
+
+## Chat with real messages (2026-11-16, late)
+
+The new Chat page (`/dev/shell`) now uses the live chat when a student is signed in and their class
+has a chat channel. Signed out, or with no class chat, it keeps its stand-ins.
+
+- `src/app/dev/shell/chatLive.ts` fills the page's store from the live routes and sends through them.
+  `GET /api/chat/me` (new) says who the caller is, their class channel and whether they are paused.
+- Live: the class chat, private chats with classmates, photos (through `preparePhoto` and
+  `/api/chat/upload`), unread counts on private chats, marking a private chat read, the check's own
+  words on a stopped message, the warning dialog and the pause.
+- Not live, and hidden while live: reactions, replies, attached questions. The database has no place
+  for them yet. Announcements, the tutor chat, typing dots and the after-hours assistant are also not
+  connected. New messages are fetched every five seconds; the old page's instant updates (Supabase
+  Realtime) are not used here yet.
+- Tested only against stand-in server answers in a browser script. No real message has been sent
+  through it, because local dev writes to the real database. A first real try needs the founder's OK
+  and a signed-in test student in a class.

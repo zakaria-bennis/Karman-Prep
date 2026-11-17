@@ -8,7 +8,8 @@
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import ChatThread, { Face, Here, gist } from "./ChatThread";
-import { CLASSMATES, PEOPLE, chat, useChat, type Presence, type Thread } from "./chatStore";
+import { classFaces, chat, personOf, useChat, type Presence, type Thread } from "./chatStore";
+import { connectLive } from "./chatLive";
 import styles from "./chat.module.css";
 import { Scold } from "./ChatScold";
 import { calm } from "./homeworkMotion";
@@ -82,9 +83,9 @@ function Row({
             ref={fan}
             aria-hidden="true"
           >
-            <Face who="priya" size={28} />
-            <Face who="leo" size={28} />
-            <Face who="tutor" size={28} />
+            {classFaces().map((who) => (
+              <Face key={who} who={who} size={28} />
+            ))}
           </span>
         ) : (
           <Face who={thread.with ?? "tutor"} size={40} />
@@ -121,7 +122,20 @@ export default function Chat({
   alone: boolean;
   onTrail: (trail: Trail | null) => void;
 }) {
-  const { threads, presence, paused, warning, inQuiz } = useChat();
+  const { threads, presence, paused, warning, inQuiz, live, peers } = useChat();
+  // signed in, with a class chat: the messages are the real ones. Otherwise the stand-ins stay.
+  useEffect(() => {
+    let stop: (() => void) | null = null;
+    let gone = false;
+    void connectLive().then((s) => {
+      if (gone) s?.();
+      else stop = s;
+    });
+    return () => {
+      gone = true;
+      stop?.();
+    };
+  }, []);
   const [openId, setOpenId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   // with room a chat is always open: the one chosen, or the class chat to begin with
@@ -150,7 +164,7 @@ export default function Chat({
     };
   }, [starting]);
 
-  const strangers = CLASSMATES.filter((id) => !threads.some((t) => t.with === id));
+  const strangers = peers.filter((id) => !threads.some((t) => t.with === id));
 
   // in a skill set, a quiz or an exam there is no chat, and nothing of it to see
   if (inQuiz)
@@ -214,7 +228,7 @@ export default function Chat({
                       >
                         <Face who={id} size={32} />
                         <span className={styles.words}>
-                          <b>{PEOPLE[id].name}</b>
+                          <b>{personOf(id)?.name ?? id}</b>
                         </span>
                       </button>
                     </li>
@@ -243,7 +257,13 @@ export default function Chat({
       )}
       {shown && (
         <div className={`${lib.glass} ${styles.pane}`}>
-          <ChatThread key={shown.id} thread={shown} presence={presence} paused={paused} />
+          <ChatThread
+            key={shown.id}
+            thread={shown}
+            presence={presence}
+            paused={paused}
+            live={live}
+          />
         </div>
       )}
     </div>
