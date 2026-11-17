@@ -35,6 +35,7 @@ import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
 import Chat from "./Chat";
 import Homework from "./Homework";
+import Schedule from "./Schedule";
 import LibraryHero from "./LibraryHero";
 import MistakeLog, { type Trail } from "./MistakeLog";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
@@ -596,6 +597,7 @@ function Shell() {
           <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
         )}
         {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
+        {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog
