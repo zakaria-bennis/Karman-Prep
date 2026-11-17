@@ -33,6 +33,7 @@ import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library";
+import Chat from "./Chat";
 import Homework from "./Homework";
 import LibraryHero from "./LibraryHero";
 import MistakeLog, { type Trail } from "./MistakeLog";
@@ -45,7 +46,7 @@ import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
 import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
-import { Me, Unread } from "./shellBits";
+import { ChatDemo, Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
 import { Sticker, type StickerName } from "./stickers";
 
@@ -106,7 +107,7 @@ function Shell() {
   const [extraTime, setExtraTime] = useState(1);
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
-  const [unread, setUnread] = useState<"none" | "some" | "news">("some");
+  useChatPlan(plan);
   const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
@@ -364,8 +365,8 @@ function Shell() {
                   transition={still ? STILL : POP}
                 >
                   <Sticker name={item} />
+                  {item === "chat" && <Unread />}
                 </motion.span>
-                {item === "chat" && page !== "chat" && <Unread what={unread} />}
                 <span className={styles.word} data-word>
                   {rail ? LABEL[item] : (ON_BAR[item] ?? LABEL[item])}
                 </span>
@@ -591,6 +592,9 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
+        {page === "chat" && plan !== "practice" && (
+          <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
+        )}
         {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
@@ -650,16 +654,7 @@ function Shell() {
               Night
             </button>
           )}
-          {plan !== "practice" && (
-            <button
-              type="button"
-              onClick={() =>
-                setUnread(unread === "none" ? "some" : unread === "some" ? "news" : "none")
-              }
-            >
-              Unread: {unread === "none" ? "none" : unread === "some" ? "messages" : "announcement"}
-            </button>
-          )}
+          {plan !== "practice" && <ChatDemo plan={plan} />}
           {page === "homework" && (
             <>
               <button type="button" aria-pressed={examOpen} onClick={() => setExamOpen(!examOpen)}>

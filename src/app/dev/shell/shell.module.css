@@ -161,6 +161,7 @@
 }
 
 .art {
+  position: relative;
   display: grid;
   place-items: center;
   width: 28px;
@@ -370,37 +371,39 @@
   transform: rotate(-21deg);
 }
 
-/* the trophy by day: a yellow cup with a white star */
+/* the trophy by day: a yellow cup with a black star */
 :global([data-kp-mode="light"]) .art [data-cup] {
   fill: #ffc81a;
   fill-opacity: 1;
 }
 
 :global([data-kp-mode="light"]) .art [data-star] {
-  fill: #ffffff;
-  stroke: #ffffff;
+  fill: #1d1a22;
+  stroke: #1d1a22;
 }
 
 /* what is unread in Chat: a red mark with how many messages, or a gold one when an announcement
    has been missed */
 .badge {
   position: absolute;
-  top: 6px;
+  /* on the upper right corner of the blue bubble, half over its edge */
+  top: calc(50% - 17px);
   left: calc(50% + 4px);
   display: grid;
   place-items: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3.5px;
+  border-radius: 7px;
   background: #e5484d;
-  box-shadow: 0 0 0 2px rgb(20 22 40 / 0.35);
+  box-shadow: 0 0 0 1.5px rgb(20 22 40 / 0.4);
   color: #fff;
-  font-size: 11px;
+  font-size: 9.5px;
   font-style: normal;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  transition: background 0.3s var(--out);
   animation: badge 0.4s cubic-bezier(0.3, 1.7, 0.45, 1) both;
 }
 

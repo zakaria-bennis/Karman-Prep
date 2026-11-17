@@ -1,4 +1,7 @@
 // Small pieces of the portal's frame, kept out of page.tsx.
+import { useEffect } from "react";
+import { chat, closedNow, useChat, waiting } from "./chatStore";
+import type { Plan } from "./plans";
 import styles from "./shell.module.css";
 
 /** The profile picture until a student sets one of their own: Karman's plain one, a soft violet sky
@@ -24,18 +27,57 @@ export function Me() {
   );
 }
 
-/** What is waiting in Chat, on its icon, until Chat is opened: a red mark with how many messages
- *  were missed, or a gold one when an announcement was (founder, 2026-11-16). The numbers are
- *  stand-ins. */
-export function Unread({ what }: { what: "none" | "some" | "news" }) {
-  if (what === "none") return null;
+/** What is waiting in Chat, on its icon: a small red mark with how many messages there are, gold
+ *  while an announcement is among them, and nothing at all when everything has been read (founder,
+ *  2026-11-16). It sits on the corner of the blue bubble, inside the icon's own box, so it does not
+ *  move when the menu opens. */
+export function Unread() {
+  const { count, news } = waiting(useChat());
+  if (count === 0) return null;
   return (
     <i
       className={styles.badge}
-      data-kind={what === "news" ? "gold" : "red"}
-      aria-label={what === "news" ? "A new announcement" : "3 unread messages"}
+      data-kind={news ? "gold" : "red"}
+      aria-label={`${count} unread${news ? ", with an announcement" : ""}`}
     >
-      {what === "news" ? "!" : 3}
+      {count > 9 ? "9+" : count}
     </i>
+  );
+}
+
+/** Chat begins as the plan has it (a Cohort student has every kind of chat, a Private student their
+ *  tutor only), and knows whether the tutor's hours are over. */
+export function useChatPlan(plan: Plan) {
+  useEffect(() => {
+    if (plan !== "practice") chat.start(plan);
+    chat.afterHours(closedNow());
+  }, [plan]);
+}
+
+/** Demo switches for Chat: someone writes, the tutor announces, or it is after the tutor's hours. */
+export function ChatDemo({ plan }: { plan: Plan }) {
+  const late = useChat().afterHours;
+  return (
+    <>
+      {plan === "cohort" && (
+        <>
+          <button
+            type="button"
+            onClick={() => chat.arrive("class", "sam", "anyone free to study at 5?")}
+          >
+            New message
+          </button>
+          <button
+            type="button"
+            onClick={() => chat.arrive("news", "tutor", "Class moves to 7:30 PM this Thursday.")}
+          >
+            Announcement
+          </button>
+        </>
+      )}
+      <button type="button" aria-pressed={late} onClick={() => chat.afterHours(!late)}>
+        After hours
+      </button>
+    </>
   );
 }

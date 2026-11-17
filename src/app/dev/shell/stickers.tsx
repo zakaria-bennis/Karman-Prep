@@ -169,7 +169,7 @@ const ART: Record<StickerName, ReactNode> = {
   ),
   // a trophy: a cup with a rim and two handles on a stem and a stepped foot, with a star on it and a
   // glint of light down its side. By night the star is yellow; by day the cup is yellow and the star
-  // white (shell.module.css).
+  // black (shell.module.css). The star is small, well inside the cup.
   rewards: (
     <>
       <path d="M7 4.200h10v5.200a5 5 0 0 1-10 0z" {...WASH} data-cup />
@@ -182,7 +182,7 @@ const ART: Record<StickerName, ReactNode> = {
       <path
         data-move="pop"
         data-star
-        d="M12 5.300l1.050 2.130 2.350.340-1.700 1.660.4 2.340L12 10.660 9.900 11.770l.4-2.340-1.700-1.660 2.350-.340z"
+        d="M12 5.800l.8 1.630 1.800.260-1.300 1.270.3 1.790L12 9.900l-1.600.850.3-1.790-1.300-1.270 1.800-.260z"
         fill={YELLOW}
         stroke={YELLOW}
         strokeWidth="0.500"

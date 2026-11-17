@@ -1,0 +1,688 @@
+/*
+ * Chat (Chat.tsx, ChatThread.tsx), in the manner of iMessage: the student's messages blue at the
+ * right, everyone else's gray at the left. Glass and corners come from library.module.css, set on
+ * .library. (The shell clears every button's font and background, so a button with its own is named
+ * through the page: .chat .item.)
+ */
+.chat {
+  --mine: #1f8bff;
+  --theirs: #e9e9eb;
+  --theirs-ink: #1d1a22;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:global([data-kp-mode="dark"]) .chat {
+  --theirs: #3a3a3e;
+  --theirs-ink: #ffffff;
+}
+
+.chat svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---- the list of chats ---- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: var(--pad);
+  overflow-y: auto;
+}
+
+.list ul {
+  display: grid;
+  gap: 2px;
+}
+
+.chat .item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.chat .item[aria-current] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.face {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* the class chat's picture: three of its people, overlapping */
+.faces {
+  display: flex;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+}
+
+.faces > * + * {
+  margin-left: -15px;
+  box-shadow: 0 0 0 2px rgb(40 40 60 / 0.35);
+}
+
+/* Announcements: a horn on gold */
+.horn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
+  color: #3a2500;
+}
+
+.words {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+}
+
+.words b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.words span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.end {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  gap: 4px;
+}
+
+.end small {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.end i {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.end i[data-kind="gold"] {
+  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
+  color: #3a2500;
+}
+
+.fresh {
+  display: grid;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.chat .start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.2s var(--out);
+}
+
+/* ---- one chat ---- */
+.pane {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.thread {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.thread > header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  box-shadow: inset 0 -1px 0 var(--lens-edge);
+}
+
+.thread > header .horn {
+  width: 36px;
+  height: 36px;
+}
+
+.thread > header p {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+}
+
+.thread > header b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.thread > header span {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.flow {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 0;
+  padding: 12px 14px 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.chat .note,
+.chat .stamp {
+  margin: 8px 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 2px;
+}
+
+.line[data-mine] {
+  justify-items: end;
+}
+
+.chat .stamp {
+  justify-self: stretch;
+}
+
+.chat .who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0 44px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.who em {
+  padding: 1px 7px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.chat .quote {
+  max-width: min(70%, 420px);
+  margin: 4px 0 0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.line:not([data-mine]) .quote {
+  margin-left: 36px;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(78%, 520px);
+}
+
+.gap {
+  flex: none;
+  width: 28px;
+}
+
+/* a bubble: round, with its corner toward the speaker turned in a little */
+.chat .bubble {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 13px;
+  border-radius: 19px 19px 19px 6px;
+  background: var(--theirs);
+  color: var(--theirs-ink);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-align: left;
+  overflow-wrap: anywhere;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.line[data-mine] .bubble {
+  border-radius: 19px 19px 6px 19px;
+  background: var(--mine);
+  color: #fff;
+}
+
+.chat .bubble[data-state="sending"] {
+  opacity: 0.6;
+}
+
+.chat .bubble[data-state="blocked"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px #e5484d;
+  color: inherit;
+}
+
+.bubble img {
+  display: block;
+  max-width: 220px;
+  max-height: 240px;
+  border-radius: 12px;
+}
+
+/* a question brought into the chat */
+.card {
+  display: grid;
+  gap: 3px;
+  min-width: 200px;
+  max-width: 340px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.card small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.card b {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* the reactions a message has, on its upper corner */
+.tally {
+  position: absolute;
+  top: -11px;
+  right: -8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--theirs);
+  box-shadow: 0 0 0 2px rgb(30 30 46 / 0.25);
+  color: var(--theirs-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.line[data-mine] .tally {
+  right: auto;
+  left: -8px;
+}
+
+.tally svg,
+.picker svg {
+  fill: currentColor;
+  stroke: none;
+}
+
+.tally svg[aria-label="Love"],
+.picker svg[aria-label="Love"] {
+  color: #ff4f6d;
+}
+
+/* pressed, a message offers its reactions and Reply */
+.picker {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 22px;
+  background: var(--theirs);
+  box-shadow:
+    0 10px 24px -10px rgb(0 0 0 / 0.6),
+    0 0 0 1px rgb(255 255 255 / 0.12);
+  color: var(--theirs-ink);
+  animation: rise 0.25s cubic-bezier(0.3, 1.5, 0.45, 1) both;
+}
+
+.line[data-mine] .picker {
+  right: 0;
+  left: auto;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+
+.chat .picker button {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chat .picker button[aria-pressed="true"] {
+  background: var(--mine);
+  color: #fff;
+}
+
+.picker svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* someone is writing: three dots that bob */
+.bubble[data-typing] {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 14px;
+}
+
+.bubble[data-typing] i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+  animation: bob 1.2s ease-in-out infinite;
+}
+
+.bubble[data-typing] i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bubble[data-typing] i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bob {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.chat .receipt,
+.chat .stopped {
+  margin: 1px 4px 0;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.chat .stopped {
+  color: #ff6b70;
+  text-align: right;
+  opacity: 1;
+}
+
+/* ---- where a message is written ---- */
+.thread > footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: none;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.chat .hours,
+.chat .closed {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.chat .closed {
+  margin: 8px 12px 12px;
+}
+
+.chat .replying {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 4px 4px 12px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.replying span {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat .replying button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+}
+
+.bring {
+  display: grid;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.chat .bring button {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.bring .card {
+  max-width: none;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.write {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chat .tool {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s var(--out);
+}
+
+.tool input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.chat .field {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 0;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+}
+
+.field::placeholder {
+  color: inherit;
+  opacity: 0.6;
+}
+
+.chat .send {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: var(--mine);
+  color: #fff;
+  transition:
+    transform 0.2s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
+}
+
+.send svg {
+  stroke-width: 2.4;
+}
+
+.chat .send:disabled {
+  opacity: 0.4;
+}
+
+.chat .send:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+@media (hover: hover) {
+  .chat .item:hover,
+  .chat .start:hover,
+  .chat .tool:hover,
+  .chat .replying button:hover,
+  .chat .picker button:hover {
+    background: var(--hover);
+  }
+}
+
+/* with room: the chats at the left, the open one at the right, both as tall as the screen leaves */
+@media (min-width: 960px) and (hover: hover) {
+  .chat {
+    grid-template-columns: 340px minmax(0, 1fr);
+    height: calc(100dvh - 88px);
+    min-height: 420px;
+  }
+
+  .chat[data-alone] {
+    grid-template-columns: minmax(0, 760px);
+  }
+}
+
+/* a phone: the open chat has the screen between the title and the bottom bar */
+@media (max-width: 959px) {
+  .chat[data-open] .pane,
+  .chat[data-alone] .pane {
+    height: calc(100dvh - 190px - env(safe-area-inset-bottom, 0px));
+    min-height: 320px;
+  }
+
+  .row {
+    max-width: 86%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker,
+  .bubble[data-typing] i {
+    animation: none;
+  }
+}

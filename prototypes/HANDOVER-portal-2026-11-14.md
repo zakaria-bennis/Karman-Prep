@@ -1058,3 +1058,27 @@ gold for a missed announcement (demo bar: "Unread"). The trophy by day is yellow
 backend is described in `project_slack_chat.md`. He also wants: flagged or bookmarked questions posted
 into a chat to discuss with classmates and tutor, and moderation that is very good and fast for text
 and images (the pipeline exists; about 0.7 to 1 second a send when last measured).
+
+## Chat, first version (2026-11-16), awaiting his verdict
+
+Files: `chatStore.ts` (people, threads and messages held in memory, and what each action does),
+`Chat.tsx` (the list, and the open chat beside it; on a phone a chat takes the page with a back pill),
+`ChatThread.tsx` (bubbles, reactions, replies, receipts, typing, the place to write), `chat.module.css`,
+and `shellBits.tsx` (the badge, the default profile picture, the demo switches).
+- **Cohort:** Announcements (tutor only), Class chat, the tutor, classmates; "New chat" starts one with a
+  classmate not yet written to. **Private:** the tutor's chat alone, no list.
+- **Look:** iMessage: mine blue at the right, others gray at the left, names and small pictures in the
+  class chat, a "Tutor" tag on the tutor.
+- **Sending:** text, a photo from the device, or a bookmarked or flagged question as a card.
+- **Extras:** pressing a message opens five reactions and Reply; Delivered then Read under the last own
+  message in a private chat; three bobbing dots while someone writes.
+- **After hours:** in the tutor's chat a note says the tutor is back at 9 AM and the assistant answers,
+  tagged "Automated, not a person". Real Central time decides; the demo bar's "After hours" forces it.
+- **The check:** a message with a phone number or an email address is not sent and says why. This is a
+  stand-in for the live three-layer moderation, which this page is not wired to.
+- **The badge** on the Chat icon reads the same store: red with the count, gold while an announcement is
+  unread, gone when nothing is. It is inside the icon's box, so it does not move when the menu opens.
+- The tutor's chat tells the student "Your parent can read this chat."
+**Everything said in these chats is made up, and nothing is sent anywhere.** People's names are
+stand-ins. Not built: wiring to the live chat and its moderation, the parent's view, Chat for Private
+students on phones (their bar has no Chat; it would be under More, which does not exist yet).
