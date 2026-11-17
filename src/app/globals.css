@@ -463,21 +463,3 @@ html[data-theme="observatory"] {
   .portal-shell dialog[open] { animation: navigation-arrive 220ms var(--ease-standard) both; }
 }
 html:has(.portal-shell dialog[open]) { overflow: hidden; }
-
-/* Nothing on the site can be highlighted or copied (founder, 2026-11-16), except what a visitor
-   types into a field. The calculator is left exactly as it was: its own rules still decide there. */
-body {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
-input,
-textarea,
-[contenteditable="true"],
-[class*="CalculatorWindow"][class*="host"] {
-  /* the calculator lives inside this element, sealed off; giving it back the default here keeps
-     everything inside it as it was */
-  -webkit-user-select: text;
-  user-select: text;
-}
