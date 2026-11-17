@@ -8,10 +8,22 @@
 // ============================================================
 
 import { z } from "zod";
+import { isChatMediaUrl, MAX_PICTURES } from "@/lib/chat/media";
 
 const nonEmptyString = z.string().min(1);
 
 // ── chat/send ─────────────────────────────────────────────
+
+// A picture must be one the sender uploaded to Karman's own chat-media bucket; no other address
+// is accepted (see src/lib/chat/media.ts for why).
+const pictures = z
+  .array(
+    z.string().refine((url) => isChatMediaUrl(url), {
+      message: "Pictures must be uploaded through chat",
+    })
+  )
+  .max(MAX_PICTURES)
+  .optional();
 
 const chatMessageTypeSchema = z.enum(["cohort_message", "qa_question", "qa_answer"]);
 
@@ -19,7 +31,7 @@ export const sendMessageBodySchema = z
   .object({
     channelId: nonEmptyString,
     content: z.string().optional(),
-    mediaUrls: z.array(z.string()).optional(),
+    mediaUrls: pictures,
     isAnonymous: z.boolean().optional(),
     messageType: chatMessageTypeSchema,
     parentMessageId: z.string().optional(),
@@ -39,7 +51,7 @@ export const sendDmBodySchema = z
   .object({
     recipientId: nonEmptyString,
     content: z.string().optional(),
-    mediaUrls: z.array(z.string()).optional(),
+    mediaUrls: pictures,
   })
   .refine((d) => (d.content && d.content.length > 0) || (d.mediaUrls && d.mediaUrls.length > 0), {
     message: "Message must have content or at least one image",

@@ -1155,3 +1155,14 @@ has to paste a new one (the file was opened for him), and the same key must be s
 Cloudflare Worker before this is deployed. Nothing has been run against the real API yet: rerun the
 24 sample messages (`scratchpad/try-cheat.mts`) and try pictures once the key works.
 **Not built yet:** the after-hours assistant and FAQ on Haiku.
+
+**Haiku moderation tried for real (2026-11-16); still NOT live until merged.** His new key works
+(`ANTHROPIC_API_KEY` in `.env.local`; it must be workspace-scoped; production needs it as a Worker
+secret before any deploy). Results on hand-written samples: 32 of 32 text messages right (cheating,
+fine, contact, conduct, sexual), median about 1.4 s, slowest 2.4 s; pictures are seen and described
+correctly. Two more changes: (1) **only Karman's own uploaded pictures are accepted**
+(`src/lib/chat/media.ts`; the send schemas refused nothing before, so any web address could be sent as
+a "picture"), at most four a message; (2) the check **downloads each picture itself** and sends the
+bytes, so it sees exactly what is stored. HEIC pictures cannot be checked and so are not delivered:
+the upload route still accepts them and should convert or refuse them. Not tested: real explicit
+images (never generate or fetch any; rely on the model and OpenAI's check), real student wording.

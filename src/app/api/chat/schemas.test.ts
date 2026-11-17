@@ -5,7 +5,7 @@
 // curl) posting a malformed body can't slip past TS narrowing.
 // ============================================================
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   highlightMessageBodySchema,
   pinMessageBodySchema,
@@ -13,6 +13,10 @@ import {
   sendDmBodySchema,
   sendMessageBodySchema,
 } from "./schemas";
+
+// pictures must come from Karman's own chat-media bucket
+vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abc123.supabase.co");
+const PICTURE = "https://abc123.supabase.co/storage/v1/object/sign/chat-media/user_1/a.jpg?token=x";
 
 describe("sendMessageBodySchema", () => {
   const valid = {
@@ -28,7 +32,7 @@ describe("sendMessageBodySchema", () => {
   it("accepts an image-only message (no content, mediaUrls non-empty)", () => {
     const r = sendMessageBodySchema.safeParse({
       channelId: "channel-1",
-      mediaUrls: ["https://cdn.example.com/a.jpg"],
+      mediaUrls: [PICTURE],
       messageType: "cohort_message",
     });
     expect(r.success).toBe(true);
@@ -88,7 +92,7 @@ describe("sendDmBodySchema", () => {
   it("accepts image-only DMs", () => {
     const r = sendDmBodySchema.safeParse({
       recipientId: "clerk-abc",
-      mediaUrls: ["https://cdn.example.com/a.jpg"],
+      mediaUrls: [PICTURE],
     });
     expect(r.success).toBe(true);
   });
@@ -143,5 +147,25 @@ describe("highlightMessageBodySchema", () => {
     expect(
       highlightMessageBodySchema.safeParse({ messageId: "msg-1", highlighted: 1 }).success
     ).toBe(false);
+  });
+});
+
+describe("pictures", () => {
+  it("refuses a picture address that is not Karman's own storage", () => {
+    const r = sendMessageBodySchema.safeParse({
+      channelId: "c1",
+      messageType: "cohort_message",
+      mediaUrls: ["https://cdn.example.com/a.jpg"],
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("refuses more than four pictures", () => {
+    const r = sendMessageBodySchema.safeParse({
+      channelId: "c1",
+      messageType: "cohort_message",
+      mediaUrls: [PICTURE, PICTURE, PICTURE, PICTURE, PICTURE],
+    });
+    expect(r.success).toBe(false);
   });
 });

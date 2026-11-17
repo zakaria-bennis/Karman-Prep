@@ -78,6 +78,26 @@ export interface KarmanClassifierResult {
 /** Asks the model. Returns its verdict, or "declined" when it would not look at the content. */
 export type Ask = (content: string, mediaUrls: string[]) => Promise<Verdict | "declined">;
 
+const SEEN = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+type Seen = (typeof SEEN)[number];
+
+/** Downloads one picture and hands it over as data. The check looks at exactly the bytes that are
+ *  stored, and does not depend on the model being able to reach a private, signed address. A
+ *  picture that cannot be downloaded, or is of a kind the model cannot see (HEIC), throws: the
+ *  message is then not delivered. */
+async function picture(url: string) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(4_000) });
+  if (!res.ok) throw new Error(`karman-classifier: picture not downloaded (${res.status})`);
+  const kind = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+  if (!(SEEN as readonly string[]).includes(kind))
+    throw new Error(`karman-classifier: a picture of kind "${kind}" cannot be checked`);
+  const data = Buffer.from(await res.arrayBuffer()).toString("base64");
+  return {
+    type: "image" as const,
+    source: { type: "base64" as const, media_type: kind as Seen, data },
+  };
+}
+
 let client: Anthropic | null = null;
 
 const askClaude: Ask = async (content, mediaUrls) => {
@@ -92,10 +112,7 @@ const askClaude: Ask = async (content, mediaUrls) => {
       {
         role: "user",
         content: [
-          ...mediaUrls.map((url) => ({
-            type: "image" as const,
-            source: { type: "url" as const, url },
-          })),
+          ...(await Promise.all(mediaUrls.map(picture))),
           {
             type: "text" as const,
             text: content
