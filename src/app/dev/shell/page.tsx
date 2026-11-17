@@ -45,6 +45,7 @@ import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
 import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
+import { useMenuIntent } from "./useMenuIntent";
 import { Sticker, type StickerName } from "./stickers";
 
 /* Springs, in Apple's terms (Designing Fluid Interfaces): a quick response with a little bounce where a
@@ -83,31 +84,8 @@ function Shell() {
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
-  // The menu opens when the pointer rests on it, not when it only passes over: coming back to the
-  // browser from another screen sweeps the pointer across the left edge, and that used to open it.
-  // It also closes when the pointer or the window leaves, since no "leave" is told then.
-  const opening = useRef(0);
-  const openSoon = () => {
-    window.clearTimeout(opening.current);
-    opening.current = window.setTimeout(() => setOpen(true), 110);
-  };
-  const notYet = () => window.clearTimeout(opening.current);
-  useEffect(() => {
-    if (held) return;
-    const shut = () => {
-      window.clearTimeout(opening.current);
-      setOpen(false);
-    };
-    const gone = () => document.hidden && shut();
-    window.addEventListener("blur", shut);
-    document.documentElement.addEventListener("mouseleave", shut);
-    document.addEventListener("visibilitychange", gone);
-    return () => {
-      window.removeEventListener("blur", shut);
-      document.documentElement.removeEventListener("mouseleave", shut);
-      document.removeEventListener("visibilitychange", gone);
-    };
-  }, [held]);
+  // it opens when the pointer rests on it, and shuts when the pointer or the window leaves
+  const { openSoon, notYet } = useMenuIntent(setOpen, held);
   const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
   const [page, setPage] = useState<StickerName>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
