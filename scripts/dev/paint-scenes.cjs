@@ -117,19 +117,31 @@ void main(){
           return s;
         };
         const program = gl.createProgram();
-        gl.attachShader(program, make(gl.VERTEX_SHADER, "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }"));
+        gl.attachShader(
+          program,
+          make(
+            gl.VERTEX_SHADER,
+            "attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }"
+          )
+        );
         gl.attachShader(program, make(gl.FRAGMENT_SHADER, frag));
         gl.linkProgram(program);
         gl.useProgram(program);
         gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          gl.STATIC_DRAW
+        );
         const at = gl.getAttribLocation(program, "p");
         gl.enableVertexAttribArray(at);
         gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
-        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
-        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T])
+          gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER])
+          gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
         gl.uniform2f(gl.getUniformLocation(program, "u_size"), canvas.width, canvas.height);
         gl.uniform1f(gl.getUniformLocation(program, "u_keep"), keep);
