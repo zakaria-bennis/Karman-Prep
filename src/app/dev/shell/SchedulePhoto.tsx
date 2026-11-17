@@ -8,7 +8,7 @@
 //   the wood     the tree line sways a little in the wind
 //   life         ducks paddle across with a wake behind them; a frog leaps from the bank and
 //                rings spread where it lands; birds cross the sky by day; fireflies and a
-//                shooting star at night
+//                twinkling stars and a shooting star at night
 //   the camera   drifts very slowly, as if held
 // With motion turned off it shows the photograph still. Without a graphics card the photograph
 // is shown as a plain picture behind.
@@ -140,6 +140,13 @@ void main(){
 
   // at night: fireflies wander over the water's edge, and now and then a star falls
   if (u_night > 0.01) {
+    // stars in the open sky (not over the trees or the glow), each twinkling at its own pace
+    vec2 sg = q * vec2(1.6, 1.0) * 44.0;
+    vec2 cell = floor(sg);
+    float sh = hash(cell);
+    float sd = distance(sg, cell + 0.2 + 0.6 * vec2(hash(cell + 3.1), hash(cell + 7.7)));
+    float open = smoothstep(0.12, 0.20, lum) * smoothstep(0.50, 0.30, lum) * smoothstep(0.02, 0.22, -below);
+    col += vec3(0.95, 0.97, 1.0) * step(0.80, sh) * exp(-sd * sd * (70.0 + 120.0 * hash(cell + 1.7))) * open * (0.45 + 0.55 * sin(t * (0.5 + 2.0 * sh) + sh * 40.0)) * (0.35 + 0.65 * hash(cell + 5.3));
     for (int i = 0; i < 8; i++) {
       float fi = float(i);
       float h1 = hash(vec2(fi, 1.0)), h2 = hash(vec2(fi, 2.0));

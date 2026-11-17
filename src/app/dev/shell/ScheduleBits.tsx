@@ -4,6 +4,7 @@
 // on a painting of its own sky, the buttons that move or cancel a session, a past session with its
 // recording, and the offer to keep sessions in the family's own calendar.
 import gsap from "gsap";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Buddy } from "./HomeworkBuddy";
@@ -11,7 +12,7 @@ import { calm, cut, two } from "./homeworkMotion";
 import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
 import PhotoScene from "./SchedulePhoto";
 import Scene from "./ScheduleScene";
-import { PHOTOS } from "./scenes/photos";
+import { PHOTOS, plain } from "./scenes/photos";
 import { sceneFor, type SceneName } from "./scenes";
 import { breathe, press, useCount } from "./scheduleMotion";
 import {
@@ -140,12 +141,21 @@ export function until(ms: number): string {
   return `${left.minutes}m ${two(left.seconds)}s`;
 }
 
-/** What is behind the next session: a real photograph of a place in that hour's light, brought to
- *  life (SchedulePhoto.tsx). `scene` names a painted place instead (the page's ?scene=), kept
- *  while the founder chooses between the two. */
+/** What is behind the next session: a painting made from a real photograph of a place in that
+ *  hour's light, brought to life (SchedulePhoto.tsx). The page's ?photo=real shows the plain
+ *  photograph, the backup. `scene` names a place drawn in code instead (the page's ?scene=), kept
+ *  while the founder chooses. */
 function Backdrop({ scene, sky, seed }: { scene?: SceneName; sky: Sky; seed: number }) {
+  const real = useSearchParams().get("photo") === "real";
   if (scene) return <Scene scene={scene ?? sceneFor(seed)} sky={sky} className={styles.scene} />;
-  return <PhotoScene photo={PHOTOS.lake[sky]} night={sky === "night"} className={styles.scene} />;
+  const photo = PHOTOS.lake[sky];
+  return (
+    <PhotoScene
+      photo={real ? plain(photo) : photo}
+      night={sky === "night"}
+      className={styles.scene}
+    />
+  );
 }
 
 /** The next session, on a painting of the sky at its time (ScheduleScene.tsx): when it is, what

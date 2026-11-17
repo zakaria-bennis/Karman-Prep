@@ -9,7 +9,7 @@ import { notFound, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import PhotoScene from "../shell/SchedulePhoto";
 import Scene from "../shell/ScheduleScene";
-import { PHOTOS } from "../shell/scenes/photos";
+import { PHOTOS, plain } from "../shell/scenes/photos";
 import type { Sky } from "../shell/scheduleData";
 import { SCENE_NAMES, type SceneName } from "../shell/scenes";
 
@@ -34,8 +34,12 @@ function Gallery() {
             flex: "none",
           }}
         >
-          {q.get("photo") === "1" ? (
-            <PhotoScene photo={PHOTOS.lake[light]} night={light === "night"} className="" />
+          {q.get("photo") ? (
+            <PhotoScene
+              photo={q.get("photo") === "real" ? plain(PHOTOS.lake[light]) : PHOTOS.lake[light]}
+              night={light === "night"}
+              className=""
+            />
           ) : (
             <Scene scene={scene} sky={light} className="" />
           )}

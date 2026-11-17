@@ -13,8 +13,9 @@
 // see SchedulePay.tsx), and the hours bought are added to the stand-in.
 // To look at its states: ?pack=10 (Private 10), ?soon=3 (next session in 3 minutes), ?soon=-4
 // (already begun), ?empty=1 (no hours left), ?full=1 (the tutor has nothing open), and
-// ?sky=night, sunrise, day or sunset and ?scene=lake and so on (that light and that place on the
-// next session, whatever its time).
+// ?sky=night, sunrise, day or sunset (that light on the next session, whatever its time),
+// ?photo=real (the plain photograph instead of its painting) and ?scene=lake and so on (a place
+// drawn in code).
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useClock } from "./homeworkMotion";

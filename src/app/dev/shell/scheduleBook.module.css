@@ -68,6 +68,8 @@
 }
 
 .grid {
+  /* the corner of a date's square */
+  --tile: 9px;
   position: relative;
   row-gap: 4px;
 }
@@ -76,7 +78,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 14px;
+  border-radius: var(--tile);
   background: var(--ink);
   box-shadow: 0 12px 22px -12px var(--ink);
   opacity: 0;
@@ -89,7 +91,7 @@
   place-items: center;
   min-height: 44px;
   padding: 2px 0;
-  border-radius: 14px;
+  border-radius: var(--tile);
   color: var(--ink);
   transition: color 0.2s var(--out);
 }
@@ -99,10 +101,11 @@
   position: relative;
   display: grid;
   place-items: center;
-  /* always a square, however narrow the screen */
+  /* always a square with gently rounded corners, however narrow the screen (founder, 2026-11-17:
+     on a phone the old 14px corners made them read as circles) */
   width: min(100%, 48px);
   aspect-ratio: 1;
-  border-radius: 14px;
+  border-radius: var(--tile);
   transition:
     background 0.18s var(--out),
     box-shadow 0.18s var(--out);
@@ -469,6 +472,10 @@
 }
 
 @media (max-width: 520px) {
+  .grid {
+    --tile: 7px;
+  }
+
   .day > span {
     width: min(100%, 44px);
   }

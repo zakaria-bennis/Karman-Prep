@@ -1255,25 +1255,34 @@ verdicts are in the memory note `project_calendar_spec.md`. Awaiting his verdict
   then it comes alive, with 10 minutes of grace. Move (blue) and Cancel (ruby) beside it. With
   nothing booked the card paints the sky as it is now. `&sky=night|sunrise|day|sunset` shows one
   painting whatever the time. No tutor line, no time zone.
-- **The picture behind the next session is being decided (2026-11-17, late).** He found every
-  painted scene "really cartoony" and asked for something that looks "like a photograph and a video
-  game that is in motion", with far more life (ducks, a frog, birds, trees moving in the wind). Two
-  ways now exist for the lake only, and he has been asked to choose:
-  - **A real photograph brought to life** (`SchedulePhoto.tsx`, photos in `public/scenes/`, listed
-    with their sources in its README; all CC0). The photo's own water ripples, the tree line sways,
-    ducks paddle with wakes, a frog leaps and leaves rings, birds cross by day, fireflies and a
-    shooting star at night, the camera drifts. One photo for each light (day, sunset, sunrise,
-    night). **This is what the card shows now**, for every session.
-  - **Painted in code** (`ScheduleScene.tsx` and `scenes/`: a shared kit and one file a place).
-    Lake, river, beach, cottage and mountains exist; `&scene=lake` and so on shows one on the card,
-    and `/dev/scenes?scene=lake` shows a place in three lights (`?photo=1` shows the photographs).
-    The river, beach, cottage and mountains are unfinished and he disliked them.
-  - When he chooses, delete the other way everywhere. If photographs: find three or four CC0
-    photos for each place he named (cottage in the woods, beach with palms, mountains, desert
-    dunes, jungle, bamboo forest, lake or river or lagoon, sakura, apple blossom, butterfly
-    garden), give each its water or sway region, and delete `ScheduleScene.tsx`, `scenes/*.ts`
-    except `photos.ts`, and the gallery's painted mode.
-- **Book:** whole weeks from **Sunday to Saturday**. A day the tutor has time is a **shaded
+- **The picture behind the next session: a painted photograph (2026-11-17, later still).** The
+  history: he found every scene drawn in code "really cartoony", then found plain photographs
+  "too real" in color and look ("It fits the theme decently ... There needs to be a nice little
+  halfway. This is a good backup, though."). What the card shows now, for the lake only:
+  - **A real photograph, painted, then brought to life.** `scripts/dev/paint-scenes.cjs` (run with
+    the dev server up) lays each photograph in `public/scenes/` down in soft round brush strokes
+    with storybook color (greens warmer, pale gray skies a soft blue, darkest darks deep
+    blue-violet) and writes a `-painted.jpg` twin beside it. No AI: it is a filter, drawn on the
+    graphics card. `scenes/photos.ts` points the card at the painted twins. `SchedulePhoto.tsx`
+    then adds the motion: the water ripples, the tree line sways, ducks paddle with wakes, a frog
+    leaps and leaves rings, birds cross by day, fireflies, twinkling stars and a shooting star at
+    night, the camera drifts. One picture for each light (day, sunset, sunrise, night).
+  - **The backup is the plain photograph:** `&photo=real` on the page, `plain()` in `photos.ts`.
+    Sources of every photograph are in `public/scenes/README.md`; all CC0.
+  - **Drawn in code** (`ScheduleScene.tsx` and `scenes/`: a shared kit and one file a place; lake,
+    river, beach, cottage, mountains) is still there behind `&scene=lake` and
+    `/dev/scenes?scene=lake` (`?photo=1` shows the painted photographs, `?photo=real` the plain
+    ones). He disliked all of them.
+  - **He has not yet said the halfway is right.** When he does: delete the drawn-in-code way
+    everywhere (`ScheduleScene.tsx`, `scenes/*.ts` except `photos.ts`, the gallery's drawn mode,
+    the `scene` props), then find three or four CC0 photographs for each place he named (cottage
+    in the woods, beach with palms, mountains, desert dunes, jungle, bamboo forest, lake or river
+    or lagoon, sakura, apple blossom, butterfly garden), paint them with the script, and give each
+    its water or sway region. If he wants it more or less painted, the script takes `--brush`,
+    `--passes`, `--keep` and `--color`.
+- **Book:** whole weeks from **Sunday to Saturday**. Dates are **squares with small rounded
+  corners at every width** (he saw circles on a phone and said no: `--tile` in
+  `scheduleBook.module.css`). A day the tutor has time is a **shaded
   square**, a day with none is clear (no dots); a day with a session of the student's own is filled
   with that session's sky inside a border; the SAT's day has a **bold outline** in the text color
   (not red) with "SAT" under the date; one pill glides between dates (GSAP). Weeks with nothing to
