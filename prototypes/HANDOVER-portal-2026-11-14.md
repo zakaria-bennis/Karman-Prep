@@ -1130,3 +1130,16 @@ approves) needs a migration and route changes; tutor remove-from-class; holding 
 passes and a tutor look at borderline ones; socials check review; reactions, replies, receipts and
 attached questions in the database; the new Chat page reading the live chat. Lawyer: duties if a sexual
 image of a minor is uploaded, and consent for under-13s.
+
+**Live chat: the warning and the pause (2026-11-16). NOT live until merged; the merge applies the
+migration.** New table `chat_standing` (`supabase/migrations/20261116220000_chat_standing.sql`), rules
+and reads in `src/lib/chat/standing.ts` (tested). In both send routes: answer-sharing the first time
+returns `warning` with the rejection; the second time pauses the student; sexual content caught by the
+OpenAI check pauses at once; a paused student gets 403 `{ paused: true }` on every send. Tutors and
+admins are never paused. `/admin/moderation` lists paused students with "Lift pause"
+(`POST /api/admin/moderation/lift-pause`, admin only). If the table is not there yet the code treats
+everyone as in good standing. The classifier got 24 of 24 on sample messages (median 0.7 s).
+**Not done:** the student-facing chat UI does not yet show `warning` or `paused` from the live routes
+(the dev page shows stand-ins); tutors cannot lift a pause themselves (admins only); removing a student
+from a class; holding images until checked; `src/types/supabase.ts` has `chat_standing` added by hand,
+so run `npm run db:types` after the migration is applied.

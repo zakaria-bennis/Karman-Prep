@@ -26,3 +26,8 @@ export const moderationWarnBodySchema = z.object({
   relatedMessageId: nonEmptyString.optional(),
   relatedMessageKind: z.enum(["chat", "dm"]).optional(),
 });
+
+// /admin/moderation/lift-pause: a student's chats were paused by the check; this lifts the pause.
+export const moderationLiftPauseBodySchema = z.object({
+  targetUserUuid: z.string().uuid(),
+});

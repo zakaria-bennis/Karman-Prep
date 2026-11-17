@@ -443,6 +443,36 @@ export type Database = {
           },
         ];
       };
+      chat_standing: {
+        Row: {
+          integrity_strikes: number;
+          paused_at: string | null;
+          paused_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          integrity_strikes?: number;
+          paused_at?: string | null;
+          paused_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          integrity_strikes?: number;
+          paused_at?: string | null;
+          paused_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       chat_messages: {
         Row: {
           ai_flag_reason: string | null;

@@ -23,7 +23,9 @@ import {
   type ModerationStatus,
 } from "@/lib/supabase/queries/chat";
 import { createAdminClient } from "@/lib/supabase/server";
+import { listPaused } from "@/lib/chat/standing";
 import ModerationQueueClient from "./ModerationQueueClient";
+import PausedStudents from "./PausedStudents";
 
 export const metadata: Metadata = { title: "Moderation queue" };
 
@@ -166,7 +168,7 @@ export default async function ModerationQueuePage({ searchParams }: PageProps) {
   // Fetch the current tab. The "pending" tab count for the badge
   // is the visible items count when on pending; otherwise issue a
   // small head-count query.
-  const items = await fetchQueueForTab(tab, q);
+  const [items, paused] = await Promise.all([fetchQueueForTab(tab, q), listPaused()]);
   let pendingCount = items.length;
   if (tab === "history") {
     const supa = createAdminClient();
@@ -200,10 +202,13 @@ export default async function ModerationQueuePage({ searchParams }: PageProps) {
       <WbStats
         items={[
           { label: "Waiting for review", value: pendingCount },
+          { label: "Chats paused", value: paused.length },
           { label: "Channel messages shown", value: channelCount },
           { label: "Direct messages shown", value: items.length - channelCount },
         ]}
       />
+
+      <PausedStudents students={paused} />
 
       <WbTabs
         label="Queue"

@@ -24,6 +24,13 @@ import {
   type InsertDirectMessageInput,
 } from "@/lib/supabase/queries/chat";
 import { moderateMessage } from "@/lib/moderation/pipeline";
+import {
+  applyConsequence,
+  consequenceOf,
+  getStanding,
+  PAUSED_MESSAGE,
+  WARNING_MESSAGE,
+} from "@/lib/chat/standing";
 import { deriveClientMsgId } from "@/lib/chat/idempotency";
 import { sendDmBodySchema } from "../schemas";
 
@@ -93,8 +100,9 @@ export async function POST(req: NextRequest) {
   // the cohort check. Running them together saves the OpenAI
   // round-trip from sitting behind the cohort lookup serially.
   // Per locked spec: DMs only within the same cohort.
-  const [sharedCohortId, outcome] = await Promise.all([
+  const [sharedCohortId, standing, outcome] = await Promise.all([
     findSharedCohort(senderUuid, recipientUuid),
+    getStanding(senderUuid),
     moderateMessage({
       content: body.content ?? "",
       mediaUrls: body.mediaUrls ?? [],
@@ -106,6 +114,10 @@ export async function POST(req: NextRequest) {
   ]);
   if (!sharedCohortId) {
     return NextResponse.json({ error: "You can only DM students in your cohort" }, { status: 403 });
+  }
+  // A paused sender cannot send until a tutor or admin has reviewed their chats.
+  if (standing.paused) {
+    return NextResponse.json({ paused: true, message: PAUSED_MESSAGE }, { status: 403 });
   }
 
   // Deterministic dedupe key — collapses double-clicks within a
@@ -135,8 +147,15 @@ export async function POST(req: NextRequest) {
       rejection_message: outcome.rejection_message,
       client_msg_id: clientMsgId,
     });
+    // Answer-sharing is counted (a warning, then a pause); sexual content pauses at once.
+    const cost = await applyConsequence(senderUuid, consequenceOf(outcome));
     return NextResponse.json(
-      { rejected: true, message: outcome.rejection_message },
+      {
+        rejected: true,
+        message: cost?.paused ? PAUSED_MESSAGE : outcome.rejection_message,
+        ...(cost?.warned ? { warning: WARNING_MESSAGE } : {}),
+        ...(cost?.paused ? { paused: true } : {}),
+      },
       { status: 400 }
     );
   }

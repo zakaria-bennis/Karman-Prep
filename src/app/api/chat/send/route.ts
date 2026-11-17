@@ -7,7 +7,7 @@
 //   1. Clerk auth
 //   2. Resolve sender UUID + verify cohort membership for the
 //      target channel (or Q&A authority for answers)
-//   3. Mute check (channel_mutes)
+//   3. Mute check (channel_mutes), and the sender's standing (a paused student cannot send)
 //   4. moderateMessage() — Layer 1 + 2 of the pipeline
 //   5. If approved: postMessage to Slack, insert with status=approved
 //   6. If approved_with_flag: HOLD — DO NOT post to Slack; insert
@@ -42,6 +42,13 @@ import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { moderateMessage } from "@/lib/moderation/pipeline";
 import { postMessage as slackPostMessage, SlackAdapterError } from "@/lib/integrations/slack";
 import { evaluateSendChannelAuth } from "@/lib/chat/can-send";
+import {
+  applyConsequence,
+  consequenceOf,
+  getStanding,
+  PAUSED_MESSAGE,
+  WARNING_MESSAGE,
+} from "@/lib/chat/standing";
 import { deriveClientMsgId } from "@/lib/chat/idempotency";
 import { sendMessageBodySchema } from "../schemas";
 
@@ -134,12 +141,13 @@ export async function POST(req: NextRequest) {
   // out to be unauthorized we paid for one OpenAI call we'll discard,
   // but the typical authorized send saves ~500-2000ms of wall-clock.
   const isAnonymous = body.isAnonymous === true && body.messageType !== "qa_answer";
-  const [role, isMember, isTutor, muted, clerkUser, outcome] = await Promise.all([
+  const [role, isMember, isTutor, muted, clerkUser, standing, outcome] = await Promise.all([
     fetchUserRole(userId),
     isStudentInCohort(senderUuid, channel.cohort_id),
     isTutorOfChannel(senderUuid, channel.id),
     isStudentMuted(senderUuid, channel.id),
     currentUser(),
+    getStanding(senderUuid),
     moderateMessage({
       content: body.content ?? "",
       mediaUrls: body.mediaUrls ?? [],
@@ -163,6 +171,13 @@ export async function POST(req: NextRequest) {
   });
   if (!authDecision.ok) {
     return NextResponse.json({ error: authDecision.error }, { status: authDecision.status });
+  }
+
+  // A student whose chats are paused cannot send until a tutor or admin has reviewed them.
+  // Tutors and admins are never paused.
+  const isStudentSender = !isTutor && !isAdmin;
+  if (isStudentSender && standing.paused) {
+    return NextResponse.json({ paused: true, message: PAUSED_MESSAGE }, { status: 403 });
   }
 
   // Resolve sender's display name for the post.
@@ -208,8 +223,17 @@ export async function POST(req: NextRequest) {
       cohort_label: channel.display_name,
       client_msg_id: clientMsgId,
     });
+    // Answer-sharing is counted (a warning, then a pause); sexual content pauses at once.
+    const cost = isStudentSender
+      ? await applyConsequence(senderUuid, consequenceOf(outcome))
+      : null;
     return NextResponse.json(
-      { rejected: true, message: outcome.rejection_message },
+      {
+        rejected: true,
+        message: cost?.paused ? PAUSED_MESSAGE : outcome.rejection_message,
+        ...(cost?.warned ? { warning: WARNING_MESSAGE } : {}),
+        ...(cost?.paused ? { paused: true } : {}),
+      },
       { status: 400 }
     );
   }
