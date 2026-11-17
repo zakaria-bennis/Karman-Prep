@@ -11,12 +11,11 @@
 //          hate, harassment. Multimodal — moderates text AND any
 //          attached image URLs in a single call. 4-second hard
 //          timeout. FAILS CLOSED — outage = rejection.
-// Layer 2.5: Karman bullying classifier
+// Layer 2.5: Karman's own check, Claude Haiku
 //          (src/lib/moderation/karman-classifier.ts). Runs in
-//          parallel with Layer 2. Asks a school-audience-specific
-//          question OpenAI's safety categories don't cover ("would
-//          a parent be upset to see this?"). Additive — if it
-//          errors out the pipeline still uses the Layer 2 result.
+//          parallel with Layer 2 on the words and every picture.
+//          It knows the room (students of 14 to 18) and says what
+//          kind of problem it found. FAILS CLOSED as well.
 // Layer 3: caller's responsibility (write Supabase + post Slack).
 //
 // Combination rule:
@@ -43,8 +42,8 @@
 //                                          provider outage doesn't open
 //                                          the floodgates. User sees
 //                                          "try again" message.
-//   · Layer 2.5 errors out (only)        → ignored (additive layer; we
-//                                          still have a Layer 2 result).
+//   · Layer 2.5 errors out               → REJECT (fail-CLOSED), the
+//                                          same "try again" message.
 //   · Both Layer 2 and 2.5 clean         → approved.
 //
 // Empty message guard: a message with no text AND no images can't
@@ -115,14 +114,10 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   // unchecked, so it is gone. Students here are minors: nothing is waved through.)
 
   // ─── Layer 2 + 2.5 — run in parallel ──────────────────────
-  // OpenAI Moderation handles both text and image URLs (multimodal).
-  // Karman classifier is text-only and only runs when there's text;
-  // for image-only messages we skip it (no string to classify).
+  // Both look at the words and at every picture.
   const [openaiResult, karmanResult] = await Promise.allSettled([
     callOpenAIModeration(input.content ?? "", input.mediaUrls),
-    hasContent
-      ? callKarmanClassifier(input.content ?? "")
-      : Promise.resolve({ flagged: false, reason: "no text" }),
+    callKarmanClassifier(input.content ?? "", input.mediaUrls),
   ]);
 
   // OpenAI Moderation fails CLOSED — provider outage = rejection.
@@ -141,19 +136,22 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   }
   const result = openaiResult.value;
 
-  // Karman classifier is ADDITIVE — log on error and continue with
-  // just the OpenAI result. We don't fail-CLOSED on it because the
-  // OpenAI safety floor is still in place.
-  const karman: KarmanClassifierResult =
-    karmanResult.status === "fulfilled"
-      ? karmanResult.value
-      : (console.error(
-          `[moderation] karman classifier error sender=${input.senderId}:`,
-          karmanResult.reason instanceof Error
-            ? karmanResult.reason.message
-            : String(karmanResult.reason)
-        ),
-        { flagged: false, reason: "karman classifier unavailable" });
+  // Karman's check (Claude) fails CLOSED too: it is the one that looks at pictures with the room in
+  // mind, so a message it could not check is not delivered.
+  if (karmanResult.status === "rejected") {
+    const errMsg =
+      karmanResult.reason instanceof Error
+        ? karmanResult.reason.message
+        : String(karmanResult.reason);
+    console.error(`[moderation] karman check error sender=${input.senderId}:`, errMsg);
+    return {
+      decision: "rejected",
+      layer: "ai",
+      reason: `Karman check unavailable: ${errMsg}`,
+      rejection_message: AI_UNAVAILABLE_MESSAGE,
+    };
+  }
+  const karman: KarmanClassifierResult = karmanResult.value;
 
   // Layer 2.5 (Karman) flag → reject. Karman's school-audience
   // prompt is stricter than OpenAI's safety categories — if it says
@@ -172,7 +170,8 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     return {
       decision: "rejected",
       layer: "karman",
-      reason: `Karman: ${karman.reason}`,
+      // the kind leads the reason ("Karman: sexual: ..."), which standing.ts reads
+      reason: `Karman: ${karman.category ?? "conduct"}: ${karman.reason}`,
       rejection_message: AI_HIGH_REJECTION_MESSAGE,
     };
   }

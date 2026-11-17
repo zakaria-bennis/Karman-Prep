@@ -226,7 +226,7 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     }
   });
 
-  it("treats Karman classifier errors as additive — keeps the OpenAI clean result", async () => {
+  it("fails closed when Karman's check cannot be had, even if OpenAI says clean", async () => {
     callOpenAIModerationMock.mockResolvedValueOnce({
       flagged: false,
       worstCategory: null,
@@ -235,9 +235,8 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     });
     callKarmanClassifierMock.mockRejectedValueOnce(new Error("classifier timeout"));
     const r = await moderateMessage(baseInput({ content: "study sesh?" }));
-    // Karman erroring should NOT fail-closed — the OpenAI safety
-    // floor is still in place. Message goes through.
-    expect(r.decision).toBe("approved");
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.rejection_message).toMatch(/try again/);
   });
 
   it("OpenAI fail-closed takes precedence even if Karman returns a flag", async () => {
@@ -252,19 +251,24 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     }
   });
 
-  it("skips Karman entirely for image-only messages (text-only classifier)", async () => {
+  it("has Karman's check look at a picture sent with no words", async () => {
     callOpenAIModerationMock.mockResolvedValueOnce({
       flagged: false,
       worstCategory: null,
       worstScore: 0,
       isHighSeverity: false,
     });
+    callKarmanClassifierMock.mockResolvedValueOnce({
+      flagged: true,
+      category: "sexual",
+      reason: "nudity",
+    });
     const r = await moderateMessage(
       baseInput({ content: "", mediaUrls: ["https://cdn.example.com/a.jpg"] })
     );
-    expect(r.decision).toBe("approved");
-    // Karman classifier should not have been called for an image-only message.
-    expect(callKarmanClassifierMock).not.toHaveBeenCalled();
+    expect(callKarmanClassifierMock).toHaveBeenCalledWith("", ["https://cdn.example.com/a.jpg"]);
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.reason).toBe("Karman: sexual: nudity");
   });
 });
 

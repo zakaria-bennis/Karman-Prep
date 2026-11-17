@@ -1143,3 +1143,15 @@ everyone as in good standing. The classifier got 24 of 24 on sample messages (me
 (the dev page shows stand-ins); tutors cannot lift a pause themselves (admins only); removing a student
 from a class; holding images until checked; `src/types/supabase.ts` has `chat_standing` added by hand,
 so run `npm run db:types` after the migration is applied.
+
+**Moderation moves to Claude Haiku (2026-11-16). NOT live until merged.** By his word: Haiku 5.5 for
+chat moderation (text and pictures), the after-hours assistant and FAQ, paid from his Anthropic credit.
+Done: `src/lib/moderation/karman-classifier.ts` now asks `claude-haiku-5-5` (thinking off, low effort,
+structured answer) about the words and every picture, returns a kind (sexual, cheating, contact,
+conduct), and **fails closed**; a refusal by the model counts as flagged. The gpt-4o-mini call is gone.
+OpenAI's free Moderation endpoint (Layer 2) is still there as a second check; he has been asked whether
+to keep it. **The ANTHROPIC_API_KEY saved in .env.local was rejected as invalid** on 2026-11-16; he
+has to paste a new one (the file was opened for him), and the same key must be set as a secret on the
+Cloudflare Worker before this is deployed. Nothing has been run against the real API yet: rerun the
+24 sample messages (`scratchpad/try-cheat.mts`) and try pictures once the key works.
+**Not built yet:** the after-hours assistant and FAQ on Haiku.

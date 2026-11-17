@@ -39,13 +39,13 @@ export type Consequence =
   | { kind: "strike" }
   | { kind: "pause"; reason: PauseReason };
 
-/** Which rejections count against a student. Sexual content is recognised from the check's own
- *  category name, which the pipeline writes at the head of its reason ("OpenAI: sexual/minors (0.97)"). */
+/** Which rejections count against a student. Sexual content is recognised from the kind the
+ *  pipeline writes at the head of its reason ("OpenAI: sexual/minors (0.97)", "Karman: sexual: ..."). */
 export function consequenceOf(outcome: ModerationOutcome): Consequence {
   if (outcome.decision !== "rejected") return { kind: "none" };
   if (outcome.layer === "integrity") return { kind: "strike" };
-  if (outcome.layer === "ai" && /^OpenAI: sexual/.test(outcome.reason))
-    return { kind: "pause", reason: "content" };
+  // either check may say it: OpenAI's category, or the kind Karman's own check gives
+  if (/^(OpenAI|Karman): sexual/.test(outcome.reason)) return { kind: "pause", reason: "content" };
   return { kind: "none" };
 }
 

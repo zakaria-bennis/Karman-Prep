@@ -24,11 +24,17 @@ describe("consequenceOf", () => {
       kind: "pause",
       reason: "content",
     });
+    expect(consequenceOf(rejected("karman", "Karman: sexual: a nude picture"))).toEqual({
+      kind: "pause",
+      reason: "content",
+    });
   });
 
   it("does not count other rejections, an outage, or anything approved", () => {
     expect(consequenceOf(rejected("keyword", "Blocked: shit")).kind).toBe("none");
-    expect(consequenceOf(rejected("karman", "Karman: a put-down")).kind).toBe("none");
+    expect(consequenceOf(rejected("karman", "Karman: conduct: a put-down")).kind).toBe("none");
+    expect(consequenceOf(rejected("karman", "Karman: contact: a phone number")).kind).toBe("none");
+    expect(consequenceOf(rejected("ai", "Karman check unavailable: timeout")).kind).toBe("none");
     expect(consequenceOf(rejected("ai", "OpenAI: harassment (0.70)")).kind).toBe("none");
     expect(consequenceOf(rejected("ai", "OpenAI moderation unavailable: timeout")).kind).toBe(
       "none"
