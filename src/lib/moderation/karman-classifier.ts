@@ -47,17 +47,17 @@ A message is NOT flagged if it's:
 - Asking honest study questions
 - WORKING A QUESTION OUT TOGETHER, which is what this chat is for and is never "cheating": asking how to do a question, asking why an answer is right or wrong, explaining a method or a step, saying what you got AND how you got it, comparing approaches, asking for a hint. "I got 15 for the radius but I'm not sure why" is fine. "How do you set up number 14?" is fine. "The answer is B because the slope is rise over run, so 8 over 4" is fine: it explains.
 
-The test for "cheating" is whether the message tries to move an answer from one student to another without the understanding. When it is unclear, it is not cheating.
+The test for "cheating" is whether the message tries to move an answer from one student to another without the understanding. When it is unclear, it is not cheating. Agreeing to compare or check answers once both have finished is ordinary studying, not cheating.
 
 Be skeptical but proportionate. A SAT prep cohort is allowed to be casual and funny. Flag what would make a parent uncomfortable, not what would make a humorless teacher uncomfortable.
 
-PICTURES. Students send photos of their written work, screenshots of questions, and ordinary pictures. Look at every picture. Flag (category "sexual") any nudity, underwear or swimwear shown in a sexual way, sexual acts or poses, sexual text or drawings, and anything sexualizing a person who is or looks under 18, whether real, drawn or generated. Flag (category "conduct") gore, weapons pointed at people, drugs, self-harm, hate symbols, and pictures that mock or expose another student. Flag (category "contact") a picture whose point is to pass on a phone number, a username, a QR code or a social profile. Flag (category "cheating") a picture of an answer key, of someone's finished answers offered for copying, or of a test or quiz that is still open. A photo of the student's own working with a question about it is what chat is for and is fine.
+PICTURES. Students send photos of their written work, screenshots of questions, and ordinary pictures. Look at every picture. Flag (category "sexual") nudity, underwear or swimwear shown in a sexual way, sexual acts or poses, sexual text or drawings, and anything sexualizing a person who is or looks under 18, whether real, drawn or generated. What makes a picture sexual is how it presents a body, not how much skin shows: people in swimwear or sports kit at a pool, a beach, a swim meet or a game, a family holiday photo, and nudity in a museum piece or a textbook diagram are ordinary and are NOT flagged. A "sexual" flag has a heavy consequence for the student, so use it when the picture or words are sexual, and use "conduct" for something merely off-topic or awkward. Flag (category "conduct") gore, weapons pointed at people, drugs, self-harm, hate symbols, and pictures that mock or expose another student. Flag (category "contact") a picture whose point is to pass on a phone number, a username, a QR code or a social profile. Flag (category "cheating") a picture of an answer key, of someone's finished answers offered for copying, or of a test or quiz that is still open. A photo of the student's own working with a question about it is what chat is for and is fine.
 
 CATEGORIES. When you flag, choose one:
 - "sexual": any sexual content, in words or pictures, including innuendo and requests for pictures
 - "cheating": academic dishonesty as described above
 - "contact": phone numbers, email addresses, home addresses, social accounts or handles, or asking to move the conversation to another app
-- "conduct": everything else you flag
+- "conduct": everything else you flag, including offering, asking for or passing on a login, a password or the use of someone else's account
 Use "none" when the message is fine.`;
 
 const verdict = z.object({

@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Image as ImageIcon, Send, X } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import { PHOTO_ERROR, preparePhoto } from "@/lib/chat/photo";
 
 interface Props {
   /** Other party's Clerk id — passed to /api/chat/dm send + read. */
@@ -214,7 +215,14 @@ export function DirectMessage({
   async function handleFile(files: FileList | null) {
     if (!files || files.length === 0) return;
     setImageError(null);
-    const file = files[0];
+    // an iPhone's HEIC, or a very large photo, is redrawn as a JPEG first, here on the device
+    let file: File;
+    try {
+      file = await preparePhoto(files[0]);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : PHOTO_ERROR);
+      return;
+    }
     const form = new FormData();
     form.append("file", file);
     try {
@@ -307,7 +315,7 @@ export function DirectMessage({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif"
+            accept="image/*"
             className="hidden"
             onChange={(e) => handleFile(e.target.files)}
           />

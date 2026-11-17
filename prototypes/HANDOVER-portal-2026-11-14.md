@@ -1166,3 +1166,21 @@ a "picture"), at most four a message; (2) the check **downloads each picture its
 bytes, so it sees exactly what is stored. HEIC pictures cannot be checked and so are not delivered:
 the upload route still accepts them and should convert or refuse them. Not tested: real explicit
 images (never generate or fetch any; rely on the model and OpenAI's check), real student wording.
+
+**After-hours assistant, iPhone photos, wider moderation test (2026-11-16). NOT live until merged.**
+- `src/lib/chat-assistant/` (facts.ts, model.ts, claude.ts, tests): Claude Haiku 5.5 answers a student
+  after hours from the site's own facts (offer.ts and the published FAQ, plus a few portal facts) and
+  explains a bookmarked question step by step. It says it is automated, will not give a bare answer to
+  a typed question, hands refunds, scheduling and anything unknown to the tutor (`needs_tutor`), and for
+  distress gives 988 and sets `urgent`. Tried on nine real prompts; replies took 2 to 12 seconds.
+  **Nothing calls it yet**: it needs the live tutor chat to invoke it and a way to alert a person on
+  `urgent`.
+- iPhone photos: `src/lib/chat/photo.ts` redraws a HEIC (or any photo over 1.5 MB) as a JPEG in the
+  browser before upload; the two existing chat components use it; the upload route no longer takes
+  HEIC. **Not tried on a real iPhone.** A browser that cannot open HEIC (Chrome on a desktop) shows a
+  plain message.
+- Moderation on 38 vaguer messages and pictures: 31 as expected at first; after tightening the prompt
+  (ordinary swimwear and museum nudity are not sexual; login sharing is conduct; comparing answers
+  after finishing is fine) the 16 rechecked cases were all right. Categories sometimes differ from
+  mine (a vague "dm me, I have the thing" came back contact, not cheating) but were still blocked.
+- Production needs `ANTHROPIC_API_KEY` as a Worker secret before deploy (noted in wrangler.toml).
