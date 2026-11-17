@@ -518,187 +518,9 @@
   min-width: 0;
 }
 
-/* ---- the sessions: each row washed with the sky at its time ---- */
+/* the sessions list has its own file: scheduleList.module.css */
 .list {
   grid-area: list;
-  display: grid;
-  gap: 10px;
-}
-
-.tabs {
-  display: inline-flex;
-  justify-self: start;
-  gap: 2px;
-  padding: 3px;
-  border-radius: 14px;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.schedule .tabs button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 8px 0 14px;
-  border-radius: 11px;
-  color: var(--soft);
-  font-size: 14px;
-  font-weight: 700;
-  transition:
-    background 0.18s var(--out),
-    color 0.18s var(--out);
-}
-
-.tabs i {
-  min-width: 22px;
-  padding: 3px 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 16%, transparent);
-  font-size: 12px;
-  font-style: normal;
-  text-align: center;
-}
-
-.schedule .tabs button[aria-selected="true"] {
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.blank {
-  padding: 10px 4px 6px;
-  color: var(--soft);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.items {
-  display: grid;
-  gap: 8px;
-}
-
-.item {
-  border-radius: 18px;
-  background: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--sky) 26%, transparent),
-    color-mix(in srgb, var(--sky) 5%, transparent) 70%
-  );
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sky) 35%, transparent);
-  transition:
-    transform 0.2s var(--out),
-    box-shadow 0.2s var(--out);
-}
-
-.item:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent),
-    0 10px 20px -14px var(--sky);
-}
-
-.schedule .item > button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 8px 12px 8px 8px;
-  border-radius: 18px;
-  text-align: left;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.item > button > svg {
-  flex: none;
-  color: var(--soft);
-  transition: transform 0.25s var(--out);
-}
-
-.item[data-open] > button > svg {
-  transform: rotate(90deg);
-}
-
-/* the date, on the sky's own color */
-.date {
-  flex: none;
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  background: var(--sky-fill);
-  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.6);
-  color: var(--sky-ink);
-}
-
-.date small {
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.1;
-  opacity: 0.9;
-}
-
-.date b {
-  font: 400 21px/1.05 var(--font-serif);
-}
-
-.what {
-  display: grid;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-
-.what b {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.what small {
-  overflow: hidden;
-  color: var(--soft);
-  font-size: 13px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* how long it is */
-.item > button > i {
-  flex: none;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 700;
-}
-
-/* a past session has its recording: a ring with a play mark in its middle */
-.play {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px var(--go);
-  color: var(--go);
-}
-
-.play[data-missed] {
-  box-shadow: inset 0 0 0 2px var(--ruby);
-  color: var(--ruby);
-}
-
-.item > .changes,
-.item > .ask,
-.item > .rule {
-  margin: 0;
-  padding: 2px 12px 12px;
 }
 
 @media (min-width: 960px) {
@@ -736,5 +558,20 @@
   .schedule * {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* on a phone Join has the card's whole width, and Move and Cancel share the row under it, so
+   Cancel never drops to a row of its own */
+@media (max-width: 520px) {
+  .schedule .acts .join {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .schedule .acts .move,
+  .schedule .acts .cancel {
+    flex: 1 1 0;
+    justify-content: center;
   }
 }

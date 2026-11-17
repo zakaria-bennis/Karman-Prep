@@ -1239,6 +1239,35 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
+## Sweep of the student portal, and the More tab (2026-11-17)
+
+He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened
+at 390, 820 and 1440 wide (and Schedule at 320), dark and light, and looked at full size. No
+page scrolls sideways and nothing hangs off an edge. What was found and fixed:
+
+- **The More tab opened nothing.** It is the last of the five on a phone and a tablet, and it had
+  no page, so Chat (Private), the Mistake Log and Rewards could not be reached there at all. It
+  is now a page (`More.tsx`, `more.module.css`): a row for each page the plan's menu has that the
+  five have no room for (`tuckedIn(plan)`), then the student, Light or Dark, and Sign out (which
+  a desktop keeps in the profile's menu; that menu moved into the same file as `AccountMenu`).
+  A page opened from More has a "More" button back and keeps More lit in the bar; the Mistake
+  Log opened from Progress still goes back to Progress. More carries Chat's unread count when
+  Chat is inside it. **Settings has no page yet**, so More has no Settings row; add one when it
+  exists. He has not seen the More page.
+- **Schedule, next-session card on a phone:** Join has the whole width and Move and Cancel share
+  the row under it (Cancel used to drop to a row of its own).
+- **Small lettering:** the exam countdown's labels on a phone are 11px (were 10) and the
+  calendar's "SAT" 10px (was 9).
+- **Seen and left alone** (judgment calls, for him): on a tablet Homework's top card has empty
+  room at its right; on a desktop a Private student's single chat fills the left half only.
+
+## Pain points for the next portals (2026-11-17)
+
+`prototypes/portal-pain-points-2026-11-17.md`: what parents, tutors, owners, teachers and school
+buyers complain about and praise in other companies' products, with sources and how far to trust
+each part, and my reading of what it means for the parent, tutor, admin, teacher and school
+portals. Read it before designing any of them. He has not responded to it yet.
+
 ## Schedule (2026-11-17, fifth version)
 
 The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and every round of

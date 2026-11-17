@@ -29,6 +29,7 @@ import { schedule, split, useSchedule } from "./scheduleStore";
 import { tick } from "./sound";
 import styles from "./schedule.module.css";
 import hrs from "./scheduleHours.module.css";
+import rows from "./scheduleList.module.css";
 
 type Pane = { kind: "book" } | { kind: "move"; id: string } | { kind: "past"; id: string };
 
@@ -68,13 +69,13 @@ function Row({
   const sky = skyOf(session.start);
   const gone = session.state !== "booked";
   return (
-    <li ref={el} className={styles.item} data-open={open || undefined} data-sky={sky}>
+    <li ref={el} className={rows.item} data-open={open || undefined} data-sky={sky}>
       <button type="button" aria-expanded={open} onClick={onPress}>
-        <span className={styles.date}>
+        <span className={rows.date}>
           <small>{date.toLocaleDateString("en-US", { weekday: "short" })}</small>
           <b>{date.getDate()}</b>
         </span>
-        <span className={styles.what}>
+        <span className={rows.what}>
           <b>
             {dayWord(session.start, now)}, {clock(session.start)}
           </b>
@@ -88,7 +89,7 @@ function Row({
         </span>
         <i>{session.minutes === 60 ? "1h" : session.minutes === 90 ? "1.5h" : "2h"}</i>
         {gone ? (
-          <span className={styles.play} data-missed={session.state === "missed" || undefined}>
+          <span className={rows.play} data-missed={session.state === "missed" || undefined}>
             <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
               {session.state === "missed" ? (
                 <path d="M4.500 7h7v2h-7z" />
@@ -234,8 +235,12 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
         )}
       </section>
 
-      <section className={`${lib.glass} ${styles.list}`} aria-label="Sessions" data-arrive>
-        <div className={styles.tabs} role="tablist">
+      <section
+        className={`${lib.glass} ${styles.list} ${rows.sessions}`}
+        aria-label="Sessions"
+        data-arrive
+      >
+        <div className={rows.tabs} role="tablist">
           {(["upcoming", "past"] as const).map((t) => (
             <button
               key={t}
@@ -255,7 +260,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
           ))}
         </div>
         {list.length === 0 ? (
-          <p className={styles.blank}>
+          <p className={rows.blank}>
             {tab === "upcoming"
               ? next
                 ? "Nothing else is booked."
@@ -263,7 +268,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
               : "Sessions you have had will be listed here, with their recordings."}
           </p>
         ) : (
-          <ul className={styles.items} ref={items}>
+          <ul className={rows.items} ref={items}>
             {list.map((session) => (
               <Row
                 key={session.id}

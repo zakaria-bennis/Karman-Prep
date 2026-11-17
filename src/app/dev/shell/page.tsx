@@ -38,6 +38,7 @@ import Homework from "./Homework";
 import Schedule from "./Schedule";
 import LibraryHero from "./LibraryHero";
 import MistakeLog, { type Trail } from "./MistakeLog";
+import More, { AccountMenu, tuckedIn } from "./More";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
 import type { Found } from "./progressBreakdowns";
 import { STATS, type StatKey } from "./progressStats";
@@ -101,8 +102,10 @@ function Shell() {
   const [stat, setStat] = useState<StatKey | null>(null);
   /* what is open inside the Mistake Log on a phone: it names the page and the way back */
   const [trail, setTrail] = useState<Trail | null>(null);
-  /* a phone whose five are taken reaches the Mistake Log from Progress, and comes back to it */
-  const tucked = page === "mistakes" && !items.includes("mistakes");
+  /* a page the five have no room for is reached from More, or (the Mistake Log) from Progress,
+     and goes back to where it was opened from */
+  const [via, setVia] = useState<"more" | "progress">("progress");
+  const tucked = !rail && tuckedIn(plan).includes(page);
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
@@ -133,7 +136,7 @@ function Shell() {
     section && domain && !openDomain
       ? LEVEL_NAMES.indexOf(domain as (typeof LEVEL_NAMES)[number])
       : -1;
-  const at = Math.max(0, items.indexOf(tucked ? "progress" : page));
+  const at = Math.max(0, items.indexOf(tucked ? via : page));
   /* a skill named on Progress or in the Mistake Log opens on its own page in the Library */
   const openSkill = (found: Found) => {
     dir.current = 1;
@@ -366,7 +369,9 @@ function Shell() {
                   transition={still ? STILL : POP}
                 >
                   <Sticker name={item} />
-                  {item === "chat" && <Unread />}
+                  {(item === "chat" || (item === "more" && tuckedIn(plan).includes("chat"))) && (
+                    <Unread />
+                  )}
                 </motion.span>
                 <span className={styles.word} data-word>
                   {rail ? LABEL[item] : (ON_BAR[item] ?? LABEL[item])}
@@ -396,49 +401,14 @@ function Shell() {
         </button>
       </motion.nav>
 
-      {/* the profile's own menu: Settings lives here, not in the rail (founder, 2026-11-15) */}
-      <AnimatePresence>
-        {menu && rail && (
-          <motion.div
-            className={styles.account}
-            role="menu"
-            data-account
-            initial={still ? false : { opacity: 0, scale: 0.9, y: 12, filter: "blur(8px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            exit={still ? undefined : { opacity: 0, scale: 0.9, y: 12, filter: "blur(8px)" }}
-            transition={still ? STILL : OPEN}
-          >
-            <button
-              type="button"
-              role="menuitem"
-              className={styles.row}
-              onClick={() => {
-                setPage("settings");
-                setMenu(false);
-              }}
-            >
-              <Sticker name="settings" size={24} />
-              Settings
-            </button>
-            <div className={styles.look} role="group" aria-label="Appearance">
-              <button type="button" aria-pressed={!dark} onClick={() => setDark(false)}>
-                Light
-              </button>
-              <button type="button" aria-pressed={dark} onClick={() => setDark(true)}>
-                Dark
-              </button>
-            </div>
-            <button
-              type="button"
-              role="menuitem"
-              className={styles.row}
-              onClick={() => setMenu(false)}
-            >
-              Sign out
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <AccountMenu
+        open={menu && rail}
+        still={still}
+        dark={dark}
+        onDark={setDark}
+        onSettings={() => (setPage("settings"), setMenu(false))}
+        onClose={() => setMenu(false)}
+      />
 
       <main className={styles.main}>
         <div className={styles.crumbs}>
@@ -466,14 +436,14 @@ function Shell() {
               onClick={() => {
                 dir.current = -1;
                 if (trail) trail.go();
-                else if (tucked) setPage("progress");
+                else if (tucked) setPage(via);
                 else setStat(null);
               }}
             >
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                 <path d="M14.500 6.500L9 12l5.500 5.500" />
               </svg>
-              {trail?.back ?? "Progress"}
+              {trail?.back ?? (tucked ? LABEL[via] : "Progress")}
             </button>
           )}
           {!(page === "library" && !section) && (
@@ -506,6 +476,7 @@ function Shell() {
               className={`${styles.back} ${styles.forth}`}
               onClick={() => {
                 dir.current = 1;
+                setVia("progress");
                 setPage("mistakes");
                 window.scrollTo({ top: 0 });
               }}
@@ -599,6 +570,14 @@ function Shell() {
         {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
+        {page === "more" && (
+          <More
+            plan={plan}
+            dark={dark}
+            onDark={setDark}
+            onGo={(p) => (setVia("more"), setPage(p))}
+          />
+        )}
         {page === "mistakes" && (
           <MistakeLog
             key={student}
