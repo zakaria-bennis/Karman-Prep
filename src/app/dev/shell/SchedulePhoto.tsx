@@ -173,7 +173,7 @@ void main(){
     float h1 = hash(vec2(fi, 11.0)), h2 = hash(vec2(fi, 12.0));
     vec2 bp = vec2(asp * (0.08 + 0.84 * noise(vec2(t * 0.05 * (0.6 + h1) + fi * 7.3, fi))), 0.06 + max(hl - 0.14, 0.2) * noise(vec2(fi * 3.1, t * 0.06 * (0.6 + h2) + fi)));
     bp += 0.012 * vec2(sin(t * 2.3 + fi), cos(t * 3.1 + fi * 2.0));
-    vec2 l = (p - bp) / (0.011 + 0.006 * h2);
+    vec2 l = (p - bp) / (0.017 + 0.008 * h2);
     l.x /= max(abs(sin(t * (9.0 + 4.0 * h1) + fi)), 0.2);
     float wings = length(vec2(abs(l.x) - 0.55, l.y * 1.15 - 0.2 * abs(l.x))) - 0.58;
     float body = length(l * vec2(4.5, 1.0)) - 0.5;

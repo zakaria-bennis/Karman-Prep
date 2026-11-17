@@ -11,6 +11,17 @@ sources are kept here so each can be traced (the title is the file's name on Wik
 | lake-sunset.jpg | Gander Bay lake sunset. (Unsplash).jpg | CC0 |
 | lake-sunrise.jpg | Purple shoreline sunset. (Unsplash).jpg | CC0 |
 | lake-night.jpg | Sunset North Bend Park (Unsplash).jpg | CC0 |
+| beach-sunrise.jpg | Sunset beach 1 (Unsplash).jpg | CC0 |
+| beach-day.jpg | Palm trees at noon (Unsplash).jpg | CC0 |
+| beach-sunset.jpg | Sand beach at sunset 1 (Unsplash).jpg | CC0 |
+| cottage-sunrise.jpg | Shack at sunset (Unsplash).jpg | CC0 |
+| cottage-day.jpg | Cabins in the woods (52477884748).jpg | CC0 |
+| cottage-sunset.jpg | Fawn Pass Patrol Cabin- Sunset over Fawn Pass (52339263640).jpg | Public domain |
+| cottage-night.jpg | Eldrige Guard Station under stars Custer Gallatin NF 5 (54148952683).jpg | Public domain |
+| desert-sunrise.jpg | Sahara Desert (Unsplash c5X870PwmRE).jpg | CC0 |
+| desert-day.jpg | Arid Desolation (Unsplash).jpg | CC0 |
+| desert-sunset.jpg | Sandscape (Unsplash).jpg | CC0 |
+| desert-night.jpg | Milky Way over a Dune Ridge (53908885943).jpg | Public domain |
 | mountains-sunrise.jpg | Seiser Alm meadow (Unsplash).jpg | CC0 |
 | mountains-day.jpg | Valley near beautiful lake (Unsplash).jpg | CC0 |
 | mountains-sunset.jpg | Idyllic Seiser Alm meadow (Unsplash).jpg | CC0 |

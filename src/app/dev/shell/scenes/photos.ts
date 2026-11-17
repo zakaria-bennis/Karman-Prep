@@ -43,6 +43,54 @@ export const PLACES = {
     sunset: shot("mountains-sunset", { horizon: 0.45, sway: [0.52, 0.68], life: ["birds"] }),
     night: shot("mountains-night", { horizon: 0.62, sway: [0.74, 0.95], life: ["fireflies"] }),
   },
+  cottage: {
+    sunrise: shot("cottage-sunrise", { horizon: 0.55, sway: [0, 0.6], life: ["birds"] }),
+    day: shot("cottage-day", { horizon: 0.02, sway: [0, 0.55], life: ["butterflies"] }),
+    sunset: shot("cottage-sunset", {
+      horizon: 0.45,
+      sway: [0, 0.5],
+      life: ["birds", "butterflies"],
+    }),
+    night: shot("cottage-night", { horizon: 0.55, life: ["fireflies"] }),
+  },
+  beach: {
+    sunrise: shot("beach-sunrise", {
+      horizon: 0.57,
+      water: 0.57,
+      bank: 0.74,
+      sway: [0.05, 0.5],
+      swing: 2,
+      life: ["birds"],
+    }),
+    day: shot("beach-day", {
+      horizon: 0.72,
+      water: 0.72,
+      bank: 0.8,
+      sway: [0, 0.6],
+      swing: 2,
+      life: ["birds"],
+    }),
+    sunset: shot("beach-sunset", {
+      horizon: 0.52,
+      water: 0.52,
+      bank: 0.8,
+      sway: [0, 0.45],
+      swing: 2,
+      life: ["birds"],
+    }),
+    // made from the day's photograph: no good photograph of a palm beach at night was found
+    night: shot(
+      "beach-night",
+      { horizon: 0.72, water: 0.72, bank: 0.8, sway: [0, 0.6], swing: 2, life: [] },
+      "beach-day"
+    ),
+  },
+  desert: {
+    sunrise: shot("desert-sunrise", { horizon: 0.42, swing: 0, life: ["sand"] }),
+    day: shot("desert-day", { horizon: 0.42, swing: 0, life: ["sand", "birds"] }),
+    sunset: shot("desert-sunset", { horizon: 0.33, swing: 0, life: ["sand", "birds"] }),
+    night: shot("desert-night", { horizon: 0.72, swing: 0, life: ["sand"] }),
+  },
 } satisfies Record<string, Partial<Record<Sky, Picture>>>;
 
 export type Place = keyof typeof PLACES;
