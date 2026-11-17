@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import ChatThread, { Face, Here, gist } from "./ChatThread";
 import { CLASSMATES, PEOPLE, chat, useChat, type Presence, type Thread } from "./chatStore";
 import styles from "./chat.module.css";
+import { Scold } from "./ChatScold";
 import { calm } from "./homeworkMotion";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -32,15 +33,20 @@ const when = (at: number) => {
 const fan = (el: HTMLElement | null) => {
   if (!el || calm() || el.dataset.fanned) return;
   el.dataset.fanned = "";
-  gsap.from(el.children, {
-    x: (i) => -i * 11,
-    rotate: (i) => -24 + i * 10,
-    scale: 0.6,
-    duration: 0.7,
-    stagger: 0.09,
-    delay: 0.15,
-    ease: "back.out(2.2)",
-  });
+  gsap.fromTo(
+    el.children,
+    { x: (i) => -i * 12, rotate: (i) => -24 + i * 10, scale: 0.6 },
+    {
+      x: 0,
+      rotate: 0,
+      scale: 1,
+      duration: 0.7,
+      stagger: 0.09,
+      delay: 0.15,
+      ease: "back.out(2.2)",
+      clearProps: "transform",
+    }
+  );
 };
 
 function Row({
@@ -76,9 +82,9 @@ function Row({
             ref={fan}
             aria-hidden="true"
           >
-            <Face who="priya" size={24} />
-            <Face who="leo" size={24} />
-            <Face who="tutor" size={24} />
+            <Face who="priya" size={28} />
+            <Face who="leo" size={28} />
+            <Face who="tutor" size={28} />
           </span>
         ) : (
           <Face who={thread.with ?? "tutor"} size={40} />
@@ -223,6 +229,7 @@ export default function Chat({
       {warning && (
         <div className={styles.warn} role="alertdialog" aria-modal="true" aria-label="A warning">
           <div>
+            <Scold />
             <h2>That was flagged</h2>
             <p>
               It looked like passing answers, not working the question out. Your tutor has been

@@ -118,9 +118,9 @@ export default function ChatThread({
             data-talking={thread.typing ? "" : undefined}
             aria-hidden="true"
           >
-            <Face who="priya" size={24} />
-            <Face who="leo" size={24} />
-            <Face who="tutor" size={24} />
+            <Face who="priya" size={28} />
+            <Face who="leo" size={28} />
+            <Face who="tutor" size={28} />
           </span>
         ) : (
           <Face who={thread.with ?? "tutor"} size={36} />
@@ -388,6 +388,12 @@ export default function ChatThread({
               className={styles.field}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              // Enter sends: words, or a question on its own
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+                e.preventDefault();
+                if (draft.trim() || held) send({ text: draft.trim() || undefined });
+              }}
               placeholder={held ? "Say what you need help with" : "Message"}
               aria-label="Message"
               enterKeyHint="send"

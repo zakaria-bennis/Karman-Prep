@@ -1106,3 +1106,9 @@ out when Chat opens and hop while someone is writing there. **What is left for C
 wiring this page to the live chat, and making the live moderation do what he asked (see
 `project_chat_spec.md`): answer-sharing, socials, strict image checks, the pause, a tutor review screen.
 He is especially worried about pictures, because most students are under 18.
+**Chat reactions, second pass (2026-11-16).** Out: clapping hands, sad face, thinking face, flexed arm,
+wave. In: a robot, a nervous face, a scared face, a cool face, a cross (drawn in stroke by stroke). The
+tick bursts confetti; the target has a real arrow that flies in and quivers. Class chat faces are 28 px
+again (the fan-out had left them shrunk). The message box's focus ring is drawn inside it; Enter sends,
+and a question can be sent with no words. The warning is frosted glass with Karman frowning and wagging
+a finger (`ChatScold.tsx`). **Next, by his word: the real moderation.**

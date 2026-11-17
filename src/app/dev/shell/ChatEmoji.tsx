@@ -2,7 +2,9 @@
 
 // Chat's reactions: twenty small pictures drawn here in code, each with a movement of its own made
 // with GSAP (founder, 2026-11-16: custom ones, no heart; thumbs up, thumbs down, the exclamation
-// marks, the question mark and the laugh come first, and a button opens the rest).
+// marks, the question mark and the laugh come first, and a button opens the rest). He took out the
+// clapping hands, the sad face, the thinking face, the flexed arm and the wave, and asked for a robot,
+// two worried faces, a cross to go with the tick, confetti on the tick, and a real arrow that quivers.
 import gsap from "gsap";
 import { calm } from "./homeworkMotion";
 
@@ -12,21 +14,21 @@ export const EMOJI = [
   "wow",
   "what",
   "ha",
-  "clap",
+  "check",
+  "cross",
   "fire",
   "hundred",
   "eyes",
-  "think",
+  "bot",
   "party",
   "star",
-  "check",
   "bulb",
   "rocket",
   "target",
   "brain",
-  "strong",
-  "wave",
-  "tear",
+  "sweat",
+  "fear",
+  "cool",
 ] as const;
 export type Emoji = (typeof EMOJI)[number];
 export const FIRST: Emoji[] = ["up", "down", "wow", "what", "ha"];
@@ -36,21 +38,21 @@ const SAID: Record<Emoji, string> = {
   wow: "Wow",
   what: "Question",
   ha: "Ha ha",
-  clap: "Clap",
+  check: "Yes",
+  cross: "No",
   fire: "Fire",
   hundred: "One hundred",
   eyes: "Eyes",
-  think: "Thinking",
+  bot: "Robot",
   party: "Party",
   star: "Star",
-  check: "Done",
   bulb: "Idea",
   rocket: "Rocket",
-  target: "On target",
+  target: "Bullseye",
   brain: "Big brain",
-  strong: "Strong",
-  wave: "Wave",
-  tear: "Sad",
+  sweat: "Nervous",
+  fear: "Scared",
+  cool: "Cool",
 };
 export const said = (kind: Emoji) => SAID[kind];
 
@@ -105,25 +107,6 @@ const ART: Record<Emoji, React.ReactNode> = {
       />
     </g>
   ),
-  clap: (
-    <g data-move="clap" fill={SKIN} stroke={EDGE} strokeWidth="1" strokeLinejoin="round">
-      <path
-        d="M5 13.500l4.500-6.500c.9-.7 2 .1 1.600 1.200L9.500 11.500l5 3.200-1.800 4.800H8.500z"
-        data-hand="l"
-      />
-      <path
-        d="M19 13.500l-4.500-6.500c-.9-.7-2 .1-1.600 1.200l1.600 3.300-5 3.200 1.800 4.800h4.200z"
-        data-hand="r"
-      />
-      <path
-        d="M12 2.500v2.500M7.500 3.500l1 2M16.500 3.500l-1 2"
-        fill="none"
-        stroke="#ff8a1f"
-        strokeWidth="1.400"
-        strokeLinecap="round"
-      />
-    </g>
-  ),
   fire: (
     <g data-move="flicker">
       <path
@@ -171,35 +154,6 @@ const ART: Record<Emoji, React.ReactNode> = {
         <circle cx="8.800" cy="12.500" r="2.200" fill="#1d1a22" />
         <circle cx="17.800" cy="12.500" r="2.200" fill="#1d1a22" />
       </g>
-    </g>
-  ),
-  think: (
-    <g data-move="tilt">
-      {face}
-      <circle cx="9" cy="10" r="1.200" fill="#5a3800" />
-      <circle cx="15" cy="10" r="1.200" fill="#5a3800" />
-      <path
-        d="M7 7.500l3.500-.9M14 7l3.200 1.200"
-        fill="none"
-        stroke="#5a3800"
-        strokeWidth="1.300"
-        strokeLinecap="round"
-      />
-      <path
-        d="M9.500 15.500h4.500"
-        fill="none"
-        stroke="#5a3800"
-        strokeWidth="1.400"
-        strokeLinecap="round"
-      />
-      <path
-        d="M6.500 20.500l2.200-4 2.300.8-.6 2.200 2.600-.4"
-        fill="none"
-        stroke={EDGE}
-        strokeWidth="2.400"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </g>
   ),
   party: (
@@ -252,22 +206,6 @@ const ART: Record<Emoji, React.ReactNode> = {
       />
     </g>
   ),
-  check: (
-    <g data-move="draw">
-      <circle cx="12" cy="12" r="9.500" fill="#22c36b" stroke="#0f7a40" strokeWidth="1" />
-      <path
-        d="M7 12.500l3.400 3.400L17.200 9"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="2.600"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        pathLength={1}
-        strokeDasharray="1"
-        data-line
-      />
-    </g>
-  ),
   bulb: (
     <g data-move="glow">
       <path
@@ -300,20 +238,179 @@ const ART: Record<Emoji, React.ReactNode> = {
       <path d="M10 17.500c0 2 1 3.500 2 4.500 1-1 2-2.500 2-4.500z" fill="#ff8a1f" data-flame />
     </g>
   ),
+  // an arrow as shot from a bow: a point, a shaft and three feathers, stuck in the middle of the rings
   target: (
     <g data-move="hit">
-      <circle cx="11" cy="13" r="8.500" fill="#fff" stroke="#ff4f4f" strokeWidth="2" />
-      <circle cx="11" cy="13" r="4.500" fill="#fff" stroke="#ff4f4f" strokeWidth="2" />
-      <circle cx="11" cy="13" r="1.600" fill="#ff4f4f" />
+      <circle cx="10.500" cy="13.500" r="8.500" fill="#fff" stroke="#ff4f4f" strokeWidth="2" />
+      <circle cx="10.500" cy="13.500" r="4.600" fill="#fff" stroke="#ff4f4f" strokeWidth="2" />
+      <circle cx="10.500" cy="13.500" r="1.700" fill="#ff4f4f" />
+      <g data-arrow>
+        <path
+          d="M10.500 13.500L20 4"
+          fill="none"
+          stroke="#8a5a2b"
+          strokeWidth="1.500"
+          strokeLinecap="round"
+        />
+        <path d="M10.500 13.500l3.400-.9-2.500-2.500z" fill="#5c6470" />
+        <path
+          d="M17.500 6.500l-.3-3 2.300 1zM17.500 6.500l3 .3-1-2.300zM19 5l1.800-3.300 1.500 1.500z"
+          fill="#2f8bff"
+          stroke="#1f5fc0"
+          strokeWidth="0.500"
+          strokeLinejoin="round"
+        />
+      </g>
+    </g>
+  ),
+  // a tick, with confetti that bursts from it
+  check: (
+    <g data-move="yes">
+      <g data-bits>
+        <circle cx="3" cy="5" r="1.200" fill="#ff5fa8" />
+        <circle cx="21" cy="6" r="1.200" fill="#4f9dff" />
+        <rect
+          x="19.500"
+          y="18"
+          width="2.200"
+          height="2.200"
+          fill="#ffd76a"
+          transform="rotate(25 20.500 19)"
+        />
+        <rect
+          x="2"
+          y="17.500"
+          width="2.200"
+          height="2.200"
+          fill="#8f5fd6"
+          transform="rotate(15 3 18.500)"
+        />
+        <circle cx="12" cy="1.500" r="1" fill="#ff8a1f" />
+      </g>
+      <circle cx="12" cy="12" r="8.500" fill="#22c36b" stroke="#0f7a40" strokeWidth="1" />
       <path
-        d="M11 13L20.500 3.500M17.500 3.500h3v3"
+        d="M7.500 12.500l3 3L16.700 9.300"
         fill="none"
-        stroke="#1f5fc0"
-        strokeWidth="1.800"
+        stroke="#fff"
+        strokeWidth="2.600"
         strokeLinecap="round"
         strokeLinejoin="round"
-        data-arrow
+        pathLength={1}
+        strokeDasharray="1"
+        data-line
       />
+    </g>
+  ),
+  // a cross, drawn in stroke by stroke
+  cross: (
+    <g data-move="no">
+      <circle cx="12" cy="12" r="9.500" fill="#ff4f4f" stroke="#a31d1d" strokeWidth="1" />
+      <path
+        d="M8 8l8 8"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2.800"
+        strokeLinecap="round"
+        pathLength={1}
+        strokeDasharray="1"
+        data-line
+      />
+      <path
+        d="M16 8l-8 8"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2.800"
+        strokeLinecap="round"
+        pathLength={1}
+        strokeDasharray="1"
+        data-line
+      />
+    </g>
+  ),
+  // a robot's face: an aerial, two lit eyes and a grille for a mouth
+  bot: (
+    <g data-move="beep">
+      <path
+        d="M12 6V3"
+        fill="none"
+        stroke="#6b7280"
+        strokeWidth="1.600"
+        strokeLinecap="round"
+        data-aerial
+      />
+      <circle cx="12" cy="2.600" r="1.500" fill="#ff4f4f" data-aerial />
+      <rect
+        x="3.500"
+        y="6"
+        width="17"
+        height="14.500"
+        rx="4"
+        fill="#cfd6e4"
+        stroke="#6b7280"
+        strokeWidth="1"
+      />
+      <rect x="1.500" y="11" width="2" height="5" rx="1" fill="#6b7280" />
+      <rect x="20.500" y="11" width="2" height="5" rx="1" fill="#6b7280" />
+      <g data-eyes>
+        <circle cx="8.500" cy="12" r="2.300" fill="#1ec8ff" stroke="#0e6f92" strokeWidth="0.8" />
+        <circle cx="15.500" cy="12" r="2.300" fill="#1ec8ff" stroke="#0e6f92" strokeWidth="0.8" />
+      </g>
+      <rect x="7.500" y="16" width="9" height="2.600" rx="1" fill="#6b7280" />
+      <path d="M10 16v2.600M12 16v2.600M14 16v2.600" stroke="#cfd6e4" strokeWidth="0.700" />
+    </g>
+  ),
+  // nervous: a pale brow, a worried mouth, and a bead of sweat
+  sweat: (
+    <g data-move="shiver">
+      {face}
+      <path d="M3.200 9.500A9.500 9.500 0 0 1 20.800 9.500C17 8 7 8 3.200 9.500z" fill="#7fc4ff" />
+      <path
+        d="M6.500 9l3 1M17.500 9l-3 1"
+        fill="none"
+        stroke="#5a3800"
+        strokeWidth="1.300"
+        strokeLinecap="round"
+      />
+      <circle cx="9" cy="12.300" r="1.200" fill="#5a3800" />
+      <circle cx="15" cy="12.300" r="1.200" fill="#5a3800" />
+      <path d="M8.500 17.500c1.200-1.500 5.800-1.500 7 0z" fill="#5a3800" />
+      <path
+        d="M19.300 3.500c1.200 1.800 1.600 2.600 1.600 3.400a1.600 1.600 0 0 1-3.200 0c0-.8.400-1.600 1.600-3.400z"
+        fill="#4f9dff"
+        data-drop
+      />
+    </g>
+  ),
+  // scared: a blue brow, wide eyes, a small open mouth
+  fear: (
+    <g data-move="quake">
+      {face}
+      <path d="M2.700 11A9.500 9.500 0 0 1 21.300 11C17 9 7 9 2.700 11z" fill="#5aa8ff" />
+      <circle cx="8.500" cy="11.500" r="2.500" fill="#fff" stroke="#5a3800" strokeWidth="0.800" />
+      <circle cx="15.500" cy="11.500" r="2.500" fill="#fff" stroke="#5a3800" strokeWidth="0.800" />
+      <circle cx="8.500" cy="11.800" r="1" fill="#1d1a22" />
+      <circle cx="15.500" cy="11.800" r="1" fill="#1d1a22" />
+      <ellipse cx="12" cy="17.300" rx="2.200" ry="1.700" fill="#5a3800" />
+    </g>
+  ),
+  // cool: dark glasses and half a smile
+  cool: (
+    <g data-move="shades">
+      {face}
+      <path
+        d="M8 16c1.500 1.600 5 1.800 7.500-.3"
+        fill="none"
+        stroke="#5a3800"
+        strokeWidth="1.400"
+        strokeLinecap="round"
+      />
+      <g data-glasses>
+        <path d="M3 9.500h18" stroke="#1d1a22" strokeWidth="1.400" />
+        <path
+          d="M4.500 9.500h6.300v2.200a3 3 0 0 1-3 3h-.3a3 3 0 0 1-3-3zM13.200 9.500h6.300v2.200a3 3 0 0 1-3 3h-.3a3 3 0 0 1-3-3z"
+          fill="#1d1a22"
+        />
+      </g>
     </g>
   ),
   brain: (
@@ -331,36 +428,6 @@ const ART: Record<Emoji, React.ReactNode> = {
         stroke="#c2477f"
         strokeWidth="1"
         strokeLinecap="round"
-      />
-    </g>
-  ),
-  strong: (
-    <g data-move="flex" fill={SKIN} stroke={EDGE} strokeWidth="1" strokeLinejoin="round">
-      <path d="M5 19c-1-4 0-8 2.500-9.500L9 4.500c1.800-.8 3.300.2 3.200 2L11.500 10c3-1.200 7.500.5 7.500 5 0 2.500-2 4.500-5 4.500z" />
-      <path d="M11.500 10c-1.500.8-2.300 2-2.500 3.500" fill="none" />
-    </g>
-  ),
-  wave: (
-    <g data-move="waving" fill={SKIN} stroke={EDGE} strokeWidth="1" strokeLinejoin="round">
-      <path d="M7 12V6.500c0-1.600 2.200-1.600 2.200 0V5c0-1.600 2.200-1.600 2.200 0v.700c0-1.600 2.200-1.600 2.200 0V7c0-1.500 2.200-1.500 2.200 0v8c0 3.500-2.200 6-5.300 6-2.800 0-4-1.500-5.500-4.500L3.500 13c-.8-1.500 1.200-2.600 2.200-1.200z" />
-    </g>
-  ),
-  tear: (
-    <g data-move="droop">
-      {face}
-      <circle cx="9" cy="10.500" r="1.200" fill="#5a3800" />
-      <circle cx="15" cy="10.500" r="1.200" fill="#5a3800" />
-      <path
-        d="M8.500 16.500c2-1.800 5-1.800 7 0"
-        fill="none"
-        stroke="#5a3800"
-        strokeWidth="1.400"
-        strokeLinecap="round"
-      />
-      <path
-        d="M15.300 12.500c1 1.600 1.300 2.300 1.300 3a1.300 1.300 0 0 1-2.600 0c0-.7.300-1.400 1.300-3z"
-        fill="#4f9dff"
-        data-drop
       />
     </g>
   ),
@@ -387,21 +454,6 @@ const MOVES: Record<string, (g: Element) => gsap.core.Animation> = {
       { y: 0, rotate: 0 },
       { y: -2.5, rotate: -6, duration: 0.11, yoyo: true, repeat: 7, ease: "sine.inOut" }
     ),
-  clap: (g) =>
-    gsap
-      .timeline()
-      .fromTo(
-        g.querySelector('[data-hand="l"]'),
-        { x: -2.5, rotate: -10 },
-        { x: 0, rotate: 0, duration: 0.12, yoyo: true, repeat: 5 },
-        0
-      )
-      .fromTo(
-        g.querySelector('[data-hand="r"]'),
-        { x: 2.5, rotate: 10 },
-        { x: 0, rotate: 0, duration: 0.12, yoyo: true, repeat: 5 },
-        0
-      ),
   flicker: (g) =>
     gsap.fromTo(
       g,
@@ -432,12 +484,6 @@ const MOVES: Record<string, (g: Element) => gsap.core.Animation> = {
       { rotate: 0, scale: 0.7 },
       { rotate: 360, scale: 1, duration: 0.8, ease: "back.out(1.6)" }
     ),
-  draw: (g) =>
-    gsap.fromTo(
-      g.querySelector("[data-line]"),
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }
-    ),
   glow: (g) =>
     gsap.fromTo(
       g.querySelector("[data-glass]"),
@@ -450,42 +496,93 @@ const MOVES: Record<string, (g: Element) => gsap.core.Animation> = {
       .to(g, { y: 2, duration: 0.15 })
       .to(g, { y: -7, duration: 0.3, ease: "power2.in" })
       .to(g, { y: 0, duration: 0.6, ease: "bounce.out" }),
-  hit: (g) =>
+  // the arrow flies in, sticks, and quivers
+  hit: (g) => {
+    const arrow = g.querySelector("[data-arrow]");
+    return gsap
+      .timeline()
+      .fromTo(
+        arrow,
+        { x: 12, y: -12, opacity: 0 },
+        { x: 0, y: 0, opacity: 1, duration: 0.22, ease: "power3.in" }
+      )
+      .fromTo(
+        arrow,
+        { rotate: -16, svgOrigin: "10.5 13.5" },
+        { rotate: 0, duration: 0.9, ease: "elastic.out(1.4, 0.18)" }
+      );
+  },
+  // the tick is drawn, and confetti bursts out from behind it
+  yes: (g) =>
+    gsap
+      .timeline()
+      .fromTo(
+        g.querySelector("[data-line]"),
+        { strokeDashoffset: 1 },
+        { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }
+      )
+      .fromTo(
+        g.querySelector("[data-bits]"),
+        { scale: 0.2, opacity: 0, transformOrigin: "50% 50%" },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(3)" },
+        0.15
+      ),
+  // the cross is drawn one stroke after the other
+  no: (g) =>
     gsap.fromTo(
-      g.querySelector("[data-arrow]"),
-      { x: 9, y: -9, opacity: 0 },
-      { x: 0, y: 0, opacity: 1, duration: 0.35, ease: "power3.in" }
+      g.querySelectorAll("[data-line]"),
+      { strokeDashoffset: 1 },
+      { strokeDashoffset: 0, duration: 0.28, stagger: 0.2, ease: "power2.out" }
+    ),
+  // the robot's aerial wobbles and its eyes blink
+  beep: (g) =>
+    gsap
+      .timeline()
+      .fromTo(
+        g.querySelectorAll("[data-aerial]"),
+        { rotate: -22, svgOrigin: "12 6" },
+        { rotate: 0, duration: 0.8, ease: "elastic.out(1.2, 0.25)" }
+      )
+      .fromTo(
+        g.querySelector("[data-eyes]"),
+        { scaleY: 0.1, transformOrigin: "50% 50%" },
+        { scaleY: 1, duration: 0.14, repeat: 2, yoyo: true },
+        0.1
+      ),
+  shiver: (g) =>
+    gsap
+      .timeline()
+      .fromTo(g, { x: -0.8 }, { x: 0.8, duration: 0.06, yoyo: true, repeat: 9 })
+      .fromTo(
+        g.querySelector("[data-drop]"),
+        { y: -2, opacity: 0 },
+        { y: 3, opacity: 1, duration: 0.6, ease: "power1.in" },
+        0
+      ),
+  quake: (g) =>
+    gsap.fromTo(
+      g,
+      { x: -1.4, rotate: -3 },
+      {
+        x: 1.4,
+        rotate: 3,
+        duration: 0.07,
+        yoyo: true,
+        repeat: 9,
+        onComplete: () => gsap.set(g, { x: 0, rotate: 0 }),
+      }
+    ),
+  shades: (g) =>
+    gsap.fromTo(
+      g.querySelector("[data-glasses]"),
+      { y: -9, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, ease: "bounce.out" }
     ),
   pulse: (g) =>
     gsap.fromTo(
       g,
       { scale: 1 },
       { scale: 1.16, duration: 0.2, yoyo: true, repeat: 3, ease: "sine.inOut" }
-    ),
-  flex: (g) =>
-    gsap.fromTo(
-      g,
-      { scale: 0.86, rotate: 8 },
-      { scale: 1, rotate: 0, duration: 0.7, ease: "elastic.out(1, 0.35)" }
-    ),
-  waving: (g) =>
-    gsap.fromTo(
-      g,
-      { rotate: -16 },
-      {
-        rotate: 16,
-        duration: 0.16,
-        yoyo: true,
-        repeat: 5,
-        ease: "sine.inOut",
-        onComplete: () => gsap.set(g, { rotate: 0 }),
-      }
-    ),
-  droop: (g) =>
-    gsap.fromTo(
-      g.querySelector("[data-drop]"),
-      { y: -3, opacity: 0 },
-      { y: 2.5, opacity: 1, duration: 0.7, ease: "power1.in" }
     ),
 };
 

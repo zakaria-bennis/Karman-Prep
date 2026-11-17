@@ -116,7 +116,7 @@ const cohort = (): Thread[] => [
         172,
         "Good instinct. We will go through it Tuesday. Try completing the square first.",
         {
-          reactions: { priya: "clap", sam: "up" },
+          reactions: { priya: "check", sam: "up" },
         }
       ),
       made("leo", 44, "is the daily 10 harder today or is it just me"),

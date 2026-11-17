@@ -70,13 +70,13 @@
 .faces {
   display: flex;
   flex: none;
-  width: 40px;
+  width: 56px;
   height: 40px;
   align-items: center;
 }
 
 .faces > * + * {
-  margin-left: -15px;
+  margin-left: -14px;
 }
 
 /* while someone is writing in the class chat, its three faces hop one after another */
@@ -574,23 +574,28 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgb(8 8 22 / 0.6);
+  background: rgb(8 8 22 / 0.28);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
 .warn > div {
   display: grid;
-  justify-items: start;
+  justify-items: center;
   gap: 12px;
   width: min(440px, 100%);
-  padding: 28px;
+  padding: 24px 28px 28px;
   border-radius: 28px;
-  background: #fff8ec;
-  color: #1d1a22;
+  /* the same frosted glass as the rest of the page */
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  color: var(--ink);
+  text-align: center;
   box-shadow:
     0 40px 80px -30px rgb(0 0 0 / 0.8),
-    inset 0 0 0 2px #f2b632;
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
 }
 
 .warn h2 {
@@ -608,10 +613,43 @@
   height: 44px;
   padding: 0 22px;
   border-radius: 22px;
-  background: #1d1a22;
+  background: var(--ink);
   color: #fff8ec;
   font-size: 16px;
   font-weight: 700;
+}
+
+:global([data-kp-mode="dark"]) .chat .warn button {
+  color: #1d1a22;
+}
+
+/* Karman, cross, wagging a finger */
+.scold {
+  position: relative;
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+}
+
+.scold svg {
+  stroke: none;
+}
+
+/* his head, and over it the picture of his brows, mouth and paw, on the same grid */
+.scold [data-head] {
+  display: grid;
+  place-items: center;
+}
+
+.scold > svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 112px;
+  height: 119.5px;
+  margin: -59.75px 0 0 -56px;
+  overflow: visible;
 }
 
 /* ---- where a message is written ---- */
@@ -728,6 +766,13 @@
   color: inherit;
   font: inherit;
   font-size: 16px;
+}
+
+/* when it is being written in, its ring is drawn inside its own edge, clear of the send button */
+.chat .write .field:focus,
+.chat .write .field:focus-visible {
+  outline: none !important;
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
 
 .field::placeholder {
