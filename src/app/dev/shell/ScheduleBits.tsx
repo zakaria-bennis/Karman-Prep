@@ -11,7 +11,7 @@ import { Buddy } from "./HomeworkBuddy";
 import { calm, cut, two } from "./homeworkMotion";
 import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
 import PhotoScene from "./SchedulePhoto";
-import { PHOTOS, plain } from "./scenes/photos";
+import { PLACE_NAMES, pictureFor, plain, type Place } from "./scenes/photos";
 import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
@@ -141,14 +141,16 @@ export function until(ms: number): string {
 }
 
 /** What is behind the next session: a painting made from a real photograph of a place in that
- *  hour's light, brought to life (SchedulePhoto.tsx). The page's ?photo=real shows the plain
+ *  hour's light, brought to life (SchedulePhoto.tsx). Each session has its own place (`seed` is
+ *  its start). The page's ?place=beach and so on shows one place, and ?photo=real the plain
  *  photograph, the backup. */
-function Backdrop({ sky }: { sky: Sky }) {
-  const real = useSearchParams().get("photo") === "real";
-  const photo = PHOTOS.lake[sky];
+function Backdrop({ sky, seed }: { sky: Sky; seed: number }) {
+  const q = useSearchParams();
+  const asked = q.get("place") as Place | null;
+  const picture = pictureFor(seed, sky, asked && PLACE_NAMES.includes(asked) ? asked : undefined);
   return (
     <PhotoScene
-      photo={real ? plain(photo) : photo}
+      photo={q.get("photo") === "real" ? plain(picture) : picture}
       night={sky === "night"}
       className={styles.scene}
     />
@@ -181,7 +183,7 @@ export function Next({
   }, [door, session.id]);
   return (
     <>
-      <Backdrop sky={sky ?? skyOf(session.start)} />
+      <Backdrop sky={sky ?? skyOf(session.start)} seed={session.start} />
       <div className={styles.over}>
         <h2>{dateLong(session.start)}</h2>
         <p className={styles.time}>
@@ -246,7 +248,7 @@ export function Next({
 export function Idle({ now, sky }: { now: number; sky?: Sky }) {
   return (
     <>
-      <Backdrop sky={sky ?? skyOf(now)} />
+      <Backdrop sky={sky ?? skyOf(now)} seed={new Date(now).setHours(0, 0, 0, 0)} />
       <div className={styles.over}>
         <h2>Nothing booked</h2>
       </div>

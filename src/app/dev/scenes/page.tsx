@@ -2,43 +2,62 @@
 
 // A dev-only look at the pictures behind the Schedule tab's next session, alone and large: each is
 // a real photograph, painted, then brought to life (src/app/dev/shell/SchedulePhoto.tsx).
-//   /dev/scenes               the lake in day, sunset and night
-//   /dev/scenes?sky=sunrise   one light, large
-//   /dev/scenes?photo=real    the plain photographs, the backup
+//   /dev/scenes                     every place in every light it has
+//   /dev/scenes?place=beach         one place
+//   /dev/scenes?place=beach&sky=night  one picture, large
+//   /dev/scenes?photo=real          the plain photographs, the backup
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import PhotoScene from "../shell/SchedulePhoto";
 import type { Sky } from "../shell/scheduleData";
-import { PHOTOS, plain } from "../shell/scenes/photos";
+import { PLACES, PLACE_NAMES, plain, type Picture, type Place } from "../shell/scenes/photos";
 
-const SKIES: Sky[] = ["day", "sunset", "night"];
+const SKIES: Sky[] = ["sunrise", "day", "sunset", "night"];
 
 function Gallery() {
   const q = useSearchParams();
-  const sky = q.get("sky");
-  const one: Sky | null =
-    sky === "night" || sky === "sunrise" || sky === "day" || sky === "sunset" ? sky : null;
+  const asked = q.get("place") as Place | null;
+  const places = asked && PLACE_NAMES.includes(asked) ? [asked] : PLACE_NAMES;
+  const sky = q.get("sky") as Sky | null;
+  const skies = sky && SKIES.includes(sky) ? [sky] : SKIES;
   const real = q.get("photo") === "real";
+  const large = places.length === 1 && skies.length === 1;
+  const size = large ? 800 : 340;
   return (
-    <main style={{ display: "flex", gap: 8, padding: 8, background: "#111", minHeight: "100vh" }}>
-      {(one ? [one] : SKIES).map((light) => (
-        <div
-          key={light}
-          style={{
-            position: "relative",
-            width: one ? 800 : 400,
-            height: one ? 800 : 400,
-            flex: "none",
-          }}
-        >
-          <PhotoScene
-            photo={real ? plain(PHOTOS.lake[light]) : PHOTOS.lake[light]}
-            night={light === "night"}
-            className=""
-          />
-          <style>{`main canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:16px}`}</style>
+    <main style={{ display: "grid", gap: 8, padding: 8, background: "#111", minHeight: "100vh" }}>
+      {places.map((place) => (
+        <div key={place} style={{ display: "flex", gap: 8 }}>
+          {skies.map((light) => {
+            const picture: Picture | undefined = (PLACES[place] as Partial<Record<Sky, Picture>>)[
+              light
+            ];
+            return (
+              <div key={light} style={{ position: "relative", width: size, height: size * 0.85 }}>
+                {picture && (
+                  <PhotoScene
+                    photo={real ? plain(picture) : picture}
+                    night={light === "night"}
+                    className=""
+                  />
+                )}
+                <b
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: 8,
+                    color: "#fff",
+                    font: "600 13px sans-serif",
+                    textShadow: "0 1px 3px #000",
+                  }}
+                >
+                  {place} {light}
+                </b>
+              </div>
+            );
+          })}
         </div>
       ))}
+      <style>{`main canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:14px}`}</style>
     </main>
   );
 }

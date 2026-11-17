@@ -1239,63 +1239,71 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
-## Schedule (2026-11-17, fourth version)
+## Schedule (2026-11-17, fifth version)
 
-The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and four rounds of
-verdicts are in the memory note `project_calendar_spec.md`. Awaiting his verdict on this round.
+The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and every round of
+verdicts are in the memory note `project_calendar_spec.md`. He approved the painted photographs
+("Great. This looks good") and sent a round of fixes, all made; he has not yet seen them judged.
 
-- **Hours:** the student's own character, the hours left, and a square for every hour (rounded
-  corners, sized to fit up to fifty): green and glowing is free to book, blue is booked, gray is
-  used; half an hour is half a square. A square that changes pops; hours just bought land one by one.
-- **Next:** the whole card is a painting of the sky at the session's time, moving, drawn on the
-  graphics card (`ScheduleScene.tsx`: one scene with four lights, night, sunrise, day and sunset;
-  sky, sun or moon, drifting cloud, two ridges of hills, a lake that mirrors it with glitter,
-  swaying grass, birds by day, fireflies and twinkling stars at night). The date and time sit low
-  on it over a shade. **Join is on the card**: until 5 minutes before it says how long is left,
-  then it comes alive, with 10 minutes of grace. Move (blue) and Cancel (ruby) beside it. With
-  nothing booked the card paints the sky as it is now. `&sky=night|sunrise|day|sunset` shows one
-  painting whatever the time. No tutor line, no time zone.
-- **The picture behind the next session: a painted photograph (2026-11-17, later still).** The
-  history: he found every scene drawn in code "really cartoony", then found plain photographs
-  "too real" in color and look ("It fits the theme decently ... There needs to be a nice little
-  halfway. This is a good backup, though."). What the card shows now, for the lake only:
-  - **A real photograph, painted, then brought to life.** `scripts/dev/paint-scenes.cjs` (run with
-    the dev server up) lays each photograph in `public/scenes/` down in soft round brush strokes
-    with storybook color (greens warmer, pale gray skies a soft blue, darkest darks deep
-    blue-violet) and writes a `-painted.jpg` twin beside it. No AI: it is a filter, drawn on the
-    graphics card. `scenes/photos.ts` points the card at the painted twins. `SchedulePhoto.tsx`
-    then adds the motion: the water ripples, the tree line sways, ducks paddle with wakes, a frog
-    leaps and leaves rings, birds cross by day, fireflies, twinkling stars and a shooting star at
-    night, the camera drifts. One picture for each light (day, sunset, sunrise, night).
-  - **The backup is the plain photograph:** `&photo=real` on the page, `plain()` in `photos.ts`.
-    Sources of every photograph are in `public/scenes/README.md`; all CC0.
-  - **Drawn in code** (`ScheduleScene.tsx` and `scenes/`: a shared kit and one file a place; lake,
-    river, beach, cottage, mountains) is still there behind `&scene=lake` and
-    `/dev/scenes?scene=lake` (`?photo=1` shows the painted photographs, `?photo=real` the plain
-    ones). He disliked all of them.
-  - **He has not yet said the halfway is right.** When he does: delete the drawn-in-code way
-    everywhere (`ScheduleScene.tsx`, `scenes/*.ts` except `photos.ts`, the gallery's drawn mode,
-    the `scene` props), then find three or four CC0 photographs for each place he named (cottage
-    in the woods, beach with palms, mountains, desert dunes, jungle, bamboo forest, lake or river
-    or lagoon, sakura, apple blossom, butterfly garden), paint them with the script, and give each
-    its water or sway region. If he wants it more or less painted, the script takes `--brush`,
-    `--passes`, `--keep` and `--color`.
-- **Book:** whole weeks from **Sunday to Saturday**. Dates are **squares with small rounded
-  corners at every width** (he saw circles on a phone and said no: `--tile` in
-  `scheduleBook.module.css`). A day the tutor has time is a **shaded
-  square**, a day with none is clear (no dots); a day with a session of the student's own is filled
-  with that session's sky inside a border; the SAT's day has a **bold outline** in the text color
-  (not red) with "SAT" under the date; one pill glides between dates (GSAP). Weeks with nothing to
-  book are left off. Every time the tutor works is listed, the taken ones grayed out, each with a
-  small rising sun, sun, setting sun or moon from the **estimated sunrise and sunset where the
-  student is** (`src/lib/schedule/sun.ts`: guessed from the device's time zone). "Work on" is the
-  **five things that most need work**: skills, and up to two about the test itself (**Pacing**,
-  **Test-taking strategy**, Reviewing a full-length exam) in green (`recommend` and `TEST_SKILLS`
-  in `scheduleData.ts`), then a note. **There is no "Every week" booking**: he took it out for fear
-  of double bookings, so a session is always booked one at a time.
+- **Hours:** the student's own character, the hours left, and a square for every hour, **ten to a
+  row** (20 hours: two rows of ten; sized to fit up to fifty): green and glowing is free to book,
+  blue is booked, gray is used; half an hour is half a square. A square that changes pops; hours
+  just bought land one by one.
+- **Next:** the whole card is a picture of a place in the light of the session's hour (see the
+  next bullet). The date and time sit low on it over a shade. **Join is on the card**: until 5
+  minutes before it says how long is left, in glass; then it is **the page's own green button**
+  (`--go`, like Add hours and Confirm), with 10 minutes of grace. Move (blue) and Cancel (ruby)
+  beside it. With nothing booked the card shows the sky as it is now. No tutor line, no time zone.
+  `&soon=3` shows Join open.
+- **Zoom links (for later):** a session has `joinUrl`. When the tutor's or the admin's portal sets
+  one, Join opens it in a new tab (`meetingOf` in `scheduleData.ts` lets only an https address
+  through) and marks the session joined. Nothing sets it yet: that comes with those portals.
+- **The picture behind the next session: a real photograph, painted, then brought to life.** The
+  history: he found every scene drawn in code "really cartoony", then plain photographs "too
+  real", and approved the halfway. The scenes drawn in code are deleted.
+  - `scripts/dev/paint-scenes.cjs` (run with the dev server up) lays each photograph in
+    `public/scenes/` down in soft round brush strokes with storybook color and writes a
+    `-painted.jpg` twin beside it. No AI: it is a filter, drawn on the graphics card. A place with
+    a photograph of its day and none of its night also gets a night made from the day (moonlit
+    blue). Options: `--brush`, `--passes`, `--keep`, `--color`, `--only <place>`.
+  - `scenes/photos.ts` lists the places (`PLACES`), each with the lights it has, and for each
+    picture where its sky ends, where its water is, what sways and what lives there.
+    `pictureFor(seed, sky)` gives each session its own place (by its start time) among the places
+    that have that light; sunrise and sunset stand in for each other.
+  - `SchedulePhoto.tsx` adds the motion: water that ripples and glitters, mist, whatever stands in
+    the wind swaying, ducks with wakes, a frog that leaps and leaves rings, birds, butterflies,
+    falling petals, sand blowing off dunes, and at night fireflies, twinkling stars and a
+    shooting star; the camera drifts.
+  - To look: `&place=lake` (one place), `&sky=night|sunrise|day|sunset` (one light),
+    `&photo=real` (the plain photograph, **the backup**), and `/dev/scenes` (every place in every
+    light; `?place=`, `?sky=`, `?photo=real`). Sources of every photograph are in
+    `public/scenes/README.md`; all are public domain.
+- **Book:** whole weeks from **Sunday to Saturday**, with **no month label** in the squares. Dates
+  are **squares with small rounded corners at every width** (`--tile` in
+  `scheduleBook.module.css`). A day the tutor has time is **lighter than the glass behind it**; a
+  day with none (the tutor's Sundays, in the stand-in) is **only an outline**; a day with a
+  session of the student's own is filled with **one tone** of that session's sky (`--sky-fill`,
+  with `--sky-ink` for lettering that reads on it: dark on the light ones) inside a border.
+  **No two-color gradients anywhere** (his rule; one tone, lighter to deeper, is fine). The SAT's
+  day is **ruby with a white outline and "SAT" in white, and a light crosses it** (off with
+  reduced motion): this is where booking stops. One pill glides between dates (GSAP).
+- **Times:** the tutor can be booked **from 8 am to midnight on the tutor's own clock**
+  (`TUTOR_ZONE`, Central, and `TUTOR_HOURS` in `scheduleData.ts`; he said "my time", and Central
+  is what the chat's hours use; he has not confirmed the zone). They are shown **in the student's
+  own time**, and a time past the student's midnight is listed **under the student's next day**
+  (`tutorStarts`, tested with New York). A session must end by the tutor's midnight. The list
+  **scrolls on its own** with a bar that is always visible; taken times are grayed out; each time
+  wears the color of its sky but **there are no sun or moon icons**. Which times are taken, and
+  the closed Sundays, are a stand-in: **he will set his own availability in his own portal.**
+- **Work on:** five things. Three skills that most need work (`recommend`), then **Pacing**,
+  which shows **the student's pace now** ("1:24 a question", the Progress page's own number; a
+  stand-in student's until results are read) and never a level, then **Full-length exam review**
+  in **gold**. **Test-taking strategy is not offered.** Then a note for the tutor. **There is no
+  "Every week" booking**: he took it out for fear of double bookings.
 - **Booked or moved:** the whole screen celebrates (`ScheduleCheer.tsx`): confetti, the character,
   the day and time. It closes itself or at a press.
-- **Sessions list:** each row washed with its sky, the date on that sky inside a border, a friendly
+- **Sessions list:** each row washed with its sky, the date on one tone of that sky inside a
+  border with lettering that reads on it (dark on the light ones), a friendly
   day word ("Tomorrow", "Saturday") and the length. No small pictures in the rows. Upcoming has a
   count on its tab; Past has none. A past session has a ring with a filled play mark, set a little
   right of the middle so it looks centered.

@@ -1,26 +1,45 @@
 "use client";
 
-// A real photograph, brought to life (founder, 2026-11-17: "I want it to look like a photograph
-// and a video game that is in motion"). The picture is a real photo of the place at that hour;
-// everything that moves is added on the graphics card, on top of it and inside it:
-//   the water    the photo's own water is made to ripple, so the reflection wavers as a real one
-//                does; flecks of light glitter where it is bright; thin mist drifts over it
-//   the wood     the tree line sways a little in the wind
-//   life         ducks paddle across with a wake behind them; a frog leaps from the bank and
-//                rings spread where it lands; birds cross the sky by day; fireflies and a
+// A real photograph, painted, then brought to life (founder, 2026-11-17: "I want it to look like
+// a photograph and a video game that is in motion", then a halfway between a photograph and a
+// painting). The picture is a real photo of a place at that hour; everything that moves is added
+// on the graphics card, on top of it and inside it. Each photograph says what it has:
+//   water        its own water is made to ripple, so the reflection wavers as a real one does;
+//                flecks of light glitter where it is bright; thin mist can drift over it
+//   sway         whatever stands in the wind (a tree line, palms, bamboo, blossom) sways
+//   life         ducks paddling with a wake, a frog that leaps and leaves rings, birds crossing
+//                the sky, butterflies, falling petals, sand blowing off the dunes; fireflies,
 //                twinkling stars and a shooting star at night
 //   the camera   drifts very slowly, as if held
-// With motion turned off it shows the photograph still. Without a graphics card the photograph
-// is shown as a plain picture behind.
+// With motion turned off it shows the picture still. Without a graphics card the picture is shown
+// plain behind.
 import { useEffect, useRef } from "react";
 import { calm } from "./homeworkMotion";
 
+export type Life =
+  | "ducks"
+  | "frog"
+  | "birds"
+  | "butterflies"
+  | "petals"
+  | "sand"
+  | "mist"
+  | "fireflies";
+
 export interface Photo {
   src: string;
-  /** Where the water begins, as a share of the photo's height from its top. */
-  water: number;
-  /** Where the water ends and the near bank begins (rocks, grass); 1 when it runs off the photo. */
+  /** Where the sky ends, as a share of the photo's height from its top. Birds keep above it,
+   *  stars too. */
+  horizon: number;
+  /** Where the water begins, from the top; left out when the photo has none. */
+  water?: number;
+  /** Where the water ends and the near bank begins (rocks, grass, sand); 1 when it runs off. */
   bank?: number;
+  /** The band that sways in the wind, from the top: where it begins and where it ends. */
+  sway?: [number, number];
+  /** How far it sways: 1 is a tree line, 2 palms or bamboo. */
+  swing?: number;
+  life: Life[];
 }
 
 const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }`;
@@ -31,9 +50,13 @@ uniform sampler2D u_tex;
 uniform vec2 u_res;
 uniform float u_t;
 uniform float u_img;                    // the photo's width over its height
-uniform float u_water;                  // where its water begins, from the top
-uniform float u_bank;                   // where it ends at the near bank
+uniform float u_horizon;                // where its sky ends, from the top
+uniform float u_water;                  // where its water begins (2 when it has none)
+uniform float u_bank;                   // where the water ends at the near bank
+uniform vec2 u_sway;                    // the band that sways, from the top
+uniform float u_swing;                  // how far it sways
 uniform float u_night;                  // 1 at night
+uniform float u_ducks, u_frog, u_birds, u_flutter, u_petals, u_sand, u_mist, u_flies;
 
 float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float noise(vec2 p){
@@ -51,18 +74,19 @@ void main(){
   vec2 uv = gl_FragCoord.xy / u_res;
   float asp = u_res.x / u_res.y;
   float t = u_t;
+  float day = 1.0 - u_night;
   // the photo covers the card (cropped, never stretched); the camera drifts a little
   vec2 s = asp > u_img ? vec2(1.0, u_img / asp) : vec2(asp / u_img, 1.0);
   float zoom = 0.94;
   vec2 pan = vec2(0.012 * sin(t * 0.05), 0.006 * sin(t * 0.037 + 1.0));
   vec2 q = vec2((uv.x - 0.5) * s.x * zoom + 0.5 + pan.x, 0.5 - (uv.y - 0.5) * s.y * zoom + pan.y);
-  // the waterline, in the card's own heights (0 at the bottom)
+  // the waterline, the near bank and the horizon, in the card's own heights (0 at the bottom)
   float wl = 0.5 - (u_water - 0.5 - pan.y) / (s.y * zoom);
-  // the near bank, the same way: nothing below it is water
   float bl = 0.5 - (u_bank - 0.5 - pan.y) / (s.y * zoom);
+  float hl = clamp(0.5 - (u_horizon - 0.5 - pan.y) / (s.y * zoom), 0.05, 0.95);
   vec2 p = vec2(uv.x * asp, uv.y);
   float below = q.y - u_water;
-  float depth = clamp(below / (u_bank - u_water), 0.0, 1.0);
+  float depth = clamp(below / max(u_bank - u_water, 0.001), 0.0, 1.0);
   // water lies between the far shore and the near bank, fading out at the bank
   float wet = step(0.0, below) * smoothstep(u_bank, u_bank - 0.03, q.y);
 
@@ -72,7 +96,7 @@ void main(){
   float since = age - 0.7;
   vec2 rv = (p - land) * vec2(1.0, 3.0);
   float rd = length(rv);
-  float ring = since > 0.0 ? sin(rd * 150.0 - since * 9.0) * exp(-rd * 9.0) * exp(-since * 0.8) * smoothstep(since * 0.11 + 0.02, since * 0.11, rd) : 0.0;
+  float ring = u_frog > 0.5 && since > 0.0 ? sin(rd * 150.0 - since * 9.0) * exp(-rd * 9.0) * exp(-since * 0.8) * smoothstep(since * 0.11 + 0.02, since * 0.11, rd) : 0.0;
 
   if (below > 0.0) {
     // ripples: the reflection wavers, more the nearer the water is
@@ -81,10 +105,9 @@ void main(){
     q += vec2(n1 * 0.004 + n2 * 0.006, n1 * 0.006 + n2 * 0.010) * (0.25 + depth) * wet;
     q += normalize(rv + 0.0001) * ring * 0.012 * wet;
   } else {
-    // the wood by the water sways a little in the wind
-    float up = -below;
-    float band = smoothstep(0.0, 0.03, up) * smoothstep(0.30, 0.10, up);
-    q.x += (noise(vec2(q.x * 9.0 + t * 0.30, q.y * 12.0)) - 0.5) * 0.0045 * band;
+    // whatever stands in the wind sways a little
+    float band = smoothstep(u_sway.x, mix(u_sway.x, u_sway.y, 0.6), q.y) * smoothstep(u_sway.y, u_sway.y - 0.03, q.y);
+    q.x += (noise(vec2(q.x * 9.0 + t * 0.30, q.y * 12.0)) - 0.5) * 0.0045 * u_swing * band;
   }
   vec3 col = texture2D(u_tex, clamp(q, 0.001, 0.999)).rgb;
   float lum = dot(col, vec3(0.3, 0.6, 0.1));
@@ -95,10 +118,15 @@ void main(){
   col += vec3(1.0) * abs(ring) * 0.10 * wet;
   // thin mist drifting over the far water
   float mist = smoothstep(0.45, 0.8, fbm(vec2(p.x * 2.0 - t * 0.02, p.y * 9.0))) * exp(-abs(p.y - wl) * 26.0);
-  col = mix(col, mix(col, vec3(0.9, 0.93, 0.98), 0.5), mist * 0.35 * (1.0 - 0.6 * u_night));
+  col = mix(col, mix(col, vec3(0.9, 0.93, 0.98), 0.5), mist * 0.35 * (1.0 - 0.6 * u_night) * u_mist);
+  // sand lifting off the dunes in the wind, in thin moving veils
+  if (u_sand > 0.5) {
+    float gust = smoothstep(0.60, 0.92, fbm(vec2(p.x * 2.6 - t * 0.22, p.y * 13.0 + 0.6 * sin(p.x * 3.0))));
+    col = mix(col, col + vec3(0.30, 0.24, 0.14) * (0.4 + 0.6 * day), gust * smoothstep(hl + 0.02, hl - 0.10, p.y) * 0.32);
+  }
 
   // ducks paddling across, each with its wake
-  for (int i = 0; i < 3; i++) {
+  if (u_ducks > 0.5) for (int i = 0; i < 3; i++) {
     float fi = float(i);
     float dir = i == 1 ? -1.0 : 1.0;
     float sz = 0.020 - 0.004 * fi;
@@ -116,12 +144,12 @@ void main(){
     float wake = step(l.x, -0.6) * smoothstep(0.10, 0.0, abs(abs(l.y + 0.15) - (-l.x - 0.6) * 0.20)) * exp(l.x * 0.12) * step(-9.0, l.x);
     col = mix(col, col * 0.45, mirror * 0.6);
     col += vec3(0.9, 0.94, 1.0) * wake * (0.10 + 0.25 * lum);
-    vec3 feathers = mix(vec3(0.10, 0.08, 0.07), vec3(0.34, 0.26, 0.18), smoothstep(-0.2, 0.5, l.y)) * (0.35 + 0.65 * (1.0 - u_night));
+    vec3 feathers = mix(vec3(0.10, 0.08, 0.07), vec3(0.34, 0.26, 0.18), smoothstep(-0.2, 0.5, l.y)) * (0.35 + 0.65 * day);
     col = mix(col, feathers * (0.5 + lum), duck);
   }
 
   // the frog in the air, a small dark shape on a low arc
-  if (age < 0.7) {
+  if (u_frog > 0.5 && age < 0.7) {
     float k = age / 0.7;
     vec2 from = vec2(land.x - 0.16, max(bl - 0.02, 0.02));
     vec2 fp = mix(from, land, k) + vec2(0.0, 0.09 * sin(3.1416 * k));
@@ -129,28 +157,57 @@ void main(){
   }
 
   // birds crossing the sky by day
-  for (int i = 0; i < 4; i++) {
+  if (u_birds > 0.5) for (int i = 0; i < 4; i++) {
     float fi = float(i);
-    vec2 bp = vec2(asp * (fract(t * 0.014 + fi * 0.29) * 1.3 - 0.15), wl + (1.0 - wl) * (0.55 + 0.09 * fi) + 0.012 * sin(t * 0.9 + fi * 2.0));
+    vec2 bp = vec2(asp * (fract(t * 0.014 + fi * 0.29) * 1.3 - 0.15), hl + (1.0 - hl) * (0.55 + 0.09 * fi) + 0.012 * sin(t * 0.9 + fi * 2.0));
     vec2 l = (p - bp) / (0.014 + 0.003 * fi);
     float flap = 0.35 + 0.45 * sin(t * 7.0 + fi * 1.7);
     float wing = abs(l.y - abs(l.x) * flap + 0.25 * l.x * l.x);
-    col = mix(col, vec3(0.03, 0.03, 0.05), smoothstep(0.16, 0.05, wing) * smoothstep(1.0, 0.8, abs(l.x)) * 0.85 * (1.0 - u_night));
+    col = mix(col, vec3(0.03, 0.03, 0.05), smoothstep(0.16, 0.05, wing) * smoothstep(1.0, 0.8, abs(l.x)) * 0.85 * day);
   }
 
-  // at night: fireflies wander over the water's edge, and now and then a star falls
+  // butterflies wandering over the flowers by day, below the skyline, their wings opening and
+  // closing
+  if (u_flutter > 0.5) for (int i = 0; i < 5; i++) {
+    float fi = float(i);
+    float h1 = hash(vec2(fi, 11.0)), h2 = hash(vec2(fi, 12.0));
+    vec2 bp = vec2(asp * (0.08 + 0.84 * noise(vec2(t * 0.05 * (0.6 + h1) + fi * 7.3, fi))), 0.06 + max(hl - 0.14, 0.2) * noise(vec2(fi * 3.1, t * 0.06 * (0.6 + h2) + fi)));
+    bp += 0.012 * vec2(sin(t * 2.3 + fi), cos(t * 3.1 + fi * 2.0));
+    vec2 l = (p - bp) / (0.011 + 0.006 * h2);
+    l.x /= max(abs(sin(t * (9.0 + 4.0 * h1) + fi)), 0.2);
+    float wings = length(vec2(abs(l.x) - 0.55, l.y * 1.15 - 0.2 * abs(l.x))) - 0.58;
+    float body = length(l * vec2(4.5, 1.0)) - 0.5;
+    vec3 hue = h1 < 0.34 ? vec3(1.0, 0.60, 0.10) : h1 < 0.67 ? vec3(0.99, 0.96, 0.82) : vec3(0.36, 0.62, 1.0);
+    col = mix(col, hue, smoothstep(0.12, -0.06, wings) * 0.95 * day);
+    col = mix(col, vec3(0.08, 0.07, 0.07), smoothstep(0.06, -0.06, body) * day);
+  }
+
+  // petals coming down from the blossom, turning as they fall
+  if (u_petals > 0.5) for (int i = 0; i < 14; i++) {
+    float fi = float(i);
+    float h1 = hash(vec2(fi, 21.0)), h2 = hash(vec2(fi, 22.0));
+    float drop = fract(h1 + t * (0.030 + 0.025 * h2));
+    vec2 pp = vec2(asp * fract(h2 * 3.7 + 0.22 * drop + 0.03 * sin(t * 0.8 + fi * 2.0)), 1.05 - 1.15 * drop);
+    vec2 l = (p - pp) / (0.006 + 0.005 * h1);
+    float ang = t * (1.0 + 2.0 * h2) + fi;
+    l = mat2(cos(ang), -sin(ang), sin(ang), cos(ang)) * l;
+    float petal = length(l * vec2(1.0, 1.9)) - 1.0;
+    col = mix(col, mix(vec3(1.0, 0.84, 0.90), vec3(1.0, 0.97, 0.96), h1) * (1.0 - 0.5 * u_night), smoothstep(0.25, -0.1, petal) * 0.9);
+  }
+
+  // at night: stars, fireflies, and now and then a star falls
   if (u_night > 0.01) {
     // stars in the open sky (not over the trees or the glow), each twinkling at its own pace
     vec2 sg = q * vec2(1.6, 1.0) * 44.0;
     vec2 cell = floor(sg);
     float sh = hash(cell);
     float sd = distance(sg, cell + 0.2 + 0.6 * vec2(hash(cell + 3.1), hash(cell + 7.7)));
-    float open = smoothstep(0.12, 0.20, lum) * smoothstep(0.50, 0.30, lum) * smoothstep(0.02, 0.22, -below);
+    float open = smoothstep(0.12, 0.20, lum) * smoothstep(0.50, 0.30, lum) * smoothstep(0.0, 0.16, u_horizon - q.y);
     col += vec3(0.95, 0.97, 1.0) * step(0.80, sh) * exp(-sd * sd * (70.0 + 120.0 * hash(cell + 1.7))) * open * (0.55 + 0.45 * sin(t * (0.5 + 2.0 * sh) + sh * 40.0)) * (0.35 + 0.65 * hash(cell + 5.3));
-    for (int i = 0; i < 8; i++) {
+    if (u_flies > 0.5) for (int i = 0; i < 8; i++) {
       float fi = float(i);
       float h1 = hash(vec2(fi, 1.0)), h2 = hash(vec2(fi, 2.0));
-      vec2 fp = vec2(asp * fract(h1 + t * 0.008 * (0.5 + h2)), mix(0.03, wl, 0.1 + 0.6 * h2) + 0.02 * sin(t * (0.7 + h1) + fi));
+      vec2 fp = vec2(asp * fract(h1 + t * 0.008 * (0.5 + h2)), mix(0.03, hl, 0.1 + 0.6 * h2) + 0.02 * sin(t * (0.7 + h1) + fi));
       float fd = distance(p, fp);
       col += vec3(1.0, 0.92, 0.50) * exp(-fd * fd * 9000.0) * (0.5 + 0.5 * sin(t * (1.5 + h2 * 2.0) + fi * 2.1)) * 1.1;
     }
@@ -159,7 +216,7 @@ void main(){
       float h = hash(vec2(floor(t / 17.0), 7.0));
       vec2 a = vec2(asp * (0.2 + 0.6 * h), 0.95) + vec2(0.55, -0.30) * fall;
       float streak = smoothstep(0.004, 0.0, sdSeg(p, a, a - vec2(0.11, -0.06)));
-      col += vec3(1.0) * streak * (1.0 - fall / 0.9) * step(wl, p.y);
+      col += vec3(1.0) * streak * (1.0 - fall / 0.9) * step(hl, p.y);
     }
   }
   gl_FragColor = vec4(col, 1.0);
@@ -175,11 +232,14 @@ export default function PhotoScene({
   className?: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const facts = JSON.stringify(photo);
   const dark = useRef(night);
   useEffect(() => {
     dark.current = night;
   }, [night]);
   useEffect(() => {
+    // the photograph's own facts decide what is drawn: any of them changing starts it again
+    const shot = JSON.parse(facts) as Photo;
     const canvas = ref.current;
     const gl = canvas?.getContext("webgl", { antialias: false, alpha: false });
     if (!canvas || !gl) return;
@@ -209,9 +269,9 @@ export default function PhotoScene({
     const res = gl.getUniformLocation(program, "u_res");
     const time = gl.getUniformLocation(program, "u_t");
     const img = gl.getUniformLocation(program, "u_img");
-    const water = gl.getUniformLocation(program, "u_water");
-    const bank = gl.getUniformLocation(program, "u_bank");
     const nightAt = gl.getUniformLocation(program, "u_night");
+    const set = (name: string, value: number) =>
+      gl.uniform1f(gl.getUniformLocation(program, name), value);
 
     let frame = 0;
     let seen = true;
@@ -254,13 +314,28 @@ export default function PhotoScene({
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, picture);
       gl.uniform1f(img, picture.naturalWidth / picture.naturalHeight);
-      gl.uniform1f(water, photo.water);
-      gl.uniform1f(bank, photo.bank ?? 1);
+      const has = (life: Life) => (shot.life.includes(life) ? 1 : 0);
+      const wet = shot.water !== undefined;
+      set("u_horizon", shot.horizon);
+      set("u_water", shot.water ?? 2);
+      set("u_bank", shot.bank ?? 1);
+      // by default the band that sways is the one just above the horizon line
+      const [from, to] = shot.sway ?? [shot.horizon - 0.3, shot.horizon];
+      gl.uniform2f(gl.getUniformLocation(program, "u_sway"), from, to);
+      set("u_swing", shot.swing ?? 1);
+      set("u_ducks", wet ? has("ducks") : 0);
+      set("u_frog", wet ? has("frog") : 0);
+      set("u_mist", wet ? has("mist") : 0);
+      set("u_birds", has("birds"));
+      set("u_flutter", has("butterflies"));
+      set("u_petals", has("petals"));
+      set("u_sand", has("sand"));
+      set("u_flies", has("fireflies"));
       ready = true;
       canvas.dataset.painted = "";
       wake();
     };
-    picture.src = photo.src;
+    picture.src = shot.src;
 
     const watch = new IntersectionObserver(([entry]) => {
       seen = entry.isIntersecting;
@@ -280,7 +355,7 @@ export default function PhotoScene({
       document.removeEventListener("visibilitychange", wake);
       gl.deleteProgram(program);
     };
-  }, [photo.src, photo.water, photo.bank]);
+  }, [facts]);
   return (
     <canvas
       ref={ref}
