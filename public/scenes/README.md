@@ -11,6 +11,9 @@ sources are kept here so each can be traced (the title is the file's name on Wik
 | lake-sunset.jpg | Gander Bay lake sunset. (Unsplash).jpg | CC0 |
 | lake-sunrise.jpg | Purple shoreline sunset. (Unsplash).jpg | CC0 |
 | lake-night.jpg | Sunset North Bend Park (Unsplash).jpg | CC0 |
+| bamboo-day.jpg | Sagano Bamboo forest 17.jpg | CC0 |
+| bamboo-sunset.jpg | Views of Minasegawa, in Yamakita (84875).jpg | CC0 |
+| bamboo-night.jpg | Ōmiya Hachiman Shrine 5.jpg | CC0 |
 | beach-sunrise.jpg | Sunset beach 1 (Unsplash).jpg | CC0 |
 | beach-day.jpg | Palm trees at noon (Unsplash).jpg | CC0 |
 | beach-sunset.jpg | Sand beach at sunset 1 (Unsplash).jpg | CC0 |
@@ -26,12 +29,19 @@ sources are kept here so each can be traced (the title is the file's name on Wik
 | garden-day.jpg | Wildflower Meadow (6997737191).jpg | Public domain |
 | garden-sunset.jpg | Coconino National Forest (20170823-FS-Coconino-DLS-011).jpg | Public domain |
 | garden-night.jpg | Flowers and Milky Way (19928301093).jpg | Public domain |
+| jungle-day.jpg | Cascading waterfalls in jungle (Unsplash).jpg | CC0 |
+| jungle-sunset.jpg | The forest at sunset (Unsplash).jpg | CC0 |
+| jungle-night.jpg | Milky Way at Masinagudi (Unsplash).jpg | CC0 |
 | mountains-sunrise.jpg | Seiser Alm meadow (Unsplash).jpg | CC0 |
 | mountains-day.jpg | Valley near beautiful lake (Unsplash).jpg | CC0 |
 | mountains-sunset.jpg | Idyllic Seiser Alm meadow (Unsplash).jpg | CC0 |
 | mountains-night.jpg | Yosemite cliff under stars (Unsplash).jpg | CC0 |
 | orchard-day.jpg | Pretty Blossoms All in a Row (50326184663).jpg | Public domain |
 | orchard-sunset.jpg | Plum tree blossoming, Ehrenbach, to south.jpg | CC0 |
+| river-sunrise.jpg | Otisville river road sunset from above (Unsplash).jpg | CC0 |
+| river-day.jpg | Lost in the Wilderness (Unsplash 56pecHNfqIs).jpg | CC0 |
+| river-sunset.jpg | Yosemite Valley, United States (Unsplash 8BFWBUkSqQo).jpg | CC0 |
+| river-night.jpg | Stars and Milky Way over Åbyfjorden 2.jpg | CC0 |
 | sakura-day.jpg | Cherry tree and Mount Iwate in spring 2025.jpg | CC0 |
 | sakura-sunset.jpg | Washington Monument (19854e5d-cc0c-4418-aaee-f80b9237d4a4).jpg | Public domain |
 

@@ -137,6 +137,36 @@ export const PLACES = {
       life: ["fireflies"],
     }),
   },
+  jungle: {
+    day: shot("jungle-day", {
+      horizon: 0.2,
+      sway: [0, 0.4],
+      swing: 1.5,
+      life: ["birds", "butterflies"],
+    }),
+    sunset: shot("jungle-sunset", { horizon: 0.5, sway: [0.55, 1], life: ["birds"] }),
+    night: shot("jungle-night", { horizon: 0.62, sway: [0.3, 0.7], life: ["fireflies"] }),
+  },
+  bamboo: {
+    day: shot("bamboo-day", { horizon: 0.02, sway: [0, 0.6], swing: 2, life: ["butterflies"] }),
+    sunset: shot("bamboo-sunset", { horizon: 0.02, sway: [0, 0.7], swing: 2, life: [] }),
+    night: shot("bamboo-night", { horizon: 0.02, sway: [0, 0.6], swing: 1.5, life: ["fireflies"] }),
+  },
+  river: {
+    sunrise: shot("river-sunrise", { horizon: 0.1, sway: [0.15, 1], life: ["birds"] }),
+    day: shot("river-day", { horizon: 0.42, sway: [0.45, 1], life: ["birds"] }),
+    sunset: shot("river-sunset", {
+      horizon: 0.4,
+      water: 0.68,
+      sway: [0.4, 0.68],
+      life: ["ducks", "birds", "mist"],
+    }),
+    night: shot("river-night", {
+      horizon: 0.52,
+      water: 0.6,
+      life: ["ducks", "mist", "fireflies"],
+    }),
+  },
 } satisfies Record<string, Partial<Record<Sky, Picture>>>;
 
 export type Place = keyof typeof PLACES;

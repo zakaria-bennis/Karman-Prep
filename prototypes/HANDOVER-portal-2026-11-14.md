@@ -1250,7 +1250,9 @@ verdicts are in the memory note `project_calendar_spec.md`. He approved the pain
   blue is booked, gray is used; half an hour is half a square. A square that changes pops; hours
   just bought land one by one.
 - **Next:** the whole card is a picture of a place in the light of the session's hour (see the
-  next bullet). The date and time sit low on it over a shade. **Join is on the card**: until 5
+  next bullet). The date and time sit low on it over a shade that is as tall as the words (so
+  it holds however they wrap) and fades out above them; measured against the palest pictures,
+  the date and the time keep a contrast of at least 4.5 to 1. **Join is on the card**: until 5
   minutes before it says how long is left, in glass; then it is **the page's own green button**
   (`--go`, like Add hours and Confirm), with 10 minutes of grace. Move (blue) and Cancel (ruby)
   beside it. With nothing booked the card shows the sky as it is now. No tutor line, no time zone.
@@ -1266,6 +1268,12 @@ verdicts are in the memory note `project_calendar_spec.md`. He approved the pain
     `-painted.jpg` twin beside it. No AI: it is a filter, drawn on the graphics card. A place with
     a photograph of its day and none of its night also gets a night made from the day (moonlit
     blue). Options: `--brush`, `--passes`, `--keep`, `--color`, `--only <place>`.
+  - **Eleven places**, every one he named: lake, mountains, cottage in the woods, beach with
+    palms, desert dunes, jungle, bamboo forest, river (with a lagoon at sunrise), sakura, a
+    blossoming orchard, and a flower meadow (the butterfly garden). Each has day, sunset and
+    night; seven also have their own sunrise. Three nights are made from the day's photograph
+    because no good real one was found: beach, sakura, orchard. He has not seen the ten new
+    places yet.
   - `scenes/photos.ts` lists the places (`PLACES`), each with the lights it has, and for each
     picture where its sky ends, where its water is, what sways and what lives there.
     `pictureFor(seed, sky)` gives each session its own place (by its start time) among the places
