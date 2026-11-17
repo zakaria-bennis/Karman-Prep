@@ -93,7 +93,6 @@ function Shell() {
   useEffect(() => setSound(sound), [sound]);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
-  /* which made-up student the Progress page shows (demo only) */
   const [student, setStudent] = useState<StudentKey>("weeks9");
   /* the number whose own page is open in Progress, if any */
   const [stat, setStat] = useState<StatKey | null>(null);
@@ -109,7 +108,6 @@ function Shell() {
   const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
-  /* the Free plan, which has no predicted score (demo only) */
   const [free, setFree] = useState(false);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
