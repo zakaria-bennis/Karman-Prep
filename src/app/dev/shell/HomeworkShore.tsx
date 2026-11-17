@@ -41,8 +41,8 @@ void main(){
   float asp = u_res.x / u_res.y;
   float x = uv.x * asp, y = uv.y, t = u_t;
   float aa = 1.5 / u_res.y;
-  float H = 0.70;                       // the horizon
-  float S0 = 0.42;                      // where the sea meets the sand at rest
+  float H = 0.68;                       // the horizon
+  float S0 = 0.30;                      // where the sea meets the sand at rest
   float P = 7.5;                        // seconds from one wave's arrival to the next
 
   // the colors of night and of day
@@ -125,7 +125,7 @@ void main(){
   }
 
   // ---- the wave running up the sand, and sliding back ----
-  float amp = 0.235 * (0.78 + 0.44 * noise(vec2(x * 0.45, 1.7)));
+  float amp = 0.250 * (0.82 + 0.36 * noise(vec2(x * 0.45, 1.7)));
   float run = smoothstep(0.0, 0.24, ph) * (1.0 - smoothstep(0.30, 0.98, ph));
   float edge = (fbm(vec2(x * 1.5, t * 0.04)) - 0.5) * 0.050 + (noise(vec2(x * 7.0, t * 0.12)) - 0.5) * 0.012;
   float Sy = S0 - amp * run + edge;                 // the water's edge now
@@ -145,7 +145,9 @@ void main(){
 
   // ---- the sand ----
   float grain = noise(vec2(x, y) * vec2(220.0, 260.0)) - 0.5;
-  float wet = smoothstep(Smin - 0.07, Smin + 0.012, y);         // dark where the water has been
+  // all the sand in the picture is sand the waves reach: wet, dark and shining, never a dry
+  // gray band along the bottom
+  float wet = smoothstep(Smin - 0.30, Smin + 0.012, y);
   vec3 sand = mix(sandDry, sandWet, wet) + grain * mix(0.018, 0.035, u_day);
   // wet sand shines: the moon's light in it, or the bright sky by day, fading as it dries
   float shine = wet * (0.55 + 0.45 * (1.0 - ph));

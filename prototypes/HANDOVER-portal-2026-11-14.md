@@ -1022,3 +1022,13 @@ small bobblehead body: a blue suit with a gold K, red trunks and boots, short th
 fist out, his tail behind (`HomeworkHero.tsx`). By day the Daily 10 fades from orange into light, not
 dark. A finished piece shows Review with no check beside it. **Prices are his now:** mystery box 250,
 second chance 500, streak saver 1,500, exam pass 3,000 (`rewardsData.ts`). **Next, by his word: Chat.**
+
+**Icons and last Homework touches (2026-11-16).** The challenge's banner shows **once a day** (the
+first time Homework opens that day; `kp-challenge-day` in this browser; the demo bar's "Challenge intro"
+shows it again). The flying fox's body is rebuilt in a Funko Pop's proportions: short arms, a fist with
+fingers and an open gloved hand, a blue suit with a gold shield and belt, red gloves and boots; the
+mask's stitching is gone. The beach has no dry sand: all the sand in view is wet. **Menu icons**
+(`stickers.tsx`): Homework's check is green; the trophy is redrawn with a bright yellow star; the
+Library is three real books, the blue one tipped and about to fall until hovered, when it swings up and
+all three bounce; the Mistake Log's pages turn over the binding; Schedule shows today's date under a red
+band; Chat is a blue bubble behind and a gray one in front with three white dots that bob.

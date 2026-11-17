@@ -2,7 +2,7 @@
 // (1.6) with round ends, a faint wash of the text colour inside each main shape, and one small clay accent.
 // They take the text colour, so they work on glass by day and by night.
 // A part marked data-move is the piece that stirs when its row is hovered (see shell.module.css).
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 
 export type StickerName =
   | "homework"
@@ -25,6 +25,62 @@ const GOLD = "#e3a21a";
 const ORANGE = "#e2772e";
 const RED = "#c8553d";
 const BLUE = "#4f7fc4";
+const YELLOW = "#ffc81a";
+// the calendar's red, and the two colors of a message thread: the blue of a sent message and the
+// gray of one coming in (founder, 2026-11-16)
+const CAL_RED = "#e5484d";
+const SENT = "#1f8bff";
+const COMING = "#8e8e93";
+
+/** A calendar page that shows today's date, and the right one tomorrow. */
+function Today() {
+  const [day, setDay] = useState<number | null>(null);
+  useEffect(() => {
+    const read = () => setDay(new Date().getDate());
+    read();
+    const timer = window.setInterval(read, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return (
+    <>
+      <rect x="4" y="5" width="16" height="15.500" rx="3" {...WASH} />
+      {/* the red band across its top */}
+      <path d="M4 10.200V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2.200Z" fill={CAL_RED} stroke="none" />
+      <rect x="4" y="5" width="16" height="15.500" rx="3" />
+      <path d="M8.500 3v3.400M15.500 3v3.400" />
+      <text
+        data-move="pop"
+        x="12"
+        y="18.100"
+        textAnchor="middle"
+        fontSize="7.800"
+        fontWeight="700"
+        fill="currentColor"
+        stroke="none"
+      >
+        {day ?? ""}
+      </text>
+    </>
+  );
+}
+
+/** One book standing on the shelf: its spine in its color, two bands across it and a small label. */
+const book = (x: number, top: number, w: number, color: string) => (
+  <>
+    <rect x={x} y={top} width={w} height={19.7 - top} rx="0.800" fill={color} fillOpacity="0.78" />
+    <path d={`M${x} ${top + 2}h${w}M${x} ${17.9}h${w}`} strokeWidth="0.900" strokeOpacity="0.75" />
+    <rect
+      x={x + w / 2 - 0.8}
+      y={top + 4}
+      width="1.600"
+      height="3.400"
+      rx="0.400"
+      fill="#fff8ea"
+      fillOpacity="0.85"
+      stroke="none"
+    />
+  </>
+);
 
 const ART: Record<StickerName, ReactNode> = {
   // a page with its homework as rows. The rows slide off one by one as if each were finished, a
@@ -57,47 +113,24 @@ const ART: Record<StickerName, ReactNode> = {
       <path
         data-move="done"
         d="M8.500 12.300l2.500 2.500 4.800-5.300"
-        stroke={ACCENT}
+        stroke={GREEN}
         strokeWidth="2.100"
       />
     </>
   ),
-  // three books of three colours: two upright, the third slanted against them (founder, 2026-11-15)
+  // three books on a shelf: a red and a green standing together, and a blue one that has tipped away
+  // and is about to fall. Hovered, the blue one swings up against the others and all three give a
+  // little bounce (founder, 2026-11-16). Each is a real book: a spine, two bands and a label.
   library: (
     <>
-      {/* two books upright and together, each standing on the shelf */}
-      <rect
-        x="3.200"
-        y="6.200"
-        width="4.200"
-        height="13.500"
-        rx="0.900"
-        fill={RED}
-        fillOpacity="0.6"
-      />
-      <rect
-        x="7.800"
-        y="7.700"
-        width="4.200"
-        height="12"
-        rx="0.900"
-        fill={GREEN}
-        fillOpacity="0.6"
-      />
-      {/* the third, the blue one, is on its side: it leans left against them, its foot on the shelf: turned about its own lower left corner,
-          so no part of it goes below the shelf or into the book beside it */}
-      <g data-move="slip" style={{ transformBox: "view-box", transformOrigin: "17.6px 19.7px" }}>
-        <rect
-          x="17.600"
-          y="8.200"
-          width="3.600"
-          height="11.500"
-          rx="0.900"
-          transform="rotate(-17 17.600 19.700)"
-          fill={BLUE}
-          fillOpacity="0.55"
-          stroke={BLUE}
-        />
+      <g data-move="book" data-n="0">
+        {book(3, 6.2, 4.4, RED)}
+      </g>
+      <g data-move="book" data-n="1">
+        {book(7.8, 8, 4.2, GREEN)}
+      </g>
+      <g data-move="book" data-n="2">
+        <g data-move="stand">{book(12.4, 6.9, 4, BLUE)}</g>
       </g>
       <path d="M2 20.500h20" />
     </>
@@ -110,14 +143,8 @@ const ART: Record<StickerName, ReactNode> = {
       <path data-move="chalk" d="M7 8.500h5M7 11.800h8" stroke={ACCENT} strokeWidth="1.900" />
     </>
   ),
-  // a calendar page with one day marked
-  schedule: (
-    <>
-      <rect x="4" y="5" width="16" height="15.500" rx="3" {...WASH} />
-      <path d="M4 10h16M8.500 3v4M15.500 3v4" />
-      <circle data-move="pop" cx="12" cy="15.200" r="2.100" fill={ACCENT} stroke="none" />
-    </>
-  ),
+  // a calendar page with a red band, showing today's date
+  schedule: <Today />,
   // a graph: its two axes, a line climbing to a small arrowhead, and green shade under the line
   // (founder, 2026-11-16). Hovered, the line is drawn from its foot to its tip, the shade spreads
   // under it as it goes, and the arrowhead rides its end.
@@ -148,33 +175,42 @@ const ART: Record<StickerName, ReactNode> = {
       </g>
     </>
   ),
-  // a trophy, its star in gold
+  // a trophy: a cup with a rim and two handles on a stem and a stepped foot, a bright yellow star
+  // on it, and a glint of light down its side
   rewards: (
     <>
-      <path d="M7.500 3.800h9v5.700a4.500 4.500 0 0 1-9 0z" {...WASH} />
-      <path d="M7.500 5.800H4.800c0 3 1.200 4.700 3.300 5.300M16.500 5.800h2.700c0 3-1.200 4.700-3.300 5.300" />
-      <path d="M12 14v3.500M8.500 20.500h7M9.500 17.500h5" />
+      <path d="M7 4.200h10v5.200a5 5 0 0 1-10 0z" {...WASH} />
+      <path d="M6.200 4.200h11.600" />
+      <path d="M7 6H4.900a.7.700 0 0 0-.7.800c.3 2.500 1.400 4 3.400 4.600M17 6h2.100a.7.700 0 0 1 .7.800c-.3 2.500-1.400 4-3.400 4.600" />
+      <path d="M12 14.400v2.300" />
+      <path d="M9.600 16.700h4.800l.9 3.400H8.700z" {...WASH} />
+      <path d="M7.400 20.500h9.200" />
+      <path data-move="glint" d="M8.800 6.200v2.600" strokeOpacity="0.6" strokeWidth="1.200" />
       <path
         data-move="pop"
-        d="M12 5.700l.85 1.700 1.900.3-1.370 1.330.32 1.870L12 10l-1.700.9.320-1.870L9.250 7.700l1.900-.3z"
-        fill={GOLD}
-        stroke={GOLD}
-        strokeWidth="0.600"
+        d="M12 5.300l1.050 2.130 2.350.340-1.700 1.660.4 2.340L12 10.660 9.900 11.770l.4-2.340-1.700-1.660 2.350-.340z"
+        fill={YELLOW}
+        stroke={YELLOW}
+        strokeWidth="0.500"
       />
     </>
   ),
-  // two speech bubbles
+  // a message thread: a blue bubble behind (sent) and a gray one in front (coming in), with the
+  // three white dots of someone typing, which bob one after another (founder, 2026-11-16)
   chat: (
     <>
       <path
-        d="M5.500 4h9A2.500 2.500 0 0 1 17 6.500v4a2.500 2.500 0 0 1-2.500 2.500H9l-3.500 3v-3A2.500 2.500 0 0 1 3 10.500v-4A2.500 2.500 0 0 1 5.500 4z"
-        {...WASH}
+        d="M5.500 3h8.500a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H8.300l-3.600 2.600.600-2.700A3 3 0 0 1 2.500 10V6a3 3 0 0 1 3-3z"
+        fill={SENT}
       />
-      <path d="M19.500 10.300a2.500 2.500 0 0 1 1.500 2.300v3a2.500 2.500 0 0 1-2.500 2.500v2.700l-3.200-2.700H13" />
-      <g data-move="pop" fill={ACCENT} stroke="none">
-        <circle cx="7.200" cy="8.500" r="1" />
-        <circle cx="10" cy="8.500" r="1" />
-        <circle cx="12.800" cy="8.500" r="1" />
+      <path
+        d="M11 9.500h7.500a3 3 0 0 1 3 3v3.200a3 3 0 0 1-2.200 2.900l.5 2.600-3.500-2.500H11a3 3 0 0 1-3-3v-3.200a3 3 0 0 1 3-3z"
+        fill={COMING}
+      />
+      <g fill="#ffffff" stroke="none">
+        <circle data-move="dot" data-n="0" cx="11.800" cy="14.100" r="1.050" />
+        <circle data-move="dot" data-n="1" cx="14.750" cy="14.100" r="1.050" />
+        <circle data-move="dot" data-n="2" cx="17.700" cy="14.100" r="1.050" />
       </g>
     </>
   ),
@@ -196,26 +232,28 @@ const ART: Record<StickerName, ReactNode> = {
     </>
   ),
   // a little notepad, bound along its top, with lines of writing on it (founder, 2026-11-16: no
-  // cross). Hovered, its pages flip up over the binding, quickly, one after another.
+  // cross). Hovered, its pages turn over the binding one after another: each lifts from its foot,
+  // stands edge-on at the binding, and goes over the top with its back showing.
   mistakes: (
     <>
       <rect x="5" y="5" width="14" height="15.500" rx="2" {...WASH} />
-      <path d="M8.500 3.300v3.200M12 3.300v3.200M15.500 3.300v3.200" />
       <path d="M8 10.800h8M8 13.800h8" />
       <path d="M8 16.800h4.500" stroke={ORANGE} strokeWidth="1.900" />
-      {[1, 2, 3].map((n) => (
-        <rect
-          key={n}
-          data-move="page"
-          x="5"
-          y="5"
-          width="14"
-          height="15.500"
-          rx="2"
-          fill="currentColor"
-          fillOpacity="0.22"
-        />
+      {[0, 1, 2].map((n) => (
+        <g key={n} data-move="page" data-n={n}>
+          <rect
+            x="5"
+            y="5"
+            width="14"
+            height="15.500"
+            rx="2"
+            fill="currentColor"
+            fillOpacity="0.26"
+          />
+          <path d="M8 10.800h8M8 13.800h8M8 16.800h5" strokeOpacity="0.7" />
+        </g>
       ))}
+      <path d="M8.500 3.300v3.200M12 3.300v3.200M15.500 3.300v3.200" />
     </>
   ),
   // a satchel: everything else is kept in here

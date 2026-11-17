@@ -160,14 +160,27 @@ function Work({
   );
 }
 
-export default function Homework({ examOpen }: { examOpen: boolean }) {
+export default function Homework({ examOpen, intro }: { examOpen: boolean; intro: number }) {
   const now = useClock();
   /** Work finished on this page by pressing it, until each activity has its own screen. */
   const [finished, setFinished] = useState<string[]>([]);
   const [cheer, setCheer] = useState(0);
   const [dailyDone, setDailyDone] = useState(false);
   /** The challenge question: its banner is up, or sent away, or the question is done. */
-  const [challenge, setChallenge] = useState<"banner" | "later" | "done">("banner");
+  const [challenge, setChallenge] = useState<"banner" | "later" | "done">("later");
+  // its banner comes up once a day: the first time Homework is opened that day (remembered in
+  // this browser). `intro` shows it again, to look at it.
+  useEffect(() => {
+    const today = new Date().toDateString();
+    let seen = "";
+    try {
+      seen = window.localStorage.getItem("kp-challenge-day") ?? "";
+      window.localStorage.setItem("kp-challenge-day", today);
+    } catch {
+      // nothing can be remembered in a private window: it is shown each time
+    }
+    if (seen !== today || intro > 0) setChallenge("banner");
+  }, [intro]);
   /** Which way the last step went, so what arrives comes in from that side. */
   const body = useRef<HTMLDivElement>(null);
   const from = useRef(0);

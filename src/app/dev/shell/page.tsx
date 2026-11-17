@@ -84,7 +84,6 @@ function Shell() {
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
-  // it opens when the pointer rests on it, and shuts when the pointer or the window leaves
   const { openSoon, notYet } = useMenuIntent(setOpen, held);
   const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
   const [page, setPage] = useState<StickerName>(PLANS[plan].home);
@@ -105,8 +104,9 @@ function Shell() {
   const inStat = page === "progress" && stat !== null;
   /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
   const [extraTime, setExtraTime] = useState(1);
-  /* shows the exam's banner as it is once the exam has opened (demo only) */
+  /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
+  const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
   /* the Free plan, which has no predicted score (demo only) */
@@ -605,7 +605,7 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "homework" && <Homework examOpen={examOpen} />}
+        {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "mistakes" && (
           <MistakeLog
@@ -665,9 +665,14 @@ function Shell() {
             </button>
           )}
           {page === "homework" && (
-            <button type="button" aria-pressed={examOpen} onClick={() => setExamOpen(!examOpen)}>
-              Exam open
-            </button>
+            <>
+              <button type="button" aria-pressed={examOpen} onClick={() => setExamOpen(!examOpen)}>
+                Exam open
+              </button>
+              <button type="button" onClick={() => setIntro(intro + 1)}>
+                Challenge intro
+              </button>
+            </>
           )}
           {/* shows the late-night offer of music now, whatever the hour and whatever was answered */}
           <button

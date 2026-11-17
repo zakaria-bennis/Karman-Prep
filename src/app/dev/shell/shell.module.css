@@ -293,6 +293,20 @@
   }
 }
 
+/* the Chat icon's dots bob while its row is pointed at or Chat is open */
+.item:hover [data-move="dot"],
+.item[aria-current="page"] [data-move="dot"] {
+  animation: typing 1.3s ease-in-out infinite;
+}
+
+.item [data-move="dot"][data-n="1"] {
+  animation-delay: 0.16s;
+}
+
+.item [data-move="dot"][data-n="2"] {
+  animation-delay: 0.32s;
+}
+
 /* ---- the phone's bar: pictures only, and the middle one larger ---- */
 /* The page's title already says where the student is, so the bar carries no words (they are still
    read out). The bar is fixed to the bottom of the screen and keeps clear of the browser's own bars
@@ -334,8 +348,99 @@
    after another, quickly */
 .art [data-move="page"] {
   opacity: 0;
-  transform-origin: 50% 0;
+  transform-box: view-box;
+  transform-origin: 12px 5px;
   transition: none;
+}
+
+/* the Library's blue book stands tipped away from the others, about to fall, until the row is
+   hovered; each book turns about its own foot */
+.art [data-move="book"],
+.art [data-move="stand"] {
+  transform-box: view-box;
+  transition: none;
+}
+
+.art [data-move="book"] {
+  transform-origin: 12px 19.7px;
+}
+
+.art [data-move="stand"] {
+  transform-origin: 16.4px 19.7px;
+  transform: rotate(27deg);
+}
+
+.art [data-move="dot"],
+.art [data-move="glint"] {
+  transition: none;
+}
+
+/* the blue book swings up and knocks against the others */
+@keyframes stand {
+  0% {
+    transform: rotate(27deg);
+  }
+
+  55% {
+    transform: rotate(-4deg);
+  }
+
+  75% {
+    transform: rotate(2deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* and each book gives a little bounce, squashing as it lands */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(-2.6px) scale(0.97, 1.05);
+  }
+
+  62% {
+    transform: translateY(0) scale(1.06, 0.92);
+  }
+
+  80% {
+    transform: translateY(-0.8px);
+  }
+}
+
+/* someone is typing: the three dots bob one after another */
+@keyframes typing {
+  0%,
+  55%,
+  100% {
+    transform: none;
+    opacity: 0.75;
+  }
+
+  25% {
+    transform: translateY(-2.2px);
+    opacity: 1;
+  }
+}
+
+/* light runs down the cup */
+@keyframes glint {
+  0%,
+  100% {
+    transform: none;
+    stroke-opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(2.4px);
+    stroke-opacity: 1;
+  }
 }
 
 /* the Progress graph: hovered, its line is drawn from foot to tip, the shade spreads under it from
@@ -385,18 +490,26 @@
     transform: scaleY(1);
   }
 
-  12% {
+  8% {
     opacity: 1;
+    transform: scaleY(1);
   }
 
-  70% {
+  /* edge-on at the binding */
+  48% {
     opacity: 1;
-    transform: scaleY(0.08) skewX(-12deg);
+    transform: scaleY(0.05) skewX(-11deg);
+  }
+
+  /* over the top, its back showing */
+  82% {
+    opacity: 0.75;
+    transform: scaleY(-0.74) skewX(5deg);
   }
 
   100% {
     opacity: 0;
-    transform: scaleY(-0.4) skewX(-5deg);
+    transform: scaleY(-0.9);
   }
 }
 
@@ -418,24 +531,36 @@
   }
 
   .item:hover [data-move="page"] {
-    animation: flip 0.32s cubic-bezier(0.4, 0, 0.6, 1) both;
+    animation: flip 0.62s cubic-bezier(0.45, 0, 0.4, 1) both;
   }
 
-  .item:hover [data-move="page"]:nth-of-type(2) {
-    animation-delay: 0.1s;
+  .item:hover [data-move="page"][data-n="1"] {
+    animation-delay: 0.22s;
   }
 
-  .item:hover [data-move="page"]:nth-of-type(3) {
-    animation-delay: 0.2s;
+  .item:hover [data-move="page"][data-n="2"] {
+    animation-delay: 0.44s;
   }
 
-  .item:hover [data-move="page"]:nth-of-type(4) {
-    animation-delay: 0.3s;
+  /* the blue book swings up against the others, and then all three bounce, one after another */
+  .item:hover [data-move="stand"] {
+    animation: stand 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) both;
   }
 
-  /* the leaning book slips a little further, its foot sliding along the shelf */
-  .item:hover [data-move="slip"] {
-    transform: rotate(-7deg);
+  .item:hover [data-move="book"] {
+    animation: bounce 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) 0.34s both;
+  }
+
+  .item:hover [data-move="book"][data-n="1"] {
+    animation-delay: 0.4s;
+  }
+
+  .item:hover [data-move="book"][data-n="2"] {
+    animation-delay: 0.46s;
+  }
+
+  .item:hover [data-move="glint"] {
+    animation: glint 0.8s ease-in-out;
   }
 
   .item:hover [data-move="pop"] {

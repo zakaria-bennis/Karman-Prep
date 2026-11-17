@@ -209,61 +209,74 @@
   }
 }
 
-/* the body: a suit of the mask's blue, red trunks and boots, a gold belt and mark */
+/* the body: a suit of the mask's blue, a gold shield and belt, red gloves and boots */
 .body [data-suit] {
   fill: #2c4fd6;
   stroke: #17297c;
-  stroke-width: 2;
-}
-
-.body [data-sleeve],
-.body [data-leg] {
-  fill: none;
-  stroke: #2c4fd6;
-  stroke-width: 11;
-  stroke-linecap: round;
-}
-
-.body [data-leg] {
-  stroke-width: 12;
-}
-
-.body [data-boot] {
-  fill: none;
-  stroke: #e23a44;
-  stroke-width: 12.6;
-  stroke-linecap: round;
-}
-
-.body [data-trunks] {
-  fill: #e23a44;
-}
-
-.body [data-belt] {
-  fill: none;
-  stroke: #ffd76a;
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-
-.body [data-badge] {
-  fill: #ffd76a;
-  stroke: #a66f00;
-  stroke-width: 1.2;
-}
-
-.body [data-letter] {
-  fill: none;
-  stroke: #17297c;
-  stroke-width: 2;
-  stroke-linecap: round;
+  stroke-width: 1.8;
   stroke-linejoin: round;
 }
 
-.body [data-paw] {
-  fill: #f6b652;
-  stroke: #cc8020;
+.body [data-limb] {
+  fill: none;
+  stroke: #2c4fd6;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.body [data-light] {
+  fill: none;
+  stroke: #6f8cff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.body [data-glove] {
+  fill: #e23a44;
+  stroke: #8f1d2c;
   stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.body [data-finger] {
+  fill: none;
+  stroke: #e23a44;
+  stroke-width: 2.7;
+  stroke-linecap: round;
+}
+
+.body [data-knuckle] {
+  fill: none;
+  stroke: #8f1d2c;
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.body [data-trim] {
+  fill: none;
+  stroke: #ffd76a;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.body [data-gold] {
+  fill: #ffd76a;
+  stroke: #a66f00;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.body [data-buckle] {
+  fill: #a66f00;
+}
+
+.body [data-ink] {
+  fill: none;
+  stroke: #17297c;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .body [data-fur] {
@@ -296,14 +309,6 @@
   stroke: #17297c;
   stroke-width: 2;
   stroke-linejoin: round;
-}
-
-.mask [data-stitch] {
-  fill: none;
-  stroke: #9db3ff;
-  stroke-width: 1;
-  stroke-dasharray: 2.4 2.2;
-  opacity: 0.8;
 }
 
 .mask [data-shine] {
