@@ -10,7 +10,11 @@
 //
 // This classifier runs in parallel with OpenAI Moderation and
 // asks a separate question: would a teacher or parent be upset
-// to see this message sent to or about another student?
+// to see this message sent to or about another student? It also
+// says when a message is academic dishonesty (passing answers
+// about in place of working a question out), which the pipeline
+// reports apart from other flags so the sender can be warned and,
+// if it goes on, paused.
 //
 // Uses OpenAI's gpt-4o-mini for cost and latency — the call
 // typically returns in ~300-700ms. Wrapped in a 3-second hard
@@ -30,21 +34,28 @@ A message is FLAGGED if a teacher or parent would be uncomfortable seeing it sen
 - Implicit threats or suggestions of self-harm ("you should just stop")
 - Sexual innuendo, euphemisms, or "joke" sexual references
 - Disclosure of another student's contact info (phone, address, social handles)
-- Asking another student to do something inappropriate (cheat, share answers, meet up)
+- Asking another student to do something inappropriate (meet up, send pictures)
+- ACADEMIC DISHONESTY (category "cheating"): giving out an answer, or asking for one, in place of working the question out. That means bare answers ("it's B", "14 is C", "the answer is 15"), asking for bare answers ("what did you put for 9", "just tell me the answer", "send the answers"), offering or asking for an answer key or a whole set of answers, and anything about a test or quiz that is still open ("what's on the exam", "is the reading section hard", "send me a picture of the questions")
 
 A message is NOT flagged if it's:
 - Academic discussion, even if blunt ("this question is impossible", "I hate logarithms")
 - Casual jokes or banter not directed at any student in particular
 - Mild profanity used to express frustration about the material (a separate keyword layer catches what's beyond mild)
 - Asking honest study questions
+- WORKING A QUESTION OUT TOGETHER, which is what this chat is for and is never "cheating": asking how to do a question, asking why an answer is right or wrong, explaining a method or a step, saying what you got AND how you got it, comparing approaches, asking for a hint. "I got 15 for the radius but I'm not sure why" is fine. "How do you set up number 14?" is fine. "The answer is B because the slope is rise over run, so 8 over 4" is fine: it explains.
+
+The test for "cheating" is whether the message tries to move an answer from one student to another without the understanding. When it is unclear, it is not cheating.
 
 Be skeptical but proportionate. A SAT prep cohort is allowed to be casual and funny. Flag what would make a parent uncomfortable, not what would make a humorless teacher uncomfortable.
 
 Respond with ONLY a JSON object, no prose. Format:
-{"flagged": boolean, "reason": "one short sentence explaining the call"}`;
+{"flagged": boolean, "category": "cheating" | "conduct" | "none", "reason": "one short sentence explaining the call"}
+Use "cheating" only for academic dishonesty as described above, "conduct" for every other flag, and "none" when not flagged.`;
 
 export interface KarmanClassifierResult {
   flagged: boolean;
+  /** What kind of flag: academic dishonesty, or anything else. Absent when not flagged. */
+  category?: "cheating" | "conduct";
   reason: string;
 }
 
@@ -107,10 +118,12 @@ export async function callKarmanClassifier(content: string): Promise<KarmanClass
     if (typeof parsed !== "object" || parsed === null) {
       throw new Error("karman-classifier: model returned non-object JSON");
     }
-    const obj = parsed as { flagged?: unknown; reason?: unknown };
+    const obj = parsed as { flagged?: unknown; category?: unknown; reason?: unknown };
     const flagged = obj.flagged === true;
     const reason = typeof obj.reason === "string" ? obj.reason : flagged ? "flagged" : "clean";
-    return { flagged, reason };
+    if (!flagged) return { flagged, reason };
+    // anything flagged that is not plainly "cheating" is treated as conduct, the stricter path
+    return { flagged, category: obj.category === "cheating" ? "cheating" : "conduct", reason };
   } finally {
     clearTimeout(timeout);
   }

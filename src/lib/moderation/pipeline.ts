@@ -28,6 +28,9 @@
 //                                          flags through just because
 //                                          the category isn't on the
 //                                          always-HIGH list.
+//   · Layer 2.5 says "cheating"          → reject, layer "integrity":
+//                                          passing answers about. The
+//                                          caller counts these.
 //   · Layer 2.5 (Karman) flagged         → reject (held). Karman's
 //                                          school-audience prompt is
 //                                          stricter than OpenAI's
@@ -51,8 +54,7 @@
 // ============================================================
 
 import { scanForBlocked } from "./blocklist";
-import { hasRecentApprovedSend } from "./cache";
-import { callKarmanClassifier } from "./karman-classifier";
+import { callKarmanClassifier, type KarmanClassifierResult } from "./karman-classifier";
 import { callOpenAIModeration } from "./providers";
 import { type ModerationInput, type ModerationOutcome } from "./types";
 
@@ -64,6 +66,10 @@ const KEYWORD_REJECTION_MESSAGE =
 /** Layer 2 high-severity hold — message is queued for human review. */
 const AI_HIGH_REJECTION_MESSAGE =
   "This message breaches Karman's terms of use and is being reviewed by our team. You'll be notified once review is complete.";
+
+/** Layer 2.5 judged the message to be passing answers about, not working a question out. */
+const INTEGRITY_REJECTION_MESSAGE =
+  "This message was not sent. Chat is for working questions out together, not for passing answers. Your tutor has been told.";
 
 /** Layer 2 errored out — fail-closed. The student should try again
  *  in a few seconds; transient OpenAI hiccups are short-lived. */
@@ -104,16 +110,9 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     return { decision: "approved" };
   }
 
-  // ─── Recent-pass cache (post Layer 1) ─────────────────────
-  // If this sender just had a clean approval (≤5 min ago) we trust
-  // that result and skip the OpenAI + Karman calls. Layer 1 already
-  // re-ran for the current message — the cache cannot bypass the
-  // keyword blocklist. The cache lookup is fail-safe: on error or
-  // on cache miss we fall through to the full pipeline.
-  if (await hasRecentApprovedSend({ senderUuid: input.senderUuid })) {
-    console.log(`[moderation] cache hit sender=${input.senderId} (skipping Layer 2 + 2.5)`);
-    return { decision: "approved" };
-  }
+  // Every message and every image goes through Layer 2 and 2.5, every time. (There used to be a
+  // five-minute pass for a sender who had just been approved; it let an image or a message through
+  // unchecked, so it is gone. Students here are minors: nothing is waved through.)
 
   // ─── Layer 2 + 2.5 — run in parallel ──────────────────────
   // OpenAI Moderation handles both text and image URLs (multimodal).
@@ -145,7 +144,7 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   // Karman classifier is ADDITIVE — log on error and continue with
   // just the OpenAI result. We don't fail-CLOSED on it because the
   // OpenAI safety floor is still in place.
-  const karman =
+  const karman: KarmanClassifierResult =
     karmanResult.status === "fulfilled"
       ? karmanResult.value
       : (console.error(
@@ -159,6 +158,16 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   // Layer 2.5 (Karman) flag → reject. Karman's school-audience
   // prompt is stricter than OpenAI's safety categories — if it says
   // a parent would be uncomfortable, we don't second-guess.
+  // Academic dishonesty is reported apart from other conduct, so the caller can count it.
+  if (karman.flagged && karman.category === "cheating") {
+    return {
+      decision: "rejected",
+      layer: "integrity",
+      reason: `Karman: ${karman.reason}`,
+      rejection_message: INTEGRITY_REJECTION_MESSAGE,
+    };
+  }
+
   if (karman.flagged) {
     return {
       decision: "rejected",

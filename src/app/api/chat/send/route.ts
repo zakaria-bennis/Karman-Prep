@@ -202,8 +202,8 @@ export async function POST(req: NextRequest) {
       // Karman classifier rejections are AI-driven too — record them
       // as ai_flagged with the layer source visible in the reason
       // string so the moderation queue can group them.
-      ai_flagged: outcome.layer === "ai" || outcome.layer === "karman",
-      ai_flag_reason: outcome.layer === "ai" || outcome.layer === "karman" ? outcome.reason : null,
+      ai_flagged: outcome.layer !== "keyword",
+      ai_flag_reason: outcome.layer !== "keyword" ? outcome.reason : null,
       rejection_message: outcome.rejection_message,
       cohort_label: channel.display_name,
       client_msg_id: clientMsgId,

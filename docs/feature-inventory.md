@@ -65,7 +65,7 @@ Compact changelog of merged PRs since the previous sync. Use this as the diff ag
 
 1. ~~**The booking page uses a hardcoded smoke-test Cal.com event-type id (`5489022`).**~~ **RESOLVED 2026-05-16** — [src/app/dashboard/student/schedule/page.tsx](src/app/dashboard/student/schedule/page.tsx) now reads `users.cal_event_type_id` per tutor via the `tutor_assignments` join. If the tutor's id is null, the booking widget is gated and `alertAdminAboutMissingTutorSetup()` fires a deduped (24h) admin email so the tutor can be onboarded before any student tries to book.
 
-2. ~~**Chat is fully fail-closed on OpenAI outages.**~~ **RESOLVED** — `src/lib/moderation/cache.ts` + `pipeline.ts` add a recent-approved-sender cache. After a sender's message passes the full pipeline, subsequent messages within a 5-min window skip Layer 2 (OpenAI Moderation) + Layer 2.5 (Karman classifier) and rely on the cached approval. Layer 1 (keyword blocklist) still runs on every send, so the cache can't bypass the explicit safety floor. New / occasional senders still hit OpenAI and still fail-closed on outages — the cache only protects active conversations.
+2. **Chat is fully fail-closed on OpenAI outages.** Every message and image is checked every time; if the check is down, nothing is sent until it is back. (A five-minute pass for recently approved senders was removed on 2026-11-16: it let images and messages through unchecked.)
 
 3. ~~**The Cal.com booking webhook silently swallows email-send failures.**~~ **RESOLVED** — all 3 email-send paths in [src/app/api/webhooks/cal/route.ts](src/app/api/webhooks/cal/route.ts) (confirm / cancel / reschedule) wrap the Resend call in try/catch and route failures to `enqueueFailedEmail()` ([src/lib/integrations/resend/email-queue.ts](src/lib/integrations/resend/email-queue.ts)). The retry cron at `/api/cron/retry-failed-emails` drains the queue with exponential backoff. Webhook still returns 200 so Cal.com doesn't double-fire.
 
@@ -312,7 +312,7 @@ What happens across the whole stack when a real user takes a real action. Each j
 **External services:** OpenAI Moderation, OpenAI (Karman classifier), Slack (only on approved-clean), Supabase Storage (if mediaUrls were uploaded earlier).
 **Failure modes:**
 
-- OpenAI Moderation outage → recent-approved senders keep posting via the 5-min cache (`src/lib/moderation/cache.ts`); Layer 1 keyword blocklist still runs. **New / occasional senders still fail-closed during an outage** — that's the safety floor we keep intentionally.
+- OpenAI Moderation outage → every send is rejected with a "try again" message until it is back (fail-closed, for every sender).
 - Slack POST fails after moderation → route returns 502 and DB row is **not** inserted. Student retries; possible Slack duplicate.
 - Karman classifier error → ignored; Layer 2 result wins alone.
 
@@ -908,7 +908,7 @@ This is the system that decides what happens to every chat message and DM.
 ### Decision logic
 
 - Layer 1 hit → **rejected** (blocklist message shown to sender).
-- Recent-approved sender (`hasRecentApprovedSend` within 5 min) → **skip Layer 2 + 2.5**, accept. Layer 1 still ran above, so the cache can't bypass the safety floor. This is the OpenAI-outage uptime path.
+- Layer 2.5 says "cheating" (passing answers about) → **reject on the `integrity` layer**, with its own message. Every send runs Layer 2 + 2.5; there is no recent-sender pass.
 - Layer 2 errors → **rejected** (fail-closed) — for senders without a cache hit.
 - Layer 2 flagged + HIGH category (sexual/self-harm/violence) → **rejected**.
 - Layer 2 flagged + score ≥ 0.5 → **rejected** (school-audience threshold).

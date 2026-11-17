@@ -1,6 +1,6 @@
 "use client";
 
-// Karman, cross: his brows drawn down, and a paw wagging one finger from side to side. He stands at
+// Karman, cross: his brows drawn down, shaking his head no (just his face, no hand). He stands at
 // the top of the warning a student gets when the check catches answer-sharing (founder, 2026-11-16).
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
@@ -13,25 +13,13 @@ export function Scold() {
   useEffect(() => {
     const el = ref.current;
     if (!el || calm()) return;
-    const wag = gsap.fromTo(
-      el.querySelector("[data-finger]"),
-      { rotate: -16, svgOrigin: "44 6" },
-      { rotate: 16, duration: 0.32, ease: "sine.inOut", yoyo: true, repeat: -1 }
-    );
-    const shake = gsap.fromTo(
-      el.querySelector("[data-head]"),
-      { rotate: -3 },
-      {
-        rotate: 3,
-        duration: 0.64,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        transformOrigin: "50% 90%",
-      }
-    );
+    // he shakes his head: no. Three turns, a rest, and again.
+    const shake = gsap
+      .timeline({ repeat: -1, repeatDelay: 0.9 })
+      .to(el, { x: -9, rotate: -7, duration: 0.16, ease: "sine.inOut" })
+      .to(el, { x: 9, rotate: 7, duration: 0.3, ease: "sine.inOut", yoyo: true, repeat: 3 })
+      .to(el, { x: 0, rotate: 0, duration: 0.22, ease: "sine.out" });
     return () => {
-      wag.kill();
       shake.kill();
     };
   }, []);
@@ -57,30 +45,6 @@ export function Scold() {
           strokeWidth="1.900"
           strokeLinecap="round"
         />
-        {/* his paw, one finger up, wagging */}
-        <g data-finger>
-          <rect
-            x="38"
-            y="-10"
-            width="13"
-            height="14"
-            rx="5"
-            fill="#F6B652"
-            stroke="#CC8020"
-            strokeWidth="1.400"
-          />
-          <rect
-            x="41.500"
-            y="-30"
-            width="6"
-            height="24"
-            rx="3"
-            fill="#F6B652"
-            stroke="#CC8020"
-            strokeWidth="1.400"
-          />
-          <path d="M40 -4h9M40 0h9" stroke="#CC8020" strokeWidth="1" strokeLinecap="round" />
-        </g>
       </svg>
     </span>
   );

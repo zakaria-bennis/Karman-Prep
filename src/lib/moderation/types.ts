@@ -12,7 +12,10 @@ export type ModerationOutcome =
       decision: "rejected";
       reason: string;
       rejection_message: string;
-      layer: "keyword" | "ai" | "karman";
+      /** "integrity" is academic dishonesty: passing answers about, or fishing for them,
+       *  in place of working a question out. The caller counts these against the sender
+       *  (a warning, then a pause until a tutor has looked). */
+      layer: "keyword" | "ai" | "karman" | "integrity";
     }
   /** Layer 2 returned low/medium severity AND Layer 2.5 was clean.
    *  Deliver, but the message enters the human review queue and
@@ -35,15 +38,11 @@ export interface ClaudeModerationResult {
 export interface ModerationInput {
   /** The message body to moderate. Empty string = no content (image-only). */
   content: string;
-  /** Image URLs the student attached. Currently informational; we don't
-   *  send them to Claude (vision-on-image moderation is a future iteration). */
+  /** Image URLs the student attached. Every one is sent to the Layer 2 check, every time. */
   mediaUrls: string[];
   /** Clerk user id of the sender. Logged for audit. */
   senderId: string;
-  /** App-side users.id of the sender. Used by the moderation cache to
-   *  look up the sender's recent approved messages in chat_messages /
-   *  direct_messages without an extra Clerk → UUID round-trip from
-   *  inside the pipeline. */
+  /** App-side users.id of the sender. */
   senderUuid: string;
   /** Channel id (chat_channels.id) for cohort/Q&A messages, or null
    *  for DMs (caller passes the recipient context separately). */

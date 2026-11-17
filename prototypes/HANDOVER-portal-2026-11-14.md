@@ -1112,3 +1112,21 @@ tick bursts confetti; the target has a real arrow that flies in and quivers. Cla
 again (the fan-out had left them shrunk). The message box's focus ring is drawn inside it; Enter sends,
 and a question can be sent with no words. The warning is frosted glass with Karman frowning and wagging
 a finger (`ChatScold.tsx`). **Next, by his word: the real moderation.**
+
+## Live chat moderation: first changes (2026-11-16). NOT live until merged.
+
+These touch the real chat (`src/lib/moderation`, `src/app/api/chat`), not the dev page.
+- **Removed the five-minute pass** (`cache.ts` deleted). After one approved message, a sender's next
+  messages and images skipped the OpenAI and Karman checks for five minutes; only the keyword list ran,
+  and images have no keyword list. Now every message and image is checked every time. Cost: every send
+  waits for the check, and during an OpenAI outage nobody can send.
+- **Answer-sharing:** the Karman classifier's prompt now defines academic dishonesty and what is not
+  (working a question out together), and returns a category. The pipeline rejects "cheating" on a new
+  `integrity` layer with its own message; both send routes store it for the review page.
+- Tests: moderation and chat route tests pass. **The prompt has not been tried against real messages**:
+  that needs calls to OpenAI with his key (a few cents); ask first.
+**Still to build:** counting integrity rejections per student (warning, then pause until a tutor
+approves) needs a migration and route changes; tutor remove-from-class; holding every image until it
+passes and a tutor look at borderline ones; socials check review; reactions, replies, receipts and
+attached questions in the database; the new Chat page reading the live chat. Lawyer: duties if a sexual
+image of a minor is uploaded, and consent for under-13s.

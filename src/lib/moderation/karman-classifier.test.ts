@@ -102,6 +102,28 @@ describe("callKarmanClassifier — response handling", () => {
     expect(r.reason).toContain("put-down");
   });
 
+  it("reports academic dishonesty as its own category", async () => {
+    stubFetch({ flagged: true, category: "cheating", reason: "asks for a bare answer" });
+    const r = await callKarmanClassifier("what did you put for 9");
+    expect(r).toEqual({ flagged: true, category: "cheating", reason: "asks for a bare answer" });
+  });
+
+  it("treats a flag with no clear category as conduct, and gives no category when clean", async () => {
+    stubFetch({ flagged: true, category: "something else", reason: "a put-down" });
+    expect((await callKarmanClassifier("you are so dumb")).category).toBe("conduct");
+    stubFetch({ flagged: false, category: "cheating", reason: "clean" });
+    expect((await callKarmanClassifier("how do you set up number 14?")).category).toBeUndefined();
+  });
+
+  it("tells the model what is and is not cheating", async () => {
+    stubFetch({ flagged: false, category: "none", reason: "clean" });
+    await callKarmanClassifier("hello");
+    const system = captured?.body.messages?.[0]?.content ?? "";
+    expect(system).toMatch(/ACADEMIC DISHONESTY/);
+    expect(system).toMatch(/WORKING A QUESTION OUT TOGETHER/);
+    expect(system).toMatch(/When it is unclear, it is not cheating/);
+  });
+
   it("coerces missing reason field to a default string", async () => {
     stubFetch({ flagged: true });
     const r = await callKarmanClassifier("...");
