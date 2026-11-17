@@ -1,6 +1,6 @@
-// The sky at a session's time, where the student is: a small picture beside a time, and a strip of
-// sky across the top of the next session. Drawn in code. Which sky it is comes from the estimated
-// sunrise and sunset (src/lib/schedule/sun.ts).
+// The sky at a time, where the student is, as a small picture beside it. Drawn in code. Which sky
+// it is comes from the estimated sunrise and sunset (src/lib/schedule/sun.ts). The painted sky over
+// the next session is ScheduleScene.tsx.
 import type { Sky } from "./scheduleData";
 
 /** A rising sun, a sun, a setting sun or a moon, 16 pixels. */
@@ -35,79 +35,6 @@ export function SkyIcon({ sky }: { sky: Sky }) {
         <>
           <path d="M4.500 9.500a3.500 3.500 0 0 1 7 0z" fill="currentColor" stroke="none" />
           <path d="M1.500 9.500h13M4 12h8M6 14.300h4" />
-        </>
-      )}
-    </svg>
-  );
-}
-
-const DOTS = [
-  [18, 14, 1.4],
-  [52, 30, 1],
-  [88, 10, 1.2],
-  [130, 26, 1],
-  [171, 12, 1.5],
-  [214, 34, 1],
-  [250, 16, 1.2],
-  [36, 44, 0.9],
-  [110, 48, 1.1],
-  [196, 50, 0.9],
-];
-
-/** A strip of that sky: its sun or moon, with clouds by day and stars (plain points) by night. */
-export function SkyScene({ sky }: { sky: Sky }) {
-  return (
-    <svg
-      viewBox="0 0 320 64"
-      preserveAspectRatio="xMaxYMid slice"
-      aria-hidden="true"
-      data-sky={sky}
-    >
-      {sky === "night" ? (
-        <>
-          {DOTS.map(([x, y, r], i) => (
-            <circle
-              key={i}
-              cx={x}
-              cy={y}
-              r={r}
-              fill="#fff"
-              opacity={0.5 + (i % 3) * 0.2}
-              data-twinkle={i % 3}
-            />
-          ))}
-          <path d="M284 14a17 17 0 1 0 14 26 14 14 0 0 1-14-26z" fill="#fff6d6" />
-        </>
-      ) : sky === "day" ? (
-        <>
-          <circle cx="276" cy="26" r="26" fill="#fff3b8" opacity="0.35" />
-          <circle cx="276" cy="26" r="15" fill="#fff8d2" />
-          <path
-            d="M40 46a9 9 0 0 1 16-4 12 12 0 0 1 22 4z"
-            fill="#fff"
-            opacity="0.75"
-            data-drift="0"
-          />
-          <path
-            d="M150 24a7 7 0 0 1 13-3 9 9 0 0 1 17 3z"
-            fill="#fff"
-            opacity="0.6"
-            data-drift="1"
-          />
-        </>
-      ) : (
-        <>
-          <circle cx="270" cy="64" r="46" fill="#fff" opacity="0.14" />
-          <circle cx="270" cy="64" r="30" fill="#fff" opacity="0.2" />
-          <circle cx="270" cy="64" r="18" fill="#fff5c8" />
-          <path
-            d="M30 22h46M150 34h34M92 46h28"
-            stroke="#fff"
-            strokeWidth="5"
-            strokeLinecap="round"
-            opacity="0.35"
-            data-drift="0"
-          />
         </>
       )}
     </svg>

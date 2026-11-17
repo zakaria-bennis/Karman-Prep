@@ -2,17 +2,16 @@
 
 // Booking a session, or moving one (founder, 2026-11-16 and 2026-11-17: "the calendar to look very
 // modern and have very clean animations ... not too much unnecessary text").
-//   Calendar  the four weeks that can be booked, as whole weeks under the weekday letters. A dot
-//             under a date means the tutor has time that day; a day with a session of the
-//             student's own is filled with that session's color; the SAT's day wears a ruby ring.
-//             The chosen day is a pill that glides from date to date.
+//   Calendar  the four weeks that can be booked, as whole weeks from Sunday to Saturday. A day the
+//             tutor has time is a shaded square, a day with none is left clear; a day with a
+//             session of the student's own is filled with that session's color; the SAT's day has
+//             a bold outline. The chosen day is a pill that glides from date to date.
 //   Length    60, 90 or 120 minutes (Private 10: 60 only, so the choice is not shown).
 //   Times     every time the tutor works that day, in the student's own time: the open ones to
 //             press, the taken ones grayed out. Each has a small picture of the sky at that time
 //             (a rising sun, a sun, a setting sun, a moon), from the estimated sunrise and sunset.
-//   Work on   the five skills that most need work, to tap, and a line of the student's own.
-//   Weekly    the same time in the weeks after, where it is open and the hours allow.
-// No time zone is written anywhere: every time is simply the student's own.
+//   Work on   the five things that most need work (skills, and the test itself: pacing,
+//             strategy), to tap, and a line of the student's own.
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { calm } from "./homeworkMotion";
@@ -35,7 +34,6 @@ import {
   lengthsFor,
   skyOf,
   weekStart,
-  weeklyAfter,
   type Account,
   type Length,
   type Session,
@@ -78,6 +76,10 @@ export default function Book({
     () => choices(account, minute, minutes, moving ?? undefined, full),
     [account, minute, minutes, moving, full]
   );
+  const mine = useMemo(
+    () => account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id),
+    [account, moving]
+  );
   const firstOpen = days.find((d) => d.times.length > 0)?.day ?? days[0]?.day ?? 0;
   const [picked, setPicked] = useState<number | null>(null);
   const day = picked ?? firstOpen;
@@ -86,27 +88,30 @@ export default function Book({
   const start = time !== null && today?.times.includes(time) ? time : null;
   const [focus, setFocus] = useState<string[]>(moving?.focus ?? []);
   const [note, setNote] = useState(moving?.note ?? "");
-  const [weekly, setWeekly] = useState(false);
-  const [done, setDone] = useState<{ start: number; minutes: Length; more: number[] } | null>(null);
+  const [done, setDone] = useState<{ start: number; minutes: Length } | null>(null);
 
-  const more = useMemo(
-    () => (start !== null && weekly && !moving ? weeklyAfter(account, minute, start, minutes) : []),
-    [account, minute, start, weekly, moving, minutes]
-  );
   const left = hours(account).left + (moving ? moving.minutes / 60 : 0);
   const nothing = days.every((d) => d.times.length === 0);
   const short = nothing && days.every((d) => d.why === "hours");
 
-  // the calendar: whole weeks, Monday first, from the first day that can be booked to the last
+  // the calendar: whole weeks, Sunday first, from the first day that can be booked to the last
   const cells = useMemo(() => {
     if (days.length === 0) return [];
     const from = weekStart(days[0].day);
     const to = weekStart(days[days.length - 1].day) + 6 * DAY;
     const out: number[] = [];
     for (let t = from; t <= to + HOUR; t += DAY) out.push(new Date(t + HOUR).setHours(0, 0, 0, 0));
-    return out;
-  }, [days]);
-  const mine = account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id);
+    // a week with no day that can be booked, and no session in it, is left off
+    const live = (cell: number) =>
+      (days.find((d) => d.day === cell)?.times.length ?? 0) > 0 ||
+      mine.some((s) => sameDay(s.start, cell));
+    const weeks: number[] = [];
+    for (let w = 0; w < out.length; w += 7) {
+      const week = out.slice(w, w + 7);
+      if (week.some(live)) weeks.push(...week);
+    }
+    return weeks.length > 0 ? weeks : out;
+  }, [days, mine]);
 
   // the pill that marks the chosen day glides to it
   const grid = useRef<HTMLDivElement>(null);
@@ -115,14 +120,14 @@ export default function Book({
   useLayoutEffect(() => {
     const move = () => {
       const cell = grid.current?.querySelector<HTMLElement>("[aria-pressed=true] [data-face]");
-      if (!cell || !pill.current || !grid.current) return;
-      const box = cell.getBoundingClientRect();
-      const frame = grid.current.getBoundingClientRect();
+      const button = cell?.parentElement;
+      if (!cell || !button || !pill.current) return;
+      // where the square is laid out, whatever is moving at the moment (the dates arrive in a wave)
       const to = {
-        x: box.left - frame.left,
-        y: box.top - frame.top,
-        width: box.width,
-        height: box.height,
+        x: button.offsetLeft + cell.offsetLeft,
+        y: button.offsetTop + cell.offsetTop,
+        width: cell.offsetWidth,
+        height: cell.offsetHeight,
       };
       if (!placed.current || calm()) gsap.set(pill.current, { ...to, opacity: 1 });
       else
@@ -167,16 +172,9 @@ export default function Book({
     if (start === null) return;
     chosen();
     if (moving) schedule.move(moving.id, start, now);
-    else
-      schedule.book({
-        start,
-        minutes,
-        focus,
-        note: note.trim() || undefined,
-        weekly: more,
-      });
+    else schedule.book({ start, minutes, focus, note: note.trim() || undefined });
     onBooked();
-    setDone({ start, minutes, more });
+    setDone({ start, minutes });
   };
 
   const month = new Date(day).toLocaleDateString("en-US", { month: "long" });
@@ -189,7 +187,6 @@ export default function Book({
           onDone={() => {
             setDone(null);
             setTime(null);
-            setWeekly(false);
             setFocus([]);
             setNote("");
             if (moving) onMoved();
@@ -229,7 +226,7 @@ export default function Book({
           <div className={styles.pick}>
             <div className={styles.cal}>
               <div className={styles.week} aria-hidden="true">
-                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                   <span key={i}>{d}</span>
                 ))}
               </div>
@@ -265,9 +262,7 @@ export default function Book({
                       )}
                       <span data-face>
                         <b>{date.getDate()}</b>
-                        <span>
-                          {sat ? <em>SAT</em> : open > 0 && !own ? <i data-mark="open" /> : null}
-                        </span>
+                        {sat && <em>SAT</em>}
                       </span>
                     </button>
                   );
@@ -376,25 +371,6 @@ export default function Book({
             </div>
           )}
 
-          {!moving && (
-            <label className={styles.weekly}>
-              <input
-                type="checkbox"
-                checked={weekly}
-                onChange={(e) => setWeekly(e.target.checked)}
-              />
-              <span aria-hidden="true" />
-              <b>Every week</b>
-              {weekly && start !== null && (
-                <small>
-                  {more.length > 0
-                    ? `Also ${more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}`
-                    : "No later week has this time open."}
-                </small>
-              )}
-            </label>
-          )}
-
           <footer className={styles.foot} data-set={start !== null || undefined}>
             <p aria-live="polite">
               {start === null ? (
@@ -402,7 +378,6 @@ export default function Book({
               ) : (
                 <>
                   <b>{dateShort(start)}</b> {clock(start)}, {lengthText(minutes)}
-                  {more.length > 0 && ` + ${more.length} more`}
                 </>
               )}
             </p>

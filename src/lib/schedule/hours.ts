@@ -43,8 +43,9 @@ export async function openHoursPayment(args: { clerkId: string; email: string; h
       currency: "usd",
       customer: customer.id,
       automatic_payment_methods: { enabled: true },
-      // the card is kept, so the next purchase is one button
-      setup_future_usage: "on_session",
+      // a card is kept, so the next purchase is one button. It is asked of cards only: asked of
+      // the whole payment, Stripe would take away the ways to pay that cannot be kept (pay later)
+      payment_method_options: { card: { setup_future_usage: "on_session" } },
       description: "Private tutoring hours",
       metadata: { kind: HOURS_KIND, userId: args.clerkId, hours: String(hours) },
     }),

@@ -1239,40 +1239,57 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
-## Schedule (2026-11-17, third version)
+## Schedule (2026-11-17, fourth version)
 
-The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and three rounds of
+The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and four rounds of
 verdicts are in the memory note `project_calendar_spec.md`. Awaiting his verdict on this round.
 
 - **Hours:** the student's own character, the hours left, and a square for every hour (rounded
   corners, sized to fit up to fifty): green and glowing is free to book, blue is booked, gray is
   used; half an hour is half a square. A square that changes pops; hours just bought land one by one.
-- **Next:** a strip of the sky at the session's time (drawn in code) with a small "in 2d 15h" pill,
-  the date and time, Join from 5 minutes before with 10 minutes of grace, then Move (blue) and
-  Cancel (ruby). No tutor line, no time zone.
-- **Book:** four whole weeks under the weekday letters; a green dot means the tutor has time; a day
-  with a session of the student's own is filled with that session's sky; the SAT's day has a ruby
-  ring; one pill glides between dates (GSAP). Every time the tutor works is listed, the taken ones
-  grayed out. Each time has a small rising sun, sun, setting sun or moon from the **estimated
-  sunrise and sunset where the student is** (`src/lib/schedule/sun.ts`: the place is guessed from
-  the device's time zone, no location is asked for). "Work on" is the **five skills that most need
-  work** (`recommend` in `scheduleData.ts`: lowest level first, subjects taking turns), then a note.
+- **Next:** the whole card is a painting of the sky at the session's time, moving, drawn on the
+  graphics card (`ScheduleScene.tsx`: one scene with four lights, night, sunrise, day and sunset;
+  sky, sun or moon, drifting cloud, two ridges of hills, a lake that mirrors it with glitter,
+  swaying grass, birds by day, fireflies and twinkling stars at night). The date and time sit low
+  on it over a shade. **Join is on the card**: until 5 minutes before it says how long is left,
+  then it comes alive, with 10 minutes of grace. Move (blue) and Cancel (ruby) beside it. With
+  nothing booked the card paints the sky as it is now. `&sky=night|sunrise|day|sunset` shows one
+  painting whatever the time. No tutor line, no time zone.
+- **Book:** whole weeks from **Sunday to Saturday**. A day the tutor has time is a **shaded
+  square**, a day with none is clear (no dots); a day with a session of the student's own is filled
+  with that session's sky inside a border; the SAT's day has a **bold outline** in the text color
+  (not red) with "SAT" under the date; one pill glides between dates (GSAP). Weeks with nothing to
+  book are left off. Every time the tutor works is listed, the taken ones grayed out, each with a
+  small rising sun, sun, setting sun or moon from the **estimated sunrise and sunset where the
+  student is** (`src/lib/schedule/sun.ts`: guessed from the device's time zone). "Work on" is the
+  **five things that most need work**: skills, and up to two about the test itself (**Pacing**,
+  **Test-taking strategy**, Reviewing a full-length exam) in green (`recommend` and `TEST_SKILLS`
+  in `scheduleData.ts`), then a note. **There is no "Every week" booking**: he took it out for fear
+  of double bookings, so a session is always booked one at a time.
 - **Booked or moved:** the whole screen celebrates (`ScheduleCheer.tsx`): confetti, the character,
   the day and time. It closes itself or at a press.
-- **Sessions list:** each row washed with its sky, a friendly day word ("Tomorrow", "Saturday"),
-  the length, counts on the tabs, and a play mark on past sessions.
+- **Sessions list:** each row washed with its sky, the date on that sky inside a border, a friendly
+  day word ("Tomorrow", "Saturday") and the length. No small pictures in the rows. Upcoming has a
+  count on its tab; Past has none. A past session has a ring with a filled play mark, set a little
+  right of the middle so it looks centered.
 - **Calendar offer:** on a wide screen a small banner that slides in at the top right (after the
   music offer, if that is showing); on a phone the first thing on the page. Apple Calendar and
-  Google Calendar stacked, each with its own mark (from the open svgl.app library).
+  Google Calendar stacked, each with its own icon (Apple Calendar's from Wikimedia Commons, Google
+  Calendar's from the open svgl.app library).
 - **Time zones are never written.** Every time is the student's own.
 - **Add hours is real** (`SchedulePay.tsx`, `src/lib/schedule/hours.ts`, `/api/schedule/hours`):
   - One Stripe payment is opened when the tab opens; choosing another number of hours changes that
     same payment. The price is always worked out on the server.
   - **Card on file first:** if Stripe holds a card for the family, the sheet is one "Pay $X" button
-    with "Visa ending 4242" under it. Every payment for hours keeps its card for next time.
+    with "Visa ending 4242" under it: one press closes the purchase, on desktop as on a phone. A
+    card used for hours is kept for next time (asked of cards only, so the pay-later ways stay
+    offered). A Private package bought through the signed-in checkout now keeps its card too
+    (`createCheckoutSession` in `stripe/client.ts`); a package bought through the guest checkout
+    does not link its card to the account yet.
   - With no card on file the one-tap ways come first: Apple Pay and Google Pay on a phone (asked
     for in every browser that can), Link and Google Pay on a wide screen, where Apple Pay is left
-    out. Everything else is behind an underlined "More ways to pay".
+    out. Everything else is behind an underlined "More ways to pay", with the most used ways first
+    in the list (card first).
   - **Bulk is cheaper** (`hoursPriceCents`): each whole Private 20 inside the number is charged at
     the Private 20 price from `offer.ts` ($2,495 for 20, so 40 is $4,990); other hours are $149.50.
     No number of hours costs more than the next whole package: 17 to 19 hours are charged as 20,

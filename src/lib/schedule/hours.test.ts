@@ -126,7 +126,8 @@ describe("opening and changing a payment", () => {
     const args = create.mock.calls[0][0];
     expect(args.amount).toBe(single);
     expect(args.customer).toBe("cus_1");
-    expect(args.setup_future_usage).toBe("on_session");
+    expect(args.payment_method_options.card.setup_future_usage).toBe("on_session");
+    expect(args.setup_future_usage).toBeUndefined();
     expect(args.metadata).toEqual({ kind: HOURS_KIND, userId: "user_1", hours: "1" });
     expect(card).toEqual({ id: "pm_1", brand: "visa", last4: "4242" });
   });

@@ -18,7 +18,6 @@ import {
   standIn,
   subjectOf,
   weekStart,
-  weeklyAfter,
   type Account,
   type Session,
 } from "./scheduleData";
@@ -127,18 +126,6 @@ describe("booking", () => {
     const days = choices(a, NOW, 60);
     expect(days.every((d) => d.times.length === 0 && d.why === "hours")).toBe(true);
   });
-
-  it("the weekly slot repeats only on open weeks, inside four weeks, within the hours left", () => {
-    const a = fresh();
-    const first = choices(a, NOW, 60).find((d) => d.times.length > 0)!.times[0];
-    const more = weeklyAfter(a, NOW, first, 60);
-    expect(more.length).toBeLessThanOrEqual(3);
-    for (const t of more) {
-      expect(t).toBeLessThanOrEqual(NOW + 28 * DAY);
-      expect(new Date(t).getDay()).toBe(new Date(first).getDay());
-      expect(new Date(t).getHours()).toBe(new Date(first).getHours());
-    }
-  });
 });
 
 describe("changing a session", () => {
@@ -185,21 +172,37 @@ describe("changing a session", () => {
 });
 
 describe("what to work on", () => {
-  const pick = (skill: string, subject: "rw" | "math", level: number) => ({
+  const pick = (skill: string, subject: "rw" | "math" | "test", level: number) => ({
     skill,
     subject,
     level,
   });
 
-  it("is five skills, the lowest level first", () => {
+  it("is five things, the weakest first", () => {
     expect(RECOMMENDED).toHaveLength(5);
     for (let i = 1; i < RECOMMENDED.length; i++)
       expect(RECOMMENDED[i].level).toBeGreaterThanOrEqual(RECOMMENDED[i - 1].level);
   });
 
-  it("takes the weakest before anything stronger, whatever the subject", () => {
+  it("includes the test itself (pacing, strategy) beside the skills", () => {
+    const kinds = RECOMMENDED.map((p) => p.subject);
+    expect(kinds.filter((k) => k === "test")).toHaveLength(2);
+    expect(RECOMMENDED.map((p) => p.skill)).toContain("Pacing");
+    expect(kinds.filter((k) => k !== "test")).toHaveLength(3);
+  });
+
+  it("leaves out a part of the test the student is already good at", () => {
+    const list = recommend(
+      [pick("a", "math", 0), pick("b", "rw", 0), pick("c", "rw", 1)],
+      [pick("Pacing", "test", 3), pick("Strategy", "test", 1)]
+    );
+    expect(list.map((p) => p.skill)).toEqual(["a", "b", "c", "Strategy"]);
+  });
+
+  it("takes the weakest skills before anything stronger, whatever the subject", () => {
     const list = recommend(
       [pick("a", "math", 3), pick("b", "rw", 0), pick("c", "rw", 0), pick("d", "math", 1)],
+      [],
       3
     );
     expect(list.map((p) => p.skill)).toEqual(["b", "c", "d"]);
@@ -208,14 +211,28 @@ describe("what to work on", () => {
   it("lets the subjects take turns among skills on the same level", () => {
     const list = recommend(
       [pick("r1", "rw", 0), pick("r2", "rw", 0), pick("m1", "math", 0), pick("m2", "math", 0)],
+      [],
       4
     );
     expect(list.map((p) => p.subject)).toEqual(["rw", "math", "rw", "math"]);
   });
 
-  it("knows a skill's subject", () => {
+  it("knows what each belongs to", () => {
     expect(subjectOf("Solving linear equations")).toBe("math");
     expect(subjectOf("Main idea")).toBe("rw");
+    expect(subjectOf("Pacing")).toBe("test");
+  });
+});
+
+describe("the week", () => {
+  it("runs Sunday to Saturday", () => {
+    const start = new Date(weekStart(NOW));
+    expect(start.getDay()).toBe(0);
+    expect(start.getHours()).toBe(0);
+    // the page's own today is a Sunday: its week begins that day
+    expect(start.toDateString()).toBe(new Date(NOW).toDateString());
+    expect(new Date(weekStart(NOW + 6 * DAY)).toDateString()).toBe(start.toDateString());
+    expect(new Date(weekStart(NOW + 7 * DAY)).toDateString()).not.toBe(start.toDateString());
   });
 });
 

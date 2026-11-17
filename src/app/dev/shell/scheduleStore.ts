@@ -59,28 +59,11 @@ export const schedule = {
     }
     set({ ...state, sync: choice });
   },
-  /** Books a session, and the same time in the weeks given. Returns the first one's id. */
-  book: (first: {
-    start: number;
-    minutes: Length;
-    focus: string[];
-    note?: string;
-    weekly: number[];
-  }) => {
-    const made: Session[] = [first.start, ...first.weekly].map((start) => ({
-      id: newId(),
-      start,
-      minutes: first.minutes,
-      focus: first.focus,
-      note: first.note,
-      state: "booked",
-      weekly: first.weekly.length > 0,
-    }));
-    edit(
-      (a) => ({ ...a, sessions: [...a.sessions, ...made] }),
-      made.map((s) => s.id)
-    );
-    return made[0].id;
+  /** Books a session. Returns its id. */
+  book: (wanted: { start: number; minutes: Length; focus: string[]; note?: string }) => {
+    const made: Session = { id: newId(), ...wanted, state: "booked" };
+    edit((a) => ({ ...a, sessions: [...a.sessions, made] }), [made.id]);
+    return made.id;
   },
   /** Moves a session. Inside 24 hours it spends the free pass; either way it is one of the month's
    *  three moves. */

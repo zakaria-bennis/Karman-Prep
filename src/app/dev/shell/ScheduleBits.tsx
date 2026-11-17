@@ -1,15 +1,15 @@
 "use client";
 
 // Schedule's smaller parts: the hours as squares beside the student's character, the next session
-// under a strip of its own sky, the buttons that move or cancel a session, a past session with its
+// on a painting of its own sky, the buttons that move or cancel a session, a past session with its
 // recording, and the offer to keep sessions in the family's own calendar.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Buddy } from "./HomeworkBuddy";
 import { calm, cut, two } from "./homeworkMotion";
-import { AppleLogo, GoogleCalendarLogo } from "./ScheduleLogos";
-import { SkyIcon, SkyScene } from "./ScheduleSky";
+import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
+import Scene from "./ScheduleScene";
 import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
@@ -31,10 +31,12 @@ import {
   subjectOf,
   type Account,
   type Session,
+  type Sky,
 } from "./scheduleData";
 import { schedule, type Sync } from "./scheduleStore";
 import { chosen, tick } from "./sound";
 import styles from "./schedule.module.css";
+import hrs from "./scheduleHours.module.css";
 import past from "./schedulePast.module.css";
 
 const first = TUTOR.split(" ")[0];
@@ -135,17 +137,21 @@ export function until(ms: number): string {
   return `${left.minutes}m ${two(left.seconds)}s`;
 }
 
-/** The next session: a strip of the sky at its time, when it is, how long until it, and Join once
- *  it opens. */
+/** The next session, on a painting of the sky at its time (ScheduleScene.tsx): when it is, what
+ *  it is for, and Join right on the card. Until five minutes before, Join says how long is left;
+ *  then it comes alive. Move and Cancel sit beside it. */
 export function Next({
   account,
   session,
   now,
+  sky,
   onMove,
 }: {
   account: Account;
   session: Session;
   now: number;
+  /** To look at one painting whatever the time (the page's ?sky=). */
+  sky?: Sky;
   onMove: (session: Session) => void;
 }) {
   const door = doorOf(session, now);
@@ -155,22 +161,12 @@ export function Next({
   useEffect(() => {
     if (door === "closed") schedule.miss(session.id);
   }, [door, session.id]);
-  const sky = skyOf(session.start);
   return (
     <>
-      <div className={styles.sky} data-sky={sky}>
-        <SkyScene sky={sky} />
-        {door === "early" && (
-          <span role="timer" aria-label="Time until this session">
-            in {until(session.start - now)}
-          </span>
-        )}
-        {door === "in" && <span>Now</span>}
-      </div>
-      <div className={styles.when}>
+      <Scene sky={sky ?? skyOf(session.start)} className={styles.scene} />
+      <div className={styles.over}>
         <h2>{dateLong(session.start)}</h2>
-        <p>
-          <SkyIcon sky={sky} />
+        <p className={styles.time}>
           {clock(session.start)} to {clock(endOf(session))}
         </p>
         {(session.focus.length > 0 || session.note) && (
@@ -183,36 +179,55 @@ export function Next({
             {session.note && <em>{session.note}</em>}
           </p>
         )}
-      </div>
-      {door === "open" && (
-        <div className={styles.door}>
-          <button
-            type="button"
-            ref={join}
-            className={styles.join}
-            onClick={() => {
-              chosen();
-              schedule.join(session.id);
-            }}
-          >
-            Join
-          </button>
-          <small>
-            {now < session.start
-              ? `Starts in ${Math.max(1, Math.ceil((session.start - now) / MIN))} min`
-              : `Closes ${clock(session.start + RULES.graceMinutes * MIN)}`}
-          </small>
+        <div className={styles.acts}>
+          {door === "in" ? (
+            <p className={styles.live}>
+              <i aria-hidden="true" />
+              In session until {clock(endOf(session))}
+            </p>
+          ) : (
+            <button
+              type="button"
+              ref={join}
+              className={styles.join}
+              disabled={door !== "open"}
+              onClick={() => {
+                chosen();
+                schedule.join(session.id);
+              }}
+            >
+              Join
+              {door === "early" && (
+                <small role="timer" aria-label="Time until this session">
+                  in {until(session.start - now)}
+                </small>
+              )}
+            </button>
+          )}
+          {door === "early" && (
+            <Changes account={account} session={session} now={now} onMove={onMove} />
+          )}
+          {door === "open" && (
+            <small>
+              {now < session.start
+                ? `Starts in ${Math.max(1, Math.ceil((session.start - now) / MIN))} min`
+                : `Closes ${clock(session.start + RULES.graceMinutes * MIN)}`}
+            </small>
+          )}
         </div>
-      )}
-      {door === "in" && (
-        <p className={styles.live}>
-          <i aria-hidden="true" />
-          In session until {clock(endOf(session))}
-        </p>
-      )}
-      {door === "early" && (
-        <Changes account={account} session={session} now={now} onMove={onMove} />
-      )}
+      </div>
+    </>
+  );
+}
+
+/** Nothing is booked: the sky as it is now, and the words. */
+export function Idle({ now, sky }: { now: number; sky?: Sky }) {
+  return (
+    <>
+      <Scene sky={sky ?? skyOf(now)} className={styles.scene} />
+      <div className={styles.over}>
+        <h2>Nothing booked</h2>
+      </div>
     </>
   );
 }
@@ -282,21 +297,21 @@ export function Hours({
   }, [key]);
   return (
     <>
-      <div className={styles.buddy}>
+      <div className={hrs.buddy}>
         <Buddy size={92} cheer={cheer} />
       </div>
-      <div className={styles.hours}>
-        <p className={styles.count}>
+      <div className={hrs.hours}>
+        <p className={hrs.count}>
           <b>{hoursText(shown)}</b>
           <span>{left === 1 ? "hour left" : "hours left"}</span>
         </p>
-        <p className={styles.fine}>
+        <p className={hrs.fine}>
           <span>Use by {monthDay(expiresAt(account)).replace(/ \d+,/, "")}</span>
           {account.pack === "private-10" && <span>60 min a week</span>}
         </p>
       </div>
       <div
-        className={styles.cells}
+        className={hrs.cells}
         ref={cells}
         data-size={drawn.length > 36 ? "s" : drawn.length > 24 ? "m" : "l"}
         role="img"
@@ -313,7 +328,7 @@ export function Hours({
       </div>
       <button
         type="button"
-        className={styles.plus}
+        className={hrs.plus}
         onClick={(e) => {
           tick();
           press(e.currentTarget);
@@ -535,18 +550,18 @@ export function SyncOffer({ sync }: { sync: Sync }) {
     <div className={styles.sync} ref={el} data-float={wide || undefined}>
       {said ? (
         <p role="status">
-          {said === "apple" ? <AppleLogo size={20} /> : <GoogleCalendarLogo size={20} />}
+          {said === "apple" ? <AppleCalendarLogo size={22} /> : <GoogleCalendarLogo size={22} />}
           Added to {said === "apple" ? "Apple" : "Google"} Calendar
         </p>
       ) : (
         <>
           <b>Add sessions to your calendar</b>
           <button type="button" onClick={() => answer("apple")}>
-            <AppleLogo size={20} />
+            <AppleCalendarLogo size={22} />
             Apple Calendar
           </button>
           <button type="button" onClick={() => answer("google")}>
-            <GoogleCalendarLogo size={20} />
+            <GoogleCalendarLogo size={22} />
             Google Calendar
           </button>
           <button type="button" data-quiet onClick={() => answer("later")}>

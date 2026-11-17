@@ -10,19 +10,17 @@ import { createPortal } from "react-dom";
 import { Buddy } from "./HomeworkBuddy";
 import { calm } from "./homeworkMotion";
 import { confetti } from "./scheduleMotion";
-import { clock, dateLong, dateShort, lengthText, skyOf, type Length } from "./scheduleData";
+import { clock, dateLong, lengthText, skyOf, type Length } from "./scheduleData";
 import styles from "./scheduleCheer.module.css";
 
 export default function Cheer({
   start,
   minutes,
-  more,
   moved,
   onDone,
 }: {
   start: number;
   minutes: Length;
-  more: number[];
   moved: boolean;
   onDone: () => void;
 }) {
@@ -78,11 +76,6 @@ export default function Cheer({
       <p data-in className={styles.when}>
         {clock(start)}, {lengthText(minutes)}
       </p>
-      {more.length > 0 && (
-        <p data-in className={styles.also}>
-          and {more.map((t) => dateShort(t).replace(/^\w+, /, "")).join(", ")}
-        </p>
-      )}
     </div>,
     shell
   );

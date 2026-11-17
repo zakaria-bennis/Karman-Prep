@@ -2,7 +2,9 @@
 // in the project's notes). Only Private 10 and Private 20 students have this tab.
 //   Hours     Time is counted in hours, not sessions. A session is 60, 90 or 120 minutes; Private 10
 //             books 60 minutes a week at most. Hours run out 12 months after they were bought.
-//   Booking   At least 24 hours ahead and at most 4 weeks ahead, always with the student's own tutor.
+//   Booking   At least 24 hours ahead and at most 4 weeks ahead, always with the student's own tutor,
+//             one session at a time (a repeating weekly booking was taken out, 2026-11-17: he
+//             fears double bookings).
 //             Times are shown in the student's own time, with no time zone written anywhere.
 //   Changes   With more than 24 hours to go a session can be moved or canceled (the hours go back).
 //             Moving is limited to three a month. Inside 24 hours there is one free pass a package,
@@ -53,8 +55,6 @@ export interface Session {
   focus: string[];
   note?: string;
   state: "booked" | "done" | "missed" | "canceled";
-  /** Booked as the same time every week. */
-  weekly?: boolean;
   joined?: boolean;
   recap?: Recap;
 }
@@ -77,10 +77,11 @@ export const SAT_DAY = TODAY.getTime() + 20 * DAY;
 
 export const endOf = (s: Session) => s.start + s.minutes * MIN;
 const dayStart = (t: number) => new Date(t).setHours(0, 0, 0, 0);
-/** The Monday that begins a time's week. */
+/** The Sunday that begins a time's week (the calendar runs Sunday to Saturday). */
 export const weekStart = (t: number) => {
   const d = new Date(dayStart(t));
-  return d.getTime() - ((d.getDay() + 6) % 7) * DAY;
+  d.setDate(d.getDate() - d.getDay());
+  return d.getTime();
 };
 
 // ---- hours ----
@@ -194,29 +195,6 @@ export function choices(
   return days;
 }
 
-/** The same time in the weeks after `start` that are open and paid for, inside the four weeks. */
-export function weeklyAfter(
-  account: Account,
-  now: number,
-  start: number,
-  minutes: Length
-): number[] {
-  const days = choices(account, now, minutes);
-  let room = hours(account).left - minutes / 60;
-  const out: number[] = [];
-  for (let n = 1; n <= 4; n++) {
-    const at = new Date(start);
-    at.setDate(at.getDate() + n * 7);
-    const t = at.getTime();
-    if (room < minutes / 60) break;
-    if (days.some((d) => d.times.includes(t))) {
-      out.push(t);
-      room -= minutes / 60;
-    }
-  }
-  return out;
-}
-
 // ---- changing a session ----
 
 export const movesLeft = (account: Account, now: number) => {
@@ -267,27 +245,45 @@ export const recordingUntil = (session: Session) => {
   return d.getTime();
 };
 
-// ---- what to work on: the five skills that most need it ----
+// ---- what to work on: skills, and the things that are not a subject, such as pacing ----
 
+export type Subject = "rw" | "math" | "test";
 export interface Pick {
   skill: string;
-  subject: "rw" | "math";
+  /** Reading and Writing, Math, or the test itself (pacing, strategy). */
+  subject: Subject;
   /** 0 Not started, 1 Learning, 2 Understanding, 3 Proficient. */
   level: number;
 }
-/** The skills that most need work, most needed first: the lowest level first, and among skills on
- *  the same level the two subjects take turns, so the list is never all one subject. (The levels
- *  are the Library's; when real results are read, this is where they come in.) */
-export function recommend(skills: Pick[], count = 5): Pick[] {
+/** What is not Reading and Writing or Math: how the test is taken (founder, 2026-11-17: "also
+ *  things like pacing and test-taking strategies"). Stand-in levels until results are read. */
+export const TEST_SKILLS: Pick[] = [
+  { skill: "Pacing", subject: "test", level: 1 },
+  { skill: "Test-taking strategy", subject: "test", level: 1 },
+  { skill: "Reviewing a full-length exam", subject: "test", level: 2 },
+];
+/** The five things that most need work, most needed first. Up to two are about the test itself,
+ *  when they need work; the rest are skills, the lowest level first, with the two subjects
+ *  taking turns among skills on the same level. (The levels are the Library's; when real results
+ *  are read, this is where they come in.) */
+export function recommend(skills: Pick[], test: Pick[] = [], count = 5): Pick[] {
+  const general = [...test]
+    .filter((pick) => pick.level < 3)
+    .sort((a, b) => a.level - b.level)
+    .slice(0, 2);
   const byLevel = [...skills].sort((a, b) => a.level - b.level);
-  const out: Pick[] = [];
-  while (out.length < count && byLevel.length > 0) {
+  const chosen: Pick[] = [];
+  while (chosen.length < count - general.length && byLevel.length > 0) {
     const level = byLevel[0].level;
-    const last = out[out.length - 1]?.subject;
+    const last = chosen[chosen.length - 1]?.subject;
     const at = byLevel.findIndex((s) => s.level === level && s.subject !== last);
-    out.push(byLevel.splice(at === -1 ? 0 : at, 1)[0]);
+    chosen.push(byLevel.splice(at === -1 ? 0 : at, 1)[0]);
   }
-  return out;
+  // one list, the weakest first; among equals the skills stay ahead of the test's own
+  return [...chosen, ...general]
+    .map((pick, at) => ({ pick, at }))
+    .sort((a, b) => a.pick.level - b.pick.level || a.at - b.at)
+    .map(({ pick }) => pick);
 }
 export const RECOMMENDED: Pick[] = recommend(
   SECTIONS.flatMap((section) =>
@@ -298,13 +294,19 @@ export const RECOMMENDED: Pick[] = recommend(
         level: skill.level,
       }))
     )
-  )
+  ),
+  TEST_SKILLS
 );
-const WEAKEST = RECOMMENDED.map((pick) => pick.skill);
+const WEAKEST = RECOMMENDED.filter((pick) => pick.subject !== "test").map((pick) => pick.skill);
 
-/** Which subject a skill belongs to, for its color (fuchsia for Reading and Writing, blue for Math). */
-export const subjectOf = (skill: string): "rw" | "math" =>
-  SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill)) ? "math" : "rw";
+/** Which subject a skill belongs to, for its color: fuchsia for Reading and Writing, blue for Math,
+ *  green for the test itself. */
+export const subjectOf = (skill: string): Subject =>
+  TEST_SKILLS.some((pick) => pick.skill === skill)
+    ? "test"
+    : SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill))
+      ? "math"
+      : "rw";
 
 /** What the sky is doing at a time, where the student is: it chooses the small picture beside a
  *  time (a rising sun, a sun, a setting sun, a moon) and its color. The place is guessed from the

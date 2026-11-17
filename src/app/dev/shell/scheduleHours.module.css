@@ -1,0 +1,161 @@
+/*
+ * The hours on Schedule (Hours in ScheduleBits.tsx): the student's character, the number left, and
+ * a square for every hour. Colors come from schedule.module.css (--free is an hour free to book,
+ * --held one that is booked).
+ */
+.left {
+  grid-area: left;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px 14px;
+  padding: 16px;
+  background:
+    radial-gradient(
+      120% 90% at 0% 0%,
+      color-mix(in srgb, var(--free) 28%, transparent),
+      transparent 62%
+    ),
+    var(--glass);
+}
+
+.buddy {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+}
+
+.hours {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.count b {
+  font: 400 56px/0.95 var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+.count span {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* a square an hour, sized to fit as many as fifty */
+.cells {
+  --s: 20px;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--s) * 0.28);
+}
+
+.cells[data-size="m"] {
+  --s: 16px;
+}
+
+.cells[data-size="s"] {
+  --s: 13px;
+}
+
+.cells i {
+  width: var(--s);
+  height: var(--s);
+  border-radius: calc(var(--s) * 0.3);
+  background: linear-gradient(90deg, var(--a) 50%, var(--b, var(--a)) 50%);
+}
+
+.cells i[data-kind="left"] {
+  --a: var(--free);
+  box-shadow: 0 0 calc(var(--s) * 0.6) color-mix(in srgb, var(--free) 75%, transparent);
+}
+
+.cells i[data-kind="booked"] {
+  --a: var(--held);
+  box-shadow: 0 0 calc(var(--s) * 0.45) color-mix(in srgb, var(--held) 55%, transparent);
+}
+
+.cells i[data-kind="used"] {
+  --a: color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+/* a half hour: the square's second half takes the next kind, or nothing */
+.cells i[data-half="booked"] {
+  --b: var(--held);
+}
+
+.cells i[data-half="left"] {
+  --b: var(--free);
+}
+
+.cells i[data-half="none"] {
+  --b: transparent;
+}
+
+.cells span {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.left .plus {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--go);
+  color: var(--on-go);
+  font-size: 16px;
+  font-weight: 700;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--go) 80%, transparent);
+  transition:
+    filter 0.16s var(--out),
+    transform 0.16s var(--out);
+}
+
+.left .plus:hover {
+  filter: brightness(1.08);
+}
+
+.left .plus:active {
+  transform: scale(0.97);
+}
+
+@media (min-width: 640px) and (max-width: 959px) {
+  .left {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 420px) {
+  .count b {
+    font-size: 48px;
+  }
+
+  .buddy {
+    width: 84px;
+    height: 84px;
+  }
+}

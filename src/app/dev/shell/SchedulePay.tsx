@@ -178,9 +178,8 @@ export default function Pay({
   // put out of the way here so the sheet can be looked at as they will see it.
   useEffect(() => {
     const hide = () => {
-      for (const frame of document.querySelectorAll<HTMLElement>(
-        "body > iframe, body > div > iframe"
-      )) {
+      for (const frame of document.querySelectorAll<HTMLElement>("iframe")) {
+        if (sheet.current?.contains(frame)) continue;
         const box = frame.getBoundingClientRect();
         const small = box.width > 0 && box.width < 260 && box.height < 90;
         const corner = box.bottom > window.innerHeight - 100 && box.right > window.innerWidth - 300;
@@ -260,7 +259,22 @@ export default function Pay({
         await settled(error, paymentIntent?.status);
       });
       if (express.current) one.mount(express.current);
-      const all = group.create("payment", { layout: "accordion" });
+      // the ways most people pay come first in the list
+      const all = group.create("payment", {
+        layout: "accordion",
+        paymentMethodOrder: [
+          "card",
+          "apple_pay",
+          "google_pay",
+          "link",
+          "cashapp",
+          "klarna",
+          "affirm",
+          "afterpay_clearpay",
+          "amazon_pay",
+          "us_bank_account",
+        ],
+      });
       if (fields.current) all.mount(fields.current);
       window.setTimeout(() => settle(false), 3500);
       // hours chosen while this was loading

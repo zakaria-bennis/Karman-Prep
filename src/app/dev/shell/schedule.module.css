@@ -51,6 +51,11 @@
   --kind: var(--math);
 }
 
+/* the test itself: pacing, strategy */
+.schedule [data-kind="test"] {
+  --kind: #22c36b;
+}
+
 .schedule h3 {
   margin: 0 0 8px;
   font-size: 14px;
@@ -248,252 +253,72 @@
   flex: none;
 }
 
-/* ---- the hours: the student's character, the number, a square for every hour ---- */
-.left {
-  grid-area: left;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 12px 14px;
-  padding: 16px;
-  background:
-    radial-gradient(
-      120% 90% at 0% 0%,
-      color-mix(in srgb, var(--free) 28%, transparent),
-      transparent 62%
-    ),
-    var(--glass);
-}
-
-.buddy {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-}
-
-.hours {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.count {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.count b {
-  font: 400 56px/0.95 var(--font-serif);
-  letter-spacing: -0.02em;
-}
-
-.count span {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.fine {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 12px;
-  color: var(--soft);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* a square an hour, sized to fit as many as fifty */
-.cells {
-  --s: 20px;
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: calc(var(--s) * 0.28);
-}
-
-.cells[data-size="m"] {
-  --s: 16px;
-}
-
-.cells[data-size="s"] {
-  --s: 13px;
-}
-
-.cells i {
-  width: var(--s);
-  height: var(--s);
-  border-radius: calc(var(--s) * 0.3);
-  background: linear-gradient(90deg, var(--a) 50%, var(--b, var(--a)) 50%);
-}
-
-.cells i[data-kind="left"] {
-  --a: var(--free);
-  box-shadow: 0 0 calc(var(--s) * 0.6) color-mix(in srgb, var(--free) 75%, transparent);
-}
-
-.cells i[data-kind="booked"] {
-  --a: var(--held);
-  box-shadow: 0 0 calc(var(--s) * 0.45) color-mix(in srgb, var(--held) 55%, transparent);
-}
-
-.cells i[data-kind="used"] {
-  --a: color-mix(in srgb, var(--ink) 16%, transparent);
-}
-
-/* a half hour: the square's second half takes the next kind, or nothing */
-.cells i[data-half="booked"] {
-  --b: var(--held);
-}
-
-.cells i[data-half="left"] {
-  --b: var(--free);
-}
-
-.cells i[data-half="none"] {
-  --b: transparent;
-}
-
-.cells span {
-  color: var(--soft);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.schedule .plus {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 48px;
-  border-radius: 24px;
-  background: var(--go);
-  color: var(--on-go);
-  font-size: 16px;
-  font-weight: 700;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--go) 80%, transparent);
-  transition:
-    filter 0.16s var(--out),
-    transform 0.16s var(--out);
-}
-
-.schedule .plus:hover {
-  filter: brightness(1.08);
-}
-
-.schedule .plus:active {
-  transform: scale(0.97);
-}
-
-/* ---- the next session: a strip of its sky, then when it is ---- */
+/* ---- the next session: the whole card is a painting of the sky at its time ---- */
 .next {
   grid-area: next;
-  display: grid;
-  gap: 12px;
-  padding: 0 0 16px;
-  overflow: hidden;
-}
-
-.next > * {
-  margin: 0 16px;
-}
-
-.schedule .sky {
   position: relative;
-  height: 72px;
-  margin: 0;
-  background: linear-gradient(120deg, var(--sky-a), var(--sky-b));
+  display: grid;
+  align-content: end;
+  min-height: 340px;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fffdf8;
+  /* behind the painting, should it not load: the same sky, flat */
+  background: linear-gradient(170deg, var(--sky-a), var(--sky-b));
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px rgb(255 255 255 / 0.28);
 }
 
-.sky svg {
+.scene {
   position: absolute;
+  z-index: -2;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.sky [data-twinkle] {
-  animation: twinkle 3.2s ease-in-out infinite;
-}
-
-.sky [data-twinkle="1"] {
-  animation-delay: -1.1s;
-}
-
-.sky [data-twinkle="2"] {
-  animation-delay: -2.2s;
-}
-
-@keyframes twinkle {
-  50% {
-    opacity: 0.15;
-  }
-}
-
-.sky [data-drift] {
-  animation: drift 14s ease-in-out infinite alternate;
-}
-
-.sky [data-drift="1"] {
-  animation-duration: 19s;
-}
-
-@keyframes drift {
-  to {
-    transform: translateX(22px);
-  }
-}
-
-/* how long until it: one small pill on the sky */
-.sky > span {
+/* the words sit low on the painting, where a shade keeps them clear */
+.next::after {
+  content: "";
   position: absolute;
-  left: 14px;
-  bottom: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgb(10 12 28 / 0.45);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  color: #fffdf8;
-  font-size: 14px;
-  font-weight: 700;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(6 8 24 / 0.66),
+    rgb(6 8 24 / 0.34) 36%,
+    rgb(6 8 24 / 0) 62%
+  );
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  pointer-events: none;
 }
 
-.next > .when:first-child {
-  margin-top: 16px;
+.over {
+  display: grid;
+  gap: 6px;
+  padding: 18px 16px 16px;
+  text-shadow: 0 1px 10px rgb(6 8 24 / 0.6);
 }
 
-.when h2 {
-  font: 400 26px/1.1 var(--font-serif);
+.over h2 {
+  font: 400 30px/1.05 var(--font-serif);
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
-.when > h2 + p {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 16px;
+.time {
+  font-size: 17px;
   font-weight: 700;
-}
-
-.when > h2 + p svg {
-  flex: none;
-  color: var(--sky);
-  stroke-width: 1.6;
-  stroke-linecap: round;
 }
 
 .schedule .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 4px;
   font-size: 13px;
 }
 
@@ -513,26 +338,101 @@
   font-weight: 600;
 }
 
-.door {
+/* on the painting the skills are glass in their subject's color, the words white */
+.schedule .over .tags span {
+  background: color-mix(in srgb, var(--kind) 45%, rgb(10 12 28 / 0.35));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 80%, #fff);
+  color: #fffdf8;
+  text-shadow: none;
+}
+
+.schedule .over .tags em {
+  color: rgb(255 253 248 / 0.85);
+}
+
+/* Join, with Move and Cancel beside it */
+.acts {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
+  gap: 8px 10px;
+  margin-top: 10px;
+  text-shadow: none;
+}
+
+.acts > small {
+  color: rgb(255 253 248 / 0.9);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .schedule .join {
-  height: 56px;
-  padding: 0 44px;
-  border-radius: 28px;
-  background: var(--go);
-  color: var(--on-go);
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 24px;
+  background: #8fe6c3;
+  color: #0d241c;
+  font-size: 17px;
   font-weight: 800;
   box-shadow:
-    0 0 0 6px color-mix(in srgb, var(--go) 22%, transparent),
-    0 14px 28px -14px color-mix(in srgb, var(--go) 90%, transparent);
+    0 0 0 5px rgb(143 230 195 / 0.28),
+    0 14px 28px -12px rgb(143 230 195 / 0.9);
 }
 
-.door small,
+/* before it opens it waits, in glass, and says how long is left */
+.schedule .join:disabled {
+  background: rgb(255 255 255 / 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.55);
+  color: #fffdf8;
+}
+
+.join small {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.acts .changes {
+  display: contents;
+}
+
+.schedule .acts .move,
+.schedule .acts .cancel {
+  height: 48px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--tint) 34%, rgb(10 12 28 / 0.4));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 75%, #fff);
+  color: #fffdf8;
+}
+
+.schedule .acts .move svg,
+.schedule .acts .cancel svg {
+  color: #fffdf8;
+}
+
+.acts .changes small,
+.acts .rule,
+.acts .ask p {
+  flex-basis: 100%;
+  margin: 0;
+  color: rgb(255 253 248 / 0.88);
+}
+
+.acts .ask {
+  flex-basis: 100%;
+}
+
+.schedule .acts .quiet {
+  color: #fffdf8;
+}
+
 .rule,
 .changes small,
 .ask p {
@@ -546,7 +446,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -554,8 +454,8 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--go);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--go) 25%, transparent);
+  background: #8fe6c3;
+  box-shadow: 0 0 0 5px rgb(143 230 195 / 0.3);
 }
 
 .changes,
@@ -695,6 +595,7 @@
   height: 50px;
   border-radius: 14px;
   background: linear-gradient(140deg, var(--sky-a), var(--sky-b));
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.55);
   color: #fffdf8;
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
 }
@@ -718,18 +619,8 @@
 }
 
 .what b {
-  display: flex;
-  align-items: center;
-  gap: 7px;
   font-size: 15px;
   font-weight: 700;
-}
-
-.what b svg {
-  flex: none;
-  color: var(--sky);
-  stroke-width: 1.6;
-  stroke-linecap: round;
 }
 
 .what small {
@@ -741,43 +632,32 @@
   white-space: nowrap;
 }
 
-.item > button > i,
-.item > button > em {
+/* how long it is */
+.item > button > i {
   flex: none;
   padding: 4px 9px;
   border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
   font-size: 12px;
   font-style: normal;
   font-weight: 700;
 }
 
-/* how long it is */
-.item > button > i {
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
-}
-
-.item > button > em {
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  color: var(--soft);
-}
-
-/* a past session has its recording: a round play mark */
+/* a past session has its recording: a ring with a play mark in its middle */
 .play {
   flex: none;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  padding-left: 2px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--go);
-  color: var(--on-go);
+  box-shadow: inset 0 0 0 2px var(--go);
+  color: var(--go);
 }
 
 .play[data-missed] {
-  padding-left: 0;
-  background: color-mix(in srgb, var(--ruby) 80%, transparent);
-  color: #fff;
+  box-shadow: inset 0 0 0 2px var(--ruby);
+  color: var(--ruby);
 }
 
 .item > .changes,
@@ -813,24 +693,8 @@
       "list list";
   }
 
-  .left,
   .next {
     align-self: stretch;
-  }
-}
-
-@media (max-width: 420px) {
-  .count b {
-    font-size: 48px;
-  }
-
-  .buddy {
-    width: 84px;
-    height: 84px;
-  }
-
-  .item > button > em {
-    display: none;
   }
 }
 

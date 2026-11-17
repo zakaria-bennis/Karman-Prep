@@ -1,7 +1,7 @@
 /*
  * Booking a session (ScheduleBook.tsx), inside Schedule's pane. Colors, and the buttons shared with
  * the rest of the page, come from schedule.module.css (--sky is the sky at a time, --kind a
- * skill's subject). The chosen day is one pill that glides behind the dates.
+ * skill's subject). The chosen day is one pill that glides behind the dates; a shaded square is a day the tutor has time.
  */
 .book {
   display: grid;
@@ -76,7 +76,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--ink);
   box-shadow: 0 12px 22px -12px var(--ink);
   opacity: 0;
@@ -87,36 +87,38 @@
   position: relative;
   display: grid;
   place-items: center;
-  height: 54px;
-  border-radius: 16px;
+  min-height: 44px;
+  padding: 2px 0;
+  border-radius: 14px;
   color: var(--ink);
   transition: color 0.2s var(--out);
 }
 
-/* the date's own face: the number, and under it a mark. The pill sits exactly behind it. */
+/* the date's own square. Shaded: the tutor has time that day. Clear: nothing to book. */
 .day > span {
+  position: relative;
   display: grid;
-  grid-template-rows: 1fr 8px;
-  justify-items: center;
-  align-items: center;
-  width: min(100%, 50px);
-  height: 50px;
-  padding: 7px 0 7px;
-  border-radius: 16px;
-  transition: background 0.18s var(--out);
+  place-items: center;
+  /* always a square, however narrow the screen */
+  width: min(100%, 48px);
+  aspect-ratio: 1;
+  border-radius: 14px;
+  transition:
+    background 0.18s var(--out),
+    box-shadow 0.18s var(--out);
 }
 
-.book .day:hover:not(:disabled):not([aria-pressed="true"]) > span {
-  background: var(--hover);
+.day[data-open] > span {
+  background: color-mix(in srgb, var(--ink) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
-/* a day with nothing to offer is dimmed; one that is closed by a rule is a little clearer */
-.book .day:disabled {
-  opacity: 0.28;
+.book .day[data-open]:hover:not([aria-pressed="true"]) > span {
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
 }
 
-.book .day:not([data-open]):not(:disabled):not([data-sat]) b {
-  opacity: 0.55;
+.book .day:not([data-open]) b {
+  opacity: 0.38;
 }
 
 .day b {
@@ -127,27 +129,30 @@
 
 .day small {
   position: absolute;
-  top: -3px;
+  z-index: 1;
+  top: -4px;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.03em;
   color: var(--soft);
 }
 
-.day > span > span {
-  display: grid;
-  place-items: center;
-  height: 8px;
+/* the chosen day: the pill is behind it */
+.book .day[aria-pressed="true"] {
+  color: var(--on-ink);
 }
 
-.day i[data-mark="open"] {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--free);
+.day[aria-pressed="true"] > span {
+  background: none;
+  box-shadow: none;
 }
 
-/* a day with a session of the student's own: the whole day wears that session's sky */
+.book .day[aria-pressed="true"] b {
+  opacity: 1;
+}
+
+/* a day with a session of the student's own: the whole square wears that session's sky, inside
+   a clear border */
 .day[data-own="night"] {
   --own-a: #2b2a6e;
   --own-b: #6a4bb8;
@@ -169,47 +174,47 @@
 }
 
 .book .day[data-own] {
-  opacity: 1;
   color: #fffdf8;
 }
 
-.day[data-own] > span {
+.day[data-own] > span,
+.day[data-own][aria-pressed="true"] > span {
   background: linear-gradient(140deg, var(--own-a), var(--own-b));
-  box-shadow: 0 8px 16px -10px var(--own-b);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.7);
 }
 
-.day[data-own] b {
-  opacity: 1 !important;
+.book .day[data-own] b {
+  opacity: 1;
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
 }
 
-/* chosen as well: the pill shows as a ring around it */
-.book .day[data-own][aria-pressed="true"] > span {
-  box-shadow:
-    0 0 0 3px var(--ink),
-    0 8px 16px -10px var(--own-b);
+/* chosen as well: a ring around it */
+.day[data-own][aria-pressed="true"] > span {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
 }
 
-.day em {
-  color: var(--ruby);
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 8px;
+/* the SAT's day: a bold outline, easy to find, with its name under the date */
+.day[data-sat] > span {
+  grid-template-rows: 1fr auto;
+  padding: 6px 0 5px;
+  box-shadow: inset 0 0 0 3px var(--ink);
 }
 
-.book .day[aria-pressed="true"] {
-  color: var(--on-ink);
-}
-
-/* the SAT's own day: a ruby ring, as on the Progress calendar */
-.book .day[data-sat] {
+.book .day[data-sat] b {
   opacity: 1;
 }
 
-.day[data-sat] > span {
-  box-shadow: inset 0 0 0 2px var(--ruby);
+.day em {
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.day[data-sat][aria-pressed="true"] > span {
+  box-shadow: none;
 }
 
 /* ---- the length ---- */
@@ -428,73 +433,6 @@
   color: var(--soft);
 }
 
-/* ---- the same time every week: a switch ---- */
-.weekly {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 4px 12px;
-  cursor: pointer;
-  font-size: 15px;
-}
-
-.weekly input {
-  position: absolute;
-  width: 46px;
-  height: 28px;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.weekly > span {
-  position: relative;
-  width: 46px;
-  height: 28px;
-  border-radius: 14px;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  transition: background 0.25s var(--out);
-}
-
-.weekly > span::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--ink);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.weekly input:checked + span {
-  background: var(--free);
-}
-
-.weekly input:checked + span::after {
-  background: #0d241c;
-  transform: translateX(18px);
-}
-
-.weekly input:focus-visible + span {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.weekly b {
-  font-weight: 700;
-}
-
-.weekly small {
-  grid-column: 2;
-  color: var(--soft);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 /* ---- the foot: what is being booked, right above the button ---- */
 .foot {
   display: flex;
@@ -531,14 +469,8 @@
 }
 
 @media (max-width: 520px) {
-  .book .day {
-    height: 50px;
-  }
-
   .day > span {
-    width: min(100%, 46px);
-    height: 46px;
-    padding: 6px 0;
+    width: min(100%, 44px);
   }
 
   .times {

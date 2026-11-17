@@ -12,20 +12,21 @@
 // memory: no real session is booked, moved or synced from here yet. Buying hours is real (Stripe;
 // see SchedulePay.tsx), and the hours bought are added to the stand-in.
 // To look at its states: ?pack=10 (Private 10), ?soon=3 (next session in 3 minutes), ?soon=-4
-// (already begun), ?empty=1 (no hours left), ?full=1 (the tutor has nothing open).
+// (already begun), ?empty=1 (no hours left), ?full=1 (the tutor has nothing open), and
+// ?sky=night, sunrise, day or sunset (that painting on the next session, whatever its time).
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useClock } from "./homeworkMotion";
 import lib from "./library.module.css";
 import Book from "./ScheduleBook";
-import { Changes, Hours, Next, Past, SyncOffer } from "./ScheduleBits";
+import { Changes, Hours, Idle, Next, Past, SyncOffer } from "./ScheduleBits";
 import Pay, { warm } from "./SchedulePay";
 import { arrive, flash, press, wave } from "./scheduleMotion";
 import { clock, doorOf, hours, skyOf, type Pack, type Session } from "./scheduleData";
-import { SkyIcon } from "./ScheduleSky";
 import { schedule, split, useSchedule } from "./scheduleStore";
 import { tick } from "./sound";
 import styles from "./schedule.module.css";
+import hrs from "./scheduleHours.module.css";
 
 type Pane = { kind: "book" } | { kind: "move"; id: string } | { kind: "past"; id: string };
 
@@ -73,7 +74,6 @@ function Row({
         </span>
         <span className={styles.what}>
           <b>
-            <SkyIcon sky={sky} />
             {dayWord(session.start, now)}, {clock(session.start)}
           </b>
           <small>
@@ -84,15 +84,15 @@ function Row({
                 : (session.note ?? (gone ? "Recording and notes" : "Open session"))}
           </small>
         </span>
-        {session.weekly && <em>Weekly</em>}
         <i>{session.minutes === 60 ? "1h" : session.minutes === 90 ? "1.5h" : "2h"}</i>
         {gone ? (
           <span className={styles.play} data-missed={session.state === "missed" || undefined}>
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
               {session.state === "missed" ? (
-                <path d="M4 7h8v2H4z" />
+                <path d="M4.500 7h7v2h-7z" />
               ) : (
-                <path d="M5.500 3.500l7 4.500-7 4.500z" />
+                // nudged right of the middle: a triangle's weight sits toward its flat side
+                <path d="M6.200 4.200l6 3.800-6 3.800z" />
               )}
             </svg>
           </span>
@@ -120,6 +120,11 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
   const soon = q.get("soon");
   const empty = q.get("empty") === "1";
   const full = q.get("full") === "1";
+  const asked = q.get("sky");
+  const sky =
+    asked === "night" || asked === "sunrise" || asked === "day" || asked === "sunset"
+      ? asked
+      : undefined;
   const now = useClock();
   const first = useRef(now);
   useEffect(() => {
@@ -174,7 +179,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
     <div className={`${lib.library} ${styles.schedule}`} ref={root}>
       <SyncOffer sync={sync} />
 
-      <section className={`${lib.glass} ${styles.left}`} aria-label="Hours" data-arrive>
+      <section className={`${lib.glass} ${hrs.left}`} aria-label="Hours" data-arrive>
         <Hours
           left={h.left}
           booked={h.booked}
@@ -188,15 +193,13 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
       <section
         className={`${lib.glass} ${styles.next}`}
         aria-label="Next session"
-        data-sky={next ? skyOf(next.start) : undefined}
+        data-sky={sky ?? skyOf(next ? next.start : now)}
         data-arrive
       >
         {next ? (
-          <Next account={account} session={next} now={now} onMove={move} />
+          <Next account={account} session={next} now={now} sky={sky} onMove={move} />
         ) : (
-          <div className={styles.when}>
-            <h2>Nothing booked</h2>
-          </div>
+          <Idle now={now} sky={sky} />
         )}
       </section>
 
@@ -245,7 +248,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
               }}
             >
               {t === "upcoming" ? "Upcoming" : "Past"}
-              <i>{t === "upcoming" ? rest.length : past.length}</i>
+              {t === "upcoming" && <i>{rest.length}</i>}
             </button>
           ))}
         </div>
