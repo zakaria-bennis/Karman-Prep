@@ -14,6 +14,20 @@ import styles from "./homeworkChallenge.module.css";
 import { STREAK } from "./rewardsData";
 import { chosen, tick } from "./sound";
 
+/** A hexagon with a question mark that tips from side to side: the challenge question's own mark
+ *  on the Homework page (he asked for this one to stay there, 2026-11-16). */
+function Mark({ size }: { size: number }) {
+  return (
+    <svg className={styles.mark} viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
+      <path d="M24 3l18 10.500v21L24 45 6 34.500v-21Z" />
+      <path
+        d="M18.500 19a5.500 5.500 0 1 1 8.300 4.700c-1.800 1.100-2.800 2-2.800 4.300M24 33.500v.500"
+        data-ink
+      />
+    </svg>
+  );
+}
+
 export function ChallengeBanner({
   onStart,
   onLater,
@@ -72,11 +86,12 @@ export function ChallengeBanner({
       aria-label="Today's challenge question"
     >
       <div className={styles.card} data-card>
-        <span className={styles.scene}>
-          <HeroFlight />
-        </span>
+        <HeroFlight />
+        <span className={styles.shade} aria-hidden="true" />
+        {/* the words stand in the sky at the top, and the choice at the foot, over the rooftops */}
         <h2 data-rise>Challenge question</h2>
         <p data-rise>One hard question a day. This one is waiting.</p>
+        <span className={styles.room} />
         <p className={styles.streak} data-rise>
           <b>{STREAK}</b> days in a row
         </p>
@@ -110,9 +125,23 @@ export function ChallengeBanner({
 
 export function ChallengeCard({ onStart }: { onStart: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current || calm()) return;
+    const tip = gsap.to(ref.current.querySelector("svg"), {
+      rotate: 10,
+      duration: 1.6,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1,
+      transformOrigin: "50% 50%",
+    });
+    return () => {
+      tip.kill();
+    };
+  }, []);
   return (
     <div ref={ref} className={styles.small} data-in>
-      <HeroFlight small />
+      <Mark size={40} />
       <p>
         <b>Challenge</b>
         <small>{STREAK} days in a row</small>

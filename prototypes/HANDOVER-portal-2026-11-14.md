@@ -1004,3 +1004,15 @@ when the window loses focus or the pointer leaves the page (`page.tsx`). The cha
 fox flying over a city with a detailed mask and a rippling cape (`HomeworkHero.tsx`), night or day with
 the page. The Daily 10 has most of the head row. The default profile picture is a violet sky with a
 figure. Every small picture now carries `fill="none"` itself, so a lost style rule cannot turn it black.
+
+**Homework, ninth version (same day).** He rejected the real film in the exam banner ("looks really bad"
+beside the drawn page), so the clips and the video are **removed** and the beach is **drawn again, to
+look real**: `HomeworkShore.tsx` paints it on the graphics card every frame (sky with moon or sun, swell
+under perspective, glitter path, three wave fronts that break into foam, a sheet of water running up the
+sand and sliding back, wet sand that shines). Night in dark mode, day in light. The banner is taller (148
+px desktop, 104 phone) so the scene can be read. Still with reduced motion; plain sky without WebGL.
+**The challenge banner's city is rebuilt** (`heroCity.ts`, `HomeworkHero.tsx`): four depths painted once
+on canvases and slid at four speeds, with very varied heights and roofs, small many windows lit floor by
+floor with glow, haze with distance, street trees and lamps, and rooftops passing in front of the fox.
+The scene fills the whole card; the words are at the top and the buttons at the foot. The challenge card
+on the Homework page has its hexagon mark back (he asked for that).

@@ -9,6 +9,7 @@ import { ACCESSORIES, Dressed, type Outfit } from "./accessories";
 import { useEquipped } from "./equipped";
 import { EXAM, KINDS, SORTS, type HomeworkDay, type Sort, type Work } from "./homeworkData";
 import { calm, cut, finish, stir, two } from "./homeworkMotion";
+import { Shore } from "./HomeworkShore";
 import styles from "./homework.module.css";
 import { chosen, tick } from "./sound";
 
@@ -318,19 +319,8 @@ export function ExamBanner({
   }, [open]);
   return (
     <section className={styles.exam} data-open={open || undefined} aria-label="Full-length exam">
-      {/* the scene: real film of waves on a beach, looping (Pexels, free license: 5288655 by day,
-          3179024 by night; cut and compressed in public/portal). Still when motion is unwanted. */}
-      <video
-        key={mode}
-        className={styles.reel}
-        src={`/portal/exam-shore-${mode}.mp4`}
-        poster={`/portal/exam-shore-${mode}.jpg`}
-        autoPlay={!calm()}
-        muted
-        loop
-        playsInline
-        aria-hidden="true"
-      />
+      {/* the scene: a beach, drawn and moved in code (HomeworkShore.tsx) */}
+      <Shore day={mode === "day"} />
       <span className={styles.examFox} aria-hidden="true">
         <Dressed
           face={face}

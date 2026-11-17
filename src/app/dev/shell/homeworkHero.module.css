@@ -1,46 +1,42 @@
 /*
- * The challenge question's picture (HomeworkHero.tsx): the fox flying over a city, by night or by
- * day with the page. Sizes are set from --u, the picture's own unit, so it draws the same large and
- * small.
+ * The challenge question's picture (HomeworkHero.tsx): the fox flying through a city, by night or by
+ * day with the page. It fills whatever holds it; --h is that height, which the strips are sized from.
  */
 .flight {
   --u: 1px;
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
-  width: 100%;
-  height: calc(210 * var(--u));
   overflow: hidden;
   border-radius: inherit;
   /* night: a deep sky warming toward the city's glow */
-  background: linear-gradient(180deg, #0a0c2e 0%, #1b1a58 45%, #53286f 80%, #a2476f 100%);
-  --wall-far: #2a2466;
-  --wall-near: #14123c;
-  --lit: #ffd76a;
-  --unlit: rgb(255 255 255 / 0.07);
-}
-
-.flight[data-small] {
-  --u: 0.31px;
-  flex: none;
-  width: 104px;
-  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    #060822 0%,
+    #141650 38%,
+    #45246e 66%,
+    #9a4670 86%,
+    #c9655f 100%
+  );
 }
 
 :global([data-kp-mode="light"]) .flight {
-  background: linear-gradient(180deg, #6fb7ff 0%, #a8d6ff 50%, #ffe2b8 100%);
-  --wall-far: #9db4d8;
-  --wall-near: #5f7fb8;
-  --lit: #fff6d0;
-  --unlit: rgb(255 255 255 / 0.35);
+  background: linear-gradient(180deg, #4d9df0 0%, #8ec8ff 45%, #d9eeff 78%, #fff1d6 100%);
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
 }
 
 /* the moon by night, the sun by day */
 .orb {
   position: absolute;
-  top: 12%;
-  right: 14%;
-  width: calc(34 * var(--u));
-  height: calc(34 * var(--u));
+  top: 30%;
+  right: 12%;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
   border-radius: 50%;
   background: radial-gradient(circle at 38% 34%, #fffdf2, #d9d6f2 70%);
   box-shadow: 0 0 calc(24 * var(--u)) calc(6 * var(--u)) rgb(220 220 255 / 0.35);
@@ -53,12 +49,14 @@
 
 .cloud {
   position: absolute;
-  top: 22%;
+  top: 24%;
   left: 100%;
+  display: none;
   width: calc(90 * var(--u));
   height: calc(22 * var(--u));
   border-radius: 999px;
   background: rgb(255 255 255 / 0.1);
+  filter: blur(6px);
   animation: pass 14s linear infinite;
 }
 
@@ -70,7 +68,8 @@
 }
 
 :global([data-kp-mode="light"]) .cloud {
-  background: rgb(255 255 255 / 0.8);
+  display: block;
+  background: rgb(255 255 255 / 0.85);
 }
 
 @keyframes pass {
@@ -79,41 +78,42 @@
   }
 }
 
-/* the city: two rows sliding past, the nearer one faster */
-.far,
-.near {
+/* the city: each depth is one long picture laid twice end to end, sliding by its own length */
+.strip {
+  --tile: calc(var(--h) * var(--wide));
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 46%;
-  animation: slide 26s linear infinite;
+  width: calc(var(--tile) * 2);
+  height: 100%;
+  background-repeat: repeat-x;
+  background-size: var(--tile) 100%;
+  will-change: transform;
+  animation: slide linear infinite;
 }
 
-.near {
-  height: 34%;
-  animation-duration: 12s;
+.strip[data-depth="far"] {
+  animation-duration: 110s;
+}
+
+.strip[data-depth="mid"] {
+  animation-duration: 52s;
+}
+
+.strip[data-depth="near"] {
+  animation-duration: 24s;
+}
+
+/* the rooftops he skims: fast, and a little out of focus because they are so close */
+.strip[data-depth="front"] {
+  animation-duration: 7.5s;
+  filter: blur(1.2px);
 }
 
 @keyframes slide {
   to {
-    transform: translateX(-50%);
+    transform: translateX(calc(var(--tile) * -1));
   }
-}
-
-.far [data-wall] {
-  fill: var(--wall-far);
-}
-
-.near [data-wall] {
-  fill: var(--wall-near);
-}
-
-.flight [data-pane="lit"] {
-  fill: var(--lit);
-}
-
-.flight [data-pane="dark"] {
-  fill: var(--unlit);
 }
 
 .wind {
@@ -142,16 +142,11 @@
 /* the hero: leaning into the wind, rising and falling a little as he flies */
 .flyer {
   position: absolute;
-  top: 6%;
+  top: 27%;
   left: 50%;
   display: grid;
   margin-left: calc(-52 * var(--u));
   animation: fly 3.2s ease-in-out infinite;
-}
-
-.flight[data-small] .flyer {
-  top: 2%;
-  margin-left: -14px;
 }
 
 @keyframes fly {

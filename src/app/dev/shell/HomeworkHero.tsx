@@ -1,73 +1,58 @@
 "use client";
 
-// The challenge question's picture: the fox as a hero, flying over the city with his cape
-// streaming behind him (founder, 2026-11-16). By night the city is dark with lit windows under a
-// moon; by day it stands against a bright sky with clouds. The buildings slide past in two rows, the
-// nearer faster, and the cape and the mask's ties ripple. Drawn here in code; the motion is CSS so it
-// costs nothing to keep running at any size.
+// The challenge question's picture, the whole of its banner: the fox as a hero, flying through the
+// city with his cape streaming behind him (founder, 2026-11-16). By night the city is lit under a
+// moon and stars; by day it stands in a bright sky. The city is four depths that slide past at four
+// speeds, the nearest (the rooftops he skims) passing in front of him, so he is in among the
+// buildings and not over a backdrop. The depths are painted once (heroCity.ts) and then only moved.
+import { useEffect, useState, type CSSProperties } from "react";
 import { Fox } from "@/components/portal/Fox";
+import { TILE, WIDE, paintCity, paintStars, type Depth } from "./heroCity";
 import styles from "./homeworkHero.module.css";
 
-/** A row of buildings, always the same: [left, width, height]. It is drawn twice, side by side, so
- *  that sliding it by half its width joins up with itself. */
-const row = (seed: number, many: number, tall: number) => {
-  const at = (n: number, k: number) => {
-    const x = Math.sin((n + 1) * 53.3 + k * 17.1 + seed) * 43758.5453;
-    return x - Math.floor(x);
-  };
-  let left = 0;
-  return Array.from({ length: many }, (_, n) => {
-    const width = 26 + Math.round(at(n, 1) * 26);
-    const b = { left, width, height: Math.round(tall * (0.45 + at(n, 2) * 0.55)), n };
-    left += width + 3;
-    return b;
-  });
-};
-const FAR = row(3, 14, 70);
-const NEAR = row(9, 11, 96);
-const span = (r: typeof FAR) => r[r.length - 1].left + r[r.length - 1].width + 3;
+const DEPTHS: Depth[] = ["far", "mid", "near", "front"];
 
-function City({ row: r, near = false }: { row: typeof FAR; near?: boolean }) {
-  const wide = span(r);
+export function HeroFlight() {
+  const [strips, setStrips] = useState<Partial<Record<Depth | "stars", string>>>({});
+  // the city is painted for the page's own light, and again if that is switched
+  useEffect(() => {
+    const root = document.documentElement;
+    const paint = () => {
+      const night = root.getAttribute("data-kp-mode") !== "light";
+      setStrips({
+        ...Object.fromEntries(DEPTHS.map((d) => [d, paintCity(d, night)])),
+        stars: night ? paintStars() : "",
+      });
+    };
+    paint();
+    const watch = new MutationObserver(paint);
+    watch.observe(root, { attributes: true, attributeFilter: ["data-kp-mode"] });
+    return () => watch.disconnect();
+  }, []);
   return (
-    <svg
-      className={near ? styles.near : styles.far}
-      viewBox={`0 0 ${wide * 2} 100`}
-      preserveAspectRatio="none"
-      style={{ width: `${(wide * 2) / (near ? 2.2 : 3.2)}%` }}
-    >
-      {[0, wide].map((shift) =>
-        r.map((b) => (
-          <g key={`${shift}-${b.n}`} transform={`translate(${shift + b.left} ${100 - b.height})`}>
-            <rect width={b.width} height={b.height} data-wall />
-            {/* its windows, some lit */}
-            {Array.from({ length: Math.floor((b.height - 8) / 9) }, (_, y) =>
-              Array.from({ length: Math.floor((b.width - 6) / 8) }, (_, x) => (
-                <rect
-                  key={`${x}-${y}`}
-                  x={5 + x * 8}
-                  y={6 + y * 9}
-                  width="3.600"
-                  height="4.600"
-                  data-pane={(x * 7 + y * 13 + b.n * 5) % 3 === 0 ? "lit" : "dark"}
-                />
-              ))
-            )}
-          </g>
-        ))
+    <span className={styles.flight} aria-hidden="true">
+      {strips.stars && (
+        <span className={styles.stars} style={{ backgroundImage: `url(${strips.stars})` }} />
       )}
-    </svg>
-  );
-}
-
-export function HeroFlight({ small = false }: { small?: boolean }) {
-  return (
-    <span className={styles.flight} data-small={small || undefined} aria-hidden="true">
       <span className={styles.orb} />
       <span className={styles.cloud} />
       <span className={styles.cloud} />
-      <City row={FAR} />
-      <City row={NEAR} near />
+      {DEPTHS.slice(0, 3).map(
+        (d) =>
+          strips[d] && (
+            <span
+              key={d}
+              className={styles.strip}
+              data-depth={d}
+              style={
+                {
+                  backgroundImage: `url(${strips[d]})`,
+                  "--wide": WIDE[d] / TILE.h,
+                } as CSSProperties
+              }
+            />
+          )
+      )}
       {/* wind going by */}
       <i className={styles.wind} />
       <i className={styles.wind} />
@@ -86,7 +71,7 @@ export function HeroFlight({ small = false }: { small?: boolean }) {
           <path data-fold d="M-20 -4C-46 -8 -74 8 -104 -2M-18 6C-46 4 -76 20 -108 12" />
         </svg>
         <span className={styles.head}>
-          <Fox size={small ? 46 : 150} />
+          <Fox size={150} />
           {/* the mask, over the eyes: a shaped band with its eyeholes cut out, a line of stitching
               inside its edge, light along its brow, and two ties streaming back from the knot */}
           <svg className={styles.mask} viewBox="-60 -112 120 128">
@@ -111,6 +96,19 @@ export function HeroFlight({ small = false }: { small?: boolean }) {
           </svg>
         </span>
       </span>
+      {/* the rooftops nearest of all pass in front of him */}
+      {strips.front && (
+        <span
+          className={styles.strip}
+          data-depth="front"
+          style={
+            {
+              backgroundImage: `url(${strips.front})`,
+              "--wide": WIDE.front / TILE.h,
+            } as CSSProperties
+          }
+        />
+      )}
     </span>
   );
 }
