@@ -1038,3 +1038,7 @@ except in fields a student types in). The Library's blue book now leans toward t
 one. Chat: the smaller blue bubble is behind with its tail to the left; the bigger gray one is in front
 with its tail to the right. The Class icon and the Homework class button are a chalkboard by night and a
 whiteboard with a blue marker by day.
+**Site-wide, by his word:** text cannot be selected or copied anywhere on the site (`globals.css`, on
+`body`), except in fields a visitor types in. The calculator is unchanged: its host element is given the
+default back, and a count of what can and cannot be selected inside it is the same as before. This
+reaches karmanprep.com only when the branch is merged and deployed.
