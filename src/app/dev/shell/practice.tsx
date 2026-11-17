@@ -16,6 +16,7 @@ import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
+import { UpcomingWorkshops } from "./Workshops";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -502,10 +503,14 @@ const MODES: { icon: IconName; name: string }[] = [
 ];
 
 /** The other ways to practice: one row of names, each with its icon. The same six on both sides. */
-export function Modes() {
+export function Modes({ workshops = false }: { workshops?: boolean }) {
   return (
     <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
-      <h2>More ways to practice</h2>
+      <header className={styles.modesHead}>
+        <h2>More ways to practice</h2>
+        {/* a Pro student opens the workshops coming up from here */}
+        {workshops && <UpcomingWorkshops />}
+      </header>
       <ul>
         {MODES.map((mode) => (
           <li key={mode.name}>

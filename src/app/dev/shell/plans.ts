@@ -5,7 +5,6 @@ import type { StickerName } from "./stickers";
 export const LABEL: Record<StickerName, string> = {
   homework: "Homework",
   library: "Library",
-  class: "Class",
   schedule: "Schedule",
   progress: "Progress",
   mistakes: "Mistake Log",
@@ -36,9 +35,11 @@ export const PLANS = {
   cohort: {
     label: "Cohort",
     name: "Cohort",
-    bar: ["homework", "library", "class", "progress", "more"],
+    // Chat is the middle of the five (founder, 2026-11-16: the Class tab is gone; its class button
+    // is on Homework and its workshops are in the Library)
+    bar: ["homework", "library", "chat", "progress", "more"],
     home: "homework",
-    rail: ["homework", "library", "class", "chat", "progress", "mistakes", "rewards"],
+    rail: ["homework", "library", "chat", "progress", "mistakes", "rewards"],
   },
   private: {
     label: "Private",

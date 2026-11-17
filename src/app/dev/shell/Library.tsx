@@ -14,6 +14,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
 import { Modes, Today } from "./practice";
+import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, SKILLS, type Domain, type Section, type Skill } from "./skills72";
 import { buzz, tick } from "./sound";
@@ -124,10 +125,16 @@ const PAGES = ["Skills", "Today", "Practice"] as const;
 export default function Library({
   rail,
   section,
+  taught,
+  pro,
   onDomain,
 }: {
   rail: boolean;
   section: Section;
+  /** A Cohort or Private student: the workshop stands where the Daily 10 and challenge would. */
+  taught: boolean;
+  /** A Pro student may see the workshops coming up. */
+  pro: boolean;
   onDomain: (domain: string) => void;
 }) {
   const still = useReducedMotion() ?? false;
@@ -233,10 +240,12 @@ export default function Library({
             </div>
           </section>
         )}
-        {show("Today") && <Today />}
+        {/* a taught student has the Daily 10 and the challenge question on Homework; here, in
+            their place, is this side's workshop */}
+        {show("Today") && (taught ? <WorkshopBanner section={section} /> : <Today />)}
       </div>
 
-      {show("Practice") && <Modes />}
+      {show("Practice") && <Modes workshops={pro} />}
 
       {show("Skills") && (
         <section className={`${styles.glass} ${styles.domains}`} aria-label="Domains">

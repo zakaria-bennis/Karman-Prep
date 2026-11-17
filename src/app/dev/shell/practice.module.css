@@ -580,3 +580,20 @@
     line-height: 1.2;
   }
 }
+
+/* the heading of "More ways to practice", and at its far end the way to the workshops; what that
+   opens runs the full width */
+.modesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.modes .modesHead > ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 100%;
+  margin: 0;
+}

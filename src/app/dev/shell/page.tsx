@@ -45,6 +45,7 @@ import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
 import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
+import { Me, Unread } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
 import { Sticker, type StickerName } from "./stickers";
 
@@ -105,6 +106,7 @@ function Shell() {
   const [extraTime, setExtraTime] = useState(1);
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
+  const [unread, setUnread] = useState<"none" | "some" | "news">("some");
   const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
@@ -363,6 +365,7 @@ function Shell() {
                 >
                   <Sticker name={item} />
                 </motion.span>
+                {item === "chat" && page !== "chat" && <Unread what={unread} />}
                 <span className={styles.word} data-word>
                   {rail ? LABEL[item] : (ON_BAR[item] ?? LABEL[item])}
                 </span>
@@ -381,24 +384,7 @@ function Shell() {
         >
           <span className={styles.face} aria-hidden="true">
             <b>
-              {/* until a student sets a picture of their own: Karman's plain one, a soft violet
-                  sky and a figure, its head at the circle's middle */}
-              <svg viewBox="0 0 34 34" width="34" height="34">
-                <defs>
-                  <linearGradient id="kp-me-sky" x1="0.2" y1="0" x2="0.5" y2="1">
-                    <stop offset="0" stopColor="#9a86ea" />
-                    <stop offset="0.6" stopColor="#8a8fe6" />
-                    <stop offset="1" stopColor="#62c4e8" />
-                  </linearGradient>
-                </defs>
-                <rect width="34" height="34" fill="url(#kp-me-sky)" />
-                <circle cx="17" cy="15.500" r="5.600" fill="#3b3a6e" fillOpacity="0.88" />
-                <path
-                  d="M5 35c0-7.200 5.200-10.600 12-10.600S29 27.800 29 35Z"
-                  fill="#3b4f78"
-                  fillOpacity="0.85"
-                />
-              </svg>
+              <Me />
             </b>
           </span>
           <span className={styles.word}>
@@ -566,6 +552,8 @@ function Shell() {
                 <Library
                   rail={rail}
                   section={section}
+                  taught={plan !== "practice"}
+                  pro={plan === "practice" && !free}
                   onDomain={(name) => {
                     dir.current = 1;
                     setDomain(name);
@@ -660,6 +648,16 @@ function Shell() {
           {!rail && (
             <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
               Night
+            </button>
+          )}
+          {plan !== "practice" && (
+            <button
+              type="button"
+              onClick={() =>
+                setUnread(unread === "none" ? "some" : unread === "some" ? "news" : "none")
+              }
+            >
+              Unread: {unread === "none" ? "none" : unread === "some" ? "messages" : "announcement"}
             </button>
           )}
           {page === "homework" && (

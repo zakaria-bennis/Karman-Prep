@@ -7,7 +7,6 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 export type StickerName =
   | "homework"
   | "library"
-  | "class"
   | "schedule"
   | "progress"
   | "mistakes"
@@ -136,23 +135,6 @@ const ART: Record<StickerName, ReactNode> = {
       <path d="M2 20.500h20" />
     </>
   ),
-  // the classroom: by night a chalkboard with chalk writing and a stick of chalk; by day a
-  // whiteboard with marker writing and a marker (founder, 2026-11-16). The colors are set in
-  // shell.module.css by the page's light or dark.
-  class: (
-    <>
-      <rect x="3" y="4" width="18" height="12" rx="2.200" {...WASH} data-board />
-      <path d="M8.500 16l-2 4.500M15.500 16l2 4.500" />
-      <path
-        data-move="chalk"
-        d="M7 8.500h5M7 11.800h8"
-        stroke={ACCENT}
-        strokeWidth="1.900"
-        data-writing
-      />
-      <path d="M16.600 9.300l1.900-2" strokeWidth="2.200" data-pen />
-    </>
-  ),
   // a calendar page with a red band, showing today's date
   schedule: <Today />,
   // a graph: its two axes, a line climbing to a small arrowhead, and green shade under the line
@@ -185,19 +167,21 @@ const ART: Record<StickerName, ReactNode> = {
       </g>
     </>
   ),
-  // a trophy: a cup with a rim and two handles on a stem and a stepped foot, a bright yellow star
-  // on it, and a glint of light down its side
+  // a trophy: a cup with a rim and two handles on a stem and a stepped foot, with a star on it and a
+  // glint of light down its side. By night the star is yellow; by day the cup is yellow and the star
+  // white (shell.module.css).
   rewards: (
     <>
-      <path d="M7 4.200h10v5.200a5 5 0 0 1-10 0z" {...WASH} />
+      <path d="M7 4.200h10v5.200a5 5 0 0 1-10 0z" {...WASH} data-cup />
       <path d="M6.200 4.200h11.600" />
       <path d="M7 6H4.900a.7.700 0 0 0-.7.800c.3 2.500 1.400 4 3.400 4.600M17 6h2.100a.7.700 0 0 1 .7.800c-.3 2.500-1.400 4-3.400 4.600" />
       <path d="M12 14.400v2.300" />
-      <path d="M9.600 16.700h4.800l.9 3.400H8.700z" {...WASH} />
+      <path d="M9.600 16.700h4.800l.9 3.400H8.700z" {...WASH} data-cup />
       <path d="M7.400 20.500h9.200" />
       <path data-move="glint" d="M8.800 6.200v2.600" strokeOpacity="0.6" strokeWidth="1.200" />
       <path
         data-move="pop"
+        data-star
         d="M12 5.300l1.050 2.130 2.350.340-1.700 1.660.4 2.340L12 10.660 9.900 11.770l.4-2.340-1.700-1.660 2.350-.340z"
         fill={YELLOW}
         stroke={YELLOW}
@@ -205,23 +189,23 @@ const ART: Record<StickerName, ReactNode> = {
       />
     </>
   ),
-  // a message thread: a smaller blue bubble behind, its tail to the left, and a bigger gray one in
-  // front, its tail to the right, with the three white dots of someone typing, which bob one after
+  // a message thread: a small blue bubble behind, its tail to the right, and a big gray one in
+  // front, its tail to the left, with the three white dots of someone typing, which bob one after
   // another (founder, 2026-11-16)
   chat: (
     <>
       <path
-        d="M5.300 2.800h5.900a2.800 2.800 0 0 1 2.800 2.800v2.600a2.800 2.800 0 0 1-2.800 2.800H7.600l-3.400 2.300.5-2.500A2.800 2.800 0 0 1 2.500 8.200V5.600a2.800 2.800 0 0 1 2.800-2.800z"
+        d="M12.700 2.800h6a2.800 2.800 0 0 1 2.800 2.800v2.700a2.800 2.800 0 0 1-2.200 2.700l.5 2.500-3.400-2.400h-3.700a2.800 2.800 0 0 1-2.800-2.800V5.600a2.800 2.800 0 0 1 2.800-2.800z"
         fill={SENT}
       />
       <path
-        d="M9.800 8h8.700a3 3 0 0 1 3 3v4.400a3 3 0 0 1-2.300 2.900l.6 2.700-3.800-2.600H9.800a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3z"
+        d="M5.500 8h8.700a3 3 0 0 1 3 3v4.400a3 3 0 0 1-3 3H8.700l-3.800 2.600.6-2.700a3 3 0 0 1-3-2.900V11a3 3 0 0 1 3-3z"
         fill={COMING}
       />
       <g fill="#ffffff" stroke="none">
-        <circle data-move="dot" data-n="0" cx="10.900" cy="13.200" r="1.100" />
-        <circle data-move="dot" data-n="1" cx="14.150" cy="13.200" r="1.100" />
-        <circle data-move="dot" data-n="2" cx="17.400" cy="13.200" r="1.100" />
+        <circle data-move="dot" data-n="0" cx="6.600" cy="13.200" r="1.100" />
+        <circle data-move="dot" data-n="1" cx="9.850" cy="13.200" r="1.100" />
+        <circle data-move="dot" data-n="2" cx="13.100" cy="13.200" r="1.100" />
       </g>
     </>
   ),

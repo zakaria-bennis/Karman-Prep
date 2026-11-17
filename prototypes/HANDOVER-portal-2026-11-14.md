@@ -1042,3 +1042,19 @@ whiteboard with a blue marker by day.
 `body`), except in fields a visitor types in. The calculator is unchanged: its host element is given the
 default back, and a count of what can and cannot be selected inside it is the same as before. This
 reaches karmanprep.com only when the branch is merged and deployed.
+
+## Class is gone; Chat is next (2026-11-16)
+
+**The Class tab is removed** (menus, label and icon). Its class button is on Homework; its workshops are
+in the Library (`Workshops.tsx`): for Cohort and Private, each side of the Library shows a Workshop
+banner with Sign up where Free, Practice and Pro have Today (the Daily 10 and challenge are on Homework
+for taught students); for Pro, "See upcoming workshops" at the top right of More ways to practice opens
+the list. The dev page cannot tell Practice from Pro, so the button shows for the whole "Free,
+Practice, Pro" plan unless the Free switch is on. Workshops are stand-ins. **Chat** now has the middle
+of the Cohort phone bar. Its icon: a big gray bubble in front with its tail to the left and three white
+dots, a small blue one behind with its tail to the right; a red badge counts missed messages and turns
+gold for a missed announcement (demo bar: "Unread"). The trophy by day is yellow with a white star.
+**Chat itself is not built yet.** His answers are in the memory note `project_chat_spec.md`; the live
+backend is described in `project_slack_chat.md`. He also wants: flagged or bookmarked questions posted
+into a chat to discuss with classmates and tutor, and moderation that is very good and fast for text
+and images (the pipeline exists; about 0.7 to 1 second a send when last measured).

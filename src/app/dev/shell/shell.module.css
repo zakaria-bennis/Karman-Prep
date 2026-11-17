@@ -370,19 +370,49 @@
   transform: rotate(-21deg);
 }
 
-/* the Class board: a chalkboard by night, a whiteboard with a blue marker by day */
-.art [data-pen] {
-  stroke: #fff8ea;
+/* the trophy by day: a yellow cup with a white star */
+:global([data-kp-mode="light"]) .art [data-cup] {
+  fill: #ffc81a;
+  fill-opacity: 1;
 }
 
-:global([data-kp-mode="light"]) .art [data-board] {
+:global([data-kp-mode="light"]) .art [data-star] {
   fill: #ffffff;
-  fill-opacity: 0.95;
+  stroke: #ffffff;
 }
 
-:global([data-kp-mode="light"]) .art [data-writing],
-:global([data-kp-mode="light"]) .art [data-pen] {
-  stroke: #1f6fe0;
+/* what is unread in Chat: a red mark with how many messages, or a gold one when an announcement
+   has been missed */
+.badge {
+  position: absolute;
+  top: 6px;
+  left: calc(50% + 4px);
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #e5484d;
+  box-shadow: 0 0 0 2px rgb(20 22 40 / 0.35);
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: badge 0.4s cubic-bezier(0.3, 1.7, 0.45, 1) both;
+}
+
+.badge[data-kind="gold"] {
+  background: linear-gradient(160deg, #ffe28a, #f2b632 60%, #d9950c);
+  color: #3a2500;
+}
+
+@keyframes badge {
+  from {
+    transform: scale(0);
+  }
 }
 
 /* nothing in the portal can be selected or copied (founder, 2026-11-16), except what a student
