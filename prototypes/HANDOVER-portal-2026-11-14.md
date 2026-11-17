@@ -1255,6 +1255,24 @@ verdicts are in the memory note `project_calendar_spec.md`. Awaiting his verdict
   then it comes alive, with 10 minutes of grace. Move (blue) and Cancel (ruby) beside it. With
   nothing booked the card paints the sky as it is now. `&sky=night|sunrise|day|sunset` shows one
   painting whatever the time. No tutor line, no time zone.
+- **The picture behind the next session is being decided (2026-11-17, late).** He found every
+  painted scene "really cartoony" and asked for something that looks "like a photograph and a video
+  game that is in motion", with far more life (ducks, a frog, birds, trees moving in the wind). Two
+  ways now exist for the lake only, and he has been asked to choose:
+  - **A real photograph brought to life** (`SchedulePhoto.tsx`, photos in `public/scenes/`, listed
+    with their sources in its README; all CC0). The photo's own water ripples, the tree line sways,
+    ducks paddle with wakes, a frog leaps and leaves rings, birds cross by day, fireflies and a
+    shooting star at night, the camera drifts. One photo for each light (day, sunset, sunrise,
+    night). **This is what the card shows now**, for every session.
+  - **Painted in code** (`ScheduleScene.tsx` and `scenes/`: a shared kit and one file a place).
+    Lake, river, beach, cottage and mountains exist; `&scene=lake` and so on shows one on the card,
+    and `/dev/scenes?scene=lake` shows a place in three lights (`?photo=1` shows the photographs).
+    The river, beach, cottage and mountains are unfinished and he disliked them.
+  - When he chooses, delete the other way everywhere. If photographs: find three or four CC0
+    photos for each place he named (cottage in the woods, beach with palms, mountains, desert
+    dunes, jungle, bamboo forest, lake or river or lagoon, sakura, apple blossom, butterfly
+    garden), give each its water or sway region, and delete `ScheduleScene.tsx`, `scenes/*.ts`
+    except `photos.ts`, and the gallery's painted mode.
 - **Book:** whole weeks from **Sunday to Saturday**. A day the tutor has time is a **shaded
   square**, a day with none is clear (no dots); a day with a session of the student's own is filled
   with that session's sky inside a border; the SAT's day has a **bold outline** in the text color

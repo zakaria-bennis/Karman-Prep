@@ -9,7 +9,10 @@ import { createPortal } from "react-dom";
 import { Buddy } from "./HomeworkBuddy";
 import { calm, cut, two } from "./homeworkMotion";
 import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
+import PhotoScene from "./SchedulePhoto";
 import Scene from "./ScheduleScene";
+import { PHOTOS } from "./scenes/photos";
+import { sceneFor, type SceneName } from "./scenes";
 import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
@@ -137,6 +140,14 @@ export function until(ms: number): string {
   return `${left.minutes}m ${two(left.seconds)}s`;
 }
 
+/** What is behind the next session: a real photograph of a place in that hour's light, brought to
+ *  life (SchedulePhoto.tsx). `scene` names a painted place instead (the page's ?scene=), kept
+ *  while the founder chooses between the two. */
+function Backdrop({ scene, sky, seed }: { scene?: SceneName; sky: Sky; seed: number }) {
+  if (scene) return <Scene scene={scene ?? sceneFor(seed)} sky={sky} className={styles.scene} />;
+  return <PhotoScene photo={PHOTOS.lake[sky]} night={sky === "night"} className={styles.scene} />;
+}
+
 /** The next session, on a painting of the sky at its time (ScheduleScene.tsx): when it is, what
  *  it is for, and Join right on the card. Until five minutes before, Join says how long is left;
  *  then it comes alive. Move and Cancel sit beside it. */
@@ -145,13 +156,15 @@ export function Next({
   session,
   now,
   sky,
+  scene,
   onMove,
 }: {
   account: Account;
   session: Session;
   now: number;
-  /** To look at one painting whatever the time (the page's ?sky=). */
+  /** To look at one painting whatever the time or the session (the page's ?sky= and ?scene=). */
   sky?: Sky;
+  scene?: SceneName;
   onMove: (session: Session) => void;
 }) {
   const door = doorOf(session, now);
@@ -163,7 +176,7 @@ export function Next({
   }, [door, session.id]);
   return (
     <>
-      <Scene sky={sky ?? skyOf(session.start)} className={styles.scene} />
+      <Backdrop scene={scene} sky={sky ?? skyOf(session.start)} seed={session.start} />
       <div className={styles.over}>
         <h2>{dateLong(session.start)}</h2>
         <p className={styles.time}>
@@ -221,10 +234,10 @@ export function Next({
 }
 
 /** Nothing is booked: the sky as it is now, and the words. */
-export function Idle({ now, sky }: { now: number; sky?: Sky }) {
+export function Idle({ now, sky, scene }: { now: number; sky?: Sky; scene?: SceneName }) {
   return (
     <>
-      <Scene sky={sky ?? skyOf(now)} className={styles.scene} />
+      <Backdrop scene={scene} sky={sky ?? skyOf(now)} seed={0} />
       <div className={styles.over}>
         <h2>Nothing booked</h2>
       </div>
