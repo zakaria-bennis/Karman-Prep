@@ -13,6 +13,7 @@
 //   not sent, warned about once, and the second time pauses the chats until the tutor has looked.
 //   While the student is in a skill set, a quiz or an exam there is no chat and no sign of it.
 import { useSyncExternalStore } from "react";
+import type { Emoji } from "./ChatEmoji";
 
 export type Person = { id: string; name: string; tint: string; role?: "tutor" | "assistant" };
 export const PEOPLE: Record<string, Person> = {
@@ -34,8 +35,7 @@ export type Shared = {
   choices: string[];
   flagged: boolean;
 };
-export const REACTIONS = ["heart", "up", "ha", "wow", "what"] as const;
-export type Reaction = (typeof REACTIONS)[number];
+export type Reaction = Emoji;
 export type Msg = {
   id: string;
   from: string; // a person's id, or "me"
@@ -116,7 +116,7 @@ const cohort = (): Thread[] => [
         172,
         "Good instinct. We will go through it Tuesday. Try completing the square first.",
         {
-          reactions: { priya: "heart", sam: "up" },
+          reactions: { priya: "clap", sam: "up" },
         }
       ),
       made("leo", 44, "is the daily 10 harder today or is it just me"),

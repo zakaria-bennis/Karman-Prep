@@ -5,10 +5,12 @@
 // they write to. A Private student has their tutor only, so there is no list.
 // With room, the chats are listed at the left and the open one is at the right. On a phone the list
 // has the page, and a chat opened from it takes the page, with the way back in the title row.
+import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import ChatThread, { Face, Here, gist } from "./ChatThread";
 import { CLASSMATES, PEOPLE, chat, useChat, type Presence, type Thread } from "./chatStore";
 import styles from "./chat.module.css";
+import { calm } from "./homeworkMotion";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
 import { timeOfDay } from "./progressStats";
@@ -24,6 +26,21 @@ const when = (at: number) => {
     : days === 1
       ? "Yesterday"
       : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+/** The class chat's three faces fan out from one pile when Chat is opened. */
+const fan = (el: HTMLElement | null) => {
+  if (!el || calm() || el.dataset.fanned) return;
+  el.dataset.fanned = "";
+  gsap.from(el.children, {
+    x: (i) => -i * 11,
+    rotate: (i) => -24 + i * 10,
+    scale: 0.6,
+    duration: 0.7,
+    stagger: 0.09,
+    delay: 0.15,
+    ease: "back.out(2.2)",
+  });
 };
 
 function Row({
@@ -53,7 +70,12 @@ function Row({
             </svg>
           </span>
         ) : thread.kind === "class" ? (
-          <span className={styles.faces} aria-hidden="true">
+          <span
+            className={styles.faces}
+            data-talking={thread.typing ? "" : undefined}
+            ref={fan}
+            aria-hidden="true"
+          >
             <Face who="priya" size={24} />
             <Face who="leo" size={24} />
             <Face who="tutor" size={24} />

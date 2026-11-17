@@ -1098,3 +1098,11 @@ flicker he saw at the left of the message pane could not be reproduced here; the
 per chat, its scrolling part has its own layer, and the Chat icon's dots bob only on hover.
 **Must be built for real, not done:** the live moderation needs an answer-sharing check, a socials check
 and the pause-until-reviewed state with a tutor review screen; quiz engines must switch Chat off.
+
+**Chat, last touches (2026-11-16); he called Chat "very solid" and "good to go".** Reactions are twenty
+custom pictures drawn in code, each with its own GSAP movement (`ChatEmoji.tsx`): thumbs up, thumbs
+down, !!, ?, and a laugh come first; a plus opens the rest. No heart. The class chat's three faces fan
+out when Chat opens and hop while someone is writing there. **What is left for Chat is the real thing:**
+wiring this page to the live chat, and making the live moderation do what he asked (see
+`project_chat_spec.md`): answer-sharing, socials, strict image checks, the pause, a tutor review screen.
+He is especially worried about pictures, because most students are under 18.

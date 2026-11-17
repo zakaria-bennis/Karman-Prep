@@ -79,6 +79,31 @@
   margin-left: -15px;
 }
 
+/* while someone is writing in the class chat, its three faces hop one after another */
+.faces[data-talking] > * {
+  animation: hop 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+}
+
+.faces[data-talking] > :nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.faces[data-talking] > :nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes hop {
+  0%,
+  55%,
+  100% {
+    transform: none;
+  }
+
+  25% {
+    transform: translateY(-6px);
+  }
+}
+
 /* Announcements: a megaphone, plain, on a little glass */
 .horn {
   display: grid;
@@ -369,15 +394,11 @@
   left: -8px;
 }
 
-.tally svg,
-.picker svg {
-  fill: currentColor;
+/* a reaction's picture has its own colors: the chat's line style does not apply to it */
+.chat svg[data-emoji] {
+  overflow: visible;
   stroke: none;
-}
-
-.tally svg[aria-label="Love"],
-.picker svg[aria-label="Love"] {
-  color: #ff4f6d;
+  stroke-width: 0;
 }
 
 /* pressed, a message offers its reactions and Reply */
@@ -427,9 +448,15 @@
   color: #fff;
 }
 
-.picker svg {
-  width: 18px;
-  height: 18px;
+/* all twenty, five to a row */
+.picker[data-all] {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  border-radius: 20px;
+}
+
+.picker[data-all] .replyTo {
+  grid-column: 1 / -1;
 }
 
 /* someone is writing: three dots that bob */
@@ -772,6 +799,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .picker,
+  .faces[data-talking] > *,
   .bubble[data-typing] i {
     animation: none;
   }

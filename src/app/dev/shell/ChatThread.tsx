@@ -6,17 +6,9 @@
 // private chat it says Delivered, then Read. Whoever is writing shows as three bobbing dots.
 // Under the messages is the place to write, with a photo and a question to attach.
 import { useEffect, useRef, useState } from "react";
+import { EMOJI, EmojiArt, FIRST, said, stirEmoji } from "./ChatEmoji";
 import { Card, QuestionPicker, QuestionView } from "./ChatQuestions";
-import {
-  PEOPLE,
-  REACTIONS,
-  chat,
-  type Msg,
-  type Presence,
-  type Reaction,
-  type Shared,
-  type Thread,
-} from "./chatStore";
+import { PEOPLE, chat, type Msg, type Presence, type Shared, type Thread } from "./chatStore";
 import styles from "./chat.module.css";
 import { timeOfDay } from "./progressStats";
 import { tick } from "./sound";
@@ -52,28 +44,6 @@ const stamp = (at: number) => {
   return `${day} ${timeOfDay(d.getHours() * 60 + d.getMinutes())}`;
 };
 
-function Tapback({ how }: { how: Reaction }) {
-  if (how === "heart")
-    return (
-      <svg viewBox="0 0 24 24" width="14" height="14" aria-label="Love">
-        <path
-          d="M12 20s-7-4.300-7-9.500A4 4 0 0 1 12 8a4 4 0 0 1 7 2.500C19 15.700 12 20 12 20z"
-          fill="currentColor"
-        />
-      </svg>
-    );
-  if (how === "up")
-    return (
-      <svg viewBox="0 0 24 24" width="14" height="14" aria-label="Like">
-        <path
-          d="M7 11v8H4.500v-8zm2 8v-8l3.500-6c1.500 0 2.300 1.200 2 2.600L14 10.500h4.200c1.100 0 1.900 1 1.700 2.100l-1 5c-.2.800-.900 1.400-1.700 1.400z"
-          fill="currentColor"
-        />
-      </svg>
-    );
-  return <b aria-label={how}>{{ ha: "Ha", wow: "!!", what: "?" }[how]}</b>;
-}
-
 /** The tutor's presence, as a word on a colored pill: green Online, red Offline, and yellow After
  *  hours (9 PM to 9 AM Central), when the assistant answers. */
 const HERE: Record<Presence, string> = {
@@ -107,6 +77,7 @@ export default function ChatThread({
   const [picked, setPicked] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [more, setMore] = useState(false);
   const [bringing, setBringing] = useState(false);
   /** A question chosen to send, waiting for a few words to go with it. */
   const [held, setHeld] = useState<Shared | null>(null);
@@ -142,7 +113,11 @@ export default function ChatThread({
             </svg>
           </span>
         ) : thread.kind === "class" ? (
-          <span className={styles.faces} aria-hidden="true">
+          <span
+            className={styles.faces}
+            data-talking={thread.typing ? "" : undefined}
+            aria-hidden="true"
+          >
             <Face who="priya" size={24} />
             <Face who="leo" size={24} />
             <Face who="tutor" size={24} />
@@ -207,6 +182,7 @@ export default function ChatThread({
                   aria-expanded={picked === m.id}
                   onClick={(e) => {
                     e.stopPropagation();
+                    setMore(false);
                     setPicked(picked === m.id ? null : m.id);
                   }}
                 >
@@ -230,31 +206,52 @@ export default function ChatThread({
                   {m.photo && <img src={m.photo} alt="" />}
                   {m.text}
                   {tallies.length > 0 && (
-                    <span className={styles.tally}>
+                    <span className={styles.tally} ref={stirEmoji}>
                       {[...new Set(tallies)].map((how) => (
-                        <Tapback key={how} how={how} />
+                        <EmojiArt key={how} kind={how} size={16} />
                       ))}
                       {tallies.length > 1 && tallies.length}
                     </span>
                   )}
                 </button>
                 {picked === m.id && (
-                  <div className={styles.picker} role="group" aria-label="React or reply">
-                    {REACTIONS.map((how) => (
+                  <div
+                    className={styles.picker}
+                    data-all={more || undefined}
+                    role="group"
+                    aria-label="React or reply"
+                    ref={stirEmoji}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {(more ? EMOJI : FIRST).map((how) => (
                       <button
                         key={how}
                         type="button"
+                        aria-label={said(how)}
                         aria-pressed={m.reactions.me === how}
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onPointerEnter={(e) => stirEmoji(e.currentTarget)}
+                        onClick={() => {
                           chat.react(thread.id, m.id, how);
                           setPicked(null);
+                          setMore(false);
                           tick();
                         }}
                       >
-                        <Tapback how={how} />
+                        <EmojiArt kind={how} />
                       </button>
                     ))}
+                    {/* the rest of the twenty */}
+                    {!more && (
+                      <button
+                        type="button"
+                        aria-label="More reactions"
+                        onClick={() => setMore(true)}
+                      >
+                        <svg viewBox="0 0 24 24" width="18" height="18">
+                          <path d="M12 6v12M6 12h12" />
+                        </svg>
+                      </button>
+                    )}
                     {thread.kind !== "news" && (
                       <button
                         type="button"
