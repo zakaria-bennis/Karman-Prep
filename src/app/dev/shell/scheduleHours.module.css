@@ -57,28 +57,28 @@
   font-weight: 600;
 }
 
-/* a square an hour, sized to fit as many as fifty */
+/* a square an hour, ten to a row (20 hours: two rows of ten), sized to fit as many as fifty */
 .cells {
-  --s: 20px;
+  --s: 24px;
   grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, var(--s)));
   align-items: center;
-  gap: calc(var(--s) * 0.28);
+  gap: calc(var(--s) * 0.3);
 }
 
 .cells[data-size="m"] {
-  --s: 16px;
+  --s: 20px;
 }
 
 .cells[data-size="s"] {
-  --s: 13px;
+  --s: 16px;
 }
 
 .cells i {
-  width: var(--s);
-  height: var(--s);
-  border-radius: calc(var(--s) * 0.3);
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 28%;
   background: linear-gradient(90deg, var(--a) 50%, var(--b, var(--a)) 50%);
 }
 

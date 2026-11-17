@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   DAY,
+  EXAM_REVIEW,
   HOUR,
   MIN,
+  PACING,
   RECOMMENDED,
   RULES,
   changeOf,
@@ -11,12 +13,14 @@ import {
   expiresAt,
   hours,
   lengthsFor,
+  meetingOf,
   movesLeft,
   priceOf,
   recommend,
   recordingUntil,
   standIn,
   subjectOf,
+  tutorStarts,
   weekStart,
   type Account,
   type Session,
@@ -172,37 +176,33 @@ describe("changing a session", () => {
 });
 
 describe("what to work on", () => {
-  const pick = (skill: string, subject: "rw" | "math" | "test", level: number) => ({
+  const pick = (skill: string, subject: "rw" | "math", level: number) => ({
     skill,
     subject,
     level,
   });
 
-  it("is five things, the weakest first", () => {
+  it("is five things: three skills, the weakest first, then pacing and an exam's review", () => {
     expect(RECOMMENDED).toHaveLength(5);
-    for (let i = 1; i < RECOMMENDED.length; i++)
-      expect(RECOMMENDED[i].level).toBeGreaterThanOrEqual(RECOMMENDED[i - 1].level);
+    const skills = RECOMMENDED.slice(0, 3);
+    for (let i = 1; i < skills.length; i++)
+      expect(skills[i].level!).toBeGreaterThanOrEqual(skills[i - 1].level!);
+    expect(RECOMMENDED.slice(3).map((p) => p.skill)).toEqual([PACING, EXAM_REVIEW]);
   });
 
-  it("includes the test itself (pacing, strategy) beside the skills", () => {
-    const kinds = RECOMMENDED.map((p) => p.subject);
-    expect(kinds.filter((k) => k === "test")).toHaveLength(2);
-    expect(RECOMMENDED.map((p) => p.skill)).toContain("Pacing");
-    expect(kinds.filter((k) => k !== "test")).toHaveLength(3);
+  it("gives pacing the student's pace now, never a level", () => {
+    const pacing = RECOMMENDED.find((p) => p.skill === PACING)!;
+    expect(pacing.level).toBeUndefined();
+    expect(pacing.value).toMatch(/^\d:\d\d a question$/);
   });
 
-  it("leaves out a part of the test the student is already good at", () => {
-    const list = recommend(
-      [pick("a", "math", 0), pick("b", "rw", 0), pick("c", "rw", 1)],
-      [pick("Pacing", "test", 3), pick("Strategy", "test", 1)]
-    );
-    expect(list.map((p) => p.skill)).toEqual(["a", "b", "c", "Strategy"]);
+  it("does not offer test-taking strategy", () => {
+    expect(RECOMMENDED.map((p) => p.skill.toLowerCase()).join(" ")).not.toContain("strategy");
   });
 
   it("takes the weakest skills before anything stronger, whatever the subject", () => {
     const list = recommend(
       [pick("a", "math", 3), pick("b", "rw", 0), pick("c", "rw", 0), pick("d", "math", 1)],
-      [],
       3
     );
     expect(list.map((p) => p.skill)).toEqual(["b", "c", "d"]);
@@ -211,7 +211,6 @@ describe("what to work on", () => {
   it("lets the subjects take turns among skills on the same level", () => {
     const list = recommend(
       [pick("r1", "rw", 0), pick("r2", "rw", 0), pick("m1", "math", 0), pick("m2", "math", 0)],
-      [],
       4
     );
     expect(list.map((p) => p.subject)).toEqual(["rw", "math", "rw", "math"]);
@@ -220,7 +219,42 @@ describe("what to work on", () => {
   it("knows what each belongs to", () => {
     expect(subjectOf("Solving linear equations")).toBe("math");
     expect(subjectOf("Main idea")).toBe("rw");
-    expect(subjectOf("Pacing")).toBe("test");
+    expect(subjectOf(PACING)).toBe("test");
+    expect(subjectOf(EXAM_REVIEW)).toBe("exam");
+  });
+});
+
+describe("the tutor's hours", () => {
+  // Central time is six hours behind UTC in November, Eastern five
+  const central = (day: number, hour: number) => Date.UTC(2026, 10, day, hour + 6);
+  const eastern = (day: number, hour: number) => Date.UTC(2026, 10, day, hour + 5);
+
+  it("run from 8 am to midnight on the tutor's clock", () => {
+    const day = tutorStarts(central(18, 0), central(19, 0), 60);
+    expect(day[0]).toBe(central(18, 8));
+    // an hour's session can begin as late as 11 pm
+    expect(day.at(-1)).toBe(central(18, 23));
+    expect(day).toHaveLength(31);
+  });
+
+  it("leave room for the whole session before the tutor's midnight", () => {
+    expect(tutorStarts(central(18, 0), central(19, 0), 120).at(-1)).toBe(central(18, 22));
+  });
+
+  it("fall under the student's next day once they pass the student's midnight", () => {
+    // 11 pm Tuesday for the tutor is midnight Wednesday in New York
+    const wednesday = tutorStarts(eastern(18, 0), eastern(19, 0), 60);
+    expect(wednesday[0]).toBe(central(17, 23));
+    expect(wednesday[0]).toBe(eastern(18, 0));
+    // then nothing until 8 am for the tutor, which is 9 am in New York
+    expect(wednesday[1]).toBe(eastern(18, 9));
+    // and Wednesday's own 11 pm belongs to New York's Thursday
+    expect(wednesday).not.toContain(central(18, 23));
+    expect(tutorStarts(eastern(19, 0), eastern(20, 0), 60)[0]).toBe(central(18, 23));
+  });
+
+  it("are closed on the tutor's Sunday", () => {
+    expect(tutorStarts(central(15, 0), central(16, 0), 60)).toEqual([]);
   });
 });
 
@@ -271,6 +305,13 @@ describe("the day of a session", () => {
     const inside = { ...s, joined: true };
     expect(doorOf(inside, NOW + 59 * MIN)).toBe("in");
     expect(doorOf(inside, NOW + 60 * MIN)).toBe("over");
+  });
+
+  it("Join opens the session's meeting, when it has a safe link", () => {
+    expect(meetingOf(s)).toBeNull();
+    expect(meetingOf({ ...s, joinUrl: "https://zoom.us/j/123" })).toBe("https://zoom.us/j/123");
+    expect(meetingOf({ ...s, joinUrl: "javascript:alert(1)" })).toBeNull();
+    expect(meetingOf({ ...s, joinUrl: "not a link" })).toBeNull();
   });
 
   it("a recording is kept for 6 months", () => {

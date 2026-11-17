@@ -13,9 +13,8 @@
 // see SchedulePay.tsx), and the hours bought are added to the stand-in.
 // To look at its states: ?pack=10 (Private 10), ?soon=3 (next session in 3 minutes), ?soon=-4
 // (already begun), ?empty=1 (no hours left), ?full=1 (the tutor has nothing open), and
-// ?sky=night, sunrise, day or sunset (that light on the next session, whatever its time),
-// ?photo=real (the plain photograph instead of its painting) and ?scene=lake and so on (a place
-// drawn in code).
+// ?sky=night, sunrise, day or sunset (that light on the next session, whatever its time) and
+// ?photo=real (the plain photograph instead of its painting).
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useClock } from "./homeworkMotion";
@@ -25,7 +24,6 @@ import { Changes, Hours, Idle, Next, Past, SyncOffer } from "./ScheduleBits";
 import Pay, { warm } from "./SchedulePay";
 import { arrive, flash, press, wave } from "./scheduleMotion";
 import { clock, doorOf, hours, skyOf, type Pack, type Session } from "./scheduleData";
-import { SCENE_NAMES, type SceneName } from "./scenes";
 import { schedule, split, useSchedule } from "./scheduleStore";
 import { tick } from "./sound";
 import styles from "./schedule.module.css";
@@ -128,8 +126,6 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
     asked === "night" || asked === "sunrise" || asked === "day" || asked === "sunset"
       ? asked
       : undefined;
-  const place = q.get("scene") as SceneName | null;
-  const scene = place && SCENE_NAMES.includes(place) ? place : undefined;
   const now = useClock();
   const first = useRef(now);
   useEffect(() => {
@@ -202,9 +198,9 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
         data-arrive
       >
         {next ? (
-          <Next account={account} session={next} now={now} sky={sky} scene={scene} onMove={move} />
+          <Next account={account} session={next} now={now} sky={sky} onMove={move} />
         ) : (
-          <Idle now={now} sky={sky} scene={scene} />
+          <Idle now={now} sky={sky} />
         )}
       </section>
 

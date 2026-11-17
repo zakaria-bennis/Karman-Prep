@@ -11,9 +11,7 @@ import { Buddy } from "./HomeworkBuddy";
 import { calm, cut, two } from "./homeworkMotion";
 import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
 import PhotoScene from "./SchedulePhoto";
-import Scene from "./ScheduleScene";
 import { PHOTOS, plain } from "./scenes/photos";
-import { sceneFor, type SceneName } from "./scenes";
 import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
@@ -27,6 +25,7 @@ import {
   expiresAt,
   hoursText,
   lengthText,
+  meetingOf,
   monthDay,
   movesBack,
   movesLeft,
@@ -143,11 +142,9 @@ export function until(ms: number): string {
 
 /** What is behind the next session: a painting made from a real photograph of a place in that
  *  hour's light, brought to life (SchedulePhoto.tsx). The page's ?photo=real shows the plain
- *  photograph, the backup. `scene` names a place drawn in code instead (the page's ?scene=), kept
- *  while the founder chooses. */
-function Backdrop({ scene, sky, seed }: { scene?: SceneName; sky: Sky; seed: number }) {
+ *  photograph, the backup. */
+function Backdrop({ sky }: { sky: Sky }) {
   const real = useSearchParams().get("photo") === "real";
-  if (scene) return <Scene scene={scene ?? sceneFor(seed)} sky={sky} className={styles.scene} />;
   const photo = PHOTOS.lake[sky];
   return (
     <PhotoScene
@@ -158,23 +155,21 @@ function Backdrop({ scene, sky, seed }: { scene?: SceneName; sky: Sky; seed: num
   );
 }
 
-/** The next session, on a painting of the sky at its time (ScheduleScene.tsx): when it is, what
- *  it is for, and Join right on the card. Until five minutes before, Join says how long is left;
- *  then it comes alive. Move and Cancel sit beside it. */
+/** The next session, on a painting of a place in the light of its time: when it is, what it is
+ *  for, and Join right on the card. Until five minutes before, Join says how long is left; then
+ *  it is the page's green button. Move and Cancel sit beside it. */
 export function Next({
   account,
   session,
   now,
   sky,
-  scene,
   onMove,
 }: {
   account: Account;
   session: Session;
   now: number;
-  /** To look at one painting whatever the time or the session (the page's ?sky= and ?scene=). */
+  /** To look at one light whatever the time or the session (the page's ?sky=). */
   sky?: Sky;
-  scene?: SceneName;
   onMove: (session: Session) => void;
 }) {
   const door = doorOf(session, now);
@@ -186,7 +181,7 @@ export function Next({
   }, [door, session.id]);
   return (
     <>
-      <Backdrop scene={scene} sky={sky ?? skyOf(session.start)} seed={session.start} />
+      <Backdrop sky={sky ?? skyOf(session.start)} />
       <div className={styles.over}>
         <h2>{dateLong(session.start)}</h2>
         <p className={styles.time}>
@@ -216,6 +211,10 @@ export function Next({
               disabled={door !== "open"}
               onClick={() => {
                 chosen();
+                // the meeting itself, in its own tab (a Zoom link, once the tutor's and the
+                // admin's portals set one on the session)
+                const meeting = meetingOf(session);
+                if (meeting) window.open(meeting, "_blank", "noopener,noreferrer");
                 schedule.join(session.id);
               }}
             >
@@ -244,10 +243,10 @@ export function Next({
 }
 
 /** Nothing is booked: the sky as it is now, and the words. */
-export function Idle({ now, sky, scene }: { now: number; sky?: Sky; scene?: SceneName }) {
+export function Idle({ now, sky }: { now: number; sky?: Sky }) {
   return (
     <>
-      <Backdrop scene={scene} sky={sky ?? skyOf(now)} seed={0} />
+      <Backdrop sky={sky ?? skyOf(now)} />
       <div className={styles.over}>
         <h2>Nothing booked</h2>
       </div>
@@ -336,7 +335,7 @@ export function Hours({
       <div
         className={hrs.cells}
         ref={cells}
-        data-size={drawn.length > 36 ? "s" : drawn.length > 24 ? "m" : "l"}
+        data-size={drawn.length > 40 ? "s" : drawn.length > 20 ? "m" : "l"}
         role="img"
         aria-label={`${hoursText(left)} hours free, ${hoursText(booked)} booked, ${hoursText(used)} used`}
       >

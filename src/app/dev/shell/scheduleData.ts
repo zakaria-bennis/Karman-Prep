@@ -5,7 +5,11 @@
 //   Booking   At least 24 hours ahead and at most 4 weeks ahead, always with the student's own tutor,
 //             one session at a time (a repeating weekly booking was taken out, 2026-11-17: he
 //             fears double bookings).
-//             Times are shown in the student's own time, with no time zone written anywhere.
+//             The tutor can be booked from 8 am to midnight on the tutor's own clock (Central
+//             time; founder, 2026-11-17: "any times from 8 am my time to midnight my time"; he
+//             will set his own availability in his portal later). Times are shown in the
+//             student's own time, with no time zone written anywhere; a time that falls after
+//             the student's midnight is listed under the student's next day.
 //   Changes   With more than 24 hours to go a session can be moved or canceled (the hours go back).
 //             Moving is limited to three a month. Inside 24 hours there is one free pass a package,
 //             which the tutor can give back.
@@ -15,7 +19,8 @@
 //   After     The recording, the tutor's notes, what was covered and the homework set, for 6 months.
 // Nothing here reads or writes a real booking yet.
 import { GUARANTEE, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
-import { DAY, TODAY } from "./progressData";
+import { DAY, STUDENTS, TODAY, activity } from "./progressData";
+import { ledger, minSec } from "./progressStats";
 import { guessPlace, skyAt, type Place, type Sky } from "@/lib/schedule/sun";
 import { SECTIONS, SKILLS } from "./skills72";
 
@@ -57,6 +62,9 @@ export interface Session {
   state: "booked" | "done" | "missed" | "canceled";
   joined?: boolean;
   recap?: Recap;
+  /** The meeting's address (a Zoom link). The tutor's and the admin's portals will set it; when
+   *  it is there, Join opens it. */
+  joinUrl?: string;
 }
 export interface Account {
   pack: Pack;
@@ -112,23 +120,58 @@ export const priceOf = (count: number) =>
     minimumFractionDigits: Number.isInteger(count * RULES.hourPrice) ? 0 : 2,
   });
 
-// ---- the tutor's open times (a stand-in: weekday afternoons and Saturday mornings) ----
+// ---- the tutor's times: 8 am to midnight on the tutor's clock, shown on the student's ----
 
 const STEP = 30;
+/** The tutor's own clock, and the hours of it a session may fill. */
+export const TUTOR_ZONE = "America/Chicago";
+export const TUTOR_HOURS = { from: 8, to: 24 } as const;
+
 /** The same "taken by someone else" answer for the same slot on every load. */
 const taken = (t: number) => {
   // by the hour, as a tutor's other students would hold it
   let x = Math.floor(t / HOUR) + Math.floor(t / DAY) * 7919;
   x = Math.imul(x ^ (x >>> 3), 0x45d9f3b);
   x ^= x >>> 13;
-  return (x >>> 0) % 10 < 3;
+  return (x >>> 0) % 10 < 2;
 };
 
-function tutorStarts(day: number): number[] {
-  const weekday = new Date(day).getDay();
-  const [from, to] = weekday === 0 ? [0, 0] : weekday === 6 ? [9, 14] : [15, 21];
+const zoneParts = new Intl.DateTimeFormat("en-US", {
+  timeZone: TUTOR_ZONE,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+});
+/** The date and time on the tutor's clock at a moment, as if it were UTC. */
+function tutorWall(t: number): number {
+  const part: Record<string, number> = {};
+  for (const { type, value } of zoneParts.formatToParts(t)) part[type] = Number(value);
+  return Date.UTC(part.year, part.month - 1, part.day, part.hour, part.minute);
+}
+/** The moment the tutor's clock shows a date and time (given as if it were UTC). */
+function fromTutorWall(wall: number): number {
+  let t = wall;
+  // twice, so a day the clocks change still lands on the right hour
+  for (let i = 0; i < 2; i++) t = wall - (tutorWall(t) - t);
+  return t;
+}
+
+/** Every start between two moments that leaves room for `minutes` before the tutor's midnight.
+ *  The tutor's Sundays are closed (a stand-in, until the tutor's portal holds real hours). */
+export function tutorStarts(from: number, to: number, minutes: number): number[] {
   const out: number[] = [];
-  for (let h = from; h < to; h += STEP / 60) out.push(day + h * HOUR);
+  // the tutor's days that can touch this stretch: the one it begins on, and the ones around it
+  const first = Math.floor(tutorWall(from) / DAY) * DAY - DAY;
+  for (let date = first; date <= first + 3 * DAY; date += DAY) {
+    if (new Date(date).getUTCDay() === 0) continue;
+    for (let m = TUTOR_HOURS.from * 60; m + minutes <= TUTOR_HOURS.to * 60; m += STEP) {
+      const t = fromTutorWall(date + m * MIN);
+      if (t >= from && t < to) out.push(t);
+    }
+  }
   return out;
 }
 
@@ -136,8 +179,8 @@ export interface DayChoice {
   day: number;
   /** Start times with room for the asked length. */
   times: number[];
-  /** Every time the tutor works that day that the length fits in, open or not: the ones that
-   *  are not open are shown grayed out. */
+  /** Every time on the student's day that the tutor works and the length fits in, open or not:
+   *  the ones that are not open are shown grayed out. */
   slots: { t: number; open: boolean }[];
   /** Why nothing can be booked this day, when that is a rule and not a full day. */
   why?: "week" | "hours";
@@ -157,12 +200,9 @@ export function choices(
   const mine = account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id);
   const left = hours(account).left + (moving ? moving.minutes / 60 : 0);
   const days: DayChoice[] = [];
-  const shut = (day: number) => {
-    const starts = tutorStarts(day);
-    return starts
-      .filter((t) => starts.includes(t + (minutes - STEP) * MIN))
-      .map((t) => ({ t, open: false }));
-  };
+  // the student's own day, from its midnight to the next
+  const startsOn = (day: number) => tutorStarts(day, dayStart(day + DAY + HOUR), minutes);
+  const shut = (day: number) => startsOn(day).map((t) => ({ t, open: false }));
   for (let day = dayStart(first); day <= dayStart(last); day += DAY) {
     // a day of 23 or 25 hours (the clocks changing) still begins at midnight
     day = dayStart(day + HOUR);
@@ -180,8 +220,7 @@ export function choices(
       t <= last &&
       !taken(t) &&
       !mine.some((s) => t < endOf(s) && t + STEP * MIN > s.start);
-    const starts = tutorStarts(day);
-    const fits = starts.filter((t) => starts.includes(t + (minutes - STEP) * MIN));
+    const fits = startsOn(day);
     const free = (t: number) => {
       for (let part = t; part < t + minutes * MIN; part += STEP * MIN)
         if (!open(part)) return false;
@@ -238,6 +277,17 @@ export function doorOf(session: Session, now: number): Door {
   return "open";
 }
 
+/** Where Join goes: the session's meeting (a Zoom link the tutor's or the admin's portal will
+ *  set), if it is a safe web address. Without one, Join only marks the session as joined. */
+export function meetingOf(session: Session): string | null {
+  if (!session.joinUrl) return null;
+  try {
+    return new URL(session.joinUrl).protocol === "https:" ? session.joinUrl : null;
+  } catch {
+    return null;
+  }
+}
+
 /** A recording can be watched for 6 months after its session. */
 export const recordingUntil = (session: Session) => {
   const d = new Date(session.start);
@@ -245,71 +295,74 @@ export const recordingUntil = (session: Session) => {
   return d.getTime();
 };
 
-// ---- what to work on: skills, and the things that are not a subject, such as pacing ----
+// ---- what to work on: the skills that most need it, pacing, and a full-length exam's review ----
 
-export type Subject = "rw" | "math" | "test";
+export type Subject = "rw" | "math" | "test" | "exam";
 export interface Pick {
   skill: string;
-  /** Reading and Writing, Math, or the test itself (pacing, strategy). */
+  /** Reading and Writing, Math, how the test is taken (pacing), or a full-length exam's review. */
   subject: Subject;
-  /** 0 Not started, 1 Learning, 2 Understanding, 3 Proficient. */
-  level: number;
+  /** 0 Not started, 1 Learning, 2 Understanding, 3 Proficient. Only a skill has a level. */
+  level?: number;
+  /** What is shown in place of a level. */
+  value?: string;
 }
-/** What is not Reading and Writing or Math: how the test is taken (founder, 2026-11-17: "also
- *  things like pacing and test-taking strategies"). Stand-in levels until results are read. */
-export const TEST_SKILLS: Pick[] = [
-  { skill: "Pacing", subject: "test", level: 1 },
-  { skill: "Test-taking strategy", subject: "test", level: 1 },
-  { skill: "Reviewing a full-length exam", subject: "test", level: 2 },
+/** The student's pace now, as the Progress page shows it: seconds a question, averaged over the
+ *  two weeks ending today. (A stand-in student's, until real results are read.) */
+const student = STUDENTS.weeks9;
+const PACE_NOW = ledger(student, activity(student)).pace.at(-1) ?? 0;
+/** What is not a skill (founder, 2026-11-17: pacing has no level, it shows "the pacing that they
+ *  are averaging now"; test-taking strategy is not offered; a full-length exam's review is, in
+ *  gold). */
+export const PACING = "Pacing";
+export const EXAM_REVIEW = "Full-length exam review";
+export const EXTRAS: Pick[] = [
+  {
+    skill: PACING,
+    subject: "test",
+    value: PACE_NOW ? `${minSec(PACE_NOW)} a question` : undefined,
+  },
+  { skill: EXAM_REVIEW, subject: "exam" },
 ];
-/** The five things that most need work, most needed first. Up to two are about the test itself,
- *  when they need work; the rest are skills, the lowest level first, with the two subjects
- *  taking turns among skills on the same level. (The levels are the Library's; when real results
- *  are read, this is where they come in.) */
-export function recommend(skills: Pick[], test: Pick[] = [], count = 5): Pick[] {
-  const general = [...test]
-    .filter((pick) => pick.level < 3)
-    .sort((a, b) => a.level - b.level)
-    .slice(0, 2);
-  const byLevel = [...skills].sort((a, b) => a.level - b.level);
+/** The skills that most need work, the lowest level first, with the two subjects taking turns
+ *  among skills on the same level. (The levels are the Library's; when real results are read,
+ *  this is where they come in.) */
+export function recommend(skills: Pick[], count = 3): Pick[] {
+  const byLevel = [...skills].sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
   const chosen: Pick[] = [];
-  while (chosen.length < count - general.length && byLevel.length > 0) {
+  while (chosen.length < count && byLevel.length > 0) {
     const level = byLevel[0].level;
     const last = chosen[chosen.length - 1]?.subject;
     const at = byLevel.findIndex((s) => s.level === level && s.subject !== last);
     chosen.push(byLevel.splice(at === -1 ? 0 : at, 1)[0]);
   }
-  // one list, the weakest first; among equals the skills stay ahead of the test's own
-  return [...chosen, ...general]
-    .map((pick, at) => ({ pick, at }))
-    .sort((a, b) => a.pick.level - b.pick.level || a.at - b.at)
-    .map(({ pick }) => pick);
+  return chosen;
 }
-export const RECOMMENDED: Pick[] = recommend(
-  SECTIONS.flatMap((section) =>
-    SKILLS[section].flatMap((domain) =>
-      domain.skills.map((skill) => ({
-        skill: skill.name,
-        subject: section === "Math" ? ("math" as const) : ("rw" as const),
-        level: skill.level,
-      }))
+/** The five things offered: three skills, then pacing and a full-length exam's review. */
+export const RECOMMENDED: Pick[] = [
+  ...recommend(
+    SECTIONS.flatMap((section) =>
+      SKILLS[section].flatMap((domain) =>
+        domain.skills.map((skill) => ({
+          skill: skill.name,
+          subject: section === "Math" ? ("math" as const) : ("rw" as const),
+          level: skill.level,
+        }))
+      )
     )
   ),
-  TEST_SKILLS
-);
-const WEAKEST = RECOMMENDED.filter((pick) => pick.subject !== "test").map((pick) => pick.skill);
+  ...EXTRAS,
+];
+const WEAKEST = RECOMMENDED.filter((pick) => pick.level !== undefined).map((pick) => pick.skill);
 
-/** Which subject a skill belongs to, for its color: fuchsia for Reading and Writing, blue for Math,
- *  green for the test itself. */
+/** What a thing to work on belongs to, for its color: fuchsia for Reading and Writing, blue for
+ *  Math, green for pacing, gold for a full-length exam's review. */
 export const subjectOf = (skill: string): Subject =>
-  TEST_SKILLS.some((pick) => pick.skill === skill)
-    ? "test"
-    : SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill))
-      ? "math"
-      : "rw";
+  EXTRAS.find((pick) => pick.skill === skill)?.subject ??
+  (SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill)) ? "math" : "rw");
 
-/** What the sky is doing at a time, where the student is: it chooses the small picture beside a
- *  time (a rising sun, a sun, a setting sun, a moon) and its color. The place is guessed from the
+/** What the sky is doing at a time, where the student is: it chooses the picture behind the
+ *  next session and the color a time wears. The place is guessed from the
  *  device's time zone; see src/lib/schedule/sun.ts. */
 let place: Place | null = null;
 export const skyOf = (t: number): Sky => {

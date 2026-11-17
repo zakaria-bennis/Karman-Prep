@@ -3,20 +3,19 @@
 // Booking a session, or moving one (founder, 2026-11-16 and 2026-11-17: "the calendar to look very
 // modern and have very clean animations ... not too much unnecessary text").
 //   Calendar  the four weeks that can be booked, as whole weeks from Sunday to Saturday. A day the
-//             tutor has time is a shaded square, a day with none is left clear; a day with a
-//             session of the student's own is filled with that session's color; the SAT's day has
-//             a bold outline. The chosen day is a pill that glides from date to date.
+//             tutor has time is a square lighter than the glass behind it; a day with none is
+//             only an outline; a day with a session of the student's own is filled with one
+//             tone of that session's sky; the SAT's day is ruby and shines. The chosen day is a
+//             pill that glides from date to date.
 //   Length    60, 90 or 120 minutes (Private 10: 60 only, so the choice is not shown).
-//   Times     every time the tutor works that day, in the student's own time: the open ones to
-//             press, the taken ones grayed out. Each has a small picture of the sky at that time
-//             (a rising sun, a sun, a setting sun, a moon), from the estimated sunrise and sunset.
-//   Work on   the five things that most need work (skills, and the test itself: pacing,
-//             strategy), to tap, and a line of the student's own.
+//   Times     every time the tutor works that day, in the student's own time, in a list that
+//             scrolls on its own: the open ones to press, the taken ones grayed out.
+//   Work on   three skills that most need work, pacing (with the student's pace now) and a
+//             full-length exam's review, to tap, and a line of the student's own.
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { calm } from "./homeworkMotion";
 import Cheer from "./ScheduleCheer";
-import { SkyIcon } from "./ScheduleSky";
 import { press, wave } from "./scheduleMotion";
 import {
   DAY,
@@ -248,7 +247,7 @@ export default function Book({
                       disabled={!can && !own}
                       data-open={open > 0 || undefined}
                       data-sat={sat || undefined}
-                      data-own={own ? skyOf(own.start) : undefined}
+                      data-sky={own ? skyOf(own.start) : undefined}
                       aria-label={`${dateLong(cell)}${open > 0 ? `, ${open} open` : ", nothing open"}${own ? `, your session at ${clock(own.start)}` : ""}${sat ? ", your SAT" : ""}`}
                       onClick={(e) => {
                         tick();
@@ -257,9 +256,6 @@ export default function Book({
                         setTime(null);
                       }}
                     >
-                      {date.getDate() === 1 && (
-                        <small>{date.toLocaleDateString("en-US", { month: "short" })}</small>
-                      )}
                       <span data-face>
                         <b>{date.getDate()}</b>
                         {sat && <em>SAT</em>}
@@ -292,7 +288,12 @@ export default function Book({
             )}
 
             {today && today.slots.length > 0 && !today.why ? (
-              <ul className={styles.times} ref={times} aria-label={`Times, ${dateLong(day)}`}>
+              <ul
+                className={styles.times}
+                ref={times}
+                tabIndex={0}
+                aria-label={`Times, ${dateLong(day)}`}
+              >
                 {today.slots.map(({ t, open }) => (
                   <li key={t}>
                     <button
@@ -307,7 +308,6 @@ export default function Book({
                         setTime(t);
                       }}
                     >
-                      <SkyIcon sky={skyOf(t)} />
                       {clock(t)}
                     </button>
                   </li>
@@ -328,7 +328,7 @@ export default function Book({
             <div className={styles.focus}>
               <h3>Work on</h3>
               <ol className={styles.picks}>
-                {RECOMMENDED.map(({ skill, subject, level }) => {
+                {RECOMMENDED.map(({ skill, subject, level, value }) => {
                   const on = focus.includes(skill);
                   return (
                     <li key={skill}>
@@ -354,7 +354,9 @@ export default function Book({
                           </svg>
                         </i>
                         <b>{skill}</b>
-                        <small>{LEVELS[level]}</small>
+                        {(value ?? (level !== undefined && LEVELS[level])) && (
+                          <small>{value ?? LEVELS[level!]}</small>
+                        )}
                       </button>
                     </li>
                   );
