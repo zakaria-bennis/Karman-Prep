@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { create, retrieve, upsert } = vi.hoisted(() => ({
+const { create, retrieve, update, list, upsert } = vi.hoisted(() => ({
   create: vi.fn(),
   retrieve: vi.fn(),
+  update: vi.fn(),
+  list: vi.fn(),
   upsert: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/integrations/stripe/client", () => ({
-  stripe: { checkout: { sessions: { create, retrieve } } },
+  stripe: { paymentIntents: { create, retrieve, update }, paymentMethods: { list } },
   getOrCreateCustomer: vi.fn(async () => ({ id: "cus_1" })),
 }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -23,24 +25,83 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { GUARANTEE } from "@/lib/marketing/offer";
-import { createHoursCheckout, hoursPaid, hoursSalesOpen, recordHoursPurchase } from "./hours";
-import { HOURS_KIND, HOURS_MAX, hoursCheckoutBodySchema } from "./hours-shared";
+import { GUARANTEE, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
+import {
+  hoursPaid,
+  hoursSalesOpen,
+  openHoursPayment,
+  recordHoursPayment,
+  savedCard,
+  setHours,
+} from "./hours";
+import {
+  HOURS_KIND,
+  HOURS_MAX,
+  dollars,
+  hoursBodySchema,
+  hoursPriceCents,
+  hoursSavingCents,
+  sameForMore,
+} from "./hours-shared";
 
-const paidSession = (over: object = {}) => ({
-  id: "cs_test_1",
-  status: "complete",
-  payment_status: "paid",
-  amount_total: 74750,
-  metadata: { kind: HOURS_KIND, userId: "user_1" },
-  line_items: { data: [{ quantity: 5 }] },
+const single = Math.round(GUARANTEE.private.extraSessionPrice * 100);
+const twenty = PRIVATE_PACKAGES.find((p) => p.hours === 20)!.price * 100;
+const intent = (over: object = {}) => ({
+  id: "pi_1",
+  status: "succeeded",
+  amount_received: hoursPriceCents(5),
+  metadata: { kind: HOURS_KIND, userId: "user_1", hours: "5" },
   ...over,
 });
 
 beforeEach(() => {
-  create.mockReset();
-  retrieve.mockReset();
-  upsert.mockReset().mockResolvedValue({ error: null });
+  for (const mock of [create, retrieve, update, list, upsert]) mock.mockReset();
+  upsert.mockResolvedValue({ error: null });
+  list.mockResolvedValue({ data: [] });
+});
+
+describe("what hours cost", () => {
+  it("a single hour is the price in the offer file", () => {
+    expect(hoursPriceCents(1)).toBe(single);
+    expect(hoursPriceCents(7)).toBe(7 * single);
+    expect(hoursSavingCents(7)).toBe(0);
+  });
+
+  it("twenty hours is the Private 20 package price, which is cheaper", () => {
+    expect(hoursPriceCents(20)).toBe(twenty);
+    expect(hoursPriceCents(20)).toBeLessThan(20 * single);
+    expect(hoursSavingCents(20)).toBe(20 * single - twenty);
+  });
+
+  it("more than a package is the package plus single hours, and two packages are two packages", () => {
+    expect(hoursPriceCents(25)).toBe(twenty + 5 * single);
+    expect(hoursPriceCents(40)).toBe(2 * twenty);
+  });
+
+  it("never costs less for more hours", () => {
+    for (let n = 1; n < HOURS_MAX; n++)
+      expect(hoursPriceCents(n + 1)).toBeGreaterThanOrEqual(hoursPriceCents(n));
+  });
+
+  it("offers the whole package when it costs no more: 18 hours are charged as 20", () => {
+    expect(hoursPriceCents(18)).toBe(twenty);
+    expect(sameForMore(18)).toBe(20);
+    expect(sameForMore(5)).toBeNull();
+    expect(sameForMore(20)).toBeNull();
+  });
+
+  it("is written with cents only when there are some", () => {
+    expect(dollars(14950)).toBe("$149.50");
+    expect(dollars(249500)).toBe("$2,495");
+  });
+
+  it("one hour to the most, whole hours only", () => {
+    expect(hoursBodySchema.safeParse({ hours: 1 }).success).toBe(true);
+    expect(hoursBodySchema.safeParse({ hours: HOURS_MAX }).success).toBe(true);
+    expect(hoursBodySchema.safeParse({ hours: 0 }).success).toBe(false);
+    expect(hoursBodySchema.safeParse({ hours: HOURS_MAX + 1 }).success).toBe(false);
+    expect(hoursBodySchema.safeParse({ hours: 1.5 }).success).toBe(false);
+  });
 });
 
 describe("when hours can be sold", () => {
@@ -57,68 +118,72 @@ describe("when hours can be sold", () => {
   });
 });
 
-describe("what may be asked for", () => {
-  it("one hour to the most, whole hours only", () => {
-    expect(hoursCheckoutBodySchema.safeParse({ hours: 1 }).success).toBe(true);
-    expect(hoursCheckoutBodySchema.safeParse({ hours: HOURS_MAX }).success).toBe(true);
-    expect(hoursCheckoutBodySchema.safeParse({ hours: 0 }).success).toBe(false);
-    expect(hoursCheckoutBodySchema.safeParse({ hours: HOURS_MAX + 1 }).success).toBe(false);
-    expect(hoursCheckoutBodySchema.safeParse({ hours: 1.5 }).success).toBe(false);
-  });
-});
-
-describe("opening a payment", () => {
-  it("charges the hour's price from the offer file and lets the amount be changed on the page", async () => {
-    create.mockResolvedValue({ id: "cs_test_1", client_secret: "secret" });
-    await createHoursCheckout({
-      clerkId: "user_1",
-      email: "a@b.c",
-      hours: 3,
-      returnUrl: "https://x/y",
-    });
+describe("opening and changing a payment", () => {
+  it("opens it at the server's price, keeps the card for next time, and offers the card on file", async () => {
+    create.mockResolvedValue({ id: "pi_1", client_secret: "secret", amount: single });
+    list.mockResolvedValue({ data: [{ id: "pm_1", card: { brand: "visa", last4: "4242" } }] });
+    const { card } = await openHoursPayment({ clerkId: "user_1", email: "a@b.c", hours: 1 });
     const args = create.mock.calls[0][0];
-    const item = args.line_items[0];
-    expect(item.price_data.unit_amount).toBe(Math.round(GUARANTEE.private.extraSessionPrice * 100));
-    expect(item.quantity).toBe(3);
-    expect(item.adjustable_quantity).toEqual({ enabled: true, minimum: 1, maximum: HOURS_MAX });
-    expect(args.ui_mode).toBe("elements");
-    expect(args.metadata).toEqual({ kind: HOURS_KIND, userId: "user_1" });
+    expect(args.amount).toBe(single);
+    expect(args.customer).toBe("cus_1");
+    expect(args.setup_future_usage).toBe("on_session");
+    expect(args.metadata).toEqual({ kind: HOURS_KIND, userId: "user_1", hours: "1" });
+    expect(card).toEqual({ id: "pm_1", brand: "visa", last4: "4242" });
+  });
+
+  it("says there is no card on file when Stripe holds none", async () => {
+    expect(await savedCard("cus_1")).toBeNull();
+  });
+
+  it("changes the hours and the price together", async () => {
+    retrieve.mockResolvedValue(intent({ status: "requires_payment_method" }));
+    expect(await setHours("pi_1", "user_1", 20)).toBe(twenty);
+    expect(update).toHaveBeenCalledWith("pi_1", {
+      amount: twenty,
+      metadata: { kind: HOURS_KIND, userId: "user_1", hours: "20" },
+    });
+  });
+
+  it("will not change someone else's payment, or one already paid", async () => {
+    retrieve.mockResolvedValue(intent({ status: "requires_payment_method" }));
+    expect(await setHours("pi_1", "user_2", 20)).toBeNull();
+    retrieve.mockResolvedValue(intent());
+    expect(await setHours("pi_1", "user_1", 20)).toBeNull();
+    expect(update).not.toHaveBeenCalled();
   });
 });
 
 describe("a finished payment", () => {
-  it("counts the hours from what was paid for, not from what was first asked", async () => {
-    retrieve.mockResolvedValue(paidSession());
-    expect(await hoursPaid("cs_test_1", "user_1")).toEqual({ hours: 5, amountCents: 74750 });
-  });
-
-  it("is nothing to someone else, when unpaid, or when it was for something else", async () => {
-    retrieve.mockResolvedValue(paidSession());
-    expect(await hoursPaid("cs_test_1", "user_2")).toBeNull();
-    retrieve.mockResolvedValue(paidSession({ payment_status: "unpaid" }));
-    expect(await hoursPaid("cs_test_1", "user_1")).toBeNull();
-    retrieve.mockResolvedValue(paidSession({ metadata: { planId: "cohort", userId: "user_1" } }));
-    expect(await hoursPaid("cs_test_1", "user_1")).toBeNull();
-  });
-
-  it("is kept once, however many times Stripe says so", async () => {
-    retrieve.mockResolvedValue(paidSession());
-    const said = await recordHoursPurchase(paidSession() as never);
-    expect(said).toBe("5 hours");
+  it("is kept once, by its payment id", async () => {
+    expect(await recordHoursPayment(intent() as never)).toBe("5 hours");
     expect(upsert).toHaveBeenCalledWith(
       {
         user_id: "uuid-1",
         hours: 5,
-        amount_cents: 74750,
-        stripe_checkout_session_id: "cs_test_1",
+        amount_cents: hoursPriceCents(5),
+        stripe_payment_intent_id: "pi_1",
       },
-      { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true }
+      { onConflict: "stripe_payment_intent_id", ignoreDuplicates: true }
     );
   });
 
-  it("keeps nothing for a payment that did not clear", async () => {
-    retrieve.mockResolvedValue(paidSession({ status: "open", payment_status: "unpaid" }));
-    expect(await recordHoursPurchase(paidSession() as never)).toBe("not paid");
+  it("tells the page its hours, and keeps the purchase", async () => {
+    retrieve.mockResolvedValue(intent());
+    expect(await hoursPaid("pi_1", "user_1")).toEqual({ hours: 5 });
+    expect(upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("is nothing to someone else, or before it has succeeded", async () => {
+    retrieve.mockResolvedValue(intent());
+    expect(await hoursPaid("pi_1", "user_2")).toBeNull();
+    retrieve.mockResolvedValue(intent({ status: "requires_action" }));
+    expect(await hoursPaid("pi_1", "user_1")).toBeNull();
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("is not believed when the amount paid is not what those hours cost", async () => {
+    const cheap = intent({ metadata: { kind: HOURS_KIND, userId: "user_1", hours: "20" } });
+    expect(await recordHoursPayment(cheap as never)).toBe("not a paid purchase of hours");
     expect(upsert).not.toHaveBeenCalled();
   });
 });

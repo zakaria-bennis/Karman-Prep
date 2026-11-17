@@ -1,6 +1,6 @@
 -- Extra tutoring hours bought from the Schedule tab (founder, 2026-11-17). Additive only.
 --
--- One row for each paid purchase, written by the Stripe webhook when the payment clears. The
+-- One row for each paid purchase, written when the payment clears (by the page, and by the Stripe webhook). The
 -- Schedule's hours will be counted from the package plus these rows once bookings are real.
 -- Server only (service role).
 
@@ -9,8 +9,8 @@ create table if not exists public.private_hour_purchases (
   user_id uuid not null references public.users(id) on delete restrict,
   hours integer not null check (hours between 1 and 40),
   amount_cents integer not null check (amount_cents >= 0),
-  -- one row a payment, however many times Stripe sends the event
-  stripe_checkout_session_id text not null unique,
+  -- one row a payment, however many times it is reported
+  stripe_payment_intent_id text not null unique,
   created_at timestamptz not null default now()
 );
 

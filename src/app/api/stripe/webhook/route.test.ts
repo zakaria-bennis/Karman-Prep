@@ -20,7 +20,7 @@ vi.mock("@/lib/integrations/stripe/client", () => ({
 }));
 vi.mock("@/lib/integrations/resend/emails", () => ({ sendWelcomeEmail: m.welcome }));
 vi.mock("@/lib/plans", () => ({ recordPurchaseGrant: m.grant }));
-vi.mock("@/lib/schedule/hours", () => ({ recordHoursPurchase: m.hours }));
+vi.mock("@/lib/schedule/hours", () => ({ recordHoursPayment: m.hours }));
 vi.mock("@/lib/supabase/server", () => ({
   createAdminClient: () => {
     if (m.clientError) throw new Error("Synthetic client failure");
@@ -209,13 +209,18 @@ it.each([
 });
 it("keeps a purchase of tutoring hours, and grants no plan for it", async () => {
   m.hours.mockResolvedValue("5 hours");
-  setEvent(
-    "checkout.session.completed",
-    session({ metadata: { kind: "private_hours", userId: "synthetic" } })
-  );
+  setEvent("payment_intent.succeeded", {
+    id: "pi_fixture",
+    metadata: { kind: "private_hours", userId: "synthetic", hours: "5" },
+  });
   expect((await POST(request())).status).toBe(200);
-  expect(m.hours).toHaveBeenCalledWith(expect.objectContaining({ id: "cs_fixture" }));
+  expect(m.hours).toHaveBeenCalledWith(expect.objectContaining({ id: "pi_fixture" }));
   expect(m.grant).not.toHaveBeenCalled();
+});
+it("leaves every other payment alone", async () => {
+  setEvent("payment_intent.succeeded", { id: "pi_other", metadata: { reservationId: "r1" } });
+  expect((await POST(request())).status).toBe(200);
+  expect(m.hours).not.toHaveBeenCalled();
 });
 it("preserves retryable failure for unexpected errors outside the handler try block", async () => {
   m.clientError = true;

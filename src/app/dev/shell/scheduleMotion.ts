@@ -55,59 +55,6 @@ export function bring(row: HTMLElement | null, item: HTMLElement | null) {
   else gsap.to(row, { scrollLeft: to, duration: 0.55, ease: "power3.out", overwrite: true });
 }
 
-/** A session has been booked: the ticket lands, its ring is drawn, its check is ticked, and the
- *  words follow. Calls `then` when the student has had time to read it. */
-export function confirm(card: HTMLElement, then: () => void) {
-  const ring = card.querySelector("[data-ring]");
-  const check = card.querySelector("[data-check]");
-  const lines = card.querySelectorAll("[data-line]");
-  if (calm()) {
-    gsap.set([ring, check], { strokeDashoffset: 0 });
-    const timer = window.setTimeout(then, 2600);
-    return () => window.clearTimeout(timer);
-  }
-  const tl = gsap
-    .timeline({ onComplete: then })
-    .fromTo(
-      card,
-      { y: 36, opacity: 0, scale: 0.9, rotate: -3 },
-      { y: 0, opacity: 1, scale: 1, rotate: 0, duration: 0.6, ease: "back.out(1.5)" }
-    )
-    .fromTo(
-      ring,
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" },
-      "-=0.3"
-    )
-    .fromTo(
-      check,
-      { strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" },
-      "-=0.1"
-    )
-    .fromTo(
-      card.querySelectorAll("[data-spark]"),
-      { scale: 0, opacity: 1, x: 0, y: 0 },
-      {
-        scale: 1,
-        opacity: 0,
-        x: (i) => Math.cos((i / 8) * Math.PI * 2) * 46,
-        y: (i) => Math.sin((i / 8) * Math.PI * 2) * 46,
-        duration: 0.7,
-        ease: "power2.out",
-      },
-      "<"
-    )
-    .fromTo(
-      lines,
-      { y: 10, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power3.out" },
-      "-=0.5"
-    )
-    .to({}, { duration: 1.7 });
-  return () => tl.kill();
-}
-
 /** A row that has just been booked or moved shows itself: it swells once and its edge glows. */
 export function flash(row: Element | null) {
   if (!row || calm()) return;
@@ -125,37 +72,51 @@ export function flash(row: Element | null) {
   );
 }
 
-/** A part folds away (a canceled session, the calendar banner once answered). */
-export function fold(el: HTMLElement | null, then: () => void) {
-  if (!el || calm()) return then();
-  gsap.to(el, {
-    height: 0,
-    opacity: 0,
-    paddingTop: 0,
-    paddingBottom: 0,
-    marginTop: 0,
-    marginBottom: -12,
-    duration: 0.42,
-    ease: "power3.inOut",
-    onComplete: then,
-  });
-}
+const PARTY = ["#2fd08c", "#5aa9ff", "#ff3d9a", "#ffc94a", "#a08cff", "#ff8a5c"];
 
-/** The beads of hours pop in, one after another, when the hours change. */
-export function pop(row: HTMLElement | null) {
-  if (!row || calm()) return;
-  gsap.fromTo(
-    row.children,
-    { scale: 0.2, opacity: 0 },
-    {
-      scale: 1,
-      opacity: 1,
-      duration: 0.38,
-      stagger: 0.012,
-      ease: "back.out(2.2)",
-      clearProps: "transform,opacity",
-    }
-  );
+/** Confetti: paper thrown up from the middle of `host`, which then tumbles down and is cleared
+ *  away. `host` must be positioned; the paper is drawn over whatever is in it. */
+export function confetti(host: HTMLElement, pieces = 44) {
+  if (calm()) return;
+  const box = host.getBoundingClientRect();
+  const made: HTMLElement[] = [];
+  for (let i = 0; i < pieces; i++) {
+    const bit = document.createElement("i");
+    const wide = 6 + Math.random() * 6;
+    bit.setAttribute("aria-hidden", "true");
+    bit.style.cssText = `position:absolute;left:50%;top:38%;width:${wide}px;height:${
+      wide * (Math.random() < 0.5 ? 1 : 0.45)
+    }px;border-radius:${Math.random() < 0.3 ? "50%" : "2px"};background:${
+      PARTY[i % PARTY.length]
+    };pointer-events:none;z-index:3`;
+    host.appendChild(bit);
+    made.push(bit);
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.4;
+    const far = 80 + Math.random() * Math.max(120, box.width * 0.42);
+    gsap
+      .timeline({ onComplete: () => bit.remove() })
+      .fromTo(
+        bit,
+        { x: 0, y: 0, scale: 0.4, rotation: 0 },
+        {
+          x: Math.cos(angle) * far,
+          y: Math.sin(angle) * far * 0.9,
+          scale: 1,
+          rotation: (Math.random() - 0.5) * 540,
+          duration: 0.55 + Math.random() * 0.25,
+          ease: "power3.out",
+        }
+      )
+      .to(bit, {
+        y: `+=${box.height * 0.7 + Math.random() * 120}`,
+        x: `+=${(Math.random() - 0.5) * 80}`,
+        rotation: `+=${(Math.random() - 0.5) * 720}`,
+        opacity: 0,
+        duration: 1.3 + Math.random() * 0.7,
+        ease: "power1.in",
+      });
+  }
+  return () => made.forEach((bit) => bit.remove());
 }
 
 /** A number that counts to its new value (hours left, a price). */

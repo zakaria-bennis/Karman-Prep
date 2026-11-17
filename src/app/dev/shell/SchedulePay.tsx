@@ -1,41 +1,45 @@
 "use client";
 
-// Adding hours, paid for on the spot (founder, 2026-11-17: "very easy to purchase more hours,
-// whether it be in bulk or in single hours ... on mobile it should just take them to Apple Pay ...
-// the faster the Apple Pay can pop up, the better").
-//   The payment is opened as soon as the Schedule tab is (see `warm`), so when this sheet comes up
-//   Stripe's one-tap buttons (Apple Pay, Link, Google Pay, whichever the device has) are placed at
-//   once. How many hours is changed on the same payment, so the buttons never have to reload.
-//   Every other way to pay (card, pay-later) is behind one small link.
-// Card details are typed into Stripe's own frames and never touch this site. The price of an hour
-// comes from offer.ts. A sheet from the bottom on a phone, a card in the middle on a wide screen; a
-// press outside it, or Escape, closes it.
+// Adding hours, paid for on the spot (founder, 2026-11-17).
+//   A card on file comes first: one Pay button, nothing to type ("if they have a card on file, we
+//   could just charge that card ... it's just a simple checkout button"). With no card on file the
+//   device's own one-tap ways come first (Apple Pay and Google Pay on a phone, Link and Google Pay
+//   on a wide screen, where Apple Pay is not pushed). Every other way is behind "More ways to pay".
+//   Bulk is cheaper: the price is worked out by the server (see hours-shared.ts) and shown here.
+//   The payment is opened as soon as the Schedule tab is (see `warm`), so nothing waits when this
+//   sheet comes up; choosing another number of hours changes the same payment.
+//   Paid, the sheet celebrates: confetti, the student's character, and the new hours as green
+//   squares.
+// Card details are typed into Stripe's own frames and never touch this site. A sheet from the
+// bottom on a phone, a card in the middle on a wide screen; a press outside it, or Escape, closes it.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import type { Appearance, StripeCheckoutElementsSdk } from "@stripe/stripe-js";
-import { HOURS_MAX } from "@/lib/schedule/hours-shared";
+import { loadStripe, type Stripe, type StripeElements } from "@stripe/stripe-js";
+import type { Appearance } from "@stripe/stripe-js";
+import {
+  HOURS_MAX,
+  dollars,
+  hoursPriceCents,
+  hoursSavingCents,
+  sameForMore,
+} from "@/lib/schedule/hours-shared";
 import { Buddy } from "./HomeworkBuddy";
 import { calm } from "./homeworkMotion";
-import { press, useCount } from "./scheduleMotion";
-import { RULES } from "./scheduleData";
+import { confetti, press, useCount } from "./scheduleMotion";
 import { chosen, tick } from "./sound";
 import styles from "./schedulePay.module.css";
 
-type Actions = Extract<
-  Awaited<ReturnType<StripeCheckoutElementsSdk["loadActions"]>>,
-  { type: "success" }
->["actions"];
-type Opened = { clientSecret: string; sessionId: string; stripe: Stripe };
+type Card = { id: string; brand: string; last4: string };
+type Opened = { clientSecret: string; intentId: string; stripe: Stripe; card: Card | null };
 
 const QUICK = [1, 5, 10, 20];
-const money = (n: number) =>
-  n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
-  });
+const BRAND: Record<string, string> = {
+  visa: "Visa",
+  mastercard: "Mastercard",
+  amex: "Amex",
+  discover: "Discover",
+};
 
 // ---- the payment is made ready before it is asked for ----
 let ready: Promise<Opened> | null = null;
@@ -47,17 +51,23 @@ async function open(): Promise<Opened> {
   });
   const body = (await res.json().catch(() => ({}))) as {
     clientSecret?: string;
-    sessionId?: string;
+    intentId?: string;
     publishableKey?: string;
+    card?: Card | null;
     error?: string;
   };
-  if (!res.ok || !body.clientSecret || !body.sessionId || !body.publishableKey)
+  if (!res.ok || !body.clientSecret || !body.intentId || !body.publishableKey)
     throw new Error(body.error || "The payment could not be opened.");
   const stripe = await loadStripe(body.publishableKey);
   if (!stripe) throw new Error("The payment could not be opened.");
-  return { clientSecret: body.clientSecret, sessionId: body.sessionId, stripe };
+  return {
+    clientSecret: body.clientSecret,
+    intentId: body.intentId,
+    stripe,
+    card: body.card ?? null,
+  };
 }
-/** Called when the Schedule tab opens, so the buttons are there the moment hours are wanted. */
+/** Called when the Schedule tab opens, so paying is ready the moment hours are wanted. */
 export function warm() {
   ready ??= open();
   // a failure is said when the sheet is opened, not here
@@ -91,19 +101,23 @@ export default function Pay({
 }) {
   const [count, setCount] = useState(1);
   const [state, setState] = useState<"loading" | "ready" | "paying" | "done">("loading");
-  const [oneTap, setOneTap] = useState(true);
+  const [card, setCard] = useState<Card | null>(null);
+  const [oneTap, setOneTap] = useState(false);
   const [more, setMore] = useState(false);
   const [bad, setBad] = useState("");
   const [got, setGot] = useState(0);
-  const total = useCount(count * RULES.hourPrice, 2);
+  const cents = hoursPriceCents(count);
+  const total = useCount(cents / 100, 2);
+  const saving = hoursSavingCents(count);
+  const better = sameForMore(count);
 
   const sheet = useRef<HTMLDivElement>(null);
   const shade = useRef<HTMLDivElement>(null);
   const express = useRef<HTMLDivElement>(null);
   const fields = useRef<HTMLDivElement>(null);
-  const actions = useRef<Actions | null>(null);
-  const session = useRef("");
-  const line = useRef("");
+  const party = useRef<HTMLDivElement>(null);
+  const opened = useRef<Opened | null>(null);
+  const elements = useRef<StripeElements | null>(null);
   const want = useRef(1);
   const paid = useRef(onPaid);
   const close = useRef(onClose);
@@ -139,9 +153,10 @@ export default function Pay({
     return () => window.removeEventListener("keydown", key);
   }, []);
 
-  // the payment was bought: it is checked with the server, the hours are added, the sheet says so
+  // paid: it is checked with the server, the hours are added, and the sheet celebrates
   const finish = async () => {
-    const res = await fetch(`/api/schedule/hours?session=${encodeURIComponent(session.current)}`);
+    const id = opened.current?.intentId ?? "";
+    const res = await fetch(`/api/schedule/hours?intent=${encodeURIComponent(id)}`);
     const body = (await res.json().catch(() => ({}))) as { paid?: boolean; hours?: number };
     if (!body.paid || !body.hours) {
       setState("ready");
@@ -152,7 +167,41 @@ export default function Pay({
     setGot(body.hours);
     setState("done");
     paid.current(body.hours);
-    window.setTimeout(leave, 2400);
+    window.setTimeout(leave, 3400);
+  };
+  useEffect(() => {
+    if (state === "done" && party.current) confetti(party.current);
+  }, [state]);
+
+  // On a test key Stripe pins its own developer badge to the bottom right of the screen, over
+  // "More ways to pay" on a phone. Customers never see it (it does not exist on a live key); it is
+  // put out of the way here so the sheet can be looked at as they will see it.
+  useEffect(() => {
+    const hide = () => {
+      for (const frame of document.querySelectorAll<HTMLElement>(
+        "body > iframe, body > div > iframe"
+      )) {
+        const box = frame.getBoundingClientRect();
+        const small = box.width > 0 && box.width < 260 && box.height < 90;
+        const corner = box.bottom > window.innerHeight - 100 && box.right > window.innerWidth - 300;
+        if (small && corner && /stripe/i.test(frame.getAttribute("name") ?? ""))
+          frame.style.display = "none";
+      }
+    };
+    const timer = window.setInterval(hide, 400);
+    const stop = window.setTimeout(() => window.clearInterval(timer), 8000);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(stop);
+    };
+  }, []);
+
+  const settled = (error: { message?: string } | undefined, status: string | undefined) => {
+    if (error || (status && status !== "succeeded" && status !== "processing")) {
+      setState("ready");
+      return setBad(error?.message || "The payment did not go through.");
+    }
+    return finish();
   };
 
   // Stripe's buttons and fields are placed in the sheet
@@ -160,70 +209,67 @@ export default function Pay({
     let live = true;
     const place = async () => {
       ready ??= open();
-      const opened = await ready;
+      const at = await ready;
       if (!live) return;
-      session.current = opened.sessionId;
+      opened.current = at;
+      setCard(at.card);
       const dark = !sheet.current?.closest('[data-kp-mode="light"]');
-      const checkout = opened.stripe.initCheckoutElementsSdk({
-        clientSecret: opened.clientSecret,
-        elementsOptions: {
-          appearance: look(dark),
-          fonts: [
-            {
-              cssSrc:
-                "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&display=swap",
-            },
-          ],
+      const group = at.stripe.elements({
+        clientSecret: at.clientSecret,
+        appearance: look(dark),
+        fonts: [
+          {
+            cssSrc:
+              "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&display=swap",
+          },
+        ],
+      });
+      elements.current = group;
+      // on a phone Apple Pay and Google Pay are offered wherever the browser can; on a wide
+      // screen Apple Pay is left out (founder: "on desktop, Apple Pay is probably not what I would
+      // want to push")
+      const phone = window.matchMedia("(max-width: 719px), (pointer: coarse)").matches;
+      const one = group.create("expressCheckout", {
+        buttonHeight: 52,
+        paymentMethods: {
+          applePay: phone ? "always" : "never",
+          googlePay: "always",
+          link: "auto",
+          amazonPay: "never",
         },
       });
-      const loaded = await checkout.loadActions();
-      if (!live) return;
-      if (loaded.type !== "success") throw new Error("The payment could not be opened.");
-      actions.current = loaded.actions;
-      line.current = loaded.actions.getSession().lineItems[0]?.id ?? "";
-
-      // the one-tap ways first (only the height is set: see the note in reserve/PayStage.tsx)
-      type OneTap = Parameters<typeof checkout.createExpressCheckoutElement>[0];
-      const one = checkout.createExpressCheckoutElement({ buttonHeight: 52 } as unknown as OneTap);
       let answered = false;
       const settle = (any: boolean) => {
         if (answered || !live) return;
         answered = true;
         setOneTap(any);
-        // none of the one-tap ways is on this device: the card form opens instead
-        if (!any) setMore(true);
+        // no card on file and no one-tap way here: the card form opens by itself
+        if (!any && !at.card) setMore(true);
         setState("ready");
       };
-      type Ways = { paymentMethods?: Record<string, boolean> | null };
-      (one as unknown as { on: (name: string, heard: (e: Ways) => void) => void }).on(
-        "availablepaymentmethodschange",
-        (e) => settle(Object.values(e.paymentMethods ?? {}).some(Boolean))
-      );
-      one.on("confirm", async (event) => {
+      one.on("ready", (e) => settle(Object.values(e.availablePaymentMethods ?? {}).some(Boolean)));
+      one.on("confirm", async () => {
         setState("paying");
         setBad("");
-        const result = await loaded.actions.confirm({
-          expressCheckoutConfirmEvent: event,
+        const { error, paymentIntent } = await at.stripe.confirmPayment({
+          elements: group,
+          clientSecret: at.clientSecret,
+          confirmParams: { return_url: window.location.href },
           redirect: "if_required",
         });
-        if (result.type === "error") {
-          setState("ready");
-          return setBad(result.error.message || "The payment did not go through.");
-        }
-        await finish();
+        await settled(error, paymentIntent?.status);
       });
       if (express.current) one.mount(express.current);
-      const all = checkout.createPaymentElement({ layout: "accordion" });
+      const all = group.create("payment", { layout: "accordion" });
       if (fields.current) all.mount(fields.current);
       window.setTimeout(() => settle(false), 3500);
-      // hours chosen while the buttons were loading
+      // hours chosen while this was loading
       if (want.current !== 1) void amount(want.current);
     };
     place().catch((e: unknown) => {
       ready = null;
       if (!live) return;
       setState("ready");
-      setOneTap(false);
       setBad(e instanceof Error ? e.message : "The payment could not be opened.");
     });
     return () => {
@@ -232,15 +278,23 @@ export default function Pay({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // how many hours: the same payment is changed, so the buttons stay where they are
+  // how many hours: the same payment is changed, so nothing reloads
   const timer = useRef(0);
-  const amount = async (hours: number) => {
-    if (!actions.current || !line.current) return;
-    const result = await actions.current.updateLineItemQuantity({
-      lineItem: line.current,
-      quantity: hours,
-    });
-    if (result.type === "error") setBad(result.error.message || "That amount could not be set.");
+  const changing = useRef<Promise<void>>(Promise.resolve());
+  const amount = (hours: number) => {
+    const run = async () => {
+      const at = opened.current;
+      if (!at) return;
+      const res = await fetch("/api/schedule/hours", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intentId: at.intentId, hours }),
+      });
+      if (!res.ok) return setBad("That amount could not be set. Try again.");
+      await elements.current?.fetchUpdates();
+    };
+    changing.current = changing.current.then(run, run);
+    return changing.current;
   };
   const pick = (hours: number) => {
     const next = Math.min(HOURS_MAX, Math.max(1, hours));
@@ -252,20 +306,40 @@ export default function Pay({
     timer.current = window.setTimeout(() => void amount(next), 220);
   };
 
-  const pay = async () => {
-    if (!actions.current || state === "paying") return;
+  /** Pays with the card on file, or with whatever was filled in under "More ways to pay". */
+  const pay = async (how: "card" | "fields") => {
+    const at = opened.current;
+    if (!at || state !== "ready") return;
     setState("paying");
     setBad("");
-    const result = await actions.current.confirm({ redirect: "if_required" });
-    if (result.type === "error") {
-      setState("ready");
-      return setBad(result.error.message || "The payment did not go through.");
+    // a change of hours still on its way is waited for, so the price charged is the one shown
+    window.clearTimeout(timer.current);
+    await amount(want.current);
+    if (how === "card" && card) {
+      const { error, paymentIntent } = await at.stripe.confirmCardPayment(at.clientSecret, {
+        payment_method: card.id,
+      });
+      return settled(error, paymentIntent?.status);
     }
-    await finish();
+    const group = elements.current;
+    if (!group) return setState("ready");
+    const checked = await group.submit();
+    if (checked.error) {
+      setState("ready");
+      return setBad(checked.error.message || "Check the details and try again.");
+    }
+    const { error, paymentIntent } = await at.stripe.confirmPayment({
+      elements: group,
+      clientSecret: at.clientSecret,
+      confirmParams: { return_url: window.location.href },
+      redirect: "if_required",
+    });
+    return settled(error, paymentIntent?.status);
   };
 
   const shell = typeof document === "undefined" ? null : document.querySelector(".kp-shell");
   if (!shell) return null;
+  const hiddenWays = state === "loading" || (!!card && !more) || !oneTap;
   return createPortal(
     <div className={styles.pay}>
       <div className={styles.shade} ref={shade} onClick={leave} />
@@ -278,28 +352,35 @@ export default function Pay({
         data-state={state}
       >
         {state === "done" ? (
-          <div className={styles.done} role="status">
-            <Buddy size={108} cheer={1} />
+          <div className={styles.done} role="status" ref={party}>
+            <Buddy size={112} cheer={1} />
             <b>
               {got} {got === 1 ? "hour" : "hours"} added
             </b>
+            <div className={styles.fresh} aria-hidden="true">
+              {Array.from({ length: Math.min(got, 20) }, (_, i) => (
+                <i key={i} style={{ "--i": i } as React.CSSProperties} />
+              ))}
+              {got > 20 && <span>+{got - 20}</span>}
+            </div>
           </div>
         ) : (
           <>
             <h2>Add hours</h2>
             <div className={styles.quick} role="group" aria-label="How many hours">
-              {QUICK.map((n) => (
+              {QUICK.map((n, i) => (
                 <button
                   key={n}
                   type="button"
                   aria-pressed={count === n}
+                  data-n={i}
                   onClick={(e) => {
                     press(e.currentTarget);
                     pick(n);
                   }}
                 >
                   <b>{n}</b>
-                  <small>{money(n * RULES.hourPrice)}</small>
+                  <small>{n === 1 ? "hour" : "hours"}</small>
                 </button>
               ))}
             </div>
@@ -343,14 +424,41 @@ export default function Pay({
                   </svg>
                 </button>
               </div>
-              <p className={styles.total}>{money(total)}</p>
+              <p className={styles.total}>
+                {total.toLocaleString("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  minimumFractionDigits: cents % 100 === 0 ? 0 : 2,
+                })}
+                {saving > 0 && <small>Save {dollars(saving)}</small>}
+              </p>
             </div>
+            {better && (
+              <button type="button" className={styles.nudge} onClick={() => pick(better)}>
+                {better} hours cost the same. Get {better}
+              </button>
+            )}
 
             {state === "loading" && (
-              <div className={styles.wait} role="status" aria-label="Loading ways to pay" />
+              <div className={styles.wait} role="status" aria-label="Loading" />
             )}
-            <div className={styles.express} ref={express} data-off={oneTap ? undefined : ""} />
-            {oneTap && state !== "loading" && !more && (
+            {card && state !== "loading" && (
+              <div className={styles.onFile}>
+                <button
+                  type="button"
+                  className={styles.go}
+                  disabled={state !== "ready"}
+                  onClick={() => pay("card")}
+                >
+                  {state === "paying" ? "Paying" : `Pay ${dollars(cents)}`}
+                </button>
+                <small>
+                  {BRAND[card.brand] ?? "Card"} ending {card.last4}
+                </small>
+              </div>
+            )}
+            <div className={styles.express} ref={express} data-off={hiddenWays ? "" : undefined} />
+            {state !== "loading" && !more && (oneTap || card) && (
               <button type="button" className={styles.other} onClick={() => setMore(true)}>
                 More ways to pay
               </button>
@@ -359,11 +467,11 @@ export default function Pay({
               <div ref={fields} />
               <button
                 type="button"
-                className={styles.go}
+                className={card ? styles.second : styles.go}
                 disabled={state !== "ready"}
-                onClick={pay}
+                onClick={() => pay("fields")}
               >
-                {state === "paying" ? "Paying" : `Pay ${money(count * RULES.hourPrice)}`}
+                {state === "paying" ? "Paying" : `Pay ${dollars(cents)}`}
               </button>
             </div>
             {bad && (

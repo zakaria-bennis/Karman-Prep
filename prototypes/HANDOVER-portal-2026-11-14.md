@@ -1239,34 +1239,58 @@ Still open for Chat:
   They should be deleted before real students join that class.
 - After merge: run `npm run db:types`.
 
-## Schedule (2026-11-17, second version)
+## Schedule (2026-11-17, third version)
 
-The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers are in the memory note
-`project_calendar_spec.md`. The first version led with a three.js hourglass; he said it did not need
-to be fancy and asked for "more color, more life, and characters", a modern calendar with clean GSAP
-motion, fewer words, and buying hours in a tap. The hourglass is gone. Awaiting his verdict.
+The Private student's Schedule tab, on `/dev/shell?plan=private`. His answers and three rounds of
+verdicts are in the memory note `project_calendar_spec.md`. Awaiting his verdict on this round.
 
-- **Hours:** the student's own character (the same one as on Homework; it cheers when a session is
-  booked or hours are bought), the hours left, and a bead for every hour: green is free to book,
-  blue is booked, clear is used. A half hour is half a bead.
-- **Next:** the tutor, the date and time, a countdown, Join from 5 minutes before with 10 minutes of
-  grace, then Move and Cancel. The card is washed with its time of day's color.
-- **Book:** four whole weeks under the weekday letters. A green dot means the tutor has time that
-  day, a bar is one of the student's own sessions, the SAT's day has a ruby ring. The chosen day is
-  one pill that glides between dates (GSAP). Times carry a sun or a moon and their time of day's
-  color; skills to work on carry their subject's color. On a wide pane the calendar and the times
-  sit side by side.
-- **Past:** the recording (kept 6 months), the tutor's notes, what was covered, the homework set.
-- **Add hours is real** (`SchedulePay.tsx`, `src/lib/schedule/hours.ts`, `/api/schedule/hours`): a
-  sheet from the bottom on a phone, a card in the middle on a wide screen. Stripe's one-tap buttons
-  (Apple Pay, Link, Google Pay, whichever the device has) come first; every other way to pay is
-  behind "More ways to pay". The payment is opened when the Schedule tab opens, so the buttons are
-  there at once; changing the number of hours changes the same payment. $149.50 an hour from
-  `offer.ts`; quick picks of 1, 5, 10 and 20 and a stepper up to 40. The webhook keeps each paid
-  purchase in `private_hour_purchases` (migration `20261117060000`, not on production until merge).
-  **On a live Stripe key it refuses until `PRIVATE_HOURS_SALES=on`**, because bookings are not real
-  yet. Tested in Stripe's test mode with the published test card: 5 hours bought, hours went 12 to
-  17. Apple Pay itself cannot be tried on localhost: it needs the registered domain and Safari.
+- **Hours:** the student's own character, the hours left, and a square for every hour (rounded
+  corners, sized to fit up to fifty): green and glowing is free to book, blue is booked, gray is
+  used; half an hour is half a square. A square that changes pops; hours just bought land one by one.
+- **Next:** a strip of the sky at the session's time (drawn in code) with a small "in 2d 15h" pill,
+  the date and time, Join from 5 minutes before with 10 minutes of grace, then Move (blue) and
+  Cancel (ruby). No tutor line, no time zone.
+- **Book:** four whole weeks under the weekday letters; a green dot means the tutor has time; a day
+  with a session of the student's own is filled with that session's sky; the SAT's day has a ruby
+  ring; one pill glides between dates (GSAP). Every time the tutor works is listed, the taken ones
+  grayed out. Each time has a small rising sun, sun, setting sun or moon from the **estimated
+  sunrise and sunset where the student is** (`src/lib/schedule/sun.ts`: the place is guessed from
+  the device's time zone, no location is asked for). "Work on" is the **five skills that most need
+  work** (`recommend` in `scheduleData.ts`: lowest level first, subjects taking turns), then a note.
+- **Booked or moved:** the whole screen celebrates (`ScheduleCheer.tsx`): confetti, the character,
+  the day and time. It closes itself or at a press.
+- **Sessions list:** each row washed with its sky, a friendly day word ("Tomorrow", "Saturday"),
+  the length, counts on the tabs, and a play mark on past sessions.
+- **Calendar offer:** on a wide screen a small banner that slides in at the top right (after the
+  music offer, if that is showing); on a phone the first thing on the page. Apple Calendar and
+  Google Calendar stacked, each with its own mark (from the open svgl.app library).
+- **Time zones are never written.** Every time is the student's own.
+- **Add hours is real** (`SchedulePay.tsx`, `src/lib/schedule/hours.ts`, `/api/schedule/hours`):
+  - One Stripe payment is opened when the tab opens; choosing another number of hours changes that
+    same payment. The price is always worked out on the server.
+  - **Card on file first:** if Stripe holds a card for the family, the sheet is one "Pay $X" button
+    with "Visa ending 4242" under it. Every payment for hours keeps its card for next time.
+  - With no card on file the one-tap ways come first: Apple Pay and Google Pay on a phone (asked
+    for in every browser that can), Link and Google Pay on a wide screen, where Apple Pay is left
+    out. Everything else is behind an underlined "More ways to pay".
+  - **Bulk is cheaper** (`hoursPriceCents`): each whole Private 20 inside the number is charged at
+    the Private 20 price from `offer.ts` ($2,495 for 20, so 40 is $4,990); other hours are $149.50.
+    No number of hours costs more than the next whole package: 17 to 19 hours are charged as 20,
+    and the sheet offers 20 for the same price. He has not confirmed this exact rule.
+  - Paid, the sheet celebrates (confetti, the character, the new hours as glowing green squares)
+    and the hours card fills in.
+  - Each paid purchase is kept once in `private_hour_purchases` (migration `20261117060000`, not on
+    production until merge), by the page and by the webhook's new `payment_intent.succeeded` case.
+    **The live Stripe webhook must be sent that event** (Dashboard, Developers, Webhooks).
+  - **On a live Stripe key it refuses until `PRIVATE_HOURS_SALES=on`**, because bookings are not
+    real yet.
+  - Tested in Stripe's test mode with the published test card: 5 hours by card (12 to 17), then 1
+    hour with that card on file in one press (17 to 18). Apple Pay and Google Pay cannot be tried
+    on localhost: they need the registered domain.
+  - The round "stripe" badge at the bottom right is Stripe's own test-mode tool. Customers never
+    see it; the sheet tucks it away on a test key so previews look as customers will see them.
+- The pay sheet and the celebrations are set in **Fredoka** (`src/app/fonts/web`, added to
+  `portalFontVars`), because he did not want the serif on a "fun, engaging, point-of-payment page".
 - Rules are pure functions in `scheduleData.ts` with tests; motion is GSAP in `scheduleMotion.ts`.
 - States to look at: `&pack=10`, `&soon=3` (Join open), `&soon=-4` (already begun), `&empty=1` (no
   hours), `&full=1` (nothing open).
@@ -1275,8 +1299,7 @@ Sessions are still a stand-in held in memory. Not built: real bookings against t
 (the old `src/components/student-portal/calendar/` reads real bookings and is not connected here),
 counting hours from real purchases, the real calendar feeds, a real recording player, the reminders
 (email the day before, a text an hour before: texting needs a provider and his OK), the parent's
-side, the tutor giving the late change back, and the 30 minutes added when a tutor misses a session.
-The 12-month expiry and the 30 minutes are promises to families and are not in `offer.ts` or the
-terms yet. No bulk price exists: 20 hours bought here is 20 times the hour's price ($2,990), while
-the Private 20 package is $2,495; he has not said whether bulk should be cheaper. His "monthly limit
-or 3" was read as three moves a month and is not confirmed.
+side, the tutor giving the late change back, the 30 minutes added when a tutor misses a session,
+and real results behind "Work on" (it reads the Library's stand-in levels). The 12-month expiry and
+the 30 minutes are promises to families and are not in `offer.ts` or the terms yet. His "monthly
+limit or 3" was read as three moves a month and is not confirmed.

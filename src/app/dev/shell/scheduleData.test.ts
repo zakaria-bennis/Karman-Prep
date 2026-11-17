@@ -3,6 +3,7 @@ import {
   DAY,
   HOUR,
   MIN,
+  RECOMMENDED,
   RULES,
   changeOf,
   choices,
@@ -12,10 +13,10 @@ import {
   lengthsFor,
   movesLeft,
   priceOf,
+  recommend,
   recordingUntil,
   standIn,
   subjectOf,
-  todOf,
   weekStart,
   weeklyAfter,
   type Account,
@@ -183,22 +184,56 @@ describe("changing a session", () => {
   });
 });
 
-describe("colors", () => {
-  it("a time's part of the day", () => {
-    const at = (h: number) => todOf(TODAY.getTime() + h * HOUR);
-    expect([at(9), at(11.5), at(12), at(16.5), at(17), at(20)]).toEqual([
-      "morning",
-      "morning",
-      "afternoon",
-      "afternoon",
-      "evening",
-      "evening",
-    ]);
+describe("what to work on", () => {
+  const pick = (skill: string, subject: "rw" | "math", level: number) => ({
+    skill,
+    subject,
+    level,
   });
 
-  it("a skill's subject", () => {
+  it("is five skills, the lowest level first", () => {
+    expect(RECOMMENDED).toHaveLength(5);
+    for (let i = 1; i < RECOMMENDED.length; i++)
+      expect(RECOMMENDED[i].level).toBeGreaterThanOrEqual(RECOMMENDED[i - 1].level);
+  });
+
+  it("takes the weakest before anything stronger, whatever the subject", () => {
+    const list = recommend(
+      [pick("a", "math", 3), pick("b", "rw", 0), pick("c", "rw", 0), pick("d", "math", 1)],
+      3
+    );
+    expect(list.map((p) => p.skill)).toEqual(["b", "c", "d"]);
+  });
+
+  it("lets the subjects take turns among skills on the same level", () => {
+    const list = recommend(
+      [pick("r1", "rw", 0), pick("r2", "rw", 0), pick("m1", "math", 0), pick("m2", "math", 0)],
+      4
+    );
+    expect(list.map((p) => p.subject)).toEqual(["rw", "math", "rw", "math"]);
+  });
+
+  it("knows a skill's subject", () => {
     expect(subjectOf("Solving linear equations")).toBe("math");
     expect(subjectOf("Main idea")).toBe("rw");
+  });
+});
+
+describe("times that are not open", () => {
+  it("are still listed, so they can be shown grayed out", () => {
+    const a = fresh();
+    const day = choices(a, NOW, 60).find(
+      (d) => d.slots.some((s) => !s.open) && d.times.length > 0
+    )!;
+    expect(day.slots.length).toBeGreaterThan(day.times.length);
+    expect(day.slots.filter((s) => s.open).map((s) => s.t)).toEqual(day.times);
+  });
+
+  it("are all closed on a day a rule shuts", () => {
+    const a = fresh("private-10");
+    const shut = choices(a, NOW, 60).find((d) => d.why === "week")!;
+    expect(shut.slots.length).toBeGreaterThan(0);
+    expect(shut.slots.every((s) => !s.open)).toBe(true);
   });
 });
 

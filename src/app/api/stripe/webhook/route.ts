@@ -23,7 +23,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { recordPurchaseGrant } from "@/lib/plans";
-import { recordHoursPurchase } from "@/lib/schedule/hours";
+import { recordHoursPayment } from "@/lib/schedule/hours";
 import { HOURS_KIND } from "@/lib/schedule/hours-shared";
 import { trackServer } from "@/lib/analytics/server";
 import Stripe from "stripe";
@@ -168,12 +168,6 @@ export const POST = withWebhookInstrumentation(
             console.log(`[webhook] checkout ${session.id} completed unpaid; waiting for payment`);
             break;
           }
-          // Extra tutoring hours bought from the Schedule tab (src/lib/schedule/hours.ts).
-          if (session.metadata?.kind === HOURS_KIND) {
-            const outcome = await recordHoursPurchase(session);
-            console.log(`[webhook] tutoring hours ${session.id}: ${outcome}`);
-            break;
-          }
           // A cohort seat reserved from the marketing site, before the student has an account
           // (src/lib/reserve): settled by its reservation, not by a user.
           if (session.metadata?.reservationId) {
@@ -204,6 +198,15 @@ export const POST = withWebhookInstrumentation(
             const scheduleId = await scheduleCohortInstallments(session);
             console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
           }
+          break;
+        }
+
+        // ---- Extra tutoring hours bought from the Schedule tab (src/lib/schedule/hours.ts) ----
+        case "payment_intent.succeeded": {
+          const intent = event.data.object as Stripe.PaymentIntent;
+          if (intent.metadata?.kind !== HOURS_KIND) break;
+          const outcome = await recordHoursPayment(intent);
+          console.log(`[webhook] tutoring hours ${intent.id}: ${outcome}`);
           break;
         }
 

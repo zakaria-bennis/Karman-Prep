@@ -3,6 +3,7 @@
 //   Hours     Time is counted in hours, not sessions. A session is 60, 90 or 120 minutes; Private 10
 //             books 60 minutes a week at most. Hours run out 12 months after they were bought.
 //   Booking   At least 24 hours ahead and at most 4 weeks ahead, always with the student's own tutor.
+//             Times are shown in the student's own time, with no time zone written anywhere.
 //   Changes   With more than 24 hours to go a session can be moved or canceled (the hours go back).
 //             Moving is limited to three a month. Inside 24 hours there is one free pass a package,
 //             which the tutor can give back.
@@ -13,6 +14,7 @@
 // Nothing here reads or writes a real booking yet.
 import { GUARANTEE, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
 import { DAY, TODAY } from "./progressData";
+import { guessPlace, skyAt, type Place, type Sky } from "@/lib/schedule/sun";
 import { SECTIONS, SKILLS } from "./skills72";
 
 export { DAY };
@@ -133,6 +135,9 @@ export interface DayChoice {
   day: number;
   /** Start times with room for the asked length. */
   times: number[];
+  /** Every time the tutor works that day that the length fits in, open or not: the ones that
+   *  are not open are shown grayed out. */
+  slots: { t: number; open: boolean }[];
   /** Why nothing can be booked this day, when that is a rule and not a full day. */
   why?: "week" | "hours";
 }
@@ -151,15 +156,21 @@ export function choices(
   const mine = account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id);
   const left = hours(account).left + (moving ? moving.minutes / 60 : 0);
   const days: DayChoice[] = [];
+  const shut = (day: number) => {
+    const starts = tutorStarts(day);
+    return starts
+      .filter((t) => starts.includes(t + (minutes - STEP) * MIN))
+      .map((t) => ({ t, open: false }));
+  };
   for (let day = dayStart(first); day <= dayStart(last); day += DAY) {
     // a day of 23 or 25 hours (the clocks changing) still begins at midnight
     day = dayStart(day + HOUR);
     if (left < minutes / 60) {
-      days.push({ day, times: [], why: "hours" });
+      days.push({ day, times: [], slots: shut(day), why: "hours" });
       continue;
     }
     if (account.pack === "private-10" && mine.some((s) => weekStart(s.start) === weekStart(day))) {
-      days.push({ day, times: [], why: "week" });
+      days.push({ day, times: [], slots: shut(day), why: "week" });
       continue;
     }
     const open = (t: number) =>
@@ -169,12 +180,14 @@ export function choices(
       !taken(t) &&
       !mine.some((s) => t < endOf(s) && t + STEP * MIN > s.start);
     const starts = tutorStarts(day);
-    const times = starts.filter((t) => {
+    const fits = starts.filter((t) => starts.includes(t + (minutes - STEP) * MIN));
+    const free = (t: number) => {
       for (let part = t; part < t + minutes * MIN; part += STEP * MIN)
-        if (!starts.includes(part) || !open(part)) return false;
+        if (!open(part)) return false;
       return true;
-    });
-    days.push({ day, times });
+    };
+    const slots = fits.map((t) => ({ t, open: free(t) }));
+    days.push({ day, times: slots.filter((slot) => slot.open).map((slot) => slot.t), slots });
   }
   // a first day too close to book anything on is not shown
   while (days.length > 1 && days[0].times.length === 0 && !days[0].why) days.shift();
@@ -254,42 +267,60 @@ export const recordingUntil = (session: Session) => {
   return d.getTime();
 };
 
-// ---- what to work on: the student's weakest skills, lowest level first ----
+// ---- what to work on: the five skills that most need it ----
 
-export const WEAKEST: string[] = SECTIONS.flatMap((section) =>
-  SKILLS[section].flatMap((domain) => domain.skills)
-)
-  .map((skill, at) => ({ skill, at }))
-  .sort((a, b) => a.skill.level - b.skill.level || a.at - b.at)
-  // a mix of both sections: every seventh of the lowest
-  .filter((_, n) => n % 7 === 0)
-  .slice(0, 4)
-  .map(({ skill }) => skill.name);
+export interface Pick {
+  skill: string;
+  subject: "rw" | "math";
+  /** 0 Not started, 1 Learning, 2 Understanding, 3 Proficient. */
+  level: number;
+}
+/** The skills that most need work, most needed first: the lowest level first, and among skills on
+ *  the same level the two subjects take turns, so the list is never all one subject. (The levels
+ *  are the Library's; when real results are read, this is where they come in.) */
+export function recommend(skills: Pick[], count = 5): Pick[] {
+  const byLevel = [...skills].sort((a, b) => a.level - b.level);
+  const out: Pick[] = [];
+  while (out.length < count && byLevel.length > 0) {
+    const level = byLevel[0].level;
+    const last = out[out.length - 1]?.subject;
+    const at = byLevel.findIndex((s) => s.level === level && s.subject !== last);
+    out.push(byLevel.splice(at === -1 ? 0 : at, 1)[0]);
+  }
+  return out;
+}
+export const RECOMMENDED: Pick[] = recommend(
+  SECTIONS.flatMap((section) =>
+    SKILLS[section].flatMap((domain) =>
+      domain.skills.map((skill) => ({
+        skill: skill.name,
+        subject: section === "Math" ? ("math" as const) : ("rw" as const),
+        level: skill.level,
+      }))
+    )
+  )
+);
+const WEAKEST = RECOMMENDED.map((pick) => pick.skill);
 
 /** Which subject a skill belongs to, for its color (fuchsia for Reading and Writing, blue for Math). */
 export const subjectOf = (skill: string): "rw" | "math" =>
   SKILLS.Math.some((domain) => domain.skills.some((s) => s.name === skill)) ? "math" : "rw";
 
-/** The part of the day a time falls in: each has a color of its own. */
-export type Tod = "morning" | "afternoon" | "evening";
-export const todOf = (t: number): Tod => {
-  const hour = new Date(t).getHours();
-  return hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+/** What the sky is doing at a time, where the student is: it chooses the small picture beside a
+ *  time (a rising sun, a sun, a setting sun, a moon) and its color. The place is guessed from the
+ *  device's time zone; see src/lib/schedule/sun.ts. */
+let place: Place | null = null;
+export const skyOf = (t: number): Sky => {
+  place ??= guessPlace(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    new Date().getTimezoneOffset()
+  );
+  return skyAt(t, place);
 };
+export type { Sky };
 
 // ---- words ----
 
-export const zone = () => {
-  try {
-    return (
-      new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
-        .formatToParts(new Date())
-        .find((p) => p.type === "timeZoneName")?.value ?? ""
-    );
-  } catch {
-    return "";
-  }
-};
 export const clock = (t: number) =>
   new Date(t).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 export const dateLong = (t: number) =>

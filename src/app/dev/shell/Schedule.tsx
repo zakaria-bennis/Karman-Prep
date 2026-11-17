@@ -20,22 +20,38 @@ import lib from "./library.module.css";
 import Book from "./ScheduleBook";
 import { Changes, Hours, Next, Past, SyncOffer } from "./ScheduleBits";
 import Pay, { warm } from "./SchedulePay";
-import { arrive, flash, press } from "./scheduleMotion";
-import { clock, doorOf, hours, lengthText, todOf, type Pack, type Session } from "./scheduleData";
+import { arrive, flash, press, wave } from "./scheduleMotion";
+import { clock, doorOf, hours, skyOf, type Pack, type Session } from "./scheduleData";
+import { SkyIcon } from "./ScheduleSky";
 import { schedule, split, useSchedule } from "./scheduleStore";
 import { tick } from "./sound";
 import styles from "./schedule.module.css";
 
 type Pane = { kind: "book" } | { kind: "move"; id: string } | { kind: "past"; id: string };
 
+/** "Today", "Tomorrow", the weekday for the week ahead, and the date for anything further. */
+function dayWord(start: number, now: number): string {
+  const days = Math.round(
+    (new Date(start).setHours(0, 0, 0, 0) - new Date(now).setHours(0, 0, 0, 0)) / 86_400_000
+  );
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days === -1) return "Yesterday";
+  const date = new Date(start);
+  if (days > 1 && days < 7) return date.toLocaleDateString("en-US", { weekday: "long" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 function Row({
   session,
+  now,
   open,
   fresh,
   onPress,
   children,
 }: {
   session: Session;
+  now: number;
   open: boolean;
   fresh: boolean;
   onPress: () => void;
@@ -46,38 +62,52 @@ function Row({
     if (fresh) flash(el.current);
   }, [fresh]);
   const date = new Date(session.start);
+  const sky = skyOf(session.start);
+  const gone = session.state !== "booked";
   return (
-    <li ref={el} className={styles.item} data-open={open || undefined}>
+    <li ref={el} className={styles.item} data-open={open || undefined} data-sky={sky}>
       <button type="button" aria-expanded={open} onClick={onPress}>
-        <span className={styles.date} data-tod={todOf(session.start)}>
+        <span className={styles.date}>
           <small>{date.toLocaleDateString("en-US", { weekday: "short" })}</small>
           <b>{date.getDate()}</b>
-          <small>{date.toLocaleDateString("en-US", { month: "short" })}</small>
         </span>
         <span className={styles.what}>
           <b>
-            {clock(session.start)}, {lengthText(session.minutes)}
+            <SkyIcon sky={sky} />
+            {dayWord(session.start, now)}, {clock(session.start)}
           </b>
           <small>
             {session.state === "missed"
               ? "Missed"
               : session.focus.length > 0
                 ? session.focus.join(", ")
-                : (session.note ??
-                  (session.state === "done" ? "Recording and notes" : "Open session"))}
+                : (session.note ?? (gone ? "Recording and notes" : "Open session"))}
           </small>
         </span>
-        {session.weekly && <i>Weekly</i>}
-        <svg
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          fill="none"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path d="M9.500 6.500L15 12l-5.500 5.500" />
-        </svg>
+        {session.weekly && <em>Weekly</em>}
+        <i>{session.minutes === 60 ? "1h" : session.minutes === 90 ? "1.5h" : "2h"}</i>
+        {gone ? (
+          <span className={styles.play} data-missed={session.state === "missed" || undefined}>
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+              {session.state === "missed" ? (
+                <path d="M4 7h8v2H4z" />
+              ) : (
+                <path d="M5.500 3.500l7 4.500-7 4.500z" />
+              )}
+            </svg>
+          </span>
+        ) : (
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M9.500 6.500L15 12l-5.500 5.500" />
+          </svg>
+        )}
       </button>
       {open && children}
     </li>
@@ -136,6 +166,9 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
   const move = (session: Session) => show({ kind: "move", id: session.id });
   const rest = next && doorOf(next, now) !== "over" ? upcoming.slice(1) : upcoming;
   const list = tab === "upcoming" ? rest : past;
+  // the rows come in as a wave when the list is switched
+  const items = useRef<HTMLUListElement>(null);
+  useEffect(() => wave(items.current), [tab]);
 
   return (
     <div className={`${lib.library} ${styles.schedule}`} ref={root}>
@@ -155,7 +188,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
       <section
         className={`${lib.glass} ${styles.next}`}
         aria-label="Next session"
-        data-tod={next ? todOf(next.start) : undefined}
+        data-sky={next ? skyOf(next.start) : undefined}
         data-arrive
       >
         {next ? (
@@ -212,6 +245,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
               }}
             >
               {t === "upcoming" ? "Upcoming" : "Past"}
+              <i>{t === "upcoming" ? rest.length : past.length}</i>
             </button>
           ))}
         </div>
@@ -224,11 +258,12 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
               : "Sessions you have had will be listed here, with their recordings."}
           </p>
         ) : (
-          <ul className={styles.items}>
+          <ul className={styles.items} ref={items}>
             {list.map((session) => (
               <Row
                 key={session.id}
                 session={session}
+                now={now}
                 fresh={fresh.includes(session.id)}
                 open={
                   tab === "upcoming"

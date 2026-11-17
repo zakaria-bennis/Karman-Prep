@@ -1,35 +1,46 @@
 /*
  * Schedule (Schedule.tsx, ScheduleBits.tsx). Glass, corners and text sizes come from
- * library.module.css, set on .library. A choice that is on is filled with the ink color; one that
- * is off is a clear lens. (The shell clears every button's font and background, so a button with
- * its own is named through the page: .schedule .go.)
+ * library.module.css, set on .library. Color carries meaning here: green is hours free to book,
+ * blue is hours booked, a skill wears its subject's color, and a time wears the color of the sky
+ * at that time (--sky). (The shell clears every button's font and background, so a button with its
+ * own is named through the page: .schedule .go.)
  */
 .schedule {
   --soft: color-mix(in srgb, var(--ink) 74%, transparent);
   --ruby: #e0425f;
-  /* the subjects' colors, as on Homework; green for hours free to book, blue for hours booked */
   --rw: #ff3d9a;
   --math: #2f8bff;
   --free: #2fd08c;
   --held: #5aa9ff;
-  --tutor: #7a5cf0;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "sync" "left" "next" "pane" "list";
   align-items: start;
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* each part of the day has a color: a morning sun, an afternoon sun, an evening sky */
-.schedule [data-tod="morning"] {
-  --tod: #ffc94a;
+/* the sky at a time: night, sunrise, day, sunset */
+.schedule [data-sky="night"] {
+  --sky: #a08cff;
+  --sky-a: #2b2a6e;
+  --sky-b: #6a4bb8;
 }
 
-.schedule [data-tod="afternoon"] {
-  --tod: #ff9a4c;
+.schedule [data-sky="sunrise"] {
+  --sky: #ffb347;
+  --sky-a: #ff9a6b;
+  --sky-b: #ffd08a;
 }
 
-.schedule [data-tod="evening"] {
-  --tod: #a08cff;
+.schedule [data-sky="day"] {
+  --sky: #ffc94a;
+  --sky-a: #3fa9f5;
+  --sky-b: #8fd3ff;
+}
+
+.schedule [data-sky="sunset"] {
+  --sky: #ff7e6b;
+  --sky-a: #7a3fb0;
+  --sky-b: #ff8a5c;
 }
 
 .schedule [data-kind="rw"] {
@@ -53,7 +64,7 @@
 }
 
 .schedule ::selection {
-  background: color-mix(in srgb, var(--go) 40%, transparent);
+  background: color-mix(in srgb, var(--free) 40%, transparent);
 }
 
 /* ---- buttons ---- */
@@ -85,22 +96,6 @@
   box-shadow: none;
 }
 
-.schedule .add {
-  height: 40px;
-  padding: 0 18px;
-  border-radius: 20px;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
-  transition: background 0.16s var(--out);
-}
-
-.schedule .add:hover {
-  background: color-mix(in srgb, var(--ink) 14%, var(--lens));
-}
-
 .schedule .quiet {
   height: 36px;
   padding: 0 12px;
@@ -119,48 +114,65 @@
   color: var(--ink);
 }
 
-.schedule .quiet:disabled {
-  opacity: 0.4;
-}
-
-.schedule .pill {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 18px;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-size: 14px;
+/* Move in the color of a booked hour, Cancel in ruby */
+.schedule .move,
+.schedule .cancel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 16px 0 13px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--tint) 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 65%, transparent);
+  font-size: 15px;
   font-weight: 700;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition: background 0.16s var(--out);
 }
 
-.schedule .pill:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 14%, var(--lens));
+.schedule .move {
+  --tint: var(--held);
 }
 
-.schedule .pill:disabled {
+.schedule .cancel {
+  --tint: var(--ruby);
+}
+
+.schedule .move svg,
+.schedule .cancel svg {
+  color: var(--tint);
+}
+
+.schedule .move:hover:not(:disabled),
+.schedule .cancel:hover {
+  background: color-mix(in srgb, var(--tint) 36%, transparent);
+}
+
+.schedule .move:disabled {
   opacity: 0.4;
 }
 
 .schedule .danger {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 18px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
   background: #d83a4a;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
-/* ---- the calendar offer: one line ---- */
+/* ---- the calendar offer: first on a phone's page, a banner at the top right of a wide screen ---- */
 .sync {
   grid-area: sync;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  padding: 8px 8px 8px 14px;
-  border-radius: var(--r-piece);
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--r-piece, 16px);
+  color: var(--ink);
   background: var(--glass);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
@@ -168,32 +180,75 @@
     var(--lift),
     inset 0 0 0 1px var(--glass-edge),
     inset 0 1px 0 1px var(--glass-shine);
+  font: 600 15px/1.3 var(--font-sans);
   overflow: hidden;
 }
 
-.sync > svg {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  color: var(--held);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.sync[data-float] {
+  position: fixed;
+  z-index: 7;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  width: 280px;
+  border-radius: 24px;
+  /* it floats over the page, so it is thicker glass than the panes under it */
+  background: color-mix(in srgb, var(--glass) 55%, var(--paper, #fbf6ee));
 }
 
-.sync > p {
-  flex: 1 1 160px;
+:global([data-kp-mode="dark"]) .sync[data-float] {
+  --paper: #171a2a;
+}
+
+.sync > b {
+  padding: 0 2px 2px;
   font-size: 15px;
   font-weight: 700;
 }
 
-.sync > div {
+.sync > p {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 2px;
+  font-weight: 700;
 }
 
-/* ---- the hours: the student's character, the number, a bead for every hour ---- */
+.sync.sync button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: var(--ink);
+  font: 700 15px/1 var(--font-sans);
+  cursor: pointer;
+  transition: background 0.16s var(--out);
+}
+
+.sync.sync button:hover {
+  background: color-mix(in srgb, var(--ink) 14%, var(--lens));
+}
+
+.sync.sync button[data-quiet] {
+  justify-content: center;
+  height: 34px;
+  background: none;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--ink) 74%, transparent);
+  font-size: 14px;
+}
+
+.sync svg {
+  flex: none;
+}
+
+/* ---- the hours: the student's character, the number, a square for every hour ---- */
 .left {
   grid-area: left;
   display: grid;
@@ -204,7 +259,7 @@
   background:
     radial-gradient(
       120% 90% at 0% 0%,
-      color-mix(in srgb, var(--free) 26%, transparent),
+      color-mix(in srgb, var(--free) 28%, transparent),
       transparent 62%
     ),
     var(--glass);
@@ -219,7 +274,7 @@
 
 .hours {
   display: grid;
-  gap: 8px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -239,44 +294,6 @@
   font-weight: 700;
 }
 
-.beads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 3px;
-}
-
-/* one bead an hour, in two halves so that a half hour shows */
-.beads span {
-  display: flex;
-  width: 16px;
-  height: 16px;
-}
-
-.beads i {
-  width: 8px;
-  height: 16px;
-}
-
-.beads i:first-child {
-  border-radius: 8px 0 0 8px;
-}
-
-.beads i:last-child {
-  border-radius: 0 8px 8px 0;
-}
-
-.beads i[data-kind="left"] {
-  background: var(--free);
-}
-
-.beads i[data-kind="booked"] {
-  background: var(--held);
-}
-
-.beads i[data-kind="used"] {
-  background: color-mix(in srgb, var(--ink) 16%, transparent);
-}
-
 .fine {
   display: flex;
   flex-wrap: wrap;
@@ -284,6 +301,64 @@
   color: var(--soft);
   font-size: 13px;
   font-weight: 600;
+}
+
+/* a square an hour, sized to fit as many as fifty */
+.cells {
+  --s: 20px;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--s) * 0.28);
+}
+
+.cells[data-size="m"] {
+  --s: 16px;
+}
+
+.cells[data-size="s"] {
+  --s: 13px;
+}
+
+.cells i {
+  width: var(--s);
+  height: var(--s);
+  border-radius: calc(var(--s) * 0.3);
+  background: linear-gradient(90deg, var(--a) 50%, var(--b, var(--a)) 50%);
+}
+
+.cells i[data-kind="left"] {
+  --a: var(--free);
+  box-shadow: 0 0 calc(var(--s) * 0.6) color-mix(in srgb, var(--free) 75%, transparent);
+}
+
+.cells i[data-kind="booked"] {
+  --a: var(--held);
+  box-shadow: 0 0 calc(var(--s) * 0.45) color-mix(in srgb, var(--held) 55%, transparent);
+}
+
+.cells i[data-kind="used"] {
+  --a: color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+/* a half hour: the square's second half takes the next kind, or nothing */
+.cells i[data-half="booked"] {
+  --b: var(--held);
+}
+
+.cells i[data-half="left"] {
+  --b: var(--free);
+}
+
+.cells i[data-half="none"] {
+  --b: transparent;
+}
+
+.cells span {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .schedule .plus {
@@ -314,44 +389,82 @@
   transform: scale(0.97);
 }
 
-/* ---- the next session ---- */
+/* ---- the next session: a strip of its sky, then when it is ---- */
 .next {
   grid-area: next;
   display: grid;
   gap: 12px;
-  padding: 16px;
+  padding: 0 0 16px;
+  overflow: hidden;
 }
 
-.next[data-tod] {
-  background:
-    radial-gradient(
-      130% 100% at 100% 0%,
-      color-mix(in srgb, var(--tod) 34%, transparent),
-      transparent 60%
-    ),
-    var(--glass);
+.next > * {
+  margin: 0 16px;
 }
 
-.with {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+.schedule .sky {
+  position: relative;
+  height: 72px;
+  margin: 0;
+  background: linear-gradient(120deg, var(--sky-a), var(--sky-b));
+}
+
+.sky svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sky [data-twinkle] {
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+.sky [data-twinkle="1"] {
+  animation-delay: -1.1s;
+}
+
+.sky [data-twinkle="2"] {
+  animation-delay: -2.2s;
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.sky [data-drift] {
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+.sky [data-drift="1"] {
+  animation-duration: 19s;
+}
+
+@keyframes drift {
+  to {
+    transform: translateX(22px);
+  }
+}
+
+/* how long until it: one small pill on the sky */
+.sky > span {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgb(10 12 28 / 0.45);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fffdf8;
   font-size: 14px;
   font-weight: 700;
 }
 
-.with i {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--tutor);
-  color: #fff;
-  font-size: 13px;
-  font-style: normal;
-  font-weight: 800;
+.next > .when:first-child {
+  margin-top: 16px;
 }
 
 .when h2 {
@@ -365,13 +478,13 @@
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .when > h2 + p svg {
   flex: none;
-  color: var(--tod);
+  color: var(--sky);
   stroke-width: 1.6;
   stroke-linecap: round;
 }
@@ -398,32 +511,6 @@
   color: var(--soft);
   font-style: normal;
   font-weight: 600;
-}
-
-.clock {
-  display: flex;
-  gap: 6px;
-}
-
-.clock > span {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  min-width: 62px;
-  padding: 9px 6px 7px;
-  border-radius: 14px;
-  background: var(--lens);
-  box-shadow:
-    inset 0 0 0 1px var(--lens-edge),
-    var(--lens-shade);
-  color: var(--soft);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.clock b {
-  color: var(--ink);
-  font: 400 30px/1 var(--font-serif);
 }
 
 .door {
@@ -476,16 +563,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 8px;
+  gap: 8px;
 }
 
 .changes small {
-  flex-basis: 100%;
-}
-
-.ask {
-  gap: 8px;
-  margin-left: 0;
+  margin-left: auto;
 }
 
 .ask p {
@@ -494,14 +576,14 @@
   font-size: 14px;
 }
 
-/* ---- the pane: booking, a past session, adding hours ---- */
+/* ---- the pane: booking, or a past session ---- */
 .pane {
   grid-area: pane;
   padding: 16px;
   min-width: 0;
 }
 
-/* ---- the sessions ---- */
+/* ---- the sessions: each row washed with the sky at its time ---- */
 .list {
   grid-area: list;
   display: grid;
@@ -519,8 +601,11 @@
 }
 
 .schedule .tabs button {
-  height: 34px;
-  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px 0 14px;
   border-radius: 11px;
   color: var(--soft);
   font-size: 14px;
@@ -528,6 +613,16 @@
   transition:
     background 0.18s var(--out),
     color 0.18s var(--out);
+}
+
+.tabs i {
+  min-width: 22px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 12px;
+  font-style: normal;
+  text-align: center;
 }
 
 .schedule .tabs button[aria-selected="true"] {
@@ -544,15 +639,27 @@
 
 .items {
   display: grid;
-  gap: 2px;
+  gap: 8px;
 }
 
 .item {
-  border-radius: 14px;
+  border-radius: 18px;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--sky) 26%, transparent),
+    color-mix(in srgb, var(--sky) 5%, transparent) 70%
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sky) 35%, transparent);
+  transition:
+    transform 0.2s var(--out),
+    box-shadow 0.2s var(--out);
 }
 
-.item[data-open] {
-  background: var(--hover);
+.item:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent),
+    0 10px 20px -14px var(--sky);
 }
 
 .schedule .item > button {
@@ -560,17 +667,12 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 8px;
-  border-radius: 14px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 18px;
   text-align: left;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: background 0.16s var(--out);
-}
-
-.schedule .item > button:hover {
-  background: var(--hover);
 }
 
 .item > button > svg {
@@ -583,49 +685,51 @@
   transform: rotate(90deg);
 }
 
+/* the date, on the sky's own color */
 .date {
   flex: none;
   display: grid;
   justify-items: center;
+  align-content: center;
   width: 50px;
-  padding: 6px 0 5px;
-  border-radius: 12px;
-  background: var(--lens);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-}
-
-.date[data-tod] {
-  background: var(--tod);
-  box-shadow: none;
-  color: #1d1a22;
-}
-
-.date[data-tod] small {
-  color: inherit;
-  opacity: 0.75;
+  height: 50px;
+  border-radius: 14px;
+  background: linear-gradient(140deg, var(--sky-a), var(--sky-b));
+  color: #fffdf8;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
 }
 
 .date small {
-  color: var(--soft);
   font-size: 11px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.1;
+  opacity: 0.9;
 }
 
 .date b {
-  font: 400 20px/1.05 var(--font-serif);
+  font: 400 21px/1.05 var(--font-serif);
 }
 
 .what {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   flex: 1;
   min-width: 0;
 }
 
 .what b {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 15px;
   font-weight: 700;
+}
+
+.what b svg {
+  flex: none;
+  color: var(--sky);
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 .what small {
@@ -637,33 +741,60 @@
   white-space: nowrap;
 }
 
-.item > button > i {
+.item > button > i,
+.item > button > em {
   flex: none;
-  padding: 3px 9px;
+  padding: 4px 9px;
   border-radius: 999px;
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  color: var(--soft);
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 700;
+}
+
+/* how long it is */
+.item > button > i {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.item > button > em {
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: var(--soft);
+}
+
+/* a past session has its recording: a round play mark */
+.play {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding-left: 2px;
+  border-radius: 50%;
+  background: var(--go);
+  color: var(--on-go);
+}
+
+.play[data-missed] {
+  padding-left: 0;
+  background: color-mix(in srgb, var(--ruby) 80%, transparent);
+  color: #fff;
 }
 
 .item > .changes,
 .item > .ask,
 .item > .rule {
   margin: 0;
-  padding: 0 10px 10px 58px;
+  padding: 2px 12px 12px;
 }
 
 @media (min-width: 960px) {
   .schedule {
     grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
     grid-template-areas:
-      "sync sync"
       "left pane"
       "next pane"
       "list pane";
-    grid-template-rows: auto auto auto 1fr;
+    grid-template-rows: auto auto 1fr;
   }
 
   .pane {
@@ -698,20 +829,14 @@
     height: 84px;
   }
 
-  .clock > span {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .item > .changes,
-  .item > .ask,
-  .item > .rule {
-    padding-left: 10px;
+  .item > button > em {
+    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .schedule * {
     transition: none !important;
+    animation: none !important;
   }
 }

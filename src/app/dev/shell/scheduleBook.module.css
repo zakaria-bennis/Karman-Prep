@@ -1,6 +1,6 @@
 /*
  * Booking a session (ScheduleBook.tsx), inside Schedule's pane. Colors, and the buttons shared with
- * the rest of the page, come from schedule.module.css (--tod is a time's part of the day, --kind a
+ * the rest of the page, come from schedule.module.css (--sky is the sky at a time, --kind a
  * skill's subject). The chosen day is one pill that glides behind the dates.
  */
 .book {
@@ -43,15 +43,8 @@
 }
 
 .head p {
-  display: flex;
-  gap: 8px;
   font-size: 15px;
   font-weight: 700;
-}
-
-.head p span {
-  color: var(--soft);
-  font-weight: 600;
 }
 
 /* ---- the calendar: whole weeks under the weekday letters ---- */
@@ -154,11 +147,47 @@
   background: var(--free);
 }
 
-.day i[data-mark="mine"] {
-  width: 16px;
-  height: 5px;
-  border-radius: 3px;
-  background: var(--tod);
+/* a day with a session of the student's own: the whole day wears that session's sky */
+.day[data-own="night"] {
+  --own-a: #2b2a6e;
+  --own-b: #6a4bb8;
+}
+
+.day[data-own="sunrise"] {
+  --own-a: #ff9a6b;
+  --own-b: #ffd08a;
+}
+
+.day[data-own="day"] {
+  --own-a: #3fa9f5;
+  --own-b: #8fd3ff;
+}
+
+.day[data-own="sunset"] {
+  --own-a: #7a3fb0;
+  --own-b: #ff8a5c;
+}
+
+.book .day[data-own] {
+  opacity: 1;
+  color: #fffdf8;
+}
+
+.day[data-own] > span {
+  background: linear-gradient(140deg, var(--own-a), var(--own-b));
+  box-shadow: 0 8px 16px -10px var(--own-b);
+}
+
+.day[data-own] b {
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+/* chosen as well: the pill shows as a ring around it */
+.book .day[data-own][aria-pressed="true"] > span {
+  box-shadow:
+    0 0 0 3px var(--ink),
+    0 8px 16px -10px var(--own-b);
 }
 
 .day em {
@@ -232,8 +261,8 @@
   width: 100%;
   height: 48px;
   border-radius: 16px;
-  background: color-mix(in srgb, var(--tod) 14%, var(--lens));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tod) 45%, var(--lens-edge));
+  background: color-mix(in srgb, var(--sky) 14%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sky) 45%, var(--lens-edge));
   font-size: 15px;
   font-weight: 700;
   transition:
@@ -244,20 +273,31 @@
 
 .times svg {
   flex: none;
-  color: var(--tod);
+  color: var(--sky);
   stroke-width: 1.6;
   stroke-linecap: round;
   transition: color 0.18s var(--out);
 }
 
-.book .times button:hover {
-  background: color-mix(in srgb, var(--tod) 30%, var(--lens));
+.book .times button:disabled {
+  background: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  color: color-mix(in srgb, var(--ink) 34%, transparent);
+  cursor: default;
+}
+
+.times button:disabled svg {
+  color: inherit;
+}
+
+.book .times button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--sky) 30%, var(--lens));
 }
 
 .book .times button[aria-pressed="true"] {
-  background: var(--tod);
+  background: var(--sky);
   color: #1d1a22;
-  box-shadow: 0 12px 22px -12px var(--tod);
+  box-shadow: 0 12px 22px -12px var(--sky);
 }
 
 .times button[aria-pressed="true"] svg {
@@ -293,27 +333,72 @@
   line-height: 1.45;
 }
 
-/* ---- what to work on: each skill in its subject's color ---- */
-.chips {
-  display: flex;
-  flex-wrap: wrap;
+/* ---- what to work on: the five skills that most need it, each in its subject's color ---- */
+.picks {
+  display: grid;
   gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.book .chips button {
-  min-height: 38px;
-  padding: 6px 14px;
-  border-radius: 19px;
-  background: color-mix(in srgb, var(--kind) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 60%, transparent);
-  font-size: 14px;
-  font-weight: 700;
+.book .picks button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--kind) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 45%, transparent);
+  text-align: left;
   transition:
     background 0.18s var(--out),
-    color 0.18s var(--out);
+    box-shadow 0.18s var(--out);
 }
 
-.book .chips button[aria-pressed="true"] {
+.book .picks button:hover {
+  background: color-mix(in srgb, var(--kind) 24%, transparent);
+}
+
+/* the tick: an empty ring until the skill is chosen */
+.picks i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--kind);
+  color: transparent;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    background 0.2s var(--out),
+    color 0.2s var(--out);
+}
+
+.picks b {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.picks small {
+  flex: none;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.book .picks button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--kind) 32%, transparent);
+  box-shadow: inset 0 0 0 2px var(--kind);
+}
+
+.picks button[aria-pressed="true"] i {
   background: var(--kind);
   color: #fff;
 }
@@ -443,96 +528,6 @@
   font-size: 13px;
   font-weight: 600;
   text-align: right;
-}
-
-/* ---- booked: the ticket ---- */
-.booked {
-  display: grid;
-  place-items: center;
-  min-height: 420px;
-}
-
-.ticket {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  width: min(100%, 360px);
-  padding: 30px 24px 16px;
-  border-radius: 26px;
-  background:
-    radial-gradient(
-      120% 80% at 50% 0%,
-      color-mix(in srgb, var(--tod) 36%, transparent),
-      transparent 70%
-    ),
-    var(--lens);
-  box-shadow:
-    inset 0 0 0 1px var(--lens-edge),
-    var(--lift);
-  text-align: center;
-}
-
-.seal {
-  position: relative;
-  display: grid;
-  place-items: center;
-  margin-bottom: 8px;
-}
-
-.seal svg {
-  stroke: var(--free);
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.seal svg * {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.seal i {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--free);
-  opacity: 0;
-}
-
-.seal i[data-n="1"] {
-  background: var(--rw);
-}
-
-.seal i[data-n="2"] {
-  background: var(--math);
-}
-
-.seal i[data-n="3"] {
-  background: #ffc94a;
-}
-
-.ticket b {
-  font: 400 34px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
-}
-
-.ticket p {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.ticket p + p {
-  color: var(--soft);
-  font-weight: 600;
-}
-
-.ticket .also {
-  font-size: 14px;
-}
-
-.ticket button {
-  margin-top: 8px;
 }
 
 @media (max-width: 520px) {

@@ -1,13 +1,16 @@
 "use client";
 
-// Schedule's smaller parts: the next session with its clock and Join, the buttons that move or
-// cancel a session, a past session with its recording, adding hours, and the offer to keep sessions
-// in the family's own calendar.
+// Schedule's smaller parts: the hours as squares beside the student's character, the next session
+// under a strip of its own sky, the buttons that move or cancel a session, a past session with its
+// recording, and the offer to keep sessions in the family's own calendar.
+import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
-import { cut, two } from "./homeworkMotion";
+import { createPortal } from "react-dom";
 import { Buddy } from "./HomeworkBuddy";
-import { TodIcon } from "./ScheduleBook";
-import { breathe, fold, pop, press, useCount } from "./scheduleMotion";
+import { calm, cut, two } from "./homeworkMotion";
+import { AppleLogo, GoogleCalendarLogo } from "./ScheduleLogos";
+import { SkyIcon, SkyScene } from "./ScheduleSky";
+import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
   RULES,
@@ -24,9 +27,8 @@ import {
   movesBack,
   movesLeft,
   recordingUntil,
+  skyOf,
   subjectOf,
-  todOf,
-  zone,
   type Account,
   type Session,
 } from "./scheduleData";
@@ -81,7 +83,7 @@ export function Changes({
     <div className={styles.changes}>
       <button
         type="button"
-        className={styles.pill}
+        className={styles.move}
         disabled={!change.move}
         onClick={(e) => {
           tick();
@@ -89,9 +91,29 @@ export function Changes({
           onMove(session);
         }}
       >
+        <svg
+          viewBox="0 0 20 20"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M3 7h12M12 3.500L15.500 7 12 10.500M17 13H5M8 9.500L4.500 13 8 16.500" />
+        </svg>
         Move
       </button>
-      <button type="button" className={styles.pill} onClick={() => setAsking(true)}>
+      <button type="button" className={styles.cancel} onClick={() => setAsking(true)}>
+        <svg
+          viewBox="0 0 20 20"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M5.500 5.500l9 9M14.500 5.500l-9 9" />
+        </svg>
         Cancel
       </button>
       <small>
@@ -105,7 +127,16 @@ export function Changes({
   );
 }
 
-/** The next session: when it is, a clock counting down to it, and Join once it opens. */
+/** How long until a time, said shortly: "2d 16h", "16h 03m", "12m 30s". */
+export function until(ms: number): string {
+  const left = cut(ms);
+  if (left.days > 0) return `${left.days}d ${left.hours}h`;
+  if (left.hours > 0) return `${left.hours}h ${two(left.minutes)}m`;
+  return `${left.minutes}m ${two(left.seconds)}s`;
+}
+
+/** The next session: a strip of the sky at its time, when it is, how long until it, and Join once
+ *  it opens. */
 export function Next({
   account,
   session,
@@ -124,30 +155,23 @@ export function Next({
   useEffect(() => {
     if (door === "closed") schedule.miss(session.id);
   }, [door, session.id]);
-  const left = cut(session.start - now);
-  const parts: [number, string][] =
-    left.days > 0
-      ? [
-          [left.days, left.days === 1 ? "day" : "days"],
-          [left.hours, "hrs"],
-          [left.minutes, "min"],
-        ]
-      : [
-          [left.hours, "hrs"],
-          [left.minutes, "min"],
-          [left.seconds, "sec"],
-        ];
+  const sky = skyOf(session.start);
   return (
     <>
+      <div className={styles.sky} data-sky={sky}>
+        <SkyScene sky={sky} />
+        {door === "early" && (
+          <span role="timer" aria-label="Time until this session">
+            in {until(session.start - now)}
+          </span>
+        )}
+        {door === "in" && <span>Now</span>}
+      </div>
       <div className={styles.when}>
-        <p className={styles.with}>
-          <i aria-hidden="true">{first[0]}</i>
-          {TUTOR}
-        </p>
         <h2>{dateLong(session.start)}</h2>
         <p>
-          <TodIcon tod={todOf(session.start)} />
-          {clock(session.start)} to {clock(endOf(session))} {zone()}
+          <SkyIcon sky={sky} />
+          {clock(session.start)} to {clock(endOf(session))}
         </p>
         {(session.focus.length > 0 || session.note) && (
           <p className={styles.tags}>
@@ -160,16 +184,6 @@ export function Next({
           </p>
         )}
       </div>
-      {door === "early" && (
-        <div className={styles.clock} role="timer" aria-label="Time until this session">
-          {parts.map(([n, word]) => (
-            <span key={word}>
-              <b>{two(n)}</b>
-              {word}
-            </span>
-          ))}
-        </div>
-      )}
       {door === "open" && (
         <div className={styles.door}>
           <button
@@ -186,7 +200,7 @@ export function Next({
           <small>
             {now < session.start
               ? `Starts in ${Math.max(1, Math.ceil((session.start - now) / MIN))} min`
-              : `Join by ${clock(session.start + RULES.graceMinutes * MIN)}`}
+              : `Closes ${clock(session.start + RULES.graceMinutes * MIN)}`}
           </small>
         </div>
       )}
@@ -199,18 +213,18 @@ export function Next({
       {door === "early" && (
         <Changes account={account} session={session} now={now} onMove={onMove} />
       )}
-      {door === "open" && now >= session.start && (
-        <p className={styles.rule}>
-          Closes {clock(session.start + RULES.graceMinutes * MIN)}. Ends {clock(endOf(session))}.
-        </p>
-      )}
     </>
   );
 }
 
-/** The hours: the student's own character, the number left, and a bead for every hour of the
- *  package (green is free to book, blue is booked, clear is used). The beads pop in when they
- *  change. */
+type Kind = "used" | "booked" | "left";
+/** The most squares drawn: beyond this the rest is said as a number. */
+const MOST = 50;
+
+/** The hours: the student's own character, the number left, and a square for every hour (green
+ *  and glowing is free to book, blue is booked, clear is used; a half hour is half a square). The
+ *  squares fit themselves to as many as fifty. A square that changes pops; hours just bought land
+ *  one after another. */
 export function Hours({
   left,
   booked,
@@ -227,16 +241,45 @@ export function Hours({
   onBuy: () => void;
 }) {
   const shown = useCount(left);
-  const beads = useRef<HTMLDivElement>(null);
-  // half hours are drawn as half beads, so the row is counted in halves
   const halves = (n: number) => Math.round(n * 2);
-  const row: ("used" | "booked" | "left")[] = [
-    ...Array<"used">(halves(used)).fill("used"),
-    ...Array<"booked">(halves(booked)).fill("booked"),
-    ...Array<"left">(halves(left)).fill("left"),
+  const row: Kind[] = [
+    ...Array<Kind>(halves(used)).fill("used"),
+    ...Array<Kind>(halves(booked)).fill("booked"),
+    ...Array<Kind>(halves(left)).fill("left"),
   ];
-  const key = `${halves(used)}-${halves(booked)}-${halves(left)}`;
-  useEffect(() => pop(beads.current), [key]);
+  const units = Array.from({ length: Math.ceil(row.length / 2) }, (_, n) => ({
+    a: row[n * 2],
+    b: row[n * 2 + 1] ?? null,
+  }));
+  const drawn = units.slice(0, MOST);
+  const key = drawn.map((u) => `${u.a[0]}${u.b?.[0] ?? "-"}`).join("");
+  const cells = useRef<HTMLDivElement>(null);
+  const before = useRef<string | null>(null);
+  useEffect(() => {
+    const el = cells.current;
+    const was = before.current;
+    before.current = key;
+    if (!el || calm()) return;
+    const all = Array.from(el.querySelectorAll<HTMLElement>("i"));
+    // the first time every square arrives; after that only the ones that changed
+    const changed = all.filter(
+      (_, n) => was === null || key.slice(n * 2, n * 2 + 2) !== was.slice(n * 2, n * 2 + 2)
+    );
+    if (changed.length === 0) return;
+    gsap.fromTo(
+      changed,
+      { scale: 0, rotate: -30, opacity: 0 },
+      {
+        scale: 1,
+        rotate: 0,
+        opacity: 1,
+        duration: 0.5,
+        stagger: was === null ? 0.012 : 0.06,
+        ease: "back.out(2.4)",
+        clearProps: "transform,opacity",
+      }
+    );
+  }, [key]);
   return (
     <>
       <div className={styles.buddy}>
@@ -247,23 +290,26 @@ export function Hours({
           <b>{hoursText(shown)}</b>
           <span>{left === 1 ? "hour left" : "hours left"}</span>
         </p>
-        <div
-          className={styles.beads}
-          ref={beads}
-          role="img"
-          aria-label={`${hoursText(left)} hours free, ${hoursText(booked)} booked, ${hoursText(used)} used`}
-        >
-          {Array.from({ length: Math.ceil(row.length / 2) }, (_, n) => (
-            <span key={n}>
-              <i data-kind={row[n * 2]} />
-              {row[n * 2 + 1] && <i data-kind={row[n * 2 + 1]} />}
-            </span>
-          ))}
-        </div>
         <p className={styles.fine}>
           <span>Use by {monthDay(expiresAt(account)).replace(/ \d+,/, "")}</span>
           {account.pack === "private-10" && <span>60 min a week</span>}
         </p>
+      </div>
+      <div
+        className={styles.cells}
+        ref={cells}
+        data-size={drawn.length > 36 ? "s" : drawn.length > 24 ? "m" : "l"}
+        role="img"
+        aria-label={`${hoursText(left)} hours free, ${hoursText(booked)} booked, ${hoursText(used)} used`}
+      >
+        {drawn.map((u, n) => (
+          <i
+            key={n}
+            data-kind={u.a}
+            data-half={u.b && u.b !== u.a ? u.b : u.b === null ? "none" : undefined}
+          />
+        ))}
+        {units.length > MOST && <span>+{units.length - MOST}</span>}
       </div>
       <button
         type="button"
@@ -429,54 +475,87 @@ export function Past({
   );
 }
 
-/** Offered once, on first opening: keep sessions in the family's own calendar. Declined, the
- *  choice lives in Settings. (A stand-in: nothing is connected yet.) */
+/** Offered once, on first opening: keep sessions in the family's own calendar. On a wide screen it
+ *  is a small banner that slides in at the top right (after the night's music offer, if that is
+ *  showing); on a phone it is the first thing on the page. Declined, the choice lives in Settings.
+ *  (A stand-in: nothing is connected yet.) */
 export function SyncOffer({ sync }: { sync: Sync }) {
   const el = useRef<HTMLDivElement>(null);
   const [said, setSaid] = useState<"apple" | "google" | null>(null);
-  if (sync !== "ask" && !said) return null;
+  const [wide, setWide] = useState<boolean | null>(null);
+  const [clear, setClear] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 960px)");
+    const read = () => setWide(media.matches);
+    read();
+    media.addEventListener("change", read);
+    // it waits its turn: the corner may be taken by the music offer
+    const timer = window.setInterval(() => {
+      const music = document.querySelector('[class*="musicOffer"]');
+      if (!music || music.getClientRects().length === 0) {
+        setClear(true);
+        window.clearInterval(timer);
+      }
+    }, 500);
+    return () => {
+      media.removeEventListener("change", read);
+      window.clearInterval(timer);
+    };
+  }, []);
+  const showing = (sync === "ask" || said !== null) && wide !== null && (!wide || clear);
+  useEffect(() => {
+    if (!showing || !el.current || calm()) return;
+    gsap.fromTo(el.current, wide ? { x: 60, opacity: 0 } : { y: -12, opacity: 0 }, {
+      x: 0,
+      y: 0,
+      opacity: 1,
+      duration: 0.6,
+      ease: "expo.out",
+      clearProps: "transform,opacity",
+    });
+  }, [showing, wide]);
+  if (!showing) return null;
+  const away = (then: () => void) => {
+    if (!el.current || calm()) return then();
+    gsap.to(el.current, {
+      ...(wide ? { x: 80 } : { height: 0, paddingTop: 0, paddingBottom: 0, marginBottom: -12 }),
+      opacity: 0,
+      duration: 0.4,
+      ease: "power3.in",
+      onComplete: then,
+    });
+  };
   const answer = (choice: "apple" | "google" | "later") => {
     tick();
-    if (choice === "later") return fold(el.current, () => schedule.sync("later"));
+    if (choice === "later") return away(() => schedule.sync("later"));
     setSaid(choice);
-    window.setTimeout(() => fold(el.current, () => schedule.sync(choice)), 1900);
+    window.setTimeout(() => away(() => schedule.sync(choice)), 1700);
   };
-  return (
-    <div className={styles.sync} ref={el} data-arrive>
-      <svg
-        viewBox="0 0 32 32"
-        width="32"
-        height="32"
-        fill="none"
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <rect x="5" y="7" width="22" height="20" rx="5" />
-        <path d="M5 13h22M11 4.500v5M21 4.500v5" />
-        <path d="M11.500 20.500l3 3 6-6.500" />
-      </svg>
+  const body = (
+    <div className={styles.sync} ref={el} data-float={wide || undefined}>
       {said ? (
         <p role="status">
-          <b>Added to {said === "apple" ? "Apple" : "Google"} Calendar</b>
+          {said === "apple" ? <AppleLogo size={20} /> : <GoogleCalendarLogo size={20} />}
+          Added to {said === "apple" ? "Apple" : "Google"} Calendar
         </p>
       ) : (
         <>
-          <p>
-            <b>Add sessions to your calendar</b>
-          </p>
-          <div>
-            <button type="button" className={styles.add} onClick={() => answer("apple")}>
-              Apple
-            </button>
-            <button type="button" className={styles.add} onClick={() => answer("google")}>
-              Google
-            </button>
-            <button type="button" className={styles.quiet} onClick={() => answer("later")}>
-              Not now
-            </button>
-          </div>
+          <b>Add sessions to your calendar</b>
+          <button type="button" onClick={() => answer("apple")}>
+            <AppleLogo size={20} />
+            Apple Calendar
+          </button>
+          <button type="button" onClick={() => answer("google")}>
+            <GoogleCalendarLogo size={20} />
+            Google Calendar
+          </button>
+          <button type="button" data-quiet onClick={() => answer("later")}>
+            Not now
+          </button>
         </>
       )}
     </div>
   );
+  const shell = wide ? document.querySelector(".kp-shell") : null;
+  return shell ? createPortal(body, shell) : body;
 }

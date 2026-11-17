@@ -1753,7 +1753,7 @@ export type Database = {
           created_at: string;
           hours: number;
           id: string;
-          stripe_checkout_session_id: string;
+          stripe_payment_intent_id: string;
           user_id: string;
         };
         Insert: {
@@ -1761,7 +1761,7 @@ export type Database = {
           created_at?: string;
           hours: number;
           id?: string;
-          stripe_checkout_session_id: string;
+          stripe_payment_intent_id: string;
           user_id: string;
         };
         Update: {
@@ -1769,7 +1769,7 @@ export type Database = {
           created_at?: string;
           hours?: number;
           id?: string;
-          stripe_checkout_session_id?: string;
+          stripe_payment_intent_id?: string;
           user_id?: string;
         };
         Relationships: [
