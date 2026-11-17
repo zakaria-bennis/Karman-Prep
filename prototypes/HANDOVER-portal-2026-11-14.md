@@ -1273,6 +1273,51 @@ one. Done in this slice:
 - **Tested** on the local test database (below): a real practice set recorded a changed answer,
   three seconds away, a copy and time on the explanation.
 
+**Second slice (2026-11-17): his verdict on the frosted quiz.** He approved the direction and
+sent a long list (memory: `feedback_quiz_engine_nov17.md`, every point in his words). Done:
+
+- **Layout (desktop):** the question's page of glass covers almost the whole screen, a small
+  margin from the edges, with the question in its middle; the room at its sides is for the
+  pencil. Nothing about the glass changes when the pencil is picked up.
+- **Top bar:** its own strip, the same frost a little denser (`--quiz-bar`). **Exit** is a small
+  square of red glass. The quiz's name is centered. The clock is at the left: a small face whose
+  hand goes round once a minute, pressed to put the time away (on a phone there is no Hide
+  button), shifting toward red as a countdown runs out.
+- **Answers:** no tick or cross at the right; a graded answer's glass takes a slight green or
+  red tinge; hover lifts an answer; text a little larger and bolder; a crossed-out answer is
+  grayed and cannot be pressed (no line through it). Math typed unevenly in the bank ("−9 x⁶")
+  is evened out when shown (`src/lib/quiz/tidy-math.ts`); the bank itself is not changed.
+- **No messages during a quiz:** the "Correct" and "Not quite" strip is gone, and so is the
+  level line ("is now New"); a screen reader is still told the result.
+- **Bottom bar:** each dot is a button (press to go to a question already reached; hold to open
+  the big picker, with no phone menu); a tick or a cross shows clearly in it, and a dot just got
+  right pops with a ring. The main button is raised, with every state. After a miss graded in
+  front of the student, **Next waits three seconds** while the button fills, and an open
+  calculator closes so the explanation has the room.
+- **Explanation after a miss (wide screens):** the question's page draws in to the left and the
+  explanation comes in at the right as a page of its own, about a third narrower, the same
+  height, with a gap between them.
+- **Typed answers:** one rounded box; "Your answer" sits inside and rises to the top right when
+  the box is used; what may be typed is said inside the box until typing starts. On a phone the
+  box has keys of its own (numbers, point, minus, fraction bar), since a phone's number pad has
+  no "/".
+- **Icons:** the highlighter, the pencil and the reference book (three lines a page) are
+  redrawn; tools tip under the pointer and dip when pressed. **"Ask my tutor" (the hand) moved
+  into More.** The reference opens as a pop-up over a dimmed screen (it already did).
+- **Phone:** the calculator's side tab is off inside the quiz (`sideToggle={false}` on
+  `CalculatorScope`); the top bar's own Calculator button opens it.
+- **Pens:** by day a black pen and a blue highlighter first; by night white and yellow.
+
+**Still open from his list** (none started): the calculator's own look and behavior (slide in
+from the left taking half the screen on desktop, rise from the bottom with a small margin on a
+phone, Escape to close, memory kept for the question and for bookmarked questions); the
+"send to calculator" buttons beside answers and charts (still opaque squares; he wants a
+calculator-and-export icon); drawing made easier, with easy erasing and undoing; the
+highlighter's auto-switching color, easy removal and notes; endless mode's growing dots (there
+is no endless engine); glass tints as themes in Rewards. He dictated "a like button by the
+question answer choice": unclear, asked. `quiz-shell.module.css` is now about 790 lines and
+should be split.
+
 **Not done, in this order:**
 1. **The calculator** restyled to match (its window is opaque: `--kcc-chrome`; it has 20 themes
    of its own in `src/lib/calculator/theme/themes.ts`, built by `npm run calculator:build`; read

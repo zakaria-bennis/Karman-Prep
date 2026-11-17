@@ -11,7 +11,7 @@ import {
 } from "@/lib/quiz/timer";
 import styles from "./nav.module.css";
 import shell from "./quiz-shell.module.css";
-import { ClockIcon, EyeIcon } from "./icons";
+import { EyeIcon } from "./icons";
 import { BarButton } from "./TopBar";
 import { useShellMotion } from "./motion";
 
@@ -75,7 +75,12 @@ export function Timer({
     }
   }, [countdown, seconds, onExpire]);
 
+  const toggle = () => {
+    setHidden(!hidden);
+    writeHidden(!hidden);
+  };
   if (clock.kind === "none") return null;
+  const shift = countdown && limit > 0 ? (1 - Math.min(1, seconds / limit)) ** 2 : 0;
   const shown = !hidden || (countdown && forceShow(seconds));
   const minutes = Math.floor(seconds / 60);
   const secs = String(seconds % 60).padStart(2, "0");
@@ -86,8 +91,19 @@ export function Timer({
       <span className={shell.srOnly} role="status" aria-live="polite">
         {said}
       </span>
-      <span className={styles.clock} data-hidden={shown ? undefined : "true"}>
-        <ClockIcon size={18} />
+      <button
+        type="button"
+        className={styles.clock}
+        data-hidden={shown ? undefined : "true"}
+        aria-label={hidden ? "Show the clock" : "Hide the clock"}
+        // as a countdown runs out the clock's colour shifts toward red, slowly at first
+        style={{ "--shift": shift } as React.CSSProperties}
+        onClick={toggle}
+      >
+        {/* a small clock face: its hand goes round once a minute */}
+        <span className={styles.face} aria-hidden="true">
+          <i />
+        </span>
         {shown && (
           <motion.span
             className={`${styles.time} ${warning ? styles.warn : ""}`}
@@ -116,16 +132,13 @@ export function Timer({
             :{secs}
           </motion.span>
         )}
-      </span>
+      </button>
       <BarButton
         icon={<EyeIcon state={hidden ? "off" : "on"} />}
         word={hidden ? "Show" : "Hide"}
-        className={shell.barQuiet}
+        className={`${shell.barQuiet} ${shell.clockHide}`}
         aria-pressed={!hidden}
-        onClick={() => {
-          setHidden(!hidden);
-          writeHidden(!hidden);
-        }}
+        onClick={toggle}
       />
     </div>
   );

@@ -20,7 +20,7 @@ import {
   type RunActionResult,
 } from "@/app/learn/quiz-run-actions";
 import type { RunReview, RunView } from "@/lib/assembler/run-types";
-import { LevelBanner, type LevelChange } from "./LevelBanner";
+import type { LevelChange } from "./LevelBanner";
 import { FlowFrame, Message } from "./FlowFrame";
 import { FreeLimitPrompt } from "./FreeLimitPrompt";
 import { RunEnd } from "./RunEnd";
@@ -278,11 +278,8 @@ function InstantRun({
       }
       feedback={
         <>
-          {/* Level news waits for the end of a mixed run: mid-run it names the skill being
-              tested and can discourage after a miss (founder, 2026-11-08). */}
-          {after?.change && index === currentIndex && run.kind === "practice-set" && (
-            <LevelBanner change={after.change} />
-          )}
+          {/* No news during a quiz: nothing about levels is said until it is over (founder,
+              2026-11-17). */}
           {errorBox(error)}
         </>
       }

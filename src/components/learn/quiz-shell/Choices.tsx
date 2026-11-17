@@ -1,4 +1,5 @@
 "use client";
+import { tidyMathText } from "@/lib/quiz/tidy-math";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CalculatorChoiceAction,
@@ -15,8 +16,7 @@ import FigureChoices from "../figures/FigureChoices";
 import { useSpecParser } from "../figures/engine-loader";
 import styles from "./pane.module.css";
 import ink from "./ink.module.css";
-import { CrossIcon, TickIcon } from "./icons";
-import { BOUNCE, useShellMotion, useStateTransition } from "./motion";
+import { BOUNCE, useShellMotion } from "./motion";
 import { usePencil } from "./pencil-context";
 
 export type ChoiceState = {
@@ -65,7 +65,6 @@ export function Choices({
   const live = !reduced && !gradedAtMount;
   // No press squash while the pencil is writing across the choices.
   const pencilOn = !!usePencil()?.pencilOn;
-  const strike = useStateTransition();
   // A table choice_figure_spec takes the table-choice path; drawn ones the figure grid.
   const parse = useSpecParser(q);
   const choices = useMemo(
@@ -121,16 +120,6 @@ export function Choices({
             {crossed ? "Undo" : <s>{letter}</s>}
           </button>
         );
-        const mark = isCorrect ? (
-          <span className={styles.mark}>
-            <TickIcon />
-          </span>
-        ) : isWrong ? (
-          <span className={`${styles.mark} ${styles.markWrong}`}>
-            <CrossIcon />
-          </span>
-        ) : null;
-
         if (c.choice_table_data) {
           const table = c.choice_table_data;
           return (
@@ -162,7 +151,6 @@ export function Choices({
                     {suffix(letter, state)}
                   </span>
                 </button>
-                {mark}
                 <span className={styles.spacer} />
                 {crossButton}
                 {
@@ -191,7 +179,7 @@ export function Choices({
               type="button"
               role="radio"
               aria-checked={selected}
-              disabled={disabled}
+              disabled={disabled || crossed}
               className={`${styles.choice} ${crossed ? styles.crossed : ""} ${
                 isCorrect ? styles.correct : isWrong ? styles.wrong : ""
               }`}
@@ -239,17 +227,12 @@ export function Choices({
                 <span className={styles.badgeLetter}>{letter}</span>
               </span>
               <span className={styles.choiceText}>
-                <MathText text={c.choice_text} serializedFunctionLines={q.subject === "math"} />
+                <MathText
+                  text={q.subject === "math" ? tidyMathText(c.choice_text) : c.choice_text}
+                  serializedFunctionLines={q.subject === "math"}
+                />
                 <span className={styles.srOnly}>{suffix(letter, state)}</span>
               </span>
-              {mark}
-              <motion.span
-                className={styles.strike}
-                aria-hidden="true"
-                initial={false}
-                animate={{ scaleX: crossed ? 1 : 0 }}
-                transition={strike}
-              />
             </motion.button>
             <AnimatePresence>
               {pickOffer === letter && !state.locked && !crossed && (

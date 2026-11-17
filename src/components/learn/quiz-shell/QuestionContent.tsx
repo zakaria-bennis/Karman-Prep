@@ -17,7 +17,6 @@ export type QuestionContentProps = {
   ws: QuestionWorkspace | undefined;
   review: StudentQuizReview | undefined;
   bookmarked: boolean;
-  flagged: boolean;
   eliminatorOn: boolean;
   /** Draw the figure in the question pane (math); reading questions draw it with the passage. */
   figureHere: boolean;
@@ -29,7 +28,6 @@ export type QuestionContentProps = {
   onCross(letter: string): void;
   onToggleReview(): void;
   onToggleBookmark(): void;
-  onFlag(note: string): void;
   onToggleEliminator(): void;
 };
 
@@ -54,12 +52,10 @@ export function QuestionContent(p: QuestionContentProps) {
         mode={mode}
         markedForReview={!!ws?.markedForReview}
         bookmarked={p.bookmarked}
-        flagged={p.flagged}
         eliminatorOn={p.eliminatorOn}
         showEliminator={q.answer_format === "multiple_choice" && !locked}
         onToggleReview={p.onToggleReview}
         onToggleBookmark={p.onToggleBookmark}
-        onFlag={p.onFlag}
         onToggleEliminator={p.onToggleEliminator}
       />
       {p.figureHere && <FigureSlot q={q} calculator={p.hasCalculator} />}

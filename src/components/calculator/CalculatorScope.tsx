@@ -56,6 +56,9 @@ export interface CalculatorScopeProps {
   onOpenChange(open: boolean): void;
   questionKey: string; // required: the value the host keys the scope by (makeQuestionKey in quiz hosts)
   dockTop?: number; // AR-24, default 12
+  /** The tab at the side of a phone's screen that opens the calculator. A host with a button of
+   *  its own for that (the quiz's top bar) turns it off. Default true. */
+  sideToggle?: boolean;
   children: ReactNode;
 }
 
@@ -229,6 +232,7 @@ export function CalculatorScope({
   onOpenChange,
   questionKey,
   dockTop = 12,
+  sideToggle = true,
   children,
 }: CalculatorScopeProps): JSX.Element {
   const hostId = `karman-calculator-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
@@ -480,7 +484,7 @@ export function CalculatorScope({
         >
           {transferBridge.announcement}
         </div>
-        {enabled && phone && !open && (
+        {enabled && phone && !open && sideToggle && (
           <button
             type="button"
             ref={sideRef}

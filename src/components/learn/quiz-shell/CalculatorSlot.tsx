@@ -61,6 +61,8 @@ export function CalculatorFrame({
       open={on && open && !carried}
       onOpenChange={onOpenChange}
       dockTop={dockTop}
+      // the quiz has its own Calculator button in the top bar, on a phone too
+      sideToggle={false}
     >
       {children}
       {on && <CalculatorButton />}

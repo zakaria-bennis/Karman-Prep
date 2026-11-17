@@ -96,15 +96,21 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  min-height: 52px;
-  padding: 12px 16px;
+  min-height: 56px;
+  padding: 13px 16px;
   border: 1.5px solid var(--quiz-line);
   border-radius: 16px;
   background: var(--quiz-lens);
   color: var(--quiz-text);
   font: inherit;
+  font-weight: 560;
   text-align: left;
   cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
 }
 .choice[aria-checked="true"] {
   border-color: var(--quiz-accent);
@@ -113,9 +119,15 @@
 .choice:disabled {
   cursor: default;
 }
+/* Under a mouse an answer lifts a little: lighter glass, a firmer edge, a soft shadow. */
 @media (hover: hover) {
   .choice:not(:disabled):hover {
     border-color: var(--quiz-text-muted);
+    background: color-mix(in srgb, var(--quiz-text) 9%, var(--quiz-lens));
+    box-shadow: 0 8px 20px -14px rgb(0 0 0 / 0.6);
+  }
+  .choice:not(:disabled):hover .badge {
+    border-color: var(--quiz-text);
   }
 }
 .choice:focus-visible,
@@ -124,19 +136,16 @@
   outline: 2px solid var(--quiz-accent);
   outline-offset: 2px;
 }
-.crossed .choiceText,
-.crossed .badge {
-  opacity: 0.45;
+/* Crossed out: the answer is grayed and cannot be pressed until it is brought back (founder,
+   2026-11-17: no line through the words). */
+.choice.crossed,
+.tableChoice.crossed {
+  opacity: 0.38;
+  filter: grayscale(1);
+  cursor: not-allowed;
 }
-.strike {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 50%;
-  height: 2px;
-  background: var(--quiz-text);
-  transform-origin: left center;
-  pointer-events: none;
+.badge {
+  opacity: 0.45;
 }
 .badge {
   position: relative;
@@ -167,21 +176,21 @@
 .choiceText {
   flex: 1;
   padding-top: 3px;
+  font-size: 1.04rem;
   line-height: 1.5;
 }
+/* Graded: the answer's glass takes a slight tinge of green or red, inside a ring of the same. */
 .correct,
 .choice.correct[aria-checked="true"] {
   border-color: var(--quiz-correct);
+  background: color-mix(in srgb, var(--quiz-correct) 18%, var(--quiz-lens));
   box-shadow: inset 0 0 0 1px var(--quiz-correct);
 }
 .wrong,
 .choice.wrong[aria-checked="true"] {
   border-color: var(--quiz-wrong);
+  background: color-mix(in srgb, var(--quiz-wrong) 16%, var(--quiz-lens));
   box-shadow: inset 0 0 0 1px var(--quiz-wrong);
-}
-.mark {
-  display: inline-flex;
-  color: var(--quiz-correct);
 }
 /* Answer feedback: a ring of the right colour washes out from the right answer (Choices). */
 .ripple {
@@ -190,9 +199,6 @@
   border-radius: inherit;
   box-shadow: 0 0 0 2px var(--quiz-correct);
   pointer-events: none;
-}
-.markWrong {
-  color: var(--quiz-wrong);
 }
 .cross {
   flex: 0 0 44px;
@@ -229,32 +235,97 @@
   max-width: 100%;
 }
 
+/* A typed answer: one rounded box. Its name sits inside until the box is used, then rises to
+   the top right; what may be typed is said inside the box until typing starts. */
 .numeric {
+  position: relative;
   margin-top: 8px;
-  padding: 14px 18px;
   border: 1.5px solid var(--quiz-line);
-  border-radius: 10px;
+  border-radius: 16px;
+  background: var(--quiz-lens);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.numeric:focus-within {
+  border-color: var(--quiz-accent);
+  box-shadow: inset 0 0 0 1px var(--quiz-accent);
 }
 .numericLabel {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--quiz-text-muted);
+  pointer-events: none;
+  transition:
+    top 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    font-size 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.numeric:focus-within .numericLabel,
+.numeric[data-filled] .numericLabel {
+  top: 9px;
+  left: 100%;
+  transform: translate(calc(-100% - 16px), 0);
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 .numericInput {
+  display: block;
   width: 100%;
+  height: 68px;
+  padding: 14px 18px 0;
   border: 0;
-  border-bottom: 2px solid var(--quiz-text);
+  border-radius: inherit;
   background: transparent;
   color: var(--quiz-text);
   font: inherit;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+.numericInput::placeholder {
+  color: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.numeric:focus-within .numericInput::placeholder {
+  color: var(--quiz-text-muted);
 }
 .numericInput:focus-visible {
   outline: none;
-  border-bottom-color: var(--quiz-accent);
+}
+
+/* The phone's own keys for a typed answer: the numbers, a point, a minus and the fraction bar. */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.key {
+  height: 52px;
+  border: 1.5px solid var(--quiz-line);
+  border-radius: 14px;
+  background: var(--quiz-lens);
+  color: var(--quiz-text);
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 90ms ease,
+    background-color 120ms ease;
+}
+.key:active {
+  transform: scale(0.94);
+  background: color-mix(in srgb, var(--quiz-text) 16%, var(--quiz-lens));
 }
 
 .figure {

@@ -35,9 +35,8 @@ import { BarButton, TopBar } from "./TopBar";
 import { QuizWorld } from "./QuizWorld";
 import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
 import { Explanation } from "./Explanation";
-import { FeedbackBar, ProgressDots } from "./Rewards";
+import { ProgressDots } from "./Rewards";
 import { LevelUpCard } from "./LevelUpCard";
-import { DRAWING_NAMES } from "./drawings";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
@@ -84,11 +83,8 @@ export type QuizShellProps = {
   onLevelUpDone?(): void;
 };
 
-function seedOf(text: string): number {
-  let h = 0;
-  for (const c of text) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h;
-}
+/** How long Next waits after a miss, so the explanation is looked at. */
+const NEXT_HOLD_MS = 3000;
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
@@ -152,6 +148,29 @@ export function QuizShell(props: QuizShellProps) {
   }, [index]);
   // Small wins: folded from the graded answers in order, so a repeated review never counts twice.
   const instant = mode.grading === "instant";
+  // A miss graded in front of the student (not one opened again later) holds Next for three
+  // seconds while the button fills, a nudge toward the explanation (founder, 2026-11-17). The
+  // calculator, if it is open, steps aside so the explanation has the room.
+  const qid = q?.id;
+  const missed = instant && !!review && !review.isCorrect;
+  const [seenMissed] = useState(() => new Set<string>());
+  const [held, setHeld] = useState<string | null>(null);
+  useEffect(() => {
+    if (!qid) return;
+    if (!missed) {
+      // a question first shown already missed never holds Next
+      if (review) seenMissed.add(qid);
+      return;
+    }
+    if (seenMissed.has(qid)) return;
+    seenMissed.add(qid);
+    setCalcOpen(false);
+    setHeld(qid);
+    const done = window.setTimeout(() => setHeld(null), NEXT_HOLD_MS);
+    return () => window.clearTimeout(done);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qid, missed]);
+  const holding = !!qid && held === qid;
   const rewards = questions.slice(0, index + 1).reduce((state, item, i) => {
     const r = props.reviews[item.id];
     return r && instant
@@ -301,8 +320,6 @@ export function QuizShell(props: QuizShellProps) {
     if (i === index) return "current";
     return item ? "open" : "locked";
   });
-  const reward = rewardFor(rewards);
-  const drawing = DRAWING_NAMES[(seedOf(attemptKey) + index * 3) % DRAWING_NAMES.length];
   const progress =
     props.progress ??
     (instant && showsDots(total) ? (
@@ -311,6 +328,7 @@ export function QuizShell(props: QuizShellProps) {
         label={`Question ${index + 1} of ${total}`}
         count={`${index + 1} of ${total}`}
         onOpen={() => setDialog("nav")}
+        onGo={(i) => i !== index && props.onNavigate(i)}
       />
     ) : undefined);
 
@@ -345,7 +363,13 @@ export function QuizShell(props: QuizShellProps) {
       <ChevronIcon />
     </button>
   ) : (
-    <button type="button" className={styles.primary} onClick={goNext}>
+    <button
+      type="button"
+      className={styles.primary}
+      data-holding={holding || undefined}
+      disabled={holding}
+      onClick={goNext}
+    >
       {last ? (mode.grading === "end" ? "Review" : "Finish") : "Next"}
       <ChevronIcon />
     </button>
@@ -385,7 +409,16 @@ export function QuizShell(props: QuizShellProps) {
             <TopBar
               section={props.section}
               topic={props.topic}
-              exit={props.onExit && <BarButton icon={<ExitIcon />} word="Exit" onClick={exit} />}
+              exit={
+                props.onExit && (
+                  <BarButton
+                    icon={<ExitIcon />}
+                    word="Exit"
+                    className={styles.exit}
+                    onClick={exit}
+                  />
+                )
+              }
               centre={
                 mode.clock.kind !== "none" &&
                 !props.hideClock && (
@@ -430,6 +463,17 @@ export function QuizShell(props: QuizShellProps) {
                     shortcutsAsked={shortcutsAsked}
                     math={math}
                     showSounds={mode.grading === "instant"}
+                    tutor={
+                      mode.showTutorFlag && props.onFlagForTutor
+                        ? {
+                            asked: s.saved[q.id] === "tutor_flag",
+                            onAsk: (note) => {
+                              s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
+                              props.onFlagForTutor?.(q.id, note);
+                            },
+                          }
+                        : undefined
+                    }
                     onReport={
                       props.onReportProblem &&
                       ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
@@ -480,7 +524,6 @@ export function QuizShell(props: QuizShellProps) {
                       ws={ws}
                       review={review}
                       bookmarked={!!s.saved[q.id]}
-                      flagged={s.saved[q.id] === "tutor_flag"}
                       eliminatorOn={eliminatorOn}
                       figureHere={!hasPassage(q)}
                       hasCalculator={!!props.hasCalculator}
@@ -492,10 +535,6 @@ export function QuizShell(props: QuizShellProps) {
                         s.act({ type: "toggleReview", allowed: mode.markForReview })
                       }
                       onToggleBookmark={toggleBookmark}
-                      onFlag={(note) => {
-                        s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-                        props.onFlagForTutor?.(q.id, note);
-                      }}
                       onToggleEliminator={() => setEliminatorOn((v) => !v)}
                     />
                     {props.feedback}
@@ -524,13 +563,11 @@ export function QuizShell(props: QuizShellProps) {
               )}
               {s.pencilOn && layout === "compact" && strip}
               {instant && review && !checking && (
-                <FeedbackBar
-                  key={q.id}
-                  correct={review.isCorrect}
-                  streak={rewards.streak}
-                  showStreak={reward.showStreak}
-                  drawing={drawing}
-                />
+                // Nothing is shown about an answer but the answer itself (founder, 2026-11-17:
+                // no updates during a quiz). A screen reader is still told.
+                <p key={q.id} role="status" aria-label="Answer result" className={styles.srOnly}>
+                  {review.isCorrect ? "Correct." : "Not quite."}
+                </p>
               )}
               <BottomBar
                 index={index}

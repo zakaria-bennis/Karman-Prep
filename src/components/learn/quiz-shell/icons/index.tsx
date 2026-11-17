@@ -141,15 +141,22 @@ export function PenIcon({ state = "off", tip, ...p }: IconProps & { tip?: string
   const on = state === "on";
   return (
     <Svg {...p}>
-      <path d="M8 20l-3 1 1-3L16.5 7.5l2 2z" />
-      <path d="M6 18l2 2" />
-      <motion.path
-        d="M15 6l2-2 3 3-2 2"
+      {/* a pencil on its point; picked up, it tips a little and its point takes the ink's colour */}
+      <motion.g
         initial={false}
-        animate={{ x: on ? 2.5 : 0, y: on ? -2.5 : 0, opacity: on ? 0 : 1 }}
+        animate={{ rotate: on ? -10 : 0 }}
         transition={t}
-      />
-      <circle cx="5.6" cy="20.4" r="1.4" fill={tip ?? "currentColor"} stroke="none" />
+        style={{ transformOrigin: "5px 19px" }}
+      >
+        <path d="M5 19l1-4.200L16.300 4.500a2.100 2.100 0 0 1 3 3L9.200 18z" />
+        <path d="M14.300 6.500l3.200 3.200" />
+        <path d="M6 14.800l3.200 3.200" />
+        <path
+          d="M5 19l1.900-.5-1.400-1.400z"
+          fill={tip ?? "currentColor"}
+          stroke={tip ?? "currentColor"}
+        />
+      </motion.g>
     </Svg>
   );
 }
@@ -202,8 +209,13 @@ export function CalculatorIcon(p: IconProps) {
 export function ReferenceIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      <path d="M12 6c-2-1.5-5-2-8-1.5v14c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-14c-3-.5-6 0-8 1.5z" />
-      <path d="M12 6v14M6.5 9.5l3 0M15 13l2.5-3" />
+      {/* an open book, three lines on each page */}
+      <path d="M12 6.2C10 5 7 4.600 4 5v14c3-.4 6 0 8 1.200 2-1.200 5-1.600 8-1.200V5c-3-.4-6 0-8 1.200z" />
+      <path d="M12 6.200v14" />
+      <path
+        d="M6.500 9.200h3M6.500 12h3M6.500 14.800h3M14.500 9.200h3M14.500 12h3M14.500 14.800h3"
+        strokeWidth={1.4}
+      />
     </Svg>
   );
 }
@@ -290,8 +302,11 @@ export function ExitIcon(p: IconProps) {
 export function HighlightIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      <path d="M14.5 4.5l5 5-7.5 7.5H7v-5z" />
-      <path d="M7 17l-2.5 2.5M4 21h9" />
+      {/* a marker with a broad slanted tip, laying down a wide stroke */}
+      <path d="M13.8 3.2l7 7-6.6 6.6-7-7z" />
+      <path d="M8.9 11.5l-2.6 4.7 1.5 1.5 4.7-2.6" />
+      <path d="M16 5.400l2.600 2.600" />
+      <path d="M3.500 20.500h11" strokeWidth={3.4} opacity={0.45} />
     </Svg>
   );
 }

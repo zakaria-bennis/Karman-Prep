@@ -56,12 +56,14 @@ const REPORT_REASONS = [
   "Something else",
 ] as const;
 
-/** Text size, report a problem, animations, sounds, shortcuts (spec: More menu). Exit is in the bar. */
+/** Text size, animations, sounds, ask my tutor, report a problem, shortcuts (spec: More menu).
+ *  Exit is in the bar. */
 export function MoreMenu({
   textSize,
   onTextSize,
   showSounds,
   onReport,
+  tutor,
   shortcutsAsked = 0,
   math = false,
 }: {
@@ -69,13 +71,16 @@ export function MoreMenu({
   onTextSize(size: number): void;
   showSounds: boolean;
   onReport?(note: string): Promise<unknown>;
+  /** Tutored students can send this question to their tutor, with a note if they like. */
+  tutor?: { asked: boolean; onAsk(note: string): void };
   /** Bumped by the "?" key: opens the shortcuts list. */
   shortcutsAsked?: number;
   /** Math questions list the calculator and reference keys. */
   math?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<"menu" | "report" | "shortcuts">("menu");
+  const [panel, setPanel] = useState<"menu" | "report" | "shortcuts" | "tutor">("menu");
+  const [ask, setAsk] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -175,6 +180,16 @@ export function MoreMenu({
                     />
                   </label>
                 )}
+                {tutor && (
+                  <button
+                    type="button"
+                    className={styles.item}
+                    disabled={tutor.asked}
+                    onClick={() => setPanel("tutor")}
+                  >
+                    {tutor.asked ? "Sent to your tutor" : "Ask my tutor"}
+                  </button>
+                )}
                 {onReport && (
                   <button type="button" className={styles.item} onClick={() => setPanel("report")}>
                     Report a problem
@@ -268,6 +283,37 @@ export function MoreMenu({
                   </div>
                 </form>
               ))}
+            {panel === "tutor" && tutor && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  tutor.onAsk(ask.trim());
+                  setAsk("");
+                  setOpen(false);
+                }}
+              >
+                <label className={styles.label} htmlFor="quiz-ask-tutor">
+                  Question for your tutor (optional)
+                </label>
+                <textarea
+                  id="quiz-ask-tutor"
+                  className={styles.text}
+                  rows={3}
+                  maxLength={2000}
+                  value={ask}
+                  onChange={(e) => setAsk(e.target.value)}
+                  autoFocus
+                />
+                <div className={styles.actions}>
+                  <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
+                    Back
+                  </button>
+                  <button type="submit" className={shell.tool}>
+                    Send to tutor
+                  </button>
+                </div>
+              </form>
+            )}
             {panel === "shortcuts" && (
               <>
                 {SHORTCUT_GROUPS.map((g) => (

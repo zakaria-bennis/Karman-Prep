@@ -9,6 +9,11 @@
   --quiz-lens: rgb(255 255 255 / 0.34);
   /* a menu or a note that floats over the page: glass dense enough to read on */
   --quiz-sheet: rgb(255 251 244 / 0.88);
+  /* the top bar: the same frost, a little more of it */
+  --quiz-bar: rgb(255 251 244 / 0.8);
+  /* the Exit square: red glass, rosy by day */
+  --quiz-exit: rgb(226 84 96 / 0.3);
+  --quiz-exit-edge: rgb(190 50 66 / 0.55);
   --quiz-text: #1d1a22;
   --quiz-text-muted: #4b4552;
   --quiz-line: rgb(29 26 34 / 0.2);
@@ -16,8 +21,9 @@
   --quiz-correct: #1f6b45;
   --quiz-correct-soft: rgb(31 107 69 / 0.16);
   --quiz-wrong: #a5372c;
-  --quiz-highlight-1: rgb(242 182 50 / 0.45);
-  --quiz-highlight-2: rgb(47 139 255 / 0.32);
+  /* by day the pen is black and the first highlighter blue; by night white and yellow */
+  --quiz-highlight-1: rgb(47 139 255 / 0.32);
+  --quiz-highlight-2: rgb(242 182 50 / 0.45);
   --quiz-highlight-3: rgb(255 61 154 / 0.28);
   --quiz-pen-1: #1d1a22;
   --quiz-pen-2: #a86a00;
@@ -52,6 +58,9 @@
     --quiz-panel: rgb(14 16 34 / 0.72);
     --quiz-lens: rgb(255 255 255 / 0.07);
     --quiz-sheet: rgb(22 24 46 / 0.9);
+    --quiz-bar: rgb(14 16 34 / 0.84);
+    --quiz-exit: rgb(200 40 62 / 0.4);
+    --quiz-exit-edge: rgb(255 120 135 / 0.5);
     --quiz-text: #f6f1e7;
     --quiz-text-muted: #cfc9d8;
     --quiz-line: rgb(255 255 255 / 0.2);
@@ -79,6 +88,9 @@
   --quiz-panel: rgb(14 16 34 / 0.72);
   --quiz-lens: rgb(255 255 255 / 0.07);
   --quiz-sheet: rgb(22 24 46 / 0.9);
+  --quiz-bar: rgb(14 16 34 / 0.84);
+  --quiz-exit: rgb(200 40 62 / 0.4);
+  --quiz-exit-edge: rgb(255 120 135 / 0.5);
   --quiz-text: #f6f1e7;
   --quiz-text-muted: #cfc9d8;
   --quiz-line: rgb(255 255 255 / 0.2);
@@ -137,6 +149,10 @@
   padding-top: max(6px, env(safe-area-inset-top));
   border-bottom: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
 }
+/* The top bar is its own strip of the same frost, a little denser than the page. */
+.topBar.glass {
+  background: var(--quiz-bar);
+}
 .bottomBar {
   padding-bottom: max(6px, env(safe-area-inset-bottom));
   border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
@@ -145,12 +161,19 @@
 .barStart {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 }
+/* The quiz's name sits in the middle of the bar, whatever is at its sides. */
 .barTitle {
-  min-width: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: min(40%, 34rem);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
 }
 .barTitle p {
   margin: 0;
@@ -159,8 +182,8 @@
   white-space: nowrap;
 }
 .section {
-  font-size: 0.95rem;
-  font-weight: 650;
+  font-size: 1.02rem;
+  font-weight: 700;
 }
 .topic {
   font-size: 0.8rem;
@@ -179,6 +202,26 @@
   align-items: center;
   gap: 4px;
 }
+/* Exit: a small square of red glass. */
+.barButton.exit {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+  gap: 2px;
+  border: 1px solid var(--quiz-exit-edge);
+  border-radius: 14px;
+  background: var(--quiz-exit);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28);
+}
+@media (hover: hover) {
+  .barButton.exit:not(:disabled):hover {
+    background: color-mix(in srgb, var(--quiz-wrong) 30%, var(--quiz-exit));
+    border-color: var(--quiz-wrong);
+  }
+}
 .navSlot {
   display: flex;
   justify-content: center;
@@ -186,18 +229,38 @@
   min-width: 0;
 }
 
-/* Phones: two rows. Exit, the title and the clock on top; every tool, with its word, under. */
+/* Phones: two rows. Exit, the name and the clock on top; every tool, with its word, under. On
+   a phone the clock is put away by pressing it, so its Hide button is not shown. */
 .compact .topBar {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   row-gap: 4px;
   min-height: 0;
   padding-bottom: 4px;
+}
+.compact .barStart {
+  display: contents;
+}
+.compact .barTitle {
+  position: static;
+  grid-column: 2;
+  grid-row: 1;
+  max-width: none;
+  transform: none;
+}
+.compact .barCentre {
+  grid-column: 3;
+  grid-row: 1;
+  justify-content: flex-end;
+}
+.compact .clockHide {
+  display: none;
 }
 .compact .topic {
   display: none;
 }
 .compact .tools {
-  flex: 1 0 100%;
+  grid-column: 1 / -1;
   justify-content: space-between;
   gap: 0;
   padding-top: 4px;
@@ -228,7 +291,6 @@
 }
 .barButton:not(:disabled):active,
 .tool:not(:disabled):active,
-.primary:not(:disabled):active,
 .counter:active {
   transform: scale(0.93);
   transition-duration: 90ms;
@@ -393,26 +455,96 @@
   outline-offset: 2px;
 }
 
-/* The one highlighted button on screen (rule 35). */
+/* The one button to press: raised off the bar, lit from above, with a state for everything
+   (resting, under the pointer, pressed, focused, waiting, off). */
 .primary {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 48px;
-  min-width: 112px;
-  padding: 0 14px 0 22px;
+  min-height: 50px;
+  min-width: 124px;
+  padding: 0 16px 0 24px;
+  overflow: hidden;
   border: 0;
-  border-radius: 24px;
-  background: var(--quiz-go);
+  border-radius: 25px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0) 55%), var(--quiz-go);
   color: var(--quiz-on-go);
   font: inherit;
+  font-size: 1.05rem;
   font-weight: 750;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -2px 0 rgb(0 0 0 / 0.16),
+    0 2px 0 color-mix(in srgb, var(--quiz-go) 60%, #000),
+    0 12px 24px -10px color-mix(in srgb, var(--quiz-go) 85%, transparent);
+  transition:
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease,
+    filter 160ms ease,
+    opacity 200ms ease;
+}
+.primary > * {
+  position: relative;
+}
+@media (hover: hover) {
+  .primary:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.55),
+      inset 0 -2px 0 rgb(0 0 0 / 0.16),
+      0 4px 0 color-mix(in srgb, var(--quiz-go) 60%, #000),
+      0 18px 30px -12px color-mix(in srgb, var(--quiz-go) 90%, transparent);
+  }
+  .primary:not(:disabled):hover svg {
+    transform: translateX(3px);
+  }
+}
+.primary svg {
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.primary:not(:disabled):active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.25),
+    0 0 0 color-mix(in srgb, var(--quiz-go) 60%, #000);
+}
+.primary:focus-visible {
+  outline: 2px solid var(--quiz-text);
+  outline-offset: 3px;
 }
 .primary:disabled {
   opacity: 0.45;
   cursor: default;
+  box-shadow: none;
+}
+/* After a miss Next waits three seconds: the button is there, dimmed, and fills from the left. */
+.primary[data-holding] {
+  opacity: 1;
+  background: color-mix(in srgb, var(--quiz-go) 30%, transparent);
+  color: var(--quiz-text);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--quiz-go) 60%, transparent);
+  cursor: progress;
+}
+.primary[data-holding]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--quiz-go) 70%, transparent);
+  transform-origin: left center;
+  animation: fill 3s linear both;
+}
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 .counter {
   display: inline-flex;
@@ -442,24 +574,29 @@
   display: grid;
   transition: right 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-/* After a miss on a wide screen the question moves left and the explanation takes the right. */
+/* After a miss on a wide screen the question's page draws in to the left and the explanation
+   comes in at the right as a page of its own: about a third narrower, the same height, with a
+   gap between the two. */
 .area[data-aside] .frame {
-  right: min(46%, 640px);
+  right: 40%;
 }
 .aside {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
   z-index: 1;
-  width: min(46%, 640px);
+  width: calc(40% - 12px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 28px 32px 48px;
-  border-left: 1px solid var(--quiz-line);
+  padding: 28px 30px 40px;
+  border-radius: 22px;
   background: var(--quiz-panel);
   -webkit-backdrop-filter: var(--quiz-frost);
   backdrop-filter: var(--quiz-frost);
+  box-shadow:
+    inset 0 0 0 1px var(--quiz-edge),
+    0 24px 60px -30px rgb(0 0 0 / 0.55);
   color: var(--quiz-text);
 }
 .aside section {
@@ -524,11 +661,6 @@
 }
 .wide.split .frame {
   grid-template-columns: minmax(0, var(--split)) auto minmax(0, 1fr);
-}
-/* On large screens the extra space becomes margin, and the sky shows there. */
-.wide .frame {
-  max-width: 1440px;
-  margin: 0 auto;
 }
 
 .divider {
@@ -630,9 +762,10 @@
   background: color-mix(in srgb, var(--quiz-accent) 14%, var(--quiz-panel));
 }
 
-/* On a wide screen a question with nothing beside it is one page of glass in the middle, and
-   the landscape is clear at its sides. The pane itself stays full width, so pencil notes in the
-   margins keep their place; the glass is drawn behind the column. */
+/* On a wide screen the question's page of glass covers almost the whole screen, a small margin
+   from its edges, with the question in its middle (founder, 2026-11-17). The room at its left
+   and right is a whiteboard: the pencil writes there, and nothing about the glass changes when
+   it is picked up. The glass is drawn behind the pane, which stays full width. */
 .wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
   background: none;
   -webkit-backdrop-filter: none;
@@ -641,12 +774,8 @@
 .wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
   content: "";
   position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 50%;
+  inset: 12px;
   z-index: -1;
-  width: min(calc(44rem + 98px), calc(100% - 24px));
-  transform: translateX(-50%);
   border-radius: 22px;
   background: var(--quiz-panel);
   -webkit-backdrop-filter: var(--quiz-frost);
@@ -654,29 +783,45 @@
   box-shadow:
     inset 0 0 0 1px var(--quiz-edge),
     0 24px 60px -30px rgb(0 0 0 / 0.55);
-  transition: opacity 300ms ease;
 }
-.wide.split .frame {
-  max-width: 1280px;
+.wide [data-quiz-scroll] > [data-quiz-pane]:only-child {
+  padding-top: 36px;
 }
 
-/* Pencil on: the glass spreads over the whole screen, more deeply frosted, so the margins can be
-   written on and the pen always stands out. */
-.shell[data-pencil]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--quiz-panel);
-  -webkit-backdrop-filter: blur(36px) saturate(0.8);
-  backdrop-filter: blur(36px) saturate(0.8);
+/* A tool's drawing answers the pointer: it lifts and tips a little under a mouse, and dips when
+   pressed (which is all a finger gets). */
+.barButton svg,
+.tool svg {
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.shell[data-pencil] .barGroup,
-.shell[data-pencil] .body {
-  position: relative;
-  z-index: 1;
+@media (hover: hover) {
+  .barButton:not(:disabled):hover svg,
+  .tool:not(:disabled):hover svg {
+    transform: translateY(-2px) rotate(-7deg) scale(1.1);
+  }
+  .barButton.exit:not(:disabled):hover svg {
+    transform: rotate(90deg) scale(1.1);
+  }
 }
-.shell[data-pencil].wide [data-quiz-scroll] > [data-quiz-pane]:only-child::before {
-  opacity: 0;
+.barButton:not(:disabled):active svg,
+.tool:not(:disabled):active svg {
+  transform: translateY(1px) rotate(6deg) scale(0.92);
+  transition-duration: 90ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .barButton svg,
+  .tool svg {
+    transition: none;
+  }
+}
+
+/* Phones: ten dots, Back and the button share one row, so each is a little smaller. */
+.compact .primary {
+  min-width: 96px;
+  min-height: 46px;
+  padding: 0 10px 0 16px;
+  font-size: 1rem;
+}
+.compact .bottomBar .barButton[data-flow="row"] {
+  padding: 0 6px 0 2px;
 }
