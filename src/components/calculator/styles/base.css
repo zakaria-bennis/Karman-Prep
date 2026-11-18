@@ -90,7 +90,7 @@ textarea {
 }
 .kc-app[data-kc-layout="stacked"] {
   grid-template:
-    "graph" 42%
+    "graph" var(--kc-graph-share)
     "list" minmax(0, 1fr)
     "keypad" auto
     / minmax(0, 1fr);

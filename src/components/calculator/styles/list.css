@@ -422,6 +422,11 @@
 .kc-row-delete > svg {
   display: block;
   opacity: var(--kc-delete-rest);
+  transition: scale var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-row-delete:active > svg {
+  scale: 0.9;
 }
 
 .kc-row-delete:hover > svg {

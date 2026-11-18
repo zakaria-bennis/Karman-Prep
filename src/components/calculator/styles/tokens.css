@@ -100,6 +100,15 @@
      follows a curve has an ink rim (a host on glass). 0: the reference's grey dots. Read by the
      renderer. */
   --kc-poi-ink: 0;
+  /* The cross that removes a table's row: the browser's own small button by default; a host may
+     make it the same plain cross as a row's (its fill, its size, its colour and strength). */
+  --kc-table-delete-fill: buttonface;
+  --kc-table-delete-size: 12px;
+  --kc-table-delete-ink: var(--kc-text-secondary);
+  --kc-table-delete-rest: 1;
+  /* How much of a stacked calculator's height the graph takes. A host may tie it to the width
+     instead, so the default window comes out at round numbers. */
+  --kc-graph-share: 42%;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);

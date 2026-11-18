@@ -864,6 +864,14 @@
   --kc-scrollbar-width: thin;
   --kc-scrollbar-color: color-mix(in srgb, var(--quiz-ink) 28%, transparent) transparent;
   --kc-poi-ink: 1;
+  /* the cross that removes a row is the plain grey cross, and a table's row has the same one
+     (founder, 2026-11-17) */
+  --kc-delete-rest: 0.28;
+  --kc-delete-hover: 0.6;
+  --kc-table-delete-fill: transparent;
+  --kc-table-delete-size: 18.4px;
+  --kc-table-delete-ink: var(--quiz-ink);
+  --kc-table-delete-rest: 0.28;
   /* the graph's buttons are the quiz's own: a pane of its solid with its hairline */
   --kc-pill: color-mix(in srgb, var(--quiz-solid) 82%, transparent);
   --kc-pill-pressed: color-mix(in srgb, var(--quiz-ink) 14%, var(--quiz-solid));
@@ -890,6 +898,15 @@
   --kc-focus-bar-label: #ffffff;
   --kc-accent: var(--quiz-pick);
   --kc-boundary: color-mix(in srgb, var(--quiz-ink) 45%, transparent);
+}
+/* Docked, the graph is as tall as 55% of the calculator's width, so with x from -10 to 10 the
+   default window runs from -5.5 to 5.5 on y, round numbers, with squares still square (founder,
+   2026-11-17). It never takes more than 62% of the height. */
+.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar] + div) {
+  container-type: inline-size;
+}
+.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar] + div *) {
+  --kc-graph-share: min(55cqw, 62%);
 }
 /* A phone zooms with two fingers: the plus and minus buttons are left out there. */
 .compact .frame :global([data-calculator-window] > [data-calculator-titlebar] + div *) {
