@@ -120,3 +120,20 @@ describe("evaluateSendChannelAuth — mute rules", () => {
     }
   });
 });
+
+describe("evaluateSendChannelAuth — announcement", () => {
+  it("refuses a student, even one in the class", () => {
+    const r = evaluateSendChannelAuth(inputs({ messageType: "announcement", isMember: true }));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.status).toBe(403);
+  });
+
+  it("allows the class's tutor and an admin", () => {
+    expect(evaluateSendChannelAuth(inputs({ messageType: "announcement", isTutor: true })).ok).toBe(
+      true
+    );
+    expect(evaluateSendChannelAuth(inputs({ messageType: "announcement", isAdmin: true })).ok).toBe(
+      true
+    );
+  });
+});

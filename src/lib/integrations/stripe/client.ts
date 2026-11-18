@@ -140,6 +140,9 @@ export async function createCheckoutSession({
     ...shared,
     payment_method_types: undefined,
     mode: "payment",
+    // A card used here is kept on file (founder, 2026-11-17: a Private family adding hours later
+    // should be charged in one press). Asked of cards only, so the pay-later ways stay offered.
+    payment_method_options: { card: { setup_future_usage: "on_session" } },
     // The admin scholarship payout refunds the cohort price by cohort_id.
     payment_intent_data: { metadata: { userId, planId: spec.planId, ...cohort } },
   });

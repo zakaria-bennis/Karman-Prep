@@ -79,23 +79,22 @@ describe("bottom-bar reward", () => {
     shell({ mode: modeFor("review", { hasTutor: false }), reviews: { n1: graded(0, true) } });
     expect(screen.queryByRole("status", { name: "Answer result" })).toBeNull();
   });
-  it("two correct answers in a row draw different pictures", () => {
+  it("says nothing on screen about an answer, right or wrong (a screen reader is still told)", () => {
     const { rerender, props } = shell({ reviews: { n1: graded(0, true) } });
-    const first = document.querySelector("[data-drawing]")?.getAttribute("data-drawing");
+    const told = screen.getByRole("status", { name: "Answer result" });
+    expect(told.textContent).toBe("Correct.");
+    expect(document.querySelector("[data-drawing]")).toBeNull();
     rerender(
-      <QuizShell {...props} index={1} reviews={{ n1: graded(0, true), n2: graded(1, true) }} />
+      <QuizShell {...props} index={1} reviews={{ n1: graded(0, true), n2: graded(1, false) }} />
     );
-    const second = document.querySelector("[data-drawing]")?.getAttribute("data-drawing");
-    expect(first).toBeTruthy();
-    expect(second).not.toBe(first);
+    expect(screen.getByRole("status", { name: "Answer result" }).textContent).toBe("Not quite.");
   });
-  it("announces the streak from 3 in a row and plays the longer jingle at 5", () => {
+  it("plays the longer jingle at 5 in a row", () => {
     const reviews: Record<string, StudentQuizReview> = {};
     const { rerender, props } = shell({ reviews });
     for (let i = 0; i < 5; i++) {
       reviews[`n${i + 1}`] = graded(i, true);
       rerender(<QuizShell {...props} index={i} reviews={{ ...reviews }} />);
-      if (i === 2) expect(screen.getByText("Correct. 3 in a row.")).toBeTruthy();
     }
     expect(sounds.playSound).toHaveBeenLastCalledWith("correctStreak");
   });

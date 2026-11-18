@@ -121,10 +121,12 @@ it("S-5 Complex mode is off by default and switches complex evaluation", async (
 it("SETTINGS-11 the Text Size slider has seven notches with the default marked, and writes the size", () => {
   const kit = renderEditor(popover(), { rows: [""] });
   const slider = screen.getByRole("slider", { name: "Text Size" });
-  expect(slider).toHaveAttribute("min", "1");
-  expect(slider).toHaveAttribute("max", "7");
+  // The default is in the middle of the track (founder, 2026-11-17): the range runs over 16
+  // positions, the two smaller sizes on its left half and the four larger on its right.
+  expect(slider).toHaveAttribute("min", "0");
+  expect(slider).toHaveAttribute("max", "16");
   expect(slider).toHaveAttribute("step", "1");
-  expect(slider).toHaveValue("3");
+  expect(slider).toHaveValue("8");
   expect(slider).toHaveAttribute("aria-valuetext", "Size 3 of 7, default");
   expect(slider).toHaveFocus(); // SETTINGS-32
   const notches = document.querySelectorAll(".kc-size-notch");
@@ -141,7 +143,7 @@ it("SETTINGS-11 the Text Size slider has seven notches with the default marked, 
   act(() => {
     // A native range's change, as a drag or arrow key makes it.
     const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
-    set.call(slider, "6");
+    set.call(slider, "14"); // where size 6 sits
     slider.dispatchEvent(new Event("input", { bubbles: true }));
   });
   expect(kit.engine.settings.displaySize).toBe(6);

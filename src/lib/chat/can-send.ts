@@ -29,7 +29,7 @@ export interface SendChannelAuthInputs {
 
 /** Returns ok / forbidden based on Karman's chat-send rules:
  *
- *  · `qa_answer` may only be posted by tutors + admins.
+ *  · `qa_answer` and `announcement` may only be posted by tutors + admins.
  *  · `cohort_message` and `qa_question` may be posted by an active
  *    cohort member, the cohort's tutor, or an admin.
  *  · Mutes apply only to students — tutors + admins bypass.
@@ -44,6 +44,10 @@ export function evaluateSendChannelAuth(args: SendChannelAuthInputs): SendChanne
   if (messageType === "qa_answer") {
     if (!isTutor && !isAdmin) {
       return { ok: false, status: 403, error: "Only tutors can post Q&A answers" };
+    }
+  } else if (messageType === "announcement") {
+    if (!isTutor && !isAdmin) {
+      return { ok: false, status: 403, error: "Only tutors can post announcements" };
     }
   } else {
     if (!isMember && !isTutor && !isAdmin) {

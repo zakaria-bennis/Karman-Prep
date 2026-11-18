@@ -24,7 +24,7 @@
   margin: -1px;
   overflow: auto;
   border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);
 }
@@ -32,6 +32,7 @@
 .kc-style-popover::before,
 .kc-style-popover::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   top: calc(var(--kc-arrow-at) - 8px);
   z-index: 1;

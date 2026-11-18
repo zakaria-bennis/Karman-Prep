@@ -1,0 +1,94 @@
+/* The demo bar on /dev/world (dev only): ink on the landscape, one height for every button. */
+.bar {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 5;
+  display: grid;
+  gap: 8px;
+  width: min(100vw - 32px, 560px);
+  padding: 16px;
+  border-radius: 24px;
+  background: rgb(14 20 30 / 0.86);
+  color: #f4f1ea;
+  font:
+    500 15px/1.3 system-ui,
+    sans-serif;
+}
+
+.where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+
+.where span {
+  color: #b9c2cf;
+}
+
+.where strong {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(244 241 234 / 0.28);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.btn:hover {
+  border-color: rgb(244 241 234 / 0.7);
+}
+
+.btn:focus-visible {
+  outline: 2px solid #f4f1ea;
+  outline-offset: 2px;
+}
+
+.btn[aria-pressed="true"] {
+  background: #f4f1ea;
+  border-color: #f4f1ea;
+  color: #0e141e;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+}
+
+/* a phone: five buttons still fit on one row */
+@media (max-width: 480px) {
+  .bar {
+    padding: 12px;
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .row {
+    gap: 6px;
+  }
+
+  .btn {
+    padding: 0 6px;
+  }
+}

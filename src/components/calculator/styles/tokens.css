@@ -28,6 +28,9 @@
   --kc-radius-chip: 4px;
   --kc-radius-button: 5px;
   --kc-radius-small: 3px;
+  --kc-radius-panel: 6px; /* a menu, a pop-up or a settings panel */
+  --kc-radius-key: 2px; /* a keypad key */
+  --kc-radius-key-wide: 3px; /* the keypad's Enter key and a Functions key */
   --kc-graph-button: 37px;
 
   /* Icon and control opacities */
@@ -42,6 +45,70 @@
   --kc-equals-opacity: var(--kc-tone-equals);
   --kc-menu-item-rest: 0.5;
   --kc-menu-item-hover: 0.8;
+
+  /* What the graph's panel is filled with: the paper, unless a host thins it to glass (the quiz
+     does). The drawing itself always takes its colours from --kc-paper. */
+  --kc-paper-fill: var(--kc-paper);
+  /* The same for the list's panel and its rows. Menus and pop-ups keep --kc-list itself, so a
+     host that thins the panel still gets solid menus. */
+  --kc-list-fill: var(--kc-list);
+  /* How far the graph's buttons and the toolbar's ends stand from the calculator's edge. */
+  --kc-edge: 5px;
+  /* 1: axis numbers are outlined in the paper's colour (GP-10). 0: a host on glass, where the
+     outline would show as a dark edge, turns it off. Read by the renderer. */
+  --kc-label-halo: 1;
+  /* A row of the list: the room over it and at its sides, its corners, its fill and an edge drawn
+     inside it. The defaults are the reference's joined, square rows. */
+  --kc-row-gap: -1px;
+  --kc-row-side: 0px;
+  --kc-row-radius: 0px;
+  --kc-row-fill: var(--kc-list-fill);
+  --kc-row-shadow: none;
+  /* The on/off switch: its size, its thumb, and its colour when on. */
+  --kc-toggle-w: 38px;
+  --kc-toggle-h: 22px;
+  --kc-toggle-thumb: 18px;
+  --kc-toggle-on: var(--kc-accent);
+  --kc-toggle-on-hover: var(--kc-kp-accent-hover);
+  --kc-toggle-thumb-fill: initial; /* unset: the thumb takes the skin's own colour */
+  /* A row of joined choices (Radians, Degrees): joined boxes by default; a host may make it a
+     tray with a pill for the choice made. */
+  --kc-seg-pad: 0 1px 1px 0;
+  --kc-seg-gap: 0 -1px -1px 0;
+  --kc-seg-border: 1px;
+  --kc-seg-radius: 0px;
+  --kc-seg-radius-first: 3px 0 0 3px;
+  --kc-seg-radius-last: 0 3px 3px 0;
+  --kc-seg-tray: transparent;
+  --kc-seg-tray-radius: 0px;
+  /* Parts of Graph Settings a host may leave out (display: none): the theme picker, the layout
+     choice and Key Sounds. The quiz decides all three itself. */
+  --kc-show-theme: block;
+  --kc-show-layout: block;
+  --kc-show-sounds: block;
+  /* 1: a row's colour circle opens the style menu (long-press, Shift+Enter, or a click while
+     editing the list). 0: it only shows and hides the row. Read by the row. */
+  --kc-style-menu: 1;
+  /* More a host may leave out or change: the number on a row's tab, the little arrow that joins
+     a pop-up to its button, the zoom buttons, and the list's scroll bar. */
+  --kc-show-row-number: block;
+  --kc-show-arrow: block;
+  --kc-show-zoom: flex;
+  --kc-scrollbar-width: auto;
+  --kc-scrollbar-color: auto;
+  /* 1: the graph's key points are dots of pure ink with a rim of the paper, and the dot that
+     follows a curve has an ink rim (a host on glass). 0: the reference's grey dots. Read by the
+     renderer. */
+  --kc-poi-ink: 0;
+  /* The cross that removes a table's row: the browser's own small button by default; a host may
+     make it the same plain cross as a row's (its fill, its size, its colour and strength). */
+  --kc-table-delete-fill: buttonface;
+  --kc-table-delete-size: 12px;
+  --kc-table-delete-ink: var(--kc-text-secondary);
+  --kc-table-delete-rest: 1;
+  /* How much of a stacked calculator's height the graph takes. A host may tie it to the width
+     instead, so the default window comes out at round numbers. */
+  --kc-graph-share: 42%;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);

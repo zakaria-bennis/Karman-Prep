@@ -348,7 +348,6 @@ const practice = (
       ws={undefined}
       review={review}
       bookmarked={false}
-      flagged={false}
       eliminatorOn
       figureHere
       hasCalculator
@@ -357,7 +356,6 @@ const practice = (
       onCross={h.onCross}
       onToggleReview={noop}
       onToggleBookmark={noop}
-      onFlag={noop}
       onToggleEliminator={noop}
     />
   </>

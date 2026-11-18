@@ -127,8 +127,9 @@ it("AR-12 the control is icon-only with a Transfer to Calculator tooltip after 3
   expect(TRANSFER_TOOLTIP).toBe("Transfer to Calculator");
   expect(button.textContent).toBe("");
   expect([
-    button.querySelectorAll("svg.lucide-calculator").length,
-    button.querySelectorAll("svg.lucide-arrow-up-right").length,
+    // one drawing: an arrow carrying the answer into a calculator (founder, 2026-11-17)
+    button.querySelectorAll("svg [data-transfer-calculator]").length,
+    button.querySelectorAll("svg [data-transfer-arrow]").length,
   ]).toEqual([1, 1]);
   expect(tip).toHaveTextContent("Transfer to Calculator");
   expect(tip).toHaveAttribute("hidden");

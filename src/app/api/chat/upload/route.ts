@@ -12,18 +12,13 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "image/heic",
-  "image/heif",
-]);
+const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+// HEIC (an iPhone's own format) is not taken here: the moderation check cannot look at it. The chat
+// turns a HEIC into a JPEG on the student's device before it is uploaded (src/lib/chat/photo.ts).
 const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 function extFor(mime: string): string {
@@ -36,10 +31,6 @@ function extFor(mime: string): string {
       return "webp";
     case "image/gif":
       return "gif";
-    case "image/heic":
-      return "heic";
-    case "image/heif":
-      return "heif";
     default:
       return "bin";
   }

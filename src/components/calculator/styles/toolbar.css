@@ -11,7 +11,7 @@
   flex: none;
   align-items: center;
   height: var(--kc-toolbar-h);
-  padding: 6px 5px 5px;
+  padding: 6px var(--kc-edge) 5px;
   border-bottom: 1px solid var(--kc-rule);
   background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
   transition: box-shadow var(--kc-dur-200) var(--kc-ease);
@@ -67,6 +67,15 @@
 
 .kc-list-tool > svg {
   opacity: var(--kc-icon-rest);
+}
+
+/* The gear turns a third of the way round while it is pressed and springs back. */
+.kc-list-tool[data-tool="edit"] > svg {
+  transition: rotate var(--kc-dur-400) var(--kc-spring);
+}
+
+.kc-list-tool[data-tool="edit"]:active > svg {
+  rotate: 120deg;
 }
 
 /* VIS-RESPONSIVE-9: stacked, the reference draws the toolbar's +, Keypad and chevrons half a pixel

@@ -13,8 +13,28 @@
  * - If the browser cannot draw it, start() says so and the page keeps its plain sky.
  */
 import { FRAG, VERT } from "./shader";
+import {
+  BEHIND,
+  COLS,
+  DRIFT,
+  LANDS,
+  PER_UNIT,
+  SETTLE_MS,
+  STRIP_ROWS,
+  WRAP,
+  strip,
+  sunAt,
+} from "./world";
 
 export type FlightLight = "dawn" | "day" | "sunset" | "night";
+
+/** The weather to draw: how much cloud, rain, mist and snow, each from 0 to 1. */
+export interface FlightSky {
+  cloud: number;
+  rain: number;
+  mist: number;
+  snow: number;
+}
 
 export interface FlightOptions {
   /** True while nothing may move by itself. */
@@ -26,6 +46,13 @@ export interface FlightOptions {
   /** How far along its stretch the page is, from 0 to 1, when something other than scrolling flies the
    *  camera (the guided intake flies forward with each answer). Scrolling flies it if left out. */
   progress?: () => number;
+  /** The visitor's own weather, when the page follows it. Left out, or null, the sky is clear. */
+  sky?: () => FlightSky | null;
+  /** The portals' endless world (world.ts) instead of the site's fixed route. The camera flies on by
+   *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
+   *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
+   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
+  world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -37,6 +64,23 @@ const IDLE_MS = 60_000;
 const TURN_MS = 1500;
 const STOPS = 6;
 const STILL_TIME = 40;
+/** Where a tab keeps how far it has flown through the endless world. */
+const FLOWN_KEY = "kp-flown";
+/** Where a tab keeps when its sky began to settle, and in which mode. */
+const SKY_KEY = "kp-sky";
+function keptSky(): { at: number; dark: boolean } | null {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(SKY_KEY) ?? "null") as {
+      at?: unknown;
+      dark?: unknown;
+    } | null;
+    return v && typeof v.at === "number" && typeof v.dark === "boolean"
+      ? { at: v.at, dark: v.dark }
+      : null;
+  } catch {
+    return null;
+  }
+}
 /* How many pixels to draw: where it starts, how far it may go either way, and how long one picture may
    take (slower than SLOW_MS: draw fewer pixels; quicker than FAST_MS: draw more). A phone's graphics chip
    also has to scroll the page, at up to 120 pictures a second, so a phone starts smaller and the landscape
@@ -58,7 +102,7 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 export class Flight {
   private gl: WebGLRenderingContext | null = null;
   private uniforms: Record<
-    "uRes" | "uTime" | "uP" | "uNight" | "uIntro",
+    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uWx" | "uWorld" | "uLand" | "uStrip" | "uSun",
     WebGLUniformLocation | null
   > = {
     uRes: null,
@@ -66,7 +110,21 @@ export class Flight {
     uP: null,
     uNight: null,
     uIntro: null,
+    uWx: null,
+    uWorld: null,
+    uLand: null,
+    uStrip: null,
+    uSun: null,
   };
+  /** The endless world: how far the camera had flown when this page opened, the stretch of route now in
+   *  the land table, and when the sky began to settle and from where. */
+  private flown = 3;
+  private stripAt = Number.NaN;
+  private landTex: WebGLTexture | null = null;
+  private flownAt = -1;
+  private skyFrom: { at: number; dark: boolean } | null = null;
+  private turnFrom: { at: number; sun: [number, number] } | null = null;
+  private sun: [number, number] = [0, 0];
   /** The opening now playing: when it began and how long it runs. */
   private opening: { at: number; ms: number } | null = null;
   private stop = new AbortController();
@@ -118,6 +176,13 @@ export class Flight {
       { signal }
     );
     this.night = this.o.night() ? 1 : 0;
+    const world = this.o.world;
+    if (world) {
+      const kept = Number(sessionStorage.getItem(FLOWN_KEY));
+      const from = typeof world === "object" ? world.from : undefined;
+      this.flown = from ?? (Number.isFinite(kept) && kept > 0 ? kept : 3);
+      addEventListener("pagehide", () => this.keep(), { signal });
+    }
     this.wake();
     if (process.env.NODE_ENV !== "production") {
       /* for the picture scripts in scripts/dev: draw one exact moment and hold it */
@@ -130,6 +195,14 @@ export class Flight {
         if (p !== null) this.draw(p, night, time);
         else this.wake();
       };
+      /* and for looking at the endless world: hold a land, a distance or a sky without loading again */
+      (window as unknown as { __world?: unknown }).__world = (to: FlightOptions["world"]) => {
+        this.o.world = to;
+        if (typeof to === "object" && to.from !== undefined) this.flown = to.from;
+        this.stripAt = Number.NaN;
+        this.wake();
+      };
+      (window as unknown as { __where?: unknown }).__where = () => this.flown;
     }
     return true;
   }
@@ -158,6 +231,7 @@ export class Flight {
   }
 
   dispose() {
+    if (this.o.world) this.keep();
     this.stop.abort();
     cancelAnimationFrame(this.raf);
     this.raf = 0;
@@ -179,7 +253,7 @@ export class Flight {
       return s;
     };
     const vs = shader(gl.VERTEX_SHADER, VERT);
-    const fs = shader(gl.FRAGMENT_SHADER, FRAG);
+    const fs = shader(gl.FRAGMENT_SHADER, this.o.world ? `#define WORLD\n${FRAG}` : FRAG);
     const prog = gl.createProgram();
     if (!vs || !fs || !prog) return false;
     gl.attachShader(prog, vs);
@@ -216,8 +290,24 @@ export class Flight {
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    for (const name of ["uRes", "uTime", "uP", "uNight", "uIntro"] as const)
+    for (const name of Object.keys(this.uniforms) as (keyof Flight["uniforms"])[])
       this.uniforms[name] = gl.getUniformLocation(prog, name);
+    if (this.o.world) {
+      /* the land table: filled in draw() with the route just ahead */
+      this.landTex = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.landTex);
+      for (const [k, v] of [
+        [gl.TEXTURE_MIN_FILTER, gl.NEAREST],
+        [gl.TEXTURE_MAG_FILTER, gl.NEAREST],
+        [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
+        [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
+      ])
+        gl.texParameteri(gl.TEXTURE_2D, k, v);
+      gl.uniform1i(this.uniforms.uLand, 1);
+      gl.activeTexture(gl.TEXTURE0);
+      this.stripAt = Number.NaN;
+    }
     this.shown = { p: -1, night: -1 };
     return true;
   }
@@ -246,12 +336,87 @@ export class Flight {
     gl.uniform1f(this.uniforms.uP, p);
     gl.uniform1f(this.uniforms.uNight, night);
     gl.uniform1f(this.uniforms.uIntro, intro);
+    const sky = this.o.sky?.() ?? null;
+    if (this.o.world) this.world(gl, time);
+    gl.uniform4f(
+      this.uniforms.uWx,
+      sky?.cloud ?? 0,
+      sky?.rain ?? 0,
+      sky?.mist ?? 0,
+      sky?.snow ?? 0
+    );
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.shown = { p, night };
     if (!this.ready) {
       this.ready = true;
       this.o.onReady?.();
     }
+  }
+
+  /** Remembers how far this tab has flown, so the next portal page carries on from there. */
+  private keep() {
+    try {
+      sessionStorage.setItem(FLOWN_KEY, String(this.flown));
+    } catch {
+      /* private browsing: the next page starts the flight again */
+    }
+  }
+
+  /** The endless world's numbers for this picture: where the camera is, the land ahead, and the sun. */
+  private world(gl: WebGLRenderingContext, time: number) {
+    const opt = typeof this.o.world === "object" ? this.o.world : {};
+    /* the camera drifts on only while pictures are drawn, so a rested tab wakes where it stopped */
+    if (this.flownAt >= 0 && !this.o.still())
+      this.flown += Math.min(0.1, Math.max(0, time - this.flownAt)) * DRIFT * (opt.speed ?? 1);
+    this.flownAt = time;
+    const d = this.flown;
+    /* the shader's own distance starts again every WRAP, so its numbers stay exact */
+    const lap = Math.floor(d / WRAP) * WRAP;
+    const start = Math.floor(d) - BEHIND;
+    if (start !== this.stripAt) {
+      const only = opt.land ? LANDS.findIndex((l) => l.name === opt.land) : -1;
+      gl.activeTexture(gl.TEXTURE1);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        COLS,
+        STRIP_ROWS,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        strip(start, only < 0 ? undefined : only)
+      );
+      gl.activeTexture(gl.TEXTURE0);
+      this.stripAt = start;
+    }
+    gl.uniform1f(this.uniforms.uWorld, d - lap);
+    gl.uniform3f(this.uniforms.uStrip, start - lap, PER_UNIT, 1 / COLS);
+    /* the sky: each mode opens at its own hour and settles over twenty minutes; when the mode is
+       switched, the sun moves from wherever it is to the new mode's opening hour */
+    const now = performance.now();
+    const wall = Date.now();
+    const dark = this.o.night();
+    if (!this.skyFrom || dark !== this.skyFrom.dark) {
+      const kept = this.skyFrom ? null : keptSky();
+      if (this.skyFrom) this.turnFrom = { at: now, sun: this.sun };
+      this.skyFrom = kept && kept.dark === dark ? kept : { at: wall, dark };
+      try {
+        sessionStorage.setItem(SKY_KEY, JSON.stringify(this.skyFrom));
+      } catch {
+        /* private browsing: the next page opens the sky again */
+      }
+    }
+    const settled = opt.settled ?? (this.o.still() ? 1 : (wall - this.skyFrom.at) / SETTLE_MS);
+    let sun = sunAt(dark, settled);
+    if (this.turnFrom) {
+      const t = ease(Math.min(1, (now - this.turnFrom.at) / TURN_MS));
+      const from = this.turnFrom.sun;
+      sun = [from[0] + (sun[0] - from[0]) * t, from[1] + (sun[1] - from[1]) * t];
+      if (t >= 1) this.turnFrom = null;
+    }
+    this.sun = sun;
+    gl.uniform2f(this.uniforms.uSun, this.sun[0], this.sun[1]);
   }
 
   /** Every so often, time one picture and draw softer or sharper to suit the device. */

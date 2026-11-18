@@ -56,36 +56,50 @@ const REPORT_REASONS = [
   "Something else",
 ] as const;
 
-/** Text size, report a problem, animations, sounds, shortcuts (spec: More menu). Exit is in the bar. */
+/** Text size, animations, sounds, ask my tutor, report a problem, shortcuts (spec: More menu).
+ *  Exit is in the bar. */
 export function MoreMenu({
   textSize,
   onTextSize,
   showSounds,
   onReport,
-  shortcutsAsked = 0,
-  math = false,
+  tutor,
+  onShortcuts,
+  onOpenChange,
+  active,
 }: {
   textSize: number;
   onTextSize(size: number): void;
   showSounds: boolean;
   onReport?(note: string): Promise<unknown>;
-  /** Bumped by the "?" key: opens the shortcuts list. */
-  shortcutsAsked?: number;
-  /** Math questions list the calculator and reference keys. */
-  math?: boolean;
+  /** Tutored students can flag this question for their tutor, and take the flag down again. */
+  tutor?: { asked: boolean; onAsk(note: string): void; onRemove(): void };
+  /** Opens the list of keyboard shortcuts, a pop-up of its own. */
+  onShortcuts(): void;
+  /** The menu opened or closed: the bar marks More as the tool in use while it is open. */
+  onOpenChange?(open: boolean): void;
+  active?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<"menu" | "report" | "shortcuts">("menu");
+  const [panel, setPanel] = useState<"menu" | "report">("menu");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [sending, setSending] = useState(false);
+  const [pressing, setPressing] = useState(false);
+  // the flag's short show: going up or coming down, then nothing
+  const [flagShow, setFlagShow] = useState<"up" | "down" | null>(null);
   useEffect(() => {
-    if (!shortcutsAsked) return;
-    setOpen(true);
-    setPanel("shortcuts");
-  }, [shortcutsAsked]);
+    if (!flagShow) return;
+    const t = setTimeout(() => setFlagShow(null), 1900);
+    return () => clearTimeout(t);
+  }, [flagShow]);
+  const told = useRef(onOpenChange);
+  useEffect(() => {
+    told.current = onOpenChange;
+  }, [onOpenChange]);
+  useEffect(() => told.current?.(open), [open]);
   const animations = useQuizAnimations();
   const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
@@ -109,6 +123,7 @@ export function MoreMenu({
       <BarButton
         icon={<MoreIcon />}
         word="More"
+        active={active}
         aria-expanded={open}
         onClick={() => {
           setOpen(!open);
@@ -175,18 +190,71 @@ export function MoreMenu({
                     />
                   </label>
                 )}
+                {tutor && (
+                  // Pressed, a flag runs up a pole at the right, waves and is gone; taken down,
+                  // it comes down the pole the same way. Nothing is drawn there otherwise.
+                  <button
+                    type="button"
+                    className={styles.item}
+                    onClick={() => {
+                      setFlagShow(tutor.asked ? "down" : "up");
+                      if (tutor.asked) tutor.onRemove();
+                      else tutor.onAsk("");
+                    }}
+                  >
+                    <span>{tutor.asked ? "Remove flag" : "Flag for my tutor"}</span>
+                    <span className={styles.itemArt} aria-hidden="true">
+                      {flagShow && (
+                        <svg
+                          key={flagShow}
+                          className={styles.pole}
+                          data-way={flagShow}
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M6 21.500V3" />
+                          <path d="M3.500 21.500h5" />
+                          <g className={styles.lift}>
+                            <path className={styles.flag} d="M6 4h10.500l-2.300 3 2.300 3H6z" />
+                          </g>
+                        </svg>
+                      )}
+                    </span>
+                  </button>
+                )}
                 {onReport && (
                   <button type="button" className={styles.item} onClick={() => setPanel("report")}>
-                    Report a problem
+                    <span>Report a problem</span>
+                    <span className={`${styles.itemArt} ${styles.marks}`} aria-hidden="true">
+                      <i>?</i>
+                      <i>?</i>
+                      <i>?</i>
+                    </span>
                   </button>
                 )}
                 {finePointer && (
                   <button
                     type="button"
                     className={styles.item}
-                    onClick={() => setPanel("shortcuts")}
+                    onClick={() => {
+                      // the key is seen going down and up, then the list opens
+                      if (pressing) return;
+                      setPressing(true);
+                      setTimeout(
+                        () => {
+                          setPressing(false);
+                          setOpen(false);
+                          onShortcuts();
+                        },
+                        reduced ? 0 : 300
+                      );
+                    }}
                   >
-                    Keyboard shortcuts
+                    <span>Keyboard shortcuts</span>
+                    <span className={styles.itemArt} aria-hidden="true">
+                      <span className={styles.fnKey} data-pressed={pressing || undefined}>
+                        fn
+                      </span>
+                    </span>
                   </button>
                 )}
               </>
@@ -268,37 +336,38 @@ export function MoreMenu({
                   </div>
                 </form>
               ))}
-            {panel === "shortcuts" && (
-              <>
-                {SHORTCUT_GROUPS.map((g) => (
-                  <section key={g.title} className={styles.keyGroup}>
-                    <h3 className={styles.keyTitle}>{g.title}</h3>
-                    <dl className={styles.keys}>
-                      {g.items
-                        .filter((it) => math || !it.math)
-                        .map((it) => (
-                          <div key={it.does}>
-                            <dt>
-                              {it.keys.map((k) => (
-                                <kbd key={k} className={styles.kbd}>
-                                  {k}
-                                </kbd>
-                              ))}
-                            </dt>
-                            <dd>{it.does}</dd>
-                          </div>
-                        ))}
-                    </dl>
-                  </section>
-                ))}
-                <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
-                  Back
-                </button>
-              </>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** Every keyboard shortcut, for the pop-up the "?" key and the More menu open. */
+export function ShortcutsList({ math }: { math: boolean }) {
+  return (
+    <>
+      {SHORTCUT_GROUPS.map((g) => (
+        <section key={g.title} className={styles.keyGroup}>
+          <h3 className={styles.keyTitle}>{g.title}</h3>
+          <dl className={styles.keys}>
+            {g.items
+              .filter((it) => math || !it.math)
+              .map((it) => (
+                <div key={it.does}>
+                  <dt>
+                    {it.keys.map((k) => (
+                      <kbd key={k} className={styles.kbd}>
+                        {k}
+                      </kbd>
+                    ))}
+                  </dt>
+                  <dd>{it.does}</dd>
+                </div>
+              ))}
+          </dl>
+        </section>
+      ))}
+    </>
   );
 }

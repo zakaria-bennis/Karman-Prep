@@ -1,0 +1,209 @@
+/*
+ * The offer of classical music at night (MusicOffer.tsx): a small pane of the shell's glass at the top
+ * right. (The shell clears every button's font and background, so the buttons are named through the
+ * banner: .offer .on.)
+ */
+.offer {
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+  position: fixed;
+  z-index: 7;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  width: min(360px, calc(100vw - 24px));
+  padding: 16px 12px 16px 16px;
+  border-radius: 24px;
+  color: var(--ink);
+  /* it floats over the page, so it is thicker glass than the panes under it */
+  background: color-mix(in srgb, var(--glass) 55%, var(--paper, #fbf6ee));
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  transform-origin: 100% 0;
+}
+
+:global([data-kp-mode="dark"]) .offer {
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+  --paper: #171a2a;
+}
+
+.notes {
+  margin-top: 2px;
+  fill: #e0a326;
+  stroke: #e0a326;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: 50% 90%;
+  animation: sway 2.8s ease-in-out infinite alternate;
+}
+
+.notes path {
+  fill: none;
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-5deg);
+  }
+
+  to {
+    transform: rotate(5deg);
+  }
+}
+
+.words {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.words b {
+  font: 400 20px/1.2 var(--font-serif);
+}
+
+.words p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.offer .on {
+  height: 44px;
+  margin-top: 8px;
+  padding: 0 20px;
+  border-radius: 22px;
+  background: var(--go);
+  color: var(--on-go);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    background 0.2s var(--out),
+    transform 0.15s var(--out);
+}
+
+.offer .close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px -4px 0 0;
+  border-radius: 22px;
+  transition:
+    background 0.2s var(--out),
+    transform 0.15s var(--out);
+}
+
+.close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.offer .on:active,
+.offer .close:active {
+  transform: scale(0.95);
+}
+
+/* turned on: the two notes dance, and little ones float up beside the words */
+.offer[data-on] {
+  align-items: center;
+}
+
+.offer[data-on] .notes {
+  animation: dance 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
+}
+
+@keyframes dance {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  35% {
+    transform: translateY(-7px) rotate(-12deg) scale(1.18);
+  }
+
+  70% {
+    transform: translateY(1px) rotate(9deg) scale(0.96);
+  }
+}
+
+.rise {
+  position: absolute;
+  right: 28px;
+  bottom: 14px;
+  display: flex;
+  gap: 10px;
+  color: #e0a326;
+  font-size: 18px;
+}
+
+.rise i {
+  font-style: normal;
+  opacity: 0;
+  animation: rise 1s var(--out) both;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) rotate(14deg) scale(1.1);
+  }
+}
+
+@media (hover: hover) {
+  .offer .on:hover {
+    background: color-mix(in srgb, var(--go) 88%, var(--ink));
+  }
+
+  .offer .close:hover {
+    background: var(--hover);
+  }
+}
+
+/* a phone: across the top, inside the same gutters as the page */
+@media (max-width: 599px) {
+  .offer {
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notes,
+  .offer[data-on] .notes,
+  .rise i {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .offer {
+    background: var(--paper, #fbf6ee);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

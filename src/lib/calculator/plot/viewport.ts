@@ -71,7 +71,13 @@ export function clampViewport(v: Viewport): Viewport {
 /** G-5: x from −10 to 10, y centred on 0, equal units on both axes. */
 export function defaultViewport(size: PixelSize): Viewport {
   if (!isPositiveSize(size)) return { left: -10, right: 10, bottom: -10, top: 10 };
-  const top = (10 * size.height) / size.width;
+  const exact = (10 * size.height) / size.width;
+  // A graph laid out to give a round window (the quiz's is 55% as tall as it is wide, for 5.5)
+  // lands a hair off it, because the browser rounds its height to a fraction of a pixel. Within a
+  // hundredth of a half unit the window takes the round number (founder, 2026-11-17: "5.5", not
+  // 5.49982); the units stay square to within a fifth of a percent.
+  const half = Math.round(exact * 2) / 2;
+  const top = half > 0 && Math.abs(exact - half) < 0.01 ? half : exact;
   return { left: -10, right: 10, bottom: -top, top };
 }
 

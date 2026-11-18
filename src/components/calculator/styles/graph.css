@@ -6,7 +6,7 @@
   height: 100%;
   min-block-size: 0;
   overflow: hidden;
-  background: var(--kc-paper);
+  background: var(--kc-paper-fill); /* the paper, or a host's thinner one (tokens.css) */
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -39,8 +39,8 @@
    border, 5 px radius and a soft shadow; icons rest at 0.6, 0.9 on hover, 1 pressed. */
 .kc-graph-controls {
   position: absolute;
-  top: 5px;
-  inset-inline-end: 5px;
+  top: var(--kc-edge);
+  inset-inline-end: var(--kc-edge);
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -86,8 +86,13 @@
   opacity: var(--kc-icon-hover-graph);
 }
 
+.kc-graph-controls button {
+  transition: scale var(--kc-dur-200) var(--kc-ease-out);
+}
+
 .kc-graph-controls button:active {
   background: var(--kc-pill-pressed);
+  scale: 0.93;
 }
 
 .kc-graph-controls button:active > svg {
@@ -95,7 +100,7 @@
 }
 
 .kc-zoom-group {
-  display: flex;
+  display: var(--kc-show-zoom);
   flex-direction: column;
   overflow: hidden;
 }

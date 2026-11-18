@@ -1,0 +1,1077 @@
+/*
+ * The portal's menu (step 2 of the rebuild), over the endless world: frosted glass.
+ * The world is the picture; the menu is a piece of glass lying on it, never a white box.
+ *
+ * The measured rules (founder, 2026-11-15: "even margins ... so things don't look lopsided"):
+ *   --pad is the one inset. Glass keeps --pad between its edge and everything inside it, on all four
+ *   sides, and the lens (the lit glass under the current item) fills its item exactly, so it sits --pad
+ *   from the edge wherever it slides.
+ *   --cell is the one size of a row, of the icon's box and of the profile.
+ *   The lens is glass on glass: a little more frost than the sheet under it, never a white fill.
+ * Movement is in page.tsx (springs); this file holds the material and the layout.
+ */
+.shell {
+  --ink: #1d1a22;
+  --clay: #b8683c;
+  --glass: rgb(255 251 244 / 0.44);
+  --glass-edge: rgb(255 255 255 / 0.62);
+  --glass-shine: rgb(255 255 255 / 0.7);
+  --lens: rgb(255 255 255 / 0.24);
+  --lens-edge: rgb(255 255 255 / 0.55);
+  --lens-shade: 0 4px 12px -6px rgb(24 28 58 / 0.3);
+  --hover: rgb(255 255 255 / 0.13);
+  --halo: rgb(255 250 240 / 0.85);
+  --on-ink: #fffdf8;
+  --lift: 0 18px 44px -18px rgb(24 28 58 / 0.5), 0 2px 8px rgb(24 28 58 / 0.1);
+  /* how frosted the glass is: 1 is the first setting, 0 is clear */
+  --frost-k: 0.7;
+  --frost: blur(calc(22px * var(--frost-k))) saturate(1.7) brightness(1.06);
+  --out: cubic-bezier(0.16, 1, 0.3, 1);
+  --pad: 12px;
+  --cell: 48px;
+  --r-lens: 16px;
+  color: var(--ink);
+  background: none;
+  font: 600 15px/1.3 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell[data-mode="dark"] {
+  --ink: #f6f1e7;
+  --clay: #eaa67c;
+  --glass: rgb(14 16 34 / 0.46);
+  --glass-edge: rgb(255 255 255 / 0.16);
+  --glass-shine: rgb(255 255 255 / 0.22);
+  --lens: rgb(255 255 255 / 0.11);
+  --lens-edge: rgb(255 255 255 / 0.24);
+  --lens-shade: 0 4px 12px -6px rgb(0 0 0 / 0.5);
+  --hover: rgb(255 255 255 / 0.06);
+  --halo: rgb(8 10 24 / 0.8);
+  --on-ink: #171a2a;
+  --lift: 0 18px 44px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.3);
+  --frost: blur(calc(22px * var(--frost-k))) saturate(1.5) brightness(0.9);
+}
+
+.shell *,
+.shell *::before,
+.shell *::after {
+  box-sizing: border-box;
+}
+
+.shell ::selection {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.shell :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.shell button {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- the glass. Its edge is drawn inside it (a ring, not a border), so --pad is exact. ---- */
+.nav,
+.demo,
+.account {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+}
+
+/* glass on glass: the lens, a chosen switch */
+.lens,
+.look button[aria-pressed="true"],
+.demo button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+/* ---- the menu on a phone: a bar of five at the bottom ---- */
+.nav {
+  --pad: 8px;
+  --cell: 60px;
+  position: fixed;
+  z-index: 4;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  max-width: 460px;
+  margin: 0 auto;
+  padding: var(--pad);
+  border-radius: calc(var(--r-lens) + var(--pad));
+  /* the page scrolls under the bar, so the bar is thicker glass than the pieces beneath it */
+  --glass: rgb(255 251 244 / 0.66);
+  --frost: blur(calc(30px * var(--frost-k))) saturate(1.7) brightness(1.06);
+  animation: settle 0.7s var(--out) both;
+}
+
+.brand,
+.who,
+.under {
+  display: none;
+}
+
+.items {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  touch-action: pan-y;
+}
+
+/* the lens is exactly as big as the item it is under */
+.lens {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: var(--cell);
+  border-radius: var(--r-lens);
+  pointer-events: none;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  min-width: var(--cell);
+  height: var(--cell);
+  padding: 0 8px;
+  border-radius: var(--r-lens);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+
+.art svg {
+  overflow: visible;
+}
+
+.item .word {
+  opacity: 0.82;
+  transition: opacity 0.2s var(--out);
+}
+
+.item[aria-current="page"] .word {
+  opacity: 1;
+}
+
+/* on the bar every item has the same share of the width, so the names sit evenly with air between
+   them (founder, 2026-11-16: the names looked crowded) */
+.items li[data-item] {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.items li[data-item] .item {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+/* the Homework icon: its rows slide off one after another, a tick lands with confetti flying out from
+   the middle, and it begins again. It plays while Homework is open, or pointed at. */
+.item [data-move="done"],
+.item [data-move="bit"] {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.item:hover [data-move="row"],
+.item[aria-current="page"] [data-move="row"] {
+  animation: hwRow 5s var(--out) infinite;
+}
+
+.item [data-move="row"][data-n="1"] {
+  animation-delay: 0.45s;
+}
+
+.item [data-move="row"][data-n="2"] {
+  animation-delay: 0.9s;
+}
+
+.item:hover [data-move="done"],
+.item[aria-current="page"] [data-move="done"] {
+  animation: hwDone 5s cubic-bezier(0.3, 1.6, 0.45, 1) infinite;
+}
+
+.item:hover [data-move="bit"],
+.item[aria-current="page"] [data-move="bit"] {
+  animation: hwBit 5s var(--out) infinite;
+}
+
+@keyframes hwRow {
+  0%,
+  12% {
+    opacity: 1;
+    transform: none;
+  }
+
+  24%,
+  84% {
+    opacity: 0;
+    transform: translateX(9px);
+  }
+
+  85% {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  96%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hwDone {
+  0%,
+  42% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  56%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes hwBit {
+  0%,
+  46% {
+    opacity: 0;
+    transform: none;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--bx), var(--by));
+  }
+}
+
+/* the Chat icon's dots bob while its row is pointed at */
+.item:hover [data-move="dot"] {
+  animation: typing 1.3s ease-in-out infinite;
+}
+
+.item [data-move="dot"][data-n="1"] {
+  animation-delay: 0.16s;
+}
+
+.item [data-move="dot"][data-n="2"] {
+  animation-delay: 0.32s;
+}
+
+/* ---- the phone's bar: pictures only, and the middle one larger ---- */
+/* The page's title already says where the student is, so the bar carries no words (they are still
+   read out). The bar is fixed to the bottom of the screen and keeps clear of the browser's own bars
+   and the phone's home line. */
+@media not ((min-width: 960px) and (hover: hover)) {
+  .nav {
+    --cell: 56px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .items .word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .items li[data-mid] .art {
+    scale: 1.3;
+  }
+}
+
+@media (max-width: 379px) {
+  .item {
+    font-size: 10px;
+  }
+}
+
+/* the piece that stirs when its row is hovered */
+.art svg,
+.art [data-move] {
+  transform-box: fill-box;
+  transform-origin: 50% 60%;
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+/* the notepad's loose pages: unseen until the row is hovered, then they flip up over the binding one
+   after another, quickly */
+.art [data-move="page"] {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 12px 5px;
+  transition: none;
+}
+
+/* the Library's blue book stands tipped away from the others, about to fall, until the row is
+   hovered; each book turns about its own foot */
+.art [data-move="book"],
+.art [data-move="stand"] {
+  transform-box: view-box;
+  transition: none;
+}
+
+.art [data-move="book"] {
+  transform-origin: 12px 19.7px;
+}
+
+.art [data-move="stand"] {
+  transform-origin: 17px 19.7px;
+  transform: rotate(-21deg);
+}
+
+/* the trophy by day: a yellow cup with a black star */
+:global([data-kp-mode="light"]) .art [data-cup] {
+  fill: #ffc81a;
+  fill-opacity: 1;
+}
+
+:global([data-kp-mode="light"]) .art [data-star] {
+  fill: #1d1a22;
+  stroke: #1d1a22;
+}
+
+/* what is unread in Chat: a small red mark with how many messages */
+.badge {
+  position: absolute;
+  /* on the upper right corner of the blue bubble, half over its edge */
+  top: calc(50% - 17px);
+  left: calc(50% + 4px);
+  display: grid;
+  place-items: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3.5px;
+  border-radius: 7px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 9.5px;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: background 0.3s var(--out);
+  animation: badge 0.4s cubic-bezier(0.3, 1.7, 0.45, 1) both;
+}
+
+@keyframes badge {
+  from {
+    transform: scale(0);
+  }
+}
+
+/* nothing in the portal can be selected or copied (founder, 2026-11-16), except what a student
+   types themselves */
+.shell {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.shell input,
+.shell textarea,
+.shell [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.art [data-move="dot"],
+.art [data-move="glint"] {
+  transition: none;
+}
+
+/* the blue book swings up and knocks against the others */
+@keyframes stand {
+  0% {
+    transform: rotate(-21deg);
+  }
+
+  55% {
+    transform: translateX(-4.6px) rotate(4deg);
+  }
+
+  75% {
+    transform: translateX(-4.6px) rotate(-2deg);
+  }
+
+  100% {
+    transform: translateX(-4.6px) rotate(0deg);
+  }
+}
+
+/* and each book gives a little bounce, squashing as it lands */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: translateY(-2.6px) scale(0.97, 1.05);
+  }
+
+  62% {
+    transform: translateY(0) scale(1.06, 0.92);
+  }
+
+  80% {
+    transform: translateY(-0.8px);
+  }
+}
+
+/* someone is typing: the three dots bob one after another */
+@keyframes typing {
+  0%,
+  55%,
+  100% {
+    transform: none;
+    opacity: 0.75;
+  }
+
+  25% {
+    transform: translateY(-2.2px);
+    opacity: 1;
+  }
+}
+
+/* light runs down the cup */
+@keyframes glint {
+  0%,
+  100% {
+    transform: none;
+    stroke-opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(2.4px);
+    stroke-opacity: 1;
+  }
+}
+
+/* the Progress graph: hovered, its line is drawn from foot to tip, the shade spreads under it from
+   left to right, and the arrowhead comes in at the tip as the line arrives */
+.art [data-move="line"],
+.art [data-move="shade"],
+.art [data-move="head"] {
+  transition: none;
+}
+
+.art [data-move="line"] {
+  stroke-dasharray: 1;
+}
+
+@keyframes line {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes shade {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes head {
+  0%,
+  72% {
+    opacity: 0;
+    transform: translate(-3px, 3.6px) scale(0.4);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes flip {
+  0% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+
+  8% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  /* edge-on at the binding */
+  48% {
+    opacity: 1;
+    transform: scaleY(0.05) skewX(-11deg);
+  }
+
+  /* over the top, its back showing */
+  82% {
+    opacity: 0.75;
+    transform: scaleY(-0.74) skewX(5deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(-0.9);
+  }
+}
+
+@media (hover: hover) {
+  .item:hover .art svg {
+    transform: rotate(-4deg) scale(1.06);
+  }
+
+  .item:hover [data-move="line"] {
+    animation: line 0.8s cubic-bezier(0.4, 0, 0.3, 1);
+  }
+
+  .item:hover [data-move="shade"] {
+    animation: shade 0.8s cubic-bezier(0.4, 0, 0.3, 1);
+  }
+
+  .item:hover [data-move="head"] {
+    animation: head 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+
+  .item:hover [data-move="page"] {
+    animation: flip 0.62s cubic-bezier(0.45, 0, 0.4, 1) both;
+  }
+
+  .item:hover [data-move="page"][data-n="1"] {
+    animation-delay: 0.22s;
+  }
+
+  .item:hover [data-move="page"][data-n="2"] {
+    animation-delay: 0.44s;
+  }
+
+  /* the blue book swings up against the others, and then all three bounce, one after another */
+  .item:hover [data-move="stand"] {
+    animation: stand 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+
+  .item:hover [data-move="book"] {
+    animation: bounce 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) 0.34s both;
+  }
+
+  .item:hover [data-move="book"][data-n="1"] {
+    animation-delay: 0.4s;
+  }
+
+  .item:hover [data-move="book"][data-n="2"] {
+    animation-delay: 0.46s;
+  }
+
+  .item:hover [data-move="glint"] {
+    animation: glint 0.8s ease-in-out;
+  }
+
+  .item:hover [data-move="pop"] {
+    transform: scale(1.22);
+  }
+
+  .item:hover [data-move="flag"] {
+    transform: scaleX(1.3) skewY(-6deg);
+    transform-origin: 0 50%;
+  }
+
+  .item:hover [data-move="flap"] {
+    transform: translateY(-1.5px);
+  }
+
+  .item:hover [data-move="chalk"] {
+    transform: translateX(1.5px);
+  }
+}
+
+/* ---- the page's name, written on the sky ---- */
+/* the page keeps the same 12 from the screen's edge as the bar, and clears the bar at the bottom */
+.main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-height: 100dvh;
+  padding: 0 12px calc(max(12px, env(safe-area-inset-bottom)) + 76px + 12px);
+}
+
+.title {
+  margin: 0;
+  padding: 0 4px;
+  color: var(--ink);
+  font: 400 28px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+  text-shadow:
+    0 0 28px var(--halo),
+    0 0 8px var(--halo);
+  animation: arrive 0.28s var(--out) both;
+}
+
+/* the way back: a small piece of glass above the name, naming where it goes */
+.back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border-radius: 20px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+  transition: transform 0.2s var(--out);
+}
+
+.shell .back {
+  background: var(--glass);
+}
+
+/* the way back and the page's name share one line: the name reads as coming out of the pill */
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 40px;
+  padding-top: 20px;
+}
+
+.crumbs:empty {
+  display: none;
+}
+
+.back svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.back:active {
+  transform: scale(0.95);
+}
+
+/* a way onward from a page (Progress to the Mistake Log, on a phone whose five are taken): the same pill at the far end of the line, with
+   its arrow after the word */
+.shell .forth {
+  padding: 0 8px 0 14px;
+  margin-left: auto;
+}
+
+@media (hover: hover) {
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+
+  .forth:hover svg {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* glass arrives as a material: it sharpens and settles, it does not just fade */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+    filter: blur(10px);
+  }
+}
+
+/* ---- demo switches (dev only; they do not ship) ---- */
+.demo {
+  position: fixed;
+  z-index: 5;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 88px);
+  translate: -50% 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 4px;
+  border-radius: 22px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.demo .rule {
+  flex-basis: 100%;
+  height: 0;
+}
+
+.demo button {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
+/* ---- the profile's menu: a smaller piece of glass that grows out of the profile ---- */
+.account {
+  --pad: 8px;
+  position: fixed;
+  z-index: 6;
+  /* its sides line up with the rows of the rail; it sits one rail inset above the profile */
+  left: calc(16px + 12px);
+  bottom: calc(16px + 12px + 48px + 12px);
+  display: grid;
+  gap: 4px;
+  width: 208px;
+  padding: var(--pad);
+  border-radius: calc(var(--r-lens) + var(--pad));
+  transform-origin: 20% 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.row:hover {
+  background: var(--hover);
+}
+
+.row:active {
+  transform: scale(0.97);
+}
+
+.look {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+}
+
+.look button {
+  height: 36px;
+  border-radius: 12px;
+}
+
+/* the strip between the screen's edge and the rail, so the far edge opens the menu too */
+.edge {
+  position: fixed;
+  z-index: 4;
+  inset: 0 auto 0 0;
+  width: 14px;
+}
+
+/* ---- with a mouse and room: a slim rail at the left that opens when the pointer is on it ---- */
+@media (min-width: 960px) and (hover: hover) {
+  .nav {
+    --pad: 12px;
+    --cell: 48px;
+    top: 12px;
+    left: 12px;
+    right: auto;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pad);
+    max-width: none;
+    margin: 0;
+    overflow: hidden;
+    --glass: rgb(255 251 244 / 0.44);
+    --frost: blur(calc(22px * var(--frost-k))) saturate(1.7) brightness(1.06);
+  }
+
+  /* brand, rows and profile are all one --cell tall, so the top and the bottom of the rail match */
+  .brand {
+    display: flex;
+    align-items: center;
+    flex: none;
+    height: var(--cell);
+    padding-left: 15px;
+    font: 400 22px/1 var(--font-serif);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .brand i {
+    font-style: normal;
+  }
+
+  .items {
+    display: grid;
+    grid-auto-rows: var(--cell);
+    gap: 4px;
+    touch-action: auto;
+  }
+
+  .under {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: var(--cell);
+    border-radius: var(--r-lens);
+    background: var(--hover);
+    pointer-events: none;
+  }
+
+  .item,
+  .who {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+    height: var(--cell);
+    padding: 0;
+    border-radius: var(--r-lens);
+    font-size: 15px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  /* the icon's box is a square --cell: closed, the rail is that square with --pad all round */
+  .art,
+  .who .face {
+    flex: none;
+    width: var(--cell);
+    height: var(--cell);
+  }
+
+  .nav .who {
+    flex: none;
+    margin-top: auto;
+    transition: background 0.2s var(--out);
+  }
+
+  .who:hover,
+  .who[aria-expanded="true"] {
+    background: var(--hover);
+  }
+
+  .face {
+    display: grid;
+    place-items: center;
+  }
+
+  .face b {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    /* until a student sets a picture of their own, a plain head and shoulders */
+    background: var(--hover);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--glass-edge);
+    overflow: hidden;
+    transition: transform 0.2s var(--out);
+  }
+
+  .who:active .face b {
+    transform: scale(0.92);
+  }
+
+  .who .word {
+    display: grid;
+  }
+
+  .who small {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  /* the words materialise as the rail opens, and go the way they came */
+  .nav .word,
+  .brand i {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateX(-6px);
+    transition:
+      opacity 0.18s var(--out),
+      filter 0.18s var(--out),
+      transform 0.18s var(--out);
+  }
+
+  .nav[data-open] .word,
+  .nav[data-open] .brand i {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition-duration: 0.36s;
+    transition-delay: 0.05s;
+  }
+
+  /* the page starts one gap to the right of the closed rail; the open rail lies over it */
+  .main {
+    gap: 16px;
+    max-width: 1680px;
+    padding: 0 16px 16px calc(12px + 72px + 16px);
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .crumbs {
+    padding-top: 16px;
+  }
+
+  .shell[data-mode="dark"] .nav:not([data-open]) {
+    --glass: rgb(14 16 34 / 0.46);
+    --frost: blur(calc(22px * var(--frost-k))) saturate(1.5) brightness(0.9);
+  }
+
+  /* opened over the page, the rail is thicker glass, so nothing under it shows through as clutter */
+  .nav[data-open] {
+    --glass: rgb(255 251 244 / 0.74);
+    --frost: blur(calc(30px * var(--frost-k))) saturate(1.7) brightness(1.06);
+  }
+
+  .shell[data-mode="dark"] .nav[data-open] {
+    --glass: rgb(14 16 34 / 0.74);
+    --frost: blur(calc(30px * var(--frost-k))) saturate(1.5) brightness(0.9);
+  }
+
+  .demo {
+    left: auto;
+    right: 16px;
+    bottom: 16px;
+    translate: none;
+  }
+}
+
+.shell[data-mode="dark"] .nav {
+  --glass: rgb(14 16 34 / 0.68);
+  --frost: blur(calc(30px * var(--frost-k))) saturate(1.5) brightness(0.9);
+}
+
+/* on a phone the bar at night is frosted glass, not a dark slab: thinner, and well blurred */
+@media not ((min-width: 960px) and (hover: hover)) {
+  .shell[data-mode="dark"] .nav {
+    --glass: rgb(70 74 110 / 0.34);
+    --frost: blur(calc(34px * var(--frost-k))) saturate(1.8) brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .shell {
+    --glass: rgb(251 246 238 / 0.94);
+    --frost: none;
+  }
+
+  .shell[data-mode="dark"] {
+    --glass: rgb(23 26 42 / 0.94);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .shell {
+    --glass: rgb(251 246 238 / 0.97);
+    --glass-edge: var(--ink);
+    --lens-edge: var(--ink);
+  }
+
+  .shell[data-mode="dark"] {
+    --glass: rgb(16 18 32 / 0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .title {
+    animation: none;
+  }
+
+  .nav .word,
+  .brand i,
+  .art svg,
+  .art [data-move] {
+    transition: none;
+  }
+
+  .item:hover [data-move],
+  .item[aria-current="page"] [data-move] {
+    animation: none;
+  }
+
+  .item [data-move="done"],
+  .item [data-move="bit"] {
+    opacity: 0;
+  }
+}
+
+.face b svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

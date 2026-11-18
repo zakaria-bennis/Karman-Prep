@@ -225,19 +225,43 @@
   text-transform: none;
 }
 
-/* the pills: Google first, then Apple, then any other way in that is switched on */
+/* the pills: Google first, then Apple, then Microsoft, then any other way in that is switched on */
 .ks .cb .cl-socialButtons {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 11px;
 }
-.ks .cb .cl-socialButtonsBlockButton__google {
+.ks .cb :is(.cl-socialButtonsBlockButton__google, .cl-socialButtonsIconButton__google) {
+  order: -3;
+}
+.ks .cb :is(.cl-socialButtonsBlockButton__apple, .cl-socialButtonsIconButton__apple) {
   order: -2;
 }
-.ks .cb .cl-socialButtonsBlockButton__apple {
+.ks .cb :is(.cl-socialButtonsBlockButton__microsoft, .cl-socialButtonsIconButton__microsoft) {
   order: -1;
 }
-.ks .cb :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton, .cb-email-pill) {
+/* With three ways in switched on, Clerk draws its buttons with a logo and no words. They are the same
+   pills here, and each says what it does (founder, 2026-11-14). */
+.ks .cb .cl-socialButtonsIconButton::after {
+  flex: none;
+}
+.ks .cb .cl-socialButtonsIconButton__google::after {
+  content: "Continue with Google";
+}
+.ks .cb .cl-socialButtonsIconButton__apple::after {
+  content: "Continue with Apple";
+}
+.ks .cb .cl-socialButtonsIconButton__microsoft::after {
+  content: "Continue with Microsoft";
+}
+.ks
+  .cb
+  :is(
+    .cl-socialButtonsBlockButton,
+    .cl-socialButtonsIconButton,
+    .cl-alternativeMethodsBlockButton,
+    .cb-email-pill
+  ) {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -283,7 +307,12 @@
 @media (hover: hover) and (pointer: fine) {
   .ks
     .cb
-    :is(.cl-socialButtonsBlockButton, .cl-alternativeMethodsBlockButton, .cb-email-pill):hover {
+    :is(
+      .cl-socialButtonsBlockButton,
+      .cl-socialButtonsIconButton,
+      .cl-alternativeMethodsBlockButton,
+      .cb-email-pill
+    ):hover {
     translate: 0 -2px;
     background: var(--pill);
     box-shadow:
@@ -292,7 +321,7 @@
       0 0 30px 0 rgba(255, 176, 96, 0.3);
   }
 }
-.ks .cb :is(.cl-socialButtonsBlockButton, .cb-email-pill):active {
+.ks .cb :is(.cl-socialButtonsBlockButton, .cl-socialButtonsIconButton, .cb-email-pill):active {
   translate: 0 1px;
   transition-duration: 0.08s;
 }
@@ -677,7 +706,13 @@
   }
   .ks
     .cb
-    :is(.cl-socialButtonsBlockButton, .cb-email-pill, .cl-formFieldInput, .cl-formButtonPrimary) {
+    :is(
+      .cl-socialButtonsBlockButton,
+      .cl-socialButtonsIconButton,
+      .cb-email-pill,
+      .cl-formFieldInput,
+      .cl-formButtonPrimary
+    ) {
     min-height: 58px;
   }
   .ks .cb .cb-pw-i {
@@ -717,4 +752,9 @@ html:has(.cb-page)::view-transition-new(root) {
   html:has(.cb-page)::view-transition-new(root) {
     animation: none;
   }
+}
+
+/* Apple's logo is black, and the pills are dark by day and by night: it is drawn white so it can be seen */
+.ks .cb .cl-socialButtons .cl-button .cl-socialButtonsProviderIcon__apple {
+  filter: invert(1) brightness(2);
 }

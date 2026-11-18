@@ -8,7 +8,7 @@
   font-size: var(--kc-size-ui);
   line-height: 1.4;
   color: var(--kc-text);
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
 }
 *,
 *::before,
@@ -90,7 +90,7 @@ textarea {
 }
 .kc-app[data-kc-layout="stacked"] {
   grid-template:
-    "graph" 42%
+    "graph" var(--kc-graph-share)
     "list" minmax(0, 1fr)
     "keypad" auto
     / minmax(0, 1fr);

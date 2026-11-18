@@ -13,3 +13,4 @@ packages. All are open-licence (SIL Open Font License).
 - caveat: Copyright 2014 The Caveat Project Authors (https://github.com/googlefonts/caveat)
 - anton: Copyright 2020 The Anton Project Authors (https://github.com/googlefonts/AntonFont.git)
 - fraunces: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces) Fraunces-Italic[SOFT,WONK,opsz,wght].ttf: Copyright 2020 The Fraunces Project Authors (github.com/undercasetype/Fraunces)
+- fredoka: Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia-zz/Fredoka-One)

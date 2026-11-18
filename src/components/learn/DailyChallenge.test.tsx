@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DailyChallenge from "./DailyChallenge";
 import type { StudentQuizQuestion } from "@/types/quiz";
@@ -89,7 +89,10 @@ describe("DailyChallenge", () => {
         "Not quite"
       )
     );
-    expect(screen.getByText("Reviewed explanation")).toBeTruthy();
+    // the explanation is never under the answers: it has a page of its own beside or below
+    const page = (await screen.findByText("Reviewed explanation")).closest("aside");
+    expect(page).toBeTruthy();
+    expect(within(page as HTMLElement).queryByRole("radio")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     expect(await screen.findByText("Not quite. The answer is A.")).toBeTruthy();
     expect(action).toHaveBeenCalledWith({

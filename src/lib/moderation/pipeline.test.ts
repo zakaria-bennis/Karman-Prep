@@ -17,20 +17,15 @@ import type { ModerationInput } from "./types";
 // vi.mock() is hoisted to the top of the file by Vitest, so the mock
 // fns have to live inside vi.hoisted() (also hoisted) to be in scope
 // at mock-factory time.
-const { callOpenAIModerationMock, callKarmanClassifierMock, hasRecentApprovedSendMock } =
-  vi.hoisted(() => ({
-    callOpenAIModerationMock: vi.fn(),
-    callKarmanClassifierMock: vi.fn(),
-    hasRecentApprovedSendMock: vi.fn(),
-  }));
+const { callOpenAIModerationMock, callKarmanClassifierMock } = vi.hoisted(() => ({
+  callOpenAIModerationMock: vi.fn(),
+  callKarmanClassifierMock: vi.fn(),
+}));
 vi.mock("./providers", () => ({
   callOpenAIModeration: callOpenAIModerationMock,
 }));
 vi.mock("./karman-classifier", () => ({
   callKarmanClassifier: callKarmanClassifierMock,
-}));
-vi.mock("./cache", () => ({
-  hasRecentApprovedSend: hasRecentApprovedSendMock,
 }));
 
 import { moderateMessage } from "./pipeline";
@@ -57,10 +52,6 @@ function baseInput(over: Partial<ModerationInput> = {}): ModerationInput {
 beforeEach(() => {
   callOpenAIModerationMock.mockReset();
   callKarmanClassifierMock.mockReset();
-  hasRecentApprovedSendMock.mockReset();
-  // Default: cache MISS so existing tests still exercise Layer 2 + 2.5.
-  // Cache-hit tests override this per-test.
-  hasRecentApprovedSendMock.mockResolvedValue(false);
   karmanClean();
 });
 
@@ -235,7 +226,7 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     }
   });
 
-  it("treats Karman classifier errors as additive — keeps the OpenAI clean result", async () => {
+  it("fails closed when Karman's check cannot be had, even if OpenAI says clean", async () => {
     callOpenAIModerationMock.mockResolvedValueOnce({
       flagged: false,
       worstCategory: null,
@@ -244,9 +235,8 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     });
     callKarmanClassifierMock.mockRejectedValueOnce(new Error("classifier timeout"));
     const r = await moderateMessage(baseInput({ content: "study sesh?" }));
-    // Karman erroring should NOT fail-closed — the OpenAI safety
-    // floor is still in place. Message goes through.
-    expect(r.decision).toBe("approved");
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.rejection_message).toMatch(/try again/);
   });
 
   it("OpenAI fail-closed takes precedence even if Karman returns a flag", async () => {
@@ -261,86 +251,145 @@ describe("moderateMessage — Karman bullying classifier (Layer 2.5)", () => {
     }
   });
 
-  it("skips Karman entirely for image-only messages (text-only classifier)", async () => {
+  it("has Karman's check look at a picture sent with no words", async () => {
     callOpenAIModerationMock.mockResolvedValueOnce({
       flagged: false,
       worstCategory: null,
       worstScore: 0,
       isHighSeverity: false,
     });
+    callKarmanClassifierMock.mockResolvedValueOnce({
+      flagged: true,
+      category: "sexual",
+      reason: "nudity",
+    });
     const r = await moderateMessage(
       baseInput({ content: "", mediaUrls: ["https://cdn.example.com/a.jpg"] })
     );
-    expect(r.decision).toBe("approved");
-    // Karman classifier should not have been called for an image-only message.
-    expect(callKarmanClassifierMock).not.toHaveBeenCalled();
+    expect(callKarmanClassifierMock).toHaveBeenCalledWith("", ["https://cdn.example.com/a.jpg"]);
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.reason).toBe("Karman: sexual: nudity");
   });
 });
 
 // ============================================================
-// Recent-pass cache (#2 from the audit).
-//
-// After Layer 1 passes, the pipeline checks the cache: if this sender
-// just had a clean approval (≤5 min ago) we skip Layer 2 + 2.5
-// entirely. Keeps chat usable during OpenAI outages without bypassing
-// the keyword blocklist.
+// Nothing is waved through. A sender who was approved a moment ago
+// is checked again in full, images above all.
 // ============================================================
 
-describe("moderateMessage — recent-pass cache (#2)", () => {
-  it("cache HIT skips OpenAI + Karman, returns approved", async () => {
-    hasRecentApprovedSendMock.mockResolvedValue(true);
-    const r = await moderateMessage(baseInput({ content: "hello again" }));
-    expect(r.decision).toBe("approved");
-    expect(callOpenAIModerationMock).not.toHaveBeenCalled();
-    expect(callKarmanClassifierMock).not.toHaveBeenCalled();
+describe("moderateMessage — every send is checked", () => {
+  const clean = { flagged: false, isHighSeverity: false, worstCategory: null, worstScore: 0 };
+
+  it("checks a second message from the same sender in full", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    await moderateMessage(baseInput({ content: "hello" }));
+    await moderateMessage(baseInput({ content: "hello again" }));
+    expect(callOpenAIModerationMock).toHaveBeenCalledTimes(2);
+    expect(callKarmanClassifierMock).toHaveBeenCalledTimes(2);
   });
 
-  it("cache MISS falls through to Layer 2 + 2.5 normally", async () => {
-    hasRecentApprovedSendMock.mockResolvedValue(false);
-    callOpenAIModerationMock.mockResolvedValue({
-      flagged: false,
-      isHighSeverity: false,
-      worstCategory: null,
-      worstScore: 0,
+  it("checks an image sent right after a clean message, and rejects it when flagged", async () => {
+    callOpenAIModerationMock.mockResolvedValueOnce(clean);
+    await moderateMessage(baseInput({ content: "hello" }));
+    callOpenAIModerationMock.mockResolvedValueOnce({
+      flagged: true,
+      isHighSeverity: true,
+      worstCategory: "sexual/minors",
+      worstScore: 0.97,
     });
-    const r = await moderateMessage(baseInput({ content: "hello" }));
-    expect(r.decision).toBe("approved");
-    expect(callOpenAIModerationMock).toHaveBeenCalledOnce();
-  });
-
-  it("Layer 1 keyword still rejects even when cache would have hit", async () => {
-    // Cache hit would normally short-circuit, but Layer 1 runs first
-    // and the keyword blocklist is always authoritative.
-    hasRecentApprovedSendMock.mockResolvedValue(true);
-    const r = await moderateMessage(baseInput({ content: "you are a bitch" }));
+    const r = await moderateMessage(baseInput({ mediaUrls: ["https://cdn.example.com/b.jpg"] }));
+    expect(callOpenAIModerationMock).toHaveBeenLastCalledWith("", [
+      "https://cdn.example.com/b.jpg",
+    ]);
     expect(r.decision).toBe("rejected");
-    if (r.decision === "rejected") expect(r.layer).toBe("keyword");
-    // The cache should not have been consulted — Layer 1 short-circuits first.
-    expect(hasRecentApprovedSendMock).not.toHaveBeenCalled();
-    expect(callOpenAIModerationMock).not.toHaveBeenCalled();
   });
+});
 
-  it("empty message (no text, no images) skips the cache and approves", async () => {
-    hasRecentApprovedSendMock.mockResolvedValue(true);
-    const r = await moderateMessage(baseInput());
-    expect(r.decision).toBe("approved");
-    // Empty-message guard runs before cache; cache should not be consulted.
-    expect(hasRecentApprovedSendMock).not.toHaveBeenCalled();
-  });
+// ============================================================
+// Academic dishonesty: reported on its own layer.
+// ============================================================
 
-  it("cache lookup error falls through to the full pipeline (safe default)", async () => {
-    // hasRecentApprovedSend already returns false on internal errors,
-    // so from the pipeline's perspective an error is indistinguishable
-    // from a cache miss — full Layer 2 + 2.5 runs.
-    hasRecentApprovedSendMock.mockResolvedValue(false);
-    callOpenAIModerationMock.mockResolvedValue({
-      flagged: false,
-      isHighSeverity: false,
-      worstCategory: null,
-      worstScore: 0,
+describe("moderateMessage — academic dishonesty", () => {
+  const clean = { flagged: false, isHighSeverity: false, worstCategory: null, worstScore: 0 };
+
+  it("rejects on the integrity layer when the classifier says cheating", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "cheating",
+      reason: "asks for a bare answer",
     });
-    const r = await moderateMessage(baseInput({ content: "anything" }));
+    const r = await moderateMessage(baseInput({ content: "just tell me the answer to 14" }));
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") {
+      expect(r.layer).toBe("integrity");
+      expect(r.rejection_message).toMatch(/not for passing answers/);
+    }
+  });
+
+  it("keeps other conduct flags on the karman layer", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "conduct",
+      reason: "a put-down",
+    });
+    const r = await moderateMessage(baseInput({ content: "nobody likes you" }));
+    expect(r.decision).toBe("rejected");
+    if (r.decision === "rejected") expect(r.layer).toBe("karman");
+  });
+});
+
+// ============================================================
+// Staff: the two student-only rules are not held against a tutor.
+// ============================================================
+
+describe("moderateMessage — a tutor or admin sending", () => {
+  const clean = { flagged: false, isHighSeverity: false, worstCategory: null, worstScore: 0 };
+
+  it("lets a tutor explain an answer", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "cheating",
+      reason: "gives the answer",
+    });
+    const r = await moderateMessage(
+      baseInput({ content: "It is B, because the radius is squared", staff: true })
+    );
     expect(r.decision).toBe("approved");
-    expect(callOpenAIModerationMock).toHaveBeenCalledOnce();
+  });
+
+  it("lets a tutor share a link, with staff known only later", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "contact",
+      reason: "a meeting link",
+    });
+    const r = await moderateMessage(
+      baseInput({ content: "Class link is in the calendar", staff: Promise.resolve(true) })
+    );
+    expect(r.decision).toBe("approved");
+  });
+
+  it("still stops a tutor for sexual content or other conduct", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    for (const category of ["sexual", "conduct"] as const) {
+      callKarmanClassifierMock.mockResolvedValue({ flagged: true, category, reason: "no" });
+      const r = await moderateMessage(baseInput({ content: "something", staff: true }));
+      expect(r.decision).toBe("rejected");
+    }
+  });
+
+  it("holds a student to both rules", async () => {
+    callOpenAIModerationMock.mockResolvedValue(clean);
+    callKarmanClassifierMock.mockResolvedValue({
+      flagged: true,
+      category: "contact",
+      reason: "a handle",
+    });
+    const r = await moderateMessage(baseInput({ content: "add me", staff: false }));
+    expect(r.decision).toBe("rejected");
   });
 });

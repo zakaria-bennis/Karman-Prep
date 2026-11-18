@@ -116,7 +116,8 @@ describe("canonical student practice", () => {
     expect(screen.queryByText("Saved explanation only.")).toBeNull();
     await act(async () => save(review));
     expect(result().textContent).toContain("Correct");
-    expect(screen.getByText("Saved explanation only.")).toBeTruthy();
+    // the explanation is never under the answers: it has a page of its own beside or below
+    expect(screen.getByText("Saved explanation only.").closest("aside")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     await screen.findByText("Practice complete");
     expect(mocks.resume).toHaveBeenCalledWith(id);

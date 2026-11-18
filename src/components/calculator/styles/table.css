@@ -126,6 +126,21 @@
 }
 
 .kc-table-row-delete {
+  background: var(--kc-table-delete-fill);
+  color: var(--kc-table-delete-ink);
+}
+
+.kc-table-row-delete > svg {
+  width: var(--kc-table-delete-size);
+  height: var(--kc-table-delete-size);
+  opacity: var(--kc-table-delete-rest);
+}
+
+.kc-table-row-delete:hover > svg {
+  opacity: 1;
+}
+
+.kc-table-row-delete {
   opacity: 0;
 }
 

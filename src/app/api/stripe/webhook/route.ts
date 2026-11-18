@@ -23,6 +23,8 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { recordPurchaseGrant } from "@/lib/plans";
+import { recordHoursPayment } from "@/lib/schedule/hours";
+import { HOURS_KIND } from "@/lib/schedule/hours-shared";
 import { trackServer } from "@/lib/analytics/server";
 import Stripe from "stripe";
 
@@ -196,6 +198,15 @@ export const POST = withWebhookInstrumentation(
             const scheduleId = await scheduleCohortInstallments(session);
             console.log(`[webhook] cohort instalments for ${session.id}: schedule ${scheduleId}`);
           }
+          break;
+        }
+
+        // ---- Extra tutoring hours bought from the Schedule tab (src/lib/schedule/hours.ts) ----
+        case "payment_intent.succeeded": {
+          const intent = event.data.object as Stripe.PaymentIntent;
+          if (intent.metadata?.kind !== HOURS_KIND) break;
+          const outcome = await recordHoursPayment(intent);
+          console.log(`[webhook] tutoring hours ${intent.id}: ${outcome}`);
           break;
         }
 

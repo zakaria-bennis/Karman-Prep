@@ -1,0 +1,254 @@
+/*
+ * The Library's hero: a stage that fills what is left of the screen, the scene drawn on one canvas, and
+ * the two choices as buttons over it. Each choice carries a small glass plaque with its name and its
+ * progress in one colour, gold.
+ * Tall stage (phone): the two halves are stacked. Wide stage (desktop): they stand side by side.
+ */
+.hero {
+  /* light mode: deep evergreen, which reads on warm glass; dark mode and the night sign: marigold */
+  --gold: #0a5a43;
+  --gold-glow: rgb(10 90 67 / 0.35);
+  --l0: rgb(29 26 34 / 0.2);
+  /* it fills the whole screen; only the menu lies over it (founder, 2026-11-15) */
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  border-radius: 0;
+  touch-action: pan-y;
+}
+
+:global([data-kp-mode="dark"]) .hero {
+  --gold: #ffd56a;
+  --gold-glow: rgb(255 213 106 / 0.6);
+  --l0: rgb(246 241 231 / 0.24);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s var(--out);
+}
+
+.hero[data-ready] .canvas {
+  opacity: 1;
+}
+
+/* chosen: the rim, the shadow and the two signs give way as the sky opens onto the Library */
+.hero[data-leaving] .plaque {
+  opacity: 0;
+  transform: translateY(16px) scale(0.96);
+  filter: blur(8px);
+  transition:
+    opacity 0.45s var(--out),
+    transform 0.45s var(--out),
+    filter 0.45s var(--out);
+}
+
+/* the page's name is part of the scene, on the dusk sky */
+/* the name and the two signs come up with the scene, not before it */
+.heading,
+.plaque {
+  opacity: 0;
+}
+
+.hero[data-ready] .heading,
+.hero[data-ready] .plaque {
+  opacity: 1;
+  transition: opacity 0.4s var(--out) 0.3s;
+}
+
+.hero[data-ready][data-leaving] .heading,
+.hero[data-ready][data-leaving] .plaque {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+.heading {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 24px;
+  margin: 0;
+  color: #1d1a22;
+  font: 400 34px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+  text-shadow: 0 0 24px rgb(255 240 220 / 0.8);
+  pointer-events: none;
+  transition: opacity 0.3s var(--out);
+}
+
+.hero[data-leaving] .heading {
+  opacity: 0;
+}
+
+.picks {
+  position: absolute;
+  /* clear of the phone's bar */
+  inset: 0 0 calc(max(12px, env(safe-area-inset-bottom)) + 76px + 4px);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.hero .pick {
+  display: grid;
+  align-content: end;
+  justify-items: start;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 36px;
+  text-align: left;
+}
+
+.plaque {
+  display: grid;
+  gap: 4px;
+  max-width: 100%;
+  padding: 10px 14px 12px;
+  border-radius: 18px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+/* a sign never crosses the seam (founder, 2026-11-15), and it is small, so the subject keeps the
+   middle of its half. Both signs sit at the foot of their halves; the book stands above its sign and never under it. */
+.hero .pick[data-side="0"] {
+  /* at the foot of its half, lifted clear of the seam, which slopes up to the right */
+  padding-bottom: 40px;
+}
+
+/* the Math sign lies on the night, so it is dark glass with pale words in either mode */
+.pick[data-side="1"] .plaque {
+  --gold: #ffd56a;
+  --gold-glow: rgb(255 213 106 / 0.6);
+  --l0: rgb(246 241 231 / 0.26);
+  background: rgb(12 14 34 / 0.5);
+  color: #f6f1e7;
+  box-shadow:
+    0 18px 44px -18px rgb(0 0 0 / 0.7),
+    inset 0 0 0 1px rgb(255 255 255 / 0.2),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.22);
+}
+
+.pick:active .plaque {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) {
+  .pick:hover .plaque,
+  .pick:focus-visible .plaque {
+    transform: translateY(-4px) scale(1.03);
+  }
+}
+
+.name {
+  font: 400 20px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
+.meta {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.meta b {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* progress in one colour: a gold line that fills */
+.band {
+  display: block;
+  width: 132px;
+  max-width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--l0);
+}
+
+.band i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+  transform-origin: 0 50%;
+  animation: fill 1.2s var(--out) 0.5s both;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (min-width: 960px) and (hover: hover) {
+  .picks {
+    inset: 0 0 0 84px;
+  }
+
+  .heading {
+    top: 28px;
+    left: 116px;
+    font-size: 52px;
+  }
+
+  .picks {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero .pick {
+    padding: 20px;
+  }
+
+  /* on a desktop both signs sit at the foot of their halves, each well clear of the seam */
+  .hero .pick[data-side="0"] {
+    padding-bottom: 20px;
+  }
+
+  .hero .pick[data-side="1"] {
+    padding-left: 132px;
+  }
+
+  .plaque {
+    gap: 6px;
+    padding: 14px 18px 16px;
+    border-radius: 22px;
+  }
+
+  .name {
+    font-size: 28px;
+  }
+
+  .meta {
+    font-size: 15px;
+  }
+
+  .meta b {
+    font-size: 18px;
+  }
+
+  .band {
+    width: 190px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band i {
+    animation: none;
+  }
+
+  .plaque {
+    transition: none;
+  }
+}

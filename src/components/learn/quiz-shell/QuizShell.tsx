@@ -1,19 +1,12 @@
 "use client";
 // The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { sectionStart } from "@/lib/quiz/workspace";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
 import type { ConfidenceBand, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
-import {
-  initialRewards,
-  rewardFor,
-  rewardReducer,
-  showsDots,
-  type DotState,
-} from "@/lib/quiz/rewards";
-import { playRewardSound } from "@/lib/quiz/reward-sound";
+import { showsDots, type DotState } from "@/lib/quiz/rewards";
 import { track } from "@/lib/analytics/client";
 import styles from "./quiz-shell.module.css";
 import nav from "./nav.module.css";
@@ -22,7 +15,7 @@ import { BottomBar } from "./BottomBar";
 import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
 import { ChevronIcon, ExitIcon, HighlightIcon, PenIcon, ReferenceIcon } from "./icons";
-import { MoreMenu, TEXT_SIZES } from "./MoreMenu";
+import { MoreMenu, ShortcutsList, TEXT_SIZES } from "./MoreMenu";
 import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
 import { PassageBlock, hasPassage } from "./PassageBlock";
 import { PencilContext } from "./pencil-context";
@@ -32,15 +25,26 @@ import { QuestionContent } from "./QuestionContent";
 import { ReferenceSheet } from "./ReferenceSheet";
 import { Timer } from "./Timer";
 import { BarButton, TopBar } from "./TopBar";
-import { PaintingWindow } from "./PaintingWindow";
+import { QuizWorld } from "./QuizWorld";
 import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
 import { Explanation } from "./Explanation";
-import { FeedbackBar, ProgressDots } from "./Rewards";
+import { ProgressDots } from "./Rewards";
 import { LevelUpCard } from "./LevelUpCard";
-import { DRAWING_NAMES } from "./drawings";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
+import { KEYS_SLOT_ID } from "./NumericEntry";
+import { useAnswerRecord } from "./use-answer-record";
+import { traceMark, useGuard, type GuardEvent } from "./use-guard";
+import type { NoteSignals } from "@/lib/quiz/signals";
+import {
+  useBarHeight,
+  useCalculatorSounds,
+  useRewards,
+  useEscape,
+  useMissHold,
+  useNotice,
+} from "./use-shell-effects";
 
 export type QuizShellProps = {
   mode: QuizMode;
@@ -53,6 +57,9 @@ export type QuizShellProps = {
   topic?: string;
   onNavigate(index: number): void;
   onSelectAnswer?(questionId: string, answer: string | null): void;
+  /** How a question was answered (time worked, time away, changes of mind and so on), each time
+   *  there is more to keep. The host saves it; nothing waits on it. */
+  onSignals?(signals: NoteSignals): void;
   onSubmit?(questionId: string, answer: string): void | Promise<void>;
   /** "time" when a countdown ran out and the section submitted itself. */
   onFinish?(reason?: "time"): void;
@@ -67,6 +74,7 @@ export type QuizShellProps = {
   /** Each may return a promise; a rejected one puts the marker back and tells the student. */
   onToggleBookmark?(questionId: string, on: boolean): void | Promise<unknown>;
   onFlagForTutor?(questionId: string, note: string): void | Promise<unknown>;
+  onRemoveTutorFlag?(questionId: string): void | Promise<unknown>;
   onReportProblem?(questionId: string, note: string): void | Promise<unknown>;
   /** Extra content under the question (instant-mode rewards plug in here). */
   feedback?: ReactNode;
@@ -77,38 +85,53 @@ export type QuizShellProps = {
   /** A completed skill set moved the skill's band (skill practice only). */
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
-  /** The day's painting, still, around the question. Untimed practice (instant grading, no
-   *  countdown) gets it by default (founder, 2026-11-08); "none" turns it off. */
-  backdrop?: "painting" | "none";
 };
-
-function seedOf(text: string): number {
-  let h = 0;
-  for (const c of text) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h;
-}
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
   const layout = useQuizLayout();
   const q = questions[index];
-  const untimed = mode.grading === "instant" && !props.hideClock;
-  const backdrop = props.backdrop ?? (untimed ? "painting" : "none");
   const total = props.total ?? questions.length;
   const review = q ? props.reviews[q.id] : undefined;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
   const [eliminatorOn, setEliminatorOn] = useState(false);
-  const [dialog, setDialog] = useState<"nav" | "reference" | "exit" | null>(null);
+  const [dialog, setDialog] = useState<"nav" | "reference" | "shortcuts" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
+  // The record of how each question is answered (use-answer-record.ts), for the host to save.
+  const working = q ? s.workspaces[q.id] : undefined;
+  const letters = useMemo(
+    () => (q?.answer_format === "multiple_choice" ? q.answer_choices.map((c) => c.letter) : []),
+    [q]
+  );
+  const noteRecord = useAnswerRecord({
+    attemptKey,
+    mode: mode.grading,
+    enabled: !props.loading && mode.grading !== "locked",
+    question: q ? { id: q.id, order: letters } : undefined,
+    answer: working?.answer ?? null,
+    crossedOut: working?.crossedOut ?? [],
+    marked: working?.markedForReview ?? false,
+    calculatorOpen: calcOpen,
+    answered: mode.grading === "instant" && !!review,
+    onSignals: props.onSignals,
+  });
+  // Keeping the question from being lifted off the screen (use-guard.ts). A preview or a
+  // finished question that is only being looked at is not guarded.
+  const guarded = !props.loading && mode.grading !== "locked";
+  const onGuard = useCallback((event: GuardEvent) => noteRecord({ type: event }), [noteRecord]);
+  const masked = useGuard({ enabled: guarded, onEvent: onGuard });
+  const mark = useMemo(
+    () => (guarded ? traceMark(attemptKey, new Date()) : undefined),
+    [guarded, attemptKey]
+  );
   // Analytics: which questions were seen (skips and time to first answer, with the answer tables).
   useEffect(() => {
     if (q && !props.loading) track("question_viewed", { questionId: q.id, mode: mode.grading });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q?.id, props.loading]);
   /** Bumped by "?" to open the shortcuts list in the More menu. */
-  const [shortcutsAsked, setShortcutsAsked] = useState(0);
   // The host's server start time wins; otherwise the first start this session (survives reloads).
   // Nothing is recorded while the host is still loading (its attempt key is not real yet).
   const startedAt = useMemo(
@@ -124,8 +147,8 @@ export function QuizShell(props: QuizShellProps) {
       if (ws.answer) props.onSelectAnswer?.(id, ws.answer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.loadedFor, attemptKey]);
-  const header = useRef<HTMLDivElement>(null);
-  const [dockTop, setDockTop] = useState(64);
+  const { header, barH } = useBarHeight();
+  useCalculatorSounds();
   const lastIndex = useRef(index);
   const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
   useEffect(() => {
@@ -134,45 +157,28 @@ export function QuizShell(props: QuizShellProps) {
   }, [index]);
   // Small wins: folded from the graded answers in order, so a repeated review never counts twice.
   const instant = mode.grading === "instant";
-  const rewards = questions.slice(0, index + 1).reduce((state, item, i) => {
-    const r = props.reviews[item.id];
-    return r && instant
-      ? rewardReducer(state, {
-          kind: "graded",
-          key: item.id,
-          index: i,
-          correct: r.isCorrect,
-          points: r.points ?? 0,
-        })
-      : state;
-  }, initialRewards(total));
-  const played = useRef(new Set<string>());
-  useEffect(() => {
-    if (!instant || !q || !review || played.current.has(q.id)) return;
-    played.current.add(q.id);
-    if (review.isCorrect)
-      playRewardSound(rewardFor(rewards).tier === "streak5" ? "correctStreak" : "correct");
-  }, [instant, q, review, rewards]);
-  useLayoutEffect(() => {
-    if (header.current) setDockTop(Math.round(header.current.getBoundingClientRect().bottom) + 8);
-  }, [layout, s.pencilOn]);
+  // A miss graded in front of the student (not one opened again later) holds Next for three
+  // seconds while the button fills, a nudge toward the explanation (founder, 2026-11-17). The
+  // calculator, if it is open, steps aside so the explanation has the room.
+  const qid = q?.id;
+  const missed = instant && !!review && !review.isCorrect;
+  const holding = useMissHold(qid, !!review, missed, () => setCalcOpen(false));
+  useRewards(questions, index, props.reviews, instant, total);
 
   const answerWith = (value: string | null) => {
     if (!q || locked) return;
     s.act({ type: "answer", value });
     props.onSelectAnswer?.(q.id, value);
   };
-  const [saveNotice, setSaveNotice] = useState<string | null>(null);
-  const [hint, setHint] = useState<string | null>(null);
-  useEffect(() => {
-    if (!hint) return;
-    const t = setTimeout(() => setHint(null), 3200);
-    return () => clearTimeout(t);
-  }, [hint]);
+  const [saveNotice, setSaveNotice] = useNotice(5000);
+  const [hint, setHint] = useNotice(3200);
   // Highlight: a tool like the pencil (founder, 2026-11-08). Words already selected are
   // highlighted straight away; after that, every selection is highlighted until it's turned off.
+  // One tool at a time (founder, 2026-11-17): picking one up puts the others away. The
+  // highlighter, the pencil, the reference and the calculator never share the screen.
   const toggleHighlighter = () => {
     if (s.highlighterOn) return s.setHighlighterOn(false);
+    setCalcOpen(false);
     s.setHighlighterOn(true);
     const sel = window.getSelection();
     const color = s.annotations.nextColor();
@@ -186,11 +192,6 @@ export function QuizShell(props: QuizShellProps) {
     if (added) sel?.removeAllRanges();
     else setHint("Select words to highlight them. Esc puts the highlighter away.");
   };
-  useEffect(() => {
-    if (!saveNotice) return;
-    const t = setTimeout(() => setSaveNotice(null), 5000);
-    return () => clearTimeout(t);
-  }, [saveNotice]);
   const toggleBookmark = () => {
     if (!q || !mode.canBookmark) return;
     const id = q.id;
@@ -206,20 +207,27 @@ export function QuizShell(props: QuizShellProps) {
     });
   };
   const togglePencil = () => {
+    if (!s.pencilOn) setCalcOpen(false);
     s.setPencilOn(!s.pencilOn);
     s.setTool("pen");
   };
-  /* Escape puts the pencil or the highlighter away (menus and dialogs handle their own Escape
-     first). */
-  useEffect(() => {
-    if (!s.pencilOn && !s.highlighterOn) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented || dialog) return;
+  const openReference = () => {
+    setCalcOpen(false);
+    s.setPencilOn(false);
+    s.setHighlighterOn(false);
+    setDialog((d) => (d === "reference" ? null : "reference"));
+  };
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEscape({
+    active: s.pencilOn || s.highlighterOn || calcOpen,
+    calculatorOpen: calcOpen,
+    blocked: !!dialog,
+    putAway: () => {
       s.setPencilOn(false);
       s.setHighlighterOn(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+      setCalcOpen(false);
+    },
+    closeCalculator: () => setCalcOpen(false),
   });
   const last = index + 1 >= total;
   const goNext = () => {
@@ -253,8 +261,7 @@ export function QuizShell(props: QuizShellProps) {
       document
         .querySelector<HTMLButtonElement>("[data-quiz-shell] [data-calculator-trigger]")
         ?.click(),
-    reference: () =>
-      q?.subject === "math" && setDialog((d) => (d === "reference" ? null : "reference")),
+    reference: () => q?.subject === "math" && openReference(),
     eliminator: () => setEliminatorOn((v) => !v),
     submit: () => {
       if (!q || checking) return;
@@ -267,7 +274,7 @@ export function QuizShell(props: QuizShellProps) {
       const nextSize = TEXT_SIZES[Math.min(TEXT_SIZES.length - 1, Math.max(0, i + step))];
       if (nextSize) s.setTextSize(nextSize);
     },
-    help: () => setShortcutsAsked((n) => n + 1),
+    help: () => setDialog((d) => (d === "shortcuts" ? null : "shortcuts")),
   });
 
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
@@ -275,7 +282,11 @@ export function QuizShell(props: QuizShellProps) {
   const answer = ws?.answer ?? null;
   const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
   const math = q.subject === "math";
-  const missAside = instant && layout === "wide" && !!review && !review.isCorrect;
+  // The explanation is never under the answers (founder, 2026-11-17). Once a question is graded
+  // it has a page of its own: at the right on a wide screen; on a phone or a tablet it comes up
+  // from the bottom and the question draws up into the top half, each scrolling on its own.
+  const explained = instant && !!review;
+  const missAside = explained;
   const dots: DotState[] = Array.from({ length: total }, (_, i) => {
     const item = questions[i];
     const r = item ? props.reviews[item.id] : undefined;
@@ -283,8 +294,6 @@ export function QuizShell(props: QuizShellProps) {
     if (i === index) return "current";
     return item ? "open" : "locked";
   });
-  const reward = rewardFor(rewards);
-  const drawing = DRAWING_NAMES[(seedOf(attemptKey) + index * 3) % DRAWING_NAMES.length];
   const progress =
     props.progress ??
     (instant && showsDots(total) ? (
@@ -293,6 +302,7 @@ export function QuizShell(props: QuizShellProps) {
         label={`Question ${index + 1} of ${total}`}
         count={`${index + 1} of ${total}`}
         onOpen={() => setDialog("nav")}
+        onGo={(i) => i !== index && props.onNavigate(i)}
       />
     ) : undefined);
 
@@ -327,7 +337,13 @@ export function QuizShell(props: QuizShellProps) {
       <ChevronIcon />
     </button>
   ) : (
-    <button type="button" className={styles.primary} onClick={goNext}>
+    <button
+      type="button"
+      className={styles.primary}
+      data-holding={holding || undefined}
+      disabled={holding}
+      onClick={goNext}
+    >
       {last ? (mode.grading === "end" ? "Review" : "Finish") : "Next"}
       <ChevronIcon />
     </button>
@@ -358,174 +374,225 @@ export function QuizShell(props: QuizShellProps) {
           data-drawing={s.drawing || undefined}
           data-pencil={s.pencilOn || undefined}
           data-highlighter={s.highlighterOn || undefined}
+          data-masked={masked || undefined}
+          data-calc={calcOpen || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
-          data-backdrop={backdrop}
           className={`${styles.shell} ${styles[layout]}`}
-          style={{ "--quiz-text-scale": s.textSize / 100 } as React.CSSProperties}
+          style={
+            {
+              "--quiz-text-scale": s.textSize / 100,
+              "--quiz-bar-h": `${barH}px`,
+            } as React.CSSProperties
+          }
         >
-          {backdrop === "painting" && <PaintingWindow />}
-          <div ref={header} className={styles.barGroup}>
-            <TopBar
-              section={props.section}
-              topic={props.topic}
-              exit={props.onExit && <BarButton icon={<ExitIcon />} word="Exit" onClick={exit} />}
-              centre={
-                mode.clock.kind !== "none" &&
-                !props.hideClock && (
-                  <Timer
-                    clock={mode.clock}
-                    startedAtMs={startedAt}
-                    accommodation={props.accommodation}
-                    onExpire={() => props.onFinish?.("time")}
-                  />
-                )
-              }
-              tools={
-                <>
-                  <span id={CALC_SLOT_ID} className={styles.slot} />
-                  <BarButton
-                    icon={<HighlightIcon />}
-                    word="Highlight"
-                    aria-pressed={s.highlighterOn}
-                    // Keeps the selection: pressing a button would otherwise clear it first.
-                    onPointerDown={(e) => e.preventDefault()}
-                    onClick={toggleHighlighter}
-                  />
-                  <BarButton
-                    icon={
-                      <PenIcon state={s.pencilOn ? "on" : "off"} tip={`var(--quiz-pen-${s.pen})`} />
-                    }
-                    word="Pencil"
-                    aria-pressed={s.pencilOn}
-                    onClick={togglePencil}
-                  />
-                  {math && (
+          <QuizWorld />
+          {mark && (
+            <div className={styles.trace} style={{ backgroundImage: mark }} aria-hidden="true" />
+          )}
+          {/* the bars and the question: a docked calculator moves all of it over as one card */}
+          <div className={styles.stage} data-calculator-dock-shift="">
+            <div ref={header} className={styles.barGroup}>
+              <TopBar
+                section={props.section}
+                topic={props.topic}
+                exit={
+                  props.onExit && (
                     <BarButton
-                      icon={<ReferenceIcon />}
-                      word="Reference"
-                      aria-haspopup="dialog"
-                      onClick={() => setDialog("reference")}
+                      icon={<ExitIcon size={18} />}
+                      word="Exit"
+                      flow="row"
+                      className={styles.exit}
+                      onClick={exit}
                     />
-                  )}
-                  <MoreMenu
-                    textSize={s.textSize}
-                    onTextSize={s.setTextSize}
-                    shortcutsAsked={shortcutsAsked}
-                    math={math}
-                    showSounds={mode.grading === "instant"}
-                    onReport={
-                      props.onReportProblem &&
-                      ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
-                    }
-                  />
-                </>
-              }
-            />
-            {s.pencilOn && layout !== "compact" && strip}
-          </div>
-          <div className={styles.body} data-calculator-dock-shift="">
-            {content ?? (
-              <QuestionArea
-                layout={layout}
-                questionKey={q.id}
-                direction={direction}
-                aside={missAside && review ? <Explanation q={q} review={review} /> : null}
-                wrap={(c) => (
-                  <CalculatorFrame
-                    enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
-                    attemptKey={attemptKey}
-                    questionId={q.id}
-                    open={calcOpen}
-                    onOpenChange={(open) => {
-                      setCalcOpen(open);
-                      if (open) track("calculator_opened", q ? { questionId: q.id } : {});
-                    }}
-                    dockTop={dockTop}
-                  >
-                    {c}
-                  </CalculatorFrame>
-                )}
-                passage={
-                  hasPassage(q) ? (
-                    <>
-                      {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-                      <PassageBlock q={q} />
-                      {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
-                    </>
-                  ) : null
+                  )
                 }
-                question={
-                  <>
-                    <QuestionContent
-                      q={q}
-                      number={index + 1}
-                      mode={mode}
-                      ws={ws}
-                      review={review}
-                      bookmarked={!!s.saved[q.id]}
-                      flagged={s.saved[q.id] === "tutor_flag"}
-                      eliminatorOn={eliminatorOn}
-                      figureHere={!hasPassage(q)}
-                      hasCalculator={!!props.hasCalculator}
-                      pickOffer={s.pickOffer}
-                      explanationAside={missAside}
-                      onAnswer={answerWith}
-                      onCross={(letter) => s.act({ type: "toggleCross", letter })}
-                      onToggleReview={() =>
-                        s.act({ type: "toggleReview", allowed: mode.markForReview })
-                      }
-                      onToggleBookmark={toggleBookmark}
-                      onFlag={(note) => {
-                        s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-                        props.onFlagForTutor?.(q.id, note);
-                      }}
-                      onToggleEliminator={() => setEliminatorOn((v) => !v)}
+                centre={
+                  mode.clock.kind !== "none" &&
+                  !props.hideClock && (
+                    <Timer
+                      clock={mode.clock}
+                      startedAtMs={startedAt}
+                      accommodation={props.accommodation}
+                      onExpire={() => props.onFinish?.("time")}
                     />
-                    {props.feedback}
+                  )
+                }
+                tools={
+                  <>
+                    <span id={CALC_SLOT_ID} className={styles.slot} />
+                    <BarButton
+                      icon={<HighlightIcon />}
+                      word="Highlight"
+                      aria-pressed={s.highlighterOn}
+                      active={s.highlighterOn}
+                      // Keeps the selection: pressing a button would otherwise clear it first.
+                      onPointerDown={(e) => e.preventDefault()}
+                      onClick={toggleHighlighter}
+                    />
+                    <BarButton
+                      icon={
+                        <PenIcon
+                          state={s.pencilOn ? "on" : "off"}
+                          tip={`var(--quiz-pen-${s.pen})`}
+                        />
+                      }
+                      word="Pencil"
+                      aria-pressed={s.pencilOn}
+                      active={s.pencilOn}
+                      onClick={togglePencil}
+                    />
+                    {math && (
+                      <BarButton
+                        icon={<ReferenceIcon />}
+                        word="Reference"
+                        aria-haspopup="dialog"
+                        active={dialog === "reference"}
+                        onClick={openReference}
+                      />
+                    )}
+                    <MoreMenu
+                      textSize={s.textSize}
+                      onTextSize={s.setTextSize}
+                      onShortcuts={() => setDialog("shortcuts")}
+                      onOpenChange={(open) => {
+                        setMoreOpen(open);
+                        if (!open) return;
+                        s.setPencilOn(false);
+                        s.setHighlighterOn(false);
+                      }}
+                      active={moreOpen}
+                      showSounds={mode.grading === "instant"}
+                      tutor={
+                        mode.showTutorFlag && props.onFlagForTutor
+                          ? {
+                              asked: s.saved[q.id] === "tutor_flag",
+                              onAsk: (note) => {
+                                s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
+                                props.onFlagForTutor?.(q.id, note);
+                              },
+                              onRemove: () => {
+                                // the flag comes down; the question stays bookmarked
+                                s.setSaved((all) => ({ ...all, [q.id]: "bookmark" }));
+                                props.onRemoveTutorFlag?.(q.id);
+                              },
+                            }
+                          : undefined
+                      }
+                      onReport={
+                        props.onReportProblem &&
+                        ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
+                      }
+                    />
                   </>
                 }
               />
-            )}
-            <div className={styles.barGroup}>
-              {props.levelUp && (
-                <LevelUpCard
-                  skill={props.levelUp.skill}
-                  before={props.levelUp.before}
-                  after={props.levelUp.after}
-                  onDone={() => props.onLevelUpDone?.()}
+              {s.pencilOn && layout !== "compact" && strip}
+            </div>
+            <div className={styles.body}>
+              {content ?? (
+                <QuestionArea
+                  layout={layout}
+                  questionKey={q.id}
+                  direction={direction}
+                  aside={missAside && review ? <Explanation q={q} review={review} /> : null}
+                  wrap={(c) => (
+                    <CalculatorFrame
+                      enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
+                      attemptKey={attemptKey}
+                      questionId={q.id}
+                      open={calcOpen}
+                      onOpenChange={(open) => {
+                        setCalcOpen(open);
+                        if (open) {
+                          // the calculator has the screen: nothing else is in hand
+                          s.setPencilOn(false);
+                          s.setHighlighterOn(false);
+                          setDialog((d) => (d === "reference" ? null : d));
+                        }
+                        if (open) track("calculator_opened", q ? { questionId: q.id } : {});
+                      }}
+                      dockTop={12}
+                    >
+                      {c}
+                    </CalculatorFrame>
+                  )}
+                  passage={
+                    hasPassage(q) ? (
+                      <>
+                        {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                        <PassageBlock q={q} />
+                        {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
+                      </>
+                    ) : null
+                  }
+                  question={
+                    <>
+                      <QuestionContent
+                        q={q}
+                        number={index + 1}
+                        mode={mode}
+                        ws={ws}
+                        review={review}
+                        bookmarked={!!s.saved[q.id]}
+                        eliminatorOn={eliminatorOn}
+                        figureHere={!hasPassage(q)}
+                        hasCalculator={!!props.hasCalculator}
+                        pickOffer={s.pickOffer}
+                        explanationAside={explained}
+                        onAnswer={answerWith}
+                        onCross={(letter) => s.act({ type: "toggleCross", letter })}
+                        onToggleReview={() =>
+                          s.act({ type: "toggleReview", allowed: mode.markForReview })
+                        }
+                        onToggleBookmark={toggleBookmark}
+                        onToggleEliminator={() => setEliminatorOn((v) => !v)}
+                      />
+                      {props.feedback}
+                    </>
+                  }
                 />
               )}
-              {hint && (
-                <p role="status" className={styles.saveNotice} data-tone="hint">
-                  {hint}
-                </p>
-              )}
-              {saveNotice && (
-                <p role="alert" className={styles.saveNotice}>
-                  {saveNotice}
-                </p>
-              )}
-              {s.pencilOn && layout === "compact" && strip}
-              {instant && review && !checking && (
-                <FeedbackBar
-                  key={q.id}
-                  correct={review.isCorrect}
-                  streak={rewards.streak}
-                  showStreak={reward.showStreak}
-                  drawing={drawing}
+              <div className={styles.barGroup}>
+                {props.levelUp && (
+                  <LevelUpCard
+                    skill={props.levelUp.skill}
+                    before={props.levelUp.before}
+                    after={props.levelUp.after}
+                    onDone={() => props.onLevelUpDone?.()}
+                  />
+                )}
+                {hint && (
+                  <p role="status" className={styles.saveNotice} data-tone="hint">
+                    {hint}
+                  </p>
+                )}
+                {saveNotice && (
+                  <p role="alert" className={styles.saveNotice}>
+                    {saveNotice}
+                  </p>
+                )}
+                {s.pencilOn && layout === "compact" && strip}
+                {/* a phone's keys for a typed answer are put here, low on the screen */}
+                <div id={KEYS_SLOT_ID} className={styles.keysSlot} />
+                {instant && review && !checking && (
+                  // Nothing is shown about an answer but the answer itself (founder, 2026-11-17:
+                  // no updates during a quiz). A screen reader is still told.
+                  <p key={q.id} role="status" aria-label="Answer result" className={styles.srOnly}>
+                    {review.isCorrect ? "Correct." : "Not quite."}
+                  </p>
+                )}
+                <BottomBar
+                  index={index}
+                  total={total}
+                  canBack={checking || index > 0}
+                  onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
+                  onOpenNavigator={() => setDialog("nav")}
+                  centre={
+                    checking ? <span className={styles.counter}>Check your work</span> : progress
+                  }
+                  primary={primary}
                 />
-              )}
-              <BottomBar
-                index={index}
-                total={total}
-                canBack={checking || index > 0}
-                onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
-                onOpenNavigator={() => setDialog("nav")}
-                centre={
-                  checking ? <span className={styles.counter}>Check your work</span> : progress
-                }
-                primary={primary}
-              />
+              </div>
             </div>
           </div>
           {dialog === "nav" && (
@@ -556,6 +623,15 @@ export function QuizShell(props: QuizShellProps) {
               onClose={() => setDialog(null)}
             >
               <ReferenceSheet />
+            </NavigatorDialog>
+          )}
+          {dialog === "shortcuts" && (
+            <NavigatorDialog
+              compact={layout === "compact"}
+              title="Keyboard shortcuts"
+              onClose={() => setDialog(null)}
+            >
+              <ShortcutsList math={math} />
             </NavigatorDialog>
           )}
           {dialog === "exit" && (

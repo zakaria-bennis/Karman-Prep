@@ -8,18 +8,20 @@ import { modeFor } from "@/lib/quiz/mode";
 import { clearWorkspaces } from "@/lib/quiz/workspace";
 import {
   actionFlagForTutor,
+  actionRemoveTutorFlag,
   actionQuizStudentState,
   actionReportProblem,
   actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
 import {
   actionAnswerRunQuestion,
+  actionNoteAnswerSignals,
   actionResumeRun,
   actionSubmitRunSection,
   type RunActionResult,
 } from "@/app/learn/quiz-run-actions";
 import type { RunReview, RunView } from "@/lib/assembler/run-types";
-import { LevelBanner, type LevelChange } from "./LevelBanner";
+import type { LevelChange } from "./LevelBanner";
 import { FlowFrame, Message } from "./FlowFrame";
 import { FreeLimitPrompt } from "./FreeLimitPrompt";
 import { RunEnd } from "./RunEnd";
@@ -250,6 +252,7 @@ function InstantRun({
       questions={questions}
       total={section.total}
       attemptKey={run.id}
+      onSignals={(signals) => void actionNoteAnswerSignals(signals)}
       index={index}
       section={run.kind === "daily-ten" ? "Daily 10" : run.title}
       /* Only a skill's own practice names its topic: anywhere else it gives the answer away
@@ -268,6 +271,7 @@ function InstantRun({
       onFinish={() => next()}
       onExit={() => router.push(exitHref)}
       onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
+      onRemoveTutorFlag={(id) => actionRemoveTutorFlag({ questionId: id })}
       onFlagForTutor={(id, note) =>
         actionFlagForTutor({ questionId: id, nodeId: run.scope ?? run.kind, note: note || null })
       }
@@ -276,11 +280,8 @@ function InstantRun({
       }
       feedback={
         <>
-          {/* Level news waits for the end of a mixed run: mid-run it names the skill being
-              tested and can discourage after a miss (founder, 2026-11-08). */}
-          {after?.change && index === currentIndex && run.kind === "practice-set" && (
-            <LevelBanner change={after.change} />
-          )}
+          {/* No news during a quiz: nothing about levels is said until it is over (founder,
+              2026-11-17). */}
           {errorBox(error)}
         </>
       }
@@ -354,6 +355,7 @@ function TimedRun({
       questions={section.questions}
       total={section.total}
       attemptKey={`${run.id}:${section.key}`}
+      onSignals={(signals) => void actionNoteAnswerSignals(signals)}
       index={index}
       section={section.title}
       topic={undefined}
@@ -368,6 +370,7 @@ function TimedRun({
       onFinish={() => finish()}
       onExit={() => router.push(exitHref)}
       onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
+      onRemoveTutorFlag={(id) => actionRemoveTutorFlag({ questionId: id })}
       onFlagForTutor={(id, note) =>
         actionFlagForTutor({ questionId: id, nodeId: run.kind, note: note || null })
       }

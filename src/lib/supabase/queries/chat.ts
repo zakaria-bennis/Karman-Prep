@@ -5,10 +5,11 @@
 // ============================================================
 
 import { createAdminClient } from "@/lib/supabase/server";
+import type { SharedQuestion } from "@/lib/chat/shared";
 
 export * from "./chat-moderation";
 
-export type ChatMessageType = "cohort_message" | "qa_question" | "qa_answer";
+export type ChatMessageType = "cohort_message" | "qa_question" | "qa_answer" | "announcement";
 export type ModerationStatus = "pending" | "approved" | "flagged" | "rejected";
 export type HumanReviewAction = "approved" | "removed" | "warned";
 
@@ -46,6 +47,8 @@ export interface ChatMessageRow {
   cohort_label: string | null;
   created_at: string;
   updated_at: string;
+  /** A question sent with the message (migration 20261117050000). */
+  question?: unknown;
 }
 
 export interface DirectMessageRow {
@@ -54,9 +57,16 @@ export interface DirectMessageRow {
   slack_message_ts: string | null;
   sender_id: string;
   recipient_id: string;
-  cohort_id: string;
+  /** Null for a privately tutored student and their tutor. */
+  cohort_id: string | null;
   content: string | null;
   media_urls: string[];
+  read_at?: string | null;
+  /** Migration 20261117050000: a question sent with it, the message it answers, and whether the
+   *  after-hours assistant wrote it. */
+  question?: unknown;
+  parent_message_id?: string | null;
+  from_assistant?: boolean;
   moderation_status: ModerationStatus;
   keyword_flagged: boolean;
   ai_flagged: boolean;
@@ -199,6 +209,8 @@ export interface InsertChatMessageInput {
   ai_flag_reason: string | null;
   rejection_message: string | null;
   cohort_label: string | null;
+  /** A question sent with the message. */
+  question?: SharedQuestion;
   /** Deterministic dedupe key — see src/lib/chat/idempotency.ts.
    *  When present, a partial unique index on (channel_id, client_msg_id)
    *  rejects a second insert (Postgres error code 23505) so the route
@@ -255,7 +267,7 @@ export async function updateChatMessageSlackTs(
 export interface InsertDirectMessageInput {
   sender_id: string;
   recipient_id: string;
-  cohort_id: string;
+  cohort_id: string | null;
   content: string;
   media_urls: string[];
   moderation_status: ModerationStatus;
@@ -264,6 +276,9 @@ export interface InsertDirectMessageInput {
   ai_flag_reason: string | null;
   rejection_message: string | null;
   client_msg_id?: string | null;
+  question?: SharedQuestion;
+  parent_message_id?: string;
+  from_assistant?: boolean;
 }
 
 /** Mirror of findChatMessageByClientMsgId for DMs. The unique index is

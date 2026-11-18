@@ -1,9 +1,8 @@
 "use client";
 import { AnimatePresence, motion, useIsPresent } from "framer-motion";
-import { useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import styles from "./quiz-shell.module.css";
 import { Divider } from "./Divider";
-import { Sky } from "./Sky";
 import { InkLayer } from "./InkLayer";
 import { AnnotationLayer } from "./AnnotationLayer";
 import { DUR, useShellMotion } from "./motion";
@@ -33,7 +32,37 @@ export function QuestionArea({
   aside?: ReactNode;
 }) {
   const frame = useRef<HTMLDivElement>(null);
+  const area = useRef<HTMLDivElement>(null);
   const [split, setSplit] = useState(0.5);
+  // On a phone or a tablet the explanation comes up from the bottom to just under the answers,
+  // never less than a quarter of the screen (founder, 2026-11-17), and the line between the two
+  // can be dragged. `rise` is where the explanation's top sits, as a share of the area.
+  const stacked = layout !== "wide" && !!aside;
+  const [rise, setRise] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (!stacked) return setRise(null);
+    const box = area.current;
+    const column = box?.querySelector<HTMLElement>("[data-quiz-column]");
+    if (!box || !column) return setRise(0.5);
+    const top = box.getBoundingClientRect().top;
+    const under = (column.getBoundingClientRect().bottom - top + 14) / box.clientHeight;
+    setRise(Math.min(0.75, Math.max(0.3, under)));
+  }, [stacked, questionKey]);
+  const drag = useRef<{ from: number; at: number } | null>(null);
+  const grab = (e: React.PointerEvent<HTMLButtonElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { from: e.clientY, at: rise ?? 0.5 };
+  };
+  const pull = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    const box = area.current;
+    if (!d || !box) return;
+    setRise(Math.min(0.8, Math.max(0.2, d.at + (e.clientY - d.from) / box.clientHeight)));
+  };
+  const drop = () => {
+    drag.current = null;
+  };
+  const share = stacked ? (rise ?? 0.5) : null;
   const { reduced } = useShellMotion();
   const split2 = passage && layout !== "compact";
 
@@ -64,16 +93,21 @@ export function QuestionArea({
 
   return (
     <div
+      ref={area}
       className={`${styles.area} ${styles[layout]} ${split2 ? styles.split : ""}`}
       data-aside={aside ? "" : undefined}
     >
-      <Sky />
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={questionKey}
           ref={frame}
           className={styles.frame}
-          style={{ "--split": `${split * 100}%` } as React.CSSProperties}
+          style={
+            {
+              "--split": `${split * 100}%`,
+              ...(share === null ? {} : { bottom: `${(1 - share) * 100}%` }),
+            } as React.CSSProperties
+          }
           custom={direction}
           variants={variants}
           initial="enter"
@@ -115,11 +149,36 @@ export function QuestionArea({
             key={`aside-${questionKey}`}
             data-quiz-scroll
             className={styles.aside}
-            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
+            style={share === null ? undefined : { top: `calc(${share * 100}% + 3px)` }}
+            initial={
+              reduced
+                ? { opacity: 0 }
+                : layout === "wide"
+                  ? { opacity: 0, x: 60 }
+                  : { opacity: 0, y: 80 }
+            }
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={
+              reduced
+                ? { opacity: 0 }
+                : layout === "wide"
+                  ? { opacity: 0, x: 60 }
+                  : { opacity: 0, y: 80 }
+            }
             transition={{ duration: reduced ? DUR.fast : 0.42, ease: [0.2, 0.8, 0.2, 1] }}
           >
+            {stacked && (
+              // the line between the question and its explanation: dragged, it moves both
+              <button
+                type="button"
+                className={styles.asideGrip}
+                aria-label="Drag to make the explanation taller or shorter"
+                onPointerDown={grab}
+                onPointerMove={pull}
+                onPointerUp={drop}
+                onPointerCancel={drop}
+              />
+            )}
             {aside}
           </motion.aside>
         )}

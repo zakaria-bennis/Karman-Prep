@@ -1,0 +1,613 @@
+/*
+ * Progress. Glass, inset (--pad, 12), corners (16 outside, 10 inside), text sizes (13, 16, 20) and the
+ * one green (--p1 to --p3, --go) come from library.module.css, set on .library. The predicted score is
+ * the one large thing on the page, set in the serif the page titles use.
+ */
+.progress {
+  justify-items: center;
+}
+
+.progress > * {
+  width: 100%;
+}
+
+/* ---- the predicted score: first, and in the middle ---- */
+/* a column whose last piece, the graph, takes any height left over: when the pieces beside it are
+   taller, the graph grows and nothing else is stretched */
+.score {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 980px;
+  padding: calc(var(--pad) * 2);
+}
+
+/* green when the score rose over the span shown, red when it fell: the line, its fill, the exam points
+   and the ticker all take it */
+.score {
+  --up: var(--p3);
+  --down: #c0392b;
+  --trend: var(--up);
+}
+
+:global([data-kp-mode="dark"]) .score {
+  --up: var(--p1);
+  --down: #ff8d7e;
+}
+
+.score[data-trend="down"] {
+  --trend: var(--down);
+}
+
+.head {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.head h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.total {
+  font: 400 96px/1 var(--font-serif);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* a value written with letters ("40h 15m") is long, so it is set smaller; small words follow it */
+.total[data-long] {
+  font-size: 72px;
+}
+
+/* the value itself sits in the middle of the pane; the small words hang after it without pushing it */
+.total {
+  position: relative;
+}
+
+.total small {
+  position: absolute;
+  left: 100%;
+  bottom: 0.18em;
+  white-space: nowrap;
+  margin-left: 10px;
+  font:
+    500 16px/1 var(--font-hanken),
+    system-ui,
+    sans-serif;
+  letter-spacing: 0;
+}
+
+/* the ticker: a signed number and its span, all one weight and one color, green up and red down */
+.ticker {
+  margin-top: 4px;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker[data-way="up"] {
+  color: var(--up);
+}
+
+.ticker[data-way="down"] {
+  color: var(--down);
+}
+
+/* names the exam on the day pointed at. The line is always there, empty or not, so nothing shifts */
+.examNote b[data-way="up"] {
+  color: var(--up);
+}
+
+.examNote b[data-way="down"] {
+  color: var(--down);
+}
+
+.examNote {
+  min-height: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+/* the sections, inside the score and quieter than it. Each is a button: it swaps the graph to itself */
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 0;
+}
+
+.sections button {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out),
+    box-shadow 0.2s var(--out);
+}
+
+.sections button b {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sections button:active {
+  transform: scale(0.96);
+}
+
+.sections button[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 2px var(--trend);
+}
+
+@media (hover: hover) {
+  .sections button:hover {
+    background: var(--lens);
+  }
+}
+
+/* the spans of time: one bar of choices, a hollow in the glass, with a lens on the chosen one */
+.progress .spans {
+  align-self: center;
+  margin-top: 10px;
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.spans button {
+  height: 36px;
+}
+
+/* the countdown: only for a student who has entered a test date. A badge inside the top right corner
+   of the score, the same distance from the top edge as from the right one (the pane's own inset). The
+   days and the date take a color for how near the test is, and a shine passes over them. */
+.countdown {
+  --near: #2456c4;
+  --near-lit: #9dbcff;
+  display: grid;
+  align-self: flex-end;
+  justify-items: end;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--r-lens);
+  /* a second pane of frosted glass laid on the score's: lighter than it by day, darker by night
+     (founder, 2026-11-16). The days and the date are deep by day and bright by night, to be read. */
+  background: rgb(255 255 255 / 0.46);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  box-shadow:
+    0 8px 18px -12px rgb(24 28 58 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.7),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.6);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.countdown[data-near="month"] {
+  --near: #8a5a00;
+  --near-lit: #e9b233;
+}
+
+.countdown[data-near="week"] {
+  --near: #b3261a;
+  --near-lit: #ff8672;
+}
+
+:global([data-kp-mode="dark"]) .countdown {
+  --near: #8db6ff;
+  --near-lit: #ffffff;
+  background: rgb(8 10 24 / 0.5);
+  box-shadow:
+    0 8px 18px -12px rgb(0 0 0 / 0.7),
+    inset 0 0 0 1px rgb(255 255 255 / 0.16),
+    inset 0 1px 0 1px rgb(255 255 255 / 0.12);
+}
+
+:global([data-kp-mode="dark"]) .countdown[data-near="month"] {
+  --near: #f2b632;
+  --near-lit: #fff6cf;
+}
+
+:global([data-kp-mode="dark"]) .countdown[data-near="week"] {
+  --near: #ff8672;
+  --near-lit: #fff0ea;
+}
+
+/* metal: lighter at the top of each letter than at its foot, with a band of light that crosses it */
+.countdown b,
+.countdown em {
+  background:
+    linear-gradient(105deg, transparent 42%, var(--near-lit) 50%, transparent 58%) 100% 0 / 300%
+      100% no-repeat,
+    linear-gradient(180deg, color-mix(in srgb, var(--near) 55%, var(--near-lit)), var(--near) 75%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-style: normal;
+  animation: shine 5s var(--out) infinite;
+}
+
+.countdown b {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown em {
+  font-weight: 700;
+}
+
+@keyframes shine {
+  0%,
+  40% {
+    background-position:
+      100% 0,
+      0 0;
+  }
+
+  80%,
+  100% {
+    background-position:
+      0 0,
+      0 0;
+  }
+}
+
+/* ---- the graph ---- */
+.graph {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 270px;
+  border-radius: var(--r-lens);
+  cursor: crosshair;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* the drawing lies inside the box without holding it open, so the box can shrink as well as grow */
+.graph svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: visible;
+}
+
+.rule {
+  fill: none;
+  stroke: var(--sq-edge);
+  stroke-width: 1;
+  opacity: 0.32;
+}
+
+.mark {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.78;
+}
+
+.area {
+  animation: show 0.5s var(--out) 0.25s both;
+}
+
+.line {
+  fill: none;
+  stroke: var(--trend);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: draw 0.8s var(--out) both;
+}
+
+/* a full-length exam at its real score: a small point with no edge, and a ring that breathes out
+   from it */
+.exam {
+  fill: var(--trend);
+}
+
+.ring {
+  fill: var(--trend);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: breathe 2.6s ease-out infinite;
+  animation-delay: var(--lag);
+}
+
+@keyframes breathe {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  70%,
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.examScore {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* a level to aim at: a dashed line in the text color, never the color of the trend */
+.goal {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 0.75;
+}
+
+.goalName {
+  fill: currentColor;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hair {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+/* the day being looked at: gray, so it is never mistaken for an exam */
+.dot {
+  fill: #6f6b78;
+}
+
+:global([data-kp-mode="dark"]) .dot {
+  fill: #cfccd8;
+}
+
+/* ---- before two exams: the same place says what to do ---- */
+.waiting {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 28px 0 16px;
+  text-align: center;
+}
+
+.waiting h2 {
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(2, 84px);
+  gap: 6px;
+}
+
+.slots i {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--p0);
+  box-shadow: 0 0 0 1px var(--sq-edge);
+  font-style: normal;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.slots i[data-on] {
+  background: var(--p3);
+  color: #fffdf8;
+}
+
+.waiting p {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.waiting p b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* the first hundred questions: a band that fills */
+.toExam {
+  width: min(100%, 220px);
+  height: 12px;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--sq-edge);
+}
+
+.toExam i {
+  display: block;
+  height: 100%;
+  background: var(--p2);
+}
+
+/* an exam can be taken before the hundred: said quietly under the main button */
+.progress .sooner {
+  height: 36px;
+  padding: 0 14px;
+  margin-top: -6px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+}
+
+/* with room: the score in the middle, the numbers at its left, the calendar at its right */
+@media (min-width: 1200px) and (hover: hover) {
+  .progress:not([data-single]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .progress:not([data-single]) > .score {
+    max-width: none;
+  }
+
+  .progress:not([data-single]) > :nth-child(1) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .progress:not([data-single]) > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .progress:not([data-single]) > :nth-child(3) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
+
+/* a narrower desktop: the score on top, the numbers and the calendar side by side under it */
+@media (min-width: 960px) and (max-width: 1199px) and (hover: hover) {
+  /* here the score is wide enough for the badge to share the top of the pane with its name */
+  .progress:not([data-single]) .countdown {
+    position: absolute;
+    top: calc(var(--pad) * 2);
+    right: calc(var(--pad) * 2);
+  }
+
+  .progress:not([data-single]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .progress:not([data-single]) > :nth-child(1) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 599px) {
+  .score {
+    padding: calc(var(--pad) + 6px);
+  }
+
+  .total {
+    font-size: 76px;
+  }
+
+  .total[data-long] {
+    font-size: 52px;
+  }
+
+  /* the small words after the value go under it: beside it they ran off the edge of the pane */
+  .total small {
+    position: static;
+    display: block;
+    margin: 2px 0 0;
+    text-align: center;
+  }
+
+  /* two or three buttons always share one row, each with its name over its value, so a third one
+     appearing never wraps the row */
+  .sections {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .sections button {
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+    padding: 6px 4px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .progress .spans {
+    align-self: stretch;
+  }
+
+  .spans button {
+    flex: 1 1 0;
+    padding: 0 4px;
+  }
+
+  .graph {
+    min-height: 200px;
+  }
+}
+
+/* a short phone: everything still fits the screen, with a lower graph and a smaller number */
+@media (max-width: 599px) and (max-height: 780px) {
+  /* a little lower again since the countdown's badge moved inside the pane */
+  .graph {
+    min-height: 124px;
+  }
+
+  .total {
+    font-size: 64px;
+  }
+
+  .total[data-long] {
+    font-size: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line,
+  .area {
+    animation: none;
+  }
+
+  .ring {
+    animation: none;
+    transform: scale(1.8);
+    opacity: 0.25;
+  }
+
+  .countdown b,
+  .countdown em {
+    animation: none;
+  }
+}

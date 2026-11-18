@@ -256,7 +256,7 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
             />
           </div>
         )}
-        <div className="kc-settings-section">
+        <div className="kc-settings-section kc-settings-sounds">
           <SettingSwitchRow
             label="Key Sounds"
             checked={sounds}

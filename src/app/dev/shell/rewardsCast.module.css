@@ -1,0 +1,207 @@
+/*
+ * The characters (Rewards.tsx): the card that tells one's story, and the sixteen squares. Glass,
+ * corners, text sizes and the green come from library.module.css, set on .library.
+ */
+.cast header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cast header p {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cast header b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* a character: its square, and its name under it */
+.cast .cell {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 12px;
+  transition: transform 0.15s var(--out);
+}
+
+.cast .cell:active {
+  transform: scale(0.95);
+}
+
+.named {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.cell[aria-pressed="true"] .named {
+  font-weight: 700;
+}
+
+/* the square. One still to unlock is faint glass; how far along its challenge is runs round it as
+   a green ring set into its edge, starting from the top. */
+.face {
+  --far: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  transition: box-shadow 0.15s var(--out);
+}
+
+.face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3.5px;
+  border-radius: inherit;
+  background: conic-gradient(var(--p2) calc(var(--far) * 1%), transparent 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.face[data-mine] {
+  background: var(--lens);
+}
+
+.face[data-mine]::before {
+  content: none;
+}
+
+/* the one pressed: a dark line just inside the ring, so the two never run together */
+.cell[aria-pressed="true"] .face::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--ink);
+  pointer-events: none;
+}
+
+/* one still to unlock: its face is there to be seen, grayed out */
+.peek {
+  display: grid;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+/* one of the three hardest: only its shape, in black, until it is unlocked */
+.shade {
+  display: grid;
+  filter: brightness(0);
+  opacity: 0.78;
+}
+
+:global([data-kp-mode="dark"]) .shade {
+  opacity: 0.9;
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 132px;
+  padding: 12px 14px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.card h3 {
+  font-size: 16px;
+}
+
+/* what animal it is, quietly after its name */
+.card h3 small {
+  margin-left: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+.how {
+  font-weight: 600;
+}
+
+/* the name, with how far along it is at the end of the same line */
+.card div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.far {
+  font-weight: 600;
+}
+
+.far b {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .cell:not([aria-pressed="true"]):hover .face {
+    background: var(--lens);
+  }
+}
+
+/* a phone: the squares are lower than they are wide, so sixteen with their names and the card above
+   them fit one screen */
+@media (max-width: 599px) {
+  .face {
+    min-height: 0;
+    aspect-ratio: 1.35;
+  }
+
+  .card {
+    min-height: 112px;
+    padding: 10px 12px;
+  }
+}
+
+/* a short phone: lower squares again, and the faces drawn a little smaller to sit inside them */
+@media (max-width: 599px) and (max-height: 780px) {
+  .grid {
+    gap: 4px;
+  }
+
+  .face {
+    aspect-ratio: 1.75;
+  }
+
+  .face > * {
+    transform: scale(0.8);
+  }
+
+  .card {
+    min-height: 124px;
+    padding: 8px 12px;
+  }
+}

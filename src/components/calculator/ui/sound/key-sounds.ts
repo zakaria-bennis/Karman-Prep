@@ -61,6 +61,16 @@ export function setKeySoundsEnabled(on: boolean): void {
   for (const listener of listeners) listener();
 }
 
+/** A host that has a sound setting of its own (the quiz's Sounds switch) says so with this event,
+ *  and key sounds follow it: `detail` is whether sounds are on. */
+export const KEY_SOUNDS_EVENT = "karman:key-sounds";
+if (typeof window !== "undefined") {
+  window.addEventListener(KEY_SOUNDS_EVENT, (event) => {
+    enabled = (event as CustomEvent<boolean>).detail === true;
+    for (const listener of listeners) listener();
+  });
+}
+
 /** useSyncExternalStore's subscribe. */
 export function subscribeKeySounds(listener: Listener): () => void {
   listeners.add(listener);

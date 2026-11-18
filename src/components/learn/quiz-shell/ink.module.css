@@ -60,7 +60,7 @@
   padding: 0 14px;
   border: 1.5px solid var(--quiz-accent);
   border-radius: 99px;
-  background: var(--quiz-panel);
+  background: var(--quiz-sheet);
   color: var(--quiz-accent);
   font: inherit;
   font-weight: 750;

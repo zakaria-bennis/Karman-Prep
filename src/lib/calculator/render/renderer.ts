@@ -98,7 +98,7 @@ export class GraphRenderer {
     drawPointLayer(points, view, frame.rows, theme.paper);
     if (frame.poi !== undefined && frame.poi.length > 0)
       drawPoiDots(points, view, theme, frame.poi);
-    if (frame.trace) drawTraceDot(points, view, frame.trace);
+    if (frame.trace) drawTraceDot(points, view, frame.trace, theme);
   }
 
   /** Empties and removes every canvas (iOS Safari frees canvas memory only at 0×0); idempotent. */
@@ -162,7 +162,11 @@ export function readRenderTheme(host: Element): RenderTheme {
   const read = (name: string) => style.getPropertyValue(name).trim();
   const perSlot = <T>(value: (slot: CurveSlot) => T) =>
     Object.fromEntries(CURVE_SLOTS.map((slot) => [slot, value(slot)])) as Record<CurveSlot, T>;
+  // on glass the numbers' paper outline would show as a dark edge: a host may turn it off
+  const noHalo = read("--kc-label-halo") === "0";
   return {
+    ...(noHalo ? { labelHalo: false } : {}),
+    ...(read("--kc-poi-ink") === "1" ? { poiInk: true } : {}),
     paper: read(ROLE_VARS.paper),
     text: read(ROLE_VARS.text),
     axis: read(ROLE_VARS.axis),

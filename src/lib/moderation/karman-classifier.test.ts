@@ -1,135 +1,92 @@
 // ============================================================
-// Unit tests for the Karman bullying classifier.
-//
-// Stubs global fetch + OPENAI_API_KEY so the tests run offline.
-// Locks down the request shape (model, structured-output format,
-// system + user messages) and the response parsing.
+// Unit tests for Karman's own check on a chat message.
+// A fake `ask` stands in for Claude, so nothing here calls the API.
 // ============================================================
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { callKarmanClassifier } from "./karman-classifier";
+import { describe, expect, it, vi } from "vitest";
+import {
+  CLASSIFIER_MODEL,
+  SYSTEM_PROMPT,
+  callKarmanClassifier,
+  type Ask,
+} from "./karman-classifier";
 
-interface CapturedRequest {
-  url: string;
-  body: {
-    model?: string;
-    temperature?: number;
-    response_format?: { type?: string };
-    messages?: Array<{ role: string; content: string }>;
-  };
-}
+const says = (answer: Awaited<ReturnType<Ask>>) => vi.fn<Ask>(async () => answer);
 
-let captured: CapturedRequest | null;
+describe("callKarmanClassifier", () => {
+  it("uses Claude Haiku", () => {
+    expect(CLASSIFIER_MODEL).toBe("claude-haiku-5-5");
+  });
 
-function stubFetch(modelOutput: unknown, ok = true): void {
-  globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-    captured = {
-      url: typeof url === "string" ? url : url.toString(),
-      body: init?.body ? JSON.parse(init.body as string) : {},
-    };
-    const payload = {
-      choices: [{ message: { content: JSON.stringify(modelOutput) } }],
-    };
-    return new Response(JSON.stringify(payload), {
-      status: ok ? 200 : 500,
-      headers: { "Content-Type": "application/json" },
+  it("passes the trimmed words and every picture to the model", async () => {
+    const ask = says({ flagged: false, category: "none", reason: "clean" });
+    await callKarmanClassifier("  hi  \n", ["https://cdn.example.com/a.jpg"], ask);
+    expect(ask).toHaveBeenCalledWith("hi", ["https://cdn.example.com/a.jpg"]);
+  });
+
+  it("asks nothing when there are no words and no pictures", async () => {
+    const ask = says({ flagged: false, category: "none", reason: "clean" });
+    expect((await callKarmanClassifier("", [], ask)).flagged).toBe(false);
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("checks a picture sent with no words", async () => {
+    const ask = says({ flagged: true, category: "sexual", reason: "nudity" });
+    const r = await callKarmanClassifier("", ["https://cdn.example.com/a.jpg"], ask);
+    expect(ask).toHaveBeenCalledOnce();
+    expect(r).toEqual({ flagged: true, category: "sexual", reason: "nudity" });
+  });
+
+  it("returns a clean verdict with no category", async () => {
+    const r = await callKarmanClassifier(
+      "how do you set up 14?",
+      [],
+      says({ flagged: false, category: "cheating", reason: "clean" })
+    );
+    expect(r).toEqual({ flagged: false, reason: "clean" });
+  });
+
+  it("reports each kind of flag", async () => {
+    for (const category of ["sexual", "cheating", "contact", "conduct"] as const) {
+      const r = await callKarmanClassifier(
+        "x",
+        [],
+        says({ flagged: true, category, reason: "why" })
+      );
+      expect(r).toEqual({ flagged: true, category, reason: "why" });
+    }
+  });
+
+  it("treats a flag with no kind as conduct", async () => {
+    const r = await callKarmanClassifier(
+      "x",
+      [],
+      says({ flagged: true, category: "none", reason: "" })
+    );
+    expect(r).toEqual({ flagged: true, category: "conduct", reason: "flagged" });
+  });
+
+  it("flags content the model declines to look at, as the most serious kind", async () => {
+    const r = await callKarmanClassifier("", ["https://cdn.example.com/a.jpg"], says("declined"));
+    expect(r.flagged).toBe(true);
+    expect(r.category).toBe("sexual");
+  });
+
+  it("throws when the model cannot be reached, so the pipeline does not deliver", async () => {
+    const ask = vi.fn<Ask>(async () => {
+      throw new Error("timeout");
     });
-  }) as typeof fetch;
-}
-
-beforeEach(() => {
-  captured = null;
-  vi.stubEnv("OPENAI_API_KEY", "sk-test");
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.restoreAllMocks();
-});
-
-describe("callKarmanClassifier — request shape", () => {
-  it("calls the chat-completions endpoint with gpt-4o-mini + JSON response_format", async () => {
-    stubFetch({ flagged: false, reason: "clean" });
-    await callKarmanClassifier("hello world");
-    expect(captured?.url).toBe("https://api.openai.com/v1/chat/completions");
-    expect(captured?.body.model).toBe("gpt-4o-mini");
-    expect(captured?.body.response_format).toEqual({ type: "json_object" });
-    expect(captured?.body.temperature).toBe(0);
+    await expect(callKarmanClassifier("hello", [], ask)).rejects.toThrow("timeout");
   });
 
-  it("sends a system prompt + the message text as the user message", async () => {
-    stubFetch({ flagged: false, reason: "clean" });
-    await callKarmanClassifier("study group tonight?");
-    const messages = captured?.body.messages ?? [];
-    expect(messages).toHaveLength(2);
-    expect(messages[0].role).toBe("system");
-    // The system prompt must include the audience context — a
-    // future refactor that drops "14-18" or "Karman" should fail
-    // this assertion until the prompt is reviewed.
-    expect(messages[0].content).toMatch(/14-18/);
-    expect(messages[0].content).toMatch(/Karman/);
-    expect(messages[1]).toEqual({ role: "user", content: "study group tonight?" });
-  });
-
-  it("trims whitespace before sending", async () => {
-    stubFetch({ flagged: false, reason: "clean" });
-    await callKarmanClassifier("   hi   \n");
-    const messages = captured?.body.messages ?? [];
-    expect(messages[1].content).toBe("hi");
-  });
-
-  it("short-circuits to {flagged:false} without a network call when content is empty", async () => {
-    const fetchSpy = vi.fn();
-    globalThis.fetch = fetchSpy as typeof fetch;
-    const r = await callKarmanClassifier("");
-    expect(fetchSpy).not.toHaveBeenCalled();
-    expect(r.flagged).toBe(false);
-  });
-});
-
-describe("callKarmanClassifier — response handling", () => {
-  it("parses a clean response", async () => {
-    stubFetch({ flagged: false, reason: "academic discussion" });
-    const r = await callKarmanClassifier("how do I solve question 7?");
-    expect(r.flagged).toBe(false);
-    expect(r.reason).toBe("academic discussion");
-  });
-
-  it("parses a flagged response", async () => {
-    stubFetch({ flagged: true, reason: "put-down directed at another student" });
-    const r = await callKarmanClassifier("you're so dumb");
-    expect(r.flagged).toBe(true);
-    expect(r.reason).toContain("put-down");
-  });
-
-  it("coerces missing reason field to a default string", async () => {
-    stubFetch({ flagged: true });
-    const r = await callKarmanClassifier("...");
-    expect(r.flagged).toBe(true);
-    expect(typeof r.reason).toBe("string");
-  });
-
-  it("throws on non-200 HTTP", async () => {
-    stubFetch({ error: "boom" }, false);
-    await expect(callKarmanClassifier("hi")).rejects.toThrow(/karman-classifier HTTP/);
-  });
-
-  it("throws when the model returns non-JSON content", async () => {
-    globalThis.fetch = vi.fn(async () => {
-      const payload = {
-        choices: [{ message: { content: "not actually json" } }],
-      };
-      return new Response(JSON.stringify(payload), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }) as typeof fetch;
-    await expect(callKarmanClassifier("hi")).rejects.toThrow(/non-JSON/);
-  });
-
-  it("throws when OPENAI_API_KEY is not set", async () => {
-    vi.unstubAllEnvs();
-    delete process.env.OPENAI_API_KEY;
-    await expect(callKarmanClassifier("hi")).rejects.toThrow(/OPENAI_API_KEY/);
+  it("tells the model who the students are, what is and is not cheating, and how to judge pictures", () => {
+    expect(SYSTEM_PROMPT).toMatch(/14-18/);
+    expect(SYSTEM_PROMPT).toMatch(/Karman/);
+    expect(SYSTEM_PROMPT).toMatch(/minors/);
+    expect(SYSTEM_PROMPT).toMatch(/ACADEMIC DISHONESTY/);
+    expect(SYSTEM_PROMPT).toMatch(/WORKING A QUESTION OUT TOGETHER/);
+    expect(SYSTEM_PROMPT).toMatch(/When it is unclear, it is not cheating/);
+    expect(SYSTEM_PROMPT).toMatch(/PICTURES/);
+    expect(SYSTEM_PROMPT).toMatch(/looks under 18/);
   });
 });

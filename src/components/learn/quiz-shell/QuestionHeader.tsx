@@ -1,21 +1,19 @@
 "use client";
-import { useState } from "react";
 import type { QuizMode } from "@/lib/quiz/mode";
 import styles from "./pane.module.css";
 import shell from "./quiz-shell.module.css";
-import { BookmarkIcon, EliminatorIcon, RaiseHandIcon, ReviewMarkIcon } from "./icons";
+import { BookmarkIcon, EliminatorIcon, ReviewMarkIcon } from "./icons";
 
-/** Question number, markers and the eliminator toggle (spec: Bluebook tools). */
+/** Question number, markers and the eliminator toggle (spec: Bluebook tools). Asking the tutor
+ *  about a question is in the More menu (founder, 2026-11-17). */
 export function QuestionHeader({
   number,
   mode,
   markedForReview,
   bookmarked,
-  flagged,
   eliminatorOn,
   onToggleReview,
   onToggleBookmark,
-  onFlag,
   onToggleEliminator,
   showEliminator,
 }: {
@@ -23,16 +21,12 @@ export function QuestionHeader({
   mode: QuizMode;
   markedForReview: boolean;
   bookmarked: boolean;
-  flagged: boolean;
   eliminatorOn: boolean;
   showEliminator: boolean;
   onToggleReview(): void;
   onToggleBookmark(): void;
-  onFlag(note: string): void;
   onToggleEliminator(): void;
 }) {
-  const [noteOpen, setNoteOpen] = useState(false);
-  const [note, setNote] = useState("");
   const on = (v: boolean) => (v ? "on" : "off");
   return (
     <div className={styles.header}>
@@ -61,52 +55,6 @@ export function QuestionHeader({
         >
           <BookmarkIcon state={on(bookmarked)} />
         </button>
-      )}
-      {mode.showTutorFlag && (
-        <span className={styles.popoverAnchor}>
-          <button
-            type="button"
-            className={shell.tool}
-            aria-label="Ask my tutor"
-            aria-pressed={flagged}
-            aria-expanded={noteOpen}
-            onClick={() => (flagged ? undefined : setNoteOpen((v) => !v))}
-          >
-            <RaiseHandIcon state={on(flagged)} />
-          </button>
-          {noteOpen && (
-            <form
-              className={styles.popover}
-              onSubmit={(e) => {
-                e.preventDefault();
-                onFlag(note.trim());
-                setNoteOpen(false);
-              }}
-              onKeyDown={(e) => e.key === "Escape" && setNoteOpen(false)}
-            >
-              <label className={styles.popoverLabel} htmlFor="tutor-flag-note">
-                Question for your tutor (optional)
-              </label>
-              <textarea
-                id="tutor-flag-note"
-                className={styles.textarea}
-                maxLength={2000}
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                autoFocus
-              />
-              <div className={styles.popoverActions}>
-                <button type="button" className={shell.tool} onClick={() => setNoteOpen(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className={shell.tool}>
-                  Send to tutor
-                </button>
-              </div>
-            </form>
-          )}
-        </span>
       )}
       {showEliminator && (
         <button

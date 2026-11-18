@@ -21,6 +21,7 @@ import { IMPERSONATE_COOKIE, IMPERSONATE_USER_COOKIE } from "@/lib/supabase/quer
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveConsentState } from "@/lib/consent/server";
 import "./globals.css";
+import "./no-select.css";
 import "./figure-font.css";
 
 const geistSans = localFont({

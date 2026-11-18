@@ -1,0 +1,617 @@
+/*
+ * One side of the Library and one domain. The menu's glass (shell.module.css), squarer: 16 outside, 10
+ * inside. One inset (--pad, 12) on every side of every piece; rows one --cell (48) tall.
+ * Text: 13, 16 and 20, in weights 500 and 600.
+ *
+ * Progress is one green in three steps, the same way round in both modes (founder, 2026-11-15): light
+ * for Learning, dark for Proficient. Every mark carries a thin edge (--sq-edge) so it stands clear of the
+ * glass by day and by night.
+ */
+.library {
+  --pad: 12px;
+  --cell: 48px;
+  --r-lens: 10px;
+  --r-piece: 16px;
+  /* not started is see-through: the glass itself, inside an edge */
+  --p0: transparent;
+  --p1: #86d0ac;
+  --p2: #38a47b;
+  --p3: #0a5a43;
+  --sq-edge: rgb(10 70 52 / 0.6);
+  --pglow: rgb(10 90 67 / 0.3);
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+  display: grid;
+  gap: var(--pad);
+  font-size: 16px;
+}
+
+:global([data-kp-mode="dark"]) .library {
+  --p0: transparent;
+  --p1: #9be0c0;
+  --p2: #45b48a;
+  --p3: #0e6f53;
+  --sq-edge: rgb(255 255 255 / 0.62);
+  --pglow: rgb(120 230 190 / 0.35);
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+}
+
+.library h2,
+.library p,
+.library ul {
+  margin: 0;
+}
+
+.library ul {
+  padding: 0;
+  list-style: none;
+}
+
+.library h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.glass {
+  padding: var(--pad);
+  border-radius: var(--r-piece);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  animation: settle 0.22s var(--out) both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ---- marks: a square for a level, and the band and ring cut from the same four colours ---- */
+.key i,
+.band i,
+.pips i {
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.library i[data-level="0"] {
+  background: var(--p0);
+}
+
+.library i[data-level="1"] {
+  background: var(--p1);
+}
+
+.library i[data-level="2"] {
+  background: var(--p2);
+}
+
+.library i[data-level="3"] {
+  background: var(--p3);
+}
+
+.band {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.band i {
+  flex: 0 0 0;
+  box-shadow: none;
+}
+
+/* where two levels meet, a hairline in the colour of the band's edge */
+.band i + i {
+  border-left: 1px solid var(--sq-edge);
+}
+
+.key {
+  display: grid;
+  gap: 10px;
+}
+
+.key li > * {
+  display: grid;
+  width: 100%;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: 6px;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.key button:not(:disabled):hover,
+.key button:focus-visible {
+  background: var(--hover);
+}
+
+.key button:disabled {
+  cursor: default;
+}
+
+.key li > * {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.key i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.key b {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the lead: where your skills stand, and today's two tasks ---- */
+.lead {
+  display: grid;
+  gap: var(--pad);
+}
+
+.standing {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  gap: 20px;
+  padding: calc(var(--pad) * 2);
+}
+
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.ring i {
+  --sweep: 1;
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 17px), #000 calc(100% - 16px)),
+    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 17px), #000 calc(100% - 16px)),
+    conic-gradient(#000 calc(var(--sweep) * 360deg), transparent 0);
+  mask-composite: intersect;
+}
+
+/* the ring's inner edge */
+.ring::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.ring p {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ring b {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.standingWords {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
+  min-width: 0;
+}
+
+.bank,
+.qty {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.78;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- the domains, set side by side to compare: every band is the same width ---- */
+.domains {
+  display: grid;
+  gap: 4px;
+}
+
+.domains h2 {
+  padding: var(--pad) var(--pad) 8px;
+}
+
+.domain,
+.skill {
+  display: grid;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px var(--pad);
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.domain {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 72px auto;
+}
+
+.name {
+  display: grid;
+  gap: 2px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.name small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--go);
+}
+
+/* the weakest domain lies on its own piece of glass, stacked on the piece beneath */
+.domain[data-first] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    0 8px 20px -12px rgb(24 28 58 / 0.4),
+    inset 0 0 0 1px var(--lens-edge),
+    inset 0 1px 0 var(--glass-shine);
+}
+
+.grow {
+  display: block;
+  transform-origin: 0 50%;
+}
+
+.tally {
+  font-size: 13px;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tally b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.library .go {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
+}
+
+.domain:active,
+.skill:active {
+  transform: scale(0.985);
+  background: var(--hover);
+}
+
+@media (hover: hover) {
+  .domain:hover,
+  .skill:hover {
+    background: var(--hover);
+  }
+
+  .domain:hover .go,
+  .skill:hover .go {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* ---- one domain ---- */
+.summary {
+  display: grid;
+  gap: 14px;
+  padding: calc(var(--pad) * 2);
+}
+
+/* in a row, each number sits right beside its level */
+.summary .key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+}
+
+.summary .key li > * {
+  grid-template-columns: auto auto auto;
+  gap: 8px;
+  width: auto;
+}
+
+.lede {
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+.lede b {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.library h2.group {
+  padding: var(--pad) var(--pad) 4px;
+  font-size: 16px;
+}
+
+.count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.count b {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.count .bank {
+  margin-left: auto;
+}
+
+.skill {
+  grid-template-columns: 1fr auto auto auto;
+  min-height: var(--cell);
+  gap: 14px;
+  font-weight: 500;
+}
+
+.label {
+  text-wrap: pretty;
+}
+
+.none {
+  padding: var(--pad);
+  font-weight: 500;
+}
+
+/* three bars on one line; a filled bar glows a little and a light passes along it */
+.pips {
+  display: grid;
+  grid-template-columns: repeat(3, 18px);
+  align-items: center;
+  flex: none;
+  gap: 4px;
+  height: 18px;
+}
+
+.pips i {
+  position: relative;
+  height: 7px;
+  border-radius: 3px;
+  background: var(--p0);
+  overflow: hidden;
+}
+
+.pips[data-level="1"] i[data-on] {
+  background: var(--p1);
+}
+
+.pips[data-level="2"] i[data-on] {
+  background: var(--p2);
+}
+
+.pips[data-level="3"] i[data-on] {
+  background: var(--p3);
+}
+
+.pips i[data-on] {
+  box-shadow:
+    0 0 0 1px var(--sq-edge),
+    0 0 8px var(--pglow);
+}
+
+.pips i[data-on]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.75) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: shimmer 3.2s ease-in-out infinite;
+}
+
+.pips i:nth-child(2)::after {
+  animation-delay: 0.15s;
+}
+
+.pips i:nth-child(3)::after {
+  animation-delay: 0.3s;
+}
+
+@keyframes shimmer {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+
+  85%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* ---- the filter, and the phone's pager: one bar of choices with a lens on the chosen one ---- */
+.filter,
+.pager {
+  display: flex;
+  gap: 4px;
+  justify-self: start;
+  max-width: 100%;
+  padding: 4px;
+  border-radius: var(--r-piece);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+}
+
+.pager {
+  justify-self: stretch;
+}
+
+.filter button,
+.pager button {
+  position: relative;
+  flex: none;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-lens);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pager button {
+  flex: 1 1 0;
+}
+
+.filter button > span:last-child,
+.pager button > span:last-child {
+  position: relative;
+}
+
+.filter button[aria-pressed="true"],
+.pager button[aria-pressed="true"] {
+  font-weight: 600;
+}
+
+.lens {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-lens);
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+/* ---- with room: the lead in two pieces ---- */
+@media (min-width: 960px) and (hover: hover) {
+  .lead {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .standing {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    gap: 28px;
+  }
+}
+
+@media (max-width: 959px) {
+  .filter {
+    justify-self: stretch;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .filter button {
+    flex: 1 0 auto;
+    padding: 0 10px;
+  }
+
+  /* a level in the key is a button: on a phone it is tall enough to press without care */
+  .key li > * {
+    min-height: 44px;
+    align-content: center;
+  }
+
+  .standingWords {
+    max-width: none;
+  }
+}
+
+/* a narrow phone: a domain's band drops under its name, and a skill row drops its question count */
+@media (max-width: 599px) {
+  /* five levels in one bar: the names are set a little smaller, so the last is never off the edge */
+  .levels button {
+    flex: 1 1 auto;
+    min-width: 40px;
+    padding: 0 5px;
+    font-size: 13px;
+  }
+
+  .domain {
+    grid-template-columns: 1fr auto auto;
+    gap: 8px 12px;
+    padding: 12px var(--pad);
+  }
+
+  .domain .grow {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .skill {
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .skill .qty {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .pips i[data-on]::after {
+    animation: none;
+  }
+
+  .library .go {
+    transition: none;
+  }
+}

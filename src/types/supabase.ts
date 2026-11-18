@@ -443,6 +443,154 @@ export type Database = {
           },
         ];
       };
+      chat_channel_reads: {
+        Row: {
+          channel_id: string;
+          read_at: string;
+          scope: string;
+          user_id: string;
+        };
+        Insert: {
+          channel_id: string;
+          read_at?: string;
+          scope: string;
+          user_id: string;
+        };
+        Update: {
+          channel_id?: string;
+          read_at?: string;
+          scope?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_reads_channel_id_fkey";
+            columns: ["channel_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_channels";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_channel_reads_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "tutor_earnings_summary";
+            referencedColumns: ["tutor_user_id"];
+          },
+          {
+            foreignKeyName: "chat_channel_reads_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      chat_presence: {
+        Row: {
+          seen_at: string;
+          typing_at: string | null;
+          typing_in: string | null;
+          user_id: string;
+        };
+        Insert: {
+          seen_at?: string;
+          typing_at?: string | null;
+          typing_in?: string | null;
+          user_id: string;
+        };
+        Update: {
+          seen_at?: string;
+          typing_at?: string | null;
+          typing_in?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_presence_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "tutor_earnings_summary";
+            referencedColumns: ["tutor_user_id"];
+          },
+          {
+            foreignKeyName: "chat_presence_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      chat_reactions: {
+        Row: {
+          created_at: string;
+          message_id: string;
+          message_kind: string;
+          reaction: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          message_id: string;
+          message_kind: string;
+          reaction: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          message_id?: string;
+          message_kind?: string;
+          reaction?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "tutor_earnings_summary";
+            referencedColumns: ["tutor_user_id"];
+          },
+          {
+            foreignKeyName: "chat_reactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      chat_standing: {
+        Row: {
+          integrity_strikes: number;
+          paused_at: string | null;
+          paused_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          integrity_strikes?: number;
+          paused_at?: string | null;
+          paused_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          integrity_strikes?: number;
+          paused_at?: string | null;
+          paused_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       chat_messages: {
         Row: {
           ai_flag_reason: string | null;
@@ -466,6 +614,7 @@ export type Database = {
           message_type: string;
           moderation_status: string;
           parent_message_id: string | null;
+          question: Json | null;
           rejection_message: string | null;
           sender_id: string;
           slack_message_ts: string;
@@ -493,6 +642,7 @@ export type Database = {
           message_type: string;
           moderation_status?: string;
           parent_message_id?: string | null;
+          question?: Json | null;
           rejection_message?: string | null;
           sender_id: string;
           slack_message_ts: string;
@@ -520,6 +670,7 @@ export type Database = {
           message_type?: string;
           moderation_status?: string;
           parent_message_id?: string | null;
+          question?: Json | null;
           rejection_message?: string | null;
           sender_id?: string;
           slack_message_ts?: string;
@@ -878,9 +1029,10 @@ export type Database = {
           ai_flag_reason: string | null;
           ai_flagged: boolean;
           client_msg_id: string | null;
-          cohort_id: string;
+          cohort_id: string | null;
           content: string | null;
           created_at: string;
+          from_assistant: boolean;
           human_review_action: string | null;
           human_reviewed: boolean;
           human_reviewed_at: string | null;
@@ -889,6 +1041,8 @@ export type Database = {
           keyword_flagged: boolean;
           media_urls: string[];
           moderation_status: string;
+          parent_message_id: string | null;
+          question: Json | null;
           read_at: string | null;
           recipient_id: string;
           rejection_message: string | null;
@@ -900,9 +1054,10 @@ export type Database = {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
           client_msg_id?: string | null;
-          cohort_id: string;
+          cohort_id?: string | null;
           content?: string | null;
           created_at?: string;
+          from_assistant?: boolean;
           human_review_action?: string | null;
           human_reviewed?: boolean;
           human_reviewed_at?: string | null;
@@ -911,6 +1066,8 @@ export type Database = {
           keyword_flagged?: boolean;
           media_urls?: string[];
           moderation_status?: string;
+          parent_message_id?: string | null;
+          question?: Json | null;
           read_at?: string | null;
           recipient_id: string;
           rejection_message?: string | null;
@@ -922,9 +1079,10 @@ export type Database = {
           ai_flag_reason?: string | null;
           ai_flagged?: boolean;
           client_msg_id?: string | null;
-          cohort_id?: string;
+          cohort_id?: string | null;
           content?: string | null;
           created_at?: string;
+          from_assistant?: boolean;
           human_review_action?: string | null;
           human_reviewed?: boolean;
           human_reviewed_at?: string | null;
@@ -933,6 +1091,8 @@ export type Database = {
           keyword_flagged?: boolean;
           media_urls?: string[];
           moderation_status?: string;
+          parent_message_id?: string | null;
+          question?: Json | null;
           read_at?: string | null;
           recipient_id?: string;
           rejection_message?: string | null;
@@ -967,6 +1127,13 @@ export type Database = {
             columns: ["human_reviewed_by"];
             isOneToOne: false;
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "direct_messages_parent_message_id_fkey";
+            columns: ["parent_message_id"];
+            isOneToOne: false;
+            referencedRelation: "direct_messages";
             referencedColumns: ["id"];
           },
           {
@@ -1579,6 +1746,48 @@ export type Database = {
           uploaded_by_user_id?: string;
         };
         Relationships: [];
+      };
+      private_hour_purchases: {
+        Row: {
+          amount_cents: number;
+          created_at: string;
+          hours: number;
+          id: string;
+          stripe_payment_intent_id: string;
+          user_id: string;
+        };
+        Insert: {
+          amount_cents: number;
+          created_at?: string;
+          hours: number;
+          id?: string;
+          stripe_payment_intent_id: string;
+          user_id: string;
+        };
+        Update: {
+          amount_cents?: number;
+          created_at?: string;
+          hours?: number;
+          id?: string;
+          stripe_payment_intent_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "private_hour_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "tutor_earnings_summary";
+            referencedColumns: ["tutor_user_id"];
+          },
+          {
+            foreignKeyName: "private_hour_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       progress: {
         Row: {

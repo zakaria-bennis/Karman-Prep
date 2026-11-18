@@ -10,7 +10,7 @@
   height: 100%;
   min-height: 0;
   border-right: 1px solid var(--kc-rule);
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
@@ -58,7 +58,7 @@
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
   transition: transform var(--kc-dur-250) var(--kc-ease-out);
 }
 
@@ -95,6 +95,8 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: var(--kc-scrollbar-width);
+  scrollbar-color: var(--kc-scrollbar-color);
   font-size: var(--kc-size-list);
 }
 
@@ -109,11 +111,16 @@
 .kc-row {
   position: relative;
   display: grid;
-  margin-top: -1px;
+  margin: var(--kc-row-gap) var(--kc-row-side) 0;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent;
   border-bottom: 1px solid transparent;
-  background: var(--kc-list);
+  border-radius: var(--kc-row-radius);
+  background: var(--kc-row-fill);
+  box-shadow: var(--kc-row-shadow);
+  transition:
+    border-color var(--kc-dur-200) var(--kc-ease-out),
+    background-color var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-row-inner {
@@ -121,6 +128,7 @@
   min-height: 0;
   overflow: hidden;
   padding-bottom: 6px;
+  border-radius: var(--kc-row-radius);
 }
 
 /* VIS-22: the selected row (focused, its curve pressed on the graph, or left with Escape), or the
@@ -156,11 +164,13 @@
   width: var(--kc-gutter);
   padding: 1px 2px;
   border-right: 1px solid var(--kc-tab-rule);
+  border-radius: var(--kc-row-radius) 0 0 var(--kc-row-radius);
   background: var(--kc-tab);
+  transition: background-color var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-row-number {
-  display: block;
+  display: var(--kc-show-row-number);
   color: var(--kc-row-number);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-row-index);
@@ -412,6 +422,11 @@
 .kc-row-delete > svg {
   display: block;
   opacity: var(--kc-delete-rest);
+  transition: scale var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-row-delete:active > svg {
+  scale: 0.9;
 }
 
 .kc-row-delete:hover > svg {
@@ -559,10 +574,12 @@
 .kc-ghost-row {
   position: relative;
   height: 54px;
-  margin-top: -1px;
+  margin: var(--kc-row-gap) var(--kc-row-side) 0;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent; /* as a row's, so the rule stops short of the panel edge */
-  background: var(--kc-list); /* as a row's, so its rule covers a focused row's lower bar pixel */
+  border-radius: var(--kc-row-radius);
+  /* as a row's, so its rule covers a focused row's lower bar pixel */
+  background: var(--kc-row-fill);
   cursor: text;
 }
 
@@ -574,6 +591,7 @@
   left: 0;
   width: var(--kc-gutter);
   border-right: 1px solid var(--kc-tab-rule);
+  border-radius: var(--kc-row-radius) 0 0 var(--kc-row-radius);
   background: var(--kc-tab);
   mask-image: linear-gradient(to bottom, var(--kc-text) 50%, transparent);
 }
@@ -613,7 +631,7 @@
   min-width: 160px;
   padding: 4px;
   border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
 }
 
@@ -627,7 +645,7 @@
   width: fit-content;
   margin: 8px auto;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-text);
   color: var(--kc-list);
   font-family: var(--kc-font-ui);

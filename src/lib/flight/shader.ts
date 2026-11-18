@@ -10,6 +10,16 @@
 // to 1 while it plays and rests at 1: the sun starts behind the ridge and climbs to its place while the mist
 // lying in the valley drains away, and the camera sinks a little to its place; at night the northern lights
 // surge instead.
+import {
+  WORLD_AFLOAT,
+  WORLD_ALBEDO,
+  WORLD_BUILT,
+  WORLD_LIGHT,
+  WORLD_MIRROR,
+  WORLD_TERRAIN,
+  WORLD_WATER,
+} from "./world-glsl";
+
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
 export const FRAG = `
@@ -17,6 +27,11 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime, uP, uNight, uIntro;
 uniform sampler2D uNoise;
+/* the visitor's weather (founder, 2026-11-14): x cloud cover, y rain, z mist, w snow, each 0 to 1 */
+uniform vec4 uWx;
+/* the portals' endless world (founder, 2026-11-14): the engine sets WORLD, and uWorld is how far the camera
+   has flown through land that is made up as it goes (world.ts, world-glsl.ts) */
+uniform float uWorld;
 
 const mat2 M2 = mat2(.8, -.6, .6, .8);
 const float CB = 1.05, CT = 1.3;   /* the cloud deck: bottom and top */
@@ -35,6 +50,10 @@ float fbm(vec2 p) { float a = 0., b = .5; for (int i = 0; i < 5; i++) { a += b *
 
 /* the route: the valley the camera follows, from the high peaks (z = 0) to the open sea (z > 8) */
 float pathX(float z) { return .5 * sin(z * .55) + .22 * sin(z * 1.4 + 1.3); }
+#ifdef WORLD
+${WORLD_TERRAIN}
+#else
+float lowAt(float z) { return smoothstep(1.2, 4.2, z); }
 float shape(vec2 x, float a) {
   float z = x.y;
   float sea = smoothstep(6.3, 8.4, z);
@@ -44,31 +63,58 @@ float shape(vec2 x, float a) {
   float v = smoothstep(.04, mix(.8, 1.35, wet), abs(x.x - pathX(z)));
   return a * amp * mix(mix(.3, .05, wet), 1., v) + lift;
 }
+#endif
 #define TERR(NAME, OCT) float NAME(vec2 x) { vec2 p = x; float a = 0., b = 1.; vec2 d = vec2(0.); for (int i = 0; i < OCT; i++) { vec3 n = noised(p); d += n.yz; a += b * n.x / (1. + dot(d, d)); b *= .5; p = M2 * p * 2.; } return shape(x, a); }
 TERR(terrL, 3)
 TERR(terrM, 6)
 TERR(terrD, 10)
 /* the finest version adds the bumps of a forest canopy below the tree line */
-/* one tree: a cone somewhere in its cell, of its own height; some cells are clearings */
-vec2 treeCell(vec2 g) {
+/* one tree: a cone somewhere in its cell, of its own height; some cells are clearings (dens: how few) */
+vec2 treeCell(vec2 g, float dens) {
   vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id), tx(id + 41.)) - .5) * .8;
   float size = tx(id + 13.);
-  return vec2(max(0., 1. - length(f) * (2.2 + 1.6 * size)) * (.45 + .85 * size) * step(.28, tx(id + 59.)), tx(id + 77.));
+  return vec2(max(0., 1. - length(f) * (2.2 + 1.6 * size)) * (.45 + .85 * size) * step(1. - dens, tx(id + 59.)), tx(id + 77.));
 }
 /* the forest: two sizes of tree laid over each other, thinning out in patches */
-vec2 treeAt(vec2 x) {
-  vec2 a = treeCell(x * 190.), b = treeCell(M2 * x * 330. + 17.);
+vec2 treeAt(vec2 x, float dens) {
+  vec2 a = treeCell(x * 190., dens), b = treeCell(M2 * x * 330. + 17., dens);
   float patchy = smoothstep(.3, .62, n2(x * 21.));
   return vec2(max(a.x, b.x * .7) * mix(.35, 1., patchy), a.x > b.x * .7 ? a.y : b.y);
 }
+/* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
+   z = which house it is (0 to 1), w = 1 where a house stands */
+vec4 house(vec2 x) {
+  vec2 g = x * 54., id = floor(g);
+  float r = tx(id + 5.), r2 = tx(id + 23.);
+  vec2 f = fract(g) - .5 - (vec2(r, r2) - .5) * .28;
+  float an = tx(id + 61.) * 3.14159, c = cos(an), sn = sin(an);
+  f = vec2(c * f.x + sn * f.y, c * f.y - sn * f.x);
+  vec2 hs = vec2(.25 + .1 * r, .16 + .06 * r2);
+  vec2 d = abs(f) - hs;
+  float inside = max(d.x, d.y), on = step(.25, tx(id + 97.));
+  float wall = .0056 + .0026 * r2, roof = .005 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
+  return vec4((wall + roof) * smoothstep(.035, -.02, inside) * on, inside, r, on);
+}
+#ifdef WORLD
+${WORLD_BUILT}
+#else
+/* settlements (founder, 2026-11-14): small villages on the low, level ground along the valley and the
+   fjord, each a cluster of houses with pitched roofs */
+float townAt(vec2 x, float h) {
+  float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.44, .3, abs(x.x - pathX(x.y)));
+  return level * smoothstep(.5, .6, n2(x * 4.6 + 7.3)) * smoothstep(2.3, 2.7, x.y);
+}
+float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
 float terrH(vec2 x) {
   float h = terrD(x);
-  float low = smoothstep(1.2, 4.2, x.y);
+  float low = lowAt(x.y);
   float band = smoothstep(mix(.74, .5, low), mix(.6, .36, low), h) * smoothstep(.004, .03, h);
   /* bare rock is cracked and ledged; the forest floor carries its trees */
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  return h + (band * .0056 * treeAt(x).x + (1. - band) * crag) * FINE;
+  float town = townAt(x, h);
+  return h + (band * (1. - town) * .0056 * treeAt(x, .72).x + (1. - band) * crag) * FINE + built(x, h);
 }
+#endif
 
 vec3 dirFrom(float elev, float az) { float e = radians(elev), a = radians(az); return vec3(sin(a) * cos(e), sin(e), cos(a) * cos(e)); }
 
@@ -78,6 +124,11 @@ vec3 skyBase(vec3 rd) {
   float mu = max(dot(rd, SUN), 0.);
   vec3 zen = mix(vec3(.006, .011, .03), vec3(.09, .26, .62), DAY);
   vec3 hor = mix(vec3(.016, .026, .06), vec3(.56, .72, .9), DAY);
+#ifdef WORLD
+  /* a sky that never quite leaves dusk: peach and lilac low down, a deeper violet-blue overhead */
+  hor = mix(hor, vec3(.8, .7, .82), .42 * DAY);
+  zen = mix(zen, vec3(.16, .2, .56), .45 * DAY);
+#endif
   vec3 c = mix(hor, zen, pow(y, .45));
   vec3 warm = mix(vec3(1., .34, .1), vec3(1., .66, .34), min(y * 3., 1.));
   c = mix(c, warm, LOW * pow(1. - y, 5.) * (.3 + .7 * pow(mu, 1.5)));
@@ -113,7 +164,11 @@ vec3 sky(vec3 rd, float sharp) {
     star *= .7 + .3 * sin(uTime * (1. + h2 * 3.) + h * 40.);
     float band = exp(-pow(dot(rd, normalize(vec3(.62, .25, -.74))) * 4.2, 2.));
     c += NIGHT * (vec3(.9, .95, 1.) * star + vec3(.5, .56, .8) * band * (.03 + .09 * fbm(g * .045)));
+#ifdef WORLD
+    float amt = max(.12, land(uWorld + 2., 9.).a);
+#else
     float amt = smoothstep(.2, .34, uP) * smoothstep(.82, .62, uP);
+#endif
     c += NIGHT * max(amt, XA) * (1. + 1.8 * XA) * aurora(rd);
     float mm = max(dot(rd, MOON), 0.);
     c += NIGHT * vec3(.95, .97, 1.) * (smoothstep(.99962, .99974, mm) * 2.2 + pow(mm, 900.) * .25);
@@ -122,7 +177,11 @@ vec3 sky(vec3 rd, float sharp) {
 }
 
 /* clouds: a soft deck the camera starts above and sinks through */
-float cover(float z) { return mix(.6, .42, smoothstep(1.6, 3.2, z)) + .06 * smoothstep(6.5, 9., z); }
+#ifdef WORLD
+float cover(float z) { return mix(.2 + .24 * n2(vec2(z * .11, 3.)), .97, uWx.x); }
+#else
+float cover(float z) { return mix(mix(.6, .42, smoothstep(1.6, 3.2, z)) + .06 * smoothstep(6.5, 9., z), .97, uWx.x); }
+#endif
 float cdens(vec3 p) {
   float hh = (p.y - CB) / (CT - CB);
   float prof = smoothstep(0., .22, hh) * smoothstep(1., .45, hh);
@@ -169,10 +228,22 @@ float shadow(vec3 p) {
 vec3 ground(vec3 p, float t) {
   float e = .0009 * t + .0004;
   FINE = clamp(1.6 - t * .55, 0., 1.);
+#ifdef WORLD
+  landHere(p.z);
+  TF = clamp(1.7 - t * .6, 0., 1.);
+  vec2 hx0 = terrH2(p.xz - vec2(e, 0.)), hx1 = terrH2(p.xz + vec2(e, 0.)), hz0 = terrH2(p.xz - vec2(0., e)), hz1 = terrH2(p.xz + vec2(0., e));
+  vec3 ng = normalize(vec3(hx0.x - hx1.x, 2. * e, hz0.x - hz1.x));
+  vec3 n = normalize(vec3(hx0.x + hx0.y - hx1.x - hx1.y, 2. * e, hz0.x + hz0.y - hz1.x - hz1.y));
+#else
   vec3 n = normalize(vec3(terrH(p.xz - vec2(e, 0.)) - terrH(p.xz + vec2(e, 0.)), 2. * e, terrH(p.xz - vec2(0., e)) - terrH(p.xz + vec2(0., e))));
+#endif
   float h = p.y, r = n2(p.xz * 46.), r2 = fbm(p.xz * 7.);
   float near = 1. / (1. + t * t * .5);
-  float low = smoothstep(1.2, 4.2, p.z);
+  float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
+#ifdef WORLD
+${WORLD_ALBEDO}
+#else
+  float low = lowAt(p.z);
   float tl = mix(.74, .5, low), sl = mix(.8, .7, low);
   float tree = smoothstep(tl, tl - .16, h + .16 * (r2 - .5)) * smoothstep(.36, .6, n.y);
   float mead = smoothstep(.8, .93, n.y) * smoothstep(.2, .06, h + .05 * (r2 - .5));
@@ -182,23 +253,55 @@ vec3 ground(vec3 p, float t) {
   n = normalize(n + vec3(d1.y + .6 * d2.y, 0., d1.z + .6 * d2.z) * .26 * near * (1. - tree) * (1. - snow * .7));
   vec3 rock = mix(vec3(.07, .066, .064), vec3(.25, .21, .17), r2) * (.7 + .6 * n2(vec2(h * 80. + r2 * 5., r * 2.)));
   rock *= mix(.62, 1.08, smoothstep(.3, .75, n.y));
-  vec2 tr = treeAt(p.xz);
+  vec2 tr = treeAt(p.xz, .72);
   vec3 forest = mix(vec3(.01, .034, .016), vec3(.045, .085, .024), mix(r, .3 * r + .7 * tr.y, FINE)) * mix(1., .7 + .6 * tr.x, FINE);
   vec3 grass = mix(vec3(.075, .13, .035), vec3(.19, .2, .06), r2);
   vec3 alb = mix(rock, forest, tree);
   alb = mix(alb, grass, mead);
+  /* flower fields: drifts of pink, yellow and lavender through the meadows */
+  float bloom = smoothstep(.52, .7, n2(p.xz * 34. + 3.)) * mead;
+  vec3 petal = mix(vec3(.72, .24, .4), vec3(.86, .7, .18), step(.5, n2(p.xz * 8.)));
+  petal = mix(petal, vec3(.58, .48, .82), step(.72, n2(p.xz * 5. + 20.)));
+  alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .85);
   alb = mix(alb, vec3(.36, .31, .22), smoothstep(.018, .004, h));
   alb = mix(alb, vec3(.78, .83, .9), snow);
+#endif
+  /* the villages: plaster walls, roofs of tile or slate, trodden earth between the houses */
+  float hb = terrD(p.xz), town = step(.5, townAt(p.xz, hb));
+  vec4 hz = house(p.xz);
+  float isH = town * hz.w * smoothstep(.035, -.02, hz.y);
+  float roofy = smoothstep(.3, .55, n.y);
+  vec3 roofc = mix(mix(vec3(.4, .12, .06), vec3(.5, .2, .08), hz.z), vec3(.13, .16, .2), step(.72, hz.z));
+  alb = mix(alb, vec3(.3, .25, .17), town * .22 * (1. - snow));
+  alb = mix(alb, mix(vec3(.66, .6, .5), roofc * (.8 + .4 * r), roofy), isH);
+  /* lamps: at night most houses have a window lit, and the light spills onto the ground around them */
+  float lamp = step(.45, hz.z) * town * hz.w;
+  vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
+#ifdef WORLD
+  /* by night the flowers hold a little light of their own, and it breathes */
+  glow += NIGHT * petal * bloom * (.022 + .01 * sin(uTime * .7 + r * 6.3));
+  /* a spirit tree's crown shines pale at night */
+  glow += NIGHT * vec3(.3, .8, .78) * spirit * tree * TF * (.25 + .5 * wd.y) * (.8 + .2 * sin(uTime * .6 + wd.z * 40.));
+#endif
   float sh = shadow(p + n * .004);
+#ifdef WORLD
+${WORLD_LIGHT}
+#else
   float dif = max(dot(n, KEY), 0.) * sh;
-  float ao = clamp(.8 + (h - terrL(p.xz)) * 3.2, .38, 1.12);
   vec3 lin = KEYCOL * dif * 2.6 + AMB * (.35 + .35 * n.y) * ao + KEYCOL * max(dot(n, normalize(vec3(-KEY.x, 0., -KEY.z))), 0.) * .1;
-  return alb * lin + snow * KEYCOL * pow(max(dot(reflect(-KEY, n), normalize(vec3(0., 1., 0.))), 0.), 6.) * .08 * sh;
+#endif
+  return glow + alb * lin + snow * KEYCOL * pow(max(dot(reflect(-KEY, n), normalize(vec3(0., 1., 0.))), 0.), 6.) * .08 * sh;
 }
 
 vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
   vec3 fogc = skyBase(normalize(vec3(rd.x, .04 + max(rd.y, 0.) * .25, rd.z)));
+#ifdef WORLD
+  /* the air is thick and soft: far land melts into the sky, a little lilac in it */
+  fogc = mix(fogc, fogc * vec3(1.03, .98, 1.08) + vec3(.02, .012, .03) * DAY, .6);
+  col = mix(col, fogc, 1. - exp((-t * t * .022 - t * .05) * (1. + 9. * XM)));
+#else
   col = mix(col, fogc, 1. - exp((-t * t * .013 - t * .02) * (1. + 9. * XM)));
+#endif
   /* mist that lies on the water and in the low ground, and drifts */
   float mist = exp(-max(p.y, 0.) * mix(11., 1.7, XM)) * (1. - exp(-t * mix(.9, 5., XM))) * mix(.35 + .65 * fbm(p.xz * 2.4 + vec2(uTime * .03, 0.)), .75 + .25 * fbm(p.xz * 1.3 + vec2(uTime * .12, uTime * .05)), XM);
   return mix(col, fogc * 1.08 + KEYCOL * .05, mist * mix(mix(.38, .62, max(LOW, NIGHT)), .985, XM));
@@ -208,15 +311,22 @@ void main() {
   float P = clamp(uP, 0., 1.);
   /* an opening: e runs 0 to 1, eased; left = how much of it is still to play */
   float e = clamp(uIntro, 0., 1.), es = e * e * (3. - 2. * e), left = 1. - es;
-  XM = .8 * left * left;
+  XM = max(.8 * left * left, .5 * uWx.z);
+#ifdef WORLD
+  XM = max(XM, .09 + .3 * land(uWorld + 1., 10.).a);
+#endif
   XA = sin(3.14159 * e);
   /* light mode runs from just after sunrise to just after sunset; dark mode from dusk to first light */
   float eL = mix(mix(8., 44., smoothstep(0., .45, P)), -8., smoothstep(.5, .96, P));
   float eD = mix(mix(-4.5, -30., smoothstep(0., .22, P)), 1.4, smoothstep(.76, 1., P));
   float elev = mix(eL, eD, uNight);
   /* the opening: the sun starts behind the ridge and climbs to where this page keeps it */
+  float az = mix(-26., 8., P);
+#ifdef WORLD
+  elev = uSun.x; az = uSun.y;
+#endif
   elev = mix(min(elev, -6.5), elev, es);
-  SUN = dirFrom(elev, mix(-26., 8., P));
+  SUN = dirFrom(elev, az);
   MOON = dirFrom(36., mix(40., 22., P));
   DAY = smoothstep(-.12, .16, SUN.y);
   NIGHT = 1. - smoothstep(-.3, -.06, SUN.y);
@@ -226,15 +336,27 @@ void main() {
   KEY = normalize(mix(MOON, SUN, sunW));
   KEYCOL = mix(vec3(.3, .4, .62) * .2, SUNCOL, sunW);
   AMB = mix(vec3(.012, .018, .04), vec3(.34, .48, .72), DAY) + vec3(.3, .12, .1) * LOW * .5;
+  /* under cloud or rain the sun is weak and the light is grey and even */
+  float dull = max(uWx.x, uWx.y);
+  KEYCOL *= 1. - .78 * dull;
+  AMB = mix(AMB, vec3(dot(AMB, vec3(.34))) * 1.15, .7 * dull);
 
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
-  float z = .2 + 8.45 * P;
-  vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), .05 + 1.72 * pow(1. - P, 2.6) + .002 * sin(uTime * .33), z);
+  float z = .2 + 8.45 * P, alt = .05 + 1.72 * pow(1. - P, 2.6), tilt = mix(-.36, .05, smoothstep(0., .92, P));
+#ifdef WORLD
+  /* fly on and on, low enough to see the trees and the houses, rising and sinking a little */
+  z = uWorld; alt = .11 + .07 * n2(vec2(z * .21, 5.)); tilt = -.11;
+#endif
+  vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
+#ifdef WORLD
+  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ro.xz + vec2(0., .2))) + .075, .06));
+#else
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
+#endif
   float zt = z + 1.3;
-  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + mix(-.36, .05, smoothstep(0., .92, P)), zt);
+  vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + tilt, zt);
   vec3 ww = normalize(ta - ro), uu = normalize(cross(vec3(0., 1., 0.), ww)), vv = cross(ww, uu);
   vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y;
   /* a tall phone sees the same width of land as a wide screen sees height */
@@ -243,14 +365,38 @@ void main() {
   float jit = fract(tx(gl_FragCoord.xy) + tx(gl_FragCoord.yx * .37 + 11.));
 
   float tmax = 16., tw = rd.y < -.0002 ? -ro.y / rd.y : 1e5;
-  float lim = min(tmax, tw), t = .02, hit = -1.;
+  float lim = min(tmax, tw), t = .02, hit = -1., before = .02;
   for (int i = 0; i < 96; i++) {
     vec3 p = ro + rd * t;
-    float h = p.y - terrM(p.xz);
+    float tm = terrM(p.xz), h = p.y - tm;
+#ifdef WORLD
+    if (h < .06) h -= stands(p.xz, tm, clamp(1.7 - t * .6, 0., 1.));
+#else
+    if (h < .04) h -= built(p.xz, tm);
+#endif
     if (h < .0012 * t) { hit = t; break; }
+#ifdef WORLD
+    before = t;
+    t += h * (h < .03 ? .34 : .46) + .0008;
+#else
     t += h * .46 + .0008;
+#endif
     if (t > lim || (p.y > 2.1 && rd.y > 0.)) break;
   }
+#ifdef WORLD
+  /* a small steep thing (a roof, a tree, an animal) is met a little late by the long strides above, which
+     draws it in steps; so close in on the true surface between the last two strides */
+  if (hit > 0.) {
+    float lo = before, hi = hit;
+    for (int i = 0; i < 5; i++) {
+      float mid = .5 * (lo + hi);
+      vec3 p = ro + rd * mid;
+      float tm = terrM(p.xz);
+      if (p.y - tm - stands(p.xz, tm, clamp(1.7 - mid * .6, 0., 1.)) < 0.) hi = mid; else lo = mid;
+    }
+    hit = hi;
+  }
+#endif
 
   vec3 col;
   float tend = tmax;
@@ -263,6 +409,10 @@ void main() {
     vec3 p = ro + rd * tw;
     vec2 w = p.xz;
     float amp = .16 / (1. + tw * 2.2);
+#ifdef WORLD
+    /* the wind ruffles the water in patches and leaves the rest a calm mirror */
+    amp *= mix(.2, 1.5, smoothstep(.32, .68, n2(w * 2.6 + uTime * .015)));
+#endif
     vec3 nw = normalize(vec3(
       (n2(w * 70. + uTime * .5) - .5 + .5 * (n2(w * 170. - uTime * .9) - .5)) * amp, 1.,
       (n2(w * 70. + 9. - uTime * .4) - .5 + .5 * (n2(w * 170. + 5. + uTime * .7) - .5)) * amp));
@@ -278,21 +428,55 @@ void main() {
     }
     if (rhit > 0.) {
       vec3 q = p + rr * rhit;
+#ifdef WORLD
+${WORLD_MIRROR}
+#else
       vec3 land = mix(vec3(.02, .045, .022), vec3(.14, .125, .11), smoothstep(.45, .8, q.y));
       land = mix(land, vec3(.7, .75, .82), smoothstep(.78, .95, q.y)) * (KEYCOL * .9 + AMB * .6);
+#endif
       refl = haze(land, q, rr, rhit + tw);
     } else {
       vec4 cr = clouds(p, rr, 9., jit);
       refl = refl * (1. - cr.a) + cr.rgb;
     }
     float fres = .025 + .975 * pow(1. - max(dot(-rd, nw), 0.), 5.);
+#ifdef WORLD
+    /* clear water over pale sand shows its own colour more than the sky */
+    fres *= 1. - .6 * land(p.z, 8.).a * smoothstep(.12, .0, -terrL(w));
+#endif
     float depth = -terrL(w);
+#ifdef WORLD
+${WORLD_WATER}
+    /* ice: a frozen lake, pale and dull, with long cracks; it mirrors much less */
+    float crack = smoothstep(.03, .0, abs(n2(w * 9.) - .5)) + .6 * smoothstep(.02, .0, abs(n2(w * 23. + 4.) - .5));
+    vec3 frozen = mix(vec3(.62, .72, .8), vec3(.3, .44, .56), clamp(crack, 0., 1.)) * (AMB * .9 + KEYCOL * .7);
+    col = mix(mix(body, refl, fres), mix(frozen, refl, fres * .35), ice);
+#else
+    float ice = 0.;
     vec3 body = mix(vec3(.05, .2, .19), vec3(.008, .04, .07), smoothstep(0., .07, depth)) * (AMB * 1.3 + KEYCOL * .5);
     body = mix(vec3(.36, .31, .22) * (AMB * .7 + KEYCOL), body, smoothstep(0., .014, depth));
     col = mix(body, refl, fres);
+#endif
     col += SUNCOL * pow(max(dot(rr, SUN), 0.), 520.) * 5. + NIGHT * vec3(.5, .6, .8) * pow(max(dot(rr, MOON), 0.), 700.) * 1.2;
     float edge = depth + .0025 * sin(uTime * 1.2 + n2(w * 30.) * 6.3);
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
+#ifdef WORLD
+    /* by night the sea shines blue where it breaks on the shore, and in patches where it is stirred */
+    col += NIGHT * vec3(.08, .55, .8) * (smoothstep(.012, .0, edge) * .7 * smoothstep(.0, .03, max(depth, -terrL(w + vec2(0., .05)))) + .05 * smoothstep(.6, .8, n2(w * 9. + uTime * .05)) * smoothstep(.1, .0, depth)) * (1. - ice);
+#endif
+    /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
+    vec2 bg = w * 8., bid = floor(bg);
+    vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
+    bf.x -= .12 * sin(uTime * .04 + tx(bid) * 6.3);
+    float boat = step(.84, tx(bid + 41.)) * smoothstep(.03, .06, depth) * (1. - ice);
+    float hull = smoothstep(.05, .03, length(bf * vec2(1., 2.4)));
+    float sail = smoothstep(.028, .014, length((bf + vec2(.004, 0.)) * vec2(2.6, 1.3)));
+    col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
+    col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
+    col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
+#ifdef WORLD
+${WORLD_AFLOAT}
+#endif
     col = haze(col, p, rd, tw);
     tend = tw;
   } else {
@@ -302,7 +486,11 @@ void main() {
   vec4 cl = clouds(ro, rd, tend, jit);
   col = col * (1. - cl.a) + cl.rgb;
   /* birds: two loose flocks flying on ahead, by day, below the clouds; hills hide them */
+#ifdef WORLD
+  float fly = (1. - NIGHT) * smoothstep(-.05, .05, SUN.y);
+#else
   float fly = smoothstep(.27, .36, P) * (1. - smoothstep(.9, .99, P)) * (1. - NIGHT) * smoothstep(-.05, .05, SUN.y);
+#endif
   if (fly > .01) {
     float ink = 0.;
     for (int k = 0; k < 2; k++) {
@@ -323,7 +511,11 @@ void main() {
     col = mix(col, AMB * .12, ink * fly * .88);
   }
   /* snow: falls around the high peaks, under the clouds, in three depths */
-  float snowing = smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P));
+#ifdef WORLD
+  float snowing = max(.6 * land(uWorld + 1., 9.).a, uWx.w);
+#else
+  float snowing = max(smoothstep(.19, .25, P) * (1. - smoothstep(.33, .43, P)), uWx.w);
+#endif
   if (snowing > .01) {
     float fl = 0.;
     for (int k = 0; k < 3; k++) {
@@ -335,13 +527,66 @@ void main() {
     }
     col = mix(col, (AMB * .9 + KEYCOL * .55 + .04) * 1.25, clamp(fl, 0., 1.) * snowing * .8);
   }
+  /* rain: slanting streaks in three depths, and the colour washed out a little */
+  if (uWx.y > .01) {
+    float rn = 0.;
+    for (int k = 0; k < 3; k++) {
+      float fk = float(k), sc = 26. + fk * 16.;
+      vec2 g = vec2((uv.x + uv.y * .12) * sc, uv.y * sc * .09 + uTime * (2.6 + fk * .7) + fk * 3.);
+      vec2 id = floor(g), f = fract(g) - .5;
+      rn += smoothstep(.06, .0, abs(f.x + (tx(id + fk * 7.) - .5) * .7)) * smoothstep(.5, .2, abs(f.y)) * step(.55, tx(id + 31.)) * (.5 - .12 * fk);
+    }
+    col = mix(col, AMB * 1.4 + .05, clamp(rn, 0., 1.) * uWx.y * .35);
+    col = mix(col, vec3(dot(col, vec3(.3, .59, .11))), .25 * uWx.y);
+  }
+  /* motes: pollen drifting by day, fireflies by night, in the endless world */
+#ifdef WORLD
+  {
+    /* dust that catches the light by day, fireflies by night: three depths, over the whole picture, thickest low down */
+    float mo = 0.;
+    for (int k = 0; k < 3; k++) {
+      float fk = float(k), sc = 6. + fk * 5.;
+      vec2 g = vec2(uv.x * sc + uTime * (.04 + .025 * fk), uv.y * sc + .3 * sin(uTime * .2 + uv.x * 2. + fk) - uTime * .025);
+      vec2 id = floor(g), f = fract(g) - .5 - (vec2(tx(id + fk * 11.), tx(id + 29.)) - .5) * .8;
+      mo += smoothstep(.04, .0, length(f)) * step(.55, tx(id + 9. + fk * 3.)) * (.5 + .5 * sin(uTime * (1. + tx(id)) + tx(id + 5.) * 6.3));
+    }
+    col += mix(KEYCOL * .4 + AMB * .2, vec3(1., .85, .35) * .55, NIGHT) * mo * (1. - uWx.y) * smoothstep(1., -.3, uv.y);
+    /* spirit lights: a few pale lanterns of light that rise slowly and sway, from dusk through the night */
+    float orb = 0.;
+    vec2 og = vec2(uv.x * 2.6 + .25 * sin(uTime * .13 + uv.y * 2.), uv.y * 2.6 - uTime * .035);
+    vec2 oid = floor(og), of = fract(og) - .5 - (vec2(tx(oid + 3.), tx(oid + 21.)) - .5) * .7;
+    float od = length(of);
+    orb = (smoothstep(.05, .0, od) + .35 * exp(-od * 9.)) * step(.74, tx(oid + 13.)) * (.6 + .4 * sin(uTime * .5 + tx(oid) * 6.3));
+    col += vec3(.55, .85, 1.) * orb * (.06 + .26 * NIGHT + .2 * LOW) * (1. - uWx.y);
+  }
+#endif
   /* light spilling through the air around the sun */
+#ifdef WORLD
+  col += SUNCOL * (pow(max(dot(rd, SUN), 0.), 5.) * .16 + pow(max(dot(rd, SUN), 0.), 40.) * .2) * (1. - exp(-tend * .3));
+  {
+    /* shafts of light fanning out from the sun through the mist, slowly turning */
+    float sd = dot(SUN, ww);
+    vec2 dv = uv - vec2(dot(SUN, uu), dot(SUN, vv)) * lens / max(sd, .05);
+    float ang = atan(dv.y, dv.x);
+    float ray = smoothstep(.42, .78, n2(vec2(ang * 5., uTime * .04))) * (.5 + .5 * n2(vec2(ang * 14. + 7., uTime * .06)));
+    col += SUNCOL * ray * .085 * exp(-length(dv) * 1.1) * smoothstep(0., .2, sd) * (.6 + LOW) * (1. - .7 * uWx.x);
+  }
+#else
   col += SUNCOL * pow(max(dot(rd, SUN), 0.), 9.) * .1 * (1. - exp(-tend * .25));
+#endif
 
   col *= mix(1.05, 2.6, NIGHT);
+#ifdef WORLD
+  col = mix(vec3(dot(col, vec3(.299, .587, .114))), col, 1.02);
+#else
   col = mix(vec3(dot(col, vec3(.299, .587, .114))), col, 1.14);
+#endif
   col = clamp((col * (2.51 * col + .03)) / (col * (2.43 * col + .59) + .14), 0., 1.);
   col = pow(col, vec3(.4545));
+#ifdef WORLD
+  /* a quiet picture: the darks lifted toward dusk-blue, the lights held back from white */
+  col = col * vec3(.94, .94, .92) + vec3(.026, .03, .044);
+#endif
   vec2 sc = gl_FragCoord.xy / uRes;
   col *= .86 + .14 * pow(16. * sc.x * sc.y * (1. - sc.x) * (1. - sc.y), .2);
   col += (jit - .5) / 255.;

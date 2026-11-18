@@ -16,7 +16,6 @@ import {
   type JSX,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import { ArrowUpRight, Calculator } from "lucide-react";
 import type { TransferItem } from "@/lib/calculator-transfer/classify";
 import type { TransferPayload, TransferTrigger } from "@/lib/calculator-transfer/payload";
 import { useCalculator } from "./bridge-context"; // not CalculatorScope (AR-33)
@@ -495,8 +494,24 @@ function TransferControlBody({
         onClick={activate}
       >
         <span data-transfer-glyph="" aria-hidden="true">
-          <Calculator size={16} />
-          <ArrowUpRight size={16} />
+          {/* an arrow carrying the answer into a calculator */}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <g data-transfer-arrow="">
+              <path d="M1.500 12h7.500" />
+              <path d="M6.200 9.200L9 12l-2.800 2.800" />
+            </g>
+            <g data-transfer-calculator="">
+              <rect x="11.500" y="4" width="10.500" height="16" rx="2.400" />
+              <path d="M14.300 8h4.900" />
+              <path d="M14.500 12.300h.01M16.800 12.300h.01M19.100 12.300h.01M14.500 15.800h.01M16.800 15.800h.01M19.100 15.800h.01" />
+            </g>
+          </svg>
         </span>
       </button>
       <span

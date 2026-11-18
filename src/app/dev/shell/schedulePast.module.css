@@ -1,0 +1,182 @@
+/*
+ * A past session (Past in ScheduleBits.tsx), inside Schedule's pane: its recording, the tutor's
+ * notes, what was covered and the homework set. Colors come from schedule.module.css.
+ */
+.paneHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.paneHead h2 {
+  font: 400 26px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
+.past {
+  display: grid;
+  gap: 18px;
+}
+
+.past .paneHead {
+  margin-bottom: -4px;
+}
+
+.player {
+  display: grid;
+  gap: 10px;
+}
+
+.screen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30%;
+  aspect-ratio: 16 / 9;
+  max-height: 320px;
+  width: 100%;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #10142e, #2a2152 60%, #47295c);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  overflow: hidden;
+}
+
+.screen > span {
+  display: grid;
+  place-items: center;
+  width: 15%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22);
+  color: #fff8ea;
+  font: 400 clamp(18px, 4vw, 30px) / 1 var(--font-serif);
+  transition: opacity 0.3s var(--out);
+}
+
+.player[data-playing] .screen > span {
+  opacity: 0.55;
+}
+
+.past .screen button {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  padding-left: 3px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.45);
+  color: #fff;
+  transition:
+    transform 0.2s var(--out),
+    opacity 0.3s var(--out);
+}
+
+.past .screen button:hover {
+  transform: scale(1.06);
+}
+
+.player[data-playing] .screen button {
+  padding-left: 0;
+  opacity: 0.5;
+}
+
+.player input[type="range"] {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.player input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--go) var(--at), var(--lens-edge) var(--at));
+}
+
+.player input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--go) var(--at), var(--lens-edge) var(--at));
+}
+
+.player input[type="range"]::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--ink);
+  appearance: none;
+}
+
+.player input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.player > p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gone {
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.notes {
+  max-width: 68ch;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.set {
+  display: grid;
+  gap: 6px;
+}
+
+.past .set button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px 8px 14px;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: background 0.16s var(--out);
+}
+
+.past .set button:hover {
+  background: color-mix(in srgb, var(--ink) 12%, var(--lens));
+}

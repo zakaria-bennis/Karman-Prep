@@ -11,7 +11,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
 import { readDmBodySchema } from "../../schemas";

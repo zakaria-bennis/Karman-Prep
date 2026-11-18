@@ -1,0 +1,577 @@
+/*
+ * Schedule (Schedule.tsx, ScheduleBits.tsx). Glass, corners and text sizes come from
+ * library.module.css, set on .library. Color carries meaning here: green is hours free to book,
+ * blue is hours booked, a skill wears its subject's color, and a time wears the color of the sky
+ * at that time (--sky). (The shell clears every button's font and background, so a button with its
+ * own is named through the page: .schedule .go.)
+ */
+.schedule {
+  --soft: color-mix(in srgb, var(--ink) 74%, transparent);
+  --ruby: #e0425f;
+  --rw: #ff3d9a;
+  --math: #2f8bff;
+  --free: #2fd08c;
+  --held: #5aa9ff;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "sync" "left" "next" "pane" "list";
+  align-items: start;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* the sky at a time: night, sunrise, day, sunset. --sky is its accent; --sky-fill fills a square
+   with one tone of it, lighter to deeper (never two colors: founder, 2026-11-17), and --sky-ink
+   is the lettering that reads on that fill */
+.schedule [data-sky] {
+  --sky-fill: linear-gradient(160deg, color-mix(in srgb, var(--tone) 72%, #fff), var(--tone));
+  --sky-ink: #14161f;
+}
+
+.schedule [data-sky="night"] {
+  --sky: #a08cff;
+  --tone: #4a3fb0;
+  --sky-fill: linear-gradient(160deg, color-mix(in srgb, var(--tone) 82%, #fff), var(--tone));
+  --sky-ink: #fffdf8;
+}
+
+.schedule [data-sky="sunrise"] {
+  --sky: #ffb347;
+  --tone: #ff9f8a;
+}
+
+.schedule [data-sky="day"] {
+  --sky: #ffc94a;
+  --tone: #63b8f7;
+}
+
+.schedule [data-sky="sunset"] {
+  --sky: #ff7e6b;
+  --tone: #ff8f4d;
+}
+
+.schedule [data-kind="rw"] {
+  --kind: var(--rw);
+}
+
+.schedule [data-kind="math"] {
+  --kind: var(--math);
+}
+
+/* pacing */
+.schedule [data-kind="test"] {
+  --kind: #22c36b;
+}
+
+/* a full-length exam's review: gold */
+.schedule [data-kind="exam"] {
+  --kind: #eaa81c;
+}
+
+.schedule h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.schedule button:focus-visible,
+.schedule input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.schedule ::selection {
+  background: color-mix(in srgb, var(--free) 40%, transparent);
+}
+
+/* ---- buttons ---- */
+.schedule .go {
+  height: 48px;
+  padding: 0 26px;
+  border-radius: 24px;
+  background: var(--go);
+  color: var(--on-go);
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--go) 80%, transparent);
+  transition:
+    filter 0.16s var(--out),
+    transform 0.16s var(--out);
+}
+
+.schedule .go:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.schedule .go:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.schedule .go:disabled {
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+.schedule .quiet {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background 0.16s var(--out),
+    color 0.16s var(--out);
+}
+
+.schedule .quiet:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+/* Move in the color of a booked hour, Cancel in ruby */
+.schedule .move,
+.schedule .cancel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 16px 0 13px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--tint) 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 65%, transparent);
+  font-size: 15px;
+  font-weight: 700;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: background 0.16s var(--out);
+}
+
+.schedule .move {
+  --tint: var(--held);
+}
+
+.schedule .cancel {
+  --tint: var(--ruby);
+}
+
+.schedule .move svg,
+.schedule .cancel svg {
+  color: var(--tint);
+}
+
+.schedule .move:hover:not(:disabled),
+.schedule .cancel:hover {
+  background: color-mix(in srgb, var(--tint) 36%, transparent);
+}
+
+.schedule .move:disabled {
+  opacity: 0.4;
+}
+
+.schedule .danger {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  background: #d83a4a;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---- the calendar offer: first on a phone's page, a banner at the top right of a wide screen ---- */
+.sync {
+  grid-area: sync;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--r-piece, 16px);
+  color: var(--ink);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  font: 600 15px/1.3 var(--font-sans);
+  overflow: hidden;
+}
+
+.sync[data-float] {
+  position: fixed;
+  z-index: 7;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  width: 280px;
+  border-radius: 24px;
+  /* it floats over the page, so it is thicker glass than the panes under it */
+  background: color-mix(in srgb, var(--glass) 55%, var(--paper, #fbf6ee));
+}
+
+:global([data-kp-mode="dark"]) .sync[data-float] {
+  --paper: #171a2a;
+}
+
+.sync > b {
+  padding: 0 2px 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sync > p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 2px;
+  font-weight: 700;
+}
+
+.sync.sync button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: var(--ink);
+  font: 700 15px/1 var(--font-sans);
+  cursor: pointer;
+  transition: background 0.16s var(--out);
+}
+
+.sync.sync button:hover {
+  background: color-mix(in srgb, var(--ink) 14%, var(--lens));
+}
+
+.sync.sync button[data-quiet] {
+  justify-content: center;
+  height: 34px;
+  background: none;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--ink) 74%, transparent);
+  font-size: 14px;
+}
+
+.sync svg {
+  flex: none;
+}
+
+/* ---- the next session: the whole card is a painting of the sky at its time ---- */
+.next {
+  grid-area: next;
+  position: relative;
+  display: grid;
+  align-content: end;
+  min-height: 340px;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fffdf8;
+  /* behind the painting, should it not load: the same sky, flat */
+  background: var(--sky-fill);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px rgb(255 255 255 / 0.28);
+}
+
+.scene {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* a fine light edge around the picture */
+.next::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  pointer-events: none;
+}
+
+/* the words sit low on the picture. A shade the height of the words themselves (so it is right
+   however they wrap, on a phone as on a desk) keeps them clear on the palest sky, and fades out
+   above them */
+.over {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 18px 16px 16px;
+  text-shadow:
+    0 1px 2px rgb(6 8 24 / 0.5),
+    0 2px 14px rgb(6 8 24 / 0.55);
+}
+
+.over::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -90px 0 0;
+  background: linear-gradient(
+    to top,
+    rgb(6 8 24 / 0.8),
+    rgb(6 8 24 / 0.62) calc(100% - 150px),
+    rgb(6 8 24 / 0.5) calc(100% - 100px),
+    rgb(6 8 24 / 0)
+  );
+  pointer-events: none;
+}
+
+.over h2 {
+  font: 400 30px/1.05 var(--font-serif);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.time {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.schedule .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.schedule .tags span {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--kind, var(--ink)) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind, var(--ink)) 60%, transparent);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.schedule .tags em {
+  align-self: center;
+  color: var(--soft);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* on the painting the skills are glass in their subject's color, the words white */
+.schedule .over .tags span {
+  background: color-mix(in srgb, var(--kind) 45%, rgb(10 12 28 / 0.35));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 80%, #fff);
+  color: #fffdf8;
+  text-shadow: none;
+}
+
+.schedule .over .tags em {
+  color: rgb(255 253 248 / 0.85);
+}
+
+/* Join, with Move and Cancel beside it */
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 10px;
+  text-shadow: none;
+}
+
+.acts > small {
+  color: rgb(255 253 248 / 0.9);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Join, once it opens: the page's own green button, like every other one to press */
+.schedule .join {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 26px;
+  border-radius: 24px;
+  background: var(--go);
+  color: var(--on-go);
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--go) 80%, transparent);
+  transition:
+    filter 0.16s var(--out),
+    transform 0.16s var(--out);
+}
+
+.schedule .join:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.schedule .join:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* before it opens it waits, in glass, and says how long is left */
+.schedule .join:disabled {
+  background: rgb(255 255 255 / 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.55);
+  color: #fffdf8;
+}
+
+.join small {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.acts .changes {
+  display: contents;
+}
+
+.schedule .acts .move,
+.schedule .acts .cancel {
+  height: 48px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--tint) 34%, rgb(10 12 28 / 0.4));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 75%, #fff);
+  color: #fffdf8;
+}
+
+.schedule .acts .move svg,
+.schedule .acts .cancel svg {
+  color: #fffdf8;
+}
+
+.acts .changes small,
+.acts .rule,
+.acts .ask p {
+  flex-basis: 100%;
+  margin: 0;
+  color: rgb(255 253 248 / 0.88);
+}
+
+.acts .ask {
+  flex-basis: 100%;
+}
+
+.schedule .acts .quiet {
+  color: #fffdf8;
+}
+
+.rule,
+.changes small,
+.ask p {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.live {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.live i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8fe6c3;
+  box-shadow: 0 0 0 5px rgb(143 230 195 / 0.3);
+}
+
+.changes,
+.ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.changes small {
+  margin-left: auto;
+}
+
+.ask p {
+  flex-basis: 100%;
+  color: var(--ink);
+  font-size: 14px;
+}
+
+/* ---- the pane: booking, or a past session ---- */
+.pane {
+  grid-area: pane;
+  padding: 16px;
+  min-width: 0;
+}
+
+/* the sessions list has its own file: scheduleList.module.css */
+.list {
+  grid-area: list;
+}
+
+@media (min-width: 960px) {
+  .schedule {
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+    grid-template-areas:
+      "left pane"
+      "next pane"
+      "list pane";
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .pane {
+    padding: 22px;
+  }
+}
+
+/* a tablet: the hours and the next session side by side, booking under them */
+@media (min-width: 640px) and (max-width: 959px) {
+  .schedule {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "sync sync"
+      "left next"
+      "pane pane"
+      "list list";
+  }
+
+  .next {
+    align-self: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* on a phone Join has the card's whole width, and Move and Cancel share the row under it, so
+   Cancel never drops to a row of its own */
+@media (max-width: 520px) {
+  .schedule .acts .join {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .schedule .acts .move,
+  .schedule .acts .cancel {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}

@@ -11,12 +11,11 @@
 //          hate, harassment. Multimodal — moderates text AND any
 //          attached image URLs in a single call. 4-second hard
 //          timeout. FAILS CLOSED — outage = rejection.
-// Layer 2.5: Karman bullying classifier
+// Layer 2.5: Karman's own check, Claude Haiku
 //          (src/lib/moderation/karman-classifier.ts). Runs in
-//          parallel with Layer 2. Asks a school-audience-specific
-//          question OpenAI's safety categories don't cover ("would
-//          a parent be upset to see this?"). Additive — if it
-//          errors out the pipeline still uses the Layer 2 result.
+//          parallel with Layer 2 on the words and every picture.
+//          It knows the room (students of 14 to 18) and says what
+//          kind of problem it found. FAILS CLOSED as well.
 // Layer 3: caller's responsibility (write Supabase + post Slack).
 //
 // Combination rule:
@@ -28,6 +27,9 @@
 //                                          flags through just because
 //                                          the category isn't on the
 //                                          always-HIGH list.
+//   · Layer 2.5 says "cheating"          → reject, layer "integrity":
+//                                          passing answers about. The
+//                                          caller counts these.
 //   · Layer 2.5 (Karman) flagged         → reject (held). Karman's
 //                                          school-audience prompt is
 //                                          stricter than OpenAI's
@@ -40,8 +42,8 @@
 //                                          provider outage doesn't open
 //                                          the floodgates. User sees
 //                                          "try again" message.
-//   · Layer 2.5 errors out (only)        → ignored (additive layer; we
-//                                          still have a Layer 2 result).
+//   · Layer 2.5 errors out               → REJECT (fail-CLOSED), the
+//                                          same "try again" message.
 //   · Both Layer 2 and 2.5 clean         → approved.
 //
 // Empty message guard: a message with no text AND no images can't
@@ -51,8 +53,7 @@
 // ============================================================
 
 import { scanForBlocked } from "./blocklist";
-import { hasRecentApprovedSend } from "./cache";
-import { callKarmanClassifier } from "./karman-classifier";
+import { callKarmanClassifier, type KarmanClassifierResult } from "./karman-classifier";
 import { callOpenAIModeration } from "./providers";
 import { type ModerationInput, type ModerationOutcome } from "./types";
 
@@ -64,6 +65,10 @@ const KEYWORD_REJECTION_MESSAGE =
 /** Layer 2 high-severity hold — message is queued for human review. */
 const AI_HIGH_REJECTION_MESSAGE =
   "This message breaches Karman's terms of use and is being reviewed by our team. You'll be notified once review is complete.";
+
+/** Layer 2.5 judged the message to be passing answers about, not working a question out. */
+const INTEGRITY_REJECTION_MESSAGE =
+  "This message was not sent. Chat is for working questions out together, not for passing answers. Your tutor has been told.";
 
 /** Layer 2 errored out — fail-closed. The student should try again
  *  in a few seconds; transient OpenAI hiccups are short-lived. */
@@ -104,26 +109,15 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
     return { decision: "approved" };
   }
 
-  // ─── Recent-pass cache (post Layer 1) ─────────────────────
-  // If this sender just had a clean approval (≤5 min ago) we trust
-  // that result and skip the OpenAI + Karman calls. Layer 1 already
-  // re-ran for the current message — the cache cannot bypass the
-  // keyword blocklist. The cache lookup is fail-safe: on error or
-  // on cache miss we fall through to the full pipeline.
-  if (await hasRecentApprovedSend({ senderUuid: input.senderUuid })) {
-    console.log(`[moderation] cache hit sender=${input.senderId} (skipping Layer 2 + 2.5)`);
-    return { decision: "approved" };
-  }
+  // Every message and every image goes through Layer 2 and 2.5, every time. (There used to be a
+  // five-minute pass for a sender who had just been approved; it let an image or a message through
+  // unchecked, so it is gone. Students here are minors: nothing is waved through.)
 
   // ─── Layer 2 + 2.5 — run in parallel ──────────────────────
-  // OpenAI Moderation handles both text and image URLs (multimodal).
-  // Karman classifier is text-only and only runs when there's text;
-  // for image-only messages we skip it (no string to classify).
+  // Both look at the words and at every picture.
   const [openaiResult, karmanResult] = await Promise.allSettled([
     callOpenAIModeration(input.content ?? "", input.mediaUrls),
-    hasContent
-      ? callKarmanClassifier(input.content ?? "")
-      : Promise.resolve({ flagged: false, reason: "no text" }),
+    callKarmanClassifier(input.content ?? "", input.mediaUrls),
   ]);
 
   // OpenAI Moderation fails CLOSED — provider outage = rejection.
@@ -142,28 +136,44 @@ export async function moderateMessage(input: ModerationInput): Promise<Moderatio
   }
   const result = openaiResult.value;
 
-  // Karman classifier is ADDITIVE — log on error and continue with
-  // just the OpenAI result. We don't fail-CLOSED on it because the
-  // OpenAI safety floor is still in place.
-  const karman =
-    karmanResult.status === "fulfilled"
-      ? karmanResult.value
-      : (console.error(
-          `[moderation] karman classifier error sender=${input.senderId}:`,
-          karmanResult.reason instanceof Error
-            ? karmanResult.reason.message
-            : String(karmanResult.reason)
-        ),
-        { flagged: false, reason: "karman classifier unavailable" });
+  // Karman's check (Claude) fails CLOSED too: it is the one that looks at pictures with the room in
+  // mind, so a message it could not check is not delivered.
+  if (karmanResult.status === "rejected") {
+    const errMsg =
+      karmanResult.reason instanceof Error
+        ? karmanResult.reason.message
+        : String(karmanResult.reason);
+    console.error(`[moderation] karman check error sender=${input.senderId}:`, errMsg);
+    return {
+      decision: "rejected",
+      layer: "ai",
+      reason: `Karman check unavailable: ${errMsg}`,
+      rejection_message: AI_UNAVAILABLE_MESSAGE,
+    };
+  }
+  const karman: KarmanClassifierResult = karmanResult.value;
 
   // Layer 2.5 (Karman) flag → reject. Karman's school-audience
   // prompt is stricter than OpenAI's safety categories — if it says
   // a parent would be uncomfortable, we don't second-guess.
-  if (karman.flagged) {
+  // Academic dishonesty is reported apart from other conduct, so the caller can count it.
+  const studentRule = karman.category === "cheating" || karman.category === "contact";
+  const karmanFlagged = karman.flagged && !(studentRule && (await input.staff) === true);
+  if (karmanFlagged && karman.category === "cheating") {
+    return {
+      decision: "rejected",
+      layer: "integrity",
+      reason: `Karman: ${karman.reason}`,
+      rejection_message: INTEGRITY_REJECTION_MESSAGE,
+    };
+  }
+
+  if (karmanFlagged) {
     return {
       decision: "rejected",
       layer: "karman",
-      reason: `Karman: ${karman.reason}`,
+      // the kind leads the reason ("Karman: sexual: ..."), which standing.ts reads
+      reason: `Karman: ${karman.category ?? "conduct"}: ${karman.reason}`,
       rejection_message: AI_HIGH_REJECTION_MESSAGE,
     };
   }

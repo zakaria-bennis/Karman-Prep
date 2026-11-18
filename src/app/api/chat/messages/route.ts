@@ -18,7 +18,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -29,6 +29,8 @@ import {
   type ChatMessageRow,
 } from "@/lib/supabase/queries/chat";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
+import { questionOf, reactionsFor, type ReactionSummary } from "@/lib/chat/extras";
+import type { SharedQuestion } from "@/lib/chat/shared";
 
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 100;
@@ -54,6 +56,10 @@ interface PublicMessage {
   rejection_message: string | null;
   created_at: string;
   ai_flagged: boolean;
+  /** The caller's own reaction, and how many of each from everyone else. */
+  reactions: ReactionSummary;
+  /** A question sent with the message. */
+  question: SharedQuestion | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -142,6 +148,12 @@ export async function GET(req: NextRequest) {
     return true;
   });
 
+  const reactions = await reactionsFor(
+    "channel",
+    visible.map((r) => r.id),
+    callerUuid
+  );
+
   const messages: PublicMessage[] = visible.map((r) => {
     const isRejected = r.moderation_status === "rejected";
     const isFlagged = r.moderation_status === "flagged";
@@ -168,6 +180,8 @@ export async function GET(req: NextRequest) {
       rejection_message: isRejected ? r.rejection_message : null,
       created_at: r.created_at,
       ai_flagged: r.ai_flagged,
+      reactions: reactions.get(r.id) ?? { mine: null, counts: {} },
+      question: hideContent ? null : questionOf(r.question),
     };
   });
 

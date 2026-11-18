@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { visitorOrigin } from "@/lib/checkout/origin";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { startGuestCheckout } from "@/lib/checkout/guest";
 import { startCheckout } from "@/lib/integrations/stripe/start-checkout";
@@ -24,7 +25,8 @@ const querySchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = req.nextUrl;
+  const { searchParams } = req.nextUrl;
+  const origin = visitorOrigin(req);
   const query = querySchema.safeParse({
     plan: searchParams.get("plan") ?? undefined,
     term: searchParams.get("term") ?? undefined,

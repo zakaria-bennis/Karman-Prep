@@ -1,0 +1,534 @@
+/*
+ * Booking a session (ScheduleBook.tsx), inside Schedule's pane. Colors, and the buttons shared with
+ * the rest of the page, come from schedule.module.css (--sky is the sky at a time, --kind a
+ * skill's subject). The chosen day is one pill that glides behind the dates.
+ */
+.book {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+/* the calendar, and beside it (when the pane is wide) the length and the open times */
+.pick {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+@container (min-width: 700px) {
+  .pick {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 16px 28px;
+    align-content: start;
+  }
+
+  .cal {
+    grid-row: 1 / span 2;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.head h2 {
+  font: 400 26px/1.1 var(--font-serif);
+  letter-spacing: -0.015em;
+}
+
+.head p {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---- the calendar: whole weeks under the weekday letters ---- */
+.cal {
+  display: grid;
+  gap: 4px;
+}
+
+.week,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  column-gap: 4px;
+}
+
+.week span {
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.grid {
+  /* the corner of a date's square */
+  --tile: 9px;
+  position: relative;
+  row-gap: 4px;
+}
+
+.pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--tile);
+  background: var(--ink);
+  box-shadow: 0 12px 22px -12px var(--ink);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.book .day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 2px 0;
+  border-radius: var(--tile);
+  color: var(--ink);
+  transition: color 0.2s var(--out);
+}
+
+/* the date's own square. Shaded: the tutor has time that day. Clear: nothing to book. */
+.day > span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* always a square with gently rounded corners, however narrow the screen (founder, 2026-11-17:
+     on a phone the old 14px corners made them read as circles) */
+  width: min(100%, 48px);
+  aspect-ratio: 1;
+  border-radius: var(--tile);
+  transition:
+    background 0.18s var(--out),
+    box-shadow 0.18s var(--out);
+}
+
+/* a day with nothing to book: only an outline, as empty as the glass behind it */
+.day > span {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+/* a day the tutor has time: lighter than the glass behind it */
+.day[data-open] > span {
+  background: rgb(255 255 255 / 0.24);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.42);
+}
+
+.book .day[data-open]:hover:not([aria-pressed="true"]) > span {
+  background: rgb(255 255 255 / 0.38);
+}
+
+.book .day:not([data-open]) b {
+  opacity: 0.42;
+}
+
+.day b {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* the chosen day: the pill is behind it */
+.book .day[aria-pressed="true"] {
+  color: var(--on-ink);
+}
+
+.day[aria-pressed="true"] > span {
+  background: none;
+  box-shadow: none;
+}
+
+.book .day[aria-pressed="true"] b {
+  opacity: 1;
+}
+
+/* a day with a session of the student's own: the square is filled with one tone of that
+   session's sky (--sky-fill and --sky-ink, from schedule.module.css), inside a clear border */
+.book .day[data-sky] {
+  color: var(--sky-ink);
+}
+
+.day[data-sky] > span,
+.day[data-sky][aria-pressed="true"] > span {
+  background: var(--sky-fill);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.75);
+}
+
+.book .day[data-sky] b {
+  opacity: 1;
+}
+
+/* chosen as well: a ring around it */
+.day[data-sky][aria-pressed="true"] > span {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* the SAT's day: ruby, with a white outline and its name in white, and a light that crosses it
+   now and then. This is where the booking stops. */
+.book .day[data-sat] {
+  color: #fff;
+}
+
+.day[data-sat] > span,
+.day[data-sat][aria-pressed="true"] > span {
+  grid-template-rows: 1fr auto;
+  padding: 6px 0 5px;
+  overflow: hidden;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ruby) 86%, #fff), var(--ruby));
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 14px color-mix(in srgb, var(--ruby) 70%, transparent);
+}
+
+.day[data-sat] > span::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -60%;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.75), transparent);
+  transform: skewX(-20deg);
+  animation: shine 3.6s var(--out) infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0%,
+  55% {
+    left: -60%;
+  }
+
+  100% {
+    left: 130%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day[data-sat] > span::after {
+    display: none;
+  }
+}
+
+.book .day[data-sat] b {
+  opacity: 1;
+}
+
+.day em {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.day[data-sat][aria-pressed="true"] > span {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---- the length ---- */
+.lengths {
+  display: inline-flex;
+  justify-self: start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.book .lengths button {
+  flex: 1;
+  height: 38px;
+  padding: 0 16px;
+  white-space: nowrap;
+  border-radius: 11px;
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    background 0.18s var(--out),
+    color 0.18s var(--out);
+}
+
+.book .lengths button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.book .lengths button:disabled {
+  opacity: 0.35;
+}
+
+/* ---- the times, in a list that scrolls on its own; each wears the color of its sky ---- */
+.times {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  align-content: start;
+  gap: 8px;
+  /* four rows and the top of a fifth, so there is plainly more below */
+  max-height: 248px;
+  margin: 0;
+  padding: 2px 8px 2px 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+/* its own bar, always there to be seen, so the list reads as one that scrolls. (Where a browser
+   has only the standard properties, those; setting them elsewhere would hide the bar again.) */
+@supports not selector(::-webkit-scrollbar) {
+  .times {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--ink) 45%, transparent)
+      color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+}
+
+.times::-webkit-scrollbar {
+  width: 8px;
+}
+
+.times::-webkit-scrollbar-track {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.times::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+.book .times button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--sky) 14%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sky) 45%, var(--lens-edge));
+  font-size: 15px;
+  font-weight: 700;
+  transition:
+    background 0.18s var(--out),
+    color 0.18s var(--out),
+    box-shadow 0.18s var(--out);
+}
+
+.book .times button:disabled {
+  background: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  color: color-mix(in srgb, var(--ink) 34%, transparent);
+  cursor: default;
+}
+
+.book .times button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--sky) 30%, var(--lens));
+}
+
+.book .times button[aria-pressed="true"] {
+  background: var(--sky);
+  color: #1d1a22;
+  box-shadow: 0 12px 22px -12px var(--sky);
+}
+
+.shut {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.none {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 8px 0 4px;
+}
+
+.none b {
+  font: 400 22px/1.15 var(--font-serif);
+}
+
+.none p {
+  max-width: 52ch;
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* ---- what to work on: the five skills that most need it, each in its subject's color ---- */
+.picks {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.book .picks button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--kind) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 45%, transparent);
+  text-align: left;
+  transition:
+    background 0.18s var(--out),
+    box-shadow 0.18s var(--out);
+}
+
+.book .picks button:hover {
+  background: color-mix(in srgb, var(--kind) 24%, transparent);
+}
+
+/* the tick: an empty ring until the skill is chosen */
+.picks i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--kind);
+  color: transparent;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    background 0.2s var(--out),
+    color 0.2s var(--out);
+}
+
+.picks b {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.picks small {
+  flex: none;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.book .picks button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--kind) 32%, transparent);
+  box-shadow: inset 0 0 0 2px var(--kind);
+}
+
+.picks button[aria-pressed="true"] i {
+  background: var(--kind);
+  color: #fff;
+}
+
+.book .note {
+  width: 100%;
+  height: 46px;
+  margin-top: 8px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: var(--ink);
+  font: 600 16px/1 var(--font-sans);
+  caret-color: var(--free);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.book .note:focus-visible {
+  outline: 2px solid var(--free);
+  outline-offset: 1px;
+}
+
+.book .note::placeholder {
+  color: var(--soft);
+}
+
+/* ---- the foot: what is being booked, right above the button ---- */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-top: 16px;
+  box-shadow: inset 0 1px 0 var(--lens-edge);
+}
+
+.foot p {
+  flex: 1 1 200px;
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.foot[data-set] p {
+  color: var(--ink);
+}
+
+.foot p b {
+  font-weight: 800;
+}
+
+.foot small {
+  flex-basis: 100%;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 520px) {
+  .grid {
+    --tile: 7px;
+  }
+
+  .day > span {
+    width: min(100%, 44px);
+  }
+
+  .times {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lengths {
+    display: flex;
+    justify-self: stretch;
+  }
+
+  .book .lengths button {
+    padding: 0 6px;
+  }
+
+  .foot > button {
+    width: 100%;
+  }
+
+  .foot small {
+    text-align: center;
+  }
+}

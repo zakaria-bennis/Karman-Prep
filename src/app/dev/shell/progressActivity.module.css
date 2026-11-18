@@ -1,0 +1,565 @@
+/*
+ * Progress: the six numbers and the calendar. Glass, inset (--pad, 12), corners, text sizes (13, 16,
+ * 20) and the one green (--p0 to --p3) come from library.module.css. Up is the green and down is the
+ * red of the predicted score's ticker.
+ */
+.stats,
+.calendar {
+  --up: var(--p3);
+  --down: #c0392b;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: calc(var(--pad) + 6px);
+}
+
+:global([data-kp-mode="dark"]) :is(.stats, .calendar) {
+  --up: var(--p1);
+  --down: #ff8d7e;
+}
+
+/* ---- the numbers: seven buttons, each a number kept like a stock ---- */
+.stats {
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  padding: var(--pad);
+}
+
+/* the spans, the same bar as on the predicted score, as wide as the pane */
+.stats > [role="group"] {
+  align-self: auto;
+  justify-self: stretch;
+  margin-top: 0;
+}
+
+.stats > [role="group"] button {
+  flex: 1 1 0;
+  padding: 0 2px;
+}
+
+.stats .cells {
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: 2px;
+}
+
+.cells li {
+  display: grid;
+}
+
+/* name over value, the ticker under them, the small line at the right */
+.stat {
+  --way: var(--up);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px 20px;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  align-items: center;
+  gap: 0 12px;
+  width: 100%;
+  padding: 6px 4px 6px 10px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.stat:active {
+  transform: scale(0.985);
+  background: var(--hover);
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* the value is set in the serif of the predicted score, so the two read as one family */
+.value {
+  grid-column: 1;
+  font: 400 30px/1.1 var(--font-serif);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.value small {
+  margin-left: 6px;
+  font:
+    500 13px/1 var(--font-hanken),
+    system-ui,
+    sans-serif;
+  letter-spacing: 0;
+}
+
+.tick {
+  grid-column: 1;
+  min-height: 18px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tick[data-way="up"] {
+  color: var(--up);
+}
+
+.tick[data-way="down"] {
+  color: var(--down);
+}
+
+.tick[data-way="flat"] {
+  opacity: 0.7;
+}
+
+.spark {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 104px;
+  height: 36px;
+  overflow: visible;
+}
+
+.spark[data-way="down"] {
+  --way: var(--down);
+}
+
+.spark path:last-child {
+  fill: none;
+  stroke: var(--way);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  animation: draw 0.7s var(--out) both;
+}
+
+.chev {
+  grid-column: 3;
+  grid-row: 1 / -1;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1),
+    opacity 0.2s var(--out);
+}
+
+@media (hover: hover) {
+  .stat:hover {
+    background: var(--hover);
+  }
+
+  .stat:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* ---- the calendar ---- */
+.calendar header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.calendar header .month {
+  display: flex;
+  justify-self: start;
+  gap: 4px;
+  width: auto;
+  padding: 0 8px 0 10px;
+  margin-left: -10px;
+}
+
+.calendar header .today {
+  width: auto;
+  height: 32px;
+  padding: 0 12px;
+  margin-right: 4px;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.calendar header .today[data-idle] {
+  display: none;
+}
+
+.calendar header h2 {
+  white-space: nowrap;
+}
+
+/* the list of months lies over the calendar, so opening it moves nothing */
+.calendar .months {
+  position: absolute;
+  top: 44px;
+  left: -10px;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  width: min(100%, 240px);
+  max-height: 252px;
+  padding: 6px;
+  margin: 0;
+  overflow-y: auto;
+  border-radius: var(--r-piece);
+  /* thicker glass than the calendar under it, so the dates beneath never read through the names */
+  background: rgb(255 251 244 / 0.9);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    0 18px 40px -16px rgb(24 28 58 / 0.55),
+    inset 0 0 0 1px var(--glass-edge);
+  list-style: none;
+  animation: drop 0.18s var(--out);
+}
+
+.calendar .months button {
+  justify-content: start;
+  width: 100%;
+  padding: 0 12px;
+  font-weight: 500;
+}
+
+.months li[aria-selected="true"] button {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-weight: 600;
+}
+
+:global([data-kp-mode="dark"]) .calendar .months {
+  background: rgb(34 32 52 / 0.92);
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.calendar header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-lens);
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.calendar header button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.calendar header button:not(:disabled):active {
+  transform: scale(0.92);
+}
+
+.calendar header svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* six rows are always kept, so a month of five weeks is as tall as one of six */
+/* how much of the month had practice on it */
+.tally {
+  margin-top: -10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tally b {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: stretch;
+  gap: 6px;
+}
+
+/* each weekday's name sits over the middle of its column, exactly above the dates */
+.weekday {
+  padding-bottom: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* a day: a rounded square as wide as its column, so the dates line up under the weekdays. A day with
+   practice is filled, darker for more. A day without is the faintest glass. A day outside the
+   student's time is only its number. No outlines: the fills make the picture. */
+.day {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: var(--hover);
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transition:
+    transform 0.15s var(--out),
+    box-shadow 0.15s var(--out);
+}
+
+.day[data-level="1"] {
+  background: var(--p1);
+  color: #0d241c;
+  font-weight: 600;
+}
+
+.day[data-level="2"] {
+  background: var(--p2);
+  color: #fffdf8;
+  font-weight: 600;
+}
+
+.day[data-level="3"] {
+  background: var(--p3);
+  color: #fffdf8;
+  font-weight: 600;
+}
+
+.day[data-out] {
+  background: none;
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* today: a small dot under the date, inside the square */
+.day {
+  position: relative;
+}
+
+.day[data-today]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+/* the two days that matter: the SAT in ruby and the day 30 days before it in gold, the colors of the
+   countdown badge. A ring of metal drawn just inside the square's edge, lighter where the light
+   catches it, so it never lies over the squares around it. */
+.day[data-mark] {
+  opacity: 1;
+}
+
+.day[data-mark]::before {
+  --metal: #c98a0a, #ffe9a3 38%, #f2b632 55%, #a66f00;
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--metal));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.day[data-mark="sat"]::before {
+  --metal: #a3231b, #ffb3a6 38%, #e0453a 55%, #7d140e;
+}
+
+/* the SAT's day is still to come, so it has no fill; its date is written in full strength */
+.day[data-mark="sat"][data-out] {
+  font-weight: 700;
+}
+
+/* the day pressed: a ring drawn inside its own edge, dark then light, so it shows on every shade and
+   never lies over the squares around it */
+.day[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 2.5px var(--ink),
+    inset 0 0 0 4.5px #fffdf8;
+}
+
+.day:not(:disabled):active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) {
+  .day:not(:disabled, [aria-pressed="true"]):hover {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+
+  .calendar header button:not(:disabled):hover {
+    background: var(--hover);
+  }
+}
+
+.detail {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 132px;
+  padding: 12px 14px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* the date, and on the same line the streak */
+.detailHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+
+.detail h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.streak b {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.streak svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* that day's three numbers, each over what it counts */
+.calendar .detail dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+
+.detail dd {
+  margin: 0;
+  font: 400 24px/1.15 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.detail dl div {
+  display: flex;
+  flex-direction: column;
+}
+
+.none {
+  min-height: 46px;
+}
+
+.examDay {
+  min-height: 18px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* a phone: the ticker sits beside the value, so all seven fit the screen */
+@media (max-width: 599px) {
+  .stat {
+    grid-template-columns: auto minmax(0, 1fr) 104px 20px;
+    grid-template-rows: auto auto;
+    padding: 5px 4px 5px 8px;
+  }
+
+  .name {
+    grid-column: 1 / 3;
+  }
+
+  .value {
+    font-size: 28px;
+  }
+
+  .tick {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .spark {
+    grid-column: 3;
+  }
+
+  .chev {
+    grid-column: 4;
+  }
+}
+
+/* a short phone: the calendar closes up a little so it still fits the screen */
+@media (max-width: 599px) and (max-height: 780px) {
+  .calendar {
+    gap: 10px;
+  }
+
+  .grid {
+    gap: 4px;
+  }
+
+  .detail {
+    min-height: 116px;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark path {
+    animation: none;
+  }
+
+  .day {
+    transition: none;
+  }
+}
