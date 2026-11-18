@@ -7,8 +7,9 @@ export const ROUTES = {
   private: "/private-tutoring",
   /** Reserve and pay for a cohort seat. */
   reserve: "/reserve",
-  /** A signed-in visitor's own portal. The student portal sends a parent or a tutor on to theirs. */
-  portal: "/dashboard/student",
+  /** A signed-in visitor's own portal: /portal sends each kind of account (student, parent, tutor,
+   *  school) to its own (src/app/portal/route.ts). */
+  portal: "/portal",
   schools: "/schools",
   tutors: "/for-tutors",
   test: "/free-practice-test",
