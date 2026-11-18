@@ -69,6 +69,15 @@
   opacity: var(--kc-icon-rest);
 }
 
+/* The gear turns a third of the way round while it is pressed and springs back. */
+.kc-list-tool[data-tool="edit"] > svg {
+  transition: rotate var(--kc-dur-400) var(--kc-spring);
+}
+
+.kc-list-tool[data-tool="edit"]:active > svg {
+  rotate: 120deg;
+}
+
 /* VIS-RESPONSIVE-9: stacked, the reference draws the toolbar's +, Keypad and chevrons half a pixel
    right of and below the button centre and the gear half a pixel lower; its down chevrons are
    16 px tall. Undo and Redo stay centred. */

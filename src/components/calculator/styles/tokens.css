@@ -89,6 +89,17 @@
   /* 1: a row's colour circle opens the style menu (long-press, Shift+Enter, or a click while
      editing the list). 0: it only shows and hides the row. Read by the row. */
   --kc-style-menu: 1;
+  /* More a host may leave out or change: the number on a row's tab, the little arrow that joins
+     a pop-up to its button, the zoom buttons, and the list's scroll bar. */
+  --kc-show-row-number: block;
+  --kc-show-arrow: block;
+  --kc-show-zoom: flex;
+  --kc-scrollbar-width: auto;
+  --kc-scrollbar-color: auto;
+  /* 1: the graph's key points are dots of pure ink with a rim of the paper, and the dot that
+     follows a curve has an ink rim (a host on glass). 0: the reference's grey dots. Read by the
+     renderer. */
+  --kc-poi-ink: 0;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);

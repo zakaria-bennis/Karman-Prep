@@ -86,8 +86,13 @@
   opacity: var(--kc-icon-hover-graph);
 }
 
+.kc-graph-controls button {
+  transition: scale var(--kc-dur-200) var(--kc-ease-out);
+}
+
 .kc-graph-controls button:active {
   background: var(--kc-pill-pressed);
+  scale: 0.93;
 }
 
 .kc-graph-controls button:active > svg {
@@ -95,7 +100,7 @@
 }
 
 .kc-zoom-group {
-  display: flex;
+  display: var(--kc-show-zoom);
   flex-direction: column;
   overflow: hidden;
 }

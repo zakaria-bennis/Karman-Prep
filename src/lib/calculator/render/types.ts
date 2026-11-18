@@ -17,6 +17,8 @@ export interface RenderTheme {
   fillAlpha: Record<CurveSlot, number>;
   /** False when the host turns the axis numbers' paper outline off (--kc-label-halo: 0). */
   labelHalo?: boolean;
+  /** True when the host asks for ink key points with a paper rim (--kc-poi-ink: 1). */
+  poiInk?: boolean;
 }
 export interface RenderRow {
   rowId: string;

@@ -30,10 +30,33 @@ export function poiDotColor(theme: Pick<RenderTheme, "paper" | "text">): string 
 export function drawPoiDots(
   ctx: Ctx,
   view: ViewSpec,
-  theme: Pick<RenderTheme, "paper" | "text">,
+  theme: Pick<RenderTheme, "paper" | "text" | "poiInk">,
   dots: readonly PoiDot[]
 ): void {
   const { width, height } = view.size;
+  if (theme.poiInk === true) {
+    // On glass: each closed point is a disc of pure ink inside a rim of the paper's colour, so it
+    // reads on any curve; an open one is a ring of ink.
+    for (const dot of dots) {
+      const [x, y] = worldToPx(view, dot.x, dot.y);
+      if (!(x >= -8 && x <= width + 8 && y >= -8 && y <= height + 8)) continue;
+      ctx.beginPath();
+      ctx.arc(x, y, POI_RADIUS_PX + 1.5, 0, 2 * Math.PI);
+      ctx.fillStyle = theme.paper;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, dot.open ? POI_RADIUS_PX - 1 : POI_RADIUS_PX - 0.5, 0, 2 * Math.PI);
+      if (dot.open) {
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = theme.text;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = theme.text;
+        ctx.fill();
+      }
+    }
+    return;
+  }
   for (const open of [false, true]) {
     const radius = open ? POI_OPEN_RADIUS_PX : POI_RADIUS_PX;
     let started = false;
@@ -59,9 +82,22 @@ export function drawPoiDots(
 export function drawTraceDot(
   ctx: Ctx,
   view: ViewSpec,
-  dot: { x: number; y: number; color: string }
+  dot: { x: number; y: number; color: string },
+  theme?: Pick<RenderTheme, "text" | "poiInk">
 ): void {
   const [x, y] = worldToPx(view, dot.x, dot.y);
+  if (theme?.poiInk === true) {
+    // On glass: the curve's colour inside a rim of ink, a little larger, so it is easy to follow.
+    ctx.beginPath();
+    ctx.arc(x, y, TRACE_RADIUS_PX + 2.5, 0, 2 * Math.PI);
+    ctx.fillStyle = theme.text;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, TRACE_RADIUS_PX, 0, 2 * Math.PI);
+    ctx.fillStyle = dot.color;
+    ctx.fill();
+    return;
+  }
   ctx.beginPath();
   ctx.arc(x, y, TRACE_RADIUS_PX, 0, 2 * Math.PI);
   ctx.fillStyle = dot.color;

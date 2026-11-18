@@ -1529,6 +1529,23 @@ leave the calculator unchanged elsewhere).
 - **Next, in his order:** tables, sliders, regressions, the statistics screens; then tooltips, error tips, the
   scroll bar, the key-point dots at night.
 
+### Eighth round (2026-11-17, late): calculator details, and Exit moved on phones
+
+- **Phones:** the clock is at the left of the top row and Exit at the right, over More, so Exit is not pressed by
+  mistake for Calculator (his reason). Desktop is unchanged.
+- Calculator, all by variables set from the quiz (defaults in `styles/tokens.css`):
+  - the row in hand has a softer ring (`--kc-focus-bar` at half strength);
+  - no numbers on rows (`--kc-show-row-number`), no arrows on pop-ups (`--kc-show-arrow`);
+  - the gear turns while pressed (`toolbar.css`, for every host);
+  - the wrench, zoom and home buttons are the quiz's panes (`--kc-pill*`, 40px); no zoom buttons on phones
+    (`--kc-show-zoom`, set under `.compact`);
+  - key points are ink dots with a rim of the paper, white by night and black by day, and the dot that follows
+    a curve has an ink rim (`--kc-poi-ink`, `render/draw-poi.ts`);
+  - a thin scroll bar (`--kc-scrollbar-*`); tips are ink with the solid's color for words (`--kc-tooltip*`).
+- **Calculator browser tests:** the suite's bundled test browser is not installed on this computer. Run it on
+  the installed Chrome with a small config that sets `channel: "chrome"` (see the session's result below).
+- **Next:** table cells, sliders, regressions, the statistics screens, error tips, and the add menu's rows.
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened

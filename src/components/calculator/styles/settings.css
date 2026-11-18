@@ -92,6 +92,7 @@
 .kc-settings::before,
 .kc-settings::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   z-index: 1;
   border: 12px solid transparent;

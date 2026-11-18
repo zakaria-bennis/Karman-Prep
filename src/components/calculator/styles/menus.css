@@ -111,6 +111,7 @@
 .kc-add-menu::before,
 .kc-add-menu::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   border: 12px solid transparent;
 }
@@ -253,6 +254,7 @@
 .kc-style-menu::before,
 .kc-style-menu::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   left: var(--kc-arrow-at);
   z-index: 1;

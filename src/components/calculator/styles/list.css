@@ -95,6 +95,8 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: var(--kc-scrollbar-width);
+  scrollbar-color: var(--kc-scrollbar-color);
   font-size: var(--kc-size-list);
 }
 
@@ -168,7 +170,7 @@
 }
 
 .kc-row-number {
-  display: block;
+  display: var(--kc-show-row-number);
   color: var(--kc-row-number);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-row-index);

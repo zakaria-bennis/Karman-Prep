@@ -32,6 +32,7 @@
 .kc-style-popover::before,
 .kc-style-popover::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   top: calc(var(--kc-arrow-at) - 8px);
   z-index: 1;
