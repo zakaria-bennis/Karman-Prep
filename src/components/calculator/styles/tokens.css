@@ -57,6 +57,38 @@
   /* 1: axis numbers are outlined in the paper's colour (GP-10). 0: a host on glass, where the
      outline would show as a dark edge, turns it off. Read by the renderer. */
   --kc-label-halo: 1;
+  /* A row of the list: the room over it and at its sides, its corners, its fill and an edge drawn
+     inside it. The defaults are the reference's joined, square rows. */
+  --kc-row-gap: -1px;
+  --kc-row-side: 0px;
+  --kc-row-radius: 0px;
+  --kc-row-fill: var(--kc-list-fill);
+  --kc-row-shadow: none;
+  /* The on/off switch: its size, its thumb, and its colour when on. */
+  --kc-toggle-w: 38px;
+  --kc-toggle-h: 22px;
+  --kc-toggle-thumb: 18px;
+  --kc-toggle-on: var(--kc-accent);
+  --kc-toggle-on-hover: var(--kc-kp-accent-hover);
+  --kc-toggle-thumb-fill: initial; /* unset: the thumb takes the skin's own colour */
+  /* A row of joined choices (Radians, Degrees): joined boxes by default; a host may make it a
+     tray with a pill for the choice made. */
+  --kc-seg-pad: 0 1px 1px 0;
+  --kc-seg-gap: 0 -1px -1px 0;
+  --kc-seg-border: 1px;
+  --kc-seg-radius: 0px;
+  --kc-seg-radius-first: 3px 0 0 3px;
+  --kc-seg-radius-last: 0 3px 3px 0;
+  --kc-seg-tray: transparent;
+  --kc-seg-tray-radius: 0px;
+  /* Parts of Graph Settings a host may leave out (display: none): the theme picker, the layout
+     choice and Key Sounds. The quiz decides all three itself. */
+  --kc-show-theme: block;
+  --kc-show-layout: block;
+  --kc-show-sounds: block;
+  /* 1: a row's colour circle opens the style menu (long-press, Shift+Enter, or a click while
+     editing the list). 0: it only shows and hides the row. Read by the row. */
+  --kc-style-menu: 1;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);

@@ -37,7 +37,14 @@ import { KEYS_SLOT_ID } from "./NumericEntry";
 import { useAnswerRecord } from "./use-answer-record";
 import { traceMark, useGuard, type GuardEvent } from "./use-guard";
 import type { NoteSignals } from "@/lib/quiz/signals";
-import { useBarHeight, useRewards, useEscape, useMissHold, useNotice } from "./use-shell-effects";
+import {
+  useBarHeight,
+  useCalculatorSounds,
+  useRewards,
+  useEscape,
+  useMissHold,
+  useNotice,
+} from "./use-shell-effects";
 
 export type QuizShellProps = {
   mode: QuizMode;
@@ -141,6 +148,7 @@ export function QuizShell(props: QuizShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.loadedFor, attemptKey]);
   const { header, barH } = useBarHeight();
+  useCalculatorSounds();
   const lastIndex = useRef(index);
   const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
   useEffect(() => {

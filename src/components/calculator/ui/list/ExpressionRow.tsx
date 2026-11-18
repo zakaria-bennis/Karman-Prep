@@ -43,7 +43,7 @@ import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { MathFieldFactoryContext } from "./math-field-factory";
 import { ErrorMarker } from "./ErrorMarker";
 import { EDITOR_MESSAGES } from "./messages";
-import { useMenuTrigger } from "./menu-trigger";
+import { styleMenuOff, useMenuTrigger } from "./menu-trigger";
 import { MotionContext } from "./motion";
 import {
   deleteFromEmptyRow,
@@ -166,7 +166,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
   // STYLES-20: the style popover, from a long-press on the tab, Shift+Enter on it, or a click in
   // Edit list mode; a click while it is open closes it without hiding the row (STYLES-21).
   const [styleOpen, setStyleOpen] = useState(false);
-  const styleMenu = useMenuTrigger(() => setStyleOpen(true));
+  const styleMenu = useMenuTrigger(() => {
+    if (styleMenuOff(tabRef.current)) return false;
+    setStyleOpen(true);
+    return true;
+  });
   const hostRef = useRef<HTMLDivElement>(null);
   const fieldRef = useRef<MathField | null>(null);
   const [fieldFocused, setFieldFocused] = useState(false);
@@ -378,11 +382,11 @@ export function ExpressionRow(props: ExpressionRowProps): JSX.Element {
               onClick={() => {
                 if (styleMenu.consumeClick()) return;
                 if (styleOpen) setStyleOpen(false);
-                else if (editing) setStyleOpen(true);
+                else if (editing && !styleMenuOff(tabRef.current)) setStyleOpen(true);
                 else engine.setRowHidden(row.id, !row.hidden);
               }}
               onKeyDown={(e) => {
-                if (e.key !== "Enter" || !e.shiftKey) return;
+                if (e.key !== "Enter" || !e.shiftKey || styleMenuOff(tabRef.current)) return;
                 e.preventDefault();
                 setStyleOpen(true);
               }}

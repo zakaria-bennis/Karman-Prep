@@ -365,7 +365,9 @@
 /* VIS-12: joined 36 px buttons; the selected one is dark grey with white text. */
 .kc-segments {
   display: flex;
-  padding: 0 1px 1px 0;
+  padding: var(--kc-seg-pad);
+  border-radius: var(--kc-seg-tray-radius);
+  background: var(--kc-seg-tray);
 }
 
 .kc-segment {
@@ -376,19 +378,23 @@
   justify-content: center;
   box-sizing: border-box;
   height: 36px;
-  margin: 0 -1px -1px 0;
+  margin: var(--kc-seg-gap);
   padding: 0 8px;
-  border: 1px solid var(--kc-pop-line);
+  border: var(--kc-seg-border) solid var(--kc-pop-line);
+  border-radius: var(--kc-seg-radius);
   color: var(--kc-pop-seg-text);
   cursor: pointer;
+  transition:
+    background-color var(--kc-dur-200) var(--kc-ease-out),
+    color var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-segment:first-child {
-  border-radius: 3px 0 0 3px;
+  border-radius: var(--kc-seg-radius-first);
 }
 
 .kc-segment:last-child {
-  border-radius: 0 3px 3px 0;
+  border-radius: var(--kc-seg-radius-last);
 }
 
 .kc-segment:hover {
@@ -462,4 +468,13 @@
 .kc-segment:has(> input:focus-visible) {
   outline: 2px solid var(--kc-accent);
   outline-offset: 2px;
+}
+
+/* A host may leave these two out of Graph Settings (tokens.css). */
+.kc-settings-layout {
+  display: var(--kc-show-layout);
+}
+
+.kc-settings-sounds {
+  display: var(--kc-show-sounds);
 }

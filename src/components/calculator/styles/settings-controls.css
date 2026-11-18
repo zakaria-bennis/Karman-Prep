@@ -14,8 +14,8 @@
   position: relative;
   display: inline-block;
   flex: none;
-  width: 38px;
-  height: 22px;
+  width: var(--kc-toggle-w);
+  height: var(--kc-toggle-h);
 }
 
 .kc-toggle > input {
@@ -32,7 +32,7 @@
 .kc-toggle-track {
   position: absolute;
   inset: 0;
-  border-radius: 11px;
+  border-radius: calc(var(--kc-toggle-h) / 2);
   background: var(--kc-pop-track);
   pointer-events: none;
   transition: background-color var(--kc-dur-250) var(--kc-ease-out);
@@ -43,21 +43,21 @@
 }
 
 .kc-toggle > input:checked ~ .kc-toggle-track {
-  background: var(--kc-accent);
+  background: var(--kc-toggle-on);
 }
 
 .kc-toggle:hover > input:checked ~ .kc-toggle-track {
-  background: var(--kc-kp-accent-hover);
+  background: var(--kc-toggle-on-hover);
 }
 
 .kc-toggle-knob {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  background: var(--kc-toggle-knob);
+  top: calc((var(--kc-toggle-h) - var(--kc-toggle-thumb)) / 2);
+  left: calc((var(--kc-toggle-h) - var(--kc-toggle-thumb)) / 2);
+  width: var(--kc-toggle-thumb);
+  height: var(--kc-toggle-thumb);
+  border-radius: calc(var(--kc-toggle-thumb) / 2);
+  background: var(--kc-toggle-thumb-fill, var(--kc-toggle-knob));
   box-shadow:
     0 2px 4px color-mix(in srgb, var(--kc-text) 18%, transparent),
     0 0 0 0.5px color-mix(in srgb, var(--kc-text) 12%, transparent);
@@ -68,15 +68,15 @@
 }
 
 .kc-toggle > input:checked ~ .kc-toggle-knob {
-  transform: translateX(16px);
+  transform: translateX(calc(var(--kc-toggle-w) - var(--kc-toggle-h)));
 }
 
 .kc-toggle > input:active ~ .kc-toggle-knob {
-  width: 22px;
+  width: calc(var(--kc-toggle-thumb) + 4px);
 }
 
 .kc-toggle > input:checked:active ~ .kc-toggle-knob {
-  transform: translateX(12px);
+  transform: translateX(calc(var(--kc-toggle-w) - var(--kc-toggle-h) - 4px));
 }
 
 .kc-toggle:has(> input:focus-visible) > .kc-toggle-track {
@@ -188,11 +188,11 @@
 
 .kc-size-track {
   position: absolute;
-  top: 19px;
+  top: 18px;
   right: 14px;
   left: 14px;
-  height: 4px;
-  border-radius: 2px;
+  height: 6px;
+  border-radius: 3px;
   background: var(--kc-pop-track);
   pointer-events: none;
 }
@@ -203,7 +203,7 @@
   bottom: 0;
   left: 0;
   width: calc(var(--kc-size-progress) * 100%);
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--kc-accent);
   transition: width var(--kc-dur-400) var(--kc-spring);
 }
@@ -212,11 +212,96 @@
   position: absolute;
   top: 50%;
   left: calc(var(--kc-notch) * 100%);
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--kc-text) 35%, var(--kc-list));
+  background: color-mix(in srgb, var(--kc-text) 45%, transparent);
+  transition: background-color var(--kc-dur-200) var(--kc-ease-out);
+}
+
+.kc-size-notch[data-passed="true"] {
+  background: color-mix(in srgb, var(--kc-accent-label) 55%, var(--kc-accent));
+}
+
+/* The default notch is in the middle of the track, a dot a little larger than the others, and
+   named under it. */
+.kc-size-notch[data-default="true"] {
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+}
+
+.kc-size-default {
+  --kc-notch: 0; /* set inline: the notch's place along the track, 0 to 1 */
+}
+
+.kc-size-title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 15.2px;
+}
+
+.kc-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kc-size-letter {
+  flex: none;
+  width: 22px;
+  color: var(--kc-text-secondary);
+  font-family: var(--kc-font-ui);
+  line-height: 1;
+  text-align: center;
+}
+
+.kc-size-letter[data-end="small"] {
+  font-size: 12.8px;
+}
+
+.kc-size-letter[data-end="large"] {
+  font-size: 22.4px;
+}
+
+.kc-size-control {
+  position: relative;
+  flex: 1 1 auto;
+  height: 52px;
+}
+
+.kc-size-track {
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  left: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--kc-pop-track);
+  pointer-events: none;
+}
+
+.kc-size-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--kc-size-progress) * 100%);
+  border-radius: 3px;
+  background: var(--kc-accent);
+  transition: width var(--kc-dur-400) var(--kc-spring);
+}
+
+.kc-size-notch {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--kc-notch) * 100%);
+  width: 3px;
+  height: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--kc-text) 45%, transparent);
   transition: background-color var(--kc-dur-200) var(--kc-ease-out);
 }
 

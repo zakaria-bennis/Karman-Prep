@@ -827,6 +827,35 @@
   --kc-radius-button: 11px;
   --kc-radius-small: 6px;
   --kc-radius-panel: 16px;
+  /* rows are cards of the quiz's lens, like an answer: rounded, apart, an edge inside */
+  --kc-row-gap: 8px;
+  --kc-row-side: 10px;
+  --kc-row-radius: 14px;
+  --kc-row-fill: var(--quiz-lens);
+  --kc-row-shadow: inset 0 0 0 1px var(--quiz-line);
+  --kc-row-rule: transparent;
+  --kc-tab-rule: transparent;
+  /* the quiz's own switch: its size, its green, its white thumb */
+  --kc-toggle-w: 48px;
+  --kc-toggle-h: 28px;
+  --kc-toggle-thumb: 22px;
+  --kc-toggle-on: var(--quiz-switch);
+  --kc-toggle-on-hover: var(--quiz-switch);
+  --kc-toggle-thumb-fill: #ffffff;
+  /* a choice of two is a tray with a pill for the one chosen */
+  --kc-seg-pad: 3px;
+  --kc-seg-gap: 0;
+  --kc-seg-border: 0px;
+  --kc-seg-radius: 9px;
+  --kc-seg-radius-first: 9px;
+  --kc-seg-radius-last: 9px;
+  --kc-seg-tray: color-mix(in srgb, var(--quiz-ink) 10%, transparent);
+  --kc-seg-tray-radius: 12px;
+  /* the quiz decides the theme, the layout and the sounds; a row's circle only shows and hides */
+  --kc-show-theme: none;
+  --kc-show-layout: none;
+  --kc-show-sounds: none;
+  --kc-style-menu: 0;
   --kc-radius-key: 9px;
   --kc-radius-key-wide: 9px;
   /* the keypad's tray and anything else of the calculator's own frame: the quiz's solid, with

@@ -1508,6 +1508,27 @@ He liked the direction and asked for the whole calculator, screen by screen, in 
   before the list opens.
 - **Security decisions changed:** NO daily cap. Sign-up limits and one question at a time: later, on his word.
 
+### Seventh round (2026-11-17, late): calculator rows and settings
+
+Built with the same method as the sixth round (variables set from the quiz; defaults in `styles/tokens.css`
+leave the calculator unchanged elsewhere).
+
+- **Rows** are cards like an answer (`--kc-row-gap/side/radius/fill/shadow`). A table sits in the same card;
+  its cells are not restyled yet.
+- **Switches** are the quiz's own: size, green, white thumb (`--kc-toggle-*`).
+- **Radians / Degrees** is a tray with a pill for the choice (`--kc-seg-*`).
+- **Text Size:** the default is in the middle of the track for every host (`sizeStop`, `sizeAtStop` in
+  `TextSizeSlider.tsx`); the notches are quiet dots.
+- **Left out of Graph Settings in the quiz:** the theme picker, the layout choice, Key Sounds
+  (`--kc-show-theme/layout/sounds: none`).
+- **Key sounds follow the quiz's Sounds switch** (`useCalculatorSounds` writes the calculator's setting and
+  sends `karman:key-sounds`; `key-sounds.ts` listens). Sounds are on by default, so key sounds now are too.
+- **A row's color circle only shows and hides its line** in the quiz (`--kc-style-menu: 0`, read by
+  `styleMenuOff`): no style menu on a click, a long-press or Shift+Enter. The menu's code is kept.
+- **Open question to him:** which "dots" look too striking. The graph's key-point dots are already plain black.
+- **Next, in his order:** tables, sliders, regressions, the statistics screens; then tooltips, error tips, the
+  scroll bar, the key-point dots at night.
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened

@@ -109,11 +109,16 @@
 .kc-row {
   position: relative;
   display: grid;
-  margin-top: -1px;
+  margin: var(--kc-row-gap) var(--kc-row-side) 0;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent;
   border-bottom: 1px solid transparent;
-  background: var(--kc-list-fill);
+  border-radius: var(--kc-row-radius);
+  background: var(--kc-row-fill);
+  box-shadow: var(--kc-row-shadow);
+  transition:
+    border-color var(--kc-dur-200) var(--kc-ease-out),
+    background-color var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-row-inner {
@@ -121,6 +126,7 @@
   min-height: 0;
   overflow: hidden;
   padding-bottom: 6px;
+  border-radius: var(--kc-row-radius);
 }
 
 /* VIS-22: the selected row (focused, its curve pressed on the graph, or left with Escape), or the
@@ -156,7 +162,9 @@
   width: var(--kc-gutter);
   padding: 1px 2px;
   border-right: 1px solid var(--kc-tab-rule);
+  border-radius: var(--kc-row-radius) 0 0 var(--kc-row-radius);
   background: var(--kc-tab);
+  transition: background-color var(--kc-dur-200) var(--kc-ease-out);
 }
 
 .kc-row-number {
@@ -559,12 +567,12 @@
 .kc-ghost-row {
   position: relative;
   height: 54px;
-  margin-top: -1px;
+  margin: var(--kc-row-gap) var(--kc-row-side) 0;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent; /* as a row's, so the rule stops short of the panel edge */
-  background: var(
-    --kc-list-fill
-  ); /* as a row's, so its rule covers a focused row's lower bar pixel */
+  border-radius: var(--kc-row-radius);
+  /* as a row's, so its rule covers a focused row's lower bar pixel */
+  background: var(--kc-row-fill);
   cursor: text;
 }
 
@@ -576,6 +584,7 @@
   left: 0;
   width: var(--kc-gutter);
   border-right: 1px solid var(--kc-tab-rule);
+  border-radius: var(--kc-row-radius) 0 0 var(--kc-row-radius);
   background: var(--kc-tab);
   mask-image: linear-gradient(to bottom, var(--kc-text) 50%, transparent);
 }

@@ -4,6 +4,12 @@
 
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
 
+/** Whether the host has turned the style menu off (--kc-style-menu: 0, tokens.css): the colour
+ *  circle then only shows and hides its row. */
+export function styleMenuOff(el: Element | null): boolean {
+  return el !== null && getComputedStyle(el).getPropertyValue("--kc-style-menu").trim() === "0";
+}
+
 export const LONG_PRESS_MS = 500;
 
 export interface MenuTrigger {
