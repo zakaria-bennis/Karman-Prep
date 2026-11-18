@@ -10,7 +10,7 @@
   height: 100%;
   min-height: 0;
   border-right: 1px solid var(--kc-rule);
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-ui);
@@ -58,7 +58,7 @@
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
   transition: transform var(--kc-dur-250) var(--kc-ease-out);
 }
 
@@ -113,7 +113,7 @@
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent;
   border-bottom: 1px solid transparent;
-  background: var(--kc-list);
+  background: var(--kc-list-fill);
 }
 
 .kc-row-inner {
@@ -562,7 +562,9 @@
   margin-top: -1px;
   border-top: 1px solid var(--kc-row-rule);
   border-right: 1px solid transparent; /* as a row's, so the rule stops short of the panel edge */
-  background: var(--kc-list); /* as a row's, so its rule covers a focused row's lower bar pixel */
+  background: var(
+    --kc-list-fill
+  ); /* as a row's, so its rule covers a focused row's lower bar pixel */
   cursor: text;
 }
 
@@ -613,7 +615,7 @@
   min-width: 160px;
   padding: 4px;
   border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
 }
 
@@ -627,7 +629,7 @@
   width: fit-content;
   margin: 8px auto;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-text);
   color: var(--kc-list);
   font-family: var(--kc-font-ui);

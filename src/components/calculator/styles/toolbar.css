@@ -11,7 +11,7 @@
   flex: none;
   align-items: center;
   height: var(--kc-toolbar-h);
-  padding: 6px 5px 5px;
+  padding: 6px var(--kc-edge) 5px;
   border-bottom: 1px solid var(--kc-rule);
   background: linear-gradient(var(--kc-toolbar-top), var(--kc-toolbar-bottom));
   transition: box-shadow var(--kc-dur-200) var(--kc-ease);

@@ -225,8 +225,9 @@ function paintLabels(ctx: Ctx, labels: readonly PxLabel[], theme: RenderTheme): 
   ctx.miterLimit = 2;
   ctx.strokeStyle = theme.paper;
   ctx.textBaseline = "alphabetic";
+  const halo = theme.labelHalo !== false;
   const paint = (text: string, x: number, y: number) => {
-    ctx.strokeText(text, x, y);
+    if (halo) ctx.strokeText(text, x, y);
     ctx.fillText(text, x, y);
   };
   for (const label of labels) {

@@ -28,6 +28,9 @@
   --kc-radius-chip: 4px;
   --kc-radius-button: 5px;
   --kc-radius-small: 3px;
+  --kc-radius-panel: 6px; /* a menu, a pop-up or a settings panel */
+  --kc-radius-key: 2px; /* a keypad key */
+  --kc-radius-key-wide: 3px; /* the keypad's Enter key and a Functions key */
   --kc-graph-button: 37px;
 
   /* Icon and control opacities */
@@ -46,6 +49,14 @@
   /* What the graph's panel is filled with: the paper, unless a host thins it to glass (the quiz
      does). The drawing itself always takes its colours from --kc-paper. */
   --kc-paper-fill: var(--kc-paper);
+  /* The same for the list's panel and its rows. Menus and pop-ups keep --kc-list itself, so a
+     host that thins the panel still gets solid menus. */
+  --kc-list-fill: var(--kc-list);
+  /* How far the graph's buttons and the toolbar's ends stand from the calculator's edge. */
+  --kc-edge: 5px;
+  /* 1: axis numbers are outlined in the paper's colour (GP-10). 0: a host on glass, where the
+     outline would show as a dark edge, turns it off. Read by the renderer. */
+  --kc-label-halo: 1;
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);

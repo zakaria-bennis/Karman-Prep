@@ -136,6 +136,9 @@
 /* The flag's show: the pole appears, the flag runs up it and waves, and all of it goes; taken
    down, the flag waves at the top and comes down. */
 .pole {
+  /* the pole stands over the dot of the question mark in the row below */
+  position: relative;
+  left: 6.5px;
   overflow: visible;
   animation: poleShow 1900ms ease both;
 }
@@ -247,13 +250,29 @@
   transform: translateY(1px);
   border-bottom-width: 2px;
 }
+/* tapped, the key goes down and comes back up before the list opens */
+.fnKey[data-pressed] {
+  animation: keyPress 300ms ease both;
+}
+@keyframes keyPress {
+  0%,
+  100% {
+    transform: none;
+    border-bottom-width: 3px;
+  }
+  45% {
+    transform: translateY(3px) scale(0.94);
+    border-bottom-width: 1.5px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .marks i,
   .fnKey {
     transition: none;
   }
   .lift,
-  .flag {
+  .flag,
+  .fnKey[data-pressed] {
     animation: none;
   }
 }

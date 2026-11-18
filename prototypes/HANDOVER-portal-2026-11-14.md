@@ -1483,6 +1483,31 @@ a daily cap on new questions per account (the "100 questions" he remembers is th
 `plan-gate.ts`, not a daily cap; ask him for the number), sign-up limits per device and network, and sending one
 question at a time.
 
+### Sixth round (2026-11-17, late): the calculator on the quiz's glass, first pass
+
+He liked the direction and asked for the whole calculator, screen by screen, in the quiz's design language.
+
+- **How it is done.** The quiz sets the calculator's own variables from `quiz-shell.module.css` (the block
+  "The calculator in the quiz"). The calculator gained small hooks, all declared in `styles/tokens.css` with
+  defaults that leave it unchanged everywhere else: `--kc-paper-fill`, `--kc-list-fill` (panels; menus keep
+  `--kc-list`, so they stay solid), `--kc-edge` (distance of the graph's buttons and the toolbar's ends from the
+  edge), `--kc-label-halo` (0 turns off the paper outline round axis numbers; read in `render/renderer.ts`,
+  used in `draw-grid.ts`), `--kc-radius-panel`, `--kc-radius-key`, `--kc-radius-key-wide`. After editing those
+  styles run `npm run calculator:build`.
+- **Rules he set:** the same frost as the question, **no color tinge**; grid, axes and numbers **pure white in
+  dark, pure black in light**; no outlines on numbers; a clean margin between the edge and any button; softer
+  corners; same functions and button places.
+- `--kc-paper` must stay a plain hex (the renderer refuses anything else and the grid vanishes). The grid's
+  strength comes from `--quiz-grid-major/minor`: the renderer draws the ink at the alpha those greys imply.
+- **Done this pass:** frame, graph, toolbar, rows, keypad and its Functions panel, graph settings, the color
+  pop-up, edit-list mode (colors and corners only).
+- **Still to go through:** tables, sliders, regressions, the inference screens, the theme picker (it still
+  offers the calculator's own themes, which the quiz now mostly overrides: hide it or keep it?), tooltips, the
+  intersection dots (dark on dark at night), segmented controls (still square), error tips, the scroll bar.
+- More menu: the flagpole stands over the question mark's dot; Keyboard shortcuts presses its key down and up
+  before the list opens.
+- **Security decisions changed:** NO daily cap. Sign-up limits and one question at a time: later, on his word.
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened

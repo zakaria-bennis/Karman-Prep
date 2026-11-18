@@ -82,7 +82,7 @@
   padding: 12px;
   overflow: auto;
   border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);
 }
@@ -250,7 +250,7 @@
   margin: 0;
   padding: 6px 8px;
   border: 1px solid var(--kc-pop-line);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   color: var(--kc-pop-ink-strong);
   font-family: var(--kc-font-ui);
@@ -291,7 +291,7 @@
   min-height: 30px;
   padding: 3px 8px;
   border: 1px solid var(--kc-pop-line);
-  border-radius: 6px;
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   font-size: 15.2px;
   line-height: 22px;

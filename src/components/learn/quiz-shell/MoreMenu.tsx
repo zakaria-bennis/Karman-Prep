@@ -87,6 +87,7 @@ export function MoreMenu({
   const [failed, setFailed] = useState(false);
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [sending, setSending] = useState(false);
+  const [pressing, setPressing] = useState(false);
   // the flag's short show: going up or coming down, then nothing
   const [flagShow, setFlagShow] = useState<"up" | "down" | null>(null);
   useEffect(() => {
@@ -235,13 +236,24 @@ export function MoreMenu({
                     type="button"
                     className={styles.item}
                     onClick={() => {
-                      setOpen(false);
-                      onShortcuts();
+                      // the key is seen going down and up, then the list opens
+                      if (pressing) return;
+                      setPressing(true);
+                      setTimeout(
+                        () => {
+                          setPressing(false);
+                          setOpen(false);
+                          onShortcuts();
+                        },
+                        reduced ? 0 : 300
+                      );
                     }}
                   >
                     <span>Keyboard shortcuts</span>
                     <span className={styles.itemArt} aria-hidden="true">
-                      <span className={styles.fnKey}>fn</span>
+                      <span className={styles.fnKey} data-pressed={pressing || undefined}>
+                        fn
+                      </span>
                     </span>
                   </button>
                 )}

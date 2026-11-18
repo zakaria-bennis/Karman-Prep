@@ -4,6 +4,12 @@
    day and for night; an account theme no longer colours the quiz. */
 .shell {
   --quiz-bg: #fffaf3;
+  /* the calculator on the quiz's glass: pure ink for its lines and numbers, a solid for its
+     menus, and the greys its grid is worked out from (the grid is drawn in the ink, thinned) */
+  --quiz-ink: #000000;
+  --quiz-solid: #f7f2ea;
+  --quiz-grid-major: #5a5a5a;
+  --quiz-grid-minor: #b5b5b5;
   --quiz-panel: rgb(255 251 244 / 0.62);
   /* a choice, or any small piece, on the page: a lighter lens of the same glass */
   --quiz-lens: rgb(255 255 255 / 0.34);
@@ -59,6 +65,10 @@
 @media (prefers-color-scheme: dark) {
   :global(:root:not([data-kp-mode="light"])) .shell {
     --quiz-bg: #12142a;
+    --quiz-ink: #ffffff;
+    --quiz-solid: #23222d;
+    --quiz-grid-major: #bababa;
+    --quiz-grid-minor: #666666;
     --quiz-panel: rgb(14 16 34 / 0.72);
     --quiz-lens: rgb(255 255 255 / 0.07);
     --quiz-sheet: rgb(56 54 64 / 0.78);
@@ -91,6 +101,10 @@
 }
 :global(:root[data-kp-mode="dark"]) .shell {
   --quiz-bg: #12142a;
+  --quiz-ink: #ffffff;
+  --quiz-solid: #23222d;
+  --quiz-grid-major: #bababa;
+  --quiz-grid-minor: #666666;
   --quiz-panel: rgb(14 16 34 / 0.72);
   --quiz-lens: rgb(255 255 255 / 0.07);
   --quiz-sheet: rgb(56 54 64 / 0.78);
@@ -762,15 +776,17 @@
 }
 
 /* The calculator in the quiz: no title bar (the Calculator button opens and closes it, and Escape
-   closes it), rounded like the question's card, and glass instead of a solid panel. Its own
-   files are not touched: its paper and its list take their colour from two of its variables,
-   which are thinned here so the world shows through as it does through the question. */
+   closes it), and the same pane of frost as the question, with no colour of its own (founder,
+   2026-11-17). Its panels are see-through (--kc-paper-fill, --kc-list-fill), its lines and
+   numbers are pure ink, white by night and black by day, its menus are a solid of the quiz's,
+   and its corners are the quiz's rounder ones. All of it is set on the calculator's own
+   variables from here; --kc-paper stays a plain colour because its drawing reads it. */
 .frame :global([data-calculator-window]:is([data-mode="docked"], [data-mode="fullscreen"])) {
   border-color: var(--quiz-edge);
   border-radius: 22px;
-  background: color-mix(in srgb, var(--kcc-chrome) 30%, transparent);
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
-  backdrop-filter: blur(22px) saturate(1.5);
+  background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
   box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.55);
 }
 .frame
@@ -796,8 +812,35 @@
       + div
       *
   ) {
-  --kc-paper-fill: color-mix(in srgb, var(--kcc-chrome) 22%, transparent);
-  --kc-list: color-mix(in srgb, var(--kcc-chrome) 50%, transparent);
+  --kc-paper: var(--quiz-solid);
+  --kc-paper-fill: transparent;
+  --kc-list: var(--quiz-solid);
+  --kc-list-fill: transparent;
+  --kc-text: var(--quiz-ink);
+  --kc-text-secondary: color-mix(in srgb, var(--quiz-ink) 74%, transparent);
+  --kc-axis: var(--quiz-ink);
+  --kc-grid-major: var(--quiz-grid-major);
+  --kc-grid-minor: var(--quiz-grid-minor);
+  --kc-label-halo: 0;
+  --kc-edge: 12px;
+  --kc-radius-chip: 8px;
+  --kc-radius-button: 11px;
+  --kc-radius-small: 6px;
+  --kc-radius-panel: 16px;
+  --kc-radius-key: 9px;
+  --kc-radius-key-wide: 9px;
+  /* the keypad's tray and anything else of the calculator's own frame: the quiz's solid, with
+     keys a shade lighter on it */
+  --kc-chrome: var(--quiz-solid);
+  --kc-key: color-mix(in srgb, var(--quiz-ink) 10%, var(--quiz-solid));
+  --kc-toolbar-top: color-mix(in srgb, var(--quiz-ink) 5%, transparent);
+  --kc-toolbar-bottom: color-mix(in srgb, var(--quiz-ink) 5%, transparent);
+  --kc-tab: color-mix(in srgb, var(--quiz-ink) 6%, transparent);
+  --kc-rule: color-mix(in srgb, var(--quiz-ink) 16%, transparent);
+  --kc-focus-bar: var(--quiz-pick);
+  --kc-focus-bar-label: #ffffff;
+  --kc-accent: var(--quiz-pick);
+  --kc-boundary: color-mix(in srgb, var(--quiz-ink) 45%, transparent);
 }
 /* On a phone the calculator stops under the top bar. */
 .frame :global([data-calculator-window][data-mode="fullscreen"]) {

@@ -162,7 +162,10 @@ export function readRenderTheme(host: Element): RenderTheme {
   const read = (name: string) => style.getPropertyValue(name).trim();
   const perSlot = <T>(value: (slot: CurveSlot) => T) =>
     Object.fromEntries(CURVE_SLOTS.map((slot) => [slot, value(slot)])) as Record<CurveSlot, T>;
+  // on glass the numbers' paper outline would show as a dark edge: a host may turn it off
+  const noHalo = read("--kc-label-halo") === "0";
   return {
+    ...(noHalo ? { labelHalo: false } : {}),
     paper: read(ROLE_VARS.paper),
     text: read(ROLE_VARS.text),
     axis: read(ROLE_VARS.axis),

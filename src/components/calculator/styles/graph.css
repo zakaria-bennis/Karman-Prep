@@ -39,8 +39,8 @@
    border, 5 px radius and a soft shadow; icons rest at 0.6, 0.9 on hover, 1 pressed. */
 .kc-graph-controls {
   position: absolute;
-  top: 5px;
-  inset-inline-end: 5px;
+  top: var(--kc-edge);
+  inset-inline-end: var(--kc-edge);
   display: flex;
   flex-direction: column;
   gap: 5px;

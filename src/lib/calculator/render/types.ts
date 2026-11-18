@@ -15,6 +15,8 @@ export interface RenderTheme {
   focusRing: string;
   curves: Record<CurveSlot, string>;
   fillAlpha: Record<CurveSlot, number>;
+  /** False when the host turns the axis numbers' paper outline off (--kc-label-halo: 0). */
+  labelHalo?: boolean;
 }
 export interface RenderRow {
   rowId: string;
