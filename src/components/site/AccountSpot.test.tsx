@@ -41,7 +41,7 @@ describe("the picture at the top right of the site", () => {
     expect(screen.queryByRole("menu")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Go to your portal" }));
     expect(screen.getByRole("menuitem", { name: "Go to your portal" }).getAttribute("href")).toBe(
-      "/dashboard/student"
+      "/portal"
     );
     expect(screen.getByRole("menuitem", { name: "Billing" }).getAttribute("href")).toBe("/billing");
     fireEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));

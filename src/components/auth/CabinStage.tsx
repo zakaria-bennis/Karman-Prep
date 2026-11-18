@@ -10,6 +10,7 @@
 // a stand-in with the same parts and the same class names takes its place. It signs nobody in.
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useLoopBreaker } from "./use-loop-breaker";
 import type { CountryCode } from "libphonenumber-js";
 import { orb } from "@/components/site/live/kit";
 import { SignIn, SignUp } from "@clerk/nextjs";
@@ -216,10 +217,14 @@ function Typed({ pool }: { pool: readonly string[] }) {
 export default function CabinStage({
   mode,
   greetings,
+  next,
 }: {
   mode: "sign-in" | "sign-up";
   greetings: readonly string[];
+  /** Where the visitor was going when they were sent here. */
+  next?: string;
 }) {
+  useLoopBreaker(next);
   /** The visitor chose email, so Clerk's email field is unfolded. */
   const [email, setEmail] = useState(false);
   /** Dev server only: Clerk's form has not appeared, so the stand-in shows. */
