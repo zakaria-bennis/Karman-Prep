@@ -96,8 +96,6 @@ export function QuestionArea({
       ref={area}
       className={`${styles.area} ${styles[layout]} ${split2 ? styles.split : ""}`}
       data-aside={aside ? "" : undefined}
-      // a docked calculator moves the question over, and leaves the bottom bar where it is
-      data-calculator-dock-shift=""
     >
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div

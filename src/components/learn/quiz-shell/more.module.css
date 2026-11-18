@@ -21,7 +21,9 @@
 /* The menu hangs from the top bar, which is glass itself, so the browser gives the menu nothing
    to blur. A second coat of the same glass keeps what is behind from reading through it. */
 .menu[class][class] {
-  background-image: linear-gradient(var(--quiz-sheet), var(--quiz-sheet));
+  background-image:
+    linear-gradient(var(--quiz-sheet), var(--quiz-sheet)),
+    linear-gradient(var(--quiz-sheet), var(--quiz-sheet));
 }
 .row {
   display: flex;
@@ -93,6 +95,7 @@
 .item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   width: 100%;
   min-height: 50px;
@@ -112,37 +115,88 @@
     background: color-mix(in srgb, var(--quiz-text) 8%, transparent);
   }
 }
-/* each row's small drawing */
+/* Each row's small drawing sits at the right, in the column the switches are in and on their
+   middle, so every row's words start on one line (founder, 2026-11-17). */
 .itemArt {
   flex: none;
-  width: 24px;
-  height: 24px;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 28px;
+}
+.itemArt svg {
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-/* the flag waits at the foot of its pole and runs up it when the question is flagged */
+/* The flag's show: the pole appears, the flag runs up it and waves, and all of it goes; taken
+   down, the flag waves at the top and comes down. */
+.pole {
+  overflow: visible;
+  animation: poleShow 1900ms ease both;
+}
+@keyframes poleShow {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.8);
+  }
+  10%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+.lift {
+  animation: flagUp 640ms cubic-bezier(0.3, 1.5, 0.5, 1) 120ms both;
+}
+.pole[data-way="down"] .lift {
+  animation: flagDown 700ms cubic-bezier(0.5, 0, 0.7, 0.4) 700ms both;
+}
+@keyframes flagUp {
+  from {
+    transform: translateY(11.5px);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes flagDown {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateY(11.5px);
+  }
+}
 .flag {
   fill: var(--quiz-wrong);
   stroke: var(--quiz-wrong);
-  transform: translateY(12px) scaleY(0.2);
-  transform-origin: 6px 7px;
-  opacity: 0;
-  transition:
-    transform 620ms cubic-bezier(0.3, 1.5, 0.5, 1),
-    opacity 200ms ease;
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: wave 460ms ease-in-out 3 alternate;
 }
-.item[data-flag="up"] .flag {
-  transform: none;
-  opacity: 1;
+.pole[data-way="up"] .flag {
+  animation-delay: 620ms;
+}
+@keyframes wave {
+  from {
+    transform: skewY(-9deg) scaleX(0.94);
+  }
+  to {
+    transform: skewY(9deg) scaleX(1.04);
+  }
 }
 /* three question marks, stacked; under the pointer they spin out from one another */
 .marks {
   position: relative;
-  display: block;
-  stroke: none;
 }
 .marks i {
   position: absolute;
@@ -179,10 +233,11 @@
 .fnKey {
   display: grid;
   place-items: center;
+  width: 26px;
+  height: 24px;
   border: 1.5px solid currentColor;
   border-bottom-width: 3px;
   border-radius: 6px;
-  stroke: none;
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
@@ -193,10 +248,13 @@
   border-bottom-width: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .flag,
   .marks i,
   .fnKey {
     transition: none;
+  }
+  .lift,
+  .flag {
+    animation: none;
   }
 }
 .item:focus-visible {

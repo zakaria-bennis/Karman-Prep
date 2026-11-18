@@ -7,27 +7,23 @@ import { playRewardSound } from "@/lib/quiz/reward-sound";
 /** How long Next waits after a miss graded in front of the student. */
 export const NEXT_HOLD_MS = 3000;
 
-/** Where a docked calculator may sit: under the top bars and above the bottom one, so it is a card
- *  beside the question with the same top and the same bottom (founder, 2026-11-17: "vertically
- *  locked"). The shell hangs `header` and `barGroup` on its two bar groups. */
-export function useDock(layout: string, pencilOn: boolean) {
+/** How far down the screen the top bars reach. A phone's calculator opens under them, and the
+ *  bars change height (they squeeze while the calculator is open), so this is measured as they
+ *  do. The shell hangs `header` on its top bar group. */
+export function useBarHeight() {
   const header = useRef<HTMLDivElement>(null);
-  const barGroup = useRef<HTMLDivElement>(null);
-  const [dockTop, setDockTop] = useState(64);
-  const [dockBottom, setDockBottom] = useState(12);
+  const [barH, setBarH] = useState(64);
   useLayoutEffect(() => {
-    if (header.current) setDockTop(Math.round(header.current.getBoundingClientRect().bottom) + 12);
-  }, [layout, pencilOn]);
-  useLayoutEffect(() => {
-    const bar = barGroup.current;
-    if (!bar || typeof ResizeObserver !== "function") return;
-    const measure = () => setDockBottom(bar.offsetHeight + 12);
+    const bar = header.current;
+    if (!bar) return;
+    const measure = () => setBarH(Math.round(bar.getBoundingClientRect().bottom));
     measure();
+    if (typeof ResizeObserver !== "function") return;
     const seen = new ResizeObserver(measure);
     seen.observe(bar);
     return () => seen.disconnect();
   }, []);
-  return { header, barGroup, dockTop, dockBottom };
+  return { header, barH };
 }
 
 /** A miss graded in front of the student (not one opened again later) holds Next for three

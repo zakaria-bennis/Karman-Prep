@@ -210,48 +210,35 @@
   align-items: center;
   gap: 4px;
 }
-/* Exit: a small window of red frosted glass with someone walking out of a door, drawn in the
-   page's own ink (black by day, white by night), the word under it. */
+/* Exit: a pane of red frosted glass, as tall as the clock beside it and on its line, with the
+   plain sign for leaving and the word (founder, 2026-11-17). */
 .barButton.exit {
-  min-width: 52px;
-  gap: 4px;
-}
-.exitTile {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 30px;
+  flex-direction: row;
+  gap: 7px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 13px 0 11px;
   border: 1px solid var(--quiz-exit-edge);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--quiz-exit);
   -webkit-backdrop-filter: var(--quiz-frost);
   backdrop-filter: var(--quiz-frost);
-  color: var(--quiz-text);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
-  transition:
-    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    background-color 160ms ease;
+}
+.barButton.exit .barWord {
+  font-size: 0.92rem;
+  font-weight: 700;
 }
 @media (hover: hover) {
   .barButton.exit:not(:disabled):hover {
-    background: none;
-  }
-  .barButton.exit:not(:disabled):hover .exitTile {
     background: color-mix(in srgb, var(--quiz-wrong) 30%, var(--quiz-exit));
-    transform: scale(1.06);
   }
-  .barButton.exit:not(:disabled):hover svg {
-    transform: translateX(-2px);
-  }
-}
-.barButton.exit:active .exitTile {
-  transform: scale(0.92);
 }
 /* Phones: two rows. Exit, the name and the clock on top; every tool, with its word, under. On
    a phone the clock is put away by pressing it, so its Hide button is not shown. */
 .compact .topBar {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   row-gap: 4px;
   min-height: 0;
   padding-bottom: 4px;
@@ -259,12 +246,19 @@
 .compact .barStart {
   display: contents;
 }
+/* the name is in the middle of the screen whatever is at its sides: it spans the whole row */
 .compact .barTitle {
   position: static;
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 1;
-  max-width: none;
+  justify-self: center;
+  max-width: calc(100% - 210px);
   transform: none;
+}
+.compact .barButton.exit {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
 }
 .compact .barCentre {
   grid-column: 3;
@@ -690,30 +684,125 @@
   position: absolute;
 }
 
-/* Docked, the calculator is a card beside the question's: the same rounded corners (founder,
-   2026-11-17: "a floating window, just like the question"). Its splitter hangs outside the
-   frame, so the rounding is given to the title bar and the body, not clipped at the frame. */
-.frame :global([data-calculator-window][data-mode="docked"]) {
-  /* it stops above the bottom bar, so the two cards share a top and a bottom ("vertically
-     locked"); the calculator sets its own bottom inline, which this overrides */
-  bottom: var(--kcc-dock-bottom, 12px) !important;
+/* ---- With the calculator open ----
+   The top bar squeezes: its tools drop their words and it loses a little height, and it relaxes
+   again when the calculator is put away (founder, 2026-11-17). */
+.topBar,
+.topBar .barButton,
+.tools :global([data-calculator-trigger]) {
+  transition:
+    min-height 380ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    min-width 380ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    gap 380ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    padding 380ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    font-size 320ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 160ms ease;
+}
+.topBar .barWord {
+  transition:
+    font-size 320ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    opacity 200ms ease;
+}
+.shell[data-calc] .topBar {
+  min-height: 52px;
+}
+.shell[data-calc] .topBar .barWord {
+  font-size: 0;
+  opacity: 0;
+}
+.shell[data-calc] .topBar .barButton,
+.shell[data-calc] .tools :global([data-calculator-trigger]) {
+  gap: 0;
+  min-width: 44px;
+  min-height: 40px;
+}
+.shell[data-calc] .tools :global([data-calculator-trigger]) {
+  font-size: 0;
+}
+.shell[data-calc] .barButton.exit {
+  padding: 0 10px;
+}
+
+/* The bars and the question together. Docked, the calculator is a card at the left and all of
+   this is one card at the right: the bar joins the question's glass, and the two cards have the
+   same top, the same bottom, and the same gap between them as to the screen's edge. */
+.stage {
+  grid-row: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  transition:
+    margin-top 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-right 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-bottom 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-radius 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.shell[data-calc]:has(:global([data-calculator-window][data-mode="docked"])) .stage {
+  margin: 12px 12px 12px 0;
+  overflow: hidden;
   border-radius: 22px;
+  outline: 1px solid var(--quiz-edge);
+  outline-offset: -1px;
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.55);
 }
-/* On a phone the calculator stops under the top bar and has no X: the Calculator button there
-   is the one way to put it away (founder, 2026-11-17). */
-.frame :global([data-calculator-window][data-mode="fullscreen"]) {
-  top: calc(var(--quiz-bar-h, 64px) + 12px);
+.shell[data-calc]:has(:global([data-calculator-window][data-mode="docked"])) .topBar.glass,
+.shell[data-calc]:has(:global([data-calculator-window][data-mode="docked"])) .bottomBar {
+  background: var(--quiz-panel);
+  box-shadow: none;
 }
-.frame :global([data-calculator-window][data-mode="fullscreen"] [aria-label="Close calculator"]) {
+.shell[data-calc]:has(:global([data-calculator-window][data-mode="docked"]))
+  [data-quiz-scroll]
+  > [data-quiz-pane]:only-child::before {
+  inset: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The calculator in the quiz: no title bar (the Calculator button opens and closes it, and Escape
+   closes it), rounded like the question's card, and glass instead of a solid panel. Its own
+   files are not touched: its paper and its list take their colour from two of its variables,
+   which are thinned here so the world shows through as it does through the question. */
+.frame :global([data-calculator-window]:is([data-mode="docked"], [data-mode="fullscreen"])) {
+  border-color: var(--quiz-edge);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--kcc-chrome) 30%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.55);
+}
+.frame
+  :global(
+    [data-calculator-window]:is([data-mode="docked"], [data-mode="fullscreen"])
+      > [data-calculator-titlebar]
+  ) {
   display: none;
 }
-.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar]) {
-  padding: 8px 10px 8px 16px;
-  border-radius: 21px 21px 0 0;
-}
-.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar] + div) {
+.frame
+  :global(
+    [data-calculator-window]:is([data-mode="docked"], [data-mode="fullscreen"])
+      > [data-calculator-titlebar]
+      + div
+  ) {
   overflow: hidden;
-  border-radius: 0 0 21px 21px;
+  border-radius: 21px;
+}
+.frame
+  :global(
+    [data-calculator-window]:is([data-mode="docked"], [data-mode="fullscreen"])
+      > [data-calculator-titlebar]
+      + div
+      *
+  ) {
+  --kc-paper-fill: color-mix(in srgb, var(--kcc-chrome) 22%, transparent);
+  --kc-list: color-mix(in srgb, var(--kcc-chrome) 50%, transparent);
+}
+/* On a phone the calculator stops under the top bar. */
+.frame :global([data-calculator-window][data-mode="fullscreen"]) {
+  top: calc(var(--quiz-bar-h, 64px) + 8px);
+  transition: top 380ms cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
 /* compact: one scroll for everything. */

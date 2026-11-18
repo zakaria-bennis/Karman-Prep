@@ -87,6 +87,13 @@ export function MoreMenu({
   const [failed, setFailed] = useState(false);
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [sending, setSending] = useState(false);
+  // the flag's short show: going up or coming down, then nothing
+  const [flagShow, setFlagShow] = useState<"up" | "down" | null>(null);
+  useEffect(() => {
+    if (!flagShow) return;
+    const t = setTimeout(() => setFlagShow(null), 1900);
+    return () => clearTimeout(t);
+  }, [flagShow]);
   const told = useRef(onOpenChange);
   useEffect(() => {
     told.current = onOpenChange;
@@ -183,29 +190,44 @@ export function MoreMenu({
                   </label>
                 )}
                 {tutor && (
-                  // Pressed, a flag runs up its pole and the row offers to take it down again.
+                  // Pressed, a flag runs up a pole at the right, waves and is gone; taken down,
+                  // it comes down the pole the same way. Nothing is drawn there otherwise.
                   <button
                     type="button"
                     className={styles.item}
-                    data-flag={tutor.asked ? "up" : "down"}
-                    onClick={() => (tutor.asked ? tutor.onRemove() : tutor.onAsk(""))}
+                    onClick={() => {
+                      setFlagShow(tutor.asked ? "down" : "up");
+                      if (tutor.asked) tutor.onRemove();
+                      else tutor.onAsk("");
+                    }}
                   >
-                    <svg className={styles.itemArt} viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M6 21.500V3" />
-                      <path d="M3.500 21.500h5" />
-                      <path className={styles.flag} d="M6 4h10.500l-2.300 3 2.300 3H6z" />
-                    </svg>
                     <span>{tutor.asked ? "Remove flag" : "Flag for my tutor"}</span>
+                    <span className={styles.itemArt} aria-hidden="true">
+                      {flagShow && (
+                        <svg
+                          key={flagShow}
+                          className={styles.pole}
+                          data-way={flagShow}
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M6 21.500V3" />
+                          <path d="M3.500 21.500h5" />
+                          <g className={styles.lift}>
+                            <path className={styles.flag} d="M6 4h10.500l-2.300 3 2.300 3H6z" />
+                          </g>
+                        </svg>
+                      )}
+                    </span>
                   </button>
                 )}
                 {onReport && (
                   <button type="button" className={styles.item} onClick={() => setPanel("report")}>
+                    <span>Report a problem</span>
                     <span className={`${styles.itemArt} ${styles.marks}`} aria-hidden="true">
                       <i>?</i>
                       <i>?</i>
                       <i>?</i>
                     </span>
-                    <span>Report a problem</span>
                   </button>
                 )}
                 {finePointer && (
@@ -217,10 +239,10 @@ export function MoreMenu({
                       onShortcuts();
                     }}
                   >
-                    <span className={`${styles.itemArt} ${styles.fnKey}`} aria-hidden="true">
-                      fn
-                    </span>
                     <span>Keyboard shortcuts</span>
+                    <span className={styles.itemArt} aria-hidden="true">
+                      <span className={styles.fnKey}>fn</span>
+                    </span>
                   </button>
                 )}
               </>

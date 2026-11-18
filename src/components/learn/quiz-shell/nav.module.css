@@ -162,7 +162,10 @@
 }
 /* put away: the time folds into the stopwatch, which gives a small bob */
 .clock[data-hidden] {
-  padding: 0 11px;
+  /* a square with only the stopwatch in it, its hand still going round */
+  justify-content: center;
+  width: 40px;
+  padding: 0;
   color: var(--quiz-text-muted);
   animation: tuck 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -174,6 +177,20 @@
   100% {
     transform: none;
     transform-origin: left center;
+  }
+}
+/* on a phone the clock is at the right, so it shrinks toward the right */
+:global([data-layout="compact"]) .clock[data-hidden] {
+  animation-name: tuckRight;
+}
+@keyframes tuckRight {
+  0% {
+    transform: scaleX(2.2);
+    transform-origin: right center;
+  }
+  100% {
+    transform: none;
+    transform-origin: right center;
   }
 }
 @media (prefers-reduced-motion: reduce) {

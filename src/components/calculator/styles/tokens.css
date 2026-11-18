@@ -43,6 +43,10 @@
   --kc-menu-item-rest: 0.5;
   --kc-menu-item-hover: 0.8;
 
+  /* What the graph's panel is filled with: the paper, unless a host thins it to glass (the quiz
+     does). The drawing itself always takes its colours from --kc-paper. */
+  --kc-paper-fill: var(--kc-paper);
+
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
   --kc-row-rule: color-mix(in srgb, var(--kc-text) 15.2%, transparent); /* rgba(206,206,206,0.8) */

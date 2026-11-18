@@ -10,10 +10,9 @@ export const KEYS_SLOT_ID = "quiz-keys-slot";
 
 /** A phone's dial: three across, the numbers where thumbs expect them. */
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/"];
-/** What the SAT takes in a typed answer, said inside the box until typing starts. */
-const HINT = "A whole number, a decimal or a fraction, like 3.5 or 7/2";
-/** The same, short enough for a phone's box. */
-const HINT_SHORT = "Like 13, 3.5 or 7/2";
+/** What the SAT takes in a typed answer, said inside the box until typing starts; short enough
+ *  for a phone's box. */
+const HINT = "Type a number, decimal or fraction";
 const MOST = 12;
 
 /** Only what an answer can be made of: digits, a point, a fraction bar and a minus (an SAT answer
@@ -149,7 +148,7 @@ export function NumericEntry({
           autoCorrect="off"
           spellCheck={false}
           maxLength={MOST}
-          placeholder={touch ? HINT_SHORT : HINT}
+          placeholder={HINT}
           value={value}
           readOnly={locked}
           onChange={(e) => onChange(cleanAnswer(e.target.value))}

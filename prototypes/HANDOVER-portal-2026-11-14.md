@@ -1450,6 +1450,39 @@ His words are in memory (`feedback_quiz_engine_nov17.md`, "Fourth round"). What 
 - Still open from earlier rounds: calculator memory per question and per bookmark, easier drawing and erasing,
   highlighter color switching and notes, endless-mode dots, glass tints as themes, the unclear "like button".
 
+### Fifth round (2026-11-17, night): built, awaiting his verdict
+
+His words are in memory (`feedback_quiz_engine_nov17.md`, "Fifth round"). This replaces parts of the fourth round.
+
+- **Beside the calculator (desktop):** the calculator is one card at the left, from 12px under the top of the
+  screen to 12px above its bottom. The top bar, the question and the bottom bar are one card at the right, the
+  same height, with 12px between the cards and 12px to each edge. `.stage` in `QuizShell.tsx` wraps the bars
+  and the question and is what the calculator shifts (`data-calculator-dock-shift`). `useDock` and
+  `--kcc-dock-bottom` are gone; `useBarHeight` measures the bar for the phone.
+- **The bar squeezes** while the calculator is open (`data-calc` on the shell): the tools drop their words and
+  the bar loses height; it relaxes when the calculator closes. On a phone too.
+- **The calculator has no title bar in the quiz** (no name, undock, full screen, minimize or X): the Calculator
+  button and Escape close it. Hidden from `quiz-shell.module.css`; the calculator's own pages keep theirs. A
+  window someone left floating or maximized before keeps its bar, so it can still be moved.
+- **The calculator is glass.** Two small changes inside the calculator, both his ask: `--kc-paper-fill` in
+  `styles/tokens.css` (the graph panel's fill; the drawing still reads `--kc-paper`, which must stay a plain
+  color or the grid vanishes) and `graph.css` using it. The quiz thins `--kc-paper-fill` and `--kc-list` and
+  frosts the frame. Its menus use `--kc-list` too, so they are thinner than before; watch for that.
+- **Exit:** a plain leave sign and the word, in a red glass pane the height of the clock, on its line.
+- **Clock hidden:** a 40px square with only the stopwatch, hand still turning; on a phone it shrinks to the right.
+- **Title:** centered on the screen on phones too (it spans the row).
+- **More menu:** every row's words start on one line; drawings sit at the right under the switches. The flag
+  and its pole show only while it goes up (or comes down), wave, and go.
+- **Typed answer:** the box says "Type a number, decimal or fraction". "Your answer" appears at the top left
+  only once something is typed.
+- **Speeders:** `FREEZES` in `pace-guard.ts`: 130 answers in 15 minutes or 300 in an hour refuses answers until
+  the window clears.
+
+**His decisions on question security:** no canary questions; no leak lookup tool yet. Wanted and NOT built yet:
+a daily cap on new questions per account (the "100 questions" he remembers is the Free plan's lifetime limit in
+`plan-gate.ts`, not a daily cap; ask him for the number), sign-up limits per device and network, and sending one
+question at a time.
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened
