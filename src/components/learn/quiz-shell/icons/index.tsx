@@ -289,11 +289,8 @@ export function CrossIcon(p: IconProps) {
 export function ExitIcon(p: IconProps) {
   return (
     <Svg {...p}>
-      {/* leaving: a doorway with its door swung open */}
-      <path d="M3.500 21h17" />
-      <path d="M6.500 21V4h10.500v17" />
-      <path d="M6.500 4l6.500 2.300v16.400" />
-      <path d="M10.500 13.300v.6" />
+      {/* a cross: it sits on the red Exit tile */}
+      <path d="M7 7l10 10M17 7L7 17" strokeWidth={2.6} />
     </Svg>
   );
 }

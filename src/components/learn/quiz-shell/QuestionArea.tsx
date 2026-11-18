@@ -113,9 +113,21 @@ export function QuestionArea({
             key={`aside-${questionKey}`}
             data-quiz-scroll
             className={styles.aside}
-            initial={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, x: 60 }}
+            initial={
+              reduced
+                ? { opacity: 0 }
+                : layout === "wide"
+                  ? { opacity: 0, x: 60 }
+                  : { opacity: 0, y: 80 }
+            }
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={
+              reduced
+                ? { opacity: 0 }
+                : layout === "wide"
+                  ? { opacity: 0, x: 60 }
+                  : { opacity: 0, y: 80 }
+            }
             transition={{ duration: reduced ? DUR.fast : 0.42, ease: [0.2, 0.8, 0.2, 1] }}
           >
             {aside}

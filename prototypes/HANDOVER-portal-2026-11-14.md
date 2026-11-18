@@ -1338,6 +1338,41 @@ sent a long list (memory: `feedback_quiz_engine_nov17.md`, every point in his wo
   minus (he listed the first three; the minus is kept because SAT answers can be negative).
 - **Powers typed with a caret** in an explanation ("9x^3") are shown raised (`raisePowers`).
 
+**Fourth slice (2026-11-17): his third round.** Done:
+
+- **More menu and pop-ups:** the menu's top is level with the page behind it; menus, the
+  reference and the shortcuts list are a neutral frost a little denser than the page
+  (`--quiz-sheet`), no longer navy; the switches are a quieter green (`--quiz-switch`) and spring.
+- **Reference:** the 60° and 45° labels are inside their triangles and every arc curves about
+  its own corner.
+- **Exit:** a solid red tile with a white cross and "Exit" under it (the pattern of Zoom's leave
+  button, looked up on Mobbin; our own drawing).
+- **One tool at a time:** the highlighter, the pencil, the reference and the calculator never
+  share the screen; picking one up puts the others away (`toggleHighlighter`, `togglePencil`,
+  `openReference` and the calculator's `onOpenChange` in `QuizShell.tsx`). The tool in use is
+  marked by one lens that slides from tool to tool (`BarButton`'s `active`, a shared
+  `layoutId`). The calculator is the one toggle, lit in blue while open.
+- **Phones and tablets:** after grading, the explanation comes up from the bottom as its own
+  page and the question draws up into the top half; each scrolls (no sheet, no tab).
+- **Send to the calculator** is beside every math answer that can be sent, quiet until the
+  pointer is on that answer.
+- **Typed fractions** show stacked (top over bottom) as they are typed. Each key gives a soft
+  click (`src/lib/quiz/key-click.ts`, our own sound, silent when Sounds is off).
+- **Calculator:** on a desktop it docks at the left and pushes the question right (it already
+  did); its default width is now **half** the screen (`DOCK_DEFAULT_SHARE`). On a phone it
+  covers the screen but for a small margin and rises from the bottom. Escape closes it from
+  anywhere.
+- **"Flag for my tutor"** already shows only to students in a cohort or with a 1:1 tutor
+  (`hasTutor` in `src/lib/supabase/queries/quiz/tutor-link.ts`).
+
+**Anti-cheating (he asked which of his tier 1 and tier 2 list can be done unseen; answered in
+chat, nothing built):** already true: answers are graded on the server and never sent before
+answering, instant quizzes hand out one question at a time, and behavior is recorded
+(`quiz_response_signals`). Can be added unseen: request-speed limits, blank printing, a
+per-student invisible mark, shuffled answer order. Not unseen (they change what a student
+sees or does): hiding the page on focus loss or mouse exit, forced fullscreen, moving visual
+noise, blocking developer tools, webcam tracking.
+
 **Still open from his list** (none started): the calculator's own look and behavior (slide in
 from the left taking half the screen on desktop, rise from the bottom with a small margin on a
 phone, Escape to close, memory kept for the question and for bookmarked questions); the

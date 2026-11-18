@@ -89,10 +89,10 @@ describe("DailyChallenge", () => {
         "Not quite"
       )
     );
-    // the explanation is never under the answers: after a miss it rises as a sheet of its own
-    const sheet = await screen.findByRole("dialog", { name: "Explanation" });
-    expect(within(sheet).getByText("Reviewed explanation")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    // the explanation is never under the answers: it has a page of its own beside or below
+    const page = (await screen.findByText("Reviewed explanation")).closest("aside");
+    expect(page).toBeTruthy();
+    expect(within(page as HTMLElement).queryByRole("radio")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     expect(await screen.findByText("Not quite. The answer is A.")).toBeTruthy();
     expect(action).toHaveBeenCalledWith({

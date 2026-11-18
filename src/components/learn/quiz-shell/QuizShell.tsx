@@ -96,9 +96,7 @@ export function QuizShell(props: QuizShellProps) {
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
   const [eliminatorOn, setEliminatorOn] = useState(false);
-  const [dialog, setDialog] = useState<
-    "nav" | "reference" | "shortcuts" | "explain" | "exit" | null
-  >(null);
+  const [dialog, setDialog] = useState<"nav" | "reference" | "shortcuts" | "exit" | null>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   // The record of how each question is answered (use-answer-record.ts), for the host to save.
@@ -167,8 +165,6 @@ export function QuizShell(props: QuizShellProps) {
     if (seenMissed.has(qid)) return;
     seenMissed.add(qid);
     setCalcOpen(false);
-    // where there is no room beside the question, the explanation rises over it
-    if (layout !== "wide") setDialog("explain");
     setHeld(qid);
     const done = window.setTimeout(() => setHeld(null), NEXT_HOLD_MS);
     return () => window.clearTimeout(done);
@@ -212,8 +208,11 @@ export function QuizShell(props: QuizShellProps) {
   }, [hint]);
   // Highlight: a tool like the pencil (founder, 2026-11-08). Words already selected are
   // highlighted straight away; after that, every selection is highlighted until it's turned off.
+  // One tool at a time (founder, 2026-11-17): picking one up puts the others away. The
+  // highlighter, the pencil, the reference and the calculator never share the screen.
   const toggleHighlighter = () => {
     if (s.highlighterOn) return s.setHighlighterOn(false);
+    setCalcOpen(false);
     s.setHighlighterOn(true);
     const sel = window.getSelection();
     const color = s.annotations.nextColor();
@@ -247,17 +246,27 @@ export function QuizShell(props: QuizShellProps) {
     });
   };
   const togglePencil = () => {
+    if (!s.pencilOn) setCalcOpen(false);
     s.setPencilOn(!s.pencilOn);
     s.setTool("pen");
   };
-  /* Escape puts the pencil or the highlighter away (menus and dialogs handle their own Escape
-     first). */
+  const openReference = () => {
+    setCalcOpen(false);
+    s.setPencilOn(false);
+    s.setHighlighterOn(false);
+    setDialog((d) => (d === "reference" ? null : "reference"));
+  };
+  const [moreOpen, setMoreOpen] = useState(false);
+  /* Escape puts the pencil, the highlighter or the calculator away (menus and dialogs handle
+     their own Escape first). */
   useEffect(() => {
-    if (!s.pencilOn && !s.highlighterOn) return;
+    if (!s.pencilOn && !s.highlighterOn && !calcOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || e.defaultPrevented || dialog) return;
       s.setPencilOn(false);
       s.setHighlighterOn(false);
+      // and the calculator, wherever the cursor is (inside it, it closes itself)
+      setCalcOpen(false);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -294,8 +303,7 @@ export function QuizShell(props: QuizShellProps) {
       document
         .querySelector<HTMLButtonElement>("[data-quiz-shell] [data-calculator-trigger]")
         ?.click(),
-    reference: () =>
-      q?.subject === "math" && setDialog((d) => (d === "reference" ? null : "reference")),
+    reference: () => q?.subject === "math" && openReference(),
     eliminator: () => setEliminatorOn((v) => !v),
     submit: () => {
       if (!q || checking) return;
@@ -317,10 +325,10 @@ export function QuizShell(props: QuizShellProps) {
   const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
   const math = q.subject === "math";
   // The explanation is never under the answers (founder, 2026-11-17). Once a question is graded
-  // it has a page of its own: at the right on a wide screen, and on a narrower one a sheet that
-  // rises over the question (by itself after a miss; from the Explanation tab at any time).
+  // it has a page of its own: at the right on a wide screen; on a phone or a tablet it comes up
+  // from the bottom and the question draws up into the top half, each scrolling on its own.
   const explained = instant && !!review;
-  const missAside = explained && layout === "wide";
+  const missAside = explained;
   const dots: DotState[] = Array.from({ length: total }, (_, i) => {
     const item = questions[i];
     const r = item ? props.reviews[item.id] : undefined;
@@ -413,7 +421,7 @@ export function QuizShell(props: QuizShellProps) {
           style={
             {
               "--quiz-text-scale": s.textSize / 100,
-              "--quiz-bar-h": `${dockTop}px`,
+              "--quiz-bar-h": `${dockTop - 8}px`,
             } as React.CSSProperties
           }
         >
@@ -425,7 +433,11 @@ export function QuizShell(props: QuizShellProps) {
               exit={
                 props.onExit && (
                   <BarButton
-                    icon={<ExitIcon />}
+                    icon={
+                      <span className={styles.exitTile}>
+                        <ExitIcon size={16} />
+                      </span>
+                    }
                     word="Exit"
                     className={styles.exit}
                     onClick={exit}
@@ -450,6 +462,7 @@ export function QuizShell(props: QuizShellProps) {
                     icon={<HighlightIcon />}
                     word="Highlight"
                     aria-pressed={s.highlighterOn}
+                    active={s.highlighterOn}
                     // Keeps the selection: pressing a button would otherwise clear it first.
                     onPointerDown={(e) => e.preventDefault()}
                     onClick={toggleHighlighter}
@@ -460,6 +473,7 @@ export function QuizShell(props: QuizShellProps) {
                     }
                     word="Pencil"
                     aria-pressed={s.pencilOn}
+                    active={s.pencilOn}
                     onClick={togglePencil}
                   />
                   {math && (
@@ -467,13 +481,21 @@ export function QuizShell(props: QuizShellProps) {
                       icon={<ReferenceIcon />}
                       word="Reference"
                       aria-haspopup="dialog"
-                      onClick={() => setDialog("reference")}
+                      active={dialog === "reference"}
+                      onClick={openReference}
                     />
                   )}
                   <MoreMenu
                     textSize={s.textSize}
                     onTextSize={s.setTextSize}
                     onShortcuts={() => setDialog("shortcuts")}
+                    onOpenChange={(open) => {
+                      setMoreOpen(open);
+                      if (!open) return;
+                      s.setPencilOn(false);
+                      s.setHighlighterOn(false);
+                    }}
+                    active={moreOpen}
                     showSounds={mode.grading === "instant"}
                     tutor={
                       mode.showTutorFlag && props.onFlagForTutor
@@ -511,6 +533,12 @@ export function QuizShell(props: QuizShellProps) {
                     open={calcOpen}
                     onOpenChange={(open) => {
                       setCalcOpen(open);
+                      if (open) {
+                        // the calculator has the screen: nothing else is in hand
+                        s.setPencilOn(false);
+                        s.setHighlighterOn(false);
+                        setDialog((d) => (d === "reference" ? null : d));
+                      }
                       if (open) track("calculator_opened", q ? { questionId: q.id } : {});
                     }}
                     dockTop={dockTop}
@@ -574,17 +602,6 @@ export function QuizShell(props: QuizShellProps) {
                 </p>
               )}
               {s.pencilOn && layout === "compact" && strip}
-              {explained && layout !== "wide" && !checking && (
-                <button
-                  type="button"
-                  className={styles.explainTab}
-                  aria-haspopup="dialog"
-                  onClick={() => setDialog("explain")}
-                >
-                  Explanation
-                  <ChevronIcon dir="up" size={16} />
-                </button>
-              )}
               {/* a phone's keys for a typed answer are put here, low on the screen */}
               <div id={KEYS_SLOT_ID} className={styles.keysSlot} />
               {instant && review && !checking && (
@@ -635,15 +652,6 @@ export function QuizShell(props: QuizShellProps) {
               onClose={() => setDialog(null)}
             >
               <ReferenceSheet />
-            </NavigatorDialog>
-          )}
-          {dialog === "explain" && review && (
-            <NavigatorDialog
-              compact={layout === "compact"}
-              title="Explanation"
-              onClose={() => setDialog(null)}
-            >
-              <Explanation q={q} review={review} />
             </NavigatorDialog>
           )}
           {dialog === "shortcuts" && (

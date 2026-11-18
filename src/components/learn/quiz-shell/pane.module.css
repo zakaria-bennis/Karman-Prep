@@ -293,6 +293,10 @@
     opacity: 1;
   }
 }
+/* It is there beside every answer that can be sent, quiet until the pointer is on that answer. */
+.choiceRow :global([data-transfer-control][data-placement="cluster"]) {
+  opacity: 0.6;
+}
 .tableChoice {
   min-width: 0;
   padding: 10px 12px;
@@ -374,6 +378,57 @@
 .numericInput:focus-visible {
   outline: none;
 }
+/* A fraction is shown as one, over the typed text: the top over the bottom, a bar between. */
+.numeric[data-fraction] .numericInput {
+  color: transparent;
+  caret-color: transparent;
+}
+.fraction {
+  position: absolute;
+  left: 18px;
+  bottom: 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--quiz-text);
+  font-size: 1.15rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  pointer-events: none;
+}
+.stack {
+  display: inline-grid;
+  justify-items: center;
+  min-width: 1.4em;
+}
+.stack > span:first-child {
+  padding: 0 4px 1px;
+  border-bottom: 2px solid currentColor;
+}
+.stack > span:last-child {
+  padding: 1px 4px 0;
+}
+.caret {
+  width: 2px;
+  height: 1.2em;
+  border-radius: 1px;
+  background: var(--quiz-pick);
+  animation: blink 1.1s steps(1) infinite;
+}
+.numeric:not(:focus-within) .caret {
+  display: none;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}
 
 /* A phone's or a tablet's own keys for a typed answer: three across like a dial, low on the
    screen (they are put just above the bottom bar), each big enough for a thumb and plainly
@@ -426,15 +481,6 @@
   padding-top: 18px;
   border-top: 1px solid var(--quiz-line);
   line-height: 1.6;
-}
-/* In its own sheet the explanation is already named by the sheet. */
-[role="dialog"] .explanation {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
-}
-[role="dialog"] .explanationTitle {
-  display: none;
 }
 .explanationTitle {
   margin: 0 0 10px;

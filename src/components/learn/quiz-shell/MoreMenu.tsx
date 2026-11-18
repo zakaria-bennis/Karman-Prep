@@ -65,6 +65,8 @@ export function MoreMenu({
   onReport,
   tutor,
   onShortcuts,
+  onOpenChange,
+  active,
 }: {
   textSize: number;
   onTextSize(size: number): void;
@@ -74,6 +76,9 @@ export function MoreMenu({
   tutor?: { asked: boolean; onAsk(note: string): void };
   /** Opens the list of keyboard shortcuts, a pop-up of its own. */
   onShortcuts(): void;
+  /** The menu opened or closed: the bar marks More as the tool in use while it is open. */
+  onOpenChange?(open: boolean): void;
+  active?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<"menu" | "report" | "tutor">("menu");
@@ -83,6 +88,11 @@ export function MoreMenu({
   const [failed, setFailed] = useState(false);
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [sending, setSending] = useState(false);
+  const told = useRef(onOpenChange);
+  useEffect(() => {
+    told.current = onOpenChange;
+  }, [onOpenChange]);
+  useEffect(() => told.current?.(open), [open]);
   const animations = useQuizAnimations();
   const sounds = useSyncExternalStore(subscribeQuizSounds, quizSoundsEnabled, () => true);
   const { reduced } = useShellMotion();
@@ -106,6 +116,7 @@ export function MoreMenu({
       <BarButton
         icon={<MoreIcon />}
         word="More"
+        active={active}
         aria-expanded={open}
         onClick={() => {
           setOpen(!open);

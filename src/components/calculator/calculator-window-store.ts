@@ -91,7 +91,8 @@ export const DOCK_MIN_WIDTH = 320;
 const FLOATING_DEFAULT_SIZE = { width: 880, height: 600 } as const;
 const FLOATING_VIEWPORT_INSET = { width: 32, height: 80 } as const;
 /** AR-23: the default dock width is 45% of the viewport (then kept within the shares). */
-const DOCK_DEFAULT_SHARE = 0.45;
+/** Half the screen (founder, 2026-11-17: the calculator fills half, the question the other). */
+const DOCK_DEFAULT_SHARE = 0.5;
 
 /** The floating window's first place and size in `viewport` (AR-22). */
 export function defaultFloatingRect(viewport: ViewportSize): WindowRect {
@@ -146,7 +147,7 @@ export function maxDockWidth(viewportWidth: number): number {
   );
 }
 
-/** The dock's default width, 45% of the viewport less the margins, in whole pixels. */
+/** The dock's default width, half the viewport less the margins, in whole pixels. */
 export function defaultDockWidth(viewportWidth: number): number {
   return clampDockWidth(
     Math.round(DOCK_DEFAULT_SHARE * viewportWidth) - 2 * DOCK_MARGIN,

@@ -105,10 +105,13 @@
   border-radius: 0;
 }
 
+/* On a phone the calculator covers the screen but for a small margin, so it plainly sits over the
+   quiz (founder, 2026-11-17), and it rises from the bottom. */
 .frame[data-mode="fullscreen"] {
-  border: 0;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
+  inset: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  border-radius: 18px;
+  overflow: hidden;
 }
 
 /* AN-10: floating and full-screen windows enter over 200 ms while the scope marks the frame
@@ -125,9 +128,21 @@
   }
 }
 
-.frame[data-entering][data-mode="floating"],
-.frame[data-entering][data-mode="fullscreen"] {
+.frame[data-entering][data-mode="floating"] {
   animation: kcc-window-enter 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes kcc-window-rise {
+  from {
+    opacity: 0.6;
+    transform: translateY(60%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+.frame[data-entering][data-mode="fullscreen"] {
+  animation: kcc-window-rise 360ms cubic-bezier(0.2, 0.9, 0.25, 1);
 }
 
 /* Founder, 2026-11-08 (supersedes AN-10 for the dock): the docked calculator rises from the

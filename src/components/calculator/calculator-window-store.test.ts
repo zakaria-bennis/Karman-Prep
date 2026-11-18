@@ -87,8 +87,8 @@ it("AR-22 floating geometry starts at 16, 64 with its default size and is clampe
   });
 });
 
-it("the dock defaults to 45% and stays between 25% and 75% of the viewport, margins included (founder, 2026-11-08)", () => {
-  expect([800, 1024, 1280, 1920].map(defaultDockWidth)).toEqual([336, 437, 552, 840]);
+it("the dock defaults to half and stays between 25% and 75% of the viewport, margins included (founder, 2026-11-08 and 2026-11-17)", () => {
+  expect([800, 1024, 1280, 1920].map(defaultDockWidth)).toEqual([376, 488, 616, 936]);
   expect([
     clampDockWidth(100, 1280),
     clampDockWidth(2000, 1280),

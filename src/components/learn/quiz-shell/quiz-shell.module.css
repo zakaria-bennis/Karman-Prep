@@ -8,12 +8,11 @@
   /* a choice, or any small piece, on the page: a lighter lens of the same glass */
   --quiz-lens: rgb(255 255 255 / 0.34);
   /* a menu or a note that floats over the page: glass dense enough to read on */
-  --quiz-sheet: rgb(255 251 244 / 0.88);
+  --quiz-sheet: rgb(255 253 249 / 0.84);
+  /* a switch that is on: a quiet green */
+  --quiz-switch: #2f8f6c;
   /* the top bar: the same frost, a little more of it */
   --quiz-bar: rgb(255 251 244 / 0.8);
-  /* the Exit square: red glass, rosy by day */
-  --quiz-exit: rgb(226 84 96 / 0.3);
-  --quiz-exit-edge: rgb(190 50 66 / 0.55);
   --quiz-text: #1d1a22;
   --quiz-text-muted: #4b4552;
   --quiz-line: rgb(29 26 34 / 0.2);
@@ -59,10 +58,9 @@
     --quiz-bg: #12142a;
     --quiz-panel: rgb(14 16 34 / 0.72);
     --quiz-lens: rgb(255 255 255 / 0.07);
-    --quiz-sheet: rgb(22 24 46 / 0.9);
+    --quiz-sheet: rgb(56 54 64 / 0.78);
+    --quiz-switch: #4aa884;
     --quiz-bar: rgb(14 16 34 / 0.84);
-    --quiz-exit: rgb(200 40 62 / 0.4);
-    --quiz-exit-edge: rgb(255 120 135 / 0.5);
     --quiz-text: #f6f1e7;
     --quiz-text-muted: #cfc9d8;
     --quiz-line: rgb(255 255 255 / 0.2);
@@ -90,10 +88,9 @@
   --quiz-bg: #12142a;
   --quiz-panel: rgb(14 16 34 / 0.72);
   --quiz-lens: rgb(255 255 255 / 0.07);
-  --quiz-sheet: rgb(22 24 46 / 0.9);
+  --quiz-sheet: rgb(56 54 64 / 0.78);
+  --quiz-switch: #4aa884;
   --quiz-bar: rgb(14 16 34 / 0.84);
-  --quiz-exit: rgb(200 40 62 / 0.4);
-  --quiz-exit-edge: rgb(255 120 135 / 0.5);
   --quiz-text: #f6f1e7;
   --quiz-text-muted: #cfc9d8;
   --quiz-line: rgb(255 255 255 / 0.2);
@@ -206,38 +203,43 @@
   align-items: center;
   gap: 4px;
 }
-/* Exit: a small square of red glass. */
+/* Exit: a solid red tile with a white cross, the word under it. */
 .barButton.exit {
-  width: 48px;
-  min-width: 48px;
-  height: 48px;
-  padding: 0;
-  gap: 2px;
-  border: 1px solid var(--quiz-exit-edge);
-  border-radius: 14px;
-  background: var(--quiz-exit);
-  -webkit-backdrop-filter: var(--quiz-frost);
-  backdrop-filter: var(--quiz-frost);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28);
+  min-width: 52px;
+  gap: 4px;
+}
+.exitTile {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, #f0525e, #d92f44);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 4px 10px -4px rgb(217 47 68 / 0.9);
+  transition:
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 160ms ease;
 }
 @media (hover: hover) {
   .barButton.exit:not(:disabled):hover {
-    background: color-mix(in srgb, var(--quiz-wrong) 30%, var(--quiz-exit));
-    border-color: var(--quiz-wrong);
+    background: none;
+  }
+  .barButton.exit:not(:disabled):hover .exitTile {
+    filter: brightness(1.1);
+    transform: scale(1.06);
   }
 }
-.navSlot {
-  display: flex;
-  justify-content: center;
-  flex: 1;
-  min-width: 0;
+.barButton.exit:active .exitTile {
+  transform: scale(0.92);
 }
-
 /* Phones: two rows. Exit, the name and the clock on top; every tool, with its word, under. On
    a phone the clock is put away by pressing it, so its Hide button is not shown. */
 .compact .topBar {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
   row-gap: 4px;
   min-height: 0;
   padding-bottom: 4px;
@@ -346,11 +348,21 @@
 .barButton[data-flow="row"] .barWord {
   font-size: 0.9rem;
 }
-.barButton[aria-pressed="true"],
-.barButton[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--quiz-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--quiz-accent) 55%, transparent);
-  color: var(--quiz-text);
+/* The tool in use is marked by one lens of glass that slides from tool to tool, as the portal's
+   menu does (founder, 2026-11-17). */
+.barButton {
+  position: relative;
+}
+.barButton > * {
+  position: relative;
+}
+.barButton > .lens {
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in srgb, var(--quiz-text) 30%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--quiz-text) 13%, transparent);
+  box-shadow: inset 0 1px 0 var(--quiz-edge);
 }
 /* Hide / Show says its state in its word and icon, so it carries no pressed fill. */
 .barQuiet[aria-pressed="true"] {
@@ -402,10 +414,22 @@
   width: 20px;
   height: 20px;
 }
+/* The calculator is the one toggle: on, its button is lit in the pick's blue, and its drawing
+   hops as it is pressed. */
 .tools :global([data-calculator-trigger][aria-pressed="true"]) {
-  background: color-mix(in srgb, var(--quiz-accent) 16%, transparent);
-  border-color: color-mix(in srgb, var(--quiz-accent) 55%, transparent);
-  box-shadow: none;
+  background: color-mix(in srgb, var(--quiz-pick) 24%, transparent);
+  border-color: color-mix(in srgb, var(--quiz-pick) 70%, transparent);
+  box-shadow: 0 0 16px -4px var(--quiz-pick);
+}
+.tools :global([data-calculator-trigger]) :global(svg) {
+  transition: transform 320ms cubic-bezier(0.34, 1.7, 0.5, 1);
+}
+.tools :global([data-calculator-trigger][aria-pressed="true"]) :global(svg) {
+  transform: translateY(-1px) scale(1.12);
+}
+.tools :global([data-calculator-trigger]:active) :global(svg) {
+  transform: translateY(2px) rotate(-10deg) scale(0.9);
+  transition-duration: 90ms;
 }
 .tools :global([data-calculator-trigger]:active) {
   transform: scale(0.93);
@@ -576,7 +600,9 @@
   position: absolute;
   inset: 0;
   display: grid;
-  transition: right 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    right 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    bottom 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 /* After a miss on a wide screen the question's page draws in to the left and the explanation
    comes in at the right as a page of its own: about a third narrower, the same height, with a
@@ -806,7 +832,7 @@
     transform: translateY(-2px) rotate(-7deg) scale(1.1);
   }
   .barButton.exit:not(:disabled):hover svg {
-    transform: rotate(90deg) scale(1.1);
+    transform: rotate(90deg);
   }
 }
 .barButton:not(:disabled):active svg,
@@ -841,26 +867,19 @@
   backdrop-filter: var(--quiz-frost);
 }
 
-/* On a phone or a tablet the explanation has a tab of its own above the bottom bar: pressed, it
-   rises over the question as a sheet. */
-.explainTab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 46px;
-  border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
-  background: var(--quiz-bar);
-  -webkit-backdrop-filter: var(--quiz-frost);
-  backdrop-filter: var(--quiz-frost);
-  color: var(--quiz-text);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+/* On a phone or a tablet there is no room beside the question: the explanation comes up from the
+   bottom as a page of its own and the question draws up into the top half. Each scrolls. */
+.compact .area[data-aside] .frame,
+.medium .area[data-aside] .frame {
+  right: 0;
+  bottom: 50%;
 }
-.explainTab:active {
-  background: color-mix(in srgb, var(--quiz-text) 12%, var(--quiz-bar));
+.compact .aside,
+.medium .aside {
+  top: calc(50% + 4px);
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: auto;
+  padding: 20px 18px 28px;
 }

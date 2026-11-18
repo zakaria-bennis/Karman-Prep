@@ -12,7 +12,7 @@ const S = {
 };
 const L = { fontSize: 11, fill: "currentColor", fontStyle: "italic" as const };
 /** An angle's size, small enough to sit beside its arc without touching a side. */
-const A = { fontSize: 6.5, fill: "currentColor" };
+const A = { fontSize: 6, fill: "currentColor" };
 
 const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
   {
@@ -85,27 +85,27 @@ const FIGURES: { name: string; formula: string; svg: ReactNode }[] = [
     formula: "$x,\\ x\\sqrt{3},\\ 2x$ and $s,\\ s,\\ s\\sqrt{2}$",
     svg: (
       <>
-        {/* 30-60-90: an arc at each acute angle, a square at the right angle, and each label
-            beside its arc, clear of the sides */}
+        {/* 30-60-90: an arc inside each acute angle, drawn about its corner; a square at the
+            right angle; each size inside the triangle beside its arc */}
         <path d="M4 66 L46 66 L46 42 Z" {...S} />
         <path d="M40 66 V60 H46" {...S} strokeWidth={1.1} />
-        <path d="M16 66 A12 12 0 0 0 14.400 60.100" {...S} strokeWidth={1.1} />
-        <path d="M46 50 A8 8 0 0 0 39 46" {...S} strokeWidth={1.1} />
-        <text x="18" y="63.500" {...A}>
+        <path d="M17 66 A13 13 0 0 0 15.300 59.550" {...S} strokeWidth={1.1} />
+        <path d="M46 49 A7 7 0 0 1 39.900 45.500" {...S} strokeWidth={1.1} />
+        <text x="18.600" y="64.300" {...A}>
           30°
         </text>
-        <text x="34" y="40" {...A}>
+        <text x="36" y="56.500" {...A}>
           60°
         </text>
         {/* 45-45-90 */}
         <path d="M56 66 L92 66 L92 30 Z" {...S} />
         <path d="M86 66 V60 H92" {...S} strokeWidth={1.1} />
         <path d="M67 66 A11 11 0 0 0 63.800 58.200" {...S} strokeWidth={1.1} />
-        <path d="M92 41 A11 11 0 0 0 84.200 37.800" {...S} strokeWidth={1.1} />
-        <text x="69" y="63.500" {...A}>
+        <path d="M92 39 A9 9 0 0 1 85.600 36.400" {...S} strokeWidth={1.1} />
+        <text x="68.500" y="64.300" {...A}>
           45°
         </text>
-        <text x="78" y="33" {...A}>
+        <text x="81.500" y="47.500" {...A}>
           45°
         </text>
       </>

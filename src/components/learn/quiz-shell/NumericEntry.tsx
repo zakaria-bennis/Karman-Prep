@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { keyClick } from "@/lib/quiz/key-click";
 import styles from "./pane.module.css";
 
 /** Where a phone's keys are put: low on the screen, just above the bottom bar (QuizShell). */
@@ -52,10 +53,13 @@ export function NumericEntry({
   }, []);
   const type = (key: string) => {
     if (locked) return;
-    // a short buzz where the device can give one, so a press is felt
+    // a press is felt where the device can buzz (Android) and heard everywhere (a soft click)
     navigator.vibrate?.(8);
+    keyClick();
     onChange(key === "back" ? value.slice(0, -1) : cleanAnswer(value + key));
   };
+  // "7/2" as it is typed: an optional minus, the top, the bar, the bottom
+  const fraction = /^(-?)(\d*)\/(\d*)$/.exec(value);
   const key = (label: string, name: string, press: string, wide = false) => (
     <button
       key={press}
@@ -82,6 +86,7 @@ export function NumericEntry({
       <div
         className={`${styles.numeric} ${verdict === "correct" ? styles.correct : verdict === "wrong" ? styles.wrong : ""}`}
         data-filled={value ? "" : undefined}
+        data-fraction={fraction ? "" : undefined}
       >
         <label htmlFor="quiz-numeric-answer" className={styles.numericLabel}>
           Your answer
@@ -100,6 +105,17 @@ export function NumericEntry({
           readOnly={locked}
           onChange={(e) => onChange(cleanAnswer(e.target.value))}
         />
+        {fraction && (
+          // a fraction is shown as one: the top over the bottom, with the bar between
+          <span className={styles.fraction} aria-hidden="true">
+            {fraction[1] && <span>−</span>}
+            <span className={styles.stack}>
+              <span>{fraction[2] || "\u00a0"}</span>
+              <span>{fraction[3] || "\u00a0"}</span>
+            </span>
+            {!locked && <i className={styles.caret} />}
+          </span>
+        )}
       </div>
       {keys && (slot ? createPortal(keys, slot) : keys)}
     </>

@@ -1,4 +1,5 @@
 "use client";
+import { motion } from "framer-motion";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./quiz-shell.module.css";
 
@@ -6,8 +7,14 @@ import styles from "./quiz-shell.module.css";
  * word is the button's name, so screen readers and tests read the same thing people see. */
 export const BarButton = forwardRef<
   HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { icon: ReactNode; word: string; flow?: "row" }
->(function BarButton({ icon, word, flow, className, ...rest }, ref) {
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    icon: ReactNode;
+    word: string;
+    flow?: "row";
+    /** The tool in use: the bar's one lens slides to it. */
+    active?: boolean;
+  }
+>(function BarButton({ icon, word, flow, active, className, ...rest }, ref) {
   return (
     <button
       ref={ref}
@@ -16,6 +23,14 @@ export const BarButton = forwardRef<
       className={`${styles.barButton} ${className ?? ""}`}
       {...rest}
     >
+      {active && (
+        <motion.span
+          layoutId="quiz-tool-lens"
+          className={styles.lens}
+          aria-hidden="true"
+          transition={{ type: "spring", stiffness: 520, damping: 34 }}
+        />
+      )}
       {icon}
       <span className={styles.barWord}>{word}</span>
     </button>
