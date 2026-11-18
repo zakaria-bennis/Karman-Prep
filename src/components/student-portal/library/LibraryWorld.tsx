@@ -93,6 +93,7 @@ export default function LibraryWorld({
   active,
   flying,
   reduce,
+  land = false,
   onActive,
   onChoose,
 }: {
@@ -106,6 +107,8 @@ export default function LibraryWorld({
   /** The name travelling to the box's toggle, hidden here meanwhile. */
   flying: Slug | null;
   reduce: boolean;
+  /** Lands on the ground without the fall (an opening animation has already arrived there). */
+  land?: boolean;
   onActive: (slug: Slug | null) => void;
   /** Chooses a course. `from` is the ground point the box opens out of; `name` is the name's box
    *  on screen and `line` its line height, for the name's flight into the toggle. */
@@ -427,7 +430,7 @@ export default function LibraryWorld({
       data-pick={pick ?? undefined}
       data-active={(!pick && active) || undefined}
       data-still={still || undefined}
-      data-instant={instant || undefined}
+      data-instant={instant || land || undefined}
       data-layout={layout}
     >
       <div className={`${styles.layer} ${styles.skyLayer}`}>

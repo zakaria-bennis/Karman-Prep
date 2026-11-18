@@ -1,0 +1,241 @@
+/* Intro 10, paper boats. The stream is painted on a canvas; the boats are drawn in SVG with
+   their names written on them. Paper and ink follow the hour. */
+
+.root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #11161f;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  --paper: #f7f3ea;
+  --paper-light: #fffdf8;
+  --paper-shade: #ddd5c6;
+  --fold: rgb(120 108 92 / 0.45);
+  --ink: #2a2732;
+}
+.root[data-shown] {
+  opacity: 1;
+}
+.root[data-time="dawn"] {
+  --paper: #f7e9e2;
+  --paper-light: #fff4ee;
+  --paper-shade: #dcc6c4;
+}
+.root[data-time="sunset"] {
+  --paper: #f8e3cc;
+  --paper-light: #fff0dc;
+  --paper-shade: #d9b79c;
+}
+.root[data-time="night"] {
+  --paper: #dfe3ee;
+  --paper-light: #eef1f8;
+  --paper-shade: #a9b1c7;
+  --fold: rgb(60 66 92 / 0.5);
+  --ink: #1e2233;
+}
+
+.camera {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ground {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- The boats ---------- */
+.boats {
+  position: absolute;
+  inset: 0;
+}
+.boat {
+  position: absolute;
+  width: calc(clamp(170px, 19vw, 290px) * var(--size, 1));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -100%);
+  perspective: 700px;
+  -webkit-tap-highlight-color: transparent;
+}
+.root[data-layout="tall"] .boat {
+  width: calc(clamp(170px, 50vw, 240px) * var(--size, 1));
+}
+.boat:focus-visible {
+  outline: none;
+}
+.sail {
+  position: relative;
+  display: block;
+  transform-origin: 50% 100%;
+}
+/* At rest each boat sits turned along the stream; pointing turns it toward you. */
+.turn {
+  display: block;
+  transform: rotateY(var(--yaw)) rotate(var(--roll));
+  transform-origin: 50% 90%;
+  transition: transform 0.6s cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+.boat[data-subject="math"] {
+  --yaw: 34deg;
+  --roll: -4deg;
+}
+.boat[data-subject="rw"] {
+  --yaw: -34deg;
+  --roll: 4deg;
+}
+.boat[data-on] .turn {
+  transform: rotateY(0deg) rotate(0deg) translateY(-4px) scale(1.06);
+}
+.bob {
+  display: block;
+}
+.boat[data-on] .bob {
+  animation: bob 1.7s ease-in-out infinite;
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-5px) rotate(-1.6deg);
+  }
+  65% {
+    transform: translateY(2px) rotate(1.2deg);
+  }
+}
+
+/* Rings spread on the water around a boat being pointed at. */
+.ripples {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 120%;
+  aspect-ratio: 5 / 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.ripples i {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgb(255 255 255 / 0.55);
+  border-radius: 50%;
+  opacity: 0;
+}
+.boat[data-on] .ripples i {
+  animation: ring 1.9s ease-out infinite;
+}
+.boat[data-on] .ripples i + i {
+  animation-delay: 0.95s;
+}
+@keyframes ring {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: no turning, bobbing or rings; pointing only brightens the boat. */
+.root[data-reduced] .turn,
+.root[data-reduced] .boat[data-on] .turn {
+  transform: none;
+  transition: filter 0.3s ease;
+}
+.root[data-reduced] .boat[data-on] .bob,
+.root[data-reduced] .boat[data-on] .ripples i {
+  animation: none;
+}
+.root[data-reduced] .boat[data-on] .turn {
+  filter: brightness(1.08);
+}
+
+/* ---------- The paper ---------- */
+.paper {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  color: var(--ink);
+}
+.drawing {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.shadow {
+  fill: rgb(10 20 30 / 0.28);
+}
+.face {
+  fill: var(--paper);
+}
+.light {
+  fill: var(--paper-light);
+}
+.shade {
+  fill: var(--paper-shade);
+}
+.fold {
+  fill: none;
+  stroke: var(--fold);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.name {
+  position: absolute;
+  left: 50%;
+  top: 33%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 64%;
+  transform: translateX(-50%);
+  font: 400 13cqw / 1 var(--font-serif);
+  letter-spacing: -0.02em;
+  text-align: center;
+  white-space: nowrap;
+}
+.name[data-lines="2"] {
+  top: 38%;
+  font-size: 7.4cqw;
+  line-height: 1.12;
+}
+.pct {
+  position: absolute;
+  left: 50%;
+  top: 64.5%;
+  transform: translateX(-50%);
+  font: 650 max(11px, 5.4cqw) / 1 var(--font-sans);
+  white-space: nowrap;
+}
+/* Keyboard focus: an ink rule under the percent. */
+.pct::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 40px;
+  height: 2px;
+  margin-left: -20px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0;
+}
+.boat:focus-visible .pct::after {
+  opacity: 1;
+}

@@ -13,6 +13,7 @@ import { SKILL_LEVELS } from "@/components/portal";
 import StudentPortal from "@/components/student-portal/StudentPortal";
 import ChallengeMoment from "@/components/student-portal/library/ChallengeMoment";
 import CourseView from "@/components/student-portal/library/CourseView";
+import { INTROS } from "@/components/student-portal/library/intros/registry";
 import LibraryStage from "@/components/student-portal/library/LibraryStage";
 import styles from "@/components/student-portal/library/library.module.css";
 import { buildCourse } from "@/lib/student/course";
@@ -38,6 +39,7 @@ const FORMS = [1, 2, 3, 4];
 
 const query = z.object({
   subject: z.enum(["math", "reading-writing"]).optional(),
+  intro: z.coerce.number().int().min(1).max(10).optional(),
 });
 
 export default async function LibraryPage({
@@ -59,6 +61,8 @@ export default async function LibraryPage({
   const reading = buildCourse("reading", levels, subSkillQuestionCount);
   /* A link may open the course; otherwise the student chooses from the paintings. */
   const picked = q.success ? (q.data.subject ?? null) : null;
+  /* `?intro=N` plays one of the opening animations, for comparing them. */
+  const intro = q.success ? (INTROS.find((d) => d.id === q.data.intro) ?? null) : null;
   const left = questionsLeft(ctx.plan, {
     questionsAnswered: answers.length,
     fullLengthTestsCompleted: 0,
@@ -169,6 +173,7 @@ export default async function LibraryPage({
         side={side}
         initial={picked}
         waitForChallenge={challengeAnswered < 2}
+        intro={intro}
       />
       <ChallengeMoment href={CHALLENGE.path} day={challengeDay} answered={challengeAnswered} />
     </StudentPortal>
