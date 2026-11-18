@@ -1,0 +1,381 @@
+/* Intro 4, the pop-up book. Every movement is a transform or an opacity change. */
+
+.root {
+  --paper: #f3ead6;
+  --paper-edge: #d9ccae;
+  --line: rgb(70 56 40 / 0.14);
+  --leather: hsl(var(--hue, 208) 38% 24%);
+  --gold: #d2ae62;
+  --rw: clamp(16px, 2.1vw, 30px);
+  --math-ribbon: #2f5f93;
+  --rw-ribbon: #a33b55;
+}
+.root[data-time="dawn"] {
+  --paper: #f1dfd2;
+  --paper-edge: #d4bcae;
+}
+.root[data-time="sunset"] {
+  --paper: #efd5b6;
+  --paper-edge: #cfae8c;
+}
+.root[data-time="night"] {
+  --paper: #d6c7a6;
+  --paper-edge: #a8987a;
+  --line: rgb(50 40 28 / 0.18);
+  --leather: hsl(var(--hue, 208) 34% 18%);
+  --gold: #b8954f;
+}
+
+.world {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  transition: transform 1.35s cubic-bezier(0.62, 0, 0.25, 1);
+}
+.root[data-phase="dive"] .world {
+  will-change: transform;
+}
+
+/* ---------- The book ---------- */
+.scene {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--sw);
+  height: var(--sh);
+  perspective: 1500px;
+  perspective-origin: 50% -60%;
+  pointer-events: none;
+}
+.book {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transform: rotateX(26deg);
+  transition: transform 0.95s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.root[data-phase="closed"] .book {
+  transform: translateX(calc(var(--sw) * -0.25)) rotateX(26deg);
+}
+.root[data-phase="flip"] .book,
+.root[data-phase="pop"] .book,
+.root[data-phase="dive"] .book,
+.root[data-phase="end"] .book {
+  transform: rotateX(0deg);
+}
+
+/* The thickness of the pages, with the back cover showing beneath. */
+.block {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  bottom: -9px;
+  border-bottom: 4px solid var(--leather);
+  border-radius: 3px;
+  background-color: var(--paper-edge);
+  background-image: repeating-linear-gradient(180deg, transparent 0 2px, rgb(0 0 0 / 0.06) 2px 3px);
+  transform: translateZ(-2px);
+  transition: left 0.95s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.root[data-phase="closed"] .block {
+  left: 50%;
+}
+
+.page,
+.leaf,
+.leafBack,
+.coverBack {
+  background-color: var(--paper);
+}
+/* Lines of text, too small to read. */
+.page::before,
+.leaf::before,
+.leafBack::before,
+.coverBack::before {
+  content: "";
+  position: absolute;
+  inset: 12% 13% 14%;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 calc(var(--sh) * 0.04),
+    var(--line) calc(var(--sh) * 0.04) calc(var(--sh) * 0.04 + 2px)
+  );
+}
+.page {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+}
+.right {
+  left: 50%;
+  border-radius: 0 4px 4px 0;
+  background-image: linear-gradient(90deg, rgb(60 40 20 / 0.2), transparent 14%);
+}
+
+.leaf {
+  position: absolute;
+  top: calc(var(--i) * 1px);
+  bottom: calc(var(--i) * 1px);
+  width: calc(50% - var(--i) * 1.5px);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+.leafR {
+  left: 50%;
+  border-radius: 0 4px 4px 0;
+  transform-origin: 0 50%;
+  transform: translateZ(calc(1px + var(--i) * 0.8px));
+  background-image: linear-gradient(90deg, rgb(60 40 20 / 0.16), transparent 12%);
+  transition: transform 0.62s cubic-bezier(0.45, 0.05, 0.3, 1);
+}
+.leafBack {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px 0 0 4px;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  background-image: linear-gradient(270deg, rgb(60 40 20 / 0.16), transparent 12%);
+}
+.leafL {
+  right: 50%;
+  border-radius: 4px 0 0 4px;
+  transform-origin: 100% 50%;
+  transform: translateZ(calc(1px + var(--i) * 0.8px));
+  background-image: linear-gradient(270deg, rgb(60 40 20 / 0.16), transparent 12%);
+  opacity: 0;
+  transition: opacity 0.2s linear 0.75s;
+}
+.root:not([data-phase="closed"]) .leafL {
+  opacity: 1;
+}
+
+/* Choosing: the right-hand pages flip over to the chosen section. */
+.root[data-phase="flip"] .leafR,
+.root[data-phase="pop"] .leafR,
+.root[data-phase="dive"] .leafR,
+.root[data-phase="end"] .leafR {
+  transform: translateZ(calc(5px + var(--i) * 0.8px)) rotateY(-180deg);
+  transition-delay: calc(0.12s + (3 - var(--i)) * 0.09s);
+}
+
+/* Pointing at a ribbon flutters the pages on its side. */
+.root[data-phase="open"][data-active="rw"] .leafR {
+  animation: flutterR 1.25s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.16s);
+}
+.root[data-phase="open"][data-active="math"] .leafL {
+  animation: flutterL 1.25s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.16s);
+}
+@keyframes flutterR {
+  0%,
+  100% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(0deg);
+  }
+  45% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(calc(-10deg - var(--i) * 5deg));
+  }
+  70% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(calc(-4deg - var(--i) * 2deg));
+  }
+}
+@keyframes flutterL {
+  0%,
+  100% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(0deg);
+  }
+  45% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(calc(10deg + var(--i) * 5deg));
+  }
+  70% {
+    transform: translateZ(calc(1px + var(--i) * 0.8px)) rotateY(calc(4deg + var(--i) * 2deg));
+  }
+}
+
+/* The cover: leather with a gold-tooled frame; its inside becomes the left-hand page. */
+.cover {
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: calc(50% + 4px);
+  height: calc(100% + 6px);
+  transform-style: preserve-3d;
+  transform-origin: 0 50%;
+  transform: translateZ(7px);
+  transition: transform 1.15s cubic-bezier(0.55, 0.05, 0.25, 1);
+}
+.root:not([data-phase="closed"]) .cover {
+  transform: translateZ(0) rotateY(-180deg);
+}
+.coverFront,
+.coverBack {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+.coverFront {
+  display: grid;
+  place-items: center;
+  border-radius: 3px 7px 7px 3px;
+  background-color: var(--leather);
+  background-image:
+    linear-gradient(90deg, rgb(0 0 0 / 0.28), transparent 10%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+}
+.coverFront::before {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border: 2px solid var(--gold);
+  border-radius: 3px;
+  opacity: 0.8;
+}
+.coverTitle {
+  color: var(--gold);
+  font: 400 clamp(22px, 2.6vw, 44px) / 1 var(--font-serif);
+  letter-spacing: -0.01em;
+}
+.coverBack {
+  transform: rotateY(180deg);
+  inset: 3px 4px 3px 0;
+  border-radius: 4px 0 0 4px;
+  background-image: linear-gradient(270deg, rgb(60 40 20 / 0.2), transparent 14%);
+}
+
+/* The ribbons lying across the pages, from the top of the spine. */
+.ribbonPage {
+  position: absolute;
+  top: -3%;
+  height: 103%;
+  width: var(--rw);
+  margin-left: calc(var(--rw) / -2);
+  transform: translateZ(9px);
+  opacity: 0;
+  transition: opacity 0.3s ease 0.95s;
+}
+.ribbonPage[data-s="math"] {
+  left: 28%;
+  background: var(--math-ribbon);
+}
+.ribbonPage[data-s="rw"] {
+  left: 72%;
+  background: var(--rw-ribbon);
+}
+.root[data-phase="open"] .ribbonPage {
+  opacity: 1;
+}
+.root[data-phase="flip"] .ribbonPage {
+  transition-delay: 0s;
+}
+
+/* ---------- The two choices: a hanging ribbon and its name ---------- */
+.choice {
+  position: absolute;
+  height: calc(var(--sh) + var(--hang) + 140px);
+}
+.ribbon {
+  position: absolute;
+  top: var(--sh);
+  width: var(--rw);
+  height: var(--hang);
+  margin-left: calc(var(--rw) / -2);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%);
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  transition:
+    transform 0.5s cubic-bezier(0.3, 1.3, 0.5, 1),
+    filter 0.3s ease;
+}
+.choice[data-s="math"] .ribbon {
+  background: linear-gradient(90deg, #244c78, var(--math-ribbon) 40%, #3a6ea6 60%, #244c78);
+}
+.choice[data-s="rw"] .ribbon {
+  background: linear-gradient(90deg, #82283f, var(--rw-ribbon) 40%, #bb4b66 60%, #82283f);
+}
+.root[data-phase="open"] .ribbon {
+  transform: scaleY(1);
+  transition-delay: 0.95s, 0s;
+}
+/* Pointing lifts the ribbon, which then sways. */
+.root[data-phase="open"] .choice[data-on] .ribbon {
+  transform: translateY(-12px) scaleY(1.12);
+  transition-delay: 0s;
+  animation: sway 1.6s ease-in-out infinite 0.4s;
+}
+@keyframes sway {
+  0%,
+  100% {
+    transform: translateY(-12px) scaleY(1.12) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) scaleY(1.12) rotate(-5deg);
+  }
+}
+.label {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--sh) + var(--hang) + 16px);
+  width: calc(100% - 8px);
+  transform: translateX(-50%);
+  opacity: 0;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.root[data-phase="open"] .label {
+  opacity: 1;
+  transition-delay: 1.2s, 0s;
+}
+.root[data-phase="open"] .choice[data-on] .label {
+  transform: translateX(-50%) translateY(-5px);
+  transition-delay: 0s;
+}
+/* After a choice, the ribbons slide back into the book and the names fade. */
+.root[data-phase="flip"] .ribbon,
+.root[data-phase="pop"] .ribbon,
+.root[data-phase="dive"] .ribbon {
+  transform: scaleY(0);
+  transition-duration: 0.35s;
+}
+
+/* ---------- The pop-up ---------- */
+.pop {
+  position: absolute;
+  perspective: 1100px;
+  perspective-origin: 50% 100%;
+  pointer-events: none;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 100%;
+  transform: rotateX(84deg);
+  opacity: 0;
+}
+.root[data-phase="pop"] .layer,
+.root[data-phase="dive"] .layer,
+.root[data-phase="end"] .layer {
+  transform: none;
+  opacity: 1;
+  transition:
+    transform 0.95s cubic-bezier(0.3, 1.32, 0.55, 1) calc(var(--i) * 0.17s),
+    opacity 0.25s linear calc(var(--i) * 0.17s);
+}
+
+/* ---------- Reduced motion: no opening, no flight, a cross-fade ---------- */
+.root[data-still] *,
+.root[data-still] .world {
+  transition: none !important;
+  animation: none !important;
+}
+.root[data-still] canvas[data-on] {
+  transition: opacity 0.5s ease !important;
+}
+.root[data-still] .choice[data-on] .ribbon {
+  transform: scaleY(1);
+  filter: brightness(1.25);
+}

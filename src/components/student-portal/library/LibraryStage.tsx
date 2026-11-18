@@ -29,6 +29,10 @@ import {
 import { Num, Panel } from "@/components/portal/primitives";
 import LibraryWorld, { DESCENT_MS, SHORT, type Slug, type StageCourse } from "./LibraryWorld";
 import { COURSE_PICK_KEY, afterPaintingOpening, challengeMoment, readStore } from "./moment";
+import { INTROS, type IntroDef, type Subject } from "./intros/registry";
+import { choosePainting } from "@/lib/painting/schedule";
+import { prefersStill } from "@/lib/painting/motion";
+import type { TimeOfDay } from "@/lib/painting/light";
 import styles from "./stage.module.css";
 
 export type { StageCourse };
@@ -97,6 +101,11 @@ export default function LibraryStage({
   );
   const [afterOpening, setAfterOpening] = useState(false);
   const ready = (!waitForChallenge || settled) && afterOpening;
+  /* Testing wiring for the opening animations (`?intro=N`, intros/registry.ts). The intro plays
+     over the world; its choice lands straight on the ground and the box opens at once. */
+  const [intro, setIntro] = useState<{ def: IntroDef; time: TimeOfDay } | null>(null);
+  const [introLeaving, setIntroLeaving] = useState(false);
+  const fromIntro = useRef(false);
 
   useEffect(() => {
     let live = true;
@@ -108,6 +117,13 @@ export default function LibraryStage({
 
   useEffect(() => {
     rootRef.current?.removeAttribute("data-boot");
+    const n = Number(new URLSearchParams(location.search).get("intro"));
+    const def = INTROS.find((i) => i.id === n);
+    if (def && !initial) {
+      const dev = process.env.NODE_ENV !== "production";
+      setIntro({ def, time: choosePainting(new Date(), location.search, dev).time });
+      return;
+    }
     if (initial) {
       keep(initial);
       return;
@@ -138,7 +154,7 @@ export default function LibraryStage({
       box.style.transformOrigin = `${ox}px ${oy}px`;
       box.style.opacity = "0";
       const far = Math.hypot(Math.max(ox, r.width - ox), Math.max(oy, r.height - oy)) + 40;
-      const land = DESCENT_MS / 1000 - 0.15;
+      const land = fromIntro.current ? 0.05 : DESCENT_MS / 1000 - 0.15;
       box.style.pointerEvents = "none";
       setFalling(true);
       const run = animate(
@@ -236,6 +252,19 @@ export default function LibraryStage({
 
   const pct = (c: StageCourse) => Math.round(c.progress * 100);
 
+  const introChose = (s: Subject) => {
+    fromIntro.current = true;
+    setIntroLeaving(true);
+    choose(s === "math" ? "math" : "reading-writing", {
+      x: window.innerWidth / 2,
+      y: window.innerHeight * 0.55,
+      name: null,
+      line: 60,
+    });
+    window.setTimeout(() => setIntroLeaving(false), 650);
+  };
+  const percentOf = (slug: Slug) => pct(courses.find((c) => c.slug === slug) ?? courses[0]);
+
   return (
     <MotionConfig reducedMotion="user">
       <LayoutGroup id="library-course">
@@ -255,7 +284,27 @@ export default function LibraryStage({
             reduce={reduce}
             onActive={setActive}
             onChoose={choose}
+            jump={intro !== null}
           />
+          {intro && ready && (!pick || introLeaving) && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 2,
+                opacity: introLeaving ? 0 : 1,
+                pointerEvents: introLeaving ? "none" : undefined,
+                transition: "opacity 0.55s ease",
+              }}
+            >
+              <intro.def.Component
+                percents={{ math: percentOf("math"), rw: percentOf("reading-writing") }}
+                time={intro.time}
+                reducedMotion={reduce || prefersStill()}
+                onChoose={introChose}
+              />
+            </div>
+          )}
           <div ref={boxRef} className={styles.box} hidden={!pick}>
             <Panel
               side={side}
