@@ -33,9 +33,12 @@ CREATE TABLE IF NOT EXISTS public.quiz_response_signals (
   visits smallint NOT NULL DEFAULT 1 CHECK (visits >= 0),
   pastes smallint NOT NULL DEFAULT 0 CHECK (pastes >= 0),
   copies smallint NOT NULL DEFAULT 0 CHECK (copies >= 0),
+  -- times the keys that begin a screenshot went down, and the keys that open developer tools
+  screenshot_keys smallint NOT NULL DEFAULT 0 CHECK (screenshot_keys >= 0),
+  tool_keys smallint NOT NULL DEFAULT 0 CHECK (tool_keys >= 0),
   marked boolean NOT NULL DEFAULT false,
   input text CHECK (input IN ('touch', 'mouse', 'keys')),
-  -- the screen it was answered on: {width, height, touch, utcOffset}
+  -- the screen it was answered on: {width, height, touch, extended, utcOffset}
   device jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(device) = 'object'),
   updated_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (run_id, question_id)

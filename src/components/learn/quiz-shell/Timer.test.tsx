@@ -19,7 +19,7 @@ describe("Timer", () => {
   it("a hidden countdown shows itself again at 5 minutes and announces it once", () => {
     const start = Date.now();
     render(<Timer clock={{ kind: "down", baseSeconds: 310 }} startedAtMs={start} />);
-    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide the clock" }));
     expect(screen.queryByRole("timer")).toBeNull();
     tick(11);
     expect(screen.getByRole("timer")).toBeTruthy();

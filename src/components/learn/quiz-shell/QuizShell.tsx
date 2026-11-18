@@ -1,19 +1,12 @@
 "use client";
 // The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { sectionStart } from "@/lib/quiz/workspace";
 import type { QuizMode } from "@/lib/quiz/mode";
 import type { TimingAccommodation } from "@/lib/quiz/timer";
 import type { ConfidenceBand, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
-import {
-  initialRewards,
-  rewardFor,
-  rewardReducer,
-  showsDots,
-  type DotState,
-} from "@/lib/quiz/rewards";
-import { playRewardSound } from "@/lib/quiz/reward-sound";
+import { showsDots, type DotState } from "@/lib/quiz/rewards";
 import { track } from "@/lib/analytics/client";
 import styles from "./quiz-shell.module.css";
 import nav from "./nav.module.css";
@@ -42,7 +35,9 @@ import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
 import { KEYS_SLOT_ID } from "./NumericEntry";
 import { useAnswerRecord } from "./use-answer-record";
+import { traceMark, useGuard, type GuardEvent } from "./use-guard";
 import type { NoteSignals } from "@/lib/quiz/signals";
+import { useDock, useRewards, useEscape, useMissHold, useNotice } from "./use-shell-effects";
 
 export type QuizShellProps = {
   mode: QuizMode;
@@ -72,6 +67,7 @@ export type QuizShellProps = {
   /** Each may return a promise; a rejected one puts the marker back and tells the student. */
   onToggleBookmark?(questionId: string, on: boolean): void | Promise<unknown>;
   onFlagForTutor?(questionId: string, note: string): void | Promise<unknown>;
+  onRemoveTutorFlag?(questionId: string): void | Promise<unknown>;
   onReportProblem?(questionId: string, note: string): void | Promise<unknown>;
   /** Extra content under the question (instant-mode rewards plug in here). */
   feedback?: ReactNode;
@@ -83,9 +79,6 @@ export type QuizShellProps = {
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
 };
-
-/** How long Next waits after a miss, so the explanation is looked at. */
-const NEXT_HOLD_MS = 3000;
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
@@ -105,7 +98,7 @@ export function QuizShell(props: QuizShellProps) {
     () => (q?.answer_format === "multiple_choice" ? q.answer_choices.map((c) => c.letter) : []),
     [q]
   );
-  useAnswerRecord({
+  const noteRecord = useAnswerRecord({
     attemptKey,
     mode: mode.grading,
     enabled: !props.loading && mode.grading !== "locked",
@@ -117,6 +110,15 @@ export function QuizShell(props: QuizShellProps) {
     answered: mode.grading === "instant" && !!review,
     onSignals: props.onSignals,
   });
+  // Keeping the question from being lifted off the screen (use-guard.ts). A preview or a
+  // finished question that is only being looked at is not guarded.
+  const guarded = !props.loading && mode.grading !== "locked";
+  const onGuard = useCallback((event: GuardEvent) => noteRecord({ type: event }), [noteRecord]);
+  const masked = useGuard({ enabled: guarded, onEvent: onGuard });
+  const mark = useMemo(
+    () => (guarded ? traceMark(attemptKey, new Date()) : undefined),
+    [guarded, attemptKey]
+  );
   // Analytics: which questions were seen (skips and time to first answer, with the answer tables).
   useEffect(() => {
     if (q && !props.loading) track("question_viewed", { questionId: q.id, mode: mode.grading });
@@ -138,8 +140,7 @@ export function QuizShell(props: QuizShellProps) {
       if (ws.answer) props.onSelectAnswer?.(id, ws.answer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.loadedFor, attemptKey]);
-  const header = useRef<HTMLDivElement>(null);
-  const [dockTop, setDockTop] = useState(64);
+  const { header, barGroup, dockTop, dockBottom } = useDock(layout, s.pencilOn);
   const lastIndex = useRef(index);
   const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
   useEffect(() => {
@@ -153,59 +154,16 @@ export function QuizShell(props: QuizShellProps) {
   // calculator, if it is open, steps aside so the explanation has the room.
   const qid = q?.id;
   const missed = instant && !!review && !review.isCorrect;
-  const [seenMissed] = useState(() => new Set<string>());
-  const [held, setHeld] = useState<string | null>(null);
-  useEffect(() => {
-    if (!qid) return;
-    if (!missed) {
-      // a question first shown already missed never holds Next
-      if (review) seenMissed.add(qid);
-      return;
-    }
-    if (seenMissed.has(qid)) return;
-    seenMissed.add(qid);
-    setCalcOpen(false);
-    setHeld(qid);
-    const done = window.setTimeout(() => setHeld(null), NEXT_HOLD_MS);
-    return () => window.clearTimeout(done);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qid, missed]);
-  const holding = !!qid && held === qid;
-  const rewards = questions.slice(0, index + 1).reduce((state, item, i) => {
-    const r = props.reviews[item.id];
-    return r && instant
-      ? rewardReducer(state, {
-          kind: "graded",
-          key: item.id,
-          index: i,
-          correct: r.isCorrect,
-          points: r.points ?? 0,
-        })
-      : state;
-  }, initialRewards(total));
-  const played = useRef(new Set<string>());
-  useEffect(() => {
-    if (!instant || !q || !review || played.current.has(q.id)) return;
-    played.current.add(q.id);
-    if (review.isCorrect)
-      playRewardSound(rewardFor(rewards).tier === "streak5" ? "correctStreak" : "correct");
-  }, [instant, q, review, rewards]);
-  useLayoutEffect(() => {
-    if (header.current) setDockTop(Math.round(header.current.getBoundingClientRect().bottom) + 8);
-  }, [layout, s.pencilOn]);
+  const holding = useMissHold(qid, !!review, missed, () => setCalcOpen(false));
+  useRewards(questions, index, props.reviews, instant, total);
 
   const answerWith = (value: string | null) => {
     if (!q || locked) return;
     s.act({ type: "answer", value });
     props.onSelectAnswer?.(q.id, value);
   };
-  const [saveNotice, setSaveNotice] = useState<string | null>(null);
-  const [hint, setHint] = useState<string | null>(null);
-  useEffect(() => {
-    if (!hint) return;
-    const t = setTimeout(() => setHint(null), 3200);
-    return () => clearTimeout(t);
-  }, [hint]);
+  const [saveNotice, setSaveNotice] = useNotice(5000);
+  const [hint, setHint] = useNotice(3200);
   // Highlight: a tool like the pencil (founder, 2026-11-08). Words already selected are
   // highlighted straight away; after that, every selection is highlighted until it's turned off.
   // One tool at a time (founder, 2026-11-17): picking one up puts the others away. The
@@ -226,11 +184,6 @@ export function QuizShell(props: QuizShellProps) {
     if (added) sel?.removeAllRanges();
     else setHint("Select words to highlight them. Esc puts the highlighter away.");
   };
-  useEffect(() => {
-    if (!saveNotice) return;
-    const t = setTimeout(() => setSaveNotice(null), 5000);
-    return () => clearTimeout(t);
-  }, [saveNotice]);
   const toggleBookmark = () => {
     if (!q || !mode.canBookmark) return;
     const id = q.id;
@@ -257,19 +210,16 @@ export function QuizShell(props: QuizShellProps) {
     setDialog((d) => (d === "reference" ? null : "reference"));
   };
   const [moreOpen, setMoreOpen] = useState(false);
-  /* Escape puts the pencil, the highlighter or the calculator away (menus and dialogs handle
-     their own Escape first). */
-  useEffect(() => {
-    if (!s.pencilOn && !s.highlighterOn && !calcOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented || dialog) return;
+  useEscape({
+    active: s.pencilOn || s.highlighterOn || calcOpen,
+    calculatorOpen: calcOpen,
+    blocked: !!dialog,
+    putAway: () => {
       s.setPencilOn(false);
       s.setHighlighterOn(false);
-      // and the calculator, wherever the cursor is (inside it, it closes itself)
       setCalcOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    },
+    closeCalculator: () => setCalcOpen(false),
   });
   const last = index + 1 >= total;
   const goNext = () => {
@@ -416,16 +366,21 @@ export function QuizShell(props: QuizShellProps) {
           data-drawing={s.drawing || undefined}
           data-pencil={s.pencilOn || undefined}
           data-highlighter={s.highlighterOn || undefined}
+          data-masked={masked || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
           className={`${styles.shell} ${styles[layout]}`}
           style={
             {
               "--quiz-text-scale": s.textSize / 100,
-              "--quiz-bar-h": `${dockTop - 8}px`,
+              "--quiz-bar-h": `${dockTop - 12}px`,
+              "--kcc-dock-bottom": `${dockBottom}px`,
             } as React.CSSProperties
           }
         >
           <QuizWorld />
+          {mark && (
+            <div className={styles.trace} style={{ backgroundImage: mark }} aria-hidden="true" />
+          )}
           <div ref={header} className={styles.barGroup}>
             <TopBar
               section={props.section}
@@ -505,6 +460,11 @@ export function QuizShell(props: QuizShellProps) {
                               s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
                               props.onFlagForTutor?.(q.id, note);
                             },
+                            onRemove: () => {
+                              // the flag comes down; the question stays bookmarked
+                              s.setSaved((all) => ({ ...all, [q.id]: "bookmark" }));
+                              props.onRemoveTutorFlag?.(q.id);
+                            },
                           }
                         : undefined
                     }
@@ -518,7 +478,7 @@ export function QuizShell(props: QuizShellProps) {
             />
             {s.pencilOn && layout !== "compact" && strip}
           </div>
-          <div className={styles.body} data-calculator-dock-shift="">
+          <div className={styles.body}>
             {content ?? (
               <QuestionArea
                 layout={layout}
@@ -582,7 +542,7 @@ export function QuizShell(props: QuizShellProps) {
                 }
               />
             )}
-            <div className={styles.barGroup}>
+            <div ref={barGroup} className={styles.barGroup}>
               {props.levelUp && (
                 <LevelUpCard
                   skill={props.levelUp.skill}

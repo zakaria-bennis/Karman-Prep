@@ -20,6 +20,7 @@ import { startTimeTrial, trialSectionSchema } from "@/lib/assembler/time-trial-r
 import type { RunView } from "@/lib/assembler/run-types";
 import { trackServer } from "@/lib/analytics/server";
 import { saveSignals } from "@/lib/assembler/signals-store";
+import { PaceError, assertAnswerPace, assertStartPace } from "@/lib/assembler/pace-guard";
 
 async function studentId(): Promise<string> {
   const { userId } = await safeAuth();
@@ -27,6 +28,13 @@ async function studentId(): Promise<string> {
     throw new Error("Student access required");
   }
   return userId;
+}
+
+/** The student, once it is seen they are not opening quizzes faster than a person would. */
+async function paced(): Promise<string> {
+  const id = await studentId();
+  await assertStartPace(id);
+  return id;
 }
 
 export type RunActionResult<T> =
@@ -38,6 +46,8 @@ function failure(error: unknown): { ok: false; error: string; limit?: boolean } 
   if (error instanceof PlanLimitError) return { ok: false, error: error.message, limit: true };
   const message = error instanceof Error ? error.message : "";
   console.error("[quiz runs]", message);
+  if (error instanceof PaceError)
+    return { ok: false, error: "That was very fast. Take a minute, then carry on." };
   if (message === "Student access required")
     return { ok: false, error: "Sign in with a student account to practice." };
   if (message === "No distinct approved questions are available")
@@ -70,7 +80,7 @@ export async function actionOpenDailyTen(input: { timeZone?: string }) {
 export async function actionStartPracticeSet(input: { skillId: string }) {
   return wrap(async () =>
     startPracticeSet(
-      await studentId(),
+      await paced(),
       z.object({ skillId: z.string().min(1).max(160) }).parse(input).skillId
     )
   );
@@ -79,7 +89,7 @@ export async function actionStartPracticeSet(input: { skillId: string }) {
 export async function actionStartDomainQuiz(input: { domainId: string }) {
   return wrap(async () =>
     startDomainQuiz(
-      await studentId(),
+      await paced(),
       z.object({ domainId: z.string().min(1).max(60) }).parse(input).domainId
     )
   );
@@ -122,7 +132,12 @@ export async function actionResumeRun(input: { runId: string }) {
 }
 
 export async function actionAnswerRunQuestion(input: z.input<typeof answerSchema>) {
-  return wrap(async () => answerQuestion(await studentId(), answerSchema.parse(input)));
+  return wrap(async () => {
+    const id = await studentId();
+    // faster than a person can read and answer: the next answer waits out the minute
+    await assertAnswerPace(id);
+    return answerQuestion(id, answerSchema.parse(input));
+  });
 }
 
 export async function actionSubmitRunSection(

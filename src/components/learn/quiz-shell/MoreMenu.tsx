@@ -72,8 +72,8 @@ export function MoreMenu({
   onTextSize(size: number): void;
   showSounds: boolean;
   onReport?(note: string): Promise<unknown>;
-  /** Tutored students can send this question to their tutor, with a note if they like. */
-  tutor?: { asked: boolean; onAsk(note: string): void };
+  /** Tutored students can flag this question for their tutor, and take the flag down again. */
+  tutor?: { asked: boolean; onAsk(note: string): void; onRemove(): void };
   /** Opens the list of keyboard shortcuts, a pop-up of its own. */
   onShortcuts(): void;
   /** The menu opened or closed: the bar marks More as the tool in use while it is open. */
@@ -81,8 +81,7 @@ export function MoreMenu({
   active?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<"menu" | "report" | "tutor">("menu");
-  const [ask, setAsk] = useState("");
+  const [panel, setPanel] = useState<"menu" | "report">("menu");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -184,18 +183,29 @@ export function MoreMenu({
                   </label>
                 )}
                 {tutor && (
+                  // Pressed, a flag runs up its pole and the row offers to take it down again.
                   <button
                     type="button"
                     className={styles.item}
-                    disabled={tutor.asked}
-                    onClick={() => setPanel("tutor")}
+                    data-flag={tutor.asked ? "up" : "down"}
+                    onClick={() => (tutor.asked ? tutor.onRemove() : tutor.onAsk(""))}
                   >
-                    {tutor.asked ? "Flagged for your tutor" : "Flag for my tutor"}
+                    <svg className={styles.itemArt} viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 21.500V3" />
+                      <path d="M3.500 21.500h5" />
+                      <path className={styles.flag} d="M6 4h10.500l-2.300 3 2.300 3H6z" />
+                    </svg>
+                    <span>{tutor.asked ? "Remove flag" : "Flag for my tutor"}</span>
                   </button>
                 )}
                 {onReport && (
                   <button type="button" className={styles.item} onClick={() => setPanel("report")}>
-                    Report a problem
+                    <span className={`${styles.itemArt} ${styles.marks}`} aria-hidden="true">
+                      <i>?</i>
+                      <i>?</i>
+                      <i>?</i>
+                    </span>
+                    <span>Report a problem</span>
                   </button>
                 )}
                 {finePointer && (
@@ -207,7 +217,10 @@ export function MoreMenu({
                       onShortcuts();
                     }}
                   >
-                    Keyboard shortcuts
+                    <span className={`${styles.itemArt} ${styles.fnKey}`} aria-hidden="true">
+                      fn
+                    </span>
+                    <span>Keyboard shortcuts</span>
                   </button>
                 )}
               </>
@@ -289,37 +302,6 @@ export function MoreMenu({
                   </div>
                 </form>
               ))}
-            {panel === "tutor" && tutor && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  tutor.onAsk(ask.trim());
-                  setAsk("");
-                  setOpen(false);
-                }}
-              >
-                <label className={styles.label} htmlFor="quiz-ask-tutor">
-                  A note for your tutor (optional)
-                </label>
-                <textarea
-                  id="quiz-ask-tutor"
-                  className={styles.text}
-                  rows={3}
-                  maxLength={2000}
-                  value={ask}
-                  onChange={(e) => setAsk(e.target.value)}
-                  autoFocus
-                />
-                <div className={styles.actions}>
-                  <button type="button" className={shell.tool} onClick={() => setPanel("menu")}>
-                    Back
-                  </button>
-                  <button type="submit" className={shell.tool}>
-                    Flag it
-                  </button>
-                </div>
-              </form>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

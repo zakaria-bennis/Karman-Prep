@@ -181,8 +181,16 @@
 .correct .badgeFill {
   background: var(--quiz-correct);
 }
+/* a filled letter glows a little in its own colour */
 .choice[aria-checked="true"] .badge {
   border-color: var(--quiz-pick);
+  box-shadow: 0 0 12px -1px var(--quiz-pick);
+}
+.wrong .badge {
+  box-shadow: 0 0 10px -2px var(--quiz-wrong);
+}
+.correct .badge {
+  box-shadow: 0 0 14px 0 var(--quiz-correct);
 }
 .wrong .badge,
 .choice.wrong[aria-checked="true"] .badge {
@@ -208,18 +216,21 @@
   font-size: 1.04rem;
   line-height: 1.5;
 }
-/* Graded: the answer's glass takes a slight tinge of green or red, inside a ring of the same. */
+/* Graded: the answer's glass takes a tinge of its colour inside a ring of the same. The right
+   answer is the brighter of the two, and glows a little. */
 .correct,
 .choice.correct[aria-checked="true"] {
   border-color: var(--quiz-correct);
-  background: color-mix(in srgb, var(--quiz-correct) 18%, var(--quiz-lens));
-  box-shadow: inset 0 0 0 1px var(--quiz-correct);
+  background: color-mix(in srgb, var(--quiz-correct) 30%, var(--quiz-lens));
+  box-shadow:
+    inset 0 0 0 1px var(--quiz-correct),
+    0 0 22px -6px var(--quiz-correct);
 }
 .wrong,
 .choice.wrong[aria-checked="true"] {
-  border-color: var(--quiz-wrong);
-  background: color-mix(in srgb, var(--quiz-wrong) 16%, var(--quiz-lens));
-  box-shadow: inset 0 0 0 1px var(--quiz-wrong);
+  border-color: color-mix(in srgb, var(--quiz-wrong) 80%, transparent);
+  background: color-mix(in srgb, var(--quiz-wrong) 12%, var(--quiz-lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--quiz-wrong) 70%, transparent);
 }
 /* Answer feedback: a ring of the right colour washes out from the right answer (Choices). */
 .ripple {
@@ -293,10 +304,8 @@
     opacity: 1;
   }
 }
-/* It is there beside every answer that can be sent, quiet until the pointer is on that answer. */
-.choiceRow :global([data-transfer-control][data-placement="cluster"]) {
-  opacity: 0.6;
-}
+/* Under a mouse it is seen only while the pointer is on its own answer (founder, 2026-11-17);
+   under a finger, where nothing hovers, it is always there. */
 .tableChoice {
   min-width: 0;
   padding: 10px 12px;
@@ -439,7 +448,13 @@
   gap: 8px;
   width: min(100%, 460px);
   margin: 0 auto;
-  padding: 10px 12px;
+  padding: 0 12px;
+}
+.keys > :nth-child(-n + 3) {
+  margin-top: 10px;
+}
+.keys > :nth-last-child(-n + 2) {
+  margin-bottom: 10px;
 }
 .key {
   height: 54px;

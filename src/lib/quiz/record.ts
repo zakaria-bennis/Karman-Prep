@@ -67,6 +67,9 @@ export interface QuestionRecord {
   marked: boolean;
   pastes: number;
   copies: number;
+  /** Times the keys that begin a screenshot went down, and the keys that open developer tools. */
+  screenshotKeys: number;
+  toolKeys: number;
   /** How the answer was given. */
   input: Input | null;
 }
@@ -74,6 +77,8 @@ export interface QuestionRecord {
 export interface Device {
   width: number;
   height: number;
+  /** More than one screen is attached (the browser says so without asking for anything). */
+  extended?: boolean;
   /** A touch screen with no fine pointer. */
   touch: boolean;
   /** Minutes the device's clock is from UTC. */
@@ -107,6 +112,8 @@ export type Happened =
   | { type: "marked"; on: boolean }
   | { type: "pasted" }
   | { type: "copied" }
+  | { type: "screenshot-keys" }
+  | { type: "devtools-keys" }
   | { type: "ended" };
 
 /** The record, and what is going on at the moment (which is not kept once the sitting ends). */
@@ -177,6 +184,8 @@ const blank = (
   marked: false,
   pastes: 0,
   copies: 0,
+  screenshotKeys: 0,
+  toolKeys: 0,
   input: null,
 });
 
@@ -291,6 +300,10 @@ export function note(sitting: Sitting, what: Happened, now: number): Sitting {
       return edit(s, (q) => ({ ...q, pastes: q.pastes + 1 }));
     case "copied":
       return edit(s, (q) => ({ ...q, copies: q.copies + 1 }));
+    case "screenshot-keys":
+      return edit(s, (q) => ({ ...q, screenshotKeys: q.screenshotKeys + 1 }));
+    case "devtools-keys":
+      return edit(s, (q) => ({ ...q, toolKeys: q.toolKeys + 1 }));
     case "ended":
       return {
         ...s,

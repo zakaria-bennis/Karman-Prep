@@ -66,6 +66,8 @@ function toRow(runId: string, studentId: string, device: unknown, s: AnswerSigna
     visits: s.visits,
     pastes: s.pastes,
     copies: s.copies,
+    screenshot_keys: s.screenshotKeys,
+    tool_keys: s.toolKeys,
     marked: s.marked,
     input: s.input,
     device,

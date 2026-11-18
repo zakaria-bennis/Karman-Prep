@@ -18,6 +18,18 @@ export async function flagQuestion(input: {
   if (error) throw error;
 }
 
+/** A student's own open flags on a question are taken back (a problem report is not a flag). */
+export async function removeFlag(studentId: string, questionId: string): Promise<void> {
+  const { error } = await createAdminClient()
+    .from("flagged_questions")
+    .delete()
+    .eq("student_id", studentId)
+    .eq("question_id", questionId)
+    .eq("resolved", false)
+    .neq("node_id", "problem-report");
+  if (error) throw error;
+}
+
 export async function fetchFlaggedQuestions(): Promise<
   Array<FlaggedQuestion & { question: QuizQuestionWithChoices | null }>
 > {

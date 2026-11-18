@@ -11,6 +11,9 @@
   --quiz-sheet: rgb(255 253 249 / 0.84);
   /* a switch that is on: a quiet green */
   --quiz-switch: #2f8f6c;
+  /* the Exit window: red glass, rosy by day and deeper by night */
+  --quiz-exit: rgb(232 72 90 / 0.4);
+  --quiz-exit-edge: rgb(200 50 70 / 0.6);
   /* the top bar: the same frost, a little more of it */
   --quiz-bar: rgb(255 251 244 / 0.8);
   --quiz-text: #1d1a22;
@@ -60,6 +63,8 @@
     --quiz-lens: rgb(255 255 255 / 0.07);
     --quiz-sheet: rgb(56 54 64 / 0.78);
     --quiz-switch: #4aa884;
+    --quiz-exit: rgb(214 48 70 / 0.5);
+    --quiz-exit-edge: rgb(255 122 138 / 0.55);
     --quiz-bar: rgb(14 16 34 / 0.84);
     --quiz-text: #f6f1e7;
     --quiz-text-muted: #cfc9d8;
@@ -90,6 +95,8 @@
   --quiz-lens: rgb(255 255 255 / 0.07);
   --quiz-sheet: rgb(56 54 64 / 0.78);
   --quiz-switch: #4aa884;
+  --quiz-exit: rgb(214 48 70 / 0.5);
+  --quiz-exit-edge: rgb(255 122 138 / 0.55);
   --quiz-bar: rgb(14 16 34 / 0.84);
   --quiz-text: #f6f1e7;
   --quiz-text-muted: #cfc9d8;
@@ -203,7 +210,8 @@
   align-items: center;
   gap: 4px;
 }
-/* Exit: a solid red tile with a white cross, the word under it. */
+/* Exit: a small window of red frosted glass with someone walking out of a door, drawn in the
+   page's own ink (black by day, white by night), the word under it. */
 .barButton.exit {
   min-width: 52px;
   gap: 4px;
@@ -211,25 +219,29 @@
 .exitTile {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(to bottom, #f0525e, #d92f44);
-  color: #fff;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    0 4px 10px -4px rgb(217 47 68 / 0.9);
+  width: 38px;
+  height: 30px;
+  border: 1px solid var(--quiz-exit-edge);
+  border-radius: 10px;
+  background: var(--quiz-exit);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
+  color: var(--quiz-text);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
   transition:
     transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    filter 160ms ease;
+    background-color 160ms ease;
 }
 @media (hover: hover) {
   .barButton.exit:not(:disabled):hover {
     background: none;
   }
   .barButton.exit:not(:disabled):hover .exitTile {
-    filter: brightness(1.1);
+    background: color-mix(in srgb, var(--quiz-wrong) 30%, var(--quiz-exit));
     transform: scale(1.06);
+  }
+  .barButton.exit:not(:disabled):hover svg {
+    transform: translateX(-2px);
   }
 }
 .barButton.exit:active .exitTile {
@@ -258,9 +270,6 @@
   grid-column: 3;
   grid-row: 1;
   justify-content: flex-end;
-}
-.compact .clockHide {
-  display: none;
 }
 .compact .topic {
   display: none;
@@ -600,9 +609,7 @@
   position: absolute;
   inset: 0;
   display: grid;
-  transition:
-    right 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    bottom 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: right 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 /* After a miss on a wide screen the question's page draws in to the left and the explanation
    comes in at the right as a page of its own: about a third narrower, the same height, with a
@@ -675,6 +682,38 @@
   font-weight: 500;
   line-height: 1.55;
   white-space: pre-line;
+}
+
+/* The calculator's own holder sits in the question's frame; its window is fixed to the screen, so
+   the holder takes no row of its own and the question keeps its full height beside the dock. */
+.frame :global([data-calculator-root]) {
+  position: absolute;
+}
+
+/* Docked, the calculator is a card beside the question's: the same rounded corners (founder,
+   2026-11-17: "a floating window, just like the question"). Its splitter hangs outside the
+   frame, so the rounding is given to the title bar and the body, not clipped at the frame. */
+.frame :global([data-calculator-window][data-mode="docked"]) {
+  /* it stops above the bottom bar, so the two cards share a top and a bottom ("vertically
+     locked"); the calculator sets its own bottom inline, which this overrides */
+  bottom: var(--kcc-dock-bottom, 12px) !important;
+  border-radius: 22px;
+}
+/* On a phone the calculator stops under the top bar and has no X: the Calculator button there
+   is the one way to put it away (founder, 2026-11-17). */
+.frame :global([data-calculator-window][data-mode="fullscreen"]) {
+  top: calc(var(--quiz-bar-h, 64px) + 12px);
+}
+.frame :global([data-calculator-window][data-mode="fullscreen"] [aria-label="Close calculator"]) {
+  display: none;
+}
+.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar]) {
+  padding: 8px 10px 8px 16px;
+  border-radius: 21px 21px 0 0;
+}
+.frame :global([data-calculator-window][data-mode="docked"] > [data-calculator-titlebar] + div) {
+  overflow: hidden;
+  border-radius: 0 0 21px 21px;
 }
 
 /* compact: one scroll for everything. */
@@ -831,9 +870,6 @@
   .tool:not(:disabled):hover svg {
     transform: translateY(-2px) rotate(-7deg) scale(1.1);
   }
-  .barButton.exit:not(:disabled):hover svg {
-    transform: rotate(90deg);
-  }
 }
 .barButton:not(:disabled):active svg,
 .tool:not(:disabled):active svg {
@@ -868,7 +904,10 @@
 }
 
 /* On a phone or a tablet there is no room beside the question: the explanation comes up from the
-   bottom as a page of its own and the question draws up into the top half. Each scrolls. */
+   bottom as a page of its own and the question draws up above it. Each scrolls; the line between
+   them is set by QuestionArea (just under the answers, at least a quarter of the screen) and
+   can be dragged. Each is a page with rounded corners all round, a thin margin of the world
+   showing between and beside them. */
 .compact .area[data-aside] .frame,
 .medium .area[data-aside] .frame {
   right: 0;
@@ -876,10 +915,80 @@
 }
 .compact .aside,
 .medium .aside {
-  top: calc(50% + 4px);
-  right: 8px;
-  bottom: 8px;
-  left: 8px;
+  top: calc(50% + 3px);
+  right: 6px;
+  bottom: 6px;
+  left: 6px;
   width: auto;
-  padding: 20px 18px 28px;
+  padding: 26px 18px 28px;
+  border-radius: 18px;
+}
+/* the grip: a short bar at the explanation's top edge, with room around it for a thumb */
+.asideGrip {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 96px;
+  height: 26px;
+  margin-left: -48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: ns-resize;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.asideGrip::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  width: 40px;
+  height: 5px;
+  margin-left: -20px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--quiz-text) 45%, transparent);
+  transition:
+    width 160ms ease,
+    margin-left 160ms ease,
+    background-color 160ms ease;
+}
+.asideGrip:active::before {
+  width: 56px;
+  margin-left: -28px;
+  background: var(--quiz-text);
+}
+/* On a phone the question is a page too, with the world showing in a thin margin round it. */
+.compact [data-quiz-scroll] > [data-quiz-pane] {
+  margin: 6px;
+  min-height: calc(100% - 12px);
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--quiz-edge);
+}
+.compact .pane + .pane {
+  border-top: 0;
+}
+
+/* ---- keeping questions on the screen (use-guard.ts) ---- */
+/* Away from the page, the question is blurred past reading at once; back, it clears in a blink. */
+.shell .body {
+  transition: filter 90ms ease-out;
+}
+.shell[data-masked] .body {
+  filter: blur(26px) saturate(0.6);
+  transition: none;
+}
+/* A mark no eye can see, over everything (it rides along in any copy of the screen). */
+.trace {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  opacity: 0.014;
+  pointer-events: none;
+}
+/* Printed, the quiz is a blank page. */
+@media print {
+  .shell {
+    display: none !important;
+  }
 }

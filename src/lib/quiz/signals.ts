@@ -29,6 +29,8 @@ export const answerSignalsSchema = z
     visits: count,
     pastes: count,
     copies: count,
+    screenshotKeys: count,
+    toolKeys: count,
     marked: z.boolean(),
     input: z.enum(["touch", "mouse", "keys"]).nullable(),
   })
@@ -40,6 +42,7 @@ export const deviceSchema = z
     width: z.number().int().min(0).max(20_000),
     height: z.number().int().min(0).max(20_000),
     touch: z.boolean(),
+    extended: z.boolean().optional(),
     utcOffset: z.number().int().min(-900).max(900),
   })
   .strict();
@@ -81,6 +84,8 @@ export function signalsOf(q: QuestionRecord): AnswerSignals {
     visits: Math.min(9999, q.visits),
     pastes: Math.min(9999, q.pastes),
     copies: Math.min(9999, q.copies),
+    screenshotKeys: Math.min(9999, q.screenshotKeys ?? 0),
+    toolKeys: Math.min(9999, q.toolKeys ?? 0),
     marked: q.marked,
     input: q.input,
   };
@@ -92,6 +97,8 @@ export function deviceNow(): Device {
     width: window.innerWidth,
     height: window.innerHeight,
     touch: typeof window.matchMedia === "function" && matchMedia("(pointer: coarse)").matches,
+    // a second screen, where the browser says so (it asks the student for nothing)
+    extended: (window.screen as Screen & { isExtended?: boolean }).isExtended === true,
     utcOffset: new Date().getTimezoneOffset(),
   };
 }

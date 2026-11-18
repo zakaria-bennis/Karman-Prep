@@ -18,6 +18,11 @@
   border-radius: 18px;
   transform-origin: top right;
 }
+/* The menu hangs from the top bar, which is glass itself, so the browser gives the menu nothing
+   to blur. A second coat of the same glass keeps what is behind from reading through it. */
+.menu[class][class] {
+  background-image: linear-gradient(var(--quiz-sheet), var(--quiz-sheet));
+}
 .row {
   display: flex;
   align-items: center;
@@ -86,17 +91,113 @@
   }
 }
 .item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  min-height: 48px;
+  min-height: 50px;
   padding: 0 8px;
   border: 0;
   border-top: 1px solid color-mix(in srgb, var(--quiz-line) 50%, transparent);
+  border-radius: 10px;
   background: none;
   color: var(--quiz-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color 160ms ease;
+}
+@media (hover: hover) {
+  .item:hover {
+    background: color-mix(in srgb, var(--quiz-text) 8%, transparent);
+  }
+}
+/* each row's small drawing */
+.itemArt {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* the flag waits at the foot of its pole and runs up it when the question is flagged */
+.flag {
+  fill: var(--quiz-wrong);
+  stroke: var(--quiz-wrong);
+  transform: translateY(12px) scaleY(0.2);
+  transform-origin: 6px 7px;
+  opacity: 0;
+  transition:
+    transform 620ms cubic-bezier(0.3, 1.5, 0.5, 1),
+    opacity 200ms ease;
+}
+.item[data-flag="up"] .flag {
+  transform: none;
+  opacity: 1;
+}
+/* three question marks, stacked; under the pointer they spin out from one another */
+.marks {
+  position: relative;
+  display: block;
+  stroke: none;
+}
+.marks i {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+  transition:
+    transform 520ms cubic-bezier(0.3, 1.6, 0.5, 1),
+    opacity 300ms ease;
+}
+.marks i:nth-child(1),
+.marks i:nth-child(3) {
+  opacity: 0;
+}
+.item:hover .marks i:nth-child(1),
+.item:focus-visible .marks i:nth-child(1) {
+  opacity: 0.75;
+  transform: translate(-8px, 1px) rotate(-380deg) scale(0.8);
+}
+.item:hover .marks i:nth-child(2),
+.item:focus-visible .marks i:nth-child(2) {
+  transform: translateY(-2px) rotate(360deg);
+}
+.item:hover .marks i:nth-child(3),
+.item:focus-visible .marks i:nth-child(3) {
+  opacity: 0.75;
+  transform: translate(8px, 1px) rotate(380deg) scale(0.8);
+}
+/* a key off a keyboard, marked fn */
+.fnKey {
+  display: grid;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  stroke: none;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+.item:hover .fnKey {
+  transform: translateY(1px);
+  border-bottom-width: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flag,
+  .marks i,
+  .fnKey {
+    transition: none;
+  }
 }
 .item:focus-visible {
   outline: 2px solid var(--quiz-accent);

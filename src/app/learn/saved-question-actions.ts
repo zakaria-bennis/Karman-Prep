@@ -2,7 +2,7 @@
 // Bookmarks, tutor flags and problem reports from the quiz shell (quiz engine spec, Data).
 import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
-import { flagQuestion } from "@/lib/supabase/queries/quiz/flags";
+import { flagQuestion, removeFlag } from "@/lib/supabase/queries/quiz/flags";
 import {
   getSavedFor,
   getSavedQuestion,
@@ -31,6 +31,16 @@ export async function actionSetBookmark(input: {
     return { saved: "tutor_flag" };
   await setSavedQuestion(userId, parsed.questionId, parsed.on ? "bookmark" : null);
   return { saved: parsed.on ? "bookmark" : null };
+}
+
+/** Takes a student's own flag off a question: it leaves the tutor's queue (unless the tutor has
+ *  already dealt with it) and the question stays bookmarked. */
+export async function actionRemoveTutorFlag(input: { questionId: string }) {
+  const parsed = z.object({ questionId }).parse(input);
+  const userId = await student();
+  await removeFlag(userId, parsed.questionId);
+  await setSavedQuestion(userId, parsed.questionId, "bookmark");
+  return { saved: "bookmark" as const };
 }
 
 export async function actionFlagForTutor(input: {

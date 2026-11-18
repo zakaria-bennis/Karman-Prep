@@ -20,6 +20,8 @@ const base: AnswerSignals = {
   visits: 1,
   pastes: 0,
   copies: 0,
+  screenshotKeys: 0,
+  toolKeys: 0,
   marked: false,
   input: "mouse",
 };

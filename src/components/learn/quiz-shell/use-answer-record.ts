@@ -50,7 +50,7 @@ export function useAnswerRecord({
   /** The question has been graded and its explanation is on screen. */
   answered: boolean;
   onSignals?(signals: NoteSignals): void;
-}) {
+}): (what: Happened) => void {
   // a timed section's key is the run's id, a colon and the section
   const runId = attemptKey.split(":")[0];
   const on = enabled && UUID.test(runId);
@@ -170,4 +170,5 @@ export function useAnswerRecord({
       document.removeEventListener("copy", copied, true);
     };
   }, [on, apply, flush]);
+  return apply;
 }

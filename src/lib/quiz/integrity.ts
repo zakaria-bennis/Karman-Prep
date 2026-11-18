@@ -14,7 +14,9 @@ export type Flag =
   | "away-then-right" // left the page for a while, then answered right soon after coming back
   | "pasted" // something was pasted into the answer
   | "many-aways" // left the page again and again on one question
-  | "copied"; // copied from the question (it may have been taken elsewhere)
+  | "copied" // copied from the question (it may have been taken elsewhere)
+  | "screenshot" // pressed the keys that begin a screenshot
+  | "tools"; // pressed the keys that open a browser's developer tools
 
 export interface Finding {
   flag: Flag;
@@ -57,6 +59,13 @@ export function findings({ signals: s, right, words }: Answered): Finding[] {
   if (s.pastes > 0) add("pasted", `Pasted ${s.pastes} time${s.pastes === 1 ? "" : "s"}.`);
   if (s.aways >= 4) add("many-aways", `Left the page ${s.aways} times on this question.`);
   if (s.copies > 0) add("copied", `Copied ${s.copies} time${s.copies === 1 ? "" : "s"}.`);
+  if (s.screenshotKeys > 0)
+    add(
+      "screenshot",
+      `Pressed screenshot keys ${s.screenshotKeys} time${s.screenshotKeys === 1 ? "" : "s"}.`
+    );
+  if (s.toolKeys > 0)
+    add("tools", `Pressed developer-tool keys ${s.toolKeys} time${s.toolKeys === 1 ? "" : "s"}.`);
   return out;
 }
 

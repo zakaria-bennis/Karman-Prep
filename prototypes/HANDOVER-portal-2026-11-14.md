@@ -1404,6 +1404,52 @@ accounts, on this Mac. The launch entry `chat-local` runs the app against it on 
 seeded Cohort student, so quizzes can be answered without touching production. A real practice
 set is at `/learn/set/<skill id>` (for example `ma-skill-circles`).
 
+### Fourth round (2026-11-17, evening): built, awaiting his verdict
+
+His words are in memory (`feedback_quiz_engine_nov17.md`, "Fourth round"). What was built:
+
+- **Exit**: a person walking left through a door, on red frosted glass; black in light mode, white in dark.
+- **Clock**: a stopwatch with tick marks and the turning hand. No Hide button: pressing the clock tucks it away.
+- **Answers**: the right answer is brighter than a wrong one and its letter glows. The export-to-calculator
+  button shows only while hovering that answer on desktop (always on touch).
+- **More menu**: Flag for my tutor raises a flag and becomes Remove flag (`actionRemoveTutorFlag`); Report a
+  problem has three spinning question marks; Keyboard shortcuts has an fn key. The menu hangs from the top bar,
+  which is glass itself, so the browser gives it nothing to blur: it gets a second coat of the same glass.
+- **Phone explanation** (`QuestionArea.tsx`): rises to just under the answers, never less than 30% of the area,
+  and the grip at its top drags the line between question and explanation. Both are rounded pages with a 6px
+  margin of the world around them.
+- **Phone keypad** (`NumericEntry.tsx`): up while the box is in use, down on a real tap elsewhere (a scroll or a
+  long press does not lower it), sliding both ways.
+- **Calculator in the quiz**: the calculator's own files are unchanged for this. The quiz styles it from
+  `quiz-shell.module.css`: docked, it is a rounded card with the same top and bottom as the question (it stops
+  above the bottom bar by `--kcc-dock-bottom`, set by `useDock`); on a phone it stops under the top bar and its
+  X is hidden, so the Calculator button is the one way to close it. Only the question is shifted now
+  (`data-calculator-dock-shift` is on the question area), so the bottom bar stays full width. Escape closes it
+  even while typing in it (`useEscape`). Keep it this way: adding props to the calculator's eager files broke its
+  10,240-byte budget test (AR-33).
+- **Question security** (nothing the student can see): `use-guard.ts` hides the question when the window loses
+  focus, the mouse leaves, or the Mac screenshot keys go down, and shows it again at once; right-click and the
+  developer-tool keys are blocked; printing gives a blank page; an invisible mark per student and sitting is
+  drawn over the question (`traceMark`); more than one screen is noted with no permission asked
+  (`screen.isExtended`). Screenshot keys and tool keys are counted in the answer record (`screenshot_keys`,
+  `tool_keys`; the migration and the local database have them). `pace-guard.ts` refuses more than 20 answers
+  or 8 quiz starts a minute.
+- `QuizShell.tsx` was over the 700-line limit; `use-shell-effects.ts` now holds `useDock`, `useMissHold`,
+  `useEscape`, `useNotice` and `useRewards`.
+
+**Not done, and why:**
+
+- **The calculator's inside is still its old dark blue.** He asked for "a whole UI design change ... a reskin".
+  Show him two or three mockups first. Never cut a feature; the calculator's colors come only from `--kcc-*`
+  tokens (TH-2, TH-3) and its tests must stay green.
+- **Shuffling the answer order** (his item 8): not safe yet. Explanations name choices by letter ("Choice B is
+  wrong because"), so a shuffle would make them point at the wrong answer. It needs the explanations rewritten
+  or re-lettered at display time first.
+- Before the recording and the hidden mark go live: students are minors, so the privacy policy, the parents and
+  the lawyer need to cover it. He has not answered this yet.
+- Still open from earlier rounds: calculator memory per question and per bookmark, easier drawing and erasing,
+  highlighter color switching and notes, endless-mode dots, glass tints as themes, the unclear "like button".
+
 ## Sweep of the student portal, and the More tab (2026-11-17)
 
 He asked for a sweep of every student screen on phone, tablet and desktop. Every page was opened

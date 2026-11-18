@@ -8,6 +8,7 @@ import { modeFor } from "@/lib/quiz/mode";
 import { clearWorkspaces } from "@/lib/quiz/workspace";
 import {
   actionFlagForTutor,
+  actionRemoveTutorFlag,
   actionQuizStudentState,
   actionReportProblem,
   actionSetBookmark,
@@ -270,6 +271,7 @@ function InstantRun({
       onFinish={() => next()}
       onExit={() => router.push(exitHref)}
       onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
+      onRemoveTutorFlag={(id) => actionRemoveTutorFlag({ questionId: id })}
       onFlagForTutor={(id, note) =>
         actionFlagForTutor({ questionId: id, nodeId: run.scope ?? run.kind, note: note || null })
       }
@@ -368,6 +370,7 @@ function TimedRun({
       onFinish={() => finish()}
       onExit={() => router.push(exitHref)}
       onToggleBookmark={(id, on) => actionSetBookmark({ questionId: id, on })}
+      onRemoveTutorFlag={(id) => actionRemoveTutorFlag({ questionId: id })}
       onFlagForTutor={(id, note) =>
         actionFlagForTutor({ questionId: id, nodeId: run.kind, note: note || null })
       }
