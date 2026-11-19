@@ -20,17 +20,19 @@ import styles from "./settings.module.css";
 
 const NAMES: Record<FolderKey, string> = {
   profile: "Profile",
-  sat: "Your SAT",
-  sound: "Sound",
-  look: "Appearance",
-  quiz: "Quiz",
+  people: "Parent and tutor",
+  sat: "My SAT",
+  sound: "Sounds and music",
+  look: "Display",
+  quiz: "Quizzes and calculator",
   notify: "Notifications",
-  plan: "Plan",
-  calendars: "Calendars",
-  help: "Help",
+  plan: "Plan and billing",
+  calendars: "Calendar sync",
+  help: "Help and support",
 };
 const ORDER: FolderKey[] = [
   "profile",
+  "people",
   "sat",
   "sound",
   "look",
@@ -47,7 +49,7 @@ function summary(key: FolderKey, s: Kept, props: PaneProps): string {
     case "sat":
       return s.testDate ? dayName(s.testDate).replace(/, \d+$/, "") : "No date yet";
     case "sound":
-      return s.music ? TRACK_NAMES[s.track] : s.sounds ? "On" : "Off";
+      return s.music ? TRACK_NAMES[s.track] : s.sounds ? "Effects on" : "Off";
     case "look":
       return `${props.dark ? "Dark" : "Light"}, ${TEXT_NAMES[s.textStep].toLowerCase()}`;
     case "quiz":

@@ -11,7 +11,11 @@ export type Settings = {
   testDate: string | null;
   /** Extra time on the SAT: 1 is standard time. */
   extraTime: 1 | 1.5 | 2;
+  /** Sound effects as a whole; the three below choose which, while it is on. */
   sounds: boolean;
+  soundAnswers: boolean;
+  soundKeys: boolean;
+  soundRewards: boolean;
   /** 0 to 100. */
   soundVolume: number;
   music: boolean;
@@ -43,6 +47,9 @@ export const DEFAULTS: Settings = {
   testDate: null,
   extraTime: 1,
   sounds: true,
+  soundAnswers: true,
+  soundKeys: true,
+  soundRewards: true,
   soundVolume: 70,
   music: false,
   musicAuto: false,

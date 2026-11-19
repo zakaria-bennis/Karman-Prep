@@ -12,6 +12,13 @@ export const setSound = (value: boolean) => {
   on = value;
 };
 
+/* which kinds of sound play while sounds are on (Settings: Sounds and music) */
+const kinds = { keys: true, rewards: true };
+export const setSoundKinds = (next: { keys: boolean; rewards: boolean }) => {
+  kinds.keys = next.keys;
+  kinds.rewards = next.rewards;
+};
+
 export const setSoundVolume = (percent: number) => {
   level = (Math.max(0, Math.min(100, percent)) / 70) ** 2;
   if (master) master.gain.value = level;
@@ -80,12 +87,13 @@ function hiss(from: number, to: number, long: number, loud: number) {
 
 const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
 
-export const tick = () => bell(1046.5, 0, 0.035, 0.18);
+export const tick = () => kinds.keys && bell(1046.5, 0, 0.035, 0.18);
 export const rustle = () => hiss(2600, 4200, 0.16, 0.05);
-export const ping = () => bell(1318.5, 0, 0.04, 0.6);
+export const ping = () => kinds.rewards && bell(1318.5, 0, 0.04, 0.6);
 export const whoosh = () => hiss(300, 3200, 0.6, 0.07);
 /** Chosen: three rising notes. */
-export const chosen = () => [0, 2, 4].forEach((n, i) => bell(SCALE[n], i * 0.09, 0.07, 1.4));
+export const chosen = () =>
+  kinds.rewards && [0, 2, 4].forEach((n, i) => bell(SCALE[n], i * 0.09, 0.07, 1.4));
 /** A constellation lighting up: one quiet note for each lit star, six at most. */
 export const constellation = (lit: number) =>
   Array.from({ length: Math.min(6, lit) }).forEach((_, i) =>

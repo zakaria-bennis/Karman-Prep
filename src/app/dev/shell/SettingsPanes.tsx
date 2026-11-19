@@ -27,6 +27,7 @@ import styles from "./settings.module.css";
 
 export type FolderKey =
   | "profile"
+  | "people"
   | "sat"
   | "sound"
   | "look"
@@ -90,8 +91,6 @@ function Profile() {
   const s = useSettings();
   const file = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
-  const [parent, setParent] = useState("");
-  const [sent, setSent] = useState(false);
   return (
     <>
       <Group>
@@ -127,7 +126,7 @@ function Profile() {
           <input value="maya.okafor@example.com" readOnly />
         </label>
       </Group>
-      <Group title="Sign-in">
+      <Group title="Ways to sign in">
         {(["Google", "Apple", "Microsoft"] as const).map((way, i) => (
           <Row key={way} name={way} note={i === 0 ? "Connected" : undefined}>
             <button type="button" className={styles.soft}>
@@ -136,7 +135,18 @@ function Profile() {
           </Row>
         ))}
       </Group>
-      <Group title="Parent">
+    </>
+  );
+}
+
+/** The people a student works with: a parent who follows along, and a tutor joined by a code. */
+function People() {
+  const s = useSettings();
+  const [parent, setParent] = useState("");
+  const [sent, setSent] = useState(false);
+  return (
+    <>
+      <Group title="Invite a parent">
         <form
           className={styles.inline}
           onSubmit={(e) => {
@@ -159,7 +169,7 @@ function Profile() {
           </button>
         </form>
       </Group>
-      <Group title="Tutor">
+      <Group title="Your tutor">
         <label className={styles.field}>
           <span>Tutor code</span>
           <input
@@ -189,7 +199,7 @@ function Sat() {
           onChange={(day) => setSetting("testDate", day)}
         />
       </Group>
-      <Group title="Extra time">
+      <Group title="Extra time on the SAT">
         <Seg
           label="Extra time"
           value={s.extraTime}
@@ -209,12 +219,37 @@ function Sound() {
   const s = useSettings();
   return (
     <>
-      <Group title="Sounds">
-        <Row name="Sounds">
-          <Toggle label="Sounds" on={s.sounds} onChange={(on) => setSetting("sounds", on)} />
+      <Group title="Sound effects">
+        <Row name="Sound effects" note="Everything below, on or off">
+          <Toggle label="Sound effects" on={s.sounds} onChange={(on) => setSetting("sounds", on)} />
         </Row>
+        {s.sounds && (
+          <>
+            <Row name="Right and wrong answers">
+              <Toggle
+                label="Sounds for right and wrong answers"
+                on={s.soundAnswers}
+                onChange={(on) => setSetting("soundAnswers", on)}
+              />
+            </Row>
+            <Row name="Typing and taps">
+              <Toggle
+                label="Sounds for typing and taps"
+                on={s.soundKeys}
+                onChange={(on) => setSetting("soundKeys", on)}
+              />
+            </Row>
+            <Row name="Coins and rewards">
+              <Toggle
+                label="Sounds for coins and rewards"
+                on={s.soundRewards}
+                onChange={(on) => setSetting("soundRewards", on)}
+              />
+            </Row>
+          </>
+        )}
         <Row
-          name="Volume"
+          name="Effects volume"
           value={`${s.soundVolume}%`}
           below={
             <Slider
@@ -230,12 +265,16 @@ function Sound() {
           }
         />
       </Group>
-      <Group title="Night music">
-        <Row name="Music">
-          <Toggle label="Music" on={s.music} onChange={(on) => setSetting("music", on)} />
+      <Group title="Focus music">
+        <Row name="Play focus music">
+          <Toggle
+            label="Play focus music"
+            on={s.music}
+            onChange={(on) => setSetting("music", on)}
+          />
         </Row>
         <Row
-          name="Volume"
+          name="Music volume"
           value={`${s.musicVolume}%`}
           below={
             <Slider
@@ -250,7 +289,7 @@ function Sound() {
             />
           }
         />
-        <Row name="Start by itself" note="Every night, at the time you pick">
+        <Row name="Start automatically" note="Every night, at the time you pick">
           <Toggle
             label="Start music by itself"
             on={s.musicAuto}
@@ -259,7 +298,7 @@ function Sound() {
         </Row>
         {s.musicAuto && (
           <Row
-            name="Starts at"
+            name="Start time"
             value={clock(720 + s.musicAt)}
             below={
               <Slider
@@ -275,9 +314,9 @@ function Sound() {
           />
         )}
       </Group>
-      <Group title="Piece">
+      <Group title="Track">
         <Pick
-          label="Piece"
+          label="Track"
           value={s.track}
           options={TRACKS.map((track) => ({ value: track, label: TRACK_NAMES[track] }))}
           onChange={(track) => track && setSetting("track", track)}
@@ -292,9 +331,9 @@ function Look({ dark, onDark }: PaneProps) {
   const [still, setStill] = useState(() => stillChosen());
   return (
     <>
-      <Group title="Appearance">
+      <Group title="Theme">
         <Seg
-          label="Appearance"
+          label="Theme"
           value={dark ? "dark" : "light"}
           options={[
             { value: "light", label: "Light" },
@@ -321,7 +360,7 @@ function Look({ dark, onDark }: PaneProps) {
           }
         />
         <Row
-          name="Transparency"
+          name="Glass transparency"
           value={`${s.clear}%`}
           below={
             <Slider
@@ -333,7 +372,7 @@ function Look({ dark, onDark }: PaneProps) {
             />
           }
         />
-        <Row name="Reduce motion" note="Holds the background and the animations still">
+        <Row name="Reduce motion" note="Stills the background and the animations">
           <Toggle
             label="Reduce motion"
             on={still}
@@ -367,7 +406,7 @@ function Quiz() {
     <>
       <Group title="Calculator">
         <Seg
-          label="Calculator opens in"
+          label="Calculator angle unit"
           value={s.angle}
           options={[
             { value: "rad", label: "Radians" },
@@ -377,9 +416,9 @@ function Quiz() {
         />
       </Group>
       <Group>
-        <Row name="Show the clock" note="When a quiz starts">
+        <Row name="Show the timer" note="When a quiz starts">
           <Toggle
-            label="Show the clock when a quiz starts"
+            label="Show the timer when a quiz starts"
             on={s.showClock}
             onChange={(on) => setSetting("showClock", on)}
           />
@@ -424,7 +463,7 @@ function Notify({ plan }: PaneProps) {
   return (
     <>
       {taught && (
-        <Group title={plan === "cohort" ? "Classes" : "Sessions"}>
+        <Group title={plan === "cohort" ? "Class reminders" : "Session reminders"}>
           <Row name="Email the day before">
             <Toggle
               label="Email the day before"
@@ -443,7 +482,7 @@ function Notify({ plan }: PaneProps) {
       )}
       {taught && (
         <Group title="Chat">
-          <Row name="New messages">
+          <Row name="New message alerts">
             <Toggle
               label="Notify me of new messages"
               on={s.notifyChat}
@@ -452,8 +491,8 @@ function Notify({ plan }: PaneProps) {
           </Row>
         </Group>
       )}
-      <Group title="Daily 10">
-        <Row name="Remind me">
+      <Group title="Daily 10 reminder">
+        <Row name="Remind me every day">
           <Toggle
             label="Daily 10 reminder"
             on={s.remindDaily}
@@ -462,7 +501,7 @@ function Notify({ plan }: PaneProps) {
         </Row>
         {s.remindDaily && (
           <Row
-            name="At"
+            name="Reminder time"
             value={clock(s.dailyAt)}
             below={
               <Slider
@@ -501,7 +540,7 @@ function PlanPane({ plan, onGo }: PaneProps) {
           </Row>
         )}
       </Group>
-      <Group title="Billing">
+      <Group title="Payment method">
         <Row name="Visa ending 4242">
           <button type="button" className={styles.soft}>
             Change
@@ -563,7 +602,7 @@ function Help() {
           <Chevron />
         </a>
       </Group>
-      <Group title="Account">
+      <Group title="Your data">
         {sure ? (
           <div className={styles.sure}>
             <p>This deletes your account and all your work. It cannot be undone.</p>
@@ -587,6 +626,7 @@ function Help() {
 
 export const PANES: Record<FolderKey, (props: PaneProps) => ReactNode> = {
   profile: Profile,
+  people: People,
   sat: Sat,
   sound: Sound,
   look: Look,

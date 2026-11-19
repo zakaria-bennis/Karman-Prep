@@ -3,12 +3,16 @@
 import { useEffect } from "react";
 import { playMusic, setMusicVolume, stopMusic } from "./music";
 import { setSetting, type Settings } from "./settingsStore";
-import { setSound, setSoundVolume } from "./sound";
+import { setSound, setSoundKinds, setSoundVolume } from "./sound";
 
 const STARTED = "kp-music-night";
 
 export function useSettingsEffects(s: Settings) {
   useEffect(() => setSound(s.sounds), [s.sounds]);
+  useEffect(
+    () => setSoundKinds({ keys: s.soundKeys, rewards: s.soundRewards }),
+    [s.soundKeys, s.soundRewards]
+  );
   useEffect(() => setSoundVolume(s.soundVolume), [s.soundVolume]);
 
   useEffect(() => {
