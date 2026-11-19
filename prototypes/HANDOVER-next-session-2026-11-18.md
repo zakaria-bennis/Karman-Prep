@@ -75,12 +75,35 @@ one beside them. His list of what goes in and what stays out is in the memory no
 - Checked in a headless browser at 360, 390 and 1440, dark and light: every folder, no sideways
   scroll, no control under 40px tall, largest text on six pages.
 
+## Start and end screens (2026-11-18): the skill set is first, awaiting his verdict
+
+These are in the live quiz engine, not the design page. `src/components/quiz-flows/FlowStage.tsx` is the
+new frame: the quiz's own landscape with one piece of frosted glass, its own way out at the top left (the
+old Learn bar hides itself when it sees `data-flow-stage`). `SetScreens.tsx` holds the skill set's two
+screens, `stage-motion.ts` their movement (GSAP), `stage.module.css` their look.
+
+- **Start:** the skill's name, "10 questions", "Checked as you go", Start, and "Read the lesson". It stays
+  up, loading, until the questions are there. Enter starts it.
+- **End** (his 2026-10-30 rules: one calm column, one phone screen): the score counted up, the answers in
+  order as squares landing one by one, the skill's level as bars that fill, coins, one next step. A level
+  gained gets confetti and the one sound. It says "coins" (the engine's field is still `tokens`).
+- **Not his rules yet, because the engine has not been rewired:** a set is 10 questions (his rule: 8) and
+  the levels are the engine's four (New, Learning, Understanding, Conquered), not the Library's three.
+- Seen on real sets in a headless browser at 360, 390 and 1440. A level-up was not seen live (the test
+  student did not earn one); it is covered by a test only.
+- **Every other activity still ends on the old painted shell** (`FlowFrame`): Daily 10, domain quiz, time
+  trial, full-length exam, diagnostic. Strategy quizzes and endless mode have no engine yet. Next: his
+  verdict on these two screens, then the same stage for the others, one at a time.
+
+The preview entry `portal-settings` now runs against the local practice database as the stand-in Cohort
+student (`docs/overnight/local-db.md`), so a real set is at `/learn/set/ma-skill-circles`.
+
 ## Testing on his phone
 
 The preview entry `portal-settings` (port 3440) also runs `scripts/dev/phone-bridge.mjs`: with the
 iPhone on a cable, Safari on the phone opens `http://Zakarias-MacBook-Pro.local:3440/dev/shell`. The
 dev server itself listens only on this computer, because it signs every visitor in as a stand-in
-admin on the real database; the bridge listens only on the cable's own address. Never start it with
+account; the bridge listens only on the cable's own address. Never start it with
 `-H 0.0.0.0`. `DEV_ORIGINS` (read in `next.config.mjs`) names the hosts the dev server accepts.
 
 ## The order he asked for

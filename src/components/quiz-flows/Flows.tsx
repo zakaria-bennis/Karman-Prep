@@ -21,6 +21,7 @@ import {
 } from "@/lib/student/time-trial";
 import { Message } from "./FlowFrame";
 import { RunPlayer } from "./RunPlayer";
+import { SetStart } from "./SetScreens";
 import type { ShellUser } from "./types";
 
 export function DailyTenFlow({ user }: { user: ShellUser }) {
@@ -34,11 +35,17 @@ export function DailyTenFlow({ user }: { user: ShellUser }) {
 export function PracticeSetFlow({
   user,
   skillId,
+  name,
+  questions,
   exitHref,
   lessonHref,
 }: {
   user: ShellUser;
   skillId: string;
+  /** The skill's own name, for the start screen. */
+  name: string;
+  /** How many questions a set has. */
+  questions: number;
   exitHref: string;
   lessonHref: string | null;
 }) {
@@ -50,6 +57,17 @@ export function PracticeSetFlow({
       open={open}
       exitHref={exitHref}
       lessonHref={lessonHref}
+      bare
+      intro={(start, pending) => (
+        <SetStart
+          name={name}
+          questions={questions}
+          onStart={start}
+          busy={pending}
+          exitHref={exitHref}
+          lessonHref={lessonHref}
+        />
+      )}
       againHref={`/learn/set/${encodeURIComponent(skillId)}?again=${Date.now()}`}
     />
   );

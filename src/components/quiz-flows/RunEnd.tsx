@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card, Cta, Num, Ring, SectionHeader, SkillSquares, levelName } from "@/components/portal";
 import type { RunView, SkillMove } from "@/lib/assembler/run-types";
-import { AnswerShapes, LevelBanner, LevelChanges, type LevelChange } from "./LevelBanner";
+import { AnswerShapes, LevelChanges, type LevelChange } from "./LevelBanner";
 import { FlowFrame } from "./FlowFrame";
+import { SetEnd } from "./SetScreens";
 import { TestReport } from "./TestReport";
 import { TrialEnd } from "./TrialEnd";
 import type { ShellUser } from "./types";
@@ -123,15 +124,15 @@ export function RunEnd({
     return <TestReport user={user} run={run} exitHref={exitHref} />;
   if (run.kind === "time-trial")
     return <TrialEnd user={user} run={run} exitHref={exitHref} nextHref={againHref ?? exitHref} />;
+  if (run.kind === "practice-set")
+    return <SetEnd run={run} exitHref={exitHref} lessonHref={lessonHref} againHref={againHref} />;
   const next = weakestSkill(result.skills);
-  const set = run.kind === "practice-set" ? result.skills[0] : null;
-  const leveled = set ? set.to > set.from && set.to >= 2 : result.skills.some((k) => k.to > k.from);
   return (
-    <FlowFrame user={user} title={run.kind === "practice-set" ? run.title : run.title}>
+    <FlowFrame user={user} title={run.title}>
       <Card>
         <section className={s.hero} aria-labelledby="run-done">
           <h2 className="kp-title" id="run-done">
-            {run.kind === "practice-set" ? "Set complete" : "Quiz complete"}
+            Quiz complete
           </h2>
           <ScoreRing right={result.right} total={result.total} label="Right answers" />
           <AnswerShapes answers={answersOf(run)} />
@@ -140,44 +141,20 @@ export function RunEnd({
               <Num count>+{result.tokens}</Num> tokens
             </p>
           )}
-          {set && leveled && (
-            <LevelBanner change={{ skill: set.label, from: set.from, to: set.to }} />
-          )}
-          {!set && <LevelChanges changes={changes} />}
+          <LevelChanges changes={changes} />
           <div className={s.actions}>
-            {run.kind === "practice-set" && !leveled ? (
-              <>
-                <Cta href={lessonHref ?? exitHref}>Read the lesson</Cta>
-                <Link className="kp-link" href={againHref ?? exitHref}>
-                  Try again
-                </Link>
-              </>
-            ) : run.kind === "practice-set" ? (
-              <>
-                <Cta href={againHref ?? exitHref}>Practice another set</Cta>
-                <Link className="kp-link" href={exitHref}>
-                  Done
-                </Link>
-              </>
-            ) : (
-              <>
-                {next ? (
-                  <Cta href={`/learn/set/${encodeURIComponent(next.skillId)}`}>
-                    Practice {next.label}
-                  </Cta>
-                ) : null}
-                <Link className="kp-link" href={exitHref}>
-                  Done
-                </Link>
-              </>
-            )}
+            {next ? (
+              <Cta href={`/learn/set/${encodeURIComponent(next.skillId)}`}>
+                Practice {next.label}
+              </Cta>
+            ) : null}
+            <Link className="kp-link" href={exitHref}>
+              Done
+            </Link>
           </div>
         </section>
       </Card>
-      <SkillsMoved
-        skills={result.skills}
-        title={run.kind === "practice-set" ? "Skill" : "Skills in this quiz"}
-      />
+      <SkillsMoved skills={result.skills} title="Skills in this quiz" />
     </FlowFrame>
   );
 }

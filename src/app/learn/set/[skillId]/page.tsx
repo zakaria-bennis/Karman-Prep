@@ -4,6 +4,7 @@ import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { getSubSkill, subSkillTitle } from "@/lib/subskills/taxonomy";
 import { getCoveredLegacyNodes } from "@/data/curriculum/legacy-skill-crosswalk";
 import { PracticeSetFlow } from "@/components/quiz-flows/Flows";
+import { PRACTICE_SET_SIZE } from "@/lib/assembler/runs";
 import { loadFlowUser } from "@/components/quiz-flows/load-user";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,8 @@ export default async function PracticeSetPage({ params, searchParams }: Params) 
       key={`${found.id}:${again}`}
       user={user}
       skillId={found.id}
+      name={found.title}
+      questions={PRACTICE_SET_SIZE}
       exitHref={`/learn/${skill.subject}`}
       lessonHref={lesson ? `/learn/${skill.subject}/${lesson.id}` : null}
     />
