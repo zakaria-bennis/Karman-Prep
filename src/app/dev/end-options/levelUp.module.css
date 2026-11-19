@@ -1,0 +1,111 @@
+/* The level-up moment: a dimmed screen, a pane of glass in the middle with the level bars, big. */
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 50%, rgb(10 12 30 / 0.15), rgb(10 12 30 / 0.55));
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+}
+
+.pane {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-width: min(380px, calc(100vw - 32px));
+  padding: 28px 36px 26px;
+  border-radius: 28px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine),
+    0 0 80px -10px rgb(120 230 190 / 0.6);
+  color: var(--ink);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font: 400 46px/1.05 var(--font-serif);
+}
+
+/* the three bars, big; the new one fills with light */
+.bars {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+
+.bars i {
+  position: relative;
+  height: 18px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: 0 0 0 1.5px var(--sq-edge, rgb(10 70 52 / 0.6));
+}
+
+.bars i[data-on] {
+  background: #38a47b;
+  box-shadow:
+    0 0 0 1.5px var(--sq-edge, rgb(10 70 52 / 0.6)),
+    0 0 12px rgb(56 164 123 / 0.6);
+}
+
+.bars b {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: linear-gradient(90deg, #86d0ac, #38a47b 60%, #b8ffe0);
+  transform-origin: left center;
+}
+
+.bars i[data-new] b {
+  display: block;
+}
+
+.bars[data-level="2"] i[data-new],
+.bars[data-level="3"] i[data-new] {
+  box-shadow:
+    0 0 0 1.5px var(--sq-edge, rgb(10 70 52 / 0.6)),
+    0 0 22px rgb(120 230 190 / 0.9);
+}
+
+.name {
+  margin: 0;
+  height: 30px;
+  overflow: hidden;
+  font: 700 24px/30px var(--font-hanken);
+}
+
+.flip {
+  display: block;
+  animation: flip 0.5s cubic-bezier(0.3, 1.5, 0.45, 1) both;
+}
+
+@keyframes flip {
+  from {
+    transform: translateY(100%) rotateX(-60deg);
+    opacity: 0;
+  }
+}
+
+.run {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip {
+    animation: none;
+  }
+}

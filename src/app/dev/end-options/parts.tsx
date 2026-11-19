@@ -25,7 +25,8 @@ import p from "./parts.module.css";
 export type Tone = "perfect" | "strong" | "middle" | "tough";
 export type Answer = { ok: boolean; s: number };
 
-/** Which questions were right, for each score: misses spread through the set, not bunched. */
+/** Which questions were right, for each score. A level is reached by a run of right answers in a
+ *  row, not by the score, so 5 and 6 both show one: 5 has no run of four, 6 has one (2 to 5). */
 const PATTERNS: Record<number, number[]> = {
   0: [],
   1: [3],
@@ -33,7 +34,7 @@ const PATTERNS: Record<number, number[]> = {
   3: [0, 4, 6],
   4: [0, 1, 4, 7],
   5: [0, 1, 3, 4, 7],
-  6: [0, 1, 3, 4, 5, 7],
+  6: [0, 2, 3, 4, 5, 7],
   7: [0, 1, 2, 3, 4, 5, 7],
   8: [0, 1, 2, 3, 4, 5, 6, 7],
 };
@@ -53,12 +54,25 @@ export function setOf(right: number) {
   const times = tone === "tough" ? SLOW : FAST;
   const answers: Answer[] = times.map((s, i) => ({ ok: lit.includes(i), s }));
   const seconds = times.reduce((a, b) => a + b, 0);
-  const up = share >= 0.75;
+  // the longest run of right answers in a row
+  let run = 0;
+  let best = 0;
+  for (const a of answers) {
+    run = a.ok ? run + 1 : 0;
+    best = Math.max(best, run);
+  }
+  const from = 1;
+  // the run that reaches each level (skill-levels.ts): 3 to Learning, 4 to Understanding, 5 to the top
+  const RUNS = [0, 3, 4, 5];
+  const up = from < 3 && best >= RUNS[from + 1];
   return {
     skill: "Circles",
     domain: "Geometry and Trigonometry",
     right,
     total,
+    percent: Math.round(share * 100),
+    run: best,
+    runNeeded: RUNS[Math.min(3, from + 1)],
     missed: total - right,
     answers,
     tone,
@@ -76,73 +90,71 @@ export function setOf(right: number) {
     testSeconds: 95,
     coins: right * 2 + 4,
     wallet: 140,
-    from: 1,
-    to: up ? 2 : 1,
+    from,
+    to: up ? from + 1 : from,
     up,
   };
 }
 export type SetView = ReturnType<typeof setOf>;
 
-/** What to do next, chosen from the result: one main step with the reason for it, and the others
- *  as small links. A tough set starts with the lesson; a middling one with the questions missed; a
- *  strong one with another set; a perfect one with a harder one. A slow set adds a time trial. */
+/** What to do next, chosen from the result: one main step, and the others as small links under it.
+ *  A tough set starts with the lesson (read, until there are lessons to watch); a middling one with
+ *  the mistakes; a strong one with another set; a perfect one with a harder one. */
 export function nextFor(set: SetView) {
-  const slow = set.paceSeconds > set.testSeconds;
-  const missed = `Review ${set.missed} missed`;
-  const main = {
-    tough: {
-      label: "Watch the lesson",
-      href: "#lesson",
-      why: `${set.missed} of ${set.total} missed. The lesson first, then try the set again.`,
-    },
-    middle: {
-      label: missed,
-      href: "#review",
-      why: "See why each one was missed, then one more set to lock it in.",
-    },
-    strong: {
-      label: "Another set",
-      href: "#again",
-      why: `Up to ${LEVELS[set.to]}. One more strong set keeps it there.`,
-    },
+  const lesson = { label: "Read a lesson", href: "#lesson" };
+  const again = { label: "Try again", href: "#again" };
+  const mistakes = { label: "Review mistakes", href: "#review" };
+  const plan = {
+    tough: { main: lesson, others: [again, mistakes] },
+    middle: { main: mistakes, others: [again, lesson] },
+    strong: { main: { label: "Another set", href: "#again" }, others: [mistakes] },
     perfect: {
-      label: "Try a harder set",
-      href: "#harder",
-      why: "Every one right. The next set will ask more of you.",
+      main: { label: "Try a harder set", href: "#harder" },
+      others: [{ label: "Next skill", href: "#next" }],
     },
   }[set.tone];
-  const others = {
-    tough: [
-      { label: "Try again", href: "#again" },
-      { label: missed, href: "#review" },
-    ],
-    middle: [
-      { label: "Try again", href: "#again" },
-      { label: "Lesson", href: "#lesson" },
-    ],
-    strong: [{ label: missed, href: "#review" }],
-    perfect: [{ label: "Next skill", href: "#next" }],
-  }[set.tone];
-  if (slow) others.push({ label: "Time trial", href: "#trial" });
-  return { main, others, slow };
+  return { main: { ...plan.main, why: "" }, others: plan.others };
 }
 
-/** What the character says, under it, as Homework's line does. */
+/** What the character says, under it, as Homework's line does. Accuracy only: a skill set is not
+ *  timed. */
 export function linesFor(set: SetView) {
   return {
-    perfect: ["Every one right!", "That was fast", "Ready for harder ones"],
-    strong: [`${set.right} of ${set.total}. Nice!`, "Faster than the SAT", "Up a level"],
-    middle: [`${set.right} of ${set.total}`, "Halfway there", "A look at the misses helps"],
-    tough: [`${set.right} of ${set.total}`, "This one was hard", "The lesson will help"],
+    perfect: ["Every one right!", "Nothing missed", "Ready for harder ones"],
+    strong: ["Nice work!", set.up ? "Up a level" : "Almost there", "Keep it going"],
+    middle: ["Good effort", set.up ? "Up a level" : "Halfway there", "The mistakes will help"],
+    tough: ["This one was hard", "The lesson will help", "Then try again"],
   }[set.tone];
+}
+
+/** The ring's color for how full it is: red, then orange, yellow and green as it fills, and gold
+ *  only when it closes (every answer right). The whole ring is one color, moving as it fills. */
+const STOPS: [number, [number, number, number]][] = [
+  [0, [255, 75, 75]],
+  [0.3, [255, 138, 42]],
+  [0.55, [255, 201, 60]],
+  [0.8, [47, 210, 122]],
+  [0.97, [47, 210, 122]],
+  [1, [247, 196, 52]],
+];
+export function ringColor(full: number) {
+  const f = Math.max(0, Math.min(1, full));
+  const at = STOPS.findIndex(([stop]) => stop >= f);
+  if (at <= 0) return `rgb(${STOPS[0][1].join(" ")})`;
+  const [a, ca] = STOPS[at - 1];
+  const [b, cb] = STOPS[at];
+  const k = (f - a) / (b - a || 1);
+  const c = ca.map((v, i) => Math.round(v + (cb[i] - v) * k));
+  return `rgb(${c.join(" ")})`;
 }
 
 /** The score asked for in the address, 6 when none is. */
 export function useScore() {
   const [score, setScore] = useState(6);
   useEffect(() => {
-    const asked = Number(new URLSearchParams(window.location.search).get("score"));
-    if (Number.isInteger(asked) && asked >= 0 && asked <= 8) setScore(asked);
+    const given = new URLSearchParams(window.location.search).get("score");
+    const asked = Number(given);
+    if (given !== null && Number.isInteger(asked) && asked >= 0 && asked <= 8) setScore(asked);
   }, []);
   return score;
 }
@@ -381,10 +393,13 @@ export function Pips({
   set,
   play,
   settled = false,
+  delay = 0.7,
 }: {
   set: SetView;
   play: boolean;
   settled?: boolean;
+  /** Seconds before the new bar lights once `play` is set. */
+  delay?: number;
 }) {
   const [level, setLevel] = useState(settled ? set.to : set.from);
   const el = useRef<HTMLSpanElement>(null);
@@ -401,10 +416,10 @@ export function Pips({
             { scaleY: 1, scaleX: 1, duration: 0.6, ease: "elastic.out(1, 0.4)" }
           );
       },
-      prefersStill() ? 0 : 700
+      prefersStill() ? 0 : delay * 1000
     );
     return () => window.clearTimeout(timer);
-  }, [play, set.to, set.from]);
+  }, [play, set.to, set.from, delay]);
   return (
     <span className={p.level}>
       <span ref={el} className={lib.pips} data-level={level} role="img" aria-label={LEVELS[level]}>
