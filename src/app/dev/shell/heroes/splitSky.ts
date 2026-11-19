@@ -495,6 +495,8 @@ export function build(stage: Stage, options: { mathShare: number }): Hero {
     // slope and Reading and Writing on top. Either way it passes through the centre: an even half each.
     if (l.portrait) normal.set(0.26, -0.966);
     else normal.set(0.987, 0.159);
+    // on a phone the book sits in the middle of its half, a little lower than its station
+    book.root.position.y = l.portrait ? -l.halfH * 0.1 : 0;
     state.range = Math.abs(normal.x) * l.halfW + Math.abs(normal.y) * l.halfH;
     uniforms.uHalf.value.set(l.halfW, l.halfH);
     uniforms.uObs.value.set(

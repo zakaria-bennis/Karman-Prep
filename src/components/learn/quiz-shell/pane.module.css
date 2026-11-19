@@ -342,9 +342,9 @@
    the answer (founder, 2026-11-17). Before that the box says what may be typed. */
 .numericLabel {
   position: absolute;
-  top: 9px;
+  top: 6px;
   left: 18px;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--quiz-text-muted);
   white-space: nowrap;
@@ -362,8 +362,8 @@
 .numericInput {
   display: block;
   width: 100%;
-  height: 68px;
-  padding: 14px 18px 0;
+  height: 54px; /* a fifth shorter (founder, 2026-11-19) */
+  padding: 12px 18px 0;
   border: 0;
   border-radius: inherit;
   background: transparent;
@@ -392,7 +392,7 @@
 .fraction {
   position: absolute;
   left: 18px;
-  bottom: 7px;
+  bottom: 3px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -439,30 +439,37 @@
 /* A phone's or a tablet's own keys for a typed answer: three across like a dial, low on the
    screen (they are put just above the bottom bar), each big enough for a thumb and plainly
    pressed when it is. */
-/* Three short rows, five across, so the question stays in sight above them (founder, 2026-11-19:
-   the keys "take up too much of the screen"). */
+/* The dial he liked (founder, 2026-11-19): three across, numbers where thumbs expect them. It
+   takes the bottom bar's place while it is up, so it stands no taller on the screen than before
+   and the question stays in sight; Done puts it down. */
 .keys {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  width: min(100%, 520px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  width: min(100%, 460px);
   margin: 0 auto;
-  padding: 0 10px;
+  padding: 0 12px;
 }
-.keys > :nth-child(-n + 5) {
+.keys > :nth-child(-n + 3) {
   margin-top: 8px;
 }
-.keys > :nth-last-child(-n + 4) {
-  margin-bottom: 8px;
+.keys > :nth-last-child(-n + 3) {
+  margin-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.key[data-done] {
+  border-color: transparent;
+  background: var(--quiz-go, var(--quiz-pick));
+  color: #fff;
+  font-size: 1.05rem;
 }
 .key {
-  height: 46px;
+  height: 48px;
   border: 1.5px solid var(--quiz-line);
-  border-radius: 13px;
+  border-radius: 15px;
   background: var(--quiz-lens);
   color: var(--quiz-text);
   font: inherit;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;

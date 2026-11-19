@@ -715,6 +715,34 @@
   padding-top: 20px;
 }
 
+/* A page inside another is named in one pill with the page it came from: "Account > Sounds and
+   music" (founder, 2026-11-19). The way back is the pill's left part; the name is its right. */
+.crumbs .back:has(+ .title) {
+  padding-right: 10px;
+  border-radius: 20px 0 0 20px;
+}
+
+.crumbs .back + .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin-left: -12px;
+  padding: 0 16px 0 2px;
+  border-radius: 0 20px 20px 0;
+  font-size: 16px;
+}
+
+.crumbs .back + .title::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-top: 1.6px solid currentColor;
+  border-right: 1.6px solid currentColor;
+  opacity: 0.55;
+  rotate: 45deg;
+}
+
 .crumbs:empty {
   display: none;
 }

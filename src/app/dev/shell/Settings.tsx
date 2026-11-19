@@ -52,9 +52,9 @@ export default function Settings({
 
   // on a phone an open folder is a page of its own: the title names it, the back pill leaves it
   useEffect(() => {
-    onTrail(open && !rail ? { name: NAMES[open], back: "Account", go: () => setOpen(null) } : null);
+    onTrail(shown ? { name: NAMES[shown], back: "Account", go: () => setOpen(null) } : null);
     return () => onTrail(null);
-  }, [open, rail, onTrail]);
+  }, [shown, onTrail]);
   useEffect(() => {
     if (!open || rail) return;
     const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
@@ -111,7 +111,6 @@ export default function Settings({
           animate={{ x: 0, y: 0, opacity: 1 }}
           transition={still ? { duration: 0 } : IN}
         >
-          {rail && <h2 className={styles.paneName}>{NAMES[shown]}</h2>}
           <Pane {...props} />
         </motion.div>
       )}

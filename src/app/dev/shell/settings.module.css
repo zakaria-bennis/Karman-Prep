@@ -169,21 +169,6 @@
 }
 
 /* ---- inside a folder ---- */
-/* an open folder's name: plain, on a small piece of glass, so it reads on any sky */
-.settings .paneName {
-  justify-self: start;
-  margin: 0;
-  padding: 10px 16px;
-  border-radius: 14px;
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--frost);
-  backdrop-filter: var(--frost);
-  box-shadow:
-    var(--lift),
-    inset 0 0 0 1px var(--glass-edge);
-  font: 700 20px/1.2 var(--font-sans);
-}
-
 .group {
   display: grid;
   gap: 6px;

@@ -279,19 +279,33 @@
 }
 .compact .barButton.exit {
   order: 2;
-  gap: 0;
-  width: 40px;
-  padding: 0;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
 }
-.compact .topBar .barWord {
+/* the tools lose their words; Exit keeps its own, so it reads as the way out */
+.compact .tools .barWord {
   font-size: 0;
   opacity: 0;
 }
-.compact .topBar .barButton,
+.compact .barButton.exit .barWord {
+  font-size: 0.9rem;
+  opacity: 1;
+}
+.compact .barButton.exit svg {
+  width: 20px;
+  height: 20px;
+}
+.compact .tools svg {
+  width: 23px;
+  height: 23px;
+}
+.compact .tools .barButton,
 .compact .tools :global([data-calculator-trigger]) {
   gap: 0;
-  min-width: 40px;
+  min-width: 38px;
   min-height: 40px;
+  padding: 0;
 }
 .compact .tools :global([data-calculator-trigger]) {
   font-size: 0;
@@ -1193,4 +1207,11 @@
   .shell {
     display: none !important;
   }
+}
+
+/* A phone's keys for a typed answer take the bottom bar's place while they are up (the bar comes
+   back when they are put down with Done), so the question and its answer box keep the screen
+   (founder, 2026-11-19: the keys must never cover what is being answered). */
+.barGroup:has([data-answer-keys]) .bottomBar {
+  display: none;
 }

@@ -8,8 +8,8 @@ import styles from "./pane.module.css";
 /** Where a phone's keys are put: low on the screen, just above the bottom bar (QuizShell). */
 export const KEYS_SLOT_ID = "quiz-keys-slot";
 
-/** A phone's keys: five across in three short rows, so the question stays in sight. */
-const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ".", "/"];
+/** A phone's dial: three across, the numbers where thumbs expect them. */
+const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/"];
 /** What the SAT takes in a typed answer, said inside the box until typing starts; short enough
  *  for a phone's box. */
 const HINT = "Type a number, decimal or fraction";
@@ -121,7 +121,19 @@ export function NumericEntry({
         >
           {KEYS.map((k) => key(k, k === "/" ? "fraction bar" : k === "." ? "point" : k, k))}
           {key("−", "minus", "-")}
-          {key("⌫", "Delete", "back", true)}
+          {key("⌫", "Delete", "back")}
+          <button
+            type="button"
+            className={styles.key}
+            data-done=""
+            onPointerDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setUp(false);
+              box.current?.blur();
+            }}
+          >
+            Done
+          </button>
         </motion.div>
       )}
     </AnimatePresence>
