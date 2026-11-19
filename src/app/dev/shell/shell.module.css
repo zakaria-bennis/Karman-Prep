@@ -126,14 +126,16 @@
   display: none;
 }
 
+/* The bar is a carousel (moreBar.ts): every picture of the strip is placed by the page, and the ones
+   out of view wait just past the edge they left by, cut off at the sides only. */
 .items {
   position: relative;
-  display: flex;
-  justify-content: space-between;
+  height: var(--cell);
   margin: 0;
   padding: 0;
   list-style: none;
   touch-action: pan-y;
+  clip-path: inset(-24px 0);
 }
 
 /* the lens is exactly as big as the item it is under */
@@ -184,8 +186,28 @@
 /* on the bar every item has the same share of the width, so the names sit evenly with air between
    them (founder, 2026-11-16: the names looked crowded) */
 .items li[data-item] {
-  flex: 1 1 0;
-  min-width: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.items li[data-out] {
+  pointer-events: none;
+}
+
+/* the student's own picture, the last of the bar's second set */
+.mine {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--glass-edge);
+}
+
+.mine svg {
+  width: 100%;
+  height: 100%;
 }
 
 .items li[data-item] .item {
@@ -869,7 +891,13 @@
     display: grid;
     grid-auto-rows: var(--cell);
     gap: 4px;
+    height: auto;
     touch-action: auto;
+    clip-path: none;
+  }
+
+  .items li[data-item] {
+    position: static;
   }
 
   .under {

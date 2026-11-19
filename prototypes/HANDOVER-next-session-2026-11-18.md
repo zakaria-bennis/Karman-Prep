@@ -32,10 +32,25 @@ It must not be pointed at real students yet, because most of it shows made-up da
 | Homework | All made up; pressing work leads nowhere |
 | Schedule | Built on stand-in sessions; Zoom links not hooked up |
 | Chat | Connected to real messages when signed in with a class or tutor; made-up classmates when not |
-| More, account menu | Built; Settings and the test date are not |
+| More, Account | On a phone More turns the bar like a carousel (below); Account holds only name, Light or Dark and Sign out until Settings is built |
 
 Known blocker for the Library: the portal shows 72 skills, the question bank has 39 skills and 92 sub-skills,
 and there is no mapping between them. Making one is the founder's decision (no retagging without his say).
+
+## The phone's More is a carousel (2026-11-18)
+
+There is no More page. Pressing More slides the bar's first four pictures out at the left, carries More to
+the left end, and brings in what the five had no room for, ending in the profile picture (Account). Pressing
+More again turns it back. The second set holds at most four beside More. Rules and positions are in
+`src/app/dev/shell/moreBar.ts` (tested); the hooks are in `useBar.ts`; `More.tsx` now holds the Account page
+and the desktop account menu. Free, Practice and Pro have only Account behind More: he has not said whether
+More should simply be Account there. Awaiting his verdict.
+
+His answers on what Settings holds, and his other decisions of 2026-11-18 (the portal goes live behind a
+site password, his admin account first, 72 skills and a retag, privacy later), are in the memory note
+`project_decisions_nov18.md`. **Settings is the next thing to build**, inside the Account page.
+
+A cookie banner covers the phone bar on a first visit until it is answered (seen in a headless browser).
 
 ## The order he asked for
 
