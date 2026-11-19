@@ -24,7 +24,7 @@ import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from
 import { tick } from "./sound";
 
 /** A number's small stock line over the span shown, with a fill that fades out under it. */
-function Spark({
+export function Spark({
   values,
   way,
   flip = false,

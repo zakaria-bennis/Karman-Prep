@@ -27,23 +27,55 @@ export type FaceKind =
 
 const INK = "#24180F";
 function Eyes({ x = 15, y = -28, r = 6 }: { x?: number; y?: number; r?: number }) {
+  // the eyes as drawn, then what a mood can show instead (hidden until a mood asks for it, see
+  // src/app/dev/end-options/moods.css): happy closed eyes, worried brows, determined brows
+  const brow = (inner: number, outer: number) =>
+    `M${-x - r * 1.3} ${y - r * outer}L${-x + r * 1.1} ${y - r * inner}M${x + r * 1.3} ${y - r * outer}L${x - r * 1.1} ${y - r * inner}`;
   return (
-    <>
-      <ellipse cx={-x} cy={y} rx={r} ry={r * 1.13} fill={INK} />
-      <ellipse cx={x} cy={y} rx={r} ry={r * 1.13} fill={INK} />
-      <circle cx={-x + r * 0.4} cy={y - r * 0.47} r={r * 0.38} fill="#fff" />
-      <circle cx={x + r * 0.4} cy={y - r * 0.47} r={r * 0.38} fill="#fff" />
-    </>
+    <g className="m-eyes">
+      <g className="m-lid">
+        <ellipse cx={-x} cy={y} rx={r} ry={r * 1.13} fill={INK} />
+        <ellipse cx={x} cy={y} rx={r} ry={r * 1.13} fill={INK} />
+        <circle cx={-x + r * 0.4} cy={y - r * 0.47} r={r * 0.38} fill="#fff" />
+        <circle cx={x + r * 0.4} cy={y - r * 0.47} r={r * 0.38} fill="#fff" />
+      </g>
+      <path
+        className="m-eH"
+        d={`M${-x - r} ${y + 1}Q${-x} ${y - r * 1.4} ${-x + r} ${y + 1}M${x - r} ${y + 1}Q${x} ${y - r * 1.4} ${x + r} ${y + 1}`}
+        stroke={INK}
+        strokeWidth={r * 0.5}
+        fill="none"
+        strokeLinecap="round"
+        opacity="0"
+      />
+      <path
+        className="m-bS"
+        d={brow(2.5, 1.7)}
+        stroke={INK}
+        strokeWidth={r * 0.42}
+        strokeLinecap="round"
+        opacity="0"
+      />
+      <path
+        className="m-bD"
+        d={brow(2, 2.35)}
+        stroke={INK}
+        strokeWidth={r * 0.42}
+        strokeLinecap="round"
+        opacity="0"
+      />
+    </g>
   );
 }
 const Blush = ({ x = 27, y = -15 }: { x?: number; y?: number }) => (
   <>
-    <ellipse cx={-x} cy={y} rx="6" ry="3.400" fill="#F28B7E" opacity="0.5" />
-    <ellipse cx={x} cy={y} rx="6" ry="3.400" fill="#F28B7E" opacity="0.5" />
+    <ellipse className="m-blush" cx={-x} cy={y} rx="6" ry="3.400" fill="#F28B7E" opacity="0.5" />
+    <ellipse className="m-blush" cx={x} cy={y} rx="6" ry="3.400" fill="#F28B7E" opacity="0.5" />
   </>
 );
 const Smile = ({ y = -6 }: { y?: number }) => (
   <path
+    className="m-mouth"
     d={`M-4 ${y}Q0 ${y + 3} 4 ${y}`}
     stroke={INK}
     strokeWidth="1.800"

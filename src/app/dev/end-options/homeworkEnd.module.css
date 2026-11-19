@@ -1,0 +1,158 @@
+/* Option 1, made like Homework: its banner, its ring, its rows (homework.module.css). */
+.page {
+  margin-top: var(--pad);
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+@media (min-width: 960px) and (hover: hover) {
+  .strip {
+    grid-column: 1 / -1;
+  }
+}
+
+.verdict {
+  margin: 0;
+  font: 400 34px/1.1 var(--font-serif);
+  color: color-mix(in srgb, var(--tone) 70%, var(--ink));
+}
+
+.sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.boxes > span {
+  background: var(--hover) !important;
+  box-shadow: inset 0 0 0 1px var(--glass-edge) !important;
+}
+
+.boxes > span[data-slow] {
+  background: color-mix(in srgb, #ff6f7d 22%, transparent) !important;
+}
+
+.boxes b {
+  display: flex;
+  align-items: baseline;
+}
+
+.boxes em {
+  font-style: normal;
+}
+
+.side {
+  align-content: start;
+}
+
+/* the score ring is the gold of a good set, not Homework's green */
+.fill {
+  stroke: var(--tone);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tone) 70%, transparent));
+  transition: none;
+}
+
+.coinRow {
+  margin: 4px 0 0;
+}
+
+/* the next step: its reason, the one green button, the others small */
+.next {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-radius: 18px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  text-align: center;
+}
+
+.next > div {
+  width: min(420px, 100%);
+}
+
+.levelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  font-size: 15px;
+}
+
+.levelRow > span:first-child {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.main {
+  gap: 10px;
+}
+
+.main a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.h {
+  margin: 4px 6px 0;
+  font: 400 22px/1.2 var(--font-serif);
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.answer {
+  min-height: 60px !important;
+  padding: 8px 12px !important;
+}
+
+.num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+  font: 400 17px/1 var(--font-serif);
+  font-style: normal;
+}
+
+@media (max-width: 959px) {
+  .verdict {
+    margin-left: 4px;
+    font-size: 22px;
+  }
+
+  .strip {
+    flex-wrap: wrap;
+  }
+
+  .levelRow {
+    grid-column: 1 / -1;
+  }
+
+  .answers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -22,6 +22,7 @@ export function CoinBurst({
   play,
   target,
   onLand,
+  from,
   className,
 }: {
   /** How many discs to throw (not the amount earned: a handful stands for it). */
@@ -31,6 +32,8 @@ export function CoinBurst({
   /** The counter the coins fly to; its own coin drawing is the face on every disc. */
   target: React.RefObject<HTMLElement | null>;
   onLand?: (landed: number, of: number) => void;
+  /** Where the coins rise from (a pile on the screen). Without it they come up from the foot. */
+  from?: React.RefObject<HTMLElement | null>;
   className?: string;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -99,19 +102,23 @@ export function CoinBurst({
       });
       const box = to.getBoundingClientRect();
       const goal = { x: box.left + box.width / 2 - W / 2, y: H / 2 - (box.top + box.height / 2) };
+      const pile = from?.current?.getBoundingClientRect();
+      const start = pile
+        ? { x: pile.left + pile.width / 2 - W / 2, y: H / 2 - (pile.top + pile.height / 2) }
+        : { x: 0, y: -H / 2 - r * 2 };
       const flying: Flying[] = Array.from({ length: coins }, (_, i) => {
         const mesh = new THREE.Mesh(shape, [edge, front, front]);
-        mesh.position.set((Math.random() - 0.5) * 60, -H / 2 - r * 2, 0);
+        mesh.position.set(start.x + (Math.random() - 0.5) * 60, start.y, 0);
         mesh.rotation.set(Math.PI / 2, 0, Math.random() * 6);
         scene.add(mesh);
         return {
           mesh,
-          vx: (Math.random() - 0.5) * Math.min(W, 900) * 0.9,
-          vy: H * (0.95 + Math.random() * 0.5),
+          vx: (Math.random() - 0.5) * Math.min(W, 900) * (pile ? 0.45 : 0.9),
+          vy: pile ? H * (0.35 + Math.random() * 0.3) : H * (0.95 + Math.random() * 0.5),
           spin: 6 + Math.random() * 8,
           roll: (Math.random() - 0.5) * 6,
           wait: i * 0.035,
-          home: 0.95 + i * 0.05,
+          home: (pile ? 0.5 : 0.95) + i * 0.05,
           from: null,
         };
       });
@@ -166,7 +173,7 @@ export function CoinBurst({
       cancelAnimationFrame(frame);
       cleanup();
     };
-  }, [play, coins, target]);
+  }, [play, coins, target, from]);
 
   return <canvas ref={canvas} className={className} aria-hidden="true" />;
 }
