@@ -1208,10 +1208,3 @@
     display: none !important;
   }
 }
-
-/* A phone's keys for a typed answer take the bottom bar's place while they are up (the bar comes
-   back when they are put down with Done), so the question and its answer box keep the screen
-   (founder, 2026-11-19: the keys must never cover what is being answered). */
-.barGroup:has([data-answer-keys]) .bottomBar {
-  display: none;
-}

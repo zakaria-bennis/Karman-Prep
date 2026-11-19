@@ -472,45 +472,72 @@ function Shell() {
               {inSkill ? skill.domain : domain ? section : "Library"}
             </button>
           )}
-          {(inStat || trail || tucked) && (
-            <button
-              type="button"
-              className={styles.back}
-              onClick={() => {
-                dir.current = -1;
-                if (trail) trail.go();
-                else if (tucked) go("progress");
-                else setStat(null);
-              }}
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M14.500 6.500L9 12l5.500 5.500" />
-              </svg>
-              {trail?.back ?? "Progress"}
-            </button>
-          )}
-          {!(page === "library" && !section) && (
-            <h1
-              className={styles.title}
-              key={
-                inSkill
+          {inStat || trail || tucked ? (
+            // A page inside another: a round way back, the page it came from in small words, and
+            // its own name under them, on one piece of glass (founder, 2026-11-19).
+            <div className={styles.where}>
+              <button
+                type="button"
+                className={styles.whereBack}
+                aria-label={`Back to ${trail?.back ?? "Progress"}`}
+                onClick={() => {
+                  dir.current = -1;
+                  if (trail) trail.go();
+                  else if (tucked) go("progress");
+                  else setStat(null);
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path d="M14.500 6.500L9 12l5.500 5.500" />
+                </svg>
+              </button>
+              <div className={styles.whereText}>
+                <small>{trail?.back ?? "Progress"}</small>
+                <h1
+                  className={styles.title}
+                  key={
+                    inSkill
+                      ? skill.name
+                      : (trail?.name ??
+                        (inStat
+                          ? stat
+                          : page === "library" && section
+                            ? (domain ?? section)
+                            : page))
+                  }
+                  data-long={
+                    (page === "library" && (inSkill || section !== null)) ||
+                    trail !== null ||
+                    undefined
+                  }
+                >
+                  {inSkill
+                    ? skill.name
+                    : (trail?.name ??
+                      (inStat
+                        ? STATS[stat].name
+                        : page === "library" && section
+                          ? (domain ?? section)
+                          : LABEL[page]))}
+                </h1>
+              </div>
+            </div>
+          ) : (
+            !(page === "library" && !section) && (
+              <h1
+                className={styles.title}
+                key={
+                  inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page
+                }
+                data-long={(page === "library" && (inSkill || section !== null)) || undefined}
+              >
+                {inSkill
                   ? skill.name
-                  : (trail?.name ??
-                    (inStat ? stat : page === "library" && section ? (domain ?? section) : page))
-              }
-              data-long={
-                (page === "library" && (inSkill || section !== null)) || trail !== null || undefined
-              }
-            >
-              {inSkill
-                ? skill.name
-                : (trail?.name ??
-                  (inStat
-                    ? STATS[stat].name
-                    : page === "library" && section
-                      ? (domain ?? section)
-                      : LABEL[page]))}
-            </h1>
+                  : page === "library" && section
+                    ? (domain ?? section)
+                    : LABEL[page]}
+              </h1>
+            )
           )}
           {/* where the phone's five are taken, the Mistake Log is a press away from Progress */}
           {page === "progress" && !stat && !items.includes("mistakes") && (

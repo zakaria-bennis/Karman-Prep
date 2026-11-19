@@ -121,19 +121,7 @@ export function NumericEntry({
         >
           {KEYS.map((k) => key(k, k === "/" ? "fraction bar" : k === "." ? "point" : k, k))}
           {key("−", "minus", "-")}
-          {key("⌫", "Delete", "back")}
-          <button
-            type="button"
-            className={styles.key}
-            data-done=""
-            onPointerDown={(e) => e.preventDefault()}
-            onClick={() => {
-              setUp(false);
-              box.current?.blur();
-            }}
-          >
-            Done
-          </button>
+          {key("⌫", "Delete", "back", true)}
         </motion.div>
       )}
     </AnimatePresence>
