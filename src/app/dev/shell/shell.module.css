@@ -366,12 +366,11 @@
   transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
-/* the notepad's loose pages: unseen until the row is hovered, then they flip up over the binding one
-   after another, quickly */
-.art [data-move="page"] {
-  opacity: 0;
+/* the Mistake Log's history clock: the arrow and the hands turn about the middle of the face */
+.art [data-move="rewind"],
+.art [data-move="hand"] {
   transform-box: view-box;
-  transform-origin: 12px 5px;
+  transform-origin: 12.5px 12.5px;
   transition: none;
 }
 
@@ -561,32 +560,18 @@
   }
 }
 
-@keyframes flip {
+/* winding back: a quick turn against the clock that overshoots a little and settles */
+@keyframes rewind {
   0% {
-    opacity: 0;
-    transform: scaleY(1);
+    transform: rotate(0);
   }
 
-  8% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-
-  /* edge-on at the binding */
-  48% {
-    opacity: 1;
-    transform: scaleY(0.05) skewX(-11deg);
-  }
-
-  /* over the top, its back showing */
-  82% {
-    opacity: 0.75;
-    transform: scaleY(-0.74) skewX(5deg);
+  70% {
+    transform: rotate(-372deg);
   }
 
   100% {
-    opacity: 0;
-    transform: scaleY(-0.9);
+    transform: rotate(-360deg);
   }
 }
 
@@ -607,16 +592,19 @@
     animation: head 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
   }
 
-  .item:hover [data-move="page"] {
-    animation: flip 0.62s cubic-bezier(0.45, 0, 0.4, 1) both;
+  .item:hover [data-move="rewind"] {
+    animation: rewind 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
   }
 
-  .item:hover [data-move="page"][data-n="1"] {
-    animation-delay: 0.22s;
+  /* the long hand goes round twice and the short one once, both backward */
+  .item:hover [data-move="hand"] {
+    animation: rewind 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
   }
 
-  .item:hover [data-move="page"][data-n="2"] {
-    animation-delay: 0.44s;
+  .item:hover [data-move="hand"][data-n="0"] {
+    animation-duration: 0.4s;
+    animation-iteration-count: 2;
+    animation-timing-function: linear;
   }
 
   /* the blue book swings up against the others, and then all three bounce, one after another */

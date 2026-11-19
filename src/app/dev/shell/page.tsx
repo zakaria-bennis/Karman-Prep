@@ -95,8 +95,12 @@ function Shell() {
   /* the phone's bar is a carousel (moreBar.ts): `turned` is its second set, which More brings in */
   const [turned, setTurned] = useState(false);
   const away = tuckedIn(plan);
-  const items: readonly Page[] = rail ? PLANS[plan].rail : strip(PLANS[plan].bar, away);
-  const seen: readonly Page[] = rail ? items : inView(PLANS[plan].bar, away, turned);
+  /* with nothing tucked away, More would hold the profile picture alone, so the picture takes
+     More's place and the bar never turns (founder, 2026-11-18) */
+  const bar: readonly Page[] =
+    away.length > 0 ? PLANS[plan].bar : PLANS[plan].bar.map((p) => (p === "more" ? "account" : p));
+  const items: readonly Page[] = rail ? PLANS[plan].rail : away.length > 0 ? strip(bar, away) : bar;
+  const seen: readonly Page[] = rail ? items : away.length > 0 ? inView(bar, away, turned) : bar;
   const [page, setPage] = useState<Page>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
@@ -191,7 +195,7 @@ function Shell() {
   /* the bar's width, and from it where every picture of the strip sits (moreBar.ts) */
   const barW = useBarWidth(list, rail);
   const first = PLANS[plan].bar.length;
-  const second = away.length + 2;
+  const second = away.length > 0 ? away.length + 2 : 1;
   const places = useMemo(() => slots(first, second, barW, turned), [first, second, barW, turned]);
   const delays = useMemo(() => waits(first, second, turned), [first, second, turned]);
   /* the strip moves on its spring only when More turned it; a new width just places it */

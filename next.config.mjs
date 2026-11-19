@@ -19,6 +19,9 @@ const SECURITY_HEADERS = [
 const nextConfig = {
   // No "x-powered-by: Next.js" on responses.
   poweredByHeader: false,
+  // Development only: other names this computer may be opened by (a phone on the same network or
+  // cable). Set DEV_ORIGINS to a comma-separated list of hosts; with none, only localhost may.
+  allowedDevOrigins: (process.env.DEV_ORIGINS ?? "").split(",").filter(Boolean),
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
