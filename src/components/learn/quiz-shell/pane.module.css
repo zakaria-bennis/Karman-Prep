@@ -477,7 +477,10 @@
   height: 54px;
   border: 1.5px solid var(--quiz-line);
   border-radius: 16px;
-  background: var(--quiz-lens);
+  /* each key is its own piece of frosted glass, since nothing lies behind them now */
+  background: var(--quiz-panel);
+  -webkit-backdrop-filter: var(--quiz-frost);
+  backdrop-filter: var(--quiz-frost);
   color: var(--quiz-text);
   font: inherit;
   font-size: 1.45rem;

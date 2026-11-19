@@ -1,28 +1,33 @@
 "use client";
-// The skill set's two screens (founder, 2026-11-19, the third try: the first two were "bland" and
-// "trash"). Each is built round one big thing, a ring with a bead for every question
-// (SetRing.tsx), and is laid out three ways, for a phone, a tablet and a computer (ring.module.css).
-//   SetStart  the skill's name over an empty ring that says how many questions wait; under it how
-//             long the set takes, how it is checked, the tools it allows and the student's level
-//             on its trail; Start under the thumb.
-//   SetEnd    the last question's glass draws back and the ring comes out of it: a word for how
-//             it went, the beads turning green or red in the order answered, the ring drawn to
-//             the share that was right and the score counting up in its middle. A bead can be
-//             pressed to see that answer. Then accuracy, time, pace and the best run, the coins
-//             flying into their purse, and the level's marker travelling to where it now stands.
-//             A level gained gets confetti and the one sound.
-// Levels are shown as the founder names them (shown-level.ts).
+// The skill set's two screens (founder, 2026-11-19, fourth try: he rejected the ring of beads).
+//   SetStart  the student's character on a burst of the subject's colour, the skill's name, how
+//             long the set takes, how it is checked, its tools, and the level on a bar. Start
+//             under the thumb.
+//   SetEnd    an ending in stages that comes down to one full screen:
+//               1 the score      the character arrives, a word for how it went, the answers
+//                                lighting up one by one;
+//               2 the coins      they fly up into the counter in the corner, which counts;
+//               3 the level      its bar fills slowly from where the skill was to where it is,
+//                                and the level's name changes as it crosses;
+//               4 the summary    all of it on one screen: score, each answer (press one to see
+//                                it), time and pace beside the test's own pace, level, coins,
+//                                and what to do next.
+//             A press anywhere moves a stage on; Skip goes straight to the summary; with less
+//             motion asked for the summary is simply there.
+// Levels are shown as the founder names them (shown-level.ts). The character is the fox until the
+// one the student has chosen is kept with their account.
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Coin } from "@/components/portal/Coin";
+import { Fox } from "@/components/portal/Fox";
 import type { RunView } from "@/lib/assembler/run-types";
+import { prefersStill } from "@/lib/painting/motion";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import { CoinBurst } from "./CoinBurst";
 import { FlowStage, Go } from "./FlowStage";
-import { LevelTrail, SetRing } from "./SetRing";
 import { SHOWN_LEVELS, clockOf, minutesFor, shownLevel } from "./shown-level";
 import { arrive, confetti, count, curtain, swell } from "./stage-motion";
-import r from "./ring.module.css";
+import e from "./ending.module.css";
 import s from "./stage.module.css";
 
 const ICON = {
@@ -34,6 +39,10 @@ const ICON = {
     <path d="M14.500 5.500a4 4 0 0 0-5 5L4 16l1.500 2.500L8 20l5.500-5.500a4 4 0 0 0 5-5L16 12l-2-.500-.500-2z" />
   ),
 };
+const LAST = SHOWN_LEVELS.length - 1;
+/** The digital SAT's own pace, in seconds a question: 35 minutes for 22 in Math, 32 for 27 in
+ *  Reading and Writing. */
+const TEST_PACE = { math: 95, reading: 71 } as const;
 
 /** A word for how a set went, from the share that was right. */
 export function verdictOf(right: number, total: number): string {
@@ -45,15 +54,58 @@ export function verdictOf(right: number, total: number): string {
   return "Tough set";
 }
 
-/** The longest run of right answers in a row. */
-export function bestRun(marks: boolean[]): number {
-  let best = 0;
-  let now = 0;
-  for (const mark of marks) {
-    now = mark ? now + 1 : 0;
-    best = Math.max(best, now);
-  }
-  return best;
+/** Which colours the ending wears: gold for a strong set, blue for a middling one, rose for a
+ *  hard one. */
+export function toneOf(right: number, total: number): "gold" | "blue" | "rose" {
+  const share = total ? right / total : 0;
+  return share >= 0.75 ? "gold" : share >= 0.5 ? "blue" : "rose";
+}
+
+/** The character on a slow burst of colour. */
+function Hero({ size }: { size: number }) {
+  return (
+    <div className={e.hero} style={{ "--hero": `${size}px` } as CSSProperties} aria-hidden="true">
+      <i className={e.rays} />
+      <i className={e.glow} />
+      <span className={e.who}>
+        <Fox size={size * 0.62} />
+      </span>
+    </div>
+  );
+}
+
+/** The level as a bar under its name. With `from` it starts there and fills slowly to `to`, and
+ *  the name changes as the bar gets there. */
+function LevelBar({ to, from = to, play = false }: { to: number; from?: number; play?: boolean }) {
+  const [name, setName] = useState(SHOWN_LEVELS[play ? from : to]);
+  useEffect(() => {
+    if (!play || from === to) return setName(SHOWN_LEVELS[to]);
+    setName(SHOWN_LEVELS[from]);
+    const timer = window.setTimeout(() => setName(SHOWN_LEVELS[to]), 1500);
+    return () => window.clearTimeout(timer);
+  }, [play, from, to]);
+  return (
+    <div
+      className={e.level}
+      data-play={(play && from !== to) || undefined}
+      style={{ "--from": from / LAST, "--to": to / LAST } as CSSProperties}
+      role="img"
+      aria-label={`Level: ${SHOWN_LEVELS[to]}`}
+    >
+      <b key={name}>{name}</b>
+      <div className={e.bar}>
+        <i />
+        {Array.from({ length: LAST - 1 }, (_, i) => (
+          <span key={i} style={{ left: `${((i + 1) / LAST) * 100}%` }} />
+        ))}
+      </div>
+      <ol>
+        {SHOWN_LEVELS.map((level) => (
+          <li key={level}>{level}</li>
+        ))}
+      </ol>
+    </div>
+  );
 }
 
 export function SetStart({
@@ -83,8 +135,8 @@ export function SetStart({
   useEffect(() => arrive(root.current), []);
   // the screen exists to be started: Enter begins it, wherever the focus is
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Enter" || busy || (e.target as Element).closest?.("a, button")) return;
+    const key = (ev: KeyboardEvent) => {
+      if (ev.key !== "Enter" || busy || (ev.target as Element).closest?.("a, button")) return;
       onStart();
     };
     window.addEventListener("keydown", key);
@@ -95,60 +147,103 @@ export function SetStart({
     subject === "math" ? "Calculator, Reference, Pencil" : "Highlighter, Pencil, Cross out";
   return (
     <FlowStage back={{ href: exitHref, label: "Back" }}>
-      <div className={r.screen} ref={root}>
-        <div className={r.hero}>
-          <header className={r.head} data-rise>
+      <div className={e.screen} ref={root} data-tone={subject === "math" ? "blue" : "gold"}>
+        <div className={e.lead}>
+          <Hero size={220} />
+          <header className={e.name} data-rise>
             <h1>{name}</h1>
             <p>
               {domain} · {subject === "math" ? "Math" : "Reading and Writing"}
             </p>
           </header>
-          <SetRing beads={Array.from({ length: questions }, () => null)}>
-            <b className={r.big}>{questions}</b>
-            <span className={r.of}>questions</span>
-          </SetRing>
         </div>
-        <ul className={r.facts} data-rise aria-label="About this set">
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {ICON.time}
-            </svg>
-            <span>Takes about</span>
-            <b>{minutesFor(questions, subject)} minutes</b>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {ICON.check}
-            </svg>
-            <span>Checked</span>
-            <b>After every answer</b>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {ICON.tools}
-            </svg>
-            <span>Tools</span>
-            <b>{tools}</b>
-          </li>
-        </ul>
-        <section className={r.card} data-rise aria-label="Your level">
-          <small>Your level in {name}</small>
-          <LevelTrail names={SHOWN_LEVELS} from={lit} to={lit} marker={<Coin size={26} />} />
-        </section>
-        <div className={r.foot}>
-          <Go onClick={onStart} busy={busy} hint="Enter">
-            Start
-          </Go>
-          {lessonHref && (
-            <Link className={s.second} href={lessonHref} data-rise>
-              Lesson
-            </Link>
-          )}
+        <div className={e.side}>
+          <ul className={e.facts} data-rise aria-label="About this set">
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 6.500h14M5 12h14M5 17.500h9" />
+              </svg>
+              <span>Questions</span>
+              <b>{questions}</b>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {ICON.time}
+              </svg>
+              <span>Takes about</span>
+              <b>{minutesFor(questions, subject)} minutes</b>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {ICON.check}
+              </svg>
+              <span>Checked</span>
+              <b>After every answer</b>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {ICON.tools}
+              </svg>
+              <span>Tools</span>
+              <b>{tools}</b>
+            </li>
+          </ul>
+          <section className={e.card} data-rise aria-label="Your level">
+            <small>Your level</small>
+            <LevelBar to={lit} />
+          </section>
+          <div className={e.foot}>
+            <Go onClick={onStart} busy={busy} hint="Enter">
+              Start
+            </Go>
+            {lessonHref && (
+              <Link className={s.second} href={lessonHref} data-rise>
+                Lesson
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </FlowStage>
   );
 }
+
+type Given = { id: string; right: boolean; yours: string; answer: string };
+
+/** The answers in order, as dots. With `onChoose` each is a button that shows that answer. */
+function Dots({
+  given,
+  chosen,
+  onChoose,
+}: {
+  given: Given[];
+  chosen?: number | null;
+  onChoose?: (index: number) => void;
+}) {
+  return (
+    <ol className={e.dots} aria-label="Your answers in order">
+      {given.map((a, i) => (
+        <li key={a.id} style={{ "--i": i } as CSSProperties}>
+          {onChoose ? (
+            <button
+              type="button"
+              data-right={a.right || undefined}
+              aria-pressed={chosen === i}
+              aria-label={`Question ${i + 1}: ${a.right ? "right" : "missed"}`}
+              onClick={() => onChoose(i)}
+            >
+              {i + 1}
+            </button>
+          ) : (
+            <i data-right={a.right || undefined}>{i + 1}</i>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+const SUMMARY = 3;
 
 export function SetEnd({
   run,
@@ -164,64 +259,83 @@ export function SetEnd({
   const stage = useRef<HTMLDivElement>(null);
   const veil = useRef<HTMLDivElement>(null);
   const score = useRef<HTMLElement>(null);
-  const share = useRef<HTMLElement>(null);
-  const purse = useRef<HTMLLIElement>(null);
+  const corner = useRef<HTMLDivElement>(null);
   const coins = useRef<HTMLElement>(null);
+  const [step, setStep] = useState(0);
   const [burst, setBurst] = useState(0);
   const [found, setFound] = useState<number | null>(null);
 
   const result = run.result;
-  // a set on a whole skill can move several of its sub-skills: the three that moved most are shown
-  const moves = (result?.skills ?? []).slice(0, 3).map((k) => ({
-    skillId: k.skillId,
-    label: k.label,
+  const move = (result?.skills ?? []).slice(0, 1).map((k) => ({
     from: shownLevel(k.from),
     to: shownLevel(k.to),
-  }));
-  const up = moves.some((m) => m.to > m.from);
+  }))[0];
+  const up = !!move && move.to > move.from;
   const right = result?.right ?? 0;
   const total = result?.total ?? 0;
   const tokens = result?.tokens ?? 0;
-  const percent = total ? Math.round((right / total) * 100) : 0;
   const took = run.completedAt ? Date.parse(run.completedAt) - Date.parse(run.startedAt) : 0;
   const time = clockOf(took);
   // a pace is only said when the time is known
   const pace = total && time ? clockOf(took / total) : null;
+  const subject = run.sections[0]?.subject ?? "math";
   const flying = Math.min(18, Math.max(tokens > 0 ? 5 : 0, Math.round(tokens / 5)));
+  // which stages there are: no coins stage with none earned, no level stage with no level kept
+  const stages = [0, ...(tokens > 0 ? [1] : []), ...(move ? [2] : []), SUMMARY];
+  const next = () => setStep((now) => stages[stages.indexOf(now) + 1] ?? SUMMARY);
 
+  // the curtain, then the stages one after another
   useEffect(() => {
-    const undo = [
-      curtain(veil.current, stage.current),
-      arrive(stage.current),
-      count(score.current, right, 0.9),
-      count(share.current, percent, 1.2),
-      up ? confetti(stage.current, 2.9) : undefined,
-    ];
-    const timers = [
-      // coins leave once the ring is drawn; with less motion asked for, none fly
-      window.setTimeout(() => setBurst(1), 1700),
-      // one sound for the one real moment: a level gained, as the marker lands
-      up ? window.setTimeout(() => playRewardSound("levelUp"), 2900) : 0,
-    ];
-    return () => {
-      undo.forEach((stop) => stop?.());
-      timers.forEach((t) => window.clearTimeout(t));
-    };
-  }, [right, percent, up]);
+    if (prefersStill()) {
+      curtain(veil.current, null);
+      setStep(SUMMARY);
+      return;
+    }
+    const undo = curtain(veil.current, null);
+    return () => undo?.();
+  }, []);
+  useEffect(() => {
+    if (step === SUMMARY) return;
+    // a level that did not move is shown for less time: there is nothing to watch
+    const hold =
+      step === 0 ? 3600 : step === 1 ? 2600 : move && move.to !== move.from ? 3800 : 2000;
+    const timer = window.setTimeout(next, hold);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+  // what each stage sets going
+  useEffect(() => {
+    if (step === 0) return count(score.current, right, 1.5);
+    if (step === 1) {
+      const timer = window.setTimeout(() => setBurst((n) => n + 1), 350);
+      return () => window.clearTimeout(timer);
+    }
+    if (step === 2 && up) {
+      const undo = confetti(stage.current, 1.7);
+      // one sound for the one real moment: a level gained, as the bar gets there
+      const timer = window.setTimeout(() => playRewardSound("levelUp"), 1700);
+      return () => (undo?.(), window.clearTimeout(timer));
+    }
+    if (step === SUMMARY) {
+      if (coins.current) coins.current.textContent = `+${tokens}`;
+      return arrive(stage.current);
+    }
+  }, [step, right, tokens, up]);
 
   // Enter takes the next step, as it started the set
-  const next = up ? (againHref ?? exitHref) : (lessonHref ?? againHref ?? exitHref);
+  const onward = up ? (againHref ?? exitHref) : (lessonHref ?? againHref ?? exitHref);
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Enter" || (e.target as Element).closest?.("a, button")) return;
-      window.location.assign(next);
+    const key = (ev: KeyboardEvent) => {
+      if (ev.key !== "Enter" || (ev.target as Element).closest?.("a, button")) return;
+      if (step === SUMMARY) window.location.assign(onward);
+      else setStep(SUMMARY);
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [next]);
+  }, [onward, step]);
 
   if (!result) return null;
-  const given = run.sections.flatMap((section) =>
+  const given: Given[] = run.sections.flatMap((section) =>
     section.questions.map((q) => {
       const review = run.reviews[q.id];
       return {
@@ -233,7 +347,14 @@ export function SetEnd({
     })
   );
   const shown = found === null ? null : given[found];
-  const move = moves[0];
+  const verdict = verdictOf(right, total);
+  const levelLine = !move
+    ? null
+    : move.to > move.from
+      ? `Up from ${SHOWN_LEVELS[move.from]}`
+      : move.to < move.from
+        ? `Down from ${SHOWN_LEVELS[move.from]}`
+        : "Same level as before";
 
   return (
     <FlowStage back={{ href: exitHref, label: "Done" }}>
@@ -244,107 +365,130 @@ export function SetEnd({
         className={s.burst}
         coins={flying}
         play={burst}
-        target={purse}
+        target={corner}
         onLand={(landed, of) => {
           if (coins.current) coins.current.textContent = `+${Math.round((tokens * landed) / of)}`;
-          swell(purse.current?.querySelector("svg") ?? null);
+          swell(corner.current?.querySelector("svg") ?? null);
         }}
       />
-      <div className={r.screen} ref={stage} data-up={up || undefined}>
-        <div className={r.hero}>
-          <header className={r.head} data-rise>
-            <h1>{verdictOf(right, total)}</h1>
-            <p>{run.title}</p>
-          </header>
-          <SetRing
-            beads={given.map((a) => ({ right: a.right }))}
-            share={total ? right / total : 0}
-            chosen={found}
-            onChoose={(i) => setFound(found === i ? null : i)}
-          >
-            <b className={r.big} ref={score} aria-hidden="true">
-              {right}
-            </b>
-            <span className={r.of} aria-label={`${right} of ${total} right`}>
-              of {total} right
-            </span>
-          </SetRing>
-          {shown ? (
-            <p className={r.shown} key={found} data-right={shown.right || undefined}>
-              <i aria-hidden="true">{(found ?? 0) + 1}</i>
-              <span>
-                <b>{shown.yours}</b>
-                {!shown.right && shown.answer && <small>Answer: {shown.answer}</small>}
-              </span>
-              <em>{shown.right ? "Right" : "Missed"}</em>
-            </p>
-          ) : (
-            <p className={r.hint}>Press a bead to see that answer</p>
-          )}
+      {/* the coin counter, up in the corner: the coins fly to it */}
+      {tokens > 0 && (
+        <div
+          className={e.corner}
+          ref={corner}
+          data-on={step >= 1 || undefined}
+          aria-label={`${tokens} coins earned`}
+        >
+          <Coin size={24} />
+          <b ref={coins}>+0</b>
         </div>
-
-        <ul className={r.numbers} aria-label="How it went">
-          <li data-rise>
-            <b>
-              <i ref={share}>{percent}</i>%
-            </b>
-            <span>Accuracy</span>
-          </li>
-          <li data-rise>
-            <b>{time ?? "–"}</b>
-            <span>Time</span>
-          </li>
-          <li data-rise>
-            <b>{pace ?? "–"}</b>
-            <span>A question</span>
-          </li>
-          <li data-rise>
-            <b>{bestRun(given.map((a) => a.right))}</b>
-            <span>Best run in a row</span>
-          </li>
-          <li data-rise ref={purse} className={r.purse}>
-            <button
-              type="button"
-              onClick={() => tokens > 0 && setBurst((n) => n + 1)}
-              aria-label={`${tokens} coins earned`}
-            >
-              <b>
-                <Coin size={30} />
-                <i ref={coins}>+{tokens}</i>
-              </b>
-              <span>Coins earned</span>
+      )}
+      <div
+        className={e.end}
+        ref={stage}
+        data-tone={toneOf(right, total)}
+        data-step={step}
+        onClick={(ev) => {
+          if (step !== SUMMARY && !(ev.target as Element).closest("a, button")) next();
+        }}
+      >
+        {step !== SUMMARY ? (
+          <div className={e.spot}>
+            <Hero size={240} />
+            {step === 0 && (
+              <section className={e.act} key="score" aria-live="polite">
+                <h1>{verdict}</h1>
+                <p className={e.big}>
+                  <b ref={score} aria-hidden="true">
+                    0
+                  </b>
+                  <span aria-label={`${right} of ${total} right`}>of {total}</span>
+                </p>
+                <Dots given={given} />
+              </section>
+            )}
+            {step === 1 && (
+              <section className={e.act} key="coins" aria-live="polite">
+                <h1>Coins earned</h1>
+                <p className={e.big}>
+                  <Coin size={54} />
+                  <b>+{tokens}</b>
+                </p>
+              </section>
+            )}
+            {step === 2 && move && (
+              <section className={e.act} key="level" aria-live="polite">
+                <h1>{up ? "Level up" : "Your level"}</h1>
+                <LevelBar from={move.from} to={move.to} play />
+              </section>
+            )}
+            <button type="button" className={e.skip} onClick={() => setStep(SUMMARY)}>
+              Skip
             </button>
-          </li>
-        </ul>
-
-        {move && (
-          <section className={r.card} data-rise aria-label="Level">
-            <small>
-              {move.to > move.from
-                ? `Level up: ${SHOWN_LEVELS[move.to]}`
-                : move.to < move.from
-                  ? `Level: down to ${SHOWN_LEVELS[move.to]}`
-                  : `Level: still ${SHOWN_LEVELS[move.to]}`}
-            </small>
-            <LevelTrail
-              names={SHOWN_LEVELS}
-              from={move.from}
-              to={move.to}
-              marker={<Coin size={26} />}
-            />
-          </section>
+          </div>
+        ) : (
+          <div className={e.screen}>
+            <div className={e.lead}>
+              <Hero size={170} />
+              <header className={e.name} data-rise>
+                <h1>{verdict}</h1>
+                <p>{run.title}</p>
+              </header>
+            </div>
+            <div className={e.side}>
+              <section className={e.card} data-rise aria-label="Score">
+                <p className={e.line}>
+                  <b aria-label={`${right} of ${total} right`}>
+                    {right}
+                    <small> of {total} right</small>
+                  </b>
+                </p>
+                <Dots
+                  given={given}
+                  chosen={found}
+                  onChoose={(i) => setFound(found === i ? null : i)}
+                />
+                {shown ? (
+                  <p className={e.shown} key={found} data-right={shown.right || undefined}>
+                    <span>
+                      <b>{shown.yours}</b>
+                      {!shown.right && shown.answer && <small>Answer: {shown.answer}</small>}
+                    </span>
+                    <em>{shown.right ? "Right" : "Missed"}</em>
+                  </p>
+                ) : (
+                  <p className={e.hint}>Press a number to see that answer</p>
+                )}
+              </section>
+              <ul className={e.pair} aria-label="Time and pace">
+                <li data-rise>
+                  <b>{time ?? "–"}</b>
+                  <span>Time</span>
+                </li>
+                <li data-rise>
+                  <b>{pace ?? "–"}</b>
+                  <span>A question · the SAT allows {clockOf(TEST_PACE[subject] * 1000)}</span>
+                </li>
+              </ul>
+              {move && (
+                <section className={e.card} data-rise aria-label="Level">
+                  <small>{levelLine}</small>
+                  <LevelBar to={move.to} />
+                </section>
+              )}
+              <div className={e.foot} data-rise>
+                <Go href={onward} hint="Enter">
+                  {up ? "Another set" : lessonHref ? "Lesson" : "Try again"}
+                </Go>
+                {!up && lessonHref && againHref && (
+                  <Link className={s.second} href={againHref}>
+                    Try again
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
         )}
-
-        <div className={r.foot} data-rise>
-          <Go href={next} hint="Enter">
-            {up ? "Another set" : lessonHref ? "Lesson" : "Try again"}
-          </Go>
-          {!up && lessonHref && againHref && (
-            <Link className={s.second} href={againHref}>
-              Try again
-            </Link>
-          )}
-        </div>
       </div>
     </FlowStage>
   );

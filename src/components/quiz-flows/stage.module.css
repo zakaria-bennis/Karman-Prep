@@ -4,7 +4,7 @@
  * starting, answering and finishing are one place.
  *
  * This file holds what every activity shares: the stage, the way back, the one button and the
- * veil. A set's own two screens are in ring.module.css.
+ * veil. A set's own two screens are in ending.module.css.
  *
  * Type is Hanken Grotesk throughout (he found the serif "tacky and old" here): 13, 16, and heavy
  * numbers. A control is at least 52 tall. (The -webkit- line of a backdrop filter comes first: the

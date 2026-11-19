@@ -1112,11 +1112,10 @@
 
 /* Where a phone's number keys sit: a strip of the bar's own glass, just above the bottom bar.
    Empty, it takes no room. */
+/* The number pad has no tray of its own (founder, 2026-11-19): the keys float on the landscape,
+   which shows between them. */
 .keysSlot:not(:empty) {
-  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
-  background: var(--quiz-bar);
-  -webkit-backdrop-filter: var(--quiz-frost);
-  backdrop-filter: var(--quiz-frost);
+  background: none;
 }
 
 /* On a phone or a tablet there is no room beside the question: the explanation comes up from the
