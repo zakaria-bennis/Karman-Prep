@@ -8,8 +8,8 @@ import styles from "./pane.module.css";
 /** Where a phone's keys are put: low on the screen, just above the bottom bar (QuizShell). */
 export const KEYS_SLOT_ID = "quiz-keys-slot";
 
-/** A phone's dial: three across, the numbers where thumbs expect them. */
-const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/"];
+/** A phone's keys: five across in three short rows, so the question stays in sight. */
+const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ".", "/"];
 /** What the SAT takes in a typed answer, said inside the box until typing starts; short enough
  *  for a phone's box. */
 const HINT = "Type a number, decimal or fraction";
@@ -141,7 +141,16 @@ export function NumericEntry({
           id="quiz-numeric-answer"
           ref={box}
           className={styles.numericInput}
-          onFocus={() => setUp(true)}
+          onFocus={(e) => {
+            setUp(true);
+            // the keys take room at the bottom: once they are up, the box is brought back into
+            // sight with the question over it
+            const box = e.currentTarget;
+            window.setTimeout(
+              () => box.scrollIntoView({ block: "center", behavior: "smooth" }),
+              260
+            );
+          }}
           // with keys of its own on screen, the device's keyboard is never called up
           inputMode={touch ? "none" : "decimal"}
           autoComplete="off"

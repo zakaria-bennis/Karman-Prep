@@ -439,28 +439,30 @@
 /* A phone's or a tablet's own keys for a typed answer: three across like a dial, low on the
    screen (they are put just above the bottom bar), each big enough for a thumb and plainly
    pressed when it is. */
+/* Three short rows, five across, so the question stays in sight above them (founder, 2026-11-19:
+   the keys "take up too much of the screen"). */
 .keys {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  width: min(100%, 460px);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 520px);
   margin: 0 auto;
-  padding: 0 12px;
+  padding: 0 10px;
 }
-.keys > :nth-child(-n + 3) {
-  margin-top: 10px;
+.keys > :nth-child(-n + 5) {
+  margin-top: 8px;
 }
-.keys > :nth-last-child(-n + 2) {
-  margin-bottom: 10px;
+.keys > :nth-last-child(-n + 4) {
+  margin-bottom: 8px;
 }
 .key {
-  height: 54px;
+  height: 46px;
   border: 1.5px solid var(--quiz-line);
-  border-radius: 16px;
+  border-radius: 13px;
   background: var(--quiz-lens);
   color: var(--quiz-text);
   font: inherit;
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;

@@ -19,7 +19,7 @@ const KEY = "kp-music";
 const REFUSALS = 2;
 /** How long it waits before coming in, and how long it stays if nothing is pressed. */
 const WAIT = 1600;
-const STAY = 6000;
+const STAY = 4000; // founder, 2026-11-19: four seconds at most
 /** How long the notes dance once music is turned on, before the banner slides away. */
 const DANCE = 1300;
 /** It is offered from 8 PM until the small hours. */

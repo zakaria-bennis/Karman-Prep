@@ -250,51 +250,51 @@
 }
 /* Phones: two rows. Exit, the name and the clock on top; every tool, with its word, under. On
    a phone the clock is put away by pressing it, so its Hide button is not shown. */
+/* Phones: one short row, so the question has the screen (founder, 2026-11-19: "the header takes
+   up way too much space"). The clock at the left, the five tools as drawings without their words,
+   and Exit at the right, away from Calculator so it is not pressed by mistake. The quiz's name is
+   left out here: there is no room for it, and the student has just chosen it. */
 .compact .topBar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  row-gap: 4px;
-  min-height: 0;
-  padding-bottom: 4px;
+  display: flex;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left));
+  padding-top: max(6px, env(safe-area-inset-top));
 }
 .compact .barStart {
   display: contents;
 }
-/* the name is in the middle of the screen whatever is at its sides: it spans the whole row */
 .compact .barTitle {
-  position: static;
-  grid-column: 1 / -1;
-  grid-row: 1;
-  justify-self: center;
-  max-width: calc(100% - 210px);
-  transform: none;
-}
-.compact .barButton.exit {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-}
-/* On a phone the clock is at the left and Exit at the right, over More: Exit is kept away from
-   Calculator, which is pressed often, so it is not pressed by mistake (founder, 2026-11-17). */
-.compact .barCentre {
-  grid-column: 1;
-  grid-row: 1;
-  justify-content: flex-start;
-}
-.compact .topic {
   display: none;
 }
-.compact .tools {
-  grid-column: 1 / -1;
-  justify-content: space-between;
-  gap: 0;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 45%, transparent);
+.compact .barCentre {
+  order: 0;
+  justify-content: flex-start;
 }
-.compact .tools > * {
+.compact .tools {
+  order: 1;
   flex: 1;
-  display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
+  gap: 0;
+}
+.compact .barButton.exit {
+  order: 2;
+  gap: 0;
+  width: 40px;
+  padding: 0;
+}
+.compact .topBar .barWord {
+  font-size: 0;
+  opacity: 0;
+}
+.compact .topBar .barButton,
+.compact .tools :global([data-calculator-trigger]) {
+  gap: 0;
+  min-width: 40px;
+  min-height: 40px;
+}
+.compact .tools :global([data-calculator-trigger]) {
+  font-size: 0;
 }
 .compact .bottomBar {
   min-height: 60px;

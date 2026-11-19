@@ -73,8 +73,8 @@
   left: 24px;
   margin: 0;
   color: #1d1a22;
-  font: 400 34px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
+  font: 700 30px/1.1 var(--font-sans);
+  letter-spacing: -0.02em;
   text-shadow: 0 0 24px rgb(255 240 220 / 0.8);
   pointer-events: none;
   transition: opacity 0.3s var(--out);
@@ -150,8 +150,8 @@
 }
 
 .name {
-  font: 400 20px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
+  font: 700 18px/1.15 var(--font-sans);
+  letter-spacing: -0.01em;
 }
 
 .meta {
@@ -188,6 +188,57 @@
 @keyframes fill {
   from {
     transform: scaleX(0);
+  }
+}
+
+/* On a phone the two signs are pulled out of the seam itself (founder, 2026-11-19): Reading and
+   Writing lies along it at the left, on the day's side, and Math hangs from it at the right, on
+   the night's. Each is tilted to the seam's own slope (it rises 15 degrees to the right and passes
+   through the middle of the screen), so the book and the observatory keep the middle of their
+   halves. They slide out from behind the seam once the skies have opened. */
+@media (max-width: 699px) and (orientation: portrait) {
+  .hero .plaque {
+    --slope: 0.268; /* tan 15deg */
+    --inset: 14px;
+    position: absolute;
+    rotate: -15deg;
+    max-width: 66vw;
+    animation: pull 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.15) 1s both;
+  }
+
+  .hero .pick[data-side="0"] .plaque {
+    left: var(--inset);
+    top: calc(50dvh + (50vw - var(--inset)) * var(--slope) - 12px);
+    translate: 0 -100%;
+    transform-origin: 0 100%;
+    border-bottom-left-radius: 6px;
+    --from: 0 0;
+    --clip: inset(0 0 100% 0);
+  }
+
+  .hero .pick[data-side="1"] .plaque {
+    left: calc(100vw - var(--inset));
+    top: calc(50dvh - (50vw - var(--inset)) * var(--slope) + 7px);
+    translate: -100% 0;
+    transform-origin: 100% 0;
+    border-top-right-radius: 6px;
+    --from: -100% -100%;
+    --clip: inset(100% 0 0 0);
+  }
+
+  .hero .pick[data-side="0"] {
+    padding-bottom: 12px;
+  }
+}
+
+@keyframes pull {
+  from {
+    translate: var(--from);
+    clip-path: var(--clip);
+  }
+
+  to {
+    clip-path: inset(-40px);
   }
 }
 
@@ -244,6 +295,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero .plaque {
+    animation: none;
+  }
+
   .band i {
     animation: none;
   }

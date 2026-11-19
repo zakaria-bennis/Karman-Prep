@@ -9,11 +9,10 @@ import { useEffect, useState } from "react";
 import { stillChosen } from "@/lib/painting/motion";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
-import { TRACK_NAMES } from "./music";
 import { PLANS } from "./plans";
 import { PANES, type FolderKey, type PaneProps } from "./SettingsPanes";
-import { Chevron, Icon } from "./settingsControls";
-import { TEXT_NAMES, dayName, useSettings, type Settings as Kept } from "./settingsStore";
+import { Icon } from "./settingsControls";
+import { useSettings } from "./settingsStore";
 import { Me } from "./shellBits";
 import { tick } from "./sound";
 import styles from "./settings.module.css";
@@ -30,38 +29,13 @@ const NAMES: Record<FolderKey, string> = {
   calendars: "Calendar sync",
   help: "Help and support",
 };
-const ORDER: FolderKey[] = [
-  "profile",
-  "people",
-  "sat",
-  "sound",
-  "look",
-  "quiz",
-  "notify",
-  "plan",
-  "calendars",
-  "help",
+/* The folders in three sets, so a student looks in the right place first: who they are, how the
+   portal looks and sounds, and the account itself. */
+const SETS: { name: string; keys: FolderKey[] }[] = [
+  { name: "You", keys: ["profile", "people", "sat"] },
+  { name: "Preferences", keys: ["look", "sound", "quiz", "notify"] },
+  { name: "Account", keys: ["plan", "calendars", "help"] },
 ];
-
-/** What a folder is set to, said in a word or two beside its name. */
-function summary(key: FolderKey, s: Kept, props: PaneProps): string {
-  switch (key) {
-    case "sat":
-      return s.testDate ? dayName(s.testDate).replace(/, \d+$/, "") : "No date yet";
-    case "sound":
-      return s.music ? TRACK_NAMES[s.track] : s.sounds ? "Effects on" : "Off";
-    case "look":
-      return `${props.dark ? "Dark" : "Light"}, ${TEXT_NAMES[s.textStep].toLowerCase()}`;
-    case "quiz":
-      return s.angle === "rad" ? "Radians" : "Degrees";
-    case "plan":
-      return PLANS[props.plan].name;
-    case "calendars":
-      return s.apple || s.google ? "Connected" : "";
-    default:
-      return "";
-  }
-}
 
 const IN = { type: "spring", stiffness: 460, damping: 36, mass: 1 } as const;
 
@@ -98,27 +72,27 @@ export default function Settings({
         <b>{s.name || "Your name"}</b>
         <small>{PLANS[props.plan].name}</small>
       </section>
-      <nav className={`${lib.glass} ${styles.folders}`} aria-label="Settings">
-        {ORDER.map((key) => {
-          const says = summary(key, s, props);
-          return (
-            <button
-              key={key}
-              type="button"
-              aria-current={rail && shown === key ? "true" : undefined}
-              onClick={() => {
-                tick();
-                setOpen(key);
-                if (!rail) window.scrollTo({ top: 0 });
-              }}
-            >
-              <Icon name={key} />
-              <b>{NAMES[key]}</b>
-              {says && <small>{says}</small>}
-              <Chevron />
-            </button>
-          );
-        })}
+      <nav className={styles.sets} aria-label="Settings">
+        {SETS.map((set) => (
+          <div key={set.name} className={`${lib.glass} ${styles.folders}`}>
+            <h3>{set.name}</h3>
+            {set.keys.map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-current={rail && shown === key ? "true" : undefined}
+                onClick={() => {
+                  tick();
+                  setOpen(key);
+                  if (!rail) window.scrollTo({ top: 0 });
+                }}
+              >
+                <Icon name={key} />
+                <b>{NAMES[key]}</b>
+              </button>
+            ))}
+          </div>
+        ))}
       </nav>
       <button type="button" className={`${lib.glass} ${styles.out}`} onClick={() => tick()}>
         Sign out

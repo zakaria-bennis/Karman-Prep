@@ -47,8 +47,10 @@ export type PaneProps = {
 function Group({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section className={styles.group}>
-      {title && <h2>{title}</h2>}
-      <div className={styles.rows}>{children}</div>
+      <div className={styles.rows}>
+        {title && <h2>{title}</h2>}
+        {children}
+      </div>
     </section>
   );
 }
@@ -289,7 +291,7 @@ function Sound() {
             />
           }
         />
-        <Row name="Start automatically" note="Every night, at the time you pick">
+        <Row name="Auto play">
           <Toggle
             label="Start music by itself"
             on={s.musicAuto}

@@ -668,12 +668,18 @@
 .title {
   margin: 0;
   padding: 0 4px;
+  justify-self: start;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
   color: var(--ink);
-  font: 400 28px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
-  text-shadow:
-    0 0 28px var(--halo),
-    0 0 8px var(--halo);
+  /* plain and readable on any sky (founder, 2026-11-19: no white serif titles on the landscape) */
+  font: 700 20px/1.2 var(--font-sans);
   animation: arrive 0.28s var(--out) both;
 }
 
