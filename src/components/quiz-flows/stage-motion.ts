@@ -15,25 +15,6 @@ export function arrive(root: HTMLElement | null) {
   return () => void tween.kill();
 }
 
-/** The answers land in the order they were given: a right one pops, a miss drops and settles. */
-export function land(list: HTMLElement | null, after = 0.25) {
-  if (!list || prefersStill()) return;
-  const tween = gsap.fromTo(
-    list.children,
-    { scale: 0, opacity: 0 },
-    {
-      scale: 1,
-      opacity: 1,
-      duration: 0.4,
-      ease: "back.out(2.4)",
-      stagger: 0.07,
-      delay: after,
-      clearProps: "all",
-    }
-  );
-  return () => void tween.kill();
-}
-
 /** A number counts up to where it stands. */
 export function count(el: HTMLElement | null, to: number, after = 0.2, sign = "") {
   if (!el) return;
@@ -52,27 +33,6 @@ export function count(el: HTMLElement | null, to: number, after = 0.2, sign = ""
     },
   });
   return () => void tween.kill();
-}
-
-/** The level's bars fill from where the skill was to where it is now, each with a small swell. */
-export function fill(bars: HTMLElement | null, from: number, to: number, after = 0.9) {
-  if (!bars) return;
-  const all = [...bars.children] as HTMLElement[];
-  all.forEach((bar, i) => bar.toggleAttribute("data-on", i < (prefersStill() ? to : from)));
-  if (prefersStill() || to === from) {
-    all.forEach((bar, i) => bar.toggleAttribute("data-on", i < to));
-    return;
-  }
-  const line = gsap.timeline({ delay: after });
-  const step = to > from ? 1 : -1;
-  for (let level = from; level !== to; level += step) {
-    const bar = all[step > 0 ? level : level - 1];
-    if (!bar) continue;
-    line
-      .call(() => bar.toggleAttribute("data-on", step > 0))
-      .fromTo(bar, { scaleY: 1.9 }, { scaleY: 1, duration: 0.5, ease: "elastic.out(1, 0.5)" });
-  }
-  return () => void line.kill();
 }
 
 const PARTY = ["#23a26d", "#ffc81a", "#4f8dff", "#ff6b8a", "#fffdf8"];

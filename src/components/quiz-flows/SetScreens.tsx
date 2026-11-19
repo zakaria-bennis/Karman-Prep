@@ -1,34 +1,59 @@
 "use client";
-// The skill set's two screens (founder, 2026-11-18), on the frosted stage. Each is laid out three
-// ways, for a phone, a tablet and a computer (stage.module.css), and both carry real information.
-//   SetStart  the skill and where it sits, how long the set is, the student's level, what tools the
-//             set allows, and Start.
-//   SetEnd    the last question's glass says the set is over and draws back; the ending comes out
-//             of it: the score, accuracy, time and pace, every answer in order (press one to find
-//             it in the list), the level before and after, and coins that fly into their counter.
+// The skill set's two screens (founder, 2026-11-19, the third try: the first two were "bland" and
+// "trash"). Each is built round one big thing, a ring with a bead for every question
+// (SetRing.tsx), and is laid out three ways, for a phone, a tablet and a computer (ring.module.css).
+//   SetStart  the skill's name over an empty ring that says how many questions wait; under it how
+//             long the set takes, how it is checked, the tools it allows and the student's level
+//             on its trail; Start under the thumb.
+//   SetEnd    the last question's glass draws back and the ring comes out of it: a word for how
+//             it went, the beads turning green or red in the order answered, the ring drawn to
+//             the share that was right and the score counting up in its middle. A bead can be
+//             pressed to see that answer. Then accuracy, time, pace and the best run, the coins
+//             flying into their purse, and the level's marker travelling to where it now stands.
 //             A level gained gets confetti and the one sound.
 // Levels are shown as the founder names them (shown-level.ts).
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Coin } from "@/components/portal/Coin";
 import type { RunView } from "@/lib/assembler/run-types";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import { CoinBurst } from "./CoinBurst";
 import { FlowStage, Go } from "./FlowStage";
+import { LevelTrail, SetRing } from "./SetRing";
 import { SHOWN_LEVELS, clockOf, minutesFor, shownLevel } from "./shown-level";
-import { arrive, confetti, count, curtain, fill, land, swell } from "./stage-motion";
+import { arrive, confetti, count, curtain, swell } from "./stage-motion";
+import r from "./ring.module.css";
 import s from "./stage.module.css";
 
-const BARS = SHOWN_LEVELS.length - 1;
+const ICON = {
+  time: <path d="M12 7.500V12l3 2M12 3.500a8.500 8.500 0 1 0 0 17 8.500 8.500 0 0 0 0-17z" />,
+  check: (
+    <path d="M8 12.300l2.700 2.700L16 9.500M12 3.500a8.500 8.500 0 1 0 0 17 8.500 8.500 0 0 0 0-17z" />
+  ),
+  tools: (
+    <path d="M14.500 5.500a4 4 0 0 0-5 5L4 16l1.500 2.500L8 20l5.500-5.500a4 4 0 0 0 5-5L16 12l-2-.500-.500-2z" />
+  ),
+};
 
-function Bars({ lit, innerRef }: { lit: number; innerRef?: React.Ref<HTMLSpanElement> }) {
-  return (
-    <span className={s.bars} ref={innerRef} aria-hidden="true">
-      {Array.from({ length: BARS }, (_, i) => (
-        <i key={i} data-on={i < lit || undefined} />
-      ))}
-    </span>
-  );
+/** A word for how a set went, from the share that was right. */
+export function verdictOf(right: number, total: number): string {
+  if (total === 0) return "Set complete";
+  const share = right / total;
+  if (share === 1) return "Perfect set";
+  if (share >= 0.75) return "Strong set";
+  if (share >= 0.5) return "Getting there";
+  return "Tough set";
+}
+
+/** The longest run of right answers in a row. */
+export function bestRun(marks: boolean[]): number {
+  let best = 0;
+  let now = 0;
+  for (const mark of marks) {
+    now = mark ? now + 1 : 0;
+    best = Math.max(best, now);
+  }
+  return best;
 }
 
 export function SetStart({
@@ -67,47 +92,50 @@ export function SetStart({
   }, [busy, onStart]);
   const lit = shownLevel(level);
   const tools =
-    subject === "math"
-      ? ["Calculator", "Reference", "Pencil"]
-      : ["Highlighter", "Pencil", "Cross out"];
+    subject === "math" ? "Calculator, Reference, Pencil" : "Highlighter, Pencil, Cross out";
   return (
     <FlowStage back={{ href: exitHref, label: "Back" }}>
-      <div className={s.start} ref={root}>
-        <header className={`${s.glass} ${s.lead}`} data-rise>
-          <h1>{name}</h1>
-          <p className={s.where}>
-            {domain}
-            <span>{subject === "math" ? "Math" : "Reading and Writing"}</span>
-          </p>
-          <p className={s.level}>
-            <Bars lit={lit} />
-            <b>{SHOWN_LEVELS[lit]}</b>
-          </p>
-        </header>
-        <ul className={s.tiles} data-count="3">
-          <li className={s.glass} data-rise>
-            <b>{questions}</b>
-            <span>Questions</span>
+      <div className={r.screen} ref={root}>
+        <div className={r.hero}>
+          <header className={r.head} data-rise>
+            <h1>{name}</h1>
+            <p>
+              {domain} · {subject === "math" ? "Math" : "Reading and Writing"}
+            </p>
+          </header>
+          <SetRing beads={Array.from({ length: questions }, () => null)}>
+            <b className={r.big}>{questions}</b>
+            <span className={r.of}>questions</span>
+          </SetRing>
+        </div>
+        <ul className={r.facts} data-rise aria-label="About this set">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {ICON.time}
+            </svg>
+            <span>Takes about</span>
+            <b>{minutesFor(questions, subject)} minutes</b>
           </li>
-          <li className={s.glass} data-rise>
-            <b>
-              {minutesFor(questions, subject)}
-              <small>min</small>
-            </b>
-            <span>About</span>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {ICON.check}
+            </svg>
+            <span>Checked</span>
+            <b>After every answer</b>
           </li>
-          <li className={s.glass} data-rise>
-            <b className={s.word}>Instant</b>
-            <span>Checking</span>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {ICON.tools}
+            </svg>
+            <span>Tools</span>
+            <b>{tools}</b>
           </li>
         </ul>
-        <section className={`${s.glass} ${s.tools}`} data-rise aria-label="Tools in this set">
-          <small>Tools</small>
-          {tools.map((tool) => (
-            <span key={tool}>{tool}</span>
-          ))}
+        <section className={r.card} data-rise aria-label="Your level">
+          <small>Your level in {name}</small>
+          <LevelTrail names={SHOWN_LEVELS} from={lit} to={lit} marker={<Coin size={26} />} />
         </section>
-        <div className={s.actions}>
+        <div className={r.foot}>
           <Go onClick={onStart} busy={busy} hint="Enter">
             Start
           </Go>
@@ -137,13 +165,9 @@ export function SetEnd({
   const veil = useRef<HTMLDivElement>(null);
   const score = useRef<HTMLElement>(null);
   const share = useRef<HTMLElement>(null);
-  const answers = useRef<HTMLOListElement>(null);
-  const bars = useRef<HTMLSpanElement>(null);
   const purse = useRef<HTMLLIElement>(null);
   const coins = useRef<HTMLElement>(null);
-  const list = useRef<HTMLOListElement>(null);
   const [burst, setBurst] = useState(0);
-  const [open, setOpen] = useState(false);
   const [found, setFound] = useState<number | null>(null);
 
   const result = run.result;
@@ -154,8 +178,6 @@ export function SetEnd({
     from: shownLevel(k.from),
     to: shownLevel(k.to),
   }));
-  const from = moves[0]?.from ?? 0;
-  const to = moves[0]?.to ?? 0;
   const up = moves.some((m) => m.to > m.from);
   const right = result?.right ?? 0;
   const total = result?.total ?? 0;
@@ -163,29 +185,29 @@ export function SetEnd({
   const percent = total ? Math.round((right / total) * 100) : 0;
   const took = run.completedAt ? Date.parse(run.completedAt) - Date.parse(run.startedAt) : 0;
   const time = clockOf(took);
-  const pace = total ? clockOf(took / total) : null;
+  // a pace is only said when the time is known
+  const pace = total && time ? clockOf(took / total) : null;
   const flying = Math.min(18, Math.max(tokens > 0 ? 5 : 0, Math.round(tokens / 5)));
 
   useEffect(() => {
     const undo = [
       curtain(veil.current, stage.current),
-      count(score.current, right, 1.3),
-      count(share.current, percent, 1.5),
-      land(answers.current, 1.45),
-      fill(bars.current, from, to, 2.3),
-      up ? confetti(stage.current, 2.5) : undefined,
+      arrive(stage.current),
+      count(score.current, right, 0.9),
+      count(share.current, percent, 1.2),
+      up ? confetti(stage.current, 2.9) : undefined,
     ];
     const timers = [
-      // coins leave once the numbers have settled; with less motion asked for, none fly
-      window.setTimeout(() => setBurst(1), 2000),
-      // one sound for the one real moment: a level gained
-      up ? window.setTimeout(() => playRewardSound("levelUp"), 2500) : 0,
+      // coins leave once the ring is drawn; with less motion asked for, none fly
+      window.setTimeout(() => setBurst(1), 1700),
+      // one sound for the one real moment: a level gained, as the marker lands
+      up ? window.setTimeout(() => playRewardSound("levelUp"), 2900) : 0,
     ];
     return () => {
       undo.forEach((stop) => stop?.());
       timers.forEach((t) => window.clearTimeout(t));
     };
-  }, [right, percent, from, to, up]);
+  }, [right, percent, up]);
 
   // Enter takes the next step, as it started the set
   const next = up ? (againHref ?? exitHref) : (lessonHref ?? againHref ?? exitHref);
@@ -210,14 +232,8 @@ export function SetEnd({
       };
     })
   );
-  // pressing an answer's square finds it in the list
-  const find = (i: number) => {
-    setOpen(true);
-    setFound(i);
-    requestAnimationFrame(() =>
-      list.current?.children[i]?.scrollIntoView({ block: "nearest", behavior: "smooth" })
-    );
-  };
+  const shown = found === null ? null : given[found];
+  const move = moves[0];
 
   return (
     <FlowStage back={{ href: exitHref, label: "Done" }}>
@@ -234,52 +250,59 @@ export function SetEnd({
           swell(purse.current?.querySelector("svg") ?? null);
         }}
       />
-      <div className={s.end} ref={stage} data-up={up || undefined}>
-        <section className={`${s.glass} ${s.hero}`} data-rise aria-labelledby="set-name">
-          <h1 id="set-name">{run.title}</h1>
-          <p className={s.score} aria-label={`${right} of ${total} right`}>
-            <b ref={score}>{right}</b>
-            <span>of {total}</span>
-          </p>
-          <ol
-            className={s.answers}
-            ref={answers}
-            aria-label="Your answers in order"
-            style={{ "--n": Math.min(10, given.length) } as CSSProperties}
+      <div className={r.screen} ref={stage} data-up={up || undefined}>
+        <div className={r.hero}>
+          <header className={r.head} data-rise>
+            <h1>{verdictOf(right, total)}</h1>
+            <p>{run.title}</p>
+          </header>
+          <SetRing
+            beads={given.map((a) => ({ right: a.right }))}
+            share={total ? right / total : 0}
+            chosen={found}
+            onChoose={(i) => setFound(found === i ? null : i)}
           >
-            {given.map((a, i) => (
-              <li key={a.id}>
-                <button
-                  type="button"
-                  data-right={a.right || undefined}
-                  aria-label={`Question ${i + 1}: ${a.right ? "right" : "missed"}`}
-                  aria-pressed={found === i}
-                  onClick={() => find(i)}
-                >
-                  {i + 1}
-                </button>
-              </li>
-            ))}
-          </ol>
-        </section>
+            <b className={r.big} ref={score} aria-hidden="true">
+              {right}
+            </b>
+            <span className={r.of} aria-label={`${right} of ${total} right`}>
+              of {total} right
+            </span>
+          </SetRing>
+          {shown ? (
+            <p className={r.shown} key={found} data-right={shown.right || undefined}>
+              <i aria-hidden="true">{(found ?? 0) + 1}</i>
+              <span>
+                <b>{shown.yours}</b>
+                {!shown.right && shown.answer && <small>Answer: {shown.answer}</small>}
+              </span>
+              <em>{shown.right ? "Right" : "Missed"}</em>
+            </p>
+          ) : (
+            <p className={r.hint}>Press a bead to see that answer</p>
+          )}
+        </div>
 
-        <ul className={s.tiles} data-count="4">
-          <li className={s.glass} data-rise>
+        <ul className={r.numbers} aria-label="How it went">
+          <li data-rise>
             <b>
-              <i ref={share}>{percent}</i>
-              <small>%</small>
+              <i ref={share}>{percent}</i>%
             </b>
             <span>Accuracy</span>
           </li>
-          <li className={s.glass} data-rise>
+          <li data-rise>
             <b>{time ?? "–"}</b>
             <span>Time</span>
           </li>
-          <li className={s.glass} data-rise>
+          <li data-rise>
             <b>{pace ?? "–"}</b>
             <span>A question</span>
           </li>
-          <li className={`${s.glass} ${s.purse}`} data-rise ref={purse}>
+          <li data-rise>
+            <b>{bestRun(given.map((a) => a.right))}</b>
+            <span>Best run in a row</span>
+          </li>
+          <li data-rise ref={purse} className={r.purse}>
             <button
               type="button"
               onClick={() => tokens > 0 && setBurst((n) => n + 1)}
@@ -289,69 +312,35 @@ export function SetEnd({
                 <Coin size={30} />
                 <i ref={coins}>+{tokens}</i>
               </b>
-              <span>Coins</span>
+              <span>Coins earned</span>
             </button>
           </li>
         </ul>
 
-        {moves.length > 0 && (
-          <section className={`${s.glass} ${s.moved}`} data-rise aria-label="Level">
-            {moves.map((move, i) => (
-              <p key={move.skillId} className={s.level} data-up={move.to > move.from || undefined}>
-                {moves.length > 1 && <span>{move.label}</span>}
-                <Bars lit={move.to} innerRef={i === 0 ? bars : undefined} />
-                <b>{SHOWN_LEVELS[move.to]}</b>
-                <small>
-                  {move.to > move.from
-                    ? `Up from ${SHOWN_LEVELS[move.from]}`
-                    : move.to < move.from
-                      ? `Down from ${SHOWN_LEVELS[move.from]}`
-                      : move.to < BARS
-                        ? "Same level"
-                        : "Top level"}
-                </small>
-              </p>
-            ))}
+        {move && (
+          <section className={r.card} data-rise aria-label="Level">
+            <small>
+              {move.to > move.from
+                ? `Level up: ${SHOWN_LEVELS[move.to]}`
+                : move.to < move.from
+                  ? `Level: down to ${SHOWN_LEVELS[move.to]}`
+                  : `Level: still ${SHOWN_LEVELS[move.to]}`}
+            </small>
+            <LevelTrail
+              names={SHOWN_LEVELS}
+              from={move.from}
+              to={move.to}
+              marker={<Coin size={26} />}
+            />
           </section>
         )}
 
-        <section className={`${s.glass} ${s.each}`} data-rise data-open={open || undefined}>
-          <button
-            type="button"
-            className={s.fold}
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            Each answer
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M9.500 6.500L15 12l-5.500 5.500" />
-            </svg>
-          </button>
-          <h2>Each answer</h2>
-          <ol ref={list}>
-            {given.map((a, i) => (
-              <li
-                key={a.id}
-                data-right={a.right || undefined}
-                data-found={found === i || undefined}
-              >
-                <i aria-hidden="true">{i + 1}</i>
-                <span>
-                  <b>{a.yours}</b>
-                  {!a.right && a.answer && <small>Answer {a.answer}</small>}
-                </span>
-                <em>{a.right ? "Right" : "Missed"}</em>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <div className={s.actions} data-rise>
+        <div className={r.foot} data-rise>
           <Go href={next} hint="Enter">
             {up ? "Another set" : lessonHref ? "Lesson" : "Try again"}
           </Go>
           {!up && lessonHref && againHref && (
-            <Link className={s.second} href={againHref} data-rise>
+            <Link className={s.second} href={againHref}>
               Try again
             </Link>
           )}

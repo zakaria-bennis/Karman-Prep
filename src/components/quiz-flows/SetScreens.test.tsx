@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RunView } from "@/lib/assembler/run-types";
-import { SetEnd, SetStart } from "./SetScreens";
+import { SetEnd, SetStart, bestRun, verdictOf } from "./SetScreens";
 
 vi.mock("@/components/learn/quiz-shell/QuizWorld", () => ({ QuizWorld: () => null }));
 vi.mock("@/components/portal/fonts", () => ({ portalFontVars: "" }));
@@ -50,11 +50,12 @@ describe("the skill set's screens", () => {
       />
     );
     expect(screen.getByRole("heading", { name: "Circles" })).toBeTruthy();
-    expect(screen.getByText("Geometry and Trigonometry")).toBeTruthy();
-    expect(screen.getByText("8")).toBeTruthy();
-    expect(screen.getByText("13")).toBeTruthy();
+    expect(screen.getByText(/Geometry and Trigonometry/)).toBeTruthy();
+    // the ring says how many questions wait, and has a bead for each
+    expect(screen.getByText("questions")).toBeTruthy();
+    expect(screen.getByText("13 minutes")).toBeTruthy();
     expect(screen.getByText("Understanding")).toBeTruthy();
-    expect(screen.getByText("Calculator")).toBeTruthy();
+    expect(screen.getByText(/Calculator/)).toBeTruthy();
     expect(screen.getByRole("button", { name: /Start/ })).toBeTruthy();
   });
 
@@ -63,7 +64,8 @@ describe("the skill set's screens", () => {
     expect(screen.getByLabelText("6 of 8 right")).toBeTruthy();
     expect(screen.getByRole("link", { name: /Another set/ }).getAttribute("href")).toBe("/again");
     expect(screen.getByText("Understanding")).toBeTruthy();
-    expect(screen.getByText("Up from Learning")).toBeTruthy();
+    expect(screen.getByText("Level up: Understanding")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Strong set" })).toBeTruthy();
     expect(screen.getByText("75")).toBeTruthy();
     expect(screen.getByText("6:00")).toBeTruthy();
     expect(screen.getByText("0:45")).toBeTruthy();
@@ -78,7 +80,18 @@ describe("the skill set's screens", () => {
     expect(screen.getByRole("link", { name: /Lesson/ }).getAttribute("href")).toBe("/lesson");
     expect(screen.getByRole("link", { name: "Try again" }).getAttribute("href")).toBe("/again");
     expect(screen.getByText("Not started")).toBeTruthy();
-    // a missed question shows the student's answer and the right one
-    expect(screen.getAllByText("Answer C").length).toBeGreaterThan(0);
+    // pressing a missed question's bead shows the student's answer and the right one
+    const missed = screen.getAllByRole("button", { name: /missed$/ });
+    fireEvent.click(missed[0]);
+    expect(screen.getByText("Answer: C")).toBeTruthy();
+  });
+
+  it("finds a word for how the set went, and the best run", () => {
+    expect(verdictOf(8, 8)).toBe("Perfect set");
+    expect(verdictOf(6, 8)).toBe("Strong set");
+    expect(verdictOf(4, 8)).toBe("Getting there");
+    expect(verdictOf(1, 8)).toBe("Tough set");
+    expect(bestRun([true, true, false, true, true, true, false])).toBe(3);
+    expect(bestRun([])).toBe(0);
   });
 });
