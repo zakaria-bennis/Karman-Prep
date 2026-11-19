@@ -15,7 +15,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { Buddy, Ticker } from "../shell/HomeworkBuddy";
 import hw from "../shell/homework.module.css";
 import lib from "../shell/library.module.css";
-import { Intro } from "./Intro";
+import { Intro, type IntroKind } from "./Intro";
 import { LevelUp } from "./LevelUp";
 import {
   Frame,
@@ -29,6 +29,7 @@ import {
   useCoins,
   type SetView,
 } from "./parts";
+import { unfold } from "./unfold";
 import o from "./homeworkEnd.module.css";
 
 const R = 74;
@@ -41,8 +42,8 @@ export function HomeworkEnd({
 }: {
   mode: "light" | "dark";
   set: SetView;
-  /** Open on the last question, whose glass breaks and becomes the ring (Intro.tsx). */
-  intro?: boolean;
+  /** Open on the last question, carried into the ending by this transition (Intro.tsx). */
+  intro?: IntroKind | false;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const ringSvg = useRef<SVGSVGElement>(null);
@@ -72,48 +73,10 @@ export function HomeworkEnd({
     }
     paint(0);
     const at = { f: 0 };
-    // everything opens out of the ring: where its middle is on the screen
-    const box = ringSvg.current?.getBoundingClientRect();
-    const rx = box ? box.left + box.width / 2 : 0;
-    const ry = box ? box.top + box.height / 2 : 0;
-    const [side, main] = Array.from(el.querySelectorAll<HTMLElement>("[data-pane]"));
-    // the panes open from the ring's own edge, so the ring is never lost
-    const edge = box ? box.width / 2 + 6 : 0;
-    const from = (pane: HTMLElement) => {
-      const b = pane.getBoundingClientRect();
-      return `${rx - b.left}px ${ry - b.top}px`;
-    };
+    // the ending opens to match the transition that brought it (unfold.ts)
     const line = gsap.timeline();
+    unfold(intro || "none", el, line, ringSvg.current?.getBoundingClientRect());
     line
-      .fromTo(
-        side,
-        { clipPath: `circle(${edge}px at ${from(side)})` },
-        {
-          clipPath: `circle(${Math.max(window.innerWidth, window.innerHeight) * 1.5}px at ${from(side)})`,
-          duration: 1.2,
-          ease: "power2.in",
-          clearProps: "clipPath",
-        },
-        0
-      )
-      .fromTo(
-        main,
-        { clipPath: `circle(${edge}px at ${from(main)})` },
-        {
-          clipPath: `circle(${Math.max(window.innerWidth, window.innerHeight) * 1.6}px at ${from(main)})`,
-          duration: 1.4,
-          ease: "power2.in",
-          clearProps: "clipPath",
-        },
-        0.2
-      )
-      // the character pops into the ring
-      .fromTo(
-        el.querySelector("[data-pop]"),
-        { scale: 0, rotation: -30 },
-        { scale: 1, rotation: 0, duration: 0.8, ease: "elastic.out(1, 0.5)" },
-        0.15
-      )
       // the ring fills, and its color moves with it
       .to(at, { f: share, duration: 1.4, ease: "power2.inOut", onUpdate: () => paint(at.f) }, 0.5)
       .fromTo(
@@ -122,22 +85,6 @@ export function HomeworkEnd({
         { y: 0, opacity: 1, duration: 0.45, stagger: 0.08, ease: "power3.out" },
         1.0
       );
-    // the answers fly out of the ring to their places, one after another
-    el.querySelectorAll<HTMLElement>("[data-answer]").forEach((a, i) => {
-      const b = a.getBoundingClientRect();
-      line.fromTo(
-        a,
-        {
-          x: rx - (b.left + b.width / 2),
-          y: ry - (b.top + b.height / 2),
-          scale: 0.2,
-          opacity: 0,
-          rotation: -12,
-        },
-        { x: 0, y: 0, scale: 1, opacity: 1, rotation: 0, duration: 0.75, ease: "back.out(1.3)" },
-        0.55 + i * 0.07
-      );
-    });
     line.fromTo(
       el.querySelectorAll("[data-next]"),
       { y: 16, opacity: 0 },
@@ -153,12 +100,14 @@ export function HomeworkEnd({
         1.95
       );
     return () => void line.kill();
-  }, [set, share, begun]);
+  }, [set, share, begun, intro]);
 
   return (
     <Frame mode={mode} title={set.skill} corner={corner} wallet={set.wallet}>
       {burst}
-      {intro && !begun && <Intro mode={mode} target={ringSvg} onLanded={() => setBegun(true)} />}
+      {intro && !begun && (
+        <Intro kind={intro} mode={mode} target={ringSvg} onLanded={() => setBegun(true)} />
+      )}
       {begun && set.up && (
         <LevelUp set={set} after={2.9} target={levelRow} onDone={() => setLeveled(true)} />
       )}

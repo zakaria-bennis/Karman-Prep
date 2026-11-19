@@ -41,7 +41,8 @@ export function ProgressEnd({
 }: {
   mode: "light" | "dark";
   set: SetView;
-  intro?: boolean;
+  /** Not used here: only option 1 has the transitions. */
+  intro?: unknown;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const corner = useRef<HTMLDivElement>(null);
