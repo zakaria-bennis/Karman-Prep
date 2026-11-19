@@ -13,6 +13,8 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
   when the task needs a number.
 - **Every word on the marketing site:** `src/lib/marketing/site-copy.ts`.
 - **Where the home page stands:** `prototypes/HANDOVER-home-2026-11-09.md`.
+- **What is live, what is not, and what comes next:** `prototypes/HANDOVER-next-session-2026-11-18.md`.
+  Start here.
 - **Where the portal rebuild stands (student and parent portals):**
   `prototypes/HANDOVER-portal-2026-11-14.md`. Read it before any portal work.
 - **`docs/archive/` is history.** Take no direction from it.

@@ -19,7 +19,19 @@ export function QuizWorld() {
     const root = document.documentElement;
     if (root.hasAttribute("data-kp-mode")) return;
     const dark = window.matchMedia("(prefers-color-scheme: dark)");
-    const set = () => root.setAttribute("data-kp-mode", dark.matches ? "dark" : "light");
+    // the choice made with the site's or the portal's light and dark switch wins; with none, the
+    // device's own setting decides
+    const set = () => {
+      let chosen: string | null = null;
+      try {
+        chosen = localStorage.getItem("karman-site-theme");
+      } catch {
+        /* no storage: the device decides */
+      }
+      const mode =
+        chosen === "dark" || chosen === "light" ? chosen : dark.matches ? "dark" : "light";
+      root.setAttribute("data-kp-mode", mode);
+    };
     set();
     dark.addEventListener("change", set);
     return () => {
