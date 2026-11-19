@@ -38,6 +38,7 @@ import Chat from "./Chat";
 import Homework from "./Homework";
 import Schedule from "./Schedule";
 import LibraryHero from "./LibraryHero";
+import { Where } from "./Where";
 import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
 import Settings from "./Settings";
@@ -473,55 +474,19 @@ function Shell() {
             </button>
           )}
           {inStat || trail || tucked ? (
-            // A page inside another: a round way back, the page it came from in small words, and
-            // its own name under them, on one piece of glass (founder, 2026-11-19).
-            <div className={styles.where}>
-              <button
-                type="button"
-                className={styles.whereBack}
-                aria-label={`Back to ${trail?.back ?? "Progress"}`}
-                onClick={() => {
-                  dir.current = -1;
-                  if (trail) trail.go();
-                  else if (tucked) go("progress");
-                  else setStat(null);
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                  <path d="M14.500 6.500L9 12l5.500 5.500" />
-                </svg>
-              </button>
-              <div className={styles.whereText}>
-                <small>{trail?.back ?? "Progress"}</small>
-                <h1
-                  className={styles.title}
-                  key={
-                    inSkill
-                      ? skill.name
-                      : (trail?.name ??
-                        (inStat
-                          ? stat
-                          : page === "library" && section
-                            ? (domain ?? section)
-                            : page))
-                  }
-                  data-long={
-                    (page === "library" && (inSkill || section !== null)) ||
-                    trail !== null ||
-                    undefined
-                  }
-                >
-                  {inSkill
-                    ? skill.name
-                    : (trail?.name ??
-                      (inStat
-                        ? STATS[stat].name
-                        : page === "library" && section
-                          ? (domain ?? section)
-                          : LABEL[page]))}
-                </h1>
-              </div>
-            </div>
+            <Where
+              from={trail?.back ?? "Progress"}
+              onBack={() => {
+                dir.current = -1;
+                if (trail) trail.go();
+                else if (tucked) go("progress");
+                else setStat(null);
+              }}
+            >
+              <h1 className={styles.title} key={trail?.name ?? (inStat ? stat : page)} data-long>
+                {trail?.name ?? (inStat ? STATS[stat].name : LABEL[page])}
+              </h1>
+            </Where>
           ) : (
             !(page === "library" && !section) && (
               <h1
