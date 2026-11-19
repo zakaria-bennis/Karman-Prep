@@ -1208,3 +1208,12 @@
     display: none !important;
   }
 }
+
+/* ...and its padding tightens, so nothing is spent on empty glass while typing. */
+.compact [data-quiz-scroll] > [data-quiz-pane] {
+  transition: padding 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.shell:has(:global([data-answer-keys])) [data-quiz-scroll] > [data-quiz-pane] {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
