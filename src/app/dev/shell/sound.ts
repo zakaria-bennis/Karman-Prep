@@ -4,10 +4,28 @@
 
 let ctx: AudioContext | null = null;
 let on = true;
+/* how loud every sound is, 0 to 1 (Settings: Sounds, volume) */
+let level = 1;
+let master: GainNode | null = null;
 
 export const setSound = (value: boolean) => {
   on = value;
 };
+
+export const setSoundVolume = (percent: number) => {
+  level = (Math.max(0, Math.min(100, percent)) / 70) ** 2;
+  if (master) master.gain.value = level;
+};
+
+/** Where every sound goes: one gain before the speakers, so the volume is one number. */
+function speakers(a: AudioContext): AudioNode {
+  if (!master) {
+    master = a.createGain();
+    master.connect(a.destination);
+  }
+  master.gain.value = level;
+  return master;
+}
 
 function audio(): AudioContext | null {
   if (!on || typeof window === "undefined") return null;
@@ -32,7 +50,7 @@ function bell(freq: number, wait = 0, loud = 0.07, long = 1.1) {
     gain.gain.setValueAtTime(0.0001, at);
     gain.gain.exponentialRampToValueAtTime(loud / (i + 1) ** 2, at + 0.012);
     gain.gain.exponentialRampToValueAtTime(0.0001, at + long / (i + 1));
-    osc.connect(gain).connect(a.destination);
+    osc.connect(gain).connect(speakers(a));
     osc.start(at);
     osc.stop(at + long);
   });
@@ -56,7 +74,7 @@ function hiss(from: number, to: number, long: number, loud: number) {
   gain.gain.setValueAtTime(0.0001, a.currentTime);
   gain.gain.exponentialRampToValueAtTime(loud, a.currentTime + long * 0.25);
   gain.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + long);
-  src.connect(filter).connect(gain).connect(a.destination);
+  src.connect(filter).connect(gain).connect(speakers(a));
   src.start();
 }
 

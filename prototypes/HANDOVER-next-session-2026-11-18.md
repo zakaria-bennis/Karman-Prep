@@ -32,7 +32,7 @@ It must not be pointed at real students yet, because most of it shows made-up da
 | Homework | All made up; pressing work leads nowhere |
 | Schedule | Built on stand-in sessions; Zoom links not hooked up |
 | Chat | Connected to real messages when signed in with a class or tutor; made-up classmates when not |
-| More, Account | On a phone More turns the bar like a carousel (below); Account holds only name, Light or Dark and Sign out until Settings is built |
+| More, Account | On a phone More turns the bar like a carousel (below); Account is Settings (below) |
 
 Known blocker for the Library: the portal shows 72 skills, the question bank has 39 skills and 92 sub-skills,
 and there is no mapping between them. Making one is the founder's decision (no retagging without his say).
@@ -46,11 +46,42 @@ More again turns it back. The second set holds at most four beside More. Rules a
 and the desktop account menu. Free, Practice and Pro have only Account behind More: he has not said whether
 More should simply be Account there. Awaiting his verdict.
 
-His answers on what Settings holds, and his other decisions of 2026-11-18 (the portal goes live behind a
-site password, his admin account first, 72 skills and a retag, privacy later), are in the memory note
-`project_decisions_nov18.md`. **Settings is the next thing to build**, inside the Account page.
+With nothing tucked away (Free, Practice, Pro) the profile picture takes More's place and the bar
+never turns. The Mistake Log's icon is a history clock that winds back on hover (he found the
+notepad too close to Homework's).
 
-A cookie banner covers the phone bar on a first visit until it is answered (seen in a headless browser).
+## Settings (2026-11-18), first version, awaiting his verdict
+
+The Account page is Settings (`Settings.tsx`, `SettingsPanes.tsx`, `settingsControls.tsx`,
+`settings.module.css`). On a phone: the student, nine folders (Profile, Your SAT, Sound, Appearance,
+Quiz, Notifications, Plan, Calendars, Help), Sign out; a folder opens as its own page with a back
+pill. On the desktop the profile menu's Settings opens it with the folders at the left and the open
+one beside them. His list of what goes in and what stays out is in the memory note
+`project_decisions_nov18.md`.
+
+- **Controls** are our own and on springs: a switch whose knob stretches while held, a slider that
+  follows the finger and springs onto its step, a tray with one sliding pill.
+- **Really works today:** light or dark, text size (the pages are drawn larger with CSS `zoom`; the
+  menu keeps its size), Transparency (it sets `--frost-k`), Reduce motion (the site's own switch in
+  `src/lib/painting/motion.ts`), sounds and their volume, extra time (Progress's pacing goal reads
+  it), night music with its volume, piece and "start by itself" time.
+- **Night music is four placeholder pieces made in the browser** (`music.ts`: slow piano, soft
+  strings, rain, music box). He will choose the real ones. The 8 PM music banner (`MusicOffer.tsx`)
+  still keeps its own memory and does not turn this on yet.
+- **Kept in this browser only** (`settingsStore.ts`, key `kp-settings`), until the portal reads a real
+  student: everything else. Stand-ins: the email, sign-in methods, card, receipts, hours left, and
+  the four SAT dates (check them against the College Board).
+- The demo bar lost Sound, the extra-time buttons and Night: Settings has them now.
+- Checked in a headless browser at 360, 390 and 1440, dark and light: every folder, no sideways
+  scroll, no control under 40px tall, largest text on six pages.
+
+## Testing on his phone
+
+The preview entry `portal-settings` (port 3440) also runs `scripts/dev/phone-bridge.mjs`: with the
+iPhone on a cable, Safari on the phone opens `http://Zakarias-MacBook-Pro.local:3440/dev/shell`. The
+dev server itself listens only on this computer, because it signs every visitor in as a stand-in
+admin on the real database; the bridge listens only on the cable's own address. Never start it with
+`-H 0.0.0.0`. `DEV_ORIGINS` (read in `next.config.mjs`) names the hosts the dev server accepts.
 
 ## The order he asked for
 

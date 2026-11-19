@@ -26,6 +26,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
 } from "react";
 import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
@@ -38,14 +39,16 @@ import Homework from "./Homework";
 import Schedule from "./Schedule";
 import LibraryHero from "./LibraryHero";
 import MistakeLog, { type Trail } from "./MistakeLog";
-import Account, { AccountMenu, tuckedIn } from "./More";
+import { AccountMenu, tuckedIn } from "./More";
+import Settings from "./Settings";
+import { TEXT_SIZES, frostOf, useSettings } from "./settingsStore";
+import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
 import type { Found } from "./progressBreakdowns";
 import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
-import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Page, type Plan } from "./plans";
 import MusicOffer, { forgetMusic } from "./MusicOffer";
@@ -104,8 +107,9 @@ function Shell() {
   const [page, setPage] = useState<Page>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
-  const [sound, setSoundOn] = useState(true);
-  useEffect(() => setSound(sound), [sound]);
+  /* the student's settings: sound, music, text size and the glass all follow them */
+  const kept = useSettings();
+  useSettingsEffects(kept);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
   const [student, setStudent] = useState<StudentKey>("weeks9");
@@ -118,8 +122,7 @@ function Shell() {
   const [viaProgress, setViaProgress] = useState(false);
   const tucked = !rail && viaProgress && page === "mistakes";
   const inStat = page === "progress" && stat !== null;
-  /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
-  const [extraTime, setExtraTime] = useState(1);
+  const extraTime = kept.extraTime;
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
   useChatPlan(plan);
@@ -306,6 +309,9 @@ function Shell() {
     <div
       className={`kp-shell ${portalFontVars} ${styles.shell}`}
       data-mode={dark ? "dark" : "light"}
+      style={
+        { "--frost-k": frostOf(kept.clear), "--text-k": TEXT_SIZES[kept.textStep] } as CSSProperties
+      }
     >
       <PortalFlight world={world} />
 
@@ -357,6 +363,8 @@ function Shell() {
           />
           <motion.li
             className={styles.lens}
+            // a page the menu has no picture for (Account, on the desktop) lights nothing
+            data-off={!items.includes(lit) || undefined}
             style={rail ? { x: 0, y, width: "100%" } : { x: left, y: 0, width: w }}
             aria-hidden="true"
           />
@@ -441,7 +449,7 @@ function Shell() {
         still={still}
         dark={dark}
         onDark={setDark}
-        onSettings={() => (setPage("settings"), setMenu(false))}
+        onSettings={() => (go("account"), setMenu(false))}
         onClose={() => setMenu(false)}
       />
 
@@ -605,7 +613,16 @@ function Shell() {
         {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
-        {page === "account" && <Account plan={plan} dark={dark} onDark={setDark} />}
+        {page === "account" && (
+          <Settings
+            rail={rail}
+            plan={plan}
+            dark={dark}
+            onDark={setDark}
+            onGo={go}
+            onTrail={setTrail}
+          />
+        )}
         {page === "mistakes" && (
           <MistakeLog
             key={student}
@@ -623,9 +640,6 @@ function Shell() {
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
-          <button type="button" aria-pressed={sound} onClick={() => setSoundOn(!sound)}>
-            Sound
-          </button>
           {(Object.keys(PLANS) as Plan[]).map((k) => (
             <button key={k} type="button" aria-pressed={plan === k} onClick={() => choosePlan(k)}>
               {PLANS[k].label}
@@ -645,22 +659,6 @@ function Shell() {
           {page === "progress" && plan === "practice" && (
             <button type="button" aria-pressed={free} onClick={() => setFree(!free)}>
               Free plan
-            </button>
-          )}
-          {stat === "pace" &&
-            [1, 1.5, 2].map((x) => (
-              <button
-                key={x}
-                type="button"
-                aria-pressed={extraTime === x}
-                onClick={() => setExtraTime(x)}
-              >
-                {x === 1 ? "Standard time" : `${x}x time`}
-              </button>
-            ))}
-          {!rail && (
-            <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
-              Night
             </button>
           )}
           {plan !== "practice" && <ChatDemo plan={plan} />}

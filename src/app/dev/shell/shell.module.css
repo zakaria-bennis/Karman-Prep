@@ -146,6 +146,11 @@
   height: var(--cell);
   border-radius: var(--r-lens);
   pointer-events: none;
+  transition: opacity 0.2s var(--out);
+}
+
+.lens[data-off] {
+  opacity: 0;
 }
 
 .item {
@@ -656,6 +661,8 @@
   gap: 20px;
   min-height: 100dvh;
   padding: 0 12px calc(max(12px, env(safe-area-inset-bottom)) + 76px + 12px);
+  /* Settings, Text size: the pages are drawn larger or smaller; the menu keeps its size */
+  zoom: var(--text-k, 1);
 }
 
 .title {

@@ -3,18 +3,14 @@
 // Account: the student's own things. On a phone it is the last picture of the bar's second set (the
 // profile picture; founder, 2026-11-18: no More page, the bar itself turns like a carousel, see
 // moreBar.ts); on a desktop the profile at the foot of the rail opens the small AccountMenu.
-//   Account      the student, light or dark, and signing out. Settings will be built into this page.
+//   The Account page itself is Settings (Settings.tsx).
 //   AccountMenu  the small menu the profile opens on a desktop (founder, 2026-11-15: Settings
 //                lives here, not in the rail).
 // Signing out does nothing yet: the dev page has no session.
 import { AnimatePresence, motion } from "framer-motion";
-import lib from "./library.module.css";
 import { PLANS, type Plan } from "./plans";
-import { Me } from "./shellBits";
-import { tick } from "./sound";
 import { Sticker, type StickerName } from "./stickers";
 import shell from "./shell.module.css";
-import styles from "./more.module.css";
 
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 
@@ -78,31 +74,3 @@ export const tuckedIn = (plan: Plan): StickerName[] => {
   const bar: readonly StickerName[] = PLANS[plan].bar;
   return PLANS[plan].rail.filter((item) => !bar.includes(item));
 };
-
-export default function Account({
-  plan,
-  dark,
-  onDark,
-}: {
-  plan: Plan;
-  dark: boolean;
-  onDark: (dark: boolean) => void;
-}) {
-  return (
-    <div className={`${lib.library} ${styles.more}`}>
-      <section className={`${lib.glass} ${styles.me}`} aria-label="Account">
-        <p className={styles.who}>
-          <span aria-hidden="true">
-            <Me />
-          </span>
-          <b>Maya Okafor</b>
-          <small>{PLANS[plan].name}</small>
-        </p>
-        <Look dark={dark} onDark={onDark} />
-        <button type="button" className={styles.out} onClick={() => tick()}>
-          Sign out
-        </button>
-      </section>
-    </div>
-  );
-}
