@@ -192,10 +192,11 @@ function Typed({ pool }: { pool: readonly string[] }) {
       setText(line.slice(0, i));
       if (i >= line.length) return;
       const ch = line[i - 1];
-      // a breath after a full stop, a shorter one after a comma
-      timer = setTimeout(step, ch === "." ? 520 : ch === "," ? 260 : 42 + Math.random() * 46);
+      // a breath after a full stop, a shorter one after a comma; quick, so nobody waits on it
+      // (founder, 2026-11-18)
+      timer = setTimeout(step, ch === "." ? 170 : ch === "," ? 90 : 16 + Math.random() * 18);
     };
-    timer = setTimeout(step, 1900);
+    timer = setTimeout(step, 350);
     return () => clearTimeout(timer);
   }, [pool]);
 

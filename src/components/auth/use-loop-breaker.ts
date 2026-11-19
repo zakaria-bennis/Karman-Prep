@@ -1,6 +1,6 @@
 "use client";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { safeNext } from "@/lib/auth/portal-home";
 
 const KEY = "karman-signin-bounces";
@@ -15,8 +15,18 @@ const WINDOW_MS = 60_000;
 export function useLoopBreaker(next: string | undefined) {
   const { isLoaded, isSignedIn } = useUser();
   const clerk = useClerk();
+  // Whether the visitor was already signed in when this page first knew: only that is the
+  // disagreement this hook is for. Someone who signs in HERE (a password, or coming back from
+  // Google) becomes signed in afterwards, and Clerk takes them on by itself; stepping in then
+  // would cut its work short and could sign them straight out again.
+  const arrivedSignedIn = useRef<boolean | null>(null);
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
+    if (!isLoaded) return;
+    if (arrivedSignedIn.current === null) arrivedSignedIn.current = !!isSignedIn;
+    if (!isSignedIn || !arrivedSignedIn.current) return;
+    // Clerk's own steps live under these addresses (the return from Google, a code, a task)
+    if (/\/(sso-callback|verify|continue|factor|tasks|reset)/.test(window.location.pathname))
+      return;
     let bounces: number[] = [];
     try {
       bounces = (JSON.parse(sessionStorage.getItem(KEY) ?? "[]") as number[]).filter(
