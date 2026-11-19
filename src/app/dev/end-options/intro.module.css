@@ -1,0 +1,165 @@
+/* The last question, on the quiz's glass, and the layer the shards fly on. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+  --card: rgb(255 251 244 / 0.82);
+  --card-ink: #1d1a22;
+  --card-soft: #5b5462;
+  --choice: rgb(255 255 255 / 0.62);
+  --choice-edge: rgb(29 26 34 / 0.16);
+  --right: #1fbf68;
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+}
+
+.layer[data-mode="dark"] {
+  --card: rgb(22 24 44 / 0.86);
+  --card-ink: #f6f1e7;
+  --card-soft: #c9c3d3;
+  --choice: rgb(255 255 255 / 0.08);
+  --choice-edge: rgb(255 255 255 / 0.2);
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+}
+
+.canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* a burst of light where the card breaks */
+.flash {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 70vmin;
+  height: 70vmin;
+  margin: -35vmin 0 0 -35vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.9), rgb(255 240 200 / 0.4) 35%, transparent 70%);
+  opacity: 0;
+}
+
+.card {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  width: min(560px, 100%);
+  padding: 24px;
+  border-radius: 26px;
+  background-color: var(--card);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow:
+    0 30px 60px -24px rgb(10 12 30 / 0.55),
+    inset 0 0 0 1px rgb(255 255 255 / 0.4);
+  color: var(--card-ink);
+  font-family: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.count {
+  margin: 0;
+  color: var(--card-soft);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ask {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.choices {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background-color: var(--choice);
+  outline: 1.5px solid var(--choice-edge);
+  outline-offset: -1.5px;
+  transition:
+    background-color 0.25s ease,
+    outline-color 0.25s ease;
+}
+
+.choice[data-picked] {
+  outline-color: var(--card-ink);
+}
+
+.choice[data-right] {
+  background-color: color-mix(in srgb, var(--right) 22%, var(--choice));
+  outline-color: var(--right);
+}
+
+.letter {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--choice-edge);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.choice[data-right] .letter {
+  background-color: var(--right);
+  color: #fff;
+}
+
+.value {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.submit {
+  justify-self: end;
+  min-width: 160px;
+  min-height: 52px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 26px;
+  background-color: var(--go);
+  color: var(--on-go);
+  font: 750 17px/1 var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  box-shadow: 0 12px 26px -10px var(--go);
+  cursor: pointer;
+}
+
+.submit:disabled {
+  cursor: default;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 18px;
+  }
+
+  .ask {
+    font-size: 17px;
+  }
+
+  .submit {
+    justify-self: stretch;
+  }
+}

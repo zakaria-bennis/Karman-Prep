@@ -7,6 +7,7 @@
 //   ?score=0 to 8                   how the set went (6 when not given)
 //   ?face=owl                       the character worn (the fox when not given)
 //   ?wear=Top hat,Round glasses     what it has on
+//   ?intro=0                        open straight on the ending, not on the last question
 // Production builds return 404.
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -27,6 +28,7 @@ function Options() {
   const mode = params.get("mode") === "dark" ? "dark" : "light";
   const face = params.get("face") as FaceKind | null;
   const wear = params.get("wear");
+  const intro = params.get("intro") !== "0";
   const score = useScore();
   const set = useMemo(() => setOf(score), [score]);
   const [ready, setReady] = useState(false);
@@ -37,7 +39,7 @@ function Options() {
     setReady(true);
   }, [mode, face, wear]);
   const Option = OPTIONS[v] ?? HomeworkEnd;
-  return ready ? <Option key={score} mode={mode} set={set} /> : null;
+  return ready ? <Option key={score} mode={mode} set={set} intro={intro} /> : null;
 }
 
 export default function Page() {

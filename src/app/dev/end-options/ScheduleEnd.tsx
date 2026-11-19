@@ -30,7 +30,14 @@ import o from "./scheduleEnd.module.css";
 
 const CHECK = <path d="M3.500 8.300l3 3 6-6.600" />;
 
-export function ScheduleEnd({ mode, set }: { mode: "light" | "dark"; set: SetView }) {
+export function ScheduleEnd({
+  mode,
+  set,
+}: {
+  mode: "light" | "dark";
+  set: SetView;
+  intro?: boolean;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const corner = useRef<HTMLDivElement>(null);
   const count = useRef<HTMLElement>(null);

@@ -205,3 +205,13 @@
 :global([data-kp-mode="dark"]) .answer:hover {
   background: color-mix(in srgb, var(--c) 14%, rgb(255 255 255 / 0.07));
 }
+
+/* until the last question's glass has become the ring, the ending waits unseen */
+.page[data-held] [data-pane] {
+  visibility: hidden;
+}
+
+.pop {
+  display: grid;
+  place-items: center;
+}

@@ -235,11 +235,18 @@ export function Frame({
 
 /** The coins earned, as a small chip, that fly up into the corner counter by themselves `after`
  *  seconds, a tick as each lands. */
-export function useCoins(set: SetView, corner: RefObject<HTMLDivElement | null>, after = 2.4) {
+export function useCoins(
+  set: SetView,
+  corner: RefObject<HTMLDivElement | null>,
+  after = 2.4,
+  /** Whether the ending has begun: the wait for the coins starts then. */
+  on = true
+) {
   const chip = useRef<HTMLSpanElement>(null);
   const [play, setPlay] = useState(0);
   const [banked, setBanked] = useState(false);
   useEffect(() => {
+    if (!on) return;
     if (prefersStill()) {
       setCorner(corner.current, set.wallet + set.coins);
       setBanked(true);
@@ -247,7 +254,7 @@ export function useCoins(set: SetView, corner: RefObject<HTMLDivElement | null>,
     }
     const timer = window.setTimeout(() => setPlay(1), after * 1000);
     return () => window.clearTimeout(timer);
-  }, [after, corner, set.coins, set.wallet]);
+  }, [after, corner, set.coins, set.wallet, on]);
   const burst = (
     <CoinBurst
       className={p.burst}

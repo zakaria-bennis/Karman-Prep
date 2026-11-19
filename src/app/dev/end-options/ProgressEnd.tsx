@@ -35,7 +35,14 @@ const MONTH = [2, 1, 2, 3, 2, 2, 2, 1, 3, 2, 3, 2, 2, 2, 3, 0, 2, 2];
 const TODAY_DATE = 19;
 const BEFORE = { questions: 31, minutes: 41, improved: 0 };
 
-export function ProgressEnd({ mode, set }: { mode: "light" | "dark"; set: SetView }) {
+export function ProgressEnd({
+  mode,
+  set,
+}: {
+  mode: "light" | "dark";
+  set: SetView;
+  intro?: boolean;
+}) {
   const root = useRef<HTMLDivElement>(null);
   const corner = useRef<HTMLDivElement>(null);
   const big = useRef<HTMLElement>(null);

@@ -15,6 +15,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { Buddy, Ticker } from "../shell/HomeworkBuddy";
 import hw from "../shell/homework.module.css";
 import lib from "../shell/library.module.css";
+import { Intro } from "./Intro";
 import { LevelUp } from "./LevelUp";
 import {
   Frame,
@@ -33,21 +34,32 @@ import o from "./homeworkEnd.module.css";
 const R = 74;
 const ROUND = 2 * Math.PI * R;
 
-export function HomeworkEnd({ mode, set }: { mode: "light" | "dark"; set: SetView }) {
+export function HomeworkEnd({
+  mode,
+  set,
+  intro = false,
+}: {
+  mode: "light" | "dark";
+  set: SetView;
+  /** Open on the last question, whose glass breaks and becomes the ring (Intro.tsx). */
+  intro?: boolean;
+}) {
   const root = useRef<HTMLDivElement>(null);
+  const ringSvg = useRef<SVGSVGElement>(null);
+  const [begun, setBegun] = useState(!intro);
   const corner = useRef<HTMLDivElement>(null);
   const ring = useRef<SVGCircleElement>(null);
   const percent = useRef<HTMLElement>(null);
   const levelRow = useRef<HTMLParagraphElement>(null);
   const [leveled, setLeveled] = useState(false);
-  const { burst, coins } = useCoins(set, corner, 2.4);
+  const { burst, coins } = useCoins(set, corner, 2.4, begun);
   const next = nextFor(set);
   const share = set.right / set.total;
   const final = ringColor(share);
 
   useEffect(() => {
     const el = root.current;
-    if (!el) return;
+    if (!el || !begun) return;
     const paint = (f: number) => {
       const c = ringColor(f);
       ring.current?.setAttribute("stroke-dashoffset", String(ROUND * (1 - f)));
@@ -60,12 +72,47 @@ export function HomeworkEnd({ mode, set }: { mode: "light" | "dark"; set: SetVie
     }
     paint(0);
     const at = { f: 0 };
+    // everything opens out of the ring: where its middle is on the screen
+    const box = ringSvg.current?.getBoundingClientRect();
+    const rx = box ? box.left + box.width / 2 : 0;
+    const ry = box ? box.top + box.height / 2 : 0;
+    const [side, main] = Array.from(el.querySelectorAll<HTMLElement>("[data-pane]"));
+    // the panes open from the ring's own edge, so the ring is never lost
+    const edge = box ? box.width / 2 + 6 : 0;
+    const from = (pane: HTMLElement) => {
+      const b = pane.getBoundingClientRect();
+      return `${rx - b.left}px ${ry - b.top}px`;
+    };
     const line = gsap.timeline();
     line
       .fromTo(
-        el.querySelectorAll("[data-pane]"),
-        { y: 24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }
+        side,
+        { clipPath: `circle(${edge}px at ${from(side)})` },
+        {
+          clipPath: `circle(${Math.max(window.innerWidth, window.innerHeight) * 1.5}px at ${from(side)})`,
+          duration: 1.2,
+          ease: "power2.in",
+          clearProps: "clipPath",
+        },
+        0
+      )
+      .fromTo(
+        main,
+        { clipPath: `circle(${edge}px at ${from(main)})` },
+        {
+          clipPath: `circle(${Math.max(window.innerWidth, window.innerHeight) * 1.6}px at ${from(main)})`,
+          duration: 1.4,
+          ease: "power2.in",
+          clearProps: "clipPath",
+        },
+        0.2
+      )
+      // the character pops into the ring
+      .fromTo(
+        el.querySelector("[data-pop]"),
+        { scale: 0, rotation: -30 },
+        { scale: 1, rotation: 0, duration: 0.8, ease: "elastic.out(1, 0.5)" },
+        0.15
       )
       // the ring fills, and its color moves with it
       .to(at, { f: share, duration: 1.4, ease: "power2.inOut", onUpdate: () => paint(at.f) }, 0.5)
@@ -73,20 +120,30 @@ export function HomeworkEnd({ mode, set }: { mode: "light" | "dark"; set: SetVie
         el.querySelectorAll("[data-about]"),
         { y: 12, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.45, stagger: 0.08, ease: "power3.out" },
-        1.2
-      )
-      .fromTo(
-        el.querySelectorAll("[data-answer]"),
-        { x: 24, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.4, stagger: 0.07, ease: "back.out(1.6)" },
-        0.8
-      )
-      .fromTo(
-        el.querySelectorAll("[data-next]"),
-        { y: 16, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.55, stagger: 0.12, ease: "back.out(1.5)" },
-        set.up ? 7.4 : 3.0
+        1.0
       );
+    // the answers fly out of the ring to their places, one after another
+    el.querySelectorAll<HTMLElement>("[data-answer]").forEach((a, i) => {
+      const b = a.getBoundingClientRect();
+      line.fromTo(
+        a,
+        {
+          x: rx - (b.left + b.width / 2),
+          y: ry - (b.top + b.height / 2),
+          scale: 0.2,
+          opacity: 0,
+          rotation: -12,
+        },
+        { x: 0, y: 0, scale: 1, opacity: 1, rotation: 0, duration: 0.75, ease: "back.out(1.3)" },
+        0.55 + i * 0.07
+      );
+    });
+    line.fromTo(
+      el.querySelectorAll("[data-next]"),
+      { y: 16, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.55, stagger: 0.12, ease: "back.out(1.5)" },
+      set.up ? 7.4 : 3.0
+    );
     // a closed ring shines once it is gold
     if (share === 1)
       line.fromTo(
@@ -96,22 +153,24 @@ export function HomeworkEnd({ mode, set }: { mode: "light" | "dark"; set: SetVie
         1.95
       );
     return () => void line.kill();
-  }, [set, share]);
+  }, [set, share, begun]);
 
   return (
     <Frame mode={mode} title={set.skill} corner={corner} wallet={set.wallet}>
       {burst}
-      {set.up && (
+      {intro && !begun && <Intro mode={mode} target={ringSvg} onLanded={() => setBegun(true)} />}
+      {begun && set.up && (
         <LevelUp set={set} after={2.9} target={levelRow} onDone={() => setLeveled(true)} />
       )}
       <div
         className={`${lib.library} ${hw.homework} ${o.page}`}
         ref={root}
+        data-held={!begun || undefined}
         style={{ "--ring": final } as CSSProperties}
       >
         <section className={`${lib.glass} ${hw.side} ${o.side}`} data-pane aria-label="You">
           <div className={`${hw.ring} ${o.ring}`} data-gold={share === 1 || undefined}>
-            <svg viewBox="0 0 168 168" width="168" height="168" aria-hidden="true">
+            <svg ref={ringSvg} viewBox="0 0 168 168" width="168" height="168" aria-hidden="true">
               <circle cx="84" cy="84" r={R} className={hw.track} />
               <circle
                 ref={ring}
@@ -124,9 +183,13 @@ export function HomeworkEnd({ mode, set }: { mode: "light" | "dark"; set: SetVie
                 transform="rotate(-90 84 84)"
               />
             </svg>
-            <Mood tone={set.tone}>
-              <Buddy size={104} cheer={0} />
-            </Mood>
+            {begun && (
+              <span className={o.pop} data-pop>
+                <Mood tone={set.tone}>
+                  <Buddy size={104} cheer={0} />
+                </Mood>
+              </span>
+            )}
           </div>
           <div className={o.about}>
             <h2 className={o.verdict} data-about>
