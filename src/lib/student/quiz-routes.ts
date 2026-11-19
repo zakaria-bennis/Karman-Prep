@@ -24,7 +24,7 @@ export const CHALLENGE: QuizRoute = { path: "/learn/daily", ready: true };
 /** The Daily 10: Today's main button until it's done for the day (founder, 2026-11-08). */
 export const DAILY_10: QuizRoute = { path: "/learn/daily-ten", ready: true };
 
-/** A 10-question practice set, adaptive within the set, that moves the skill's level. */
+/** An 8-question practice set, adaptive within the set, that moves the skill's level. */
 export const practiceSet = (skillId: string): QuizRoute => ({
   path: `/learn/set/${encodeURIComponent(skillId)}`,
   ready: true,

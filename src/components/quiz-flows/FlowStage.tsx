@@ -25,7 +25,7 @@ export function FlowStage({
         </svg>
         {back.label}
       </Link>
-      <main className={s.card}>{children}</main>
+      <main className={s.main}>{children}</main>
     </div>
   );
 }
@@ -36,11 +36,14 @@ export function Go({
   href,
   onClick,
   busy = false,
+  hint,
 }: {
   children: ReactNode;
   href?: string;
   onClick?: () => void;
   busy?: boolean;
+  /** The key that presses it, shown at its right where there is a keyboard ("Enter"). */
+  hint?: string;
 }) {
   const inside = (
     <>
@@ -56,6 +59,7 @@ export function Go({
           <path d="M5 12h13M12.500 6.500L18 12l-5.500 5.500" />
         </svg>
       )}
+      {hint && <kbd aria-hidden="true">{hint}</kbd>}
     </>
   );
   return href ? (

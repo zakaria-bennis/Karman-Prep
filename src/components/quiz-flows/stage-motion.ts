@@ -125,3 +125,47 @@ export function confetti(host: HTMLElement | null, after = 1.1, pieces = 56) {
     made.forEach((bit) => bit.remove());
   };
 }
+
+/** From the last question into the ending: the glass the question sat on is still there for a beat,
+ *  saying the set is over; then it draws back and the ending comes forward out of it. */
+export function curtain(veil: HTMLElement | null, pieces: HTMLElement | null) {
+  if (!veil) return;
+  if (prefersStill()) {
+    veil.style.display = "none";
+    return;
+  }
+  const word = veil.firstElementChild;
+  const line = gsap.timeline();
+  line
+    .fromTo(
+      word,
+      { scale: 0.6, opacity: 0, y: 10 },
+      { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)" }
+    )
+    .to(veil, { scale: 0.9, opacity: 0, duration: 0.42, ease: "power2.in" }, 0.95)
+    .set(veil, { display: "none" });
+  // nothing of the ending shows through the glass while it still says the set is over
+  if (pieces) line.set(pieces.querySelectorAll("[data-rise]"), { opacity: 0 }, 0);
+  if (pieces)
+    line.fromTo(
+      pieces.querySelectorAll("[data-rise]"),
+      { y: 28, opacity: 0, scale: 0.96 },
+      {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.6,
+        ease: "back.out(1.4)",
+        stagger: 0.07,
+        clearProps: "transform,opacity",
+      },
+      1.15
+    );
+  return () => void line.kill();
+}
+
+/** A small swell, for the thing that just changed (a coin landing, a level gained). */
+export function swell(el: Element | null, by = 1.18) {
+  if (!el || prefersStill()) return;
+  gsap.fromTo(el, { scale: by }, { scale: 1, duration: 0.45, ease: "elastic.out(1, 0.5)" });
+}

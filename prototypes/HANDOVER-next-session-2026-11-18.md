@@ -75,36 +75,48 @@ one beside them. His list of what goes in and what stays out is in the memory no
 - Checked in a headless browser at 360, 390 and 1440, dark and light: every folder, no sideways
   scroll, no control under 40px tall, largest text on six pages.
 
-## Start and end screens (2026-11-18): the skill set is first, awaiting his verdict
+## Start and end screens (2026-11-18): the skill set, second version, awaiting his verdict
 
-These are in the live quiz engine, not the design page. `src/components/quiz-flows/FlowStage.tsx` is the
-new frame: the quiz's own landscape with one piece of frosted glass, its own way out at the top left (the
-old Learn bar hides itself when it sees `data-flow-stage`). `SetScreens.tsx` holds the skill set's two
-screens, `stage-motion.ts` their movement (GSAP), `stage.module.css` their look.
+He found the first version "bland and boring". His rules, all applied to the skill set:
+an animated transition out of the last question; a lively but functional ending; a lot of information on
+both screens; **a different layout for a phone, a tablet and a computer**; no serif here (Young Serif reads
+"tacky and old" to him: these screens are Hanken Grotesk only; he may mean the serif site-wide, not asked
+yet); the coin is the Rewards coin; coins may show at the end if they are animated; GSAP and three.js.
 
-- **Start:** the skill's name, "10 questions", "Checked as you go", Start, and "Read the lesson". It stays
-  up, loading, until the questions are there. Enter starts it.
-- **End** (his 2026-10-30 rules: one calm column, one phone screen): the score counted up, the answers in
-  order as squares landing one by one, the skill's level as bars that fill, coins, one next step. A level
-  gained gets confetti and the one sound. It says "coins" (the engine's field is still `tokens`).
-- **Not his rules yet, because the engine has not been rewired:** a set is 10 questions (his rule: 8) and
-  the levels are the engine's four (New, Learning, Understanding, Conquered), not the Library's three.
-- Seen on real sets in a headless browser at 360, 390 and 1440. A level-up was not seen live (the test
-  student did not earn one); it is covered by a test only.
-- **Every other activity still ends on the old painted shell** (`FlowFrame`): Daily 10, domain quiz, time
-  trial, full-length exam, diagnostic. Strategy quizzes and endless mode have no engine yet. Next: his
-  verdict on these two screens, then the same stage for the others, one at a time.
-
-The preview entry `portal-settings` now runs against the local practice database as the stand-in Cohort
-student (`docs/overnight/local-db.md`), so a real set is at `/learn/set/ma-skill-circles`.
+These are in the live quiz engine. `src/components/quiz-flows/`:
+- `FlowStage.tsx`: the frame (the quiz's landscape, a way out at the top left; the old Learn bar hides
+  when it sees `data-flow-stage`) and `Go`, the one button.
+- `SetScreens.tsx`: `SetStart` (skill, domain, level, questions, about how long, tools, Start, Lesson) and
+  `SetEnd` (score, accuracy, time, pace, each answer in order, the level before and after for up to three
+  sub-skills, coins, next step). Pressing an answer's square finds it in the list; pressing the coins
+  throws them again; Enter takes the next step.
+- `stage-motion.ts` (GSAP): the last question's glass says "Set complete" and draws back as the ending
+  comes forward; numbers count; squares land; bars fill; confetti and one sound for a level gained.
+- `CoinBurst.tsx` (three.js): real discs with the coin's face fly up and into the counter, which ticks.
+- `stage.module.css`: phone (one column, button fixed under the thumb, answers folded), tablet (two
+  columns, all in view), computer (three columns, every answer listed, Enter on the button).
+- `shown-level.ts`: students see Not started, Learning, Understanding, Proficient (three bars). The engine
+  still keeps five levels and moves them by answers in a row; his rule (3, 4, 5 right within a set) is
+  NOT wired. `src/components/portal/Coin.tsx` is the coin, moved out of the dev page.
+- A skill set is now **8 questions** (`PRACTICE_SET_SIZE`).
+- Seen on real sets in a headless browser at 360, 390, 820 and 1440, including one real level-up.
+- **Every other activity still starts and ends on the old painted shell** (`FlowFrame`): Daily 10, domain
+  quiz, time trial, full-length exam, diagnostic. He wants the old look gone everywhere; they move to
+  this stage once he approves the skill set's. His numbers: Daily 10 is 10, a full-length exam is 98,
+  endless mode has no end. Strategy quizzes and endless mode have no engine yet.
+- **Default profile picture:** four drawn options were put to him (dawn hills, Karman at sunset, initial
+  on glass, night sky); he has not picked.
 
 ## Testing on his phone
 
-The preview entry `portal-settings` (port 3440) also runs `scripts/dev/phone-bridge.mjs`: with the
-iPhone on a cable, Safari on the phone opens `http://Zakarias-MacBook-Pro.local:3440/dev/shell`. The
-dev server itself listens only on this computer, because it signs every visitor in as a stand-in
-account; the bridge listens only on the cable's own address. Never start it with
-`-H 0.0.0.0`. `DEV_ORIGINS` (read in `next.config.mjs`) names the hosts the dev server accepts.
+Run `sh scripts/dev/phone-server.sh` in a Terminal tab (a preview started by Claude is stopped when its
+turn ends, which is why his phone "loaded forever"). It serves port 3440 against the local practice
+database as the stand-in Cohort student, and starts `scripts/dev/phone-bridge.mjs`: with the iPhone on a
+cable, Safari opens `http://karman.local:3440`. The dev server listens only on this computer and the
+bridge only on the cable's own address; never start it with `-H 0.0.0.0`. The preview entry
+`portal-settings` attaches to that server. If pages under `/learn` hang, Docker has stopped and the
+local database with it: quit and reopen Docker (`docs/overnight/local-db.md`).
+`DEV_ORIGINS` (read in `next.config.mjs`) names the hosts the dev server accepts.
 
 ## The order he asked for
 

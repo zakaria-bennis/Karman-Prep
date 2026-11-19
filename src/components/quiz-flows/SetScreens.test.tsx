@@ -6,6 +6,7 @@ import { SetEnd, SetStart } from "./SetScreens";
 
 vi.mock("@/components/learn/quiz-shell/QuizWorld", () => ({ QuizWorld: () => null }));
 vi.mock("@/components/portal/fonts", () => ({ portalFontVars: "" }));
+vi.mock("./CoinBurst", () => ({ CoinBurst: () => null }));
 vi.mock("@/lib/quiz/reward-sound", () => ({ playRewardSound: vi.fn() }));
 vi.mock("@/lib/painting/motion", () => ({ prefersStill: () => true }));
 
@@ -14,53 +15,70 @@ const run = (from: number, to: number, right: number) =>
     id: "r",
     kind: "practice-set",
     title: "Circles",
-    sections: [{ questions: Array.from({ length: 10 }, (_, i) => ({ id: `q${i}` })) }],
+    startedAt: "2026-11-18T00:00:00Z",
+    sections: [{ questions: Array.from({ length: 8 }, (_, i) => ({ id: `q${i}` })) }],
     reviews: Object.fromEntries(
-      Array.from({ length: 10 }, (_, i) => [`q${i}`, { isCorrect: i < right }])
+      Array.from({ length: 8 }, (_, i) => [
+        `q${i}`,
+        { isCorrect: i < right, studentAnswer: i < right ? "C" : "A", correct_answer: "C" },
+      ])
     ),
-    completedAt: "2026-11-18T00:00:00Z",
+    completedAt: "2026-11-18T00:06:00Z",
     result: {
       right,
-      total: 10,
+      total: 8,
       sections: [],
-      skills: [{ skillId: "s", label: "Circles", from, to, right, total: 10 }],
-      tokens: 20,
+      skills: [{ skillId: "s", label: "Circles", from, to, right, total: 8 }],
+      tokens: 40,
     },
   }) as unknown as RunView;
 
 afterEach(cleanup);
 
 describe("the skill set's screens", () => {
-  it("starts with the skill's name, the count and one button", () => {
+  it("starts with the skill, where it sits, its length, the level and one button", () => {
     render(
       <SetStart
         name="Circles"
-        questions={10}
+        domain="Geometry and Trigonometry"
+        subject="math"
+        level={3}
+        questions={8}
         onStart={() => {}}
         busy={false}
         exitHref="/learn/math"
       />
     );
     expect(screen.getByRole("heading", { name: "Circles" })).toBeTruthy();
-    expect(screen.getByText("10 questions")).toBeTruthy();
+    expect(screen.getByText("Geometry and Trigonometry")).toBeTruthy();
+    expect(screen.getByText("8")).toBeTruthy();
+    expect(screen.getByText("13")).toBeTruthy();
+    expect(screen.getByText("Understanding")).toBeTruthy();
+    expect(screen.getByText("Calculator")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Start/ })).toBeTruthy();
   });
 
-  it("offers another set when the skill moved up", () => {
-    render(<SetEnd run={run(1, 2, 8)} exitHref="/learn/math" againHref="/again" />);
-    expect(screen.getByLabelText("8 of 10 right")).toBeTruthy();
+  it("offers another set when the skill moved up, and names both levels", () => {
+    render(<SetEnd run={run(2, 3, 6)} exitHref="/learn/math" againHref="/again" />);
+    expect(screen.getByLabelText("6 of 8 right")).toBeTruthy();
     expect(screen.getByRole("link", { name: /Another set/ }).getAttribute("href")).toBe("/again");
-    expect(screen.getByText("Learning")).toBeTruthy();
-    expect(screen.getAllByRole("listitem")).toHaveLength(10);
+    expect(screen.getByText("Understanding")).toBeTruthy();
+    expect(screen.getByText("Up from Learning")).toBeTruthy();
+    expect(screen.getByText("75")).toBeTruthy();
+    expect(screen.getByText("6:00")).toBeTruthy();
+    expect(screen.getByText("0:45")).toBeTruthy();
+    expect(screen.getByLabelText("40 coins earned")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: /^Question \d/ })).toHaveLength(8);
   });
 
   it("sends a student who did not move up to the lesson first, then to try again", () => {
     render(
       <SetEnd run={run(1, 1, 2)} exitHref="/learn/math" lessonHref="/lesson" againHref="/again" />
     );
-    expect(screen.getByRole("link", { name: /Read the lesson/ }).getAttribute("href")).toBe(
-      "/lesson"
-    );
+    expect(screen.getByRole("link", { name: /Lesson/ }).getAttribute("href")).toBe("/lesson");
     expect(screen.getByRole("link", { name: "Try again" }).getAttribute("href")).toBe("/again");
+    expect(screen.getByText("Not started")).toBeTruthy();
+    // a missed question shows the student's answer and the right one
+    expect(screen.getAllByText("Answer C").length).toBeGreaterThan(0);
   });
 });

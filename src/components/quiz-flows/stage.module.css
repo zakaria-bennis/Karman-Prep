@@ -1,49 +1,59 @@
 /*
  * The stage an activity begins and ends on (FlowStage.tsx, SetScreens.tsx): the live landscape with
- * one piece of frosted glass. Colors and glass are the quiz's own (quiz-shell.module.css), so
- * starting, answering and finishing are one place. Text is 14, 17 and the serif; a control is 52
- * tall. (The -webkit- line of a backdrop filter comes first: the other way round the build drops
- * both.)
+ * pieces of frosted glass on it. Colors and glass are the quiz's own (quiz-shell.module.css), so
+ * starting, answering and finishing are one place.
+ *
+ * Three layouts, one for each device (founder, 2026-11-18):
+ *   a phone      one column, read top to bottom, with the button fixed under the thumb;
+ *   a tablet     two columns, larger targets, everything in view at once;
+ *   a computer   three columns across the screen, every answer listed, Enter on the button.
+ *
+ * Type is Hanken Grotesk throughout (he found the serif "tacky and old" here): 13, 16, and heavy
+ * numbers. A control is at least 52 tall. (The -webkit- line of a backdrop filter comes first: the
+ * other way round the build drops both.)
  */
 .stage {
   --ink: #1d1a22;
   --soft: #4b4552;
-  --glass: rgb(255 251 244 / 0.62);
+  --pane: rgb(255 251 244 / 0.62);
   --frost: blur(20px) saturate(1.6) brightness(1.06);
   --edge: rgb(255 255 255 / 0.6);
-  --tray: rgb(29 26 34 / 0.1);
+  --tray: rgb(29 26 34 / 0.09);
   --go: #0a5a43;
   --on-go: #fffdf8;
-  --right: #1f8f5c;
-  --miss: #c8463a;
+  --right: #1a7d50;
+  --miss: #c2402f;
+  --on-mark: #fffdf8;
   --sky: #cdd6ea;
   --out: cubic-bezier(0.16, 1, 0.3, 1);
+  --r: 22px;
   position: fixed;
   inset: 0;
   z-index: 70;
   display: grid;
-  place-items: center;
-  padding: 72px 16px max(24px, env(safe-area-inset-bottom));
-  overflow: auto;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 72px 12px 12px;
+  overflow: hidden auto;
   background: var(--sky);
   color: var(--ink);
-  font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 17px;
-  line-height: 1.4;
+  font-family: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.35;
   -webkit-tap-highlight-color: transparent;
 }
 
 :global(:root[data-kp-mode="dark"]) .stage {
   --ink: #f6f1e7;
   --soft: #cfc9d8;
-  --glass: rgb(14 16 34 / 0.66);
+  --pane: rgb(14 16 34 / 0.66);
   --frost: blur(20px) saturate(1.5) brightness(0.8);
   --edge: rgb(255 255 255 / 0.16);
-  --tray: rgb(255 255 255 / 0.1);
+  --tray: rgb(255 255 255 / 0.09);
   --go: #8fe6c3;
   --on-go: #0d241c;
   --right: #6fd9a4;
   --miss: #ff8f7e;
+  --on-mark: #10131f;
   --sky: #141627;
 }
 
@@ -51,9 +61,36 @@
   background: color-mix(in srgb, var(--go) 40%, transparent);
 }
 
-.card,
-.back {
-  background: var(--glass);
+.stage h1,
+.stage h2,
+.stage p,
+.stage ul,
+.stage ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stage button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.main {
+  position: relative;
+  width: 100%;
+  margin: auto;
+  display: grid;
+  justify-items: center;
+}
+
+.glass,
+.back,
+.veil {
+  background: var(--pane);
   -webkit-backdrop-filter: var(--frost);
   backdrop-filter: var(--frost);
   box-shadow:
@@ -62,18 +99,16 @@
     0 18px 44px -18px rgb(10 12 30 / 0.55);
 }
 
-.card {
-  position: relative;
-  width: min(100%, 440px);
-  padding: 32px 24px 24px;
-  border-radius: 28px;
-  overflow: hidden;
+.glass {
+  border-radius: var(--r);
+  padding: 18px;
 }
 
 .back {
   position: absolute;
+  z-index: 2;
   top: max(16px, env(safe-area-inset-top));
-  left: 16px;
+  left: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -81,7 +116,6 @@
   padding: 0 16px 0 10px;
   border-radius: 22px;
   color: var(--ink);
-  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s var(--out);
@@ -92,7 +126,8 @@
 }
 
 .back svg,
-.go svg {
+.go svg,
+.fold svg {
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -100,76 +135,122 @@
   stroke-linejoin: round;
 }
 
-.back:focus-visible,
-.go:focus-visible,
-.quiet:focus-visible {
+.stage :focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 
-.start,
-.end {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-}
-
+/* ---- pieces both screens share ---- */
 .stage h1 {
-  margin: 0;
-  font: 400 32px/1.12 var(--font-serif, serif);
-  letter-spacing: -0.015em;
+  font-size: 30px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
-.end h1 {
-  color: var(--soft);
-  font: 600 17px/1.3 var(--font-sans, system-ui, sans-serif);
-  letter-spacing: 0;
+.level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 650;
 }
 
-/* two small facts, side by side with a dot between */
-.facts {
+.bars {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 10px;
-  margin: 12px 0 28px;
+  gap: 4px;
+}
+
+.bars i {
+  width: 26px;
+  height: 9px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 34%, transparent);
+  transition:
+    background 0.25s var(--out),
+    box-shadow 0.25s var(--out);
+}
+
+.bars i[data-on] {
+  background: var(--right);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--right) 60%, transparent);
+}
+
+.tiles {
+  display: grid;
+  gap: 12px;
+}
+
+.tiles[data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tiles[data-count="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tiles li {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  min-height: 84px;
+  padding: 12px 14px;
+}
+
+.tiles b {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.tiles b i {
+  font-style: normal;
+}
+
+.tiles b small {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.tiles b.word {
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.tiles span {
   color: var(--soft);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.facts span + span::before {
-  content: "";
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  margin: 0 10px 3px 0;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.6;
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
 }
 
 /* ---- the one button ---- */
 .go {
   position: relative;
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
   min-height: 56px;
-  padding: 0 24px;
-  border: 0;
+  padding: 0 22px;
   border-radius: 28px;
   background:
     linear-gradient(to bottom, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0) 55%), var(--go);
   color: var(--on-go);
-  font: inherit;
   font-size: 18px;
   font-weight: 750;
   text-decoration: none;
-  cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.5),
     inset 0 -2px 0 rgb(0 0 0 / 0.16),
@@ -182,8 +263,29 @@
   touch-action: manipulation;
 }
 
+.stage button.go {
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0) 55%), var(--go);
+  color: var(--on-go);
+  font-size: 18px;
+  font-weight: 750;
+}
+
 .go svg {
   transition: transform 200ms var(--out);
+}
+
+/* the key that presses it: only where there is a keyboard (the computer's layout shows it) */
+.go kbd {
+  display: none;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--on-go) 16%, transparent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 24px;
 }
 
 @media (hover: hover) {
@@ -200,6 +302,10 @@
   .go:not(:disabled):hover svg {
     transform: translateX(3px);
   }
+
+  .second:hover {
+    background: color-mix(in srgb, var(--ink) 16%, transparent);
+  }
 }
 
 .go:not(:disabled):active {
@@ -211,6 +317,31 @@
 
 .go:disabled {
   cursor: progress;
+}
+
+.second {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 28px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--edge) 70%, transparent);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    transform 0.2s var(--out),
+    background 0.2s var(--out);
+}
+
+.second:active {
+  transform: scale(0.96);
 }
 
 /* loading: three orbs circling in step */
@@ -248,143 +379,588 @@
   }
 }
 
-.quiet {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-top: 8px;
-  padding: 0 12px;
-  border-radius: 12px;
-  color: var(--ink);
-  font-size: 16px;
+/* ============ a phone: one column, the button under the thumb ============ */
+.start,
+.end {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  width: min(100%, 440px);
+  padding-bottom: 4px;
+}
+
+.start .actions,
+.end .actions {
+  position: sticky;
+  z-index: 3;
+  bottom: max(0px, env(safe-area-inset-bottom));
+  padding: 8px;
+  border-radius: 36px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    inset 0 1px 0 var(--edge),
+    0 18px 44px -18px rgb(10 12 30 / 0.55);
+}
+
+/* ---- the start ---- */
+.lead {
+  display: grid;
+  gap: 10px;
+  padding: 22px 20px 18px;
+}
+
+.where {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: var(--soft);
+  font-size: 13px;
   font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent);
-  text-underline-offset: 4px;
+}
+
+.where span::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin: 0 10px 2px 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.lead .level {
+  min-height: 48px;
+  margin-top: 6px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: var(--tray);
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.tools small {
+  margin-right: 4px;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tools span {
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--tray);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 /* ---- the end ---- */
+/* the last question's glass, saying the set is over, before it draws back */
+.veil {
+  position: fixed;
+  z-index: 5;
+  inset: 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  pointer-events: none;
+}
+
+.veil b {
+  font-size: clamp(34px, 7vw, 64px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.burst {
+  position: fixed;
+  z-index: 6;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hero {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 20px 16px 18px;
+  text-align: center;
+}
+
+.hero h1 {
+  color: var(--soft);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
 .score {
   position: relative;
-  margin: 4px 0 0;
   line-height: 1;
 }
 
 .score b {
-  font: 400 104px/1 var(--font-serif, serif);
-  letter-spacing: -0.03em;
-  font-variant-numeric: lining-nums;
-}
-
-/* "of 10" hangs beside the number without moving it off the middle */
-.score span {
-  position: absolute;
-  bottom: 18px;
-  left: 100%;
-  margin-left: 8px;
-  color: var(--soft);
-  font-size: 17px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.answers {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.answers li {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: var(--miss);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
-}
-
-.answers li[data-right] {
-  background: var(--right);
-}
-
-.level {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 52px;
-  margin: 24px 0 0;
-  padding: 0 16px;
-  border-radius: 16px;
-  background: var(--tray);
-  font-weight: 600;
-}
-
-.bars {
-  display: flex;
-  gap: 4px;
-}
-
-.bars i {
-  width: 22px;
-  height: 8px;
-  border-radius: 4px;
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ink) 34%, transparent);
-  transform-origin: 50% 50%;
-  transition:
-    background 0.25s var(--out),
-    box-shadow 0.25s var(--out);
-}
-
-.bars i[data-on] {
-  background: var(--right);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--right) 60%, transparent);
-}
-
-.coins {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 12px 0 0;
-  font-weight: 600;
-}
-
-.coins i {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe58a, #e3a21a 60%, #b97a08);
-  box-shadow:
-    inset 0 0 0 1.5px #b97a08,
-    0 2px 4px rgb(0 0 0 / 0.25);
-}
-
-.coins b {
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
 }
 
-.coins span {
+/* "of 8" hangs beside the number without moving it off the middle */
+.score span {
+  position: absolute;
+  bottom: 16px;
+  left: 100%;
+  margin-left: 8px;
   color: var(--soft);
+  font-size: 18px;
+  font-weight: 650;
+  white-space: nowrap;
 }
 
-.actions {
+/* one square to an answer, all in one row (ten to a row at most), as large as the row allows */
+.answers {
+  --sq: 36px;
   display: grid;
-  justify-items: center;
+  grid-template-columns: repeat(var(--n, 8), minmax(0, var(--sq)));
+  justify-content: center;
+  gap: 6px;
   width: 100%;
-  margin-top: 24px;
+  margin-top: 10px;
 }
 
-@media (max-height: 640px) {
-  .score b {
-    font-size: 80px;
+.stage .answers button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 30%;
+  background: var(--miss);
+  color: var(--on-mark);
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stage .answers button[data-right] {
+  background: var(--right);
+}
+
+.answers button:active {
+  transform: scale(0.88);
+}
+
+.answers button[aria-pressed="true"] {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.purse {
+  padding: 0;
+}
+
+.stage .purse button {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  text-align: left;
+}
+
+.purse b {
+  align-items: center;
+  gap: 6px;
+}
+
+.moved {
+  display: grid;
+  align-content: center;
+  min-height: 60px;
+  padding: 6px 16px;
+}
+
+.moved .level {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-height: 48px;
+}
+
+.moved .level + .level {
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+/* a sub-skill's name leads its line when several moved */
+.moved .level span:first-child:not(.bars) {
+  flex: 1 1 100%;
+  overflow: hidden;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moved small {
+  margin-left: auto;
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* a level gained: the piece is ringed in the level's own green, and the line says so */
+.end[data-up] .moved {
+  box-shadow:
+    inset 0 0 0 2px var(--right),
+    0 0 28px -4px color-mix(in srgb, var(--right) 60%, transparent),
+    0 18px 44px -18px rgb(10 12 30 / 0.55);
+}
+
+.moved .level[data-up] small {
+  color: var(--right);
+  font-weight: 700;
+}
+
+/* every answer: folded away on a phone until asked for */
+.each {
+  padding: 4px 16px;
+}
+
+.each h2 {
+  display: none;
+}
+
+.stage .fold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  font-weight: 650;
+}
+
+.fold svg {
+  color: var(--soft);
+  transition: transform 0.25s var(--out);
+}
+
+.fold[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+.each ol {
+  display: none;
+  padding-bottom: 10px;
+}
+
+.each[data-open] ol {
+  display: grid;
+}
+
+.each li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  transition: background 0.3s var(--out);
+}
+
+.each li + li {
+  box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.each li[data-found] {
+  background: var(--tray);
+}
+
+.each li i {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--miss);
+  color: var(--on-mark);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.each li[data-right] i {
+  background: var(--right);
+}
+
+.each li span {
+  display: grid;
+  min-width: 0;
+}
+
+.each li b {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.each li small {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.each li em {
+  color: var(--miss);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.each li[data-right] em {
+  color: var(--right);
+}
+
+/* ============ a tablet: two columns, everything in view ============ */
+@media (min-width: 700px) {
+  .stage {
+    padding: 80px 24px 24px;
+    font-size: 17px;
   }
 
-  .card {
-    padding-top: 24px;
+  .stage h1 {
+    font-size: 40px;
+  }
+
+  .start {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "lead tiles"
+      "lead tools"
+      "actions actions";
+    gap: 16px;
+    width: min(100%, 800px);
+  }
+
+  .lead {
+    grid-area: lead;
+    align-content: center;
+    padding: 32px 28px;
+  }
+
+  .start .tiles {
+    grid-area: tiles;
+  }
+
+  .tools {
+    grid-area: tools;
+    align-content: center;
+    padding: 16px 18px;
+  }
+
+  .start .actions,
+  .end .actions {
+    grid-area: actions;
+    position: static;
+    padding: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+
+  .go,
+  .second {
+    min-height: 64px;
+    border-radius: 32px;
+  }
+
+  .stage .go,
+  .stage button.go {
+    font-size: 20px;
+  }
+
+  .end {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "hero tiles"
+      "hero moved"
+      "each each"
+      "actions actions";
+    gap: 16px;
+    width: min(100%, 840px);
+  }
+
+  .hero {
+    grid-area: hero;
+    align-content: center;
+    padding: 28px 20px;
+  }
+
+  .hero h1 {
+    font-size: 18px;
+  }
+
+  .score b {
+    font-size: 136px;
+  }
+
+  .score span {
+    bottom: 24px;
+    font-size: 22px;
+  }
+
+  .answers {
+    --sq: 44px;
+    gap: 8px;
+  }
+
+  .stage .answers button {
+    font-size: 16px;
+  }
+
+  .end .tiles {
+    grid-area: tiles;
+  }
+
+  .tiles li,
+  .stage .purse button {
+    min-height: 104px;
+    padding: 16px 18px;
+  }
+
+  .tiles b {
+    font-size: 34px;
+  }
+
+  .moved {
+    grid-area: moved;
+    min-height: 76px;
+    padding: 16px 20px;
+  }
+
+  /* every answer is simply there, in two columns */
+  .each {
+    grid-area: each;
+    padding: 18px 20px 12px;
+  }
+
+  .stage .fold {
+    display: none;
+  }
+
+  .each h2 {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--soft);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .each ol,
+  .each[data-open] ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+
+  .each li:nth-child(2) {
+    box-shadow: none;
+  }
+}
+
+/* ============ a computer: three columns across, Enter on the button ============ */
+@media (min-width: 1100px) and (hover: hover) {
+  .stage {
+    padding: 88px 32px 32px;
+  }
+
+  .stage h1 {
+    font-size: 48px;
+  }
+
+  .start {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-areas:
+      "lead tiles"
+      "lead tools"
+      "lead actions";
+    gap: 20px;
+    width: min(100%, 1040px);
+  }
+
+  .lead {
+    padding: 48px 44px;
+  }
+
+  .go kbd {
+    display: inline-block;
+  }
+
+  .end {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.1fr) minmax(0, 0.95fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      "hero each tiles"
+      "hero each moved"
+      "hero each actions";
+    gap: 20px;
+    width: min(100%, 1280px);
+    min-height: min(640px, 100dvh - 152px);
+  }
+
+  .hero h1 {
+    font-size: 20px;
+  }
+
+  .score b {
+    font-size: 168px;
+  }
+
+  .score span {
+    bottom: 30px;
+    font-size: 24px;
+  }
+
+  .each {
+    padding: 22px 22px 14px;
+  }
+
+  .each ol,
+  .each[data-open] ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .each li:nth-child(2) {
+    box-shadow: 0 -1px 0 color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+
+  .each li {
+    min-height: 54px;
+  }
+
+  .end .actions {
+    align-self: end;
+    flex-direction: column;
+  }
+
+  .end .second {
+    min-height: 56px;
   }
 }
 
@@ -393,8 +969,11 @@
     animation: none;
   }
 
-  .go,
-  .back {
-    transition: none;
+  .stage * {
+    transition: none !important;
+  }
+
+  .veil {
+    display: none;
   }
 }

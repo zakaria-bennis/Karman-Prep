@@ -75,7 +75,7 @@ import {
   summarise,
 } from "./run-view";
 
-export const PRACTICE_SET_SIZE = 10;
+export const PRACTICE_SET_SIZE = 8;
 const title: Record<Section, string> = { reading: "Reading and Writing", math: "Math" };
 
 const familyOf = (snap: CatalogDeliverySnapshot) =>
@@ -182,7 +182,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
 }
 
 /**
- * A 10-question practice set in one sub-skill (or a whole catalog skill), adaptive within the
+ * A practice set (PRACTICE_SET_SIZE questions) in one sub-skill (or a whole catalog skill), adaptive within the
  * set. Resumes an open one. A sub-skill serves only its own questions (src/lib/subskills/).
  */
 export async function startPracticeSet(clerkId: string, setId: string): Promise<RunView> {

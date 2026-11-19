@@ -6,11 +6,15 @@
 // the phone and this computer and nowhere else) and passes what it hears to the dev server.
 //
 //   node scripts/dev/phone-bridge.mjs [port]     (the port the dev server is on; 3000 if not given)
+// The cable's address changes each time the phone is plugged in, so the bridge also gives it a
+// name that never does: karman.local (announced with macOS's own dns-sd; it points only at the
+// cable's address, so it leads nowhere from the Wi-Fi).
+import { spawn } from "node:child_process";
 import net from "node:net";
 import os from "node:os";
 
 const port = Number(process.argv[2] ?? 3000);
-const name = `${os.hostname().replace(/\.local$/, "")}.local`;
+const NAME = "karman.local";
 const open = new Map();
 
 const cable = () =>
@@ -20,7 +24,10 @@ const cable = () =>
     .map((a) => a.address);
 
 function listen(address) {
+  let seen = false;
   const server = net.createServer((phone) => {
+    if (!seen) console.log("[phone] the phone has connected");
+    seen = true;
     const dev = net.connect(port, "127.0.0.1");
     phone.pipe(dev).pipe(phone);
     const drop = () => (phone.destroy(), dev.destroy());
@@ -30,9 +37,17 @@ function listen(address) {
   server.on("error", () => open.delete(address));
   server.listen(port, address, () => {
     console.log(
-      `[phone] on the phone, open  http://${name}:${port}  (or http://${address}:${port})`
+      `[phone] on the phone, open  http://${NAME}:${port}  (or http://${address}:${port})`
     );
   });
+  const named = spawn(
+    "dns-sd",
+    ["-P", "Karman dev", "_http._tcp", "local", String(port), NAME, address],
+    { stdio: "ignore" }
+  );
+  named.on("error", () => {});
+  server.on("close", () => named.kill());
+  process.on("exit", () => named.kill());
   open.set(address, server);
 }
 

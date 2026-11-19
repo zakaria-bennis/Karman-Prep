@@ -36,6 +36,9 @@ export function PracticeSetFlow({
   user,
   skillId,
   name,
+  domain,
+  subject,
+  level,
   questions,
   exitHref,
   lessonHref,
@@ -44,6 +47,10 @@ export function PracticeSetFlow({
   skillId: string;
   /** The skill's own name, for the start screen. */
   name: string;
+  domain: string;
+  subject: "math" | "reading";
+  /** The student's level in the skill before the set (the engine's 0 to 4). */
+  level: number;
   /** How many questions a set has. */
   questions: number;
   exitHref: string;
@@ -61,6 +68,9 @@ export function PracticeSetFlow({
       intro={(start, pending) => (
         <SetStart
           name={name}
+          domain={domain}
+          subject={subject}
+          level={level}
           questions={questions}
           onStart={start}
           busy={pending}

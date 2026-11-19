@@ -1,6 +1,6 @@
 /*
  * Endless mode: untimed, adaptive practice that keeps going, with the mistake log inside
- * (founder, 2026-11-07). Each round is a 10-question practice set on the skill the rule in
+ * (founder, 2026-11-07). Each round is an 8-question practice set on the skill the rule in
  * `src/lib/student/endless.ts` picks; each mistake-log row opens a new adaptive set on that skill.
  */
 import type { Metadata } from "next";
