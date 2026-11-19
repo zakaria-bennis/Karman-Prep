@@ -73,8 +73,8 @@
   left: 24px;
   margin: 0;
   color: #1d1a22;
-  font: 400 34px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
+  font: 700 30px/1.1 var(--font-sans);
+  letter-spacing: -0.02em;
   text-shadow: 0 0 24px rgb(255 240 220 / 0.8);
   pointer-events: none;
   transition: opacity 0.3s var(--out);
@@ -150,8 +150,8 @@
 }
 
 .name {
-  font: 400 20px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
+  font: 700 18px/1.15 var(--font-sans);
+  letter-spacing: -0.01em;
 }
 
 .meta {
@@ -188,6 +188,18 @@
 @keyframes fill {
   from {
     transform: scaleX(0);
+  }
+}
+
+/* On a phone there are no signs (founder, 2026-11-19): each half is its subject, and a tap on it
+   opens it. The names stay for a screen reader. */
+@media (max-width: 699px) and (orientation: portrait) {
+  .hero .plaque {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 }
 
@@ -244,6 +256,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .band i {
     animation: none;
   }

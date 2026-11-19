@@ -126,14 +126,16 @@
   display: none;
 }
 
+/* The bar is a carousel (moreBar.ts): every picture of the strip is placed by the page, and the ones
+   out of view wait just past the edge they left by, cut off at the sides only. */
 .items {
   position: relative;
-  display: flex;
-  justify-content: space-between;
+  height: var(--cell);
   margin: 0;
   padding: 0;
   list-style: none;
   touch-action: pan-y;
+  clip-path: inset(-24px 0);
 }
 
 /* the lens is exactly as big as the item it is under */
@@ -144,6 +146,11 @@
   height: var(--cell);
   border-radius: var(--r-lens);
   pointer-events: none;
+  transition: opacity 0.2s var(--out);
+}
+
+.lens[data-off] {
+  opacity: 0;
 }
 
 .item {
@@ -184,8 +191,28 @@
 /* on the bar every item has the same share of the width, so the names sit evenly with air between
    them (founder, 2026-11-16: the names looked crowded) */
 .items li[data-item] {
-  flex: 1 1 0;
-  min-width: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.items li[data-out] {
+  pointer-events: none;
+}
+
+/* the student's own picture, the last of the bar's second set */
+.mine {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--glass-edge);
+}
+
+.mine svg {
+  width: 100%;
+  height: 100%;
 }
 
 .items li[data-item] .item {
@@ -344,12 +371,11 @@
   transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.45, 1);
 }
 
-/* the notepad's loose pages: unseen until the row is hovered, then they flip up over the binding one
-   after another, quickly */
-.art [data-move="page"] {
-  opacity: 0;
+/* the Mistake Log's history clock: the arrow and the hands turn about the middle of the face */
+.art [data-move="rewind"],
+.art [data-move="hand"] {
   transform-box: view-box;
-  transform-origin: 12px 5px;
+  transform-origin: 12.5px 12.5px;
   transition: none;
 }
 
@@ -539,32 +565,18 @@
   }
 }
 
-@keyframes flip {
+/* winding back: a quick turn against the clock that overshoots a little and settles */
+@keyframes rewind {
   0% {
-    opacity: 0;
-    transform: scaleY(1);
+    transform: rotate(0);
   }
 
-  8% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-
-  /* edge-on at the binding */
-  48% {
-    opacity: 1;
-    transform: scaleY(0.05) skewX(-11deg);
-  }
-
-  /* over the top, its back showing */
-  82% {
-    opacity: 0.75;
-    transform: scaleY(-0.74) skewX(5deg);
+  70% {
+    transform: rotate(-372deg);
   }
 
   100% {
-    opacity: 0;
-    transform: scaleY(-0.9);
+    transform: rotate(-360deg);
   }
 }
 
@@ -585,16 +597,19 @@
     animation: head 0.8s cubic-bezier(0.3, 1.4, 0.5, 1);
   }
 
-  .item:hover [data-move="page"] {
-    animation: flip 0.62s cubic-bezier(0.45, 0, 0.4, 1) both;
+  .item:hover [data-move="rewind"] {
+    animation: rewind 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
   }
 
-  .item:hover [data-move="page"][data-n="1"] {
-    animation-delay: 0.22s;
+  /* the long hand goes round twice and the short one once, both backward */
+  .item:hover [data-move="hand"] {
+    animation: rewind 0.8s cubic-bezier(0.3, 0, 0.2, 1) both;
   }
 
-  .item:hover [data-move="page"][data-n="2"] {
-    animation-delay: 0.44s;
+  .item:hover [data-move="hand"][data-n="0"] {
+    animation-duration: 0.4s;
+    animation-iteration-count: 2;
+    animation-timing-function: linear;
   }
 
   /* the blue book swings up against the others, and then all three bounce, one after another */
@@ -646,17 +661,25 @@
   gap: 20px;
   min-height: 100dvh;
   padding: 0 12px calc(max(12px, env(safe-area-inset-bottom)) + 76px + 12px);
+  /* Settings, Text size: the pages are drawn larger or smaller; the menu keeps its size */
+  zoom: var(--text-k, 1);
 }
 
 .title {
   margin: 0;
   padding: 0 4px;
+  justify-self: start;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
   color: var(--ink);
-  font: 400 28px/1.1 var(--font-serif);
-  letter-spacing: -0.015em;
-  text-shadow:
-    0 0 28px var(--halo),
-    0 0 8px var(--halo);
+  /* plain and readable on any sky (founder, 2026-11-19: no white serif titles on the landscape) */
+  font: 700 20px/1.2 var(--font-sans);
   animation: arrive 0.28s var(--out) both;
 }
 
@@ -690,6 +713,85 @@
   gap: 8px 12px;
   min-height: 40px;
   padding-top: 20px;
+}
+
+/* A page inside another: one piece of glass with a round way back, the page it came from in
+   small words, and this page's name under them. */
+.where {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: start;
+  max-width: 100%;
+  padding: 6px 20px 6px 6px;
+  border-radius: 28px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+  animation: arrive 0.28s var(--out) both;
+}
+
+.shell .whereBack {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.5, 0.45, 1),
+    background 0.18s var(--out);
+}
+
+.whereBack svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.shell .whereBack:hover svg {
+  transform: translateX(-2px);
+}
+
+.shell .whereBack:active {
+  transform: scale(0.92);
+}
+
+.whereText {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.whereText small {
+  color: color-mix(in srgb, var(--ink) 66%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* inside the glass the name needs none of its own */
+.where .title {
+  overflow: hidden;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  font-size: 18px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: none;
 }
 
 .crumbs:empty {
@@ -869,7 +971,13 @@
     display: grid;
     grid-auto-rows: var(--cell);
     gap: 4px;
+    height: auto;
     touch-action: auto;
+    clip-path: none;
+  }
+
+  .items li[data-item] {
+    position: static;
   }
 
   .under {

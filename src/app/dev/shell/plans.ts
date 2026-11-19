@@ -2,7 +2,11 @@
 // on the desktop rail.
 import type { StickerName } from "./stickers";
 
-export const LABEL: Record<StickerName, string> = {
+/** A page of the portal: one of the menu's pictures, or the student's own page behind the profile
+ *  picture. */
+export type Page = StickerName | "account";
+
+export const LABEL: Record<Page, string> = {
   homework: "Homework",
   library: "Library",
   schedule: "Schedule",
@@ -12,6 +16,7 @@ export const LABEL: Record<StickerName, string> = {
   chat: "Chat",
   settings: "Settings",
   more: "More",
+  account: "Account",
 };
 
 /** On the phone's bar every name has a fifth of the width, so the one long name is said shorter

@@ -115,7 +115,7 @@ export default async function SchoolClassPage({
             <label className="kp-field">
               <span>Kind of work</span>
               <select className="kp-select" name="kind" defaultValue="skill_practice">
-                <option value="skill_practice">Skill practice set (10 questions)</option>
+                <option value="skill_practice">Skill practice set (8 questions)</option>
                 <option value="domain_quiz">Domain quiz (about 12 questions)</option>
                 <option value="full_length_test">Full-length practice test</option>
               </select>

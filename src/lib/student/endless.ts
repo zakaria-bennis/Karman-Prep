@@ -1,6 +1,6 @@
 /*
  * Endless mode (founder, 2026-11-07): untimed and adaptive, with the mistake log inside. The
- * full algorithm is still to be designed; this first rule chains 10-question practice sets:
+ * full algorithm is still to be designed; this first rule chains 8-question practice sets:
  *   1. If a skill below Conquered has misses in the last 14 days, practice the one missed most
  *      recently (bring mistakes back while they're fresh).
  *   2. Otherwise, practice Up next of the course that is further behind (biggest score gain).

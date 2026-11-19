@@ -32,10 +32,91 @@ It must not be pointed at real students yet, because most of it shows made-up da
 | Homework | All made up; pressing work leads nowhere |
 | Schedule | Built on stand-in sessions; Zoom links not hooked up |
 | Chat | Connected to real messages when signed in with a class or tutor; made-up classmates when not |
-| More, account menu | Built; Settings and the test date are not |
+| More, Account | On a phone More turns the bar like a carousel (below); Account is Settings (below) |
 
 Known blocker for the Library: the portal shows 72 skills, the question bank has 39 skills and 92 sub-skills,
 and there is no mapping between them. Making one is the founder's decision (no retagging without his say).
+
+## The phone's More is a carousel (2026-11-18)
+
+There is no More page. Pressing More slides the bar's first four pictures out at the left, carries More to
+the left end, and brings in what the five had no room for, ending in the profile picture (Account). Pressing
+More again turns it back. The second set holds at most four beside More. Rules and positions are in
+`src/app/dev/shell/moreBar.ts` (tested); the hooks are in `useBar.ts`; `More.tsx` now holds the Account page
+and the desktop account menu. Free, Practice and Pro have only Account behind More: he has not said whether
+More should simply be Account there. Awaiting his verdict.
+
+With nothing tucked away (Free, Practice, Pro) the profile picture takes More's place and the bar
+never turns. The Mistake Log's icon is a history clock that winds back on hover (he found the
+notepad too close to Homework's).
+
+## Settings (2026-11-18), first version, awaiting his verdict
+
+The Account page is Settings (`Settings.tsx`, `SettingsPanes.tsx`, `settingsControls.tsx`,
+`settings.module.css`). On a phone: the student, nine folders (Profile, Your SAT, Sound, Appearance,
+Quiz, Notifications, Plan, Calendars, Help), Sign out; a folder opens as its own page with a back
+pill. On the desktop the profile menu's Settings opens it with the folders at the left and the open
+one beside them. His list of what goes in and what stays out is in the memory note
+`project_decisions_nov18.md`.
+
+- **Controls** are our own and on springs: a switch whose knob stretches while held, a slider that
+  follows the finger and springs onto its step, a tray with one sliding pill.
+- **Really works today:** light or dark, text size (the pages are drawn larger with CSS `zoom`; the
+  menu keeps its size), Transparency (it sets `--frost-k`), Reduce motion (the site's own switch in
+  `src/lib/painting/motion.ts`), sounds and their volume, extra time (Progress's pacing goal reads
+  it), night music with its volume, piece and "start by itself" time.
+- **Night music is four placeholder pieces made in the browser** (`music.ts`: slow piano, soft
+  strings, rain, music box). He will choose the real ones. The 8 PM music banner (`MusicOffer.tsx`)
+  still keeps its own memory and does not turn this on yet.
+- **Kept in this browser only** (`settingsStore.ts`, key `kp-settings`), until the portal reads a real
+  student: everything else. Stand-ins: the email, sign-in methods, card, receipts, hours left, and
+  the four SAT dates (check them against the College Board).
+- The demo bar lost Sound, the extra-time buttons and Night: Settings has them now.
+- Checked in a headless browser at 360, 390 and 1440, dark and light: every folder, no sideways
+  scroll, no control under 40px tall, largest text on six pages.
+
+## Start and end screens (2026-11-18): the skill set, second version, awaiting his verdict
+
+He found the first version "bland and boring". His rules, all applied to the skill set:
+an animated transition out of the last question; a lively but functional ending; a lot of information on
+both screens; **a different layout for a phone, a tablet and a computer**; no serif here (Young Serif reads
+"tacky and old" to him: these screens are Hanken Grotesk only; he may mean the serif site-wide, not asked
+yet); the coin is the Rewards coin; coins may show at the end if they are animated; GSAP and three.js.
+
+These are in the live quiz engine. `src/components/quiz-flows/`:
+- `FlowStage.tsx`: the frame (the quiz's landscape, a way out at the top left; the old Learn bar hides
+  when it sees `data-flow-stage`) and `Go`, the one button.
+- `SetScreens.tsx`: `SetStart` (skill, domain, level, questions, about how long, tools, Start, Lesson) and
+  `SetEnd` (score, accuracy, time, pace, each answer in order, the level before and after for up to three
+  sub-skills, coins, next step). Pressing an answer's square finds it in the list; pressing the coins
+  throws them again; Enter takes the next step.
+- `stage-motion.ts` (GSAP): the last question's glass says "Set complete" and draws back as the ending
+  comes forward; numbers count; squares land; bars fill; confetti and one sound for a level gained.
+- `CoinBurst.tsx` (three.js): real discs with the coin's face fly up and into the counter, which ticks.
+- `stage.module.css`: phone (one column, button fixed under the thumb, answers folded), tablet (two
+  columns, all in view), computer (three columns, every answer listed, Enter on the button).
+- `shown-level.ts`: students see Not started, Learning, Understanding, Proficient (three bars). The engine
+  still keeps five levels and moves them by answers in a row; his rule (3, 4, 5 right within a set) is
+  NOT wired. `src/components/portal/Coin.tsx` is the coin, moved out of the dev page.
+- A skill set is now **8 questions** (`PRACTICE_SET_SIZE`).
+- Seen on real sets in a headless browser at 360, 390, 820 and 1440, including one real level-up.
+- **Every other activity still starts and ends on the old painted shell** (`FlowFrame`): Daily 10, domain
+  quiz, time trial, full-length exam, diagnostic. He wants the old look gone everywhere; they move to
+  this stage once he approves the skill set's. His numbers: Daily 10 is 10, a full-length exam is 98,
+  endless mode has no end. Strategy quizzes and endless mode have no engine yet.
+- **Default profile picture:** four drawn options were put to him (dawn hills, Karman at sunset, initial
+  on glass, night sky); he has not picked.
+
+## Testing on his phone
+
+Run `sh scripts/dev/phone-server.sh` in a Terminal tab (a preview started by Claude is stopped when its
+turn ends, which is why his phone "loaded forever"). It serves port 3440 against the local practice
+database as the stand-in Cohort student, and starts `scripts/dev/phone-bridge.mjs`: with the iPhone on a
+cable, Safari opens `http://karman.local:3440`. The dev server listens only on this computer and the
+bridge only on the cable's own address; never start it with `-H 0.0.0.0`. The preview entry
+`portal-settings` attaches to that server. If pages under `/learn` hang, Docker has stopped and the
+local database with it: quit and reopen Docker (`docs/overnight/local-db.md`).
+`DEV_ORIGINS` (read in `next.config.mjs`) names the hosts the dev server accepts.
 
 ## The order he asked for
 

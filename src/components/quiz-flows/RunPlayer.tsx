@@ -34,6 +34,7 @@ export function RunPlayer({
   open,
   initial = null,
   intro,
+  bare = false,
   exitHref,
   lessonHref = null,
   againHref,
@@ -47,6 +48,8 @@ export function RunPlayer({
   initial?: RunView | null;
   /** Shown before a timed run starts; the player opens the run when the student continues. */
   intro?: (start: () => void, pending: boolean) => ReactNode;
+  /** The intro is a whole screen of its own (FlowStage), not a card inside the old shell. */
+  bare?: boolean;
   exitHref: string;
   lessonHref?: string | null;
   againHref?: string;
@@ -92,6 +95,10 @@ export function RunPlayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // a start screen on the frosted stage frames itself, and stays up, loading, until the questions
+  // are there, so nothing of the old shell flashes between Start and the first question
+  if (intro && bare && (!started || (!run && !error)))
+    return intro(() => void begin(), pending || started);
   if (!started && intro)
     return (
       <FlowFrame user={user} title={title}>

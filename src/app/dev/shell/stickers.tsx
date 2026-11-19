@@ -226,29 +226,30 @@ const ART: Record<StickerName, ReactNode> = {
       <circle cx="16.250" cy="17" r="2.250" {...WASH} />
     </>
   ),
-  // a little notepad, bound along its top, with lines of writing on it (founder, 2026-11-16: no
-  // cross). Hovered, its pages turn over the binding one after another: each lifts from its foot,
-  // stands edge-on at the binding, and goes over the top with its back showing.
+  // The Mistake Log is a history (founder, 2026-11-18: the notepad looked too much like Homework):
+  // a clock face inside an arrow that runs back round it, counter-clockwise. Its hands are orange.
+  // Hovered, the arrow winds back a full turn and the hands sweep backward with it.
   mistakes: (
     <>
-      <rect x="5" y="5" width="14" height="15.500" rx="2" {...WASH} />
-      <path d="M8 10.800h8M8 13.800h8" />
-      <path d="M8 16.800h4.500" stroke={ORANGE} strokeWidth="1.900" />
-      {[0, 1, 2].map((n) => (
-        <g key={n} data-move="page" data-n={n}>
-          <rect
-            x="5"
-            y="5"
-            width="14"
-            height="15.500"
-            rx="2"
-            fill="currentColor"
-            fillOpacity="0.26"
-          />
-          <path d="M8 10.800h8M8 13.800h8M8 16.800h5" strokeOpacity="0.7" />
-        </g>
-      ))}
-      <path d="M8.500 3.300v3.200M12 3.300v3.200M15.500 3.300v3.200" />
+      <circle cx="12.500" cy="12.500" r="7.500" {...WASH} stroke="none" />
+      <g data-move="rewind">
+        <path d="M5.800 9.100A7.500 7.500 0 1 1 5 12.500" />
+        <path d="M4.300 5.600l1.500 3.500 3.600-1" />
+      </g>
+      <path
+        data-move="hand"
+        data-n="0"
+        d="M12.500 12.500V8.300"
+        stroke={ORANGE}
+        strokeWidth="1.900"
+      />
+      <path
+        data-move="hand"
+        data-n="1"
+        d="M12.500 12.500l3 1.800"
+        stroke={ORANGE}
+        strokeWidth="1.900"
+      />
     </>
   ),
   // a satchel: everything else is kept in here

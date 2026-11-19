@@ -23,9 +23,10 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
+  type CSSProperties,
 } from "react";
 import "@/components/portal/portal.css";
 import "@/components/portal/portal-lit.css";
@@ -37,15 +38,20 @@ import Chat from "./Chat";
 import Homework from "./Homework";
 import Schedule from "./Schedule";
 import LibraryHero from "./LibraryHero";
+import { Where } from "./Where";
 import MistakeLog, { type Trail } from "./MistakeLog";
-import More, { AccountMenu, tuckedIn } from "./More";
+import { AccountMenu, tuckedIn } from "./More";
+import Settings from "./Settings";
+import { TEXT_SIZES, frostOf, useSettings } from "./settingsStore";
+import { useSettingsEffects } from "./useSettingsEffects";
+import { inView, slots, strip, waits } from "./moreBar";
+import { useBarWidth, useLensDrag } from "./useBar";
 import Progress, { STUDENTS, type StudentKey } from "./Progress";
 import type { Found } from "./progressBreakdowns";
 import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
-import { setSound } from "./sound";
 import SkillPage, { type OpenSkill } from "./SkillPage";
-import { LABEL, ON_BAR, PLANS, type Plan } from "./plans";
+import { LABEL, ON_BAR, PLANS, type Page, type Plan } from "./plans";
 import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
 import { ChatDemo, Me, Unread, useChatPlan } from "./shellBits";
@@ -58,6 +64,8 @@ const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
 const POP = { type: "spring", stiffness: 600, damping: 18, mass: 0.8 } as const;
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
+/* the phone's bar turning to its second set and back: one strip pushed along, settling softly */
+const TURN = { type: "spring", stiffness: 300, damping: 30, mass: 1 } as const;
 /* a page that slides over: it comes in from the side it is headed (1 forward, -1 back) on a spring, and
    the page it replaces leaves quickly the other way */
 const SLIDE_OVER = {
@@ -75,7 +83,6 @@ const SLIDE_OVER = {
 };
 const RAIL = "(min-width: 960px) and (hover: hover)";
 /** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
-const project = (v: number) => ((v / 1000) * 0.99) / (1 - 0.99);
 
 function Shell() {
   const q = useSearchParams();
@@ -89,12 +96,21 @@ function Shell() {
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
   const { openSoon, notYet } = useMenuIntent(setOpen, held);
-  const items: readonly StickerName[] = rail ? PLANS[plan].rail : PLANS[plan].bar;
-  const [page, setPage] = useState<StickerName>(PLANS[plan].home);
+  /* the phone's bar is a carousel (moreBar.ts): `turned` is its second set, which More brings in */
+  const [turned, setTurned] = useState(false);
+  const away = tuckedIn(plan);
+  /* with nothing tucked away, More would hold the profile picture alone, so the picture takes
+     More's place and the bar never turns (founder, 2026-11-18) */
+  const bar: readonly Page[] =
+    away.length > 0 ? PLANS[plan].bar : PLANS[plan].bar.map((p) => (p === "more" ? "account" : p));
+  const items: readonly Page[] = rail ? PLANS[plan].rail : away.length > 0 ? strip(bar, away) : bar;
+  const seen: readonly Page[] = rail ? items : away.length > 0 ? inView(bar, away, turned) : bar;
+  const [page, setPage] = useState<Page>(PLANS[plan].home);
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
-  const [sound, setSoundOn] = useState(true);
-  useEffect(() => setSound(sound), [sound]);
+  /* the student's settings: sound, music, text size and the glass all follow them */
+  const kept = useSettings();
+  useSettingsEffects(kept);
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
   const [student, setStudent] = useState<StudentKey>("weeks9");
@@ -102,13 +118,12 @@ function Shell() {
   const [stat, setStat] = useState<StatKey | null>(null);
   /* what is open inside the Mistake Log on a phone: it names the page and the way back */
   const [trail, setTrail] = useState<Trail | null>(null);
-  /* a page the five have no room for is reached from More, or (the Mistake Log) from Progress,
-     and goes back to where it was opened from */
-  const [via, setVia] = useState<"more" | "progress">("progress");
-  const tucked = !rail && tuckedIn(plan).includes(page);
+  /* where the phone's five are taken, the Mistake Log can also be opened from Progress, and then it
+     goes back there */
+  const [viaProgress, setViaProgress] = useState(false);
+  const tucked = !rail && viaProgress && page === "mistakes";
   const inStat = page === "progress" && stat !== null;
-  /* extra time on the SAT (demo only, until Settings holds a student's accommodations) */
-  const [extraTime, setExtraTime] = useState(1);
+  const extraTime = kept.extraTime;
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
   useChatPlan(plan);
@@ -136,7 +151,15 @@ function Shell() {
     section && domain && !openDomain
       ? LEVEL_NAMES.indexOf(domain as (typeof LEVEL_NAMES)[number])
       : -1;
-  const at = Math.max(0, items.indexOf(tucked ? via : page));
+  /* the lit item: the page, when its picture is in view; if not, where it was opened from */
+  const lit: Page = seen.includes(page)
+    ? page
+    : tucked && seen.includes("progress")
+      ? "progress"
+      : rail
+        ? page
+        : "more";
+  const at = Math.max(0, items.indexOf(lit));
   /* a skill named on Progress or in the Mistake Log opens on its own page in the Library */
   const openSkill = (found: Found) => {
     dir.current = 1;
@@ -173,27 +196,51 @@ function Shell() {
   const [hover, setHover] = useState<number | null>(null);
   const [hoverY, setHoverY] = useState(0);
   const placed = useRef(false);
+  /* the bar's width, and from it where every picture of the strip sits (moreBar.ts) */
+  const barW = useBarWidth(list, rail);
+  const first = PLANS[plan].bar.length;
+  const second = away.length > 0 ? away.length + 2 : 1;
+  const places = useMemo(() => slots(first, second, barW, turned), [first, second, barW, turned]);
+  const delays = useMemo(() => waits(first, second, turned), [first, second, turned]);
+  /* the strip moves on its spring only when More turned it; a new width just places it */
+  const [turnedAt, setTurnedAt] = useState(-1);
+  const turning = !still && turnedAt === barW;
+  const turn = () => {
+    setTurnedAt(barW);
+    setTurned(!turned);
+  };
   const spot = useCallback(
     (i: number) => {
+      if (!rail) {
+        const s = places[i] ?? { x: 0, w: 64 };
+        return { x: s.x + s.w / 2, y: 0, w: s.w };
+      }
       const li = list.current?.querySelectorAll<HTMLLIElement>("li[data-item]")[i];
       if (!li) return { x: 0, y: 0, w: 64 };
-      /* the lens is exactly its item: on the bar that is the picture and the word together */
-      return rail
-        ? { x: 0, y: li.offsetTop, w: li.offsetWidth }
-        : { x: li.offsetLeft + li.offsetWidth / 2, y: 0, w: li.offsetWidth };
+      return { x: 0, y: li.offsetTop, w: li.offsetWidth };
     },
-    [rail]
+    [rail, places]
   );
+  /* what the lens last saw, so it knows a turn of the bar from a new page or a new width */
+  const was = useRef({ turned, barW });
   const send = useCallback(
     (i: number, velocity = 0) => {
       const to = spot(i);
-      const how = still || !placed.current ? STILL : { ...SLIDE, velocity };
+      const swung = was.current.turned !== turned;
+      if (was.current.barW !== barW) placed.current = false;
+      was.current = { turned, barW };
+      const how =
+        still || !placed.current
+          ? STILL
+          : swung
+            ? { ...TURN, delay: 0.03 }
+            : { ...SLIDE, velocity };
       animate(x, to.x, how);
       animate(y, to.y, how);
       animate(w, to.w, how);
       placed.current = true;
     },
-    [spot, still, x, y, w]
+    [spot, still, x, y, w, turned, barW]
   );
   useLayoutEffect(() => {
     send(at);
@@ -207,65 +254,40 @@ function Shell() {
     return () => window.removeEventListener("resize", again);
   }, [at, send]);
 
-  /* on the phone's bar the lens can be dragged: it follows the finger, and when let go it is thrown to
-     the item its speed was carrying it to */
-  const drag = useRef<{
-    startX: number;
-    from: number;
-    moved: boolean;
-    lastX: number;
-    lastT: number;
-    v: number;
-  } | null>(null);
   const nearest = (px: number) => {
-    const lis = [...(list.current?.querySelectorAll<HTMLLIElement>("li[data-item]") ?? [])];
-    let best = 0;
-    lis.forEach((li, i) => {
-      const c = li.offsetLeft + li.offsetWidth / 2;
-      const b = lis[best].offsetLeft + lis[best].offsetWidth / 2;
-      if (Math.abs(c - px) < Math.abs(b - px)) best = i;
+    const mid = (i: number) => places[i].x + places[i].w / 2;
+    let best = items.indexOf(seen[0]);
+    seen.forEach((item) => {
+      const i = items.indexOf(item);
+      if (Math.abs(mid(i) - px) < Math.abs(mid(best) - px)) best = i;
     });
     return best;
   };
-  const down = (e: ReactPointerEvent<HTMLUListElement>) => {
-    if (rail) return;
-    drag.current = {
-      startX: e.clientX,
-      from: x.get(),
-      moved: false,
-      lastX: e.clientX,
-      lastT: e.timeStamp,
-      v: 0,
-    };
+  const go = (item: Page) => {
+    setPage(item);
+    setViaProgress(false);
+    setSkill(null);
+    setSection(null);
+    setDomain(null);
+    setStat(null);
   };
-  const move = (e: ReactPointerEvent<HTMLUListElement>) => {
-    const d = drag.current;
-    if (!d) return;
-    if (!d.moved && Math.abs(e.clientX - d.startX) < 10) return;
-    if (!d.moved) {
-      d.moved = true;
-      e.currentTarget.setPointerCapture(e.pointerId);
+  /* on the phone's bar the lens can be dragged: it follows the finger, and when let go it is thrown
+     to the item its speed was carrying it to */
+  const { down, move, up } = useLensDrag(x, !rail, (to, v) => {
+    const i = nearest(to);
+    /* thrown onto More, the lens turns the bar as a press would */
+    if (items[i] === "more") {
+      send(at, v);
+      turn();
+    } else {
+      go(items[i]);
+      send(i, v);
     }
-    const dt = Math.max(1, e.timeStamp - d.lastT);
-    d.v = 0.6 * d.v + 0.4 * (((e.clientX - d.lastX) / dt) * 1000);
-    d.lastX = e.clientX;
-    d.lastT = e.timeStamp;
-    const w = e.currentTarget.offsetWidth;
-    const raw = d.from + (e.clientX - d.startX);
-    const over = raw < 28 ? raw - 28 : raw > w - 28 ? raw - (w - 28) : 0;
-    x.set(raw - over + over * 0.25);
-  };
-  const up = () => {
-    const d = drag.current;
-    drag.current = null;
-    if (!d?.moved) return;
-    const i = nearest(x.get() + project(d.v));
-    setPage(items[i]);
-    send(i, d.v);
-  };
+  });
 
   const choosePlan = (next: Plan) => {
     setPlan(next);
+    setTurned(false);
     setPage(PLANS[next].home);
   };
   const wide = rail && (open || held || menu);
@@ -288,6 +310,9 @@ function Shell() {
     <div
       className={`kp-shell ${portalFontVars} ${styles.shell}`}
       data-mode={dark ? "dark" : "light"}
+      style={
+        { "--frost-k": frostOf(kept.clear), "--text-k": TEXT_SIZES[kept.textStep] } as CSSProperties
+      }
     >
       <PortalFlight world={world} />
 
@@ -339,46 +364,65 @@ function Shell() {
           />
           <motion.li
             className={styles.lens}
+            // a page the menu has no picture for (Account, on the desktop) lights nothing
+            data-off={!items.includes(lit) || undefined}
             style={rail ? { x: 0, y, width: "100%" } : { x: left, y: 0, width: w }}
             aria-hidden="true"
           />
-          {items.map((item, i) => (
-            <li key={item} data-item data-mid={(!rail && i === 2) || undefined}>
-              <motion.button
-                type="button"
-                className={styles.item}
-                aria-current={item === items[at] ? "page" : undefined}
-                aria-label={LABEL[item]}
-                whileTap={still ? undefined : { scale: 0.9 }}
-                transition={POP}
-                onClick={() => {
-                  setPage(item);
-                  setSkill(null);
-                  setSection(null);
-                  setDomain(null);
-                  setStat(null);
-                }}
-                onPointerEnter={(e) => {
-                  setHover(i);
-                  setHoverY(e.currentTarget.parentElement?.offsetTop ?? 0);
-                }}
+          {items.map((item, i) => {
+            const out = !seen.includes(item);
+            const pressed = item === "more" && !rail ? turned : undefined;
+            return (
+              <motion.li
+                key={rail ? item : `bar ${item}`}
+                data-item
+                data-mid={(!rail && !turned && i === 2) || undefined}
+                data-out={out || undefined}
+                aria-hidden={out || undefined}
+                initial={false}
+                animate={
+                  rail ? undefined : { x: places[i].x, width: places[i].w, opacity: out ? 0 : 1 }
+                }
+                transition={turning ? { ...TURN, delay: delays[i] } : STILL}
               >
-                <motion.span
-                  className={styles.art}
-                  animate={{ scale: item === page ? 1.12 : 1 }}
-                  transition={still ? STILL : POP}
+                <motion.button
+                  type="button"
+                  className={styles.item}
+                  aria-current={item === lit && item !== "more" ? "page" : undefined}
+                  aria-label={LABEL[item]}
+                  aria-expanded={pressed}
+                  tabIndex={out ? -1 : undefined}
+                  whileTap={still ? undefined : { scale: 0.9 }}
+                  transition={POP}
+                  onClick={() => (item === "more" ? turn() : go(item))}
+                  onPointerEnter={(e) => {
+                    setHover(i);
+                    setHoverY(e.currentTarget.parentElement?.offsetTop ?? 0);
+                  }}
                 >
-                  <Sticker name={item} />
-                  {(item === "chat" || (item === "more" && tuckedIn(plan).includes("chat"))) && (
-                    <Unread />
-                  )}
-                </motion.span>
-                <span className={styles.word} data-word>
-                  {rail ? LABEL[item] : (ON_BAR[item] ?? LABEL[item])}
-                </span>
-              </motion.button>
-            </li>
-          ))}
+                  <motion.span
+                    className={styles.art}
+                    animate={{ scale: item === page ? 1.12 : 1 }}
+                    transition={still ? STILL : POP}
+                  >
+                    {item === "account" ? (
+                      <span className={styles.mine}>
+                        <Me />
+                      </span>
+                    ) : (
+                      <Sticker name={item} />
+                    )}
+                    {(item === "chat" || (item === "more" && !turned && away.includes("chat"))) && (
+                      <Unread />
+                    )}
+                  </motion.span>
+                  <span className={styles.word} data-word>
+                    {rail ? LABEL[item] : (ON_BAR[item as StickerName] ?? LABEL[item])}
+                  </span>
+                </motion.button>
+              </motion.li>
+            );
+          })}
         </ul>
         <button
           type="button"
@@ -406,7 +450,7 @@ function Shell() {
         still={still}
         dark={dark}
         onDark={setDark}
-        onSettings={() => (setPage("settings"), setMenu(false))}
+        onSettings={() => (go("account"), setMenu(false))}
         onClose={() => setMenu(false)}
       />
 
@@ -429,45 +473,36 @@ function Shell() {
               {inSkill ? skill.domain : domain ? section : "Library"}
             </button>
           )}
-          {(inStat || trail || tucked) && (
-            <button
-              type="button"
-              className={styles.back}
-              onClick={() => {
+          {inStat || trail || tucked ? (
+            <Where
+              from={trail?.back ?? "Progress"}
+              onBack={() => {
                 dir.current = -1;
                 if (trail) trail.go();
-                else if (tucked) setPage(via);
+                else if (tucked) go("progress");
                 else setStat(null);
               }}
             >
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M14.500 6.500L9 12l5.500 5.500" />
-              </svg>
-              {trail?.back ?? (tucked ? LABEL[via] : "Progress")}
-            </button>
-          )}
-          {!(page === "library" && !section) && (
-            <h1
-              className={styles.title}
-              key={
-                inSkill
+              <h1 className={styles.title} key={trail?.name ?? (inStat ? stat : page)} data-long>
+                {trail?.name ?? (inStat ? STATS[stat].name : LABEL[page])}
+              </h1>
+            </Where>
+          ) : (
+            !(page === "library" && !section) && (
+              <h1
+                className={styles.title}
+                key={
+                  inSkill ? skill.name : page === "library" && section ? (domain ?? section) : page
+                }
+                data-long={(page === "library" && (inSkill || section !== null)) || undefined}
+              >
+                {inSkill
                   ? skill.name
-                  : (trail?.name ??
-                    (inStat ? stat : page === "library" && section ? (domain ?? section) : page))
-              }
-              data-long={
-                (page === "library" && (inSkill || section !== null)) || trail !== null || undefined
-              }
-            >
-              {inSkill
-                ? skill.name
-                : (trail?.name ??
-                  (inStat
-                    ? STATS[stat].name
-                    : page === "library" && section
-                      ? (domain ?? section)
-                      : LABEL[page]))}
-            </h1>
+                  : page === "library" && section
+                    ? (domain ?? section)
+                    : LABEL[page]}
+              </h1>
+            )
           )}
           {/* where the phone's five are taken, the Mistake Log is a press away from Progress */}
           {page === "progress" && !stat && !items.includes("mistakes") && (
@@ -476,8 +511,8 @@ function Shell() {
               className={`${styles.back} ${styles.forth}`}
               onClick={() => {
                 dir.current = 1;
-                setVia("progress");
                 setPage("mistakes");
+                setViaProgress(true);
                 window.scrollTo({ top: 0 });
               }}
             >
@@ -570,12 +605,14 @@ function Shell() {
         {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
-        {page === "more" && (
-          <More
+        {page === "account" && (
+          <Settings
+            rail={rail}
             plan={plan}
             dark={dark}
             onDark={setDark}
-            onGo={(p) => (setVia("more"), setPage(p))}
+            onGo={go}
+            onTrail={setTrail}
           />
         )}
         {page === "mistakes" && (
@@ -595,9 +632,6 @@ function Shell() {
 
       {q.get("demo") !== "0" && (
         <div className={styles.demo} role="group" aria-label="Demo switches">
-          <button type="button" aria-pressed={sound} onClick={() => setSoundOn(!sound)}>
-            Sound
-          </button>
           {(Object.keys(PLANS) as Plan[]).map((k) => (
             <button key={k} type="button" aria-pressed={plan === k} onClick={() => choosePlan(k)}>
               {PLANS[k].label}
@@ -617,22 +651,6 @@ function Shell() {
           {page === "progress" && plan === "practice" && (
             <button type="button" aria-pressed={free} onClick={() => setFree(!free)}>
               Free plan
-            </button>
-          )}
-          {stat === "pace" &&
-            [1, 1.5, 2].map((x) => (
-              <button
-                key={x}
-                type="button"
-                aria-pressed={extraTime === x}
-                onClick={() => setExtraTime(x)}
-              >
-                {x === 1 ? "Standard time" : `${x}x time`}
-              </button>
-            ))}
-          {!rail && (
-            <button type="button" aria-pressed={dark} onClick={() => setDark(!dark)}>
-              Night
             </button>
           )}
           {plan !== "practice" && <ChatDemo plan={plan} />}
