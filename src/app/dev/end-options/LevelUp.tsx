@@ -2,22 +2,23 @@
 // The level-up moment (founder, 2026-11-19: "there needs to be a whole level-up animation"; then
 // 2026-11-20: a metamorphosis from one stage to the next, the celebration as big as the step, and
 // the skill's name, not the run, in front). A skill goes up a level after a run of right answers in
-// a row (3, 4 or 5, by the level reached). The screen dims; a pane of glass rises in the middle with
-// the skill's name and its stage, big; the stage changes into the next, the level's
-// name turns over (Stage.tsx), and it is celebrated by the size of the step:
+// a row (3, 4 or 5, by the level reached). The world behind blurs and a soft pool of shade gathers
+// in the middle; in it, out in the open with no box round them (founder, 2026-11-20), stand Karman,
+// the skill's name and its stage. Karman grows his tails (TailsStage.tsx), the stage's name turns
+// over, and it is celebrated by the size of the step:
 //   to Learning       a burst of confetti
-//   to Understanding  more, and the pane jumps
-//   to Proficient     the most, in two waves, gold rays, and the screen shakes
-// then the pane shrinks and flies down into the level row it belongs to, which takes the new level
-// as it lands. A press anywhere skips to the end. With less motion asked for, none of it plays: the
-// row simply shows the new level.
+//   to Understanding  more, and it all jumps
+//   to Proficient     the most, in two waves, a gold aura, and the screen shakes
+// then it shrinks and flies down into the level row it belongs to, which takes the new level as it
+// lands. A press anywhere skips to the end. With less motion asked for, none of it plays: the row
+// simply shows the new level.
 import gsap from "gsap";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { confetti } from "@/components/quiz-flows/stage-motion";
 import { prefersStill } from "@/lib/painting/motion";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import { LEVELS } from "../shell/skills72";
-import { StageChange } from "./Stage";
+import { TailsStage } from "./TailsStage";
 import type { SetView } from "./parts";
 import l from "./levelUp.module.css";
 
@@ -160,7 +161,13 @@ export function LevelUp({
     <div className={l.veil} ref={veil} role="status" aria-live="polite" data-step={step}>
       <div className={l.pane} ref={pane} data-step={step}>
         <span className={l.stage} data-in>
-          <StageChange from={set.from} to={set.to} play={changing} size={240} onPeak={burst} />
+          <TailsStage
+            from={set.from}
+            to={set.to}
+            play={changing}
+            size={window.innerWidth < 600 ? 320 : 400}
+            onPeak={burst}
+          />
         </span>
         <h2 className={l.title} data-in>
           {set.skill}

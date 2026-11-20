@@ -1,8 +1,7 @@
 "use client";
-// The small sounds of a skill's stage changing, made in the browser (Web Audio): a soft chime for
-// each star that lights, rising up a pentatonic scale; a swish of air for each tail that sweeps out;
-// a low shimmer as the change gathers; and a warm chord when it is complete, fuller for a bigger
-// step. Quiet under everything else, and silent where the browser has no sound.
+// The small sounds of Karman's tails growing (TailsStage.tsx), made in the browser (Web Audio): a low
+// shimmer as the change gathers, and a swish of air for each tail that sweeps out. Quiet under
+// everything else, and silent where the browser has no sound.
 let shared: AudioContext | null = null;
 function ctx() {
   try {
@@ -32,33 +31,6 @@ function out(c: AudioContext, gain: number) {
   g.connect(delay).connect(tone).connect(feed).connect(delay);
   feed.connect(c.destination);
   return g;
-}
-
-// C major pentatonic, from C6 up
-const SCALE = [1046.5, 1174.7, 1318.5, 1568, 1760, 2093, 2349.3, 2637, 3136, 3520];
-
-function bell(c: AudioContext, f: number, at: number, gain: number, ring = 1.2) {
-  const dest = out(c, 1);
-  [1, 2.01, 3.02].forEach((m, i) => {
-    const o = c.createOscillator();
-    o.type = "sine";
-    o.frequency.value = f * m;
-    const g = c.createGain();
-    const peak = gain / (1 + i * 2.4);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(peak, at + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + ring / (1 + i));
-    o.connect(g).connect(dest);
-    o.start(at);
-    o.stop(at + ring + 0.1);
-  });
-}
-
-/** A star lights: the `n`th note up the scale. */
-export function chime(n: number) {
-  const c = ctx();
-  if (!c) return;
-  bell(c, SCALE[Math.min(SCALE.length - 1, n)], c.currentTime + 0.01, 0.07);
 }
 
 /** A tail sweeps out: a soft rush of air, rising. */
@@ -105,14 +77,4 @@ export function gather(seconds: number) {
     o.start(at);
     o.stop(at + seconds + 0.1);
   });
-}
-
-/** It is complete: a warm chord, one note for Learning, three for Understanding, five for
- *  Proficient, each a little after the last. */
-export function arrive(step: number) {
-  const c = ctx();
-  if (!c) return;
-  const at = c.currentTime + 0.01;
-  const notes = [523.25, 659.25, 784, 1046.5, 1318.5].slice(0, step === 3 ? 5 : step === 2 ? 3 : 2);
-  notes.forEach((f, i) => bell(c, f, at + i * 0.07, 0.08, 2.2));
 }

@@ -4,7 +4,7 @@
 //   Left    the student's character, dressed as they have it, inside a ring that fills to the score
 //           and changes color as it goes (red, orange, yellow, green; gold only when every answer
 //           is right); right under it the score as a percent, then how the set went, the skill's
-//           stage (Stage.tsx), and the coins, which fly up into the corner by themselves. No subtexts a student
+//           stage (Karman's tails, TailsStage.tsx), and the coins, which fly up into the corner by themselves. No subtexts a student
 //           can do without (founder, 2026-11-19).
 //   Right   each answer as a pane of glass (correct or incorrect), and at the bottom right the next
 //           step chosen from the result: the one green glowing button, the others small under it.
@@ -19,7 +19,7 @@ import hw from "../shell/homework.module.css";
 import lib from "../shell/library.module.css";
 import { Intro, type IntroKind } from "./Intro";
 import { LevelUp } from "./LevelUp";
-import { StageMark } from "./Stage";
+import { TailsMark } from "./TailsStage";
 import { LEVELS } from "../shell/skills72";
 import { Frame, Go, Mood, Others, nextFor, ringColor, useCoins, type SetView } from "./parts";
 import { unfold } from "./unfold";
@@ -186,7 +186,7 @@ export function HomeworkEnd({
           </div>
           <p className={o.levelRow} ref={levelRow} data-lit={leveled || undefined} data-about>
             <span key={shown} className={o.stageMark}>
-              <StageMark level={shown} size={44} />
+              <TailsMark level={shown} size={44} />
             </span>
             <b>{LEVELS[shown]}</b>
           </p>

@@ -1,103 +1,94 @@
-/* The level-up moment: a dimmed screen, a pane of glass in the middle with the level bars, big. */
+/* The level-up moment, out in the open (founder, 2026-11-20: "I don't want to put the fox in the
+   frosted box"). No pane: the landscape stays in view behind, blurred, with a soft pool of shade
+   in the middle so the words read on any sky, day or night. Karman, the skill's name and its stage
+   stand in it on their own. */
 .veil {
   position: fixed;
   inset: 0;
   z-index: 85;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 50%, rgb(10 12 30 / 0.15), rgb(10 12 30 / 0.55));
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+  background: radial-gradient(
+    ellipse 46% 52% at 50% 50%,
+    rgb(6 8 22 / 0.6) 0%,
+    rgb(6 8 22 / 0.42) 55%,
+    rgb(6 8 22 / 0.22) 100%
+  );
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  backdrop-filter: blur(12px) saturate(1.15);
   cursor: pointer;
+}
+
+/* the bigger the step, the warmer the light in the pool */
+.veil[data-step="2"] {
+  background: radial-gradient(
+    ellipse 46% 52% at 50% 50%,
+    rgb(8 16 40 / 0.62) 0%,
+    rgb(6 10 30 / 0.42) 55%,
+    rgb(6 8 22 / 0.22) 100%
+  );
+}
+
+.veil[data-step="3"] {
+  background: radial-gradient(
+    ellipse 46% 52% at 50% 50%,
+    rgb(40 26 4 / 0.62) 0%,
+    rgb(20 12 4 / 0.44) 55%,
+    rgb(10 8 6 / 0.24) 100%
+  );
 }
 
 .pane {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  min-width: min(380px, calc(100vw - 32px));
-  padding: 28px 36px 26px;
-  border-radius: 28px;
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--frost);
-  backdrop-filter: var(--frost);
-  box-shadow:
-    var(--lift),
-    inset 0 0 0 1px var(--glass-edge),
-    inset 0 1px 0 1px var(--glass-shine),
-    0 0 80px -10px rgb(120 230 190 / 0.6);
-  color: var(--ink);
+  gap: 6px;
+  padding: 0 16px;
+  color: #fff;
   text-align: center;
 }
 
-/* the skill that went up, in front (it sits inside the Library's glass, whose own h2 rule is
-   weaker than this one) */
+/* the skill that went up, in front; white, with a soft shadow under it so it holds on any sky (it
+   sits inside the Library's glass, whose own h2 rule is weaker than this one) */
 .pane .title {
   margin: 0;
-  font: 400 48px/1.05 var(--font-serif);
+  color: #fff;
+  font: 400 56px/1.05 var(--font-serif);
   letter-spacing: 0;
+  text-shadow:
+    0 2px 2px rgb(0 0 0 / 0.3),
+    0 4px 24px rgb(0 0 0 / 0.55);
 }
 
-/* the stage, big; it changes into the next (Stage.tsx) */
+/* Karman, big */
 .stage {
   display: block;
-  width: 240px;
-  height: 240px;
-  margin: -10px 0 0;
-}
-
-/* the bigger the step, the warmer the light round the pane */
-.veil[data-step="3"] {
-  background: radial-gradient(circle at 50% 50%, rgb(60 40 0 / 0.2), rgb(20 14 0 / 0.6));
-}
-
-.pane[data-step="2"] {
-  box-shadow:
-    var(--lift),
-    inset 0 0 0 1px var(--glass-edge),
-    inset 0 1px 0 1px var(--glass-shine),
-    0 0 100px -6px rgb(120 190 255 / 0.7);
-}
-
-.pane[data-step="3"] {
-  box-shadow:
-    var(--lift),
-    inset 0 0 0 1px var(--glass-edge),
-    inset 0 1px 0 1px var(--glass-shine),
-    0 0 130px 0 rgb(255 200 80 / 0.85);
+  width: 400px;
+  height: 400px;
+  margin: -60px 0 -34px;
 }
 
 .name {
   margin: 0;
-  height: 30px;
+  height: 32px;
   overflow: hidden;
-  font: 700 22px/30px var(--font-hanken);
+  font: 700 24px/32px var(--font-hanken);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.45),
+    0 2px 14px rgb(0 0 0 / 0.55);
 }
 
-/* each stage's own color: Learning green, Understanding blue, Proficient gold */
+/* each stage's own color, bright enough on the shade: Learning green, Understanding blue,
+   Proficient gold */
 .name[data-level="1"] {
-  color: #5fd3a0;
+  color: #6fe3b0;
 }
 
 .name[data-level="2"] {
-  color: #7cb8ff;
+  color: #8cc4ff;
 }
 
 .name[data-level="3"] {
-  color: #ffcf4a;
-}
-
-/* by day the glass is pale: the same colors, deeper, so they read */
-:global([data-kp-mode="light"]) .name[data-level="1"] {
-  color: #17784f;
-}
-
-:global([data-kp-mode="light"]) .name[data-level="2"] {
-  color: #1f56b8;
-}
-
-:global([data-kp-mode="light"]) .name[data-level="3"] {
-  color: #8f5f00;
+  color: #ffd25e;
 }
 
 .flip {
@@ -115,5 +106,17 @@
 @media (prefers-reduced-motion: reduce) {
   .flip {
     animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .pane .title {
+    font-size: 44px;
+  }
+
+  .stage {
+    width: 320px;
+    height: 320px;
+    margin: -46px 0 -26px;
   }
 }
