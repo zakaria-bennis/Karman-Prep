@@ -3,8 +3,8 @@
 // time, so no time is shown anywhere.
 //   Left    the student's character, dressed as they have it, inside a ring that fills to the score
 //           and changes color as it goes (red, orange, yellow, green; gold only when every answer
-//           is right); right under it the score as a percent, then how the set went, the level's
-//           bars, and the coins, which fly up into the corner by themselves. No subtexts a student
+//           is right); right under it the score as a percent, then how the set went, the skill's
+//           stage (Metamorph.tsx), and the coins, which fly up into the corner by themselves. No subtexts a student
 //           can do without (founder, 2026-11-19).
 //   Right   each answer as a pane of glass (correct or incorrect), and at the bottom right the next
 //           step chosen from the result: the one green glowing button, the others small under it.
@@ -19,7 +19,9 @@ import hw from "../shell/homework.module.css";
 import lib from "../shell/library.module.css";
 import { Intro, type IntroKind } from "./Intro";
 import { LevelUp } from "./LevelUp";
-import { Frame, Go, Mood, Others, Pips, nextFor, ringColor, useCoins, type SetView } from "./parts";
+import { StageMark } from "./Metamorph";
+import { LEVELS } from "../shell/skills72";
+import { Frame, Go, Mood, Others, nextFor, ringColor, useCoins, type SetView } from "./parts";
 import { unfold } from "./unfold";
 import o from "./homeworkEnd.module.css";
 
@@ -44,6 +46,7 @@ export function HomeworkEnd({
   const percent = useRef<HTMLElement>(null);
   const levelRow = useRef<HTMLParagraphElement>(null);
   const [leveled, setLeveled] = useState(false);
+  const shown = leveled ? set.to : set.from;
   const hero = useRef<HTMLDivElement>(null);
   // the character is home in its pane: it may celebrate (and the level-up may follow)
   const [home, setHome] = useState(false);
@@ -182,8 +185,10 @@ export function HomeworkEnd({
             </h2>
           </div>
           <p className={o.levelRow} ref={levelRow} data-lit={leveled || undefined} data-about>
-            <span>Your level</span>
-            <Pips set={set} play={leveled} delay={0} />
+            <span key={shown} className={o.stageMark}>
+              <StageMark level={shown} size={44} />
+            </span>
+            <b>{LEVELS[shown]}</b>
           </p>
           <p className={o.coinRow} data-about>
             {coins}

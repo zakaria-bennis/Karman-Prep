@@ -1,0 +1,18 @@
+/* The gold rays behind the biggest step turn slowly round its middle. */
+.spin {
+  transform-box: view-box;
+  transform-origin: 60px 60px;
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

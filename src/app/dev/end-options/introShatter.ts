@@ -2,15 +2,7 @@
 // The shatter: the card cracks into shards of glass, each carrying its piece of the question; they
 // burst out tumbling and catching the light, then spiral in and close up into the ending's ring.
 import gsap from "gsap";
-import { crack, drawCard, stageOn, type Run } from "./introKit";
-
-type Shard = {
-  mesh: import("three").Mesh;
-  /** Where it starts, in the scene's units (the middle of the screen is 0, up is +). */
-  x0: number;
-  y0: number;
-  slot: number;
-};
+import { crack, cutShards, drawCard, dropShards, stageOn, type Run } from "./introKit";
 
 export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGone }) => {
   let stop = false;
@@ -33,73 +25,8 @@ export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGo
     const cy = ring ? H / 2 - (ring.top + ring.height / 2) : 0;
     const radius = ring ? (ring.width * 74) / 168 : 80;
 
-    // the card cut into triangles on a jittered grid
-    const cols = W < 600 ? 7 : 9;
-    const rows = Math.max(5, Math.round((cols * box.height) / box.width));
-    const pts: [number, number][][] = [];
-    for (let r = 0; r <= rows; r++) {
-      pts[r] = [];
-      for (let c = 0; c <= cols; c++) {
-        const edge = r === 0 || r === rows || c === 0 || c === cols;
-        const jx = edge && (c === 0 || c === cols) ? 0 : (Math.random() - 0.5) * 0.7;
-        const jy = edge && (r === 0 || r === rows) ? 0 : (Math.random() - 0.5) * 0.7;
-        pts[r][c] = [((c + jx) / cols) * box.width, ((r + jy) / rows) * box.height];
-      }
-    }
-    const tris: [number, number][][] = [];
-    for (let r = 0; r < rows; r++)
-      for (let c = 0; c < cols; c++) {
-        const a = pts[r][c];
-        const b = pts[r][c + 1];
-        const d = pts[r + 1][c];
-        const e = pts[r + 1][c + 1];
-        if (Math.random() < 0.5) tris.push([a, b, e], [a, e, d]);
-        else tris.push([a, b, d], [b, e, d]);
-      }
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-    const shards: Shard[] = tris.map((t) => {
-      const mx = (t[0][0] + t[1][0] + t[2][0]) / 3;
-      const my = (t[0][1] + t[1][1] + t[2][1]) / 3;
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(
-          t.flatMap(([x, y]) => [x - mx, -(y - my), 0]),
-          3
-        )
-      );
-      geo.setAttribute(
-        "uv",
-        new THREE.Float32BufferAttribute(
-          t.flatMap(([x, y]) => [x / box.width, 1 - y / box.height]),
-          2
-        )
-      );
-      const mesh = new THREE.Mesh(geo, material.clone());
-      // a sheen of light on each piece of glass, brighter as it tilts and as the ring closes
-      const shine = new THREE.Mesh(
-        geo,
-        new THREE.MeshBasicMaterial({
-          color: 0xfff6dc,
-          transparent: true,
-          opacity: 0,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-        })
-      );
-      shine.position.z = 1;
-      mesh.add(shine);
-      const x0 = box.left + mx - W / 2;
-      const y0 = H / 2 - (box.top + my);
-      mesh.position.set(x0, y0, 0);
-      scene.add(mesh);
-      return { mesh, x0, y0, slot: 0 };
-    });
+    const pieces = cutShards(stage, el, texture);
+    const shards = pieces.map((p) => ({ ...p, slot: 0 }));
     // each shard takes the place on the ring nearest its own side, so they sweep round, not across
     const order = shards
       .map((s, i) => ({ i, a: Math.atan2(s.y0 - cy, s.x0 - cx) }))
@@ -151,8 +78,8 @@ export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGo
         while (a1 < a0) a1 += 2 * Math.PI;
         const a = a0 + (a1 - a0) * ks;
         const r = r0 + (radius - r0) * ks;
-        s.mesh.position.x = cx + Math.cos(a) * r;
-        s.mesh.position.y = cy + Math.sin(a) * r;
+        s.holder.position.x = cx + Math.cos(a) * r;
+        s.holder.position.y = cy + Math.sin(a) * r;
         const tumble = (1 - ks) * kb;
         s.mesh.rotation.x = sp.rx * tumble;
         s.mesh.rotation.y = sp.ry * tumble;
@@ -160,9 +87,7 @@ export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGo
         // closing up, each one thins into a piece of the ring and turns to light
         const size = 1 - ks * 0.82;
         s.mesh.scale.set(size, size, 1);
-        const glint = s.mesh.children[0] as import("three").Mesh;
-        const gm = glint.material as import("three").MeshBasicMaterial;
-        gm.opacity = Math.min(
+        s.shine.opacity = Math.min(
           0.95,
           0.25 * Math.abs(Math.sin(s.mesh.rotation.x + s.mesh.rotation.y)) + ks * ks * 0.85
         );
@@ -183,14 +108,7 @@ export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGo
     };
     frame = requestAnimationFrame(tick);
     cleanup = () => {
-      shards.forEach((s) => {
-        s.mesh.geometry.dispose();
-        (s.mesh.material as import("three").Material).dispose();
-        (
-          (s.mesh.children[0] as import("three").Mesh).material as import("three").Material
-        ).dispose();
-      });
-      material.dispose();
+      dropShards(pieces);
       texture.dispose();
       renderer.dispose();
     };

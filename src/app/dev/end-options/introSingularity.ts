@@ -1,17 +1,21 @@
 "use client";
 // The singularity (founder, 2026-11-19: "a singularity animation that explodes into the final card";
-// then "faster, and actually suck the screen into the singularity before popping out"). Finish is
-// pressed on the last question, and in a little over a second:
-//   0.00  a black hole opens in the middle, a ring of light round it; the room darkens
-//   0.08  the screen itself is sucked in: the quiz, as a picture, is wound round the hole and
-//         stretched into it, hotter and faster the nearer it gets, with dust spiralling in
-//   0.93  the hole swallows the last of it and closes to a single bright point; the sound stops dead
-//   1.15  it explodes: a flash, a shock ring racing out to the edges, sparks flung out, and the
+// then "the screen-like shattering, and then the shatters spreading out but coming back into the
+// singularity, and then the singularity imploding", the singularity smaller and "like a jump to
+// hyperspace"). Finish is pressed on the last question, and in under a second and a half:
+//   0.00  the screen breaks into pieces of glass, each carrying its piece of the question, which
+//         fly apart, tumbling
+//   0.30  a small singularity opens in the middle, and the jump begins: stars stretch into streaks
+//         of light racing out from it, longer and faster; the room darkens
+//   0.45  the pieces are pulled back: they turn, stretch toward it and pour in, turning to light
+//   1.12  it falls in on itself: the streaks are drawn in after it, a ring closes round it, and it
+//         shrinks to a single bright point; the sound stops dead
+//   1.38  it explodes: a flash, a shock ring racing out to the edges, sparks flung out, and the
 //         ending comes out of the point (unfold.ts)
 // The sound is singularitySound.ts, timed to this.
 import gsap from "gsap";
-import { drawCard, FRAG, stageOn, VERT, type Run } from "./introKit";
-import { BOOM, playSingularity } from "./singularitySound";
+import { cutShards, drawCard, dropShards, FRAG, stageOn, VERT, type Run } from "./introKit";
+import { BOOM, CUT, IMPLODE, OPEN, playSingularity } from "./singularitySound";
 
 const PLANE_VERT = `
 varying vec2 vP;
@@ -19,96 +23,38 @@ void main() {
   vP = position.xy;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
-
-// the screen, wound in: each point on the screen shows what was further out and further round, by
-// more as the pull grows and most of all near the hole, so the picture spirals in and is swallowed
-const WARP_FRAG = `
-uniform sampler2D uTex;
-uniform vec2 uSize;
-uniform float uPull;
-uniform float uR;
-uniform float uShow;
-varying vec2 vP;
-vec4 at(float r, float a) {
-  vec2 uv = vec2(cos(a), sin(a)) * r / uSize + 0.5;
-  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return vec4(0.0);
-  return texture2D(uTex, uv);
-}
-void main() {
-  float r = length(vP);
-  float a = atan(vP.y, vP.x);
-  float k = uPull;
-  float near = (uR * 2.0) / (r + uR * 0.6);
-  float rs = r * exp(k * 3.4) + k * k * uSize.x * 0.7 * near;
-  float as = a + k * (1.4 + 6.0 * near);
-  vec4 c = at(rs, as);
-  // light split at the edges as it is stretched
-  float split = 1.0 + 0.05 * k;
-  c.r = at(rs * split, as).r;
-  c.b = at(rs / split, as).b;
-  // hotter near the hole
-  float heat = k * smoothstep(uR * 5.0, uR * 1.1, r);
-  c.rgb = mix(c.rgb, vec3(1.0, 0.78, 0.45), heat * 0.75);
-  c.a *= uShow * smoothstep(uR * 0.95, uR * 1.2, r);
-  gl_FragColor = c;
-}`;
-
-// the black hole: its shadow, a thin bright ring at its edge, the far side of its disk bent up over
-// the top by its pull, and its glow (the disk's near side is drawn on its own, over the shadow)
-const DISK = `
-uniform float uR;
-uniform float uTime;
-uniform float uGlow;
-varying vec2 vP;
-vec3 disk(vec2 p, out float band) {
-  vec2 q = vec2(p.x, p.y / 0.27);
-  float rd = length(q);
-  float ang = atan(q.y, q.x);
-  float inner = 1.45 * uR;
-  float outer = 3.8 * uR;
-  band = smoothstep(inner * 0.92, inner * 1.05, rd) * (1.0 - smoothstep(outer * 0.55, outer, rd));
-  float streak = 0.55 + 0.45 * sin(ang * 9.0 - uTime * 12.0 + rd * 0.09) * sin(ang * 4.0 + uTime * 5.0);
-  float doppler = 0.45 + 0.55 * (0.5 - 0.5 * q.x / max(rd, 1.0));
-  vec3 col = mix(vec3(1.0, 0.55, 0.16), vec3(1.0, 0.96, 0.86), smoothstep(outer, inner, rd));
-  band *= streak * doppler * uGlow;
-  return col;
-}
+/** Light as it is, its alpha its brightness, so the canvas stays clear where it is dark. */
+const GLOW = `
 vec4 glow(vec3 light) {
   light = min(light, vec3(1.0));
   return vec4(light, max(light.r, max(light.g, light.b)));
 }`;
-const BACK_FRAG = `
-${DISK}
-void main() {
-  float r = length(vP);
-  float band;
-  vec3 col = disk(vP, band);
-  float shadow = 1.0 - smoothstep(uR * 0.96, uR * 1.0, r);
-  vec3 light = col * band * step(0.0, vP.y) * (1.0 - shadow);
-  float lens = exp(-pow((r - 1.28 * uR) / (0.2 * uR), 2.0)) * (0.35 + 0.65 * smoothstep(-0.3 * uR, 0.8 * uR, vP.y));
-  light += vec3(1.0, 0.76, 0.5) * lens * uGlow * 1.1;
-  light += vec3(1.0, 0.97, 0.9) * exp(-pow((r - 1.03 * uR) / (0.045 * uR), 2.0)) * (0.4 + uGlow);
-  light += vec3(1.0, 0.7, 0.35) * exp(-r / (2.2 * uR)) * 0.28 * uGlow * (1.0 - shadow);
-  // nothing reaches the edge of the square it is drawn on
-  light *= 1.0 - smoothstep(3.6 * uR, 4.9 * uR, r);
-  gl_FragColor = glow(light);
-}`;
+// the singularity's black heart
 const SHADOW_FRAG = `
 uniform float uR;
 varying vec2 vP;
 void main() {
-  float shadow = 1.0 - smoothstep(uR * 0.96, uR * 1.0, length(vP));
-  gl_FragColor = vec4(0.0, 0.0, 0.02, shadow);
+  float shadow = 1.0 - smoothstep(uR * 0.9, uR, length(vP));
+  gl_FragColor = vec4(0.0, 0.0, 0.03, shadow);
 }`;
-const FRONT_FRAG = `
-${DISK}
+// a thin white-blue ring at its edge, and a cold halo round it
+const HOLE_FRAG = `
+${GLOW}
+uniform float uR;
+uniform float uGlow;
+varying vec2 vP;
 void main() {
-  float band;
-  vec3 col = disk(vP, band);
-  gl_FragColor = glow(col * band * step(vP.y, 0.0));
+  float r = length(vP);
+  float w = uR * 0.14 + 0.8;
+  vec3 light = vec3(0.86, 0.94, 1.0) * exp(-pow((r - uR * 1.04) / w, 2.0)) * (0.7 + uGlow);
+  light += vec3(0.5, 0.72, 1.0) * exp(-max(0.0, r - uR) / (uR * 1.4 + 1.0)) * 0.55 * uGlow;
+  light *= 1.0 - smoothstep(uR * 5.0, uR * 6.0, r);
+  gl_FragColor = glow(light);
 }`;
-// the shock ring: three rings, red, green and blue a little apart, like light split by glass
+// a ring of light: closing in on the point as it implodes, racing out when it explodes. Three rings,
+// red, green and blue a little apart, like light split by glass.
 const RING_FRAG = `
+${GLOW}
 uniform float uRad;
 uniform float uWidth;
 uniform float uAlpha;
@@ -119,9 +65,22 @@ void main() {
   float cr = exp(-pow((r - uRad * 1.03) / w, 2.0));
   float cg = exp(-pow((r - uRad) / w, 2.0));
   float cb = exp(-pow((r - uRad * 0.97) / w, 2.0));
-  vec3 c = vec3(cr, cg * 0.95, cb) * 0.9 + vec3(1.0, 0.9, 0.7) * exp(-pow((r - uRad) / (w * 0.35), 2.0)) * 0.8;
-  c = min(c * uAlpha, vec3(1.0));
-  gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));
+  vec3 c = vec3(cr, cg * 0.95, cb) * 0.9 + vec3(1.0, 0.92, 0.8) * exp(-pow((r - uRad) / (w * 0.35), 2.0)) * 0.8;
+  gl_FragColor = glow(c * uAlpha);
+}`;
+// the streaks of the jump: each a thin quad, bright at its head and fading to nothing at its tail
+const STREAK_VERT = `
+attribute vec3 color;
+varying vec3 vC;
+void main() {
+  vC = color;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const STREAK_FRAG = `
+${GLOW}
+varying vec3 vC;
+void main() {
+  gl_FragColor = glow(vC);
 }`;
 
 /** The colors the sparks fly out in: gold, white, amber, and the portal's teal and sky. */
@@ -132,12 +91,17 @@ const SPARKS = [
   [0.45, 0.92, 0.78],
   [0.56, 0.86, 1],
 ];
+/** The streaks' colors: white, and the cold blues of the jump. */
+const STARS = [
+  [1, 1, 1],
+  [0.78, 0.88, 1],
+  [0.6, 0.78, 1],
+  [0.86, 0.96, 1],
+];
 
-// the pull's times, in seconds from Finish
-const OPEN = 0.22;
-const PULL_FROM = 0.08;
-const PULL_FOR = 0.85;
-const CLOSE = PULL_FROM + PULL_FOR;
+const clamp = (k: number) => Math.max(0, Math.min(1, k));
+/** How far the pieces fly apart, in seconds from Finish. */
+const BURST = 0.5;
 
 export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }) => {
   let stop = false;
@@ -154,9 +118,9 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
     }
     const { THREE, renderer, scene, camera, W, H, dpr } = stage;
     const phone = W < 600;
-    const RH = Math.max(30, Math.min(56, Math.min(W, H) * 0.065));
+    // small: a bright point with a black heart, not a disk across the screen
+    const RH = Math.max(9, Math.min(16, Math.min(W, H) * 0.018));
     const far = Math.hypot(W, H) / 2;
-    // light added as it is, its alpha its brightness, so the canvas stays clear where it is dark
     const glow = {
       blending: THREE.CustomBlending,
       blendSrc: THREE.OneFactor,
@@ -164,22 +128,14 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
       blendSrcAlpha: THREE.OneFactor,
       blendDstAlpha: THREE.OneFactor,
     } as const;
-
-    // the screen as a picture, to be wound into the hole
-    const picture = drawCard(card, dpr, true);
-    const texture = new THREE.CanvasTexture(picture);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    const uniforms = {
-      uTex: { value: texture },
-      uSize: { value: new THREE.Vector2(W, H) },
-      uPull: { value: 0 },
-      uR: { value: 0.0001 },
-      uShow: { value: 0 },
-      uTime: { value: 0 },
-      uGlow: { value: 0 },
-    };
-    const sheet = new THREE.PlaneGeometry(W, H);
-    const make = (frag: string, blend: object, order: number, geo = sheet) => {
+    const layer = (
+      frag: string,
+      uniforms: Record<string, { value: number }>,
+      blend: object,
+      order: number,
+      size: number
+    ) => {
+      const geo = new THREE.PlaneGeometry(size, size);
       const mat = new THREE.ShaderMaterial({
         vertexShader: PLANE_VERT,
         fragmentShader: frag,
@@ -192,37 +148,86 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
       const mesh = new THREE.Mesh(geo, mat);
       mesh.renderOrder = order;
       scene.add(mesh);
-      return mat;
+      return { geo, mat };
     };
-    const warpMat = make(WARP_FRAG, { blending: THREE.NormalBlending }, 0);
-    const quad = new THREE.PlaneGeometry(RH * 10, RH * 10);
-    const backMat = make(BACK_FRAG, glow, 1, quad);
-    const shadowMat = make(SHADOW_FRAG, { blending: THREE.NormalBlending }, 2, quad);
 
-    // dust torn off the screen, spiralling in
-    const pixels = picture.getContext("2d")?.getImageData(0, 0, picture.width, picture.height).data;
-    const N = phone ? 900 : 1600;
-    const dust = Array.from({ length: N }, () => {
-      const x = Math.random() * W;
-      const y = Math.random() * H;
-      const i = (Math.round(y * dpr) * picture.width + Math.round(x * dpr)) * 4;
-      const px = x - W / 2;
-      const py = H / 2 - y;
+    // 1 the streaks of the jump, under everything
+    const S = phone ? 260 : 520;
+    const streakPos = new Float32Array(S * 4 * 3);
+    const streakCol = new Float32Array(S * 4 * 3);
+    const index: number[] = [];
+    for (let i = 0; i < S; i++) {
+      const v = i * 4;
+      index.push(v, v + 1, v + 2, v, v + 2, v + 3);
+    }
+    const streakGeo = new THREE.BufferGeometry();
+    streakGeo.setAttribute("position", new THREE.BufferAttribute(streakPos, 3));
+    streakGeo.setAttribute("color", new THREE.BufferAttribute(streakCol, 3));
+    streakGeo.setIndex(index);
+    const streakMat = new THREE.ShaderMaterial({
+      vertexShader: STREAK_VERT,
+      fragmentShader: STREAK_FRAG,
+      // the quads wind either way round; draw both faces
+      side: THREE.DoubleSide,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      ...glow,
+    });
+    const streakMesh = new THREE.Mesh(streakGeo, streakMat);
+    streakMesh.renderOrder = 0;
+    streakMesh.frustumCulled = false;
+    scene.add(streakMesh);
+    // each star sits at a depth: the nearer it comes, the further out it shows (out = K / z)
+    const K = RH * 1.3;
+    const zFar = 1;
+    const zNear = K / (far * 1.15);
+    const stars = Array.from({ length: S }, () => ({
+      a: Math.random() * Math.PI * 2,
+      z: 1 / (1 + Math.random() * (1 / zNear - 1)),
+      c: STARS[Math.floor(Math.random() * STARS.length)],
+      b: 0.5 + Math.random() * 0.5,
+      w: 0.6 + Math.random() * 1.2,
+    }));
+    // how fast the stars come at us: crawling as it opens, a rush by the time it implodes
+    const speed = (t: number) => 0.12 * Math.pow(30, clamp((t - OPEN) / (IMPLODE - OPEN)));
+
+    // 2 the pieces of glass, carrying the screen
+    const picture = drawCard(card, dpr, true);
+    const texture = new THREE.CanvasTexture(picture);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const pieces = cutShards(stage, card, texture);
+    pieces.forEach((p) => (p.holder.renderOrder = 1));
+    const box = card.getBoundingClientRect();
+    const cardCx = box.left + box.width / 2 - W / 2;
+    const cardCy = H / 2 - (box.top + box.height / 2);
+    const motion = pieces.map((p) => {
+      const dx = p.x0 - cardCx;
+      const dy = p.y0 - cardCy;
+      const d = Math.hypot(dx, dy) || 1;
+      const out = 60 + Math.random() * (phone ? 90 : 190);
+      // the outer pieces go in last, so it pours in rather than vanishing all at once
+      const reach = Math.min(1, Math.hypot(p.x0, p.y0) / far);
+      const land = 0.78 + reach * 0.26 + Math.random() * 0.08;
       return {
-        r0: Math.hypot(px, py),
-        a0: Math.atan2(py, px),
-        from: PULL_FROM + Math.random() * PULL_FOR * 0.6,
-        dur: 0.3 + Math.random() * 0.35,
-        c: pixels
-          ? [
-              0.55 + 0.45 * (pixels[i] / 255),
-              0.5 + 0.4 * (pixels[i + 1] / 255),
-              0.35 + 0.35 * (pixels[i + 2] / 255),
-            ]
-          : [1, 0.9, 0.7],
-        spin: 2 + Math.random() * 3,
+        ox: (dx / d) * out,
+        oy: (dy / d) * out + 20,
+        rx: (Math.random() - 0.5) * 8,
+        ry: (Math.random() - 0.5) * 8,
+        rz: (Math.random() - 0.5) * 5,
+        wait: Math.random() * 0.08,
+        from: land - 0.5,
+        land,
+        swirl: (1.2 + Math.random()) * (Math.random() < 0.8 ? 1 : -1),
       };
     });
+
+    // 3 the singularity: its black heart over the pieces, so they vanish into it, and its ring
+    const holeU = { uR: { value: 0.0001 }, uGlow: { value: 0 } };
+    const shadow = layer(SHADOW_FRAG, holeU, { blending: THREE.NormalBlending }, 2, 260);
+    const ring = layer(HOLE_FRAG, holeU, glow, 3, 260);
+
+    // 4 the point, the ring that closes and bursts, the sparks
     const points = (n: number) => {
       const geo = new THREE.BufferGeometry();
       const arrays = {
@@ -245,33 +250,15 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
       const obj = new THREE.Points(geo, mat);
       return { geo, mat, obj, ...arrays };
     };
-    const dustPts = points(N);
-    dustPts.obj.renderOrder = 3;
-    scene.add(dustPts.obj);
-    const frontMat = make(FRONT_FRAG, glow, 4, quad);
-
-    // the point it closes to, the shock ring, the sparks
     const point = points(1);
-    point.obj.renderOrder = 5;
-    point.color.set([1, 0.97, 0.9]);
+    point.obj.renderOrder = 4;
+    point.color.set([0.92, 0.97, 1]);
     scene.add(point.obj);
-    const ringU = { uRad: { value: 0 }, uWidth: { value: 20 }, uAlpha: { value: 0 } };
-    const ringQuad = new THREE.PlaneGeometry(far * 2.6, far * 2.6);
-    const ringMat = new THREE.ShaderMaterial({
-      vertexShader: PLANE_VERT,
-      fragmentShader: RING_FRAG,
-      uniforms: ringU,
-      transparent: true,
-      depthWrite: false,
-      depthTest: false,
-      ...glow,
-    });
-    const ringMesh = new THREE.Mesh(ringQuad, ringMat);
-    ringMesh.renderOrder = 6;
-    scene.add(ringMesh);
+    const shockU = { uRad: { value: 0 }, uWidth: { value: 20 }, uAlpha: { value: 0 } };
+    const shock = layer(RING_FRAG, shockU, glow, 5, far * 2.6);
     const M = phone ? 1100 : 2000;
     const sparkPts = points(M);
-    sparkPts.obj.renderOrder = 7;
+    sparkPts.obj.renderOrder = 6;
     scene.add(sparkPts.obj);
     const sparks = Array.from({ length: M }, () => {
       const a = Math.random() * Math.PI * 2;
@@ -288,16 +275,22 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
       };
     });
 
+    // how big the singularity is: it opens with a little overshoot, then falls in on itself
     const hole = (t: number) => {
-      if (t < CLOSE) return RH * Math.min(1, Math.pow(Math.max(0, t) / OPEN, 0.6));
-      const k = Math.min(1, (t - CLOSE) / (BOOM - 0.1 - CLOSE));
-      return RH * Math.max(0.0001, 1 - Math.pow(k, 2));
+      if (t < OPEN) return 0.0001;
+      if (t < IMPLODE) {
+        const k = clamp((t - OPEN) / 0.16);
+        return RH * (k < 1 ? 1.25 * Math.sin((k * Math.PI) / 2) - 0.25 * k * k : 1);
+      }
+      return RH * Math.max(0.0001, 1 - Math.pow(clamp((t - IMPLODE) / (CUT - IMPLODE)), 1.6));
     };
-    const pull = (t: number) => Math.pow(Math.max(0, Math.min(1, (t - PULL_FROM) / PULL_FOR)), 2.2);
+    // everything drawn in after it as it implodes: 1 as it was, 0 at the point
+    const drawIn = (t: number) => 1 - Math.pow(clamp((t - IMPLODE) / (CUT - IMPLODE)), 2.2);
 
     // every shader built now, so the first frames do not stall
     renderer.compile(scene, camera);
     renderer.render(scene, camera);
+    card.style.visibility = "hidden";
     playSingularity();
     // the clock moves at most a frame at a time: a slow frame slows it, never skips the pull
     let t = 0;
@@ -305,57 +298,100 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
     let handed = false;
     const tick = (now: number) => {
       if (stop) return;
-      t += Math.min(1 / 30, (now - last) / 1000);
+      const dt = Math.min(1 / 30, (now - last) / 1000);
+      t += dt;
       last = now;
-      uniforms.uTime.value = t;
-      uniforms.uR.value = hole(t);
-      uniforms.uPull.value = pull(t);
-      uniforms.uGlow.value =
-        t < CLOSE ? Math.min(1.6, 0.7 + t * 1.6) : Math.max(0, 1.6 * (1 - (t - CLOSE) / 0.2));
-      // the real screen hands over to its picture in the first moments, while the pull is slight
-      const swap = Math.min(1, Math.max(0, (t - 0.04) / 0.1));
-      uniforms.uShow.value = t < BOOM ? swap : 0;
-      card.style.opacity = String(1 - swap);
-      // the room darkens as the light is drawn in, and clears when it explodes
+      const gone = drawIn(t);
+      holeU.uR.value = hole(t);
+      holeU.uGlow.value = t < IMPLODE ? clamp((t - OPEN) * 2) * 1.2 : 1.2 + (1 - gone) * 1.5;
+      // the room darkens as it opens, and clears when it explodes
       if (veil)
         veil.style.opacity = String(
-          t < BOOM ? 1 - Math.pow(1 - Math.min(1, t / 0.8), 2) : Math.max(0, 1 - (t - BOOM) / 0.7)
+          t < BOOM ? 1 - Math.pow(1 - clamp((t - 0.1) / 0.6), 2) : Math.max(0, 1 - (t - BOOM) / 0.7)
         );
 
-      const base = (phone ? 3.4 : 4) * dpr;
-      for (let i = 0; i < N; i++) {
-        const d = dust[i];
-        const k = Math.max(0, Math.min(1, (t - d.from) / d.dur));
-        const fall = k * k * k;
-        const r = d.r0 * (1 - fall);
-        const a = d.a0 + fall * d.spin;
-        dustPts.position[i * 3] = Math.cos(a) * r;
-        dustPts.position[i * 3 + 1] = Math.sin(a) * r * (1 - fall * 0.6);
-        dustPts.color.set(
-          [
-            d.c[0] + (1 - d.c[0]) * fall,
-            d.c[1] + (0.72 - d.c[1]) * fall,
-            d.c[2] + (0.32 - d.c[2]) * fall,
-          ],
-          i * 3
-        );
-        const swallowed = r < uniforms.uR.value * 1.05;
-        dustPts.alpha[i] = k > 0 && !swallowed && t < BOOM ? Math.min(1, k * 5) : 0;
-        dustPts.size[i] = base * (0.8 + fall);
+      // the jump's streaks
+      const v = speed(t);
+      const blur = 0.07;
+      const show = t < CUT ? clamp((t - OPEN) / 0.15) : 0;
+      for (let i = 0; i < S; i++) {
+        const s = stars[i];
+        if (t > OPEN) s.z -= v * dt * s.z * 2.2;
+        if (s.z < zNear) s.z = zFar * (0.6 + Math.random() * 0.4);
+        const head = (K / s.z) * gone;
+        const tail = (K / Math.min(zFar * 1.6, s.z * (1 + v * blur * 3))) * gone;
+        const cx = Math.cos(s.a);
+        const cy = Math.sin(s.a);
+        const w = s.w * (0.7 + 2.6 * (head / far)) * (1 + (1 - gone) * 0.6);
+        const tw = w * 0.15;
+        const o = i * 12;
+        streakPos[o] = cx * head - cy * w;
+        streakPos[o + 1] = cy * head + cx * w;
+        streakPos[o + 3] = cx * head + cy * w;
+        streakPos[o + 4] = cy * head - cx * w;
+        streakPos[o + 6] = cx * tail + cy * tw;
+        streakPos[o + 7] = cy * tail - cx * tw;
+        streakPos[o + 9] = cx * tail - cy * tw;
+        streakPos[o + 10] = cy * tail + cx * tw;
+        // brighter the further out and faster it goes, and as it is drawn in
+        const b =
+          show *
+          s.b *
+          clamp(head / (far * 0.08)) *
+          (0.45 + 0.55 * clamp(v / 2)) *
+          (1 + (1 - gone) * 1.2);
+        for (let k = 0; k < 2; k++) {
+          streakCol[o + k * 3] = s.c[0] * b;
+          streakCol[o + k * 3 + 1] = s.c[1] * b;
+          streakCol[o + k * 3 + 2] = s.c[2] * b;
+          streakCol[o + 6 + k * 3] = 0;
+          streakCol[o + 7 + k * 3] = 0;
+          streakCol[o + 8 + k * 3] = 0;
+        }
       }
-      dustPts.geo.attributes.position.needsUpdate = true;
-      dustPts.geo.attributes.color.needsUpdate = true;
-      dustPts.geo.attributes.alpha.needsUpdate = true;
-      dustPts.geo.attributes.size.needsUpdate = true;
+      streakGeo.attributes.position.needsUpdate = true;
+      streakGeo.attributes.color.needsUpdate = true;
 
-      // the point: it shows as the hole closes, beats once, and bursts
-      const pk = Math.max(0, Math.min(1, (t - CLOSE) / 0.12));
+      // the pieces: out, tumbling; then turned toward the singularity, stretched, and pulled in
+      pieces.forEach((p, i) => {
+        const m = motion[i];
+        const kb = 1 - Math.pow(1 - clamp((t - m.wait) / BURST), 3);
+        const bx = p.x0 + m.ox * kb;
+        const by = p.y0 + m.oy * kb;
+        const kp = Math.pow(clamp((t - m.from) / (m.land - m.from)), 2.6);
+        const r0 = Math.hypot(bx, by);
+        const a0 = Math.atan2(by, bx);
+        const r = r0 * (1 - kp);
+        const a = a0 + kp * m.swirl;
+        p.holder.visible = r > holeU.uR.value * 0.6 && t < BOOM;
+        p.holder.position.set(Math.cos(a) * r, Math.sin(a) * r, 0);
+        // the holder faces the singularity, so its stretch is toward it; the glass inside turns
+        // back, so the picture keeps its way up until it tumbles
+        p.holder.rotation.z = a;
+        const size = 1 - kp * 0.75;
+        p.holder.scale.set(size * (1 + kp * 3.2), size * (1 - kp * 0.6), 1);
+        const tumble = kb * (1 - kp * 0.6);
+        p.mesh.rotation.set(m.rx * tumble, m.ry * tumble, -a + m.rz * tumble);
+        p.shine.opacity = Math.min(
+          0.95,
+          0.25 * Math.abs(Math.sin(p.mesh.rotation.x + p.mesh.rotation.y)) + kp * 0.9
+        );
+      });
+
+      // the ring that closes in on it as it implodes
+      if (t >= IMPLODE - 0.05 && t < CUT) {
+        const k = clamp((t - (IMPLODE - 0.05)) / (CUT - IMPLODE + 0.05));
+        shockU.uRad.value = far * 0.55 * (1 - Math.pow(k, 1.5));
+        shockU.uWidth.value = phone ? 8 : 12;
+        shockU.uAlpha.value = Math.sin(k * Math.PI) * 0.9;
+      } else if (t < BOOM) shockU.uAlpha.value = 0;
+
+      // the point: it shows as it falls in, beats once in the silence, and bursts
+      const pk = clamp((t - (IMPLODE + 0.06)) / 0.08);
       const beat =
-        t > BOOM - 0.12 && t < BOOM
-          ? 1 + 0.7 * Math.sin(((t - (BOOM - 0.12)) / 0.12) * Math.PI)
-          : 1;
+        t > BOOM - 0.1 && t < BOOM ? 1 + 0.8 * Math.sin(((t - (BOOM - 0.1)) / 0.1) * Math.PI) : 1;
       point.alpha[0] = t < BOOM ? pk : Math.max(0, 1 - (t - BOOM) / 0.12);
-      point.size[0] = (8 + 26 * pk) * beat * dpr * (t < BOOM ? 1 : 1 + (t - BOOM) * 40);
+      point.size[0] = (6 + 18 * pk) * beat * dpr * (t < BOOM ? 1 : 1 + (t - BOOM) * 40);
       point.geo.attributes.alpha.needsUpdate = true;
       point.geo.attributes.size.needsUpdate = true;
 
@@ -363,7 +399,6 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
       if (e >= 0) {
         if (!handed) {
           handed = true;
-          card.style.visibility = "hidden";
           onLanded();
           if (flash)
             tweens.push(
@@ -375,9 +410,9 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
             );
         }
         const k = 1 - Math.pow(1 - Math.min(1, e / 0.8), 3);
-        ringU.uRad.value = k * far * 1.25;
-        ringU.uWidth.value = (phone ? 10 : 16) + k * (phone ? 40 : 70);
-        ringU.uAlpha.value = Math.max(0, 1 - e / 0.75);
+        shockU.uRad.value = k * far * 1.25;
+        shockU.uWidth.value = (phone ? 10 : 16) + k * (phone ? 40 : 70);
+        shockU.uAlpha.value = Math.max(0, 1 - e / 0.75);
         for (let i = 0; i < M; i++) {
           const sp = sparks[i];
           const drag = (1 - Math.exp(-3 * e)) / 3;
@@ -400,14 +435,17 @@ export const singularity: Run = ({ card, canvas, flash, veil, onLanded, onGone }
     frame = requestAnimationFrame(tick);
     cleanup = () => {
       tweens.forEach((tw) => tw.kill());
-      [dustPts, point, sparkPts].forEach((p) => {
+      [point, sparkPts].forEach((p) => {
         p.geo.dispose();
         p.mat.dispose();
       });
-      [warpMat, backMat, shadowMat, frontMat, ringMat].forEach((m) => m.dispose());
-      sheet.dispose();
-      quad.dispose();
-      ringQuad.dispose();
+      [shadow, ring, shock].forEach((l) => {
+        l.geo.dispose();
+        l.mat.dispose();
+      });
+      streakGeo.dispose();
+      streakMat.dispose();
+      dropShards(pieces);
       texture.dispose();
       renderer.dispose();
     };

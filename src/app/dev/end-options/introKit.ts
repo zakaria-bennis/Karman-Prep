@@ -203,3 +203,94 @@ export type Run = (o: {
   /** The transition is over: its layer can go. */
   onGone: () => void;
 }) => () => void;
+
+/** A piece of the broken glass: its mesh (carrying its piece of the picture) inside a holder, the
+ *  sheen on it, and where it started (the middle of the screen is 0, up is +). */
+export type Piece = {
+  holder: import("three").Group;
+  mesh: import("three").Mesh;
+  shine: import("three").MeshBasicMaterial;
+  x0: number;
+  y0: number;
+};
+
+/** The card cut into triangles of glass on a jittered grid, each carrying its piece of `texture`,
+ *  added to the stage where the card was. */
+export function cutShards(stage: Stage, el: HTMLElement, texture: import("three").Texture) {
+  const { THREE, scene, W, H } = stage;
+  const box = el.getBoundingClientRect();
+  const cols = W < 600 ? 7 : 9;
+  const rows = Math.max(5, Math.round((cols * box.height) / box.width));
+  const pts: [number, number][][] = [];
+  for (let r = 0; r <= rows; r++) {
+    pts[r] = [];
+    for (let c = 0; c <= cols; c++) {
+      const side = c === 0 || c === cols;
+      const end = r === 0 || r === rows;
+      const jx = side ? 0 : (Math.random() - 0.5) * 0.7;
+      const jy = end ? 0 : (Math.random() - 0.5) * 0.7;
+      pts[r][c] = [((c + jx) / cols) * box.width, ((r + jy) / rows) * box.height];
+    }
+  }
+  const tris: [number, number][][] = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const a = pts[r][c];
+      const b = pts[r][c + 1];
+      const d = pts[r + 1][c];
+      const e = pts[r + 1][c + 1];
+      if (Math.random() < 0.5) tris.push([a, b, e], [a, e, d]);
+      else tris.push([a, b, d], [b, e, d]);
+    }
+  return tris.map((t): Piece => {
+    const mx = (t[0][0] + t[1][0] + t[2][0]) / 3;
+    const my = (t[0][1] + t[1][1] + t[2][1]) / 3;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(
+        t.flatMap(([x, y]) => [x - mx, -(y - my), 0]),
+        3
+      )
+    );
+    geo.setAttribute(
+      "uv",
+      new THREE.Float32BufferAttribute(
+        t.flatMap(([x, y]) => [x / box.width, 1 - y / box.height]),
+        2
+      )
+    );
+    const mesh = new THREE.Mesh(
+      geo,
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide })
+    );
+    // a sheen of light on the glass, brighter as it tilts
+    const shine = new THREE.MeshBasicMaterial({
+      color: 0xfff6dc,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const glint = new THREE.Mesh(geo, shine);
+    glint.position.z = 1;
+    mesh.add(glint);
+    const holder = new THREE.Group();
+    holder.add(mesh);
+    const x0 = box.left + mx - W / 2;
+    const y0 = H / 2 - (box.top + my);
+    holder.position.set(x0, y0, 0);
+    scene.add(holder);
+    return { holder, mesh, shine, x0, y0 };
+  });
+}
+
+/** Lets go of the pieces' geometry and materials. */
+export function dropShards(pieces: Piece[]) {
+  pieces.forEach((p) => {
+    p.mesh.geometry.dispose();
+    (p.mesh.material as import("three").Material).dispose();
+    p.shine.dispose();
+  });
+}

@@ -1,14 +1,19 @@
 // The singularity's sound, made in the browser (Web Audio), timed to its picture
 // (introSingularity.ts). It plays on any audio context, so the same sound can be rendered offline
 // for a video.
-//   0.00 to 0.95  the pull: a deep rumble that rises, a sucking whine climbing in pitch, and a swell
-//                 of air at the end, like a breath drawn in
-//   0.95          everything stops at once: the hole has swallowed it
-//   1.03          one tiny high ping in the silence
-//   1.15          the explosion: a deep boom with weight, a crack of air, a long airy tail, then a
+//   0.00          the glass breaks: a crash of bright noise, a low knock, and tinkling pieces
+//   0.30 to 1.12  the jump: a deep rumble that rises, a whine climbing in pitch, air rushing past
+//   1.12 to 1.26  it falls in on itself: everything sucked in at once, rising to a hard stop
+//   1.31          one tiny high ping in the silence
+//   1.38          the explosion: a deep boom with weight, a crack of air, a long airy tail, then a
 //                 bright chord and sparkles of glass as the ending appears
-export const PULL = 0.95;
-export const BOOM = 1.15;
+/** The singularity opens and the jump begins. */
+export const OPEN = 0.3;
+/** It starts to fall in on itself. */
+export const IMPLODE = 1.12;
+/** It is gone, and everything stops. */
+export const CUT = 1.26;
+export const BOOM = 1.38;
 
 function noise(ctx: BaseAudioContext, seconds: number, brown = false) {
   const n = Math.round(ctx.sampleRate * seconds);
@@ -64,36 +69,78 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
       node.connect(g).connect(echo);
     }
   };
-  const cut = at + PULL;
+  const cut = at + CUT;
+  const go = at + OPEN;
 
-  // the pull: a deep rumble, opening up as it grows
-  const rumble = noise(ctx, PULL + 0.1, true);
+  // the glass breaks: a crash of bright noise and a low knock under it
+  const crash = noise(ctx, 0.6);
+  const chp = ctx.createBiquadFilter();
+  chp.type = "highpass";
+  chp.frequency.value = 2400;
+  const crg = ctx.createGain();
+  crg.gain.setValueAtTime(0.0001, at);
+  crg.gain.exponentialRampToValueAtTime(0.5, at + 0.004);
+  crg.gain.exponentialRampToValueAtTime(0.0001, at + 0.45);
+  crash.connect(chp).connect(crg);
+  send(crg, 0.6);
+  crash.start(at);
+  crash.stop(at + 0.6);
+  const knock = ctx.createOscillator();
+  knock.type = "sine";
+  knock.frequency.setValueAtTime(190, at);
+  knock.frequency.exponentialRampToValueAtTime(70, at + 0.15);
+  const kng = ctx.createGain();
+  kng.gain.setValueAtTime(0.0001, at);
+  kng.gain.exponentialRampToValueAtTime(0.5, at + 0.005);
+  kng.gain.exponentialRampToValueAtTime(0.0001, at + 0.2);
+  knock.connect(kng);
+  send(kng, 0.2);
+  knock.start(at);
+  knock.stop(at + 0.25);
+  // pieces of it, tinkling as they fly apart
+  for (let i = 0; i < 16; i++) {
+    const o = ctx.createOscillator();
+    o.type = "triangle";
+    o.frequency.value = 2400 + Math.random() * 4000;
+    const g = ctx.createGain();
+    const start = at + Math.pow(Math.random(), 1.8) * 0.45;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(0.05, start + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + 0.12 + Math.random() * 0.15);
+    o.connect(g);
+    send(g, 1);
+    o.start(start);
+    o.stop(start + 0.3);
+  }
+
+  // the jump: a deep rumble, opening up as it grows
+  const rumble = noise(ctx, CUT - OPEN + 0.1, true);
   const low = ctx.createBiquadFilter();
   low.type = "lowpass";
-  low.frequency.setValueAtTime(70, at);
+  low.frequency.setValueAtTime(70, go);
   low.frequency.exponentialRampToValueAtTime(900, cut);
   const rg = ctx.createGain();
-  rg.gain.setValueAtTime(0.0001, at);
+  rg.gain.setValueAtTime(0.0001, go);
   rg.gain.exponentialRampToValueAtTime(0.7, cut - 0.05);
   rg.gain.setValueAtTime(0.7, cut - 0.015);
   rg.gain.linearRampToValueAtTime(0, cut);
   rumble.connect(low).connect(rg);
   send(rg, 0.2);
-  rumble.start(at);
+  rumble.start(go);
   rumble.stop(cut + 0.05);
 
   // a sub tone sliding up underneath
   const sub = ctx.createOscillator();
   sub.type = "sine";
-  sub.frequency.setValueAtTime(34, at);
+  sub.frequency.setValueAtTime(34, go);
   sub.frequency.exponentialRampToValueAtTime(96, cut);
   const sg = ctx.createGain();
-  sg.gain.setValueAtTime(0.0001, at);
+  sg.gain.setValueAtTime(0.0001, go);
   sg.gain.exponentialRampToValueAtTime(0.5, cut - 0.05);
   sg.gain.linearRampToValueAtTime(0, cut);
   sub.connect(sg);
   send(sg, 0);
-  sub.start(at);
+  sub.start(go);
   sub.stop(cut + 0.05);
 
   // the whine of it being sucked in, two voices a little apart, climbing
@@ -101,19 +148,19 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
     const o = ctx.createOscillator();
     o.type = "sine";
     o.detune.value = detune * 3;
-    o.frequency.setValueAtTime(160, at);
-    o.frequency.exponentialRampToValueAtTime(1700, cut);
+    o.frequency.setValueAtTime(160, go);
+    o.frequency.exponentialRampToValueAtTime(2200, cut);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, at);
+    g.gain.setValueAtTime(0.0001, go);
     g.gain.exponentialRampToValueAtTime(0.045, cut - 0.05);
     g.gain.linearRampToValueAtTime(0, cut);
     o.connect(g);
     send(g, 0.5);
-    o.start(at);
+    o.start(go);
     o.stop(cut + 0.05);
   });
 
-  // a breath drawn in: bright air swelling into the cut
+  // falling in on itself: air sucked in all at once, rising hard into the cut
   const air = noise(ctx, 0.6);
   const hp = ctx.createBiquadFilter();
   hp.type = "highpass";
@@ -121,7 +168,8 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
   hp.frequency.exponentialRampToValueAtTime(6000, cut);
   const ag = ctx.createGain();
   ag.gain.setValueAtTime(0.0001, cut - 0.5);
-  ag.gain.exponentialRampToValueAtTime(0.28, cut - 0.02);
+  ag.gain.exponentialRampToValueAtTime(0.08, at + IMPLODE);
+  ag.gain.exponentialRampToValueAtTime(0.4, cut - 0.01);
   ag.gain.linearRampToValueAtTime(0, cut);
   air.connect(hp).connect(ag);
   send(ag, 0.3);
@@ -133,13 +181,13 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
   ping.type = "sine";
   ping.frequency.value = 2637;
   const pg = ctx.createGain();
-  pg.gain.setValueAtTime(0.0001, cut + 0.08);
-  pg.gain.exponentialRampToValueAtTime(0.05, cut + 0.085);
-  pg.gain.exponentialRampToValueAtTime(0.0001, cut + 0.15);
+  pg.gain.setValueAtTime(0.0001, cut + 0.05);
+  pg.gain.exponentialRampToValueAtTime(0.05, cut + 0.055);
+  pg.gain.exponentialRampToValueAtTime(0.0001, cut + 0.11);
   ping.connect(pg);
   send(pg, 0.8);
-  ping.start(cut + 0.06);
-  ping.stop(cut + 0.18);
+  ping.start(cut + 0.04);
+  ping.stop(cut + 0.12);
 
   const boom = at + BOOM;
   // the boom: a deep drop with weight, rounded off so it thumps rather than clicks

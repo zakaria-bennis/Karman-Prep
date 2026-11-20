@@ -44,8 +44,9 @@ const SLOW = [96, 131, 88, 142, 104, 77, 119, 101];
 export const clock = (s: number) =>
   `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
 
-/** The set every option shows, made up, for a score from 0 to 8. A tough set was also slow. */
-export function setOf(right: number) {
+/** The set every option shows, made up, for a score from 0 to 8, on a skill at level `from` (0 Not
+ *  started to 3 Proficient). A tough set was also slow. */
+export function setOf(right: number, from = 1) {
   const total = 8;
   const lit = PATTERNS[Math.max(0, Math.min(total, right))];
   const share = right / total;
@@ -61,7 +62,6 @@ export function setOf(right: number) {
     run = a.ok ? run + 1 : 0;
     best = Math.max(best, run);
   }
-  const from = 1;
   // the run that reaches each level (skill-levels.ts): 3 to Learning, 4 to Understanding, 5 to the top
   const RUNS = [0, 3, 4, 5];
   const up = from < 3 && best >= RUNS[from + 1];

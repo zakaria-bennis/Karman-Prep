@@ -67,7 +67,7 @@
 .levelRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   width: 100%;
   margin-top: 6px;
@@ -85,9 +85,25 @@
     0 0 24px -4px rgb(120 230 190 / 0.7);
 }
 
-.levelRow > span:first-child {
-  font-weight: 600;
-  opacity: 0.85;
+/* the skill's stage, still; it pops as the new one lands */
+.stageMark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: -6px 0;
+  animation: land 0.6s cubic-bezier(0.3, 1.6, 0.45, 1) both;
+}
+
+@keyframes land {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageMark {
+    animation: none;
+  }
 }
 
 .coinRow {
