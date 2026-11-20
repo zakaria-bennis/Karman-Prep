@@ -3,8 +3,8 @@
 // 2026-11-20: a metamorphosis from one stage to the next, the celebration as big as the step, and
 // the skill's name, not the run, in front). A skill goes up a level after a run of right answers in
 // a row (3, 4 or 5, by the level reached). The screen dims; a pane of glass rises in the middle with
-// the skill's name and its stage, big; the stage changes into the next (Metamorph.tsx), the level's
-// name turns over, and it is celebrated by the size of the step:
+// the skill's name and its stage, big; the stage changes into the next, the level's
+// name turns over (Stage.tsx), and it is celebrated by the size of the step:
 //   to Learning       a burst of confetti
 //   to Understanding  more, and the pane jumps
 //   to Proficient     the most, in two waves, gold rays, and the screen shakes
@@ -17,12 +17,13 @@ import { confetti } from "@/components/quiz-flows/stage-motion";
 import { prefersStill } from "@/lib/painting/motion";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
 import { LEVELS } from "../shell/skills72";
-import { Metamorph } from "./Metamorph";
+import { StageChange } from "./Stage";
 import type { SetView } from "./parts";
 import l from "./levelUp.module.css";
 
-/** When the stage bursts into the next, in seconds after the pane is up. */
-const CHANGE = 0.75;
+/** How long the new stage is held once complete, by the size of the step, before the pane flies
+ *  down into its row. */
+const HOLD = [0, 1.6, 2, 2.6];
 
 export function LevelUp({
   set,
@@ -44,6 +45,8 @@ export function LevelUp({
   const [level, setLevel] = useState(set.from);
   const done = useRef(onDone);
   const undo = useRef<((() => void) | undefined)[]>([]);
+  /** The pane's flight down into its row, started once the change is complete. */
+  const flight = useRef<gsap.core.Timeline | null>(null);
   useEffect(() => {
     done.current = onDone;
   }, [onDone]);
@@ -89,20 +92,20 @@ export function LevelUp({
         { keyframes: { x: [10, -8, 6, -4, 0], y: [-6, 5, -3, 2, 0] }, duration: 0.4, ease: "none" }
       );
     }
+    flight.current?.restart(true);
   }, [set.to, step]);
 
   useEffect(() => {
     if (!on || !pane.current || !veil.current) return;
     const card = pane.current;
-    const hold = 1.4 + step * 0.5;
-    const line = gsap.timeline({
-      onComplete: () => {
-        setOn(false);
-        done.current();
-      },
-    });
+    const v = veil.current;
+    const finish = () => {
+      setOn(false);
+      done.current();
+    };
+    const line = gsap.timeline();
     line
-      .fromTo(veil.current, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" })
+      .fromTo(v, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" })
       .fromTo(
         card,
         { y: 80, scale: 0.6, opacity: 0, rotation: -4 },
@@ -115,34 +118,38 @@ export function LevelUp({
         { y: 0, opacity: 1, duration: 0.35, stagger: 0.07, ease: "power3.out" },
         0.3
       )
-      // the stage changes once the pane has settled (Metamorph plays its own part)
-      .add(() => setChanging(true), 0.55)
-      // then into the level row it belongs to
-      .add(
-        () => {
-          const to = target.current?.getBoundingClientRect();
-          const from = card.getBoundingClientRect();
-          if (!to) return;
-          gsap.to(card, {
-            x: to.left + to.width / 2 - (from.left + from.width / 2),
-            y: to.top + to.height / 2 - (from.top + from.height / 2),
-            scale: Math.min(0.4, to.width / from.width),
-            opacity: 0,
-            duration: 0.6,
-            ease: "power3.in",
-          });
-        },
-        0.55 + CHANGE + hold
-      )
-      .to(veil.current, { opacity: 0, duration: 0.45, ease: "power2.in" }, 0.75 + CHANGE + hold)
-      .to({}, { duration: 0.1 }, 1.2 + CHANGE + hold);
+      // the stage changes once the pane has settled; it says when it is complete (burst)
+      .add(() => setChanging(true), 0.6);
+    // then, after a moment to take it in, into the level row it belongs to
+    const away = gsap.timeline({ paused: true, delay: HOLD[step] ?? 1.6, onComplete: finish });
+    away
+      .add(() => {
+        const to = target.current?.getBoundingClientRect();
+        const from = card.getBoundingClientRect();
+        if (!to) return;
+        gsap.to(card, {
+          x: to.left + to.width / 2 - (from.left + from.width / 2),
+          y: to.top + to.height / 2 - (from.top + from.height / 2),
+          scale: Math.min(0.4, to.width / from.width),
+          opacity: 0,
+          duration: 0.6,
+          ease: "power3.in",
+        });
+      }, 0)
+      .to(v, { opacity: 0, duration: 0.45, ease: "power2.in" }, 0.2)
+      .to({}, { duration: 0.1 }, 0.65);
+    flight.current = away;
     // a press anywhere skips to the end
-    const skip = () => line.progress(1);
-    const v = veil.current;
+    const skip = () => {
+      line.kill();
+      away.kill();
+      finish();
+    };
     v.addEventListener("click", skip);
     const leftovers = undo.current;
     return () => {
       line.kill();
+      away.kill();
       leftovers.forEach((u) => u?.());
       v.removeEventListener("click", skip);
     };
@@ -153,7 +160,7 @@ export function LevelUp({
     <div className={l.veil} ref={veil} role="status" aria-live="polite" data-step={step}>
       <div className={l.pane} ref={pane} data-step={step}>
         <span className={l.stage} data-in>
-          <Metamorph from={set.from} to={set.to} play={changing} onPeak={burst} />
+          <StageChange from={set.from} to={set.to} play={changing} size={240} onPeak={burst} />
         </span>
         <h2 className={l.title} data-in>
           {set.skill}

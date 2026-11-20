@@ -38,12 +38,12 @@
   letter-spacing: 0;
 }
 
-/* the stage, big; it changes into the next (Metamorph.tsx) */
+/* the stage, big; it changes into the next (Stage.tsx) */
 .stage {
   display: block;
-  width: 150px;
-  height: 150px;
-  margin: -6px 0 2px;
+  width: 240px;
+  height: 240px;
+  margin: -10px 0 0;
 }
 
 /* the bigger the step, the warmer the light round the pane */
@@ -85,6 +85,19 @@
 
 .name[data-level="3"] {
   color: #ffcf4a;
+}
+
+/* by day the glass is pale: the same colors, deeper, so they read */
+:global([data-kp-mode="light"]) .name[data-level="1"] {
+  color: #17784f;
+}
+
+:global([data-kp-mode="light"]) .name[data-level="2"] {
+  color: #1f56b8;
+}
+
+:global([data-kp-mode="light"]) .name[data-level="3"] {
+  color: #8f5f00;
 }
 
 .flip {

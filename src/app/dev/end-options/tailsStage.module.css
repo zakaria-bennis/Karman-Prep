@@ -1,0 +1,79 @@
+/* Karman growing tails (TailsStage.tsx): the drawing, the light over it, and a gold aura behind
+   for the top stage. */
+.stage {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+.fox {
+  position: relative;
+  display: block;
+  overflow: visible;
+}
+
+/* the light, laid exactly over the drawing */
+.light {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* behind him at the top: a soft gold halo and a thin ring of light */
+.aura {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgb(255 214 120 / 0.42) 0%,
+      rgb(255 190 80 / 0.16) 45%,
+      transparent 68%
+    ),
+    radial-gradient(circle, transparent 60%, rgb(255 220 140 / 0.55) 62.5%, transparent 65%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aura[data-on] {
+  opacity: 1;
+}
+
+/* asleep: eyes shut, z's drifting up; awake at the top: eyes closed in a smile */
+.shut,
+.happy {
+  opacity: 0;
+}
+
+.fox[data-asleep] :global(.m-eN) {
+  opacity: 0;
+}
+
+.fox[data-asleep] .shut {
+  opacity: 1;
+}
+
+.fox[data-happy] :global(.m-eN) {
+  opacity: 0;
+}
+
+.fox[data-happy] .happy {
+  opacity: 1;
+}
+
+.zs {
+  fill: #e6ecff;
+  font:
+    700 20px var(--font-serif),
+    serif;
+  paint-order: stroke;
+  stroke: rgb(30 40 90 / 0.5);
+  stroke-width: 3px;
+}
+
+.fox:not([data-asleep]) .zs {
+  display: none;
+}
