@@ -1,12 +1,9 @@
 // How the ending opens, to match the transition that brought it (Intro.tsx). Each adds its moves to
 // the ending's timeline: the two panes, the character arriving in its ring, and the answers.
-//   shatter    out of the ring: the panes widen from its edge, the answers fly out of it
-//   plane      like paper unfolding: the panes swing down and open from their hinges, the answers
-//              unfold one under another, the character drops into the ring
-//   fireflies  softly into focus: the panes and the answers clear from a blur, the character glows in
-//   flip       the left pane is already there (the card landed on it): the answers fan out of it like
-//              a hand of cards
-//   none       a plain rise, for no transition at all
+//   singularity  out of the point it exploded from: the panes burst out bright and settle, the page
+//                shakes, the answers are flung out to their places
+//   shatter      out of the ring: the panes widen from its edge, the answers fly out of it
+//   none         a plain rise, for no transition at all
 import gsap from "gsap";
 import type { IntroKind } from "./Intro";
 
@@ -76,141 +73,72 @@ export function unfold(
     return;
   }
 
-  if (kind === "plane") {
-    line
-      .fromTo(
-        side,
-        { rotationX: -100, transformOrigin: "50% 0%", transformPerspective: 1100, opacity: 0.3 },
+  if (kind === "singularity") {
+    // out of the point it exploded from, the middle of the screen: the panes burst out of it,
+    // bright and blurred, and settle; the page shakes with the blast; the answers are flung out
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    [side, main].forEach((pane, i) => {
+      const b = pane.getBoundingClientRect();
+      line.fromTo(
+        pane,
         {
-          rotationX: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: "back.out(1.1)",
-          clearProps: "transform,opacity",
+          scale: 0.08,
+          opacity: 0,
+          filter: "blur(18px) brightness(2.6)",
+          transformOrigin: `${cx - b.left}px ${cy - b.top}px`,
         },
-        0
-      )
-      .fromTo(
-        main,
-        { rotationY: 100, transformOrigin: "0% 50%", transformPerspective: 1400, opacity: 0.3 },
         {
-          rotationY: 0,
-          opacity: 1,
-          duration: 1.0,
-          ease: "back.out(1.05)",
-          clearProps: "transform,opacity",
-        },
-        0.25
-      )
-      .fromTo(
-        pop,
-        { y: -160, scale: 0.7, opacity: 0 },
-        { y: 0, scale: 1, opacity: 1, duration: 0.9, ease: "bounce.out" },
-        0.1
-      )
-      .fromTo(
-        answers,
-        { rotationX: -95, transformOrigin: "50% 0%", transformPerspective: 700, opacity: 0 },
-        {
-          rotationX: 0,
-          opacity: 1,
-          duration: 0.6,
-          stagger: 0.07,
-          ease: "back.out(1.4)",
-          clearProps: "transform,opacity",
-        },
-        0.75
-      );
-    return;
-  }
-
-  if (kind === "fireflies") {
-    line
-      .fromTo(
-        [side, main],
-        { opacity: 0, filter: "blur(18px)", scale: 1.03 },
-        {
-          opacity: 1,
-          filter: "blur(0px)",
           scale: 1,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: "power2.out",
-          clearProps: "filter,transform",
-        },
-        0
-      )
-      .fromTo(
-        pop,
-        { opacity: 0, filter: "blur(10px) brightness(2)", scale: 0.8 },
-        {
           opacity: 1,
           filter: "blur(0px) brightness(1)",
-          scale: 1,
           duration: 1.0,
-          ease: "power2.out",
-          clearProps: "filter",
+          ease: "expo.out",
+          clearProps: "filter,transform,transformOrigin",
         },
-        0.1
-      )
-      .fromTo(
-        answers,
-        { opacity: 0, y: 10, filter: "blur(8px)" },
-        {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.7,
-          stagger: 0.08,
-          ease: "power2.out",
-          clearProps: "filter",
-        },
-        0.5
+        i * 0.05
       );
-    return;
-  }
-
-  if (kind === "flip") {
-    const box = side.getBoundingClientRect();
-    const sx = box.left + box.width / 2;
-    const sy = box.top + box.height / 2;
+    });
     line
       .fromTo(
-        main,
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, duration: 0.6, ease: "power3.out", clearProps: "transform" },
-        0.1
+        el,
+        { x: 0, y: 0 },
+        {
+          keyframes: { x: [9, -7, 5, -3, 1, 0], y: [-6, 5, -3, 2, -1, 0] },
+          duration: 0.45,
+          ease: "none",
+          clearProps: "transform",
+        },
+        0
       )
       .fromTo(
         pop,
-        { scale: 0, rotation: -30 },
-        { scale: 1, rotation: 0, duration: 0.8, ease: "elastic.out(1, 0.5)" },
-        0
+        { scale: 0, rotation: -40 },
+        { scale: 1, rotation: 0, duration: 0.9, ease: "elastic.out(1, 0.45)" },
+        0.18
       );
-    // a hand of cards: stacked on the left pane, fanned, then dealt to their places
     answers.forEach((a, i) => {
       const b = a.getBoundingClientRect();
       line.fromTo(
         a,
         {
-          x: sx - (b.left + b.width / 2),
-          y: sy - (b.top + b.height / 2) + 40,
-          rotation: (i - (answers.length - 1) / 2) * 9,
-          scale: 0.55,
+          x: cx - (b.left + b.width / 2),
+          y: cy - (b.top + b.height / 2),
+          scale: 0.3,
           opacity: 0,
-          transformOrigin: "50% 120%",
+          rotation: (Math.random() - 0.5) * 40,
         },
         {
           x: 0,
           y: 0,
-          rotation: 0,
           scale: 1,
           opacity: 1,
-          duration: 0.7,
-          ease: "back.out(1.2)",
+          rotation: 0,
+          duration: 0.8,
+          ease: "back.out(1.4)",
           clearProps: "transform",
         },
-        0.35 + i * 0.08
+        0.12 + i * 0.04
       );
     });
     return;

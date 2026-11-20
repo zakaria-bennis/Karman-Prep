@@ -1,6 +1,6 @@
 "use client";
-// What the last-question transitions share (Intro.tsx): the sounds, the card drawn onto a canvas for
-// three.js to carry, and a full-screen three.js stage measured in screen pixels.
+// What the last-question transitions share (Intro.tsx): the glass's crack, the quiz drawn onto a
+// canvas for three.js to carry, specks of light, and a full-screen three.js stage in screen pixels.
 /** A few bright high notes at once, like glass giving way. */
 export function crack() {
   try {
@@ -96,57 +96,31 @@ export function drawCard(card: HTMLElement, dpr: number, every = false) {
   return canvas;
 }
 
-/** A soft rising chime, for something gathering (fireflies, a plane taking off). */
-export function chime(notes = [880, 1108.7, 1318.5, 1760]) {
-  try {
-    const Ctx =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
-    const now = ctx.currentTime;
-    notes.forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      const amp = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = f;
-      const at = now + i * 0.09;
-      amp.gain.setValueAtTime(0.0001, now);
-      amp.gain.linearRampToValueAtTime(0.06, at + 0.02);
-      amp.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
-      osc.connect(amp).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(at + 1);
-    });
-  } catch {
-    /* no sound where the browser has none */
-  }
-}
-
-/** A paper whoosh: noise swept through a filter. */
-export function whoosh(seconds = 0.7) {
-  try {
-    const Ctx =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
-    const n = Math.round(ctx.sampleRate * seconds);
-    const buf = ctx.createBuffer(1, n, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) data[i] = (Math.random() * 2 - 1) * Math.sin((Math.PI * i) / n);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(400, ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(2600, ctx.currentTime + seconds);
-    const amp = ctx.createGain();
-    amp.gain.value = 0.12;
-    src.connect(filter).connect(amp).connect(ctx.destination);
-    src.start();
-  } catch {
-    /* no sound where the browser has none */
-  }
-}
+/** Points of light with their own color, alpha and size (three.js ShaderMaterial). */
+export const VERT = `
+attribute vec3 color;
+attribute float alpha;
+attribute float size;
+varying vec3 vColor;
+varying float vAlpha;
+void main() {
+  vColor = color;
+  vAlpha = alpha;
+  gl_PointSize = size;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+/** A speck of light: a white-hot middle in its own color and a soft halo round it. */
+export const FRAG = `
+varying vec3 vColor;
+varying float vAlpha;
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  if (d > 1.0) discard;
+  float halo = pow(1.0 - d, 1.6);
+  float core = pow(1.0 - d, 6.0);
+  vec3 c = mix(vColor * 0.85, vec3(1.0, 0.98, 0.9), core);
+  gl_FragColor = vec4(c, vAlpha * clamp(halo * 1.3, 0.0, 1.0));
+}`;
 
 export type Stage = {
   THREE: typeof import("three");
@@ -205,6 +179,8 @@ export type Run = (o: {
   card: HTMLElement;
   canvas: HTMLCanvasElement;
   flash: HTMLElement | null;
+  /** A dark veil over the landscape, for the light being drawn in. */
+  veil: HTMLElement | null;
   /** The ring on the ending, where it will be. */
   ring: DOMRect | null;
   /** The ending's left pane, where it will be (for the flip). */

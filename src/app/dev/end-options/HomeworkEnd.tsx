@@ -105,8 +105,14 @@ export function HomeworkEnd({
   return (
     <Frame mode={mode} title={set.skill} corner={corner} wallet={set.wallet}>
       {burst}
-      {intro && !begun && (
-        <Intro kind={intro} mode={mode} target={ringSvg} onLanded={() => setBegun(true)} />
+      {intro && (
+        <Intro
+          kind={intro}
+          mode={mode}
+          answers={set.answers.map((a) => a.ok)}
+          target={ringSvg}
+          onLanded={() => setBegun(true)}
+        />
       )}
       {begun && set.up && (
         <LevelUp set={set} after={2.9} target={levelRow} onDone={() => setLeveled(true)} />

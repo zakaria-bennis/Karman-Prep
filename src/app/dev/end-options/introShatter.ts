@@ -26,7 +26,7 @@ export const shatter: Run = ({ card: el, canvas: cv, flash, ring, onLanded, onGo
     }
     const { THREE, renderer, scene, camera, W, H, dpr } = stage;
     const box = el.getBoundingClientRect();
-    const texture = new THREE.CanvasTexture(drawCard(el, dpr));
+    const texture = new THREE.CanvasTexture(drawCard(el, dpr, true));
     texture.colorSpace = THREE.SRGBColorSpace;
     // the ring the shards are going to: its middle and its radius on the screen
     const cx = ring ? ring.left + ring.width / 2 - W / 2 : 0;
