@@ -1,11 +1,10 @@
 "use client";
-// The light for a skill's stage changing (TailsStage.tsx, StarsStage.tsx): a small three.js canvas
-// laid over the drawing, in the drawing's own units, so a glow can sit exactly on a tail's tip or a
-// star. It holds three kinds of light, each drawn additively so it only ever brightens:
-//   lights  glows held in place by their owner each frame (a tip's halo, a star, an eye's glint)
+// The light on Karman as his tails grow (TailsStage.tsx, foxLight.ts): a small three.js canvas laid
+// over the drawing, in the drawing's own units, so a glow can sit exactly on a tail's tip. It holds
+// two kinds of light, each drawn additively so it only ever brightens:
+//   lights  glows held in place by their owner each frame (a tip's halo, a wisp of foxfire)
 //   sparks  particles that fly, slow, fall and fade by themselves (bursts, dust, motes)
-//   lines   glowing threads between two points, drawn out from the first as `p` goes 0 to 1
-// The owner moves its lights and lines in `onFrame`; the kit does the rest.
+// The owner moves its lights in `onFrame`; the kit does the rest.
 
 /** A glow held in place. Size is in the drawing's units; `flare` adds four thin rays. */
 export type Light = {
@@ -35,19 +34,6 @@ export type Spark = {
   /** How fast it twinkles; 0 for steady. */
   tw?: number;
 };
-export type Thread = {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  p: number;
-  width: number;
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-};
-
 const POINT_VERT = `
 attribute vec3 color;
 attribute float alpha;
@@ -63,7 +49,7 @@ void main() {
   gl_PointSize = size;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
-// a white-hot middle in its own color, a wide soft halo, and (for a star) four thin rays
+// a white-hot middle in its own color, a wide soft halo, and (when asked) four thin rays
 const POINT_FRAG = `
 varying vec3 vColor;
 varying float vAlpha;
@@ -79,30 +65,9 @@ void main() {
   // light only: its alpha is its brightness, so over the page it screens and never darkens
   gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));
 }`;
-const LINE_VERT = `
-attribute vec3 color;
-attribute float across;
-varying vec3 vColor;
-varying float vAcross;
-void main() {
-  vColor = color;
-  vAcross = across;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}`;
-const LINE_FRAG = `
-varying vec3 vColor;
-varying float vAcross;
-void main() {
-  float k = exp(-vAcross * vAcross * 5.0);
-  float core = exp(-vAcross * vAcross * 40.0);
-  vec3 c = min(vColor * (k * 0.8 + core), vec3(1.0));
-  gl_FragColor = vec4(c, max(c.r, max(c.g, c.b)));
-}`;
-
 export type Fx = {
   lights: Light[];
   sparks: Spark[];
-  threads: Thread[];
   /** Adds a burst of sparks from (x, y). */
   burst: (o: {
     x: number;
@@ -128,7 +93,7 @@ export type Fx = {
 export async function stageFx(
   canvas: HTMLCanvasElement,
   box: [number, number, number, number],
-  most = { lights: 64, sparks: 900, threads: 48 }
+  most = { lights: 64, sparks: 900 }
 ): Promise<Fx | null> {
   const THREE = await import("three");
   // its laid-out size, not its size on screen: it may be mid-way through a scale when it starts
@@ -189,41 +154,12 @@ export async function stageFx(
     return { geo, mat, ...a, flush };
   };
 
-  // threads: a quad each, soft across its width
-  const T = most.threads;
-  const lineGeo = new THREE.BufferGeometry();
-  const linePos = new Float32Array(T * 4 * 3);
-  const lineCol = new Float32Array(T * 4 * 3);
-  const lineAcross = new Float32Array(T * 4);
-  const idx: number[] = [];
-  for (let i = 0; i < T; i++) {
-    const v = i * 4;
-    idx.push(v, v + 1, v + 2, v, v + 2, v + 3);
-    lineAcross.set([-1, 1, 1, -1], v);
-  }
-  lineGeo.setAttribute("position", new THREE.BufferAttribute(linePos, 3));
-  lineGeo.setAttribute("color", new THREE.BufferAttribute(lineCol, 3));
-  lineGeo.setAttribute("across", new THREE.BufferAttribute(lineAcross, 1));
-  lineGeo.setIndex(idx);
-  const lineMat = new THREE.ShaderMaterial({
-    vertexShader: LINE_VERT,
-    fragmentShader: LINE_FRAG,
-    transparent: true,
-    depthWrite: false,
-    depthTest: false,
-    side: THREE.DoubleSide,
-    ...light,
-  });
-  const lineMesh = new THREE.Mesh(lineGeo, lineMat);
-  lineMesh.frustumCulled = false;
-  scene.add(lineMesh);
   const lightSet = pointSet(most.lights);
   const sparkSet = pointSet(most.sparks);
 
   const fx: Fx = {
     lights: [],
     sparks: [],
-    threads: [],
     scale,
     burst: ({ x, y, count, speed, colors, size = 3, life = 1, fall = 0, spread, angle = 0 }) => {
       for (let i = 0; i < count; i++) {
@@ -257,8 +193,6 @@ export async function stageFx(
         s.geo.dispose();
         s.mat.dispose();
       });
-      lineGeo.dispose();
-      lineMat.dispose();
       renderer.dispose();
     },
   };
@@ -308,40 +242,6 @@ export async function stageFx(
     }
     fx.sparks = fx.sparks.filter((s) => (s.age ?? 0) < s.life);
     sparkSet.flush(n);
-
-    // threads, drawn out from their first end
-    const TN = Math.min(fx.threads.length, T);
-    for (let i = 0; i < TN; i++) {
-      const th = fx.threads[i];
-      const ex = th.x1 + (th.x2 - th.x1) * th.p;
-      const ey = th.y1 + (th.y2 - th.y1) * th.p;
-      const len = Math.hypot(ex - th.x1, ey - th.y1) || 1;
-      const nx = (-(ey - th.y1) / len) * th.width;
-      const ny = ((ex - th.x1) / len) * th.width;
-      const o = i * 12;
-      linePos.set(
-        [
-          th.x1 - nx,
-          -(th.y1 - ny),
-          0,
-          th.x1 + nx,
-          -(th.y1 + ny),
-          0,
-          ex + nx,
-          -(ey + ny),
-          0,
-          ex - nx,
-          -(ey - ny),
-          0,
-        ],
-        o
-      );
-      const c = [th.r * th.a, th.g * th.a, th.b * th.a];
-      for (let v = 0; v < 4; v++) lineCol.set(c, o + v * 3);
-    }
-    lineGeo.setDrawRange(0, TN * 6);
-    lineGeo.attributes.position.needsUpdate = true;
-    lineGeo.attributes.color.needsUpdate = true;
 
     renderer.render(scene, camera);
     frame = requestAnimationFrame(tick);
