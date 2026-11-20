@@ -37,6 +37,8 @@ export function drawCard(card: HTMLElement, dpr: number, every = false) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return canvas;
   ctx.scale(dpr, dpr);
+  const glass =
+    getComputedStyle(card).getPropertyValue("--quiz-panel").trim() || "rgba(255, 255, 255, 0.5)";
   const round = (x: number, y: number, w: number, h: number, r: number) => {
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, r);
@@ -46,9 +48,20 @@ export function drawCard(card: HTMLElement, dpr: number, every = false) {
     const r = el.getBoundingClientRect();
     const x = r.left - box.left;
     const y = r.top - box.top;
-    if (s.backgroundColor && s.backgroundColor !== "rgba(0, 0, 0, 0)") {
+    // its glass: its own color, a ::before or ::after that paints it, or, for frosted glass with no
+    // color of its own, the page's glass color
+    const clear = "rgba(0, 0, 0, 0)";
+    const before = getComputedStyle(el, "::before");
+    const after = getComputedStyle(el, "::after");
+    const fill =
+      (s.backgroundColor !== clear && s.backgroundColor) ||
+      (before.content !== "none" && before.backgroundColor !== clear && before.backgroundColor) ||
+      (after.content !== "none" && after.backgroundColor !== clear && after.backgroundColor) ||
+      (s.backdropFilter && s.backdropFilter !== "none" && glass) ||
+      "";
+    if (fill && r.width > 0 && r.height > 0) {
       round(x, y, r.width, r.height, parseFloat(s.borderTopLeftRadius) || 0);
-      ctx.fillStyle = s.backgroundColor;
+      ctx.fillStyle = fill;
       ctx.fill();
     }
     if (s.outlineColor && el.hasAttribute("data-edge")) {

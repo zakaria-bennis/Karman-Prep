@@ -1,14 +1,14 @@
 // The singularity's sound, made in the browser (Web Audio), timed to its picture
 // (introSingularity.ts). It plays on any audio context, so the same sound can be rendered offline
 // for a video.
-//   0.00 to 1.95  the pull: a deep rumble that rises, a sucking whine climbing in pitch, and a swell
+//   0.00 to 0.95  the pull: a deep rumble that rises, a sucking whine climbing in pitch, and a swell
 //                 of air at the end, like a breath drawn in
-//   1.95          everything stops at once: the hole has swallowed it
-//   2.02          one tiny high ping in the silence
-//   2.10          the explosion: a deep boom with weight, a crack of air, a long airy tail, then a
+//   0.95          everything stops at once: the hole has swallowed it
+//   1.03          one tiny high ping in the silence
+//   1.15          the explosion: a deep boom with weight, a crack of air, a long airy tail, then a
 //                 bright chord and sparkles of glass as the ending appears
-export const PULL = 1.95;
-export const BOOM = 2.1;
+export const PULL = 0.95;
+export const BOOM = 1.15;
 
 function noise(ctx: BaseAudioContext, seconds: number, brown = false) {
   const n = Math.round(ctx.sampleRate * seconds);
@@ -114,18 +114,18 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
   });
 
   // a breath drawn in: bright air swelling into the cut
-  const air = noise(ctx, 0.9);
+  const air = noise(ctx, 0.6);
   const hp = ctx.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.setValueAtTime(1800, cut - 0.8);
+  hp.frequency.setValueAtTime(1800, cut - 0.5);
   hp.frequency.exponentialRampToValueAtTime(6000, cut);
   const ag = ctx.createGain();
-  ag.gain.setValueAtTime(0.0001, cut - 0.8);
+  ag.gain.setValueAtTime(0.0001, cut - 0.5);
   ag.gain.exponentialRampToValueAtTime(0.28, cut - 0.02);
   ag.gain.linearRampToValueAtTime(0, cut);
   air.connect(hp).connect(ag);
   send(ag, 0.3);
-  air.start(cut - 0.8);
+  air.start(cut - 0.5);
   air.stop(cut + 0.05);
 
   // a single ping in the silence
@@ -133,13 +133,13 @@ export function singularitySound(ctx: BaseAudioContext, at = ctx.currentTime) {
   ping.type = "sine";
   ping.frequency.value = 2637;
   const pg = ctx.createGain();
-  pg.gain.setValueAtTime(0.0001, at + 2.02);
-  pg.gain.exponentialRampToValueAtTime(0.05, at + 2.025);
-  pg.gain.exponentialRampToValueAtTime(0.0001, at + 2.09);
+  pg.gain.setValueAtTime(0.0001, cut + 0.08);
+  pg.gain.exponentialRampToValueAtTime(0.05, cut + 0.085);
+  pg.gain.exponentialRampToValueAtTime(0.0001, cut + 0.15);
   ping.connect(pg);
   send(pg, 0.8);
-  ping.start(at + 2.0);
-  ping.stop(at + 2.12);
+  ping.start(cut + 0.06);
+  ping.stop(cut + 0.18);
 
   const boom = at + BOOM;
   // the boom: a deep drop with weight, rounded off so it thumps rather than clicks

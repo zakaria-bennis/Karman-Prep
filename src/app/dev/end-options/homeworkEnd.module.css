@@ -3,9 +3,37 @@
   margin-top: var(--pad);
 }
 
-/* ---- left: the character in its ring, and how the set went ---- */
+/* ---- left: the character in its ring, the percent right under it, and how the set went ---- */
 .side {
   align-content: start;
+  transition:
+    background 0.35s var(--out),
+    box-shadow 0.35s var(--out),
+    -webkit-backdrop-filter 0.35s var(--out),
+    backdrop-filter 0.35s var(--out);
+}
+
+/* before the character is home, its pane has no glass yet: only the character, its ring and the
+   percent are there, out in the middle of the screen */
+.side[data-bare] {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.percent {
+  font: 400 44px/1 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: color-mix(in srgb, var(--ring) 70%, var(--ink));
 }
 
 /* the ring takes the color it has filled to; room is kept above for a hat */
@@ -34,13 +62,6 @@
   margin: 0;
   font: 400 28px/1.15 var(--font-serif);
   color: color-mix(in srgb, var(--ring) 55%, var(--ink));
-}
-
-.sub {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  opacity: 0.8;
 }
 
 .levelRow {
@@ -73,27 +94,9 @@
   margin: 4px 0 0;
 }
 
-/* ---- right: the percent, the answers, the next step ---- */
+/* ---- right: the answers, the next step ---- */
 .main {
   gap: 14px;
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 6px;
-}
-
-.h {
-  margin: 0;
-  font: 400 24px/1.2 var(--font-serif);
-}
-
-.percent {
-  font: 400 44px/1 var(--font-serif);
-  font-variant-numeric: tabular-nums lining-nums;
-  color: color-mix(in srgb, var(--ring) 70%, var(--ink));
 }
 
 .answers {
@@ -177,6 +180,14 @@
 }
 
 @media (max-width: 959px) {
+  .hero {
+    grid-row: span 2;
+  }
+
+  .percent {
+    font-size: 30px;
+  }
+
   .about {
     grid-column: 2;
     justify-items: start;

@@ -304,19 +304,48 @@ const FACES: Record<Tone, [number, string][]> = {
     [3.6, "determined"],
   ],
 };
+/** The same, from the moment the character is home in its pane (the singularity's ending): a good
+ *  set is celebrated at once. */
+const SOON: Record<Tone, [number, string][]> = {
+  perfect: [
+    [0, "wow"],
+    [0.25, "happy"],
+  ],
+  strong: [
+    [0, "wow"],
+    [0.25, "happy"],
+  ],
+  middle: [[0.2, "determined"]],
+  tough: [
+    [0.1, "worried"],
+    [1.6, "determined"],
+  ],
+};
 
 /** The student's character (`children`, the dressed one) with a face for the result and a body
  *  that moves with it: a hop and a spin for a great set, a nod for a middling one, a slump and then
  *  a firm nod for a tough one. */
-export function Mood({ tone, children }: { tone: Tone; children: ReactNode }) {
+export function Mood({
+  tone,
+  start,
+  children,
+}: {
+  tone: Tone;
+  /** When given, the faces wait for it and then come at once (SOON); otherwise they play on their
+   *  own clock from the start (FACES). */
+  start?: boolean;
+  children: ReactNode;
+}) {
   const body = useRef<HTMLSpanElement>(null);
   const [mood, setMood] = useState("calm");
   useEffect(() => {
-    const timers = FACES[tone].map(([at, face]) =>
+    if (start === false) return;
+    const faces = start === undefined ? FACES[tone] : SOON[tone];
+    const timers = faces.map(([at, face]) =>
       window.setTimeout(() => setMood(face), (prefersStill() ? 0 : at) * 1000)
     );
     return () => timers.forEach(window.clearTimeout);
-  }, [tone]);
+  }, [tone, start]);
   useEffect(() => {
     const el = body.current;
     if (!el || prefersStill()) return;
