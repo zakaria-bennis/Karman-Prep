@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { prefersStill } from "@/lib/painting/motion";
 import type { Run } from "./introKit";
 import { shatter } from "./introShatter";
+import { PlayQuiz } from "./PlayQuiz";
 import { singularity } from "./introSingularity";
 import { LastQuestion } from "./LastQuestion";
 import q from "./intro.module.css";
@@ -25,6 +26,7 @@ export function Intro({
   answers,
   target,
   onLanded,
+  play,
 }: {
   kind: IntroKind;
   mode: "light" | "dark";
@@ -33,6 +35,8 @@ export function Intro({
   /** The ending's ring, where the transition ends. */
   target: RefObject<SVGSVGElement | null>;
   onLanded: () => void;
+  /** A set to play through first (PlayQuiz.tsx), instead of the last question answering itself. */
+  play?: { topic: string; onAnswers: (right: boolean[]) => void; onExit: () => void };
 }) {
   const layer = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -72,7 +76,11 @@ export function Intro({
   if (state === "gone") return null;
   return (
     <div className={q.layer} data-mode={mode} ref={layer}>
-      <LastQuestion answers={answers} onFinish={() => setState("going")} />
+      {play ? (
+        <PlayQuiz {...play} onFinish={() => setState("going")} />
+      ) : (
+        <LastQuestion answers={answers} onFinish={() => setState("going")} />
+      )}
       <div className={q.veil} ref={veil} aria-hidden="true" />
       <canvas className={q.canvas} ref={canvas} aria-hidden="true" />
       <div className={q.flash} ref={flash} aria-hidden="true" />

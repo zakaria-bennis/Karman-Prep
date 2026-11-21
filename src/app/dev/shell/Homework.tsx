@@ -20,7 +20,8 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Dressed } from "./accessories";
-import { useEquipped } from "./equipped";
+import type { FaceKind } from "./characters";
+import { setEquipped, useEquipped } from "./equipped";
 import { DailyStart } from "./DailyStart";
 import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
@@ -179,6 +180,14 @@ export default function Homework({
   const [dailyDone, setDailyDone] = useState(false);
   /** The Daily 10's start page is open. */
   const [dailyOpen, setDailyOpen] = useState(false);
+  // demo only: ?face=owl&wear=Top hat,Scarf dresses the student's character, to look at it dressed
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const face = q.get("face") as FaceKind | null;
+    const wear = q.get("wear");
+    if (face) setEquipped({ face });
+    if (wear) setEquipped({ outfit: wearing(...wear.split(",")) });
+  }, []);
   // leaving Homework with it open takes its heading away too
   useEffect(() => () => onTrail(null), [onTrail]);
   const closeDaily = () => {

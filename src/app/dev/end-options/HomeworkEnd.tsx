@@ -32,9 +32,12 @@ export function HomeworkEnd({
   mode,
   set,
   intro = false,
+  play,
 }: {
   mode: "light" | "dark";
   set: SetView;
+  /** A set to play through before the ending (PlayQuiz.tsx). */
+  play?: { topic: string; onAnswers: (right: boolean[]) => void; onExit: () => void };
   /** Open on the last question, carried into the ending by this transition (Intro.tsx). */
   intro?: IntroKind | false;
 }) {
@@ -130,6 +133,7 @@ export function HomeworkEnd({
           answers={set.answers.map((a) => a.ok)}
           target={ringSvg}
           onLanded={() => setBegun(true)}
+          play={play}
         />
       )}
       {begun && set.up && (

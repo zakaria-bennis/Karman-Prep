@@ -8,7 +8,10 @@
 //   ?score=0 to 8                   how the set went (6 when not given)
 //   ?face=owl                       the character worn (the fox when not given)
 //   ?wear=Top hat,Round glasses     what it has on
-//   ?from=0|1|2                     the skill's level before the set (1, Learning, when not given)
+//   ?from=0|1|2|3                    the skill's level before the set (1, Learning, when not given)
+//   ?play=1                         play the whole set first, on the real quiz screen (PlayQuiz.tsx);
+//                                   the skill's Start in the portal opens this. With it:
+//   ?skill=Circles&back=/dev/shell  the skill's name, and where Done and the other links go back to
 //   ?intro=singularity|shatter      the transition from the last question, which is the real quiz
 //                                   screen (singularity when not given); ?intro=0 opens straight
 //                                   on the ending
@@ -38,9 +41,16 @@ function Options() {
   const intro: IntroKind | false =
     asked === "0" ? false : asked && asked in INTROS ? (asked as IntroKind) : "singularity";
   const askedFrom = Number(params.get("from"));
-  const from = [0, 1, 2].includes(askedFrom) && params.get("from") !== null ? askedFrom : 1;
+  const from = [0, 1, 2, 3].includes(askedFrom) && params.get("from") !== null ? askedFrom : 1;
   const score = useScore();
-  const set = useMemo(() => setOf(score, from), [score, from]);
+  const play = params.get("play") === "1";
+  const skill = params.get("skill") ?? "Circles";
+  const back = params.get("back") ?? "/dev/shell";
+  const [played, setPlayed] = useState<boolean[] | null>(null);
+  const set = useMemo(() => {
+    const made = played ? setOf(played.filter(Boolean).length, from, played) : setOf(score, from);
+    return play ? { ...made, skill } : made;
+  }, [score, from, played, play, skill]);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     document.documentElement.setAttribute("data-kp-mode", mode);
@@ -50,7 +60,21 @@ function Options() {
   }, [mode, face, wear]);
   if (params.get("v") === "stages") return <StageGallery />;
   const Option = OPTIONS[v] ?? HomeworkEnd;
-  return ready ? <Option key={score} mode={mode} set={set} intro={intro} /> : null;
+  if (!ready) return null;
+  if (play)
+    return (
+      <HomeworkEnd
+        mode={mode}
+        set={set}
+        intro={intro || "singularity"}
+        play={{
+          topic: skill,
+          onAnswers: setPlayed,
+          onExit: () => window.location.assign(back),
+        }}
+      />
+    );
+  return <Option key={score} mode={mode} set={set} intro={intro} />;
 }
 
 export default function Page() {

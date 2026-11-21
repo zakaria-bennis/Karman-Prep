@@ -12,11 +12,14 @@
 // calculator switch: skill sets are untimed, their difficulty adjusts itself, and the calculator is
 // always there. Everything shown is a stand-in: no student data is read yet.
 import gsap from "gsap";
+import { useRouter } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { Coin } from "@/components/portal/Coin";
 import { prefersStill } from "@/lib/painting/motion";
 import { TailsMark } from "../end-options/TailsStage";
 import go from "../end-options/parts.module.css";
+import { ACCESSORIES } from "./accessories";
+import { getEquipped } from "./equipped";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon, Tile } from "./practice";
@@ -43,6 +46,27 @@ const COINS = 120;
 const DUE = "Thursday";
 const TO_REVIEW = 3;
 
+/** Start: the set is played on the real quiz screen and ends on the new ending (end-options, ?play=1),
+ *  in the same light, with the character as it is dressed, then comes back here. */
+function playSetUrl(name: string, level: number) {
+  const dark = document.documentElement.getAttribute("data-kp-mode") !== "light";
+  const { face, outfit } = getEquipped();
+  const wear = Object.values(outfit)
+    .map((id) => ACCESSORIES.find((a) => a.id === id)?.name)
+    .filter(Boolean)
+    .join(",");
+  const q = new URLSearchParams({
+    play: "1",
+    skill: name,
+    from: String(level),
+    mode: dark ? "dark" : "light",
+    face,
+    back: `/dev/shell?night=${dark ? 1 : 0}`,
+  });
+  if (wear) q.set("wear", wear);
+  return `/dev/end-options?${q}`;
+}
+
 function Trail({ level }: { level: number }) {
   return (
     <ol className={styles.trail} aria-label={`Your level: ${LEVELS[level]}`}>
@@ -66,6 +90,7 @@ function Trail({ level }: { level: number }) {
 
 export default function SkillPage({ skill }: { skill: OpenSkill }) {
   const page = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const level = Math.max(0, Math.min(3, skill.level));
   // the right side comes in piece by piece: the character, the stops along the trail one after
   // another, the last set's dots, then Start
@@ -158,7 +183,12 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
           </div>
         </div>
 
-        <button type="button" className={`${go.go} ${styles.start}`} data-rise>
+        <button
+          type="button"
+          className={`${go.go} ${styles.start}`}
+          data-rise
+          onClick={() => router.push(playSetUrl(skill.name, level))}
+        >
           <span>Start skill set</span>
           <Icon name="go" size={20} />
         </button>

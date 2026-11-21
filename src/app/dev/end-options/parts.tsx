@@ -46,9 +46,12 @@ export const clock = (s: number) =>
 
 /** The set every option shows, made up, for a score from 0 to 8, on a skill at level `from` (0 Not
  *  started to 3 Proficient). A tough set was also slow. */
-export function setOf(right: number, from = 1) {
+export function setOf(right: number, from = 1, played?: boolean[]) {
   const total = 8;
-  const lit = PATTERNS[Math.max(0, Math.min(total, right))];
+  // a played set (PlayQuiz.tsx) brings which were right; otherwise a made-up pattern for the score
+  const lit = played
+    ? played.flatMap((ok, i) => (ok ? [i] : []))
+    : PATTERNS[Math.max(0, Math.min(total, right))];
   const share = right / total;
   const tone: Tone =
     share === 1 ? "perfect" : share >= 0.75 ? "strong" : share >= 0.5 ? "middle" : "tough";
@@ -96,6 +99,16 @@ export function setOf(right: number, from = 1) {
   };
 }
 export type SetView = ReturnType<typeof setOf>;
+
+/** Where a link goes. In a played run (?play=1) playing again starts a fresh set here, and every
+ *  other link goes back to the portal (?back=, /dev/shell if not given); otherwise links stay put. */
+export function route(href: string) {
+  if (typeof window === "undefined") return href;
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("play") !== "1") return href;
+  if (href === "#again" || href === "#harder") return window.location.href;
+  return q.get("back") ?? "/dev/shell";
+}
 
 /** What to do next, chosen from the result: one main step, and the others as small links under it.
  *  A tough set starts with the lesson (read, until there are lessons to watch); a middling one with
@@ -209,7 +222,7 @@ export function Frame({
       <QuizWorld />
       <div className={`${lib.library} ${p.page}`}>
         <header className={p.top}>
-          <a className={shell.back} href="#done">
+          <a className={shell.back} href={route("#done")}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path
                 d="M14.500 6.500L9 12l5.500 5.500"
@@ -394,7 +407,7 @@ export function Mood({
 /** The one main button: the portal's green, glowing softly, with the reason for it under it. */
 export function Go({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a className={p.go} href={href} data-rise>
+    <a className={p.go} href={route(href)} data-rise>
       <span>{children}</span>
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
         <path
@@ -415,7 +428,7 @@ export function Others({ links }: { links: { label: string; href: string }[] }) 
   return (
     <p className={p.others}>
       {links.map((l) => (
-        <a key={l.href} href={l.href}>
+        <a key={l.href} href={route(l.href)}>
           {l.label}
         </a>
       ))}

@@ -8,6 +8,7 @@
 //                                   it that way, 2026-11-16)
 //   ?demo=0                         hide the demo switches (for pictures)
 //   ?open=1                         hold the desktop rail open (for pictures)
+//   ?face=owl&wear=Top hat,Scarf    dress the student's character (Homework.tsx)
 // Production builds return 404.
 import {
   AnimatePresence,
