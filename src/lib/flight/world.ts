@@ -55,6 +55,10 @@ export interface Land {
   /** Frozen water and falling snow (0 to 1), and mist lying on the ground (0 to 1). */
   ice: number;
   mist: number;
+  /** A river winding down the valley floor (0 none to 1 wide), and how rough the open water is (0 a still
+   *  lake to 1 the open sea in a wind). */
+  river: number;
+  waves: number;
 }
 
 const BASE: Land = {
@@ -87,12 +91,23 @@ const BASE: Land = {
   clear: 0,
   ice: 0,
   mist: 0,
+  river: 0,
+  waves: 0.2,
 };
 const land = (name: string, over: Partial<Land>): Land => ({ ...BASE, ...over, name });
 
 export const LANDS: Land[] = [
-  land("fjord", { amp: 1.25, width: 0.9, lift: -0.1, floor: 0.06, treeLine: 0.55, snowLine: 0.74 }),
+  land("fjord", {
+    amp: 1.25,
+    width: 0.9,
+    lift: -0.1,
+    floor: 0.06,
+    treeLine: 0.55,
+    snowLine: 0.74,
+    waves: 0.3,
+  }),
   land("alpine-valley", {
+    river: 0.8,
     amp: 1.3,
     width: 0.7,
     lift: 0.06,
@@ -104,6 +119,7 @@ export const LANDS: Land[] = [
     towns: 0.6,
   }),
   land("green-hills", {
+    river: 1,
     amp: 0.5,
     width: 1.0,
     lift: 0.03,
@@ -119,6 +135,7 @@ export const LANDS: Land[] = [
     grass: [0.11, 0.2, 0.045],
   }),
   land("flower-fields", {
+    river: 0.6,
     amp: 0.36,
     width: 1.2,
     lift: 0.035,
@@ -135,6 +152,7 @@ export const LANDS: Land[] = [
     grass: [0.12, 0.21, 0.05],
   }),
   land("pine-forest", {
+    river: 1,
     amp: 0.62,
     width: 0.8,
     lift: 0.03,
@@ -147,6 +165,7 @@ export const LANDS: Land[] = [
     mist: 0.35,
   }),
   land("autumn-forest", {
+    river: 0.8,
     amp: 0.5,
     width: 1,
     lift: 0.02,
@@ -163,6 +182,7 @@ export const LANDS: Land[] = [
     towns: 0.5,
   }),
   land("blossom-grove", {
+    river: 0.6,
     amp: 0.4,
     width: 1.1,
     lift: 0.025,
@@ -182,6 +202,7 @@ export const LANDS: Land[] = [
     towns: 0.7,
   }),
   land("bamboo-forest", {
+    river: 0.7,
     amp: 0.55,
     width: 0.7,
     lift: 0.02,
@@ -200,6 +221,7 @@ export const LANDS: Land[] = [
     mist: 0.6,
   }),
   land("ocean-islands", {
+    waves: 1,
     amp: 0.5,
     width: 1.9,
     lift: -0.2,
@@ -216,6 +238,7 @@ export const LANDS: Land[] = [
     clear: 0.3,
   }),
   land("lagoon", {
+    waves: 0.25,
     amp: 0.34,
     width: 1.2,
     lift: -0.06,
@@ -235,6 +258,7 @@ export const LANDS: Land[] = [
     towns: 0.3,
   }),
   land("reef", {
+    waves: 0.45,
     amp: 0.2,
     width: 1.6,
     lift: -0.07,
@@ -251,6 +275,7 @@ export const LANDS: Land[] = [
     towns: 0,
   }),
   land("sheer-cliffs", {
+    waves: 0.9,
     amp: 0.7,
     width: 0.5,
     lift: -0.1,
@@ -269,6 +294,7 @@ export const LANDS: Land[] = [
     shallow: [0.03, 0.17, 0.2],
   }),
   land("karst-bay", {
+    waves: 0.35,
     amp: 0.35,
     width: 1.6,
     lift: -0.12,
@@ -303,6 +329,7 @@ export const LANDS: Land[] = [
     towns: 0.15,
   }),
   land("canyon", {
+    river: 1,
     amp: 0.8,
     width: 0.22,
     lift: -0.015,
@@ -320,6 +347,8 @@ export const LANDS: Land[] = [
     shallow: [0.07, 0.22, 0.17],
   }),
   land("snow-and-ice", {
+    river: 0.6,
+    waves: 0.1,
     amp: 0.5,
     width: 1.2,
     lift: -0.03,
@@ -334,6 +363,7 @@ export const LANDS: Land[] = [
     rock: [0.16, 0.17, 0.19],
   }),
   land("savanna", {
+    river: 0.5,
     amp: 0.32,
     width: 1.3,
     lift: 0.04,
@@ -352,6 +382,8 @@ export const LANDS: Land[] = [
     towns: 0.15,
   }),
   land("wetlands", {
+    river: 1,
+    waves: 0.05,
     amp: 0.26,
     width: 1.5,
     lift: -0.06,
@@ -371,6 +403,7 @@ export const LANDS: Land[] = [
     mist: 0.8,
   }),
   land("rice-terraces", {
+    river: 0.5,
     amp: 0.5,
     width: 0.5,
     lift: 0.02,
@@ -388,6 +421,7 @@ export const LANDS: Land[] = [
     mist: 0.4,
   }),
   land("lavender-fields", {
+    river: 0.5,
     amp: 0.4,
     width: 1.1,
     lift: 0.03,
@@ -405,6 +439,7 @@ export const LANDS: Land[] = [
     towns: 0.6,
   }),
   land("glacier-peaks", {
+    river: 0.6,
     amp: 1.45,
     width: 0.6,
     lift: 0.0,
@@ -493,25 +528,31 @@ function numbers(l: Land): number[] {
   rgb(l.shallow, l.clear);
   rgb(l.petalA, l.ice);
   rgb(l.petalB, l.mist);
+  out.push(l.river, l.waves, 0, 0);
   return out;
 }
 const TABLE = LANDS.map(numbers);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-/** The land's numbers at a distance d along the endless route. `only` holds one land everywhere. */
-export function landAt(d: number, only?: number): number[] {
-  if (only !== undefined) return TABLE[only];
+/** The land's numbers at a distance d along the endless route. `only` holds one land everywhere, or,
+ *  given several, the route goes through those lands alone (each round shuffled the same way). */
+export function landAt(d: number, only?: number | readonly number[]): number[] {
+  if (typeof only === "number") return TABLE[only];
+  const pick = (i: number) => (only ? only[landIndex(i, only.length)] : landIndex(i));
   const i = Math.floor(d / STRETCH);
   const into = d - i * STRETCH;
-  const a = TABLE[landIndex(i)];
+  const a = TABLE[pick(i)];
   if (into <= STRETCH - BLEND) return a;
-  const b = TABLE[landIndex(i + 1)];
+  const b = TABLE[pick(i + 1)];
   const t = smooth((into - (STRETCH - BLEND)) / BLEND);
   return a.map((v, k) => v + (b[k] - v) * t);
 }
 
+/** The lands a river runs right through, so a flight down the river never comes to its end. */
+export const RIVER_LANDS = LANDS.filter((l) => l.river >= 0.5).map((l) => l.name);
+
 /** The table for the route from `start` on: COLS columns, ROWS rows, four bytes each. */
-export function strip(start: number, only?: number): Uint8Array {
+export function strip(start: number, only?: number | readonly number[]): Uint8Array {
   const data = new Uint8Array(COLS * ROWS * 4);
   for (let c = 0; c < COLS; c++) {
     const v = landAt(start + c / PER_UNIT, only);
