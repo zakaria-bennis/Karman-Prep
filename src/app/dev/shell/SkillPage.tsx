@@ -19,6 +19,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { TailsMark } from "../end-options/TailsStage";
 import go from "../end-options/parts.module.css";
 import { ACCESSORIES } from "./accessories";
+import { openEndless } from "./endless";
 import { getEquipped } from "./equipped";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
@@ -208,7 +209,12 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
             ["review", "Review mistakes", `${TO_REVIEW} to review`],
           ] as const
         ).map(([icon, name, note]) => (
-          <button key={name} type="button" className={`${practice.mode} ${styles.row}`}>
+          <button
+            key={name}
+            type="button"
+            className={`${practice.mode} ${styles.row}`}
+            onClick={() => icon === "endless" && openEndless({ kind: "skill", name: skill.name })}
+          >
             {icon === "review" ? (
               <span className={`${practice.tile} ${styles.reviewTile}`}>
                 <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">

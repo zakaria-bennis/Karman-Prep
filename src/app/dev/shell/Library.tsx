@@ -13,7 +13,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
-import { Modes, Today } from "./practice";
+import { EndlessButton, Modes, Today } from "./practice";
 import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, SKILLS, type Domain, type Section, type Skill } from "./skills72";
@@ -245,7 +245,7 @@ export default function Library({
         {show("Today") && (taught ? <WorkshopBanner section={section} /> : <Today />)}
       </div>
 
-      {show("Practice") && <Modes workshops={pro} />}
+      {show("Practice") && <Modes workshops={pro} section={section} />}
 
       {show("Skills") && (
         <section className={`${styles.glass} ${styles.domains}`} aria-label="Domains">
@@ -317,6 +317,7 @@ export function DomainPage({
         </p>
         <Band skills={domain.skills} />
         <Key skills={domain.skills} />
+        <EndlessButton kind="domain" name={domain.name} />
       </section>
 
       <div className={`${styles.filter} ${styles.levels}`} role="group" aria-label="Show">

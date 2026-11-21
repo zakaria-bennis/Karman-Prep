@@ -40,6 +40,8 @@ import Homework from "./Homework";
 import Schedule from "./Schedule";
 import { LibraryChallenge } from "./HomeworkChallenge";
 import LibraryHero from "./LibraryHero";
+import { useEndlessTrail } from "./endless";
+import { EndlessStart } from "./EndlessStart";
 import { Where } from "./Where";
 import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
@@ -120,6 +122,7 @@ function Shell() {
   const [stat, setStat] = useState<StatKey | null>(null);
   /* what is open inside the Mistake Log on a phone: it names the page and the way back */
   const [trail, setTrail] = useState<Trail | null>(null);
+  const endless = useEndlessTrail(setTrail);
   /* where the phone's five are taken, the Mistake Log can also be opened from Progress, and then it
      goes back there */
   const [viaProgress, setViaProgress] = useState(false);
@@ -458,7 +461,7 @@ function Shell() {
 
       <main className={styles.main}>
         <div className={styles.crumbs}>
-          {page === "library" && (inSkill || section) && (
+          {page === "library" && (inSkill || section) && !endless && (
             <button
               type="button"
               className={styles.back}
@@ -526,19 +529,23 @@ function Shell() {
           )}
         </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
-        {PLANS[plan].home === "library" && page === "library" && <LibraryChallenge intro={intro} />}
+        {PLANS[plan].home === "library" && page === "library" && !section && (
+          <LibraryChallenge intro={intro} />
+        )}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
         {page === "library" && section && (
           <AnimatePresence mode="wait" initial={false} custom={dir.current}>
             <motion.div
-              key={skill ? `skill ${skill.name}` : (domain ?? section)}
+              key={endless ? "endless" : skill ? `skill ${skill.name}` : (domain ?? section)}
               custom={dir.current}
               variants={SLIDE_OVER}
               initial={still ? false : "from"}
               animate="here"
               exit={still ? undefined : "gone"}
             >
-              {skill ? (
+              {endless ? (
+                <EndlessStart run={endless} />
+              ) : skill ? (
                 <SkillPage skill={skill} />
               ) : section && openLevel >= 0 ? (
                 <LevelPage
