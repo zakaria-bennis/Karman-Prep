@@ -209,3 +209,35 @@
     font-size: 28px;
   }
 }
+
+/* on the Library's home, the small card waits in the top corner, over the picture */
+.corner {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 6;
+  width: min(300px, calc(100vw - 40px));
+}
+
+@media (max-width: 700px) {
+  .corner {
+    top: auto;
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 88px);
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
+/* taken on: the quiz comes in from the left over the whole screen */
+.quiz {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  visibility: hidden;
+}
+
+/* taken on, it rises over everything, the menu too */
+.screen[data-going] {
+  z-index: 60;
+}

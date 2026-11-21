@@ -52,7 +52,27 @@ const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
 /** Stand-in: the longest streak this student has had. */
 const BEST = 14;
 
-function greeting(hour: number) {
+/** The streak, in a card of its own: how many days in a row, what today makes it, the best so far.
+ *  Shared by the start pages of the Daily 10 and the challenge question (ChallengeStart.tsx). */
+export function Streak() {
+  return (
+    <section className={`${lib.glass} ${styles.streak}`} data-rise>
+      <span className={styles.flame} data-flame aria-hidden="true">
+        <Icon name="flame" size={40} />
+      </span>
+      <p>
+        <b>{STREAK} days in a row</b>
+        <small>Today makes {STREAK + 1}</small>
+      </p>
+      <p className={styles.best}>
+        <small>Best</small>
+        <b>{BEST}</b>
+      </p>
+    </section>
+  );
+}
+
+export function greeting(hour: number) {
   if (hour < 5) return "Hello";
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
@@ -118,20 +138,7 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
           </div>
         </section>
 
-        {/* the streak: how many days in a row, what today makes it, and the best so far */}
-        <section className={`${lib.glass} ${styles.streak}`} data-rise>
-          <span className={styles.flame} data-flame aria-hidden="true">
-            <Icon name="flame" size={40} />
-          </span>
-          <p>
-            <b>{STREAK} days in a row</b>
-            <small>Today makes {STREAK + 1}</small>
-          </p>
-          <p className={styles.best}>
-            <small>Best</small>
-            <b>{BEST}</b>
-          </p>
-        </section>
+        <Streak />
       </div>
 
       <section className={`${lib.glass} ${styles.mix}`} data-rise>

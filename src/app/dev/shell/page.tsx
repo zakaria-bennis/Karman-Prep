@@ -38,6 +38,7 @@ import Library, { DOMAINS, DomainPage, LevelPage, type Section } from "./Library
 import Chat from "./Chat";
 import Homework from "./Homework";
 import Schedule from "./Schedule";
+import { LibraryChallenge } from "./HomeworkChallenge";
 import LibraryHero from "./LibraryHero";
 import { Where } from "./Where";
 import MistakeLog, { type Trail } from "./MistakeLog";
@@ -525,6 +526,7 @@ function Shell() {
           )}
         </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
+        {PLANS[plan].home === "library" && page === "library" && <LibraryChallenge intro={intro} />}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
         {page === "library" && section && (
           <AnimatePresence mode="wait" initial={false} custom={dir.current}>

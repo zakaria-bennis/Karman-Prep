@@ -25,7 +25,7 @@ import { setEquipped, useEquipped } from "./equipped";
 import { DailyStart } from "./DailyStart";
 import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
-import { ChallengeBanner, ChallengeCard } from "./HomeworkChallenge";
+import { ChallengeBanner, ChallengeCard, firstToday } from "./HomeworkChallenge";
 import { arrive, useClock } from "./homeworkMotion";
 import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay, type Work as WorkPiece } from "./homeworkData";
 import styles from "./homework.module.css";
@@ -195,19 +195,11 @@ export default function Homework({
     onTrail(null);
   };
   /** The challenge question: its banner is up, or sent away, or the question is done. */
-  const [challenge, setChallenge] = useState<"banner" | "later" | "done">("later");
+  const [challenge, setChallenge] = useState<"banner" | "go" | "later" | "done">("later");
   // its banner comes up once a day: the first time Homework is opened that day (remembered in
   // this browser). `intro` shows it again, to look at it.
   useEffect(() => {
-    const today = new Date().toDateString();
-    let seen = "";
-    try {
-      seen = window.localStorage.getItem("kp-challenge-day") ?? "";
-      window.localStorage.setItem("kp-challenge-day", today);
-    } catch {
-      // nothing can be remembered in a private window: it is shown each time
-    }
-    if (seen !== today || intro > 0) setChallenge("banner");
+    if (firstToday(intro > 0)) setChallenge("banner");
   }, [intro]);
   /** Which way the last step went, so what arrives comes in from that side. */
   const body = useRef<HTMLDivElement>(null);
@@ -270,8 +262,9 @@ export default function Homework({
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
       <ExamBanner day={exam} now={now} number={WEEK_NOW + week} open={examOpen} />
-      {challenge === "banner" && (
+      {(challenge === "banner" || challenge === "go") && (
         <ChallengeBanner
+          now={challenge === "go"}
           onStart={() => {
             setChallenge("done");
             setCheer(cheer + 1);
@@ -407,10 +400,7 @@ export default function Homework({
               key={day.from}
               day={day}
               challenge={day.from === 0 && challenge === "later"}
-              onChallenge={() => {
-                setChallenge("done");
-                setCheer(cheer + 1);
-              }}
+              onChallenge={() => setChallenge("go")}
               extra={
                 day.from === 0
                   ? [
@@ -423,7 +413,7 @@ export default function Homework({
                               ...DONE,
                               id: "challenge",
                               name: "Challenge question",
-                              much: "1 question",
+                              much: "2 questions",
                             },
                           ]
                         : []),

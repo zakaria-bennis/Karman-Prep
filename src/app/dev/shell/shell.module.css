@@ -1183,3 +1183,9 @@
   width: 100%;
   height: 100%;
 }
+
+/* a quiz has taken the whole screen (the challenge, HomeworkChallenge.tsx): the menu steps away */
+:global(html[data-quiz-up]) .nav,
+:global(html[data-quiz-up]) .edge {
+  visibility: hidden;
+}

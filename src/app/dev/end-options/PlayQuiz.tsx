@@ -9,7 +9,13 @@ import { QuizShell } from "@/components/learn/quiz-shell/QuizShell";
 import { modeFor } from "@/lib/quiz/mode";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 
-type Made = { text: string; choices: string[]; right: number; why: string };
+export type Made = {
+  text: string;
+  choices: string[];
+  right: number;
+  why: string;
+  subject?: "math" | "reading_writing";
+};
 const SET: Made[] = [
   {
     text: "A circle has a radius of 6. What is its circumference?",
@@ -75,7 +81,7 @@ function question(m: Made, i: number, topic: string): StudentQuizQuestion {
     hint: null,
     image_url: null,
     image_alt: null,
-    subject: "math",
+    subject: m.subject ?? "math",
     topic_cluster: topic,
     display_order: i + 1,
     passage_intro: null,
@@ -100,18 +106,23 @@ function question(m: Made, i: number, topic: string): StudentQuizQuestion {
 }
 
 export function PlayQuiz({
+  set = SET,
+  section = "Skill set",
   topic,
   onAnswers,
   onFinish,
   onExit,
 }: {
+  /** The questions; the eight Circles ones when not given. */
+  set?: Made[];
+  section?: string;
   topic: string;
   /** Which were right, first to last, when the set is finished. */
   onAnswers: (right: boolean[]) => void;
   onFinish: () => void;
   onExit: () => void;
 }) {
-  const questions = useMemo(() => SET.map((m, i) => question(m, i, topic)), [topic]);
+  const questions = useMemo(() => set.map((m, i) => question(m, i, topic)), [set, topic]);
   const [key] = useState(() => `dev-play-${Date.now()}`);
   const [index, setIndex] = useState(0);
   const [reviews, setReviews] = useState<Record<string, StudentQuizReview>>({});
@@ -119,10 +130,10 @@ export function PlayQuiz({
     <QuizShell
       mode={modeFor("skill", { hasTutor: true })}
       questions={questions}
-      total={SET.length}
+      total={set.length}
       attemptKey={key}
       index={index}
-      section="Skill set"
+      section={section}
       topic={topic}
       reviews={reviews}
       hasCalculator
@@ -130,7 +141,7 @@ export function PlayQuiz({
       onExit={onExit}
       onSubmit={(id, answer) => {
         const i = questions.findIndex((q) => q.id === id);
-        const m = SET[i];
+        const m = set[i];
         setReviews((r) => ({
           ...r,
           [id]: {
