@@ -10,6 +10,8 @@
 //   ?wx=cloudy|rain|mist|snow   the weather
 //   ?speed=12      fly that many times faster
 //   ?bar=0         no bar (for pictures)
+//   ?look=1        one of the three looks the founder is choosing between: 0 clear, 1 warm, 2 misty
+//                  (shader.ts, LOOK); it goes once he has picked
 // Production builds return 404.
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -46,6 +48,7 @@ interface View {
   settled?: number;
   speed?: number;
   from?: number;
+  look?: number;
 }
 const hooks = () => window as unknown as { __where?: () => number; __world?: (to: View) => void };
 
@@ -76,6 +79,7 @@ function World() {
     settled,
     speed,
     from: q.get("z") === null ? undefined : Number(q.get("z")),
+    look: Number(q.get("look")) || 0,
   }));
   useEffect(() => {
     hooks().__world?.({ land: held ?? undefined, settled, speed });

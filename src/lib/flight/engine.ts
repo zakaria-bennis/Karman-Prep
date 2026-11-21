@@ -51,8 +51,12 @@ export interface FlightOptions {
   /** The portals' endless world (world.ts) instead of the site's fixed route. The camera flies on by
    *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
-   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
-  world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
+   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built.
+   *  `look` (0, 1 or 2) picks one of the three looks the founder is choosing between (shader.ts, LOOK);
+   *  it goes once he has picked. */
+  world?:
+    | boolean
+    | { from?: number; land?: string; settled?: number; speed?: number; look?: number };
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -253,7 +257,11 @@ export class Flight {
       return s;
     };
     const vs = shader(gl.VERTEX_SHADER, VERT);
-    const fs = shader(gl.FRAGMENT_SHADER, this.o.world ? `#define WORLD\n${FRAG}` : FRAG);
+    const look = typeof this.o.world === "object" ? (this.o.world.look ?? 0) : 0;
+    const fs = shader(
+      gl.FRAGMENT_SHADER,
+      this.o.world ? `#define WORLD\n#define LOOK ${Math.round(look)}\n${FRAG}` : FRAG
+    );
     const prog = gl.createProgram();
     if (!vs || !fs || !prog) return false;
     gl.attachShader(prog, vs);
