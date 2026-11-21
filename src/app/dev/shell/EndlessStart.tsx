@@ -14,6 +14,8 @@ import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { prefersStill } from "@/lib/painting/motion";
 import go from "../end-options/parts.module.css";
 import { closeEndless, type EndlessRun } from "./endless";
+
+export { useEndlessTrail } from "./endless";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
