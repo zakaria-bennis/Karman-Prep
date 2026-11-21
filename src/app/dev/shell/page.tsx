@@ -602,7 +602,7 @@ function Shell() {
         {page === "chat" && plan !== "practice" && (
           <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
         )}
-        {page === "homework" && <Homework examOpen={examOpen} intro={intro} />}
+        {page === "homework" && <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "account" && (

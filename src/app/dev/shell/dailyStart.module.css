@@ -1,0 +1,254 @@
+/*
+ * The Daily 10's start page (DailyStart.tsx), on the Library's glass (library.module.css). Its own
+ * warmth is the Daily 10 card's orange; Reading and Writing is blue, Math is amber, in the slots and
+ * the groups alike.
+ */
+.page {
+  --rw: #4f8fd8;
+  --math: #e0861c;
+}
+
+:global([data-kp-mode="dark"]) .page {
+  --rw: #8cc4ff;
+  --math: #ffb054;
+}
+
+.page h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+/* ---- today: the little scene, the character in it, the greeting ---- */
+.today {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: var(--pad);
+}
+
+.window {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 600 / 300;
+  border-radius: calc(var(--r-piece) - 4px);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  background: var(--hover);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.buddy {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  translate: -50% 0;
+}
+
+/* where the character stands: a soft shadow on the near hill */
+.ground {
+  position: absolute;
+  left: 50%;
+  bottom: 5%;
+  width: 22%;
+  height: 7%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.35), transparent);
+}
+
+.star {
+  fill: #fff;
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.cloud {
+  fill: rgb(255 255 255 / 0.85);
+  animation: drift 60s linear infinite;
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-40px);
+  }
+
+  to {
+    transform: translateX(40px);
+  }
+}
+
+.bird {
+  fill: none;
+  stroke: rgb(30 30 50 / 0.7);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  animation: flap 0.9s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes flap {
+  to {
+    transform: scaleY(0.4) translateY(2px);
+  }
+}
+
+.hello {
+  display: grid;
+  gap: 4px;
+  padding: 0 var(--pad) var(--pad);
+}
+
+.page .hello h2 {
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.hello p {
+  font-weight: 500;
+  opacity: 0.75;
+  min-height: 1.4em;
+}
+
+/* ---- the mix: ten slots, the skills they come from, Start ---- */
+.mix {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: calc(var(--pad) * 2);
+}
+
+.page .slots {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+
+.slots i {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 9px;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+.slots i[data-key="rw"] {
+  background: var(--rw);
+}
+
+.slots i[data-key="math"] {
+  background: var(--math);
+}
+
+.group {
+  display: grid;
+  gap: 6px;
+}
+
+.group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group h3::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--math);
+}
+
+.group[data-key="rw"] h3::before {
+  background: var(--rw);
+}
+
+.page .group ul {
+  display: grid;
+  gap: 4px;
+}
+
+.group li {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--cell);
+  padding: 2px 14px 2px 6px;
+  border-radius: 12px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-weight: 600;
+}
+
+.group li svg {
+  justify-self: center;
+}
+
+.group li b {
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.page .start {
+  margin-top: 4px;
+  min-height: 60px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%), var(--go);
+  color: var(--on-go);
+}
+
+.start svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* ---- with room: today at the left, the mix beside it ---- */
+@media (min-width: 960px) and (hover: hover) {
+  .page {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 520px) {
+  .page .hello h2 {
+    font-size: 24px;
+  }
+
+  .page .slots {
+    gap: 4px;
+  }
+
+  .slots i {
+    border-radius: 7px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star,
+  .cloud,
+  .bird {
+    animation: none;
+  }
+}

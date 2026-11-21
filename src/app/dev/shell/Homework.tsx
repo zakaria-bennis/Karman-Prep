@@ -21,6 +21,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Dressed } from "./accessories";
 import { useEquipped } from "./equipped";
+import { DailyStart } from "./DailyStart";
 import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
 import { ChallengeBanner, ChallengeCard } from "./HomeworkChallenge";
@@ -28,6 +29,7 @@ import { arrive, useClock } from "./homeworkMotion";
 import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay, type Work as WorkPiece } from "./homeworkData";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
+import type { Trail } from "./MistakeLog";
 import { DAY, TODAY } from "./progressData";
 import { tick } from "./sound";
 
@@ -160,12 +162,29 @@ function Work({
   );
 }
 
-export default function Homework({ examOpen, intro }: { examOpen: boolean; intro: number }) {
+export default function Homework({
+  examOpen,
+  intro,
+  onTrail,
+}: {
+  examOpen: boolean;
+  intro: number;
+  /** Names the page opened inside Homework (the Daily 10's start), with its way back. */
+  onTrail: (trail: Trail | null) => void;
+}) {
   const now = useClock();
   /** Work finished on this page by pressing it, until each activity has its own screen. */
   const [finished, setFinished] = useState<string[]>([]);
   const [cheer, setCheer] = useState(0);
   const [dailyDone, setDailyDone] = useState(false);
+  /** The Daily 10's start page is open. */
+  const [dailyOpen, setDailyOpen] = useState(false);
+  // leaving Homework with it open takes its heading away too
+  useEffect(() => () => onTrail(null), [onTrail]);
+  const closeDaily = () => {
+    setDailyOpen(false);
+    onTrail(null);
+  };
   /** The challenge question: its banner is up, or sent away, or the question is done. */
   const [challenge, setChallenge] = useState<"banner" | "later" | "done">("later");
   // its banner comes up once a day: the first time Homework is opened that day (remembered in
@@ -226,6 +245,18 @@ export default function Homework({ examOpen, intro }: { examOpen: boolean; intro
         ];
   const R = 74;
   const round = 2 * Math.PI * R;
+
+  // its Start runs the Daily 10; until the quiz is joined up, it comes back here with it done
+  if (dailyOpen)
+    return (
+      <DailyStart
+        onStart={() => {
+          closeDaily();
+          setDailyDone(true);
+          setCheer(cheer + 1);
+        }}
+      />
+    );
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
@@ -392,8 +423,9 @@ export default function Homework({ examOpen, intro }: { examOpen: boolean; intro
               }
               daily={day.from === 0 && !dailyDone}
               onDaily={() => {
-                setDailyDone(true);
-                setCheer(cheer + 1);
+                setDailyOpen(true);
+                onTrail({ name: "Daily 10", back: "Homework", go: closeDaily });
+                window.scrollTo({ top: 0 });
               }}
               onFinish={(id) => {
                 setFinished([...finished, id]);

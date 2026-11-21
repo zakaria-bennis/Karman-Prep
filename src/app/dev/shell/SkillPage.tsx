@@ -73,29 +73,41 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
     const el = page.current;
     if (!el || prefersStill()) return;
     const ctx = gsap.context(() => {
-      gsap.from("[data-rise]", {
-        y: 14,
-        opacity: 0,
-        duration: 0.5,
-        ease: "power3.out",
-        stagger: 0.06,
-      });
-      gsap.from("[data-stop]", {
-        y: 10,
-        scale: 0.6,
-        opacity: 0,
-        duration: 0.5,
-        ease: "back.out(2.2)",
-        stagger: 0.09,
-        delay: 0.2,
-      });
-      gsap.from("[data-dot]", {
-        scale: 0,
-        duration: 0.35,
-        ease: "back.out(3)",
-        stagger: 0.04,
-        delay: 0.55,
-      });
+      gsap.fromTo(
+        "[data-rise]",
+        { y: 14, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out",
+          stagger: 0.06,
+        }
+      );
+      gsap.fromTo(
+        "[data-stop]",
+        { y: 10, scale: 0.6, opacity: 0 },
+        {
+          y: 0,
+          scale: 1,
+          opacity: 1,
+          duration: 0.5,
+          ease: "back.out(2.2)",
+          stagger: 0.09,
+          delay: 0.2,
+        }
+      );
+      gsap.fromTo(
+        "[data-dot]",
+        { scale: 0 },
+        {
+          scale: 1,
+          duration: 0.35,
+          ease: "back.out(3)",
+          stagger: 0.04,
+          delay: 0.55,
+        }
+      );
     }, el);
     return () => ctx.revert();
   }, [skill.name]);
