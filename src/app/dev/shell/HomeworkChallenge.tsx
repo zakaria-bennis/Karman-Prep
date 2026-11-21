@@ -104,6 +104,17 @@ export function ChallengeBanner({
         },
         0.1
       )
+      // once he is gone the city keeps going behind the glass, at an easy pace
+      .to(
+        speed,
+        {
+          k: 1.5,
+          duration: 1.2,
+          ease: "power2.out",
+          onUpdate: () => rushing.forEach((a) => (a.playbackRate = speed.k)),
+        },
+        1.4
+      )
       .to(flyer, { left: "140%", duration: 0.75, ease: "power3.in" }, 0.2)
       .fromTo(
         quiz.current,
@@ -208,6 +219,7 @@ export function ChallengeBanner({
           <PlayQuiz
             set={TODAY}
             section="Challenge"
+            noWorld
             topic="Today's two"
             onAnswers={() => {}}
             onFinish={() => leave(onStart)}

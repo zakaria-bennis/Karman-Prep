@@ -107,6 +107,7 @@ function question(m: Made, i: number, topic: string): StudentQuizQuestion {
 
 export function PlayQuiz({
   set = SET,
+  noWorld,
   section = "Skill set",
   topic,
   onAnswers,
@@ -116,6 +117,8 @@ export function PlayQuiz({
   /** The questions; the eight Circles ones when not given. */
   set?: Made[];
   section?: string;
+  /** Leave the landscape out: the page keeps its own picture behind the glass. */
+  noWorld?: boolean;
   topic: string;
   /** Which were right, first to last, when the set is finished. */
   onAnswers: (right: boolean[]) => void;
@@ -137,6 +140,7 @@ export function PlayQuiz({
       topic={topic}
       reviews={reviews}
       hasCalculator
+      noWorld={noWorld}
       onNavigate={setIndex}
       onExit={onExit}
       onSubmit={(id, answer) => {

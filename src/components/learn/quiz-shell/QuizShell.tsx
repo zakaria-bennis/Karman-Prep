@@ -78,6 +78,9 @@ export type QuizShellProps = {
   onReportProblem?(questionId: string, note: string): void | Promise<unknown>;
   /** Extra content under the question (instant-mode rewards plug in here). */
   feedback?: ReactNode;
+  /** The host keeps its own picture behind the glass (the challenge's city), so the shell draws no
+   *  landscape of its own. */
+  noWorld?: boolean;
   /** The host draws its own clock (Time Trial); the shell shows none and never expires. */
   hideClock?: boolean;
   /** Replaces the counter in the bottom bar. */
@@ -376,6 +379,7 @@ export function QuizShell(props: QuizShellProps) {
           data-highlighter={s.highlighterOn || undefined}
           data-masked={masked || undefined}
           data-calc={calcOpen || undefined}
+          data-no-world={props.noWorld || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
           className={`${styles.shell} ${styles[layout]}`}
           style={
@@ -385,7 +389,7 @@ export function QuizShell(props: QuizShellProps) {
             } as React.CSSProperties
           }
         >
-          <QuizWorld />
+          {!props.noWorld && <QuizWorld />}
           {mark && (
             <div className={styles.trace} style={{ backgroundImage: mark }} aria-hidden="true" />
           )}
