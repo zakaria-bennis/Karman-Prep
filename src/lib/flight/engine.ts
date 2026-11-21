@@ -25,6 +25,7 @@ import {
   strip,
   sunAt,
 } from "./world";
+import { WORLD_PHOTOS, WORLD_PHOTO_DIR } from "./world-tex";
 
 export type FlightLight = "dawn" | "day" | "sunset" | "night";
 
@@ -51,12 +52,8 @@ export interface FlightOptions {
   /** The portals' endless world (world.ts) instead of the site's fixed route. The camera flies on by
    *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
-   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built.
-   *  `look` (0, 1 or 2) picks one of the three looks the founder is choosing between (shader.ts, LOOK);
-   *  it goes once he has picked. */
-  world?:
-    | boolean
-    | { from?: number; land?: string; settled?: number; speed?: number; look?: number };
+   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
+  world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -106,7 +103,17 @@ const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 export class Flight {
   private gl: WebGLRenderingContext | null = null;
   private uniforms: Record<
-    "uRes" | "uTime" | "uP" | "uNight" | "uIntro" | "uWx" | "uWorld" | "uLand" | "uStrip" | "uSun",
+    | "uRes"
+    | "uTime"
+    | "uP"
+    | "uNight"
+    | "uIntro"
+    | "uWx"
+    | "uWorld"
+    | "uLand"
+    | "uStrip"
+    | "uSun"
+    | "uTex",
     WebGLUniformLocation | null
   > = {
     uRes: null,
@@ -119,12 +126,18 @@ export class Flight {
     uLand: null,
     uStrip: null,
     uSun: null,
+    uTex: null,
   };
   /** The endless world: how far the camera had flown when this page opened, the stretch of route now in
    *  the land table, and when the sky began to settle and from where. */
   private flown = 3;
   private stripAt = Number.NaN;
   private landTex: WebGLTexture | null = null;
+  /** The world's photographs (world-tex.ts): each one's colour and tilt, as images and as textures, and
+   *  when the last of them arrived, so they fade in. */
+  private photos: HTMLImageElement[] = [];
+  private photoTex: WebGLTexture[] = [];
+  private photosAt = -1;
   private flownAt = -1;
   private skyFrom: { at: number; dark: boolean } | null = null;
   private turnFrom: { at: number; sun: [number, number] } | null = null;
@@ -207,6 +220,7 @@ export class Flight {
         this.wake();
       };
       (window as unknown as { __where?: unknown }).__where = () => this.flown;
+      (window as unknown as { __photos?: unknown }).__photos = () => this.photosAt >= 0;
     }
     return true;
   }
@@ -257,11 +271,7 @@ export class Flight {
       return s;
     };
     const vs = shader(gl.VERTEX_SHADER, VERT);
-    const look = typeof this.o.world === "object" ? (this.o.world.look ?? 0) : 0;
-    const fs = shader(
-      gl.FRAGMENT_SHADER,
-      this.o.world ? `#define WORLD\n#define LOOK ${Math.round(look)}\n${FRAG}` : FRAG
-    );
+    const fs = shader(gl.FRAGMENT_SHADER, this.o.world ? `#define WORLD\n${FRAG}` : FRAG);
     const prog = gl.createProgram();
     if (!vs || !fs || !prog) return false;
     gl.attachShader(prog, vs);
@@ -315,9 +325,73 @@ export class Flight {
       gl.uniform1i(this.uniforms.uLand, 1);
       gl.activeTexture(gl.TEXTURE0);
       this.stripAt = Number.NaN;
+      /* the world's photographs, from unit 2 on: one plain pixel each until they arrive (the land's own
+         colour, lying flat); a device with too few units keeps the plain world */
+      this.photoTex = [];
+      if ((gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) as number) >= 2 + WORLD_PHOTOS.length * 2) {
+        WORLD_PHOTOS.forEach((name, i) => {
+          for (const k of [0, 1]) {
+            const at = i * 2 + k;
+            const tex = gl.createTexture();
+            if (!tex) continue;
+            this.photoTex[at] = tex;
+            gl.activeTexture(gl.TEXTURE2 + at);
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            const plain = new Uint8Array([128, 128, 128]);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, plain);
+            const sampler = `u${name[0].toUpperCase()}${name.slice(1)}${k ? "N" : "C"}`;
+            gl.uniform1i(gl.getUniformLocation(prog, sampler), 2 + at);
+            const img = this.photos[at];
+            if (img?.complete && img.naturalWidth) this.upload(gl, at, img);
+          }
+        });
+        gl.activeTexture(gl.TEXTURE0);
+        if (!this.photos.length) this.loadPhotos();
+      }
     }
     this.shown = { p: -1, night: -1 };
     return true;
+  }
+
+  /** Fetches the world's photographs, quietly, after the first picture; once all have arrived they fade in. */
+  private loadPhotos() {
+    let left = WORLD_PHOTOS.length * 2;
+    WORLD_PHOTOS.forEach((name, i) => {
+      ["", "-n"].forEach((kind, k) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.onload = () => {
+          const gl = this.gl;
+          if (gl && !gl.isContextLost()) this.upload(gl, i * 2 + k, img);
+          if (--left > 0) return;
+          this.photosAt = performance.now();
+          this.shown = { p: -1, night: -1 };
+          this.wake();
+        };
+        img.src = `${WORLD_PHOTO_DIR}${name}${kind}.jpg`;
+        this.photos[i * 2 + k] = img;
+      });
+    });
+  }
+
+  /** Puts one photograph on its texture, sharp at every distance and at a slant. */
+  private upload(gl: WebGLRenderingContext, at: number, img: HTMLImageElement) {
+    const tex = this.photoTex[at];
+    if (!tex) return;
+    gl.activeTexture(gl.TEXTURE2 + at);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    /* the numbers in the file as they are: they are ratios and tilts, not colours to be managed */
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    const slant = gl.getExtension("EXT_texture_filter_anisotropic");
+    if (slant) {
+      const most = gl.getParameter(slant.MAX_TEXTURE_MAX_ANISOTROPY_EXT) as number;
+      gl.texParameterf(gl.TEXTURE_2D, slant.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, most));
+    }
+    gl.activeTexture(gl.TEXTURE0);
   }
 
   private size() {
@@ -345,7 +419,13 @@ export class Flight {
     gl.uniform1f(this.uniforms.uNight, night);
     gl.uniform1f(this.uniforms.uIntro, intro);
     const sky = this.o.sky?.() ?? null;
-    if (this.o.world) this.world(gl, time);
+    if (this.o.world) {
+      this.world(gl, time);
+      /* the photographs fade in over a second; held still, they are simply there */
+      const t = (performance.now() - this.photosAt) / 900;
+      const held = this.o.still() || this.frozen;
+      gl.uniform1f(this.uniforms.uTex, this.photosAt < 0 ? 0 : held ? 1 : Math.min(1, t));
+    }
     gl.uniform4f(
       this.uniforms.uWx,
       sky?.cloud ?? 0,

@@ -37,33 +37,49 @@ switch); the landscape moves by its own clock, so it is not needed here yet.
   peaks.
 - **Wind.** Gusts roll across the grass as a bright wave; each tree leans downwind and sways to its own
   beat.
-- **Trees** with branches in tiers, needle clumps that catch the light close by, and soil and moss between
-  them instead of bare rock. Spirit trees are dark silver by day and glow only at night.
+- **Trees** with soil and moss between them instead of bare rock. Spirit trees are silver by day and glow
+  only at night. (Round two replaced their painted tiers with real firs.)
 - **Pollen** that really floats in the air: near grains are bigger and pass faster than far ones.
   **Fireflies** blink low over the ground at night.
 - **Houses** in old colours: slate, shingle and faded tile roofs; limewash or dark timber walls.
 - **Dusk** is shown as bright as it feels, not as dim as it is.
 
-## The choice he makes now: three looks
+## His look: Warm (2026-11-21)
 
-Same land, same time of day, same engine. They differ in the air and the colour:
+He chose **Warm**: light laid in soft painted steps, warm gold, big clouds. Misty came second. The other
+two looks and the switch between them are gone. Misty's air (thick valley mist, strong beams) is an idea
+for a few lands later (the pine forest, the wetlands, the fjord), to agree with him when we get there.
 
-| Look | In a sentence |
-| --- | --- |
-| **A, Clear** | True to life. Clean air, crisp shadows, natural colour. |
-| **B, Warm** | Light laid in soft painted steps, warm gold, big clouds. Closest to Ghibli. |
-| **C, Misty** | Mist in the valleys, strong beams, cool colour, spirit lights even by day. The most mystical. |
+## Round two: real textures and real trees (the alpine valley)
 
-To see one live: `/dev/world?land=alpine-valley&look=1` (0, 1 or 2). Once he picks, the other two are
-deleted, with the `look` switch.
+He asked for "real textures, instead of just polygons", "real motion, maybe even Blender", and for nothing
+to look "plasticky".
 
-## After he picks, one thing at a time
+- **Real ground.** Rock, meadow, snow and stony earth are now real photographs: scans taken from the air,
+  from Poly Haven (free, CC0). Each land keeps its own colours; the photographs add the grain, the stones,
+  the moss and the ledges, and the light catches every ledge. Snow lies on the rock's ledges and grass
+  fills its hollows.
+- **Real firs.** The firs are a real scanned fir (Poly Haven), rendered in **Blender** from the side into
+  a texture: four trees, each with its boughs, the dark gaps between them, and which way each bough faces.
+  The shader wraps it round every fir, so each bough catches the sun. Their outlines now stand out in
+  uneven tiers instead of a clean cone. They still sway in the wind.
+- **No plastic.** The ground has no shine at all; the light on it comes from the photographs' own tilt.
+  The painted steps of the Warm look stay on the land's big shapes only.
+- Everything loads after the first picture and fades in over a second, so the page is never slower to
+  open. A device that cannot hold that many textures keeps the plain world.
 
-1. The alpine valley, finished in his look, shown on phone, tablet and desktop, day and night.
-2. **Water:** rivers, lakes and the ocean, with real reflections, foam and spray. The endless river picture
-   needs this, so it comes first.
+How to make them again: `scripts/dev/world-textures.mjs` (the ground) and `scripts/dev/blender/` (the
+firs). Sources and licences: `public/site/world/README.md`.
+
+## Next, one thing at a time
+
+1. ~~The alpine valley, finished in his look~~ (round two, above).
+2. **Water:** rivers, lakes and the ocean, with real reflections that are not glassy: a real water
+   surface texture, ripples that break the mirror, foam and spray. The endless river picture needs this,
+   so it comes first.
 3. **The night sky:** the moon with its phase, stars with colour, the northern lights.
-4. **Each land in turn,** with its own life. A first list to agree with him:
+4. **Each land in turn,** with its own life and its own real textures and trees (broadleaf trees, palms
+   and bamboo from Poly Haven models, rendered in Blender the same way). A first list to agree with him:
    - flower fields and lavender: bees and butterflies, petals in the gusts;
    - blossom grove: petals drifting down;
    - autumn forest: leaves falling and blowing;
@@ -74,15 +90,16 @@ deleted, with the `look` switch.
    - snow and glacier: falling snow, wind-blown powder;
    - savanna: herds and dust;
    - fjord, cliffs, karst bay, islands, rice terraces, green hills.
-5. **The home page's route** gets the same light last, because its words sit on the picture and every
-   change there needs its contrast checked again.
+5. **The home page's route** last. It may stay as it is; he wants to try it. Its words sit on the picture,
+   so every change there needs its contrast checked again.
 
 ## Speed
 
-Measured on the same computer at the same picture size: today's world takes about 26 ms a picture, the new
-one about 33 ms (most of the extra is the beams and the swaying trees). The engine already lowers its
-sharpness by itself on a slow device, so on a phone the picture stays smooth and is about 12% softer. Each
-next step will try to win that back.
+Measured on the same computer at the same picture size (620,000 pixels): the world on `main` takes about
+26 ms a picture; round one took about 33 ms; round two about 31 ms (the photographs cost almost nothing;
+the old painted tiers were removed). The engine lowers its sharpness by itself on a slow device, so on a
+phone the picture stays smooth and is a little softer. The photographs add about 1.2 MB, fetched after the
+first picture and kept by the browser for a day.
 
 ## How changes are shown
 

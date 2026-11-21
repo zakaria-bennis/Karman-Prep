@@ -48,37 +48,48 @@ float townAt(vec2 x, float h) {
   return level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
 }
 float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
-/* one tree in its cell: x = how far up its crown this point is (0 at its edge, 1 at its top), y = which tree.
-   The wind leans each crown downwind, more in a gust, and each tree sways to its own beat. A pine's
-   branches hang in tiers, each tier's skirt standing out over the one below. */
-float TIER;   /* 1 while shading: the tiers are drawn in the light, the ray finds the plain crown */
-vec2 treeW(vec2 g, float on, float round) {
+/* one tree in its cell: x = how far up its crown this point is (0 at its edge, 1 at its top), y = which tree;
+   fo.xy = where this point is from the tree's trunk, in crowns' widths, fo.z its size. The wind leans each crown downwind,
+   more in a gust, and each tree sways to its own beat. round: 0 a fir, 1 a broadleaf crown */
+vec2 treeW(vec2 g, float on, float round, out vec3 fo) {
   vec2 id = floor(g);
   float size = .42 + .58 * tx(id + 13.);
   float which = tx(id + 77.);
   vec2 f = fract(g) - .5 - (vec2(tx(id), tx(id + 41.)) - .5) * .7;
   f -= WD * size * (.12 * GUST + .05 * sin(uTime * (1.5 + which) + which * 40.) * (.4 + GUST));
-  float d = length(f) / (.5 * size);
+  fo = vec3(f / (.5 * size), size);
+  /* a fir's outline is never a clean cone: its boughs stand out in tiers, the lower tiers wider, and
+     the crown bulges here and thins there */
+  float d = length(fo.xy);
+  float tier = fract((1. - d) * 4.6 + which * 3.);
+  d *= 1. - (1. - round) * (.16 * smoothstep(0., .75, tier) * smoothstep(1., .75, tier) * (.4 + .6 * d) + .14 * (n2(fo.xy * 2.1 + id * 3.7) - .5));
   float pine = max(0., 1. - d);
-  pine = max(0., pine - .2 * TIER * fract(pine * 3.6 + which * 7.) * step(.05, pine) * (1. - .5 * pine));
   return vec2(mix(pine, sqrt(max(0., 1. - d * d)), round) * size * step(1. - on, tx(id + 59.)), which);
 }
 /* the woods (founder, 2026-11-14: the trees looked like plastic beads): real trees of two sizes, standing in
    groves with clearings between: pines are tall points, broadleaf crowns are round and knobbly with leaf,
-   bamboo is tall cane. x = the tree's height here, y = how far up its crown (0 to 1), z = which tree */
+   bamboo is tall cane. x = the tree's height here, y = how far up its crown (0 to 1), z = which tree.
+   TRF.xy: where this point is from that tree's trunk, in crowns' widths, on the ground's own axes;
+   TRF.z: how tall that tree stands */
 float TF;   /* how much of a tree's shape is drawn at this distance: all of it near, none far off */
+vec3 TRF;
 vec3 woods(vec2 x, vec4 g2) {
   if (g2.z < .02) return vec3(0.);
   GUST = gustAt(x);
   float round = smoothstep(.15, .5, g2.w), cane = smoothstep(.7, 1., g2.w);
   float open = smoothstep(.3, .55, .55 * n2(x * 13.) + .45 * n2(x * 41. + 5.) + .7 * (g2.z - .55));
   float on = .35 + .65 * g2.z;
-  vec2 a = treeW(x * 74., on, round), b = treeW(M2 * x * 131. + 17., on, round);
+  vec3 fa, fb;
+  vec2 a = treeW(x * 74., on, round, fa), b = treeW(M2 * x * 131. + 17., on, round, fb);
   b.x *= .62;
+  fb.z *= .62;
   vec2 t = a.x > b.x ? a : b;
   t.x *= open;
+  float tall = mix(.028, .0125, round) * mix(1., 2.2, cane);
+  /* the second grid is turned, so its offsets are turned back */
+  TRF = a.x > b.x ? vec3(fa.xy, fa.z * tall * open) : vec3(fb.xy * M2, fb.z * tall * open);
   float leaf = round * (n2(x * 470.) - .5) * .34 * step(.001, t.x);
-  return vec3(mix(.028, .0125, round) * mix(1., 2.2, cane) * t.x * (1. + leaf), t.x, t.y);
+  return vec3(tall * t.x * (1. + leaf), t.x, t.y);
 }
 float treeBand(float h, float tl) { return smoothstep(tl, tl - .14, h) * smoothstep(.004, .03, h); }
 /* herds (founder, 2026-11-14: "animals going across the landscape"): sheep, deer or dark horses grazing in
@@ -114,48 +125,83 @@ vec2 terrH2(vec2 x) {
 }
 `;
 
-/** The colour of the ground. Inside ground(): p, n (with the trees), ng (the bare ground), h, r, r2, near, ao are set; it sets alb, snow and veg. */
+/** The colour of the ground. Inside ground(): p, t, n (with the trees), ng (the bare ground), h, r, r2, near, ao are set;
+ *  it sets alb, snow, veg and nm (the ground's slope before its photographs' tilt). */
 export const WORLD_ALBEDO = `
   h = terrD(p.xz);
   float tl = G2.x * 1.2, sl = G2.y * 1.5;
   vec3 wd = woods(p.xz, G2);
   float band = treeBand(h, tl);
   float flat1 = smoothstep(.36, .6, ng.y);
+  /* close by, the ground is real photographs (world-tex.ts): rock, meadow, snow and stony earth, each with
+     its own ledges and hollows; far off they melt into the land's own colour */
+  vec3 rkC = vec3(1.), grC = rkC, snC = rkC, gdC = rkC, rkN = vec3(0.), grN = rkN, snN = rkN, gdN = rkN;
+  float rkH = .5, snH = .5;
+  if (t < 3.5) {
+    rkC = rock3(p, ng, 6.); rkN = TN; rkH = TH;
+    grC = flat2(uGrassC, uGrassN, p.xz, 14.); grN = TN;
+    snC = flat2(uSnowC, uSnowN, p.xz, 5.); snN = TN; snH = TH;
+    gdC = flat2(uGroundC, uGroundN, p.xz, 14.); gdN = TN;
+  }
   /* far off a wood is one soft canopy; near, each tree is itself */
   float canopy = band * flat1 * smoothstep(0., .55, G2.z);
-  float mead = max(smoothstep(.8, .93, ng.y) * smoothstep(.2, .06, h + .05 * (r2 - .5)), G4.w * smoothstep(.5, .74, ng.y));
+  /* grass takes the hollows in the rock first, and snow lies on its ledges */
+  float mead = max(smoothstep(.8, .93, ng.y + .14 * (.5 - rkH)) * smoothstep(.2, .06, h + .05 * (r2 - .5)), G4.w * smoothstep(.5, .74, ng.y));
   float tree = mix(canopy * (1. - mead), smoothstep(.02, .14, wd.y * band), TF);
-  float snow = smoothstep(sl, sl + .12, h + .2 * (r2 - .5)) * smoothstep(.4, .68, ng.y);
+  float snow = smoothstep(sl, sl + .12, h + .2 * (r2 - .5) + .1 * (snH - .5)) * smoothstep(.4, .68, ng.y + .2 * (.5 - rkH));
   vec3 d1 = noised(p.xz * 34.), d2 = noised(p.xz * 97.);
-  float bare = (1. - tree) * (1. - canopy) * (1. - snow * .7) * (1. - .8 * max(G6.w, mead));
-  n = normalize(n + vec3(d1.y + .6 * d2.y, 0., d1.z + .6 * d2.z) * .26 * near * bare);
-  vec3 rock = G6.rgb * mix(.4, 1.3, r2) * (.7 + .6 * n2(vec2(h * 80. + r2 * 5., r * 2.)));
+  /* the ground tilts as its photographs do: every ledge, stone and drift catches the light */
+  float soil = band * (1. - canopy) * (1. - mead) * (1. - G6.w);
+  vec3 tilt = mix(mix(rkN * 2., gdN, max(soil, G6.w)), grN, mead);
+  tilt = mix(tilt, snN, snow);
+  vec3 nm = n;
+  n = normalize(n + tilt * (1. - tree) * (1. - .7 * canopy));
+  vec3 rock = G6.rgb * mix(.55, 1.2, r2) * (.85 + .3 * n2(vec2(h * 80. + r2 * 5., r * 2.))) * rkC;
   rock *= mix(.62, 1.08, smoothstep(.3, .75, ng.y));
-  vec3 grass = G3.rgb * mix(.6, 1.3, r2);
+  vec3 grass = G3.rgb * mix(.7, 1.2, r2) * grC;
   /* the gusts roll over the grass: where the wind presses it flat its paler side shows, a bright wave
      travelling downwind; close by, single tufts */
   float gust = gustAt(p.xz);
   grass *= mix(vec3(1.), vec3(1.3, 1.26, 1.), gust * .8) * mix(1., .78 + .44 * n2(p.xz * 640.), near * FINE);
-  vec3 sand = G7.rgb * (.8 + .4 * r2);
+  vec3 sand = G7.rgb * (.8 + .4 * r2) * gdC;
   vec3 alb = mix(rock, sand, G6.w * smoothstep(.4, .7, ng.y));
   /* under the trees: deep shade and leaf litter */
   alb = mix(alb, G4.rgb * (.55 + .3 * r), canopy);
   /* between the trees the ground is soil, needles and moss, never bare rock */
-  alb = mix(alb, mix(G3.rgb * .75, vec3(.15, .11, .07), .4 + .3 * r) * (.8 + .4 * r2), band * (1. - canopy) * (1. - mead) * (1. - G6.w));
+  alb = mix(alb, mix(G3.rgb * .75, vec3(.15, .11, .07), .4 + .3 * r) * (.8 + .4 * r2) * gdC, soil);
   alb = mix(alb, grass, mead * (1. - G6.w));
   /* a crown: its own green, dark at the foot and bright at the top, dabbed with leaf */
   vec3 crownFar = mix(G4.rgb, G5.rgb, .3 + .4 * r);
   vec3 crownNear = mix(G4.rgb, G5.rgb, .15 + .85 * wd.z) * mix(.5, 1.35, wd.y) * (.8 + .4 * n2(p.xz * 330.));
+  /* a fir is a real fir (world-tex.ts: rendered from a scanned model): its branches, the dark between
+     them, and the light each bough catches, seen from where the eye is */
+  float fir = (1. - smoothstep(.15, .5, G2.w)) * tree * TF * uTex;
+  vec3 fnw = n;
+  float boughs = 0.;
+  if (fir > .01) {
+    vec3 vd = normalize(p - EYE);
+    vec2 rt = normalize(vec2(vd.z, -vd.x));
+    /* across: where the point is beside the trunk as the eye sees it; down: how far below the tip */
+    vec2 suv = vec2((floor(wd.z * 4.) + .5 + .48 * clamp(dot(TRF.xy, rt), -1., 1.)) * .25, clamp(1. - (p.y - h) / max(TRF.z * band * TF, 1e-4), 0., 1.));
+    vec3 fc = texture2D(uTreeC, suv).rgb, fs = texture2D(uTreeN, suv).rgb;
+    boughs = smoothstep(.12, .6, fs.b);
+    vec2 sn = fs.xy * 2. - 1.;
+    fnw = normalize(vec3(rt.x, 0., rt.y) * sn.x + vec3(0., sn.y, 0.) - normalize(vec3(vd.x, 0., vd.z)) * sqrt(max(1. - dot(sn, sn), .05)));
+    vec3 firC = mix(G4.rgb * .2, mix(G4.rgb, G5.rgb, .25 + .5 * wd.z) * ratio(fc) * 1.2, boughs);
+    crownNear = mix(crownNear, firC, fir);
+  }
   /* the top of a crown catches warm light (the way stylised foliage is painted: a gradient, a shaded foot, a lit top) */
   crownNear *= mix(vec3(1.), vec3(1.28, 1.16, .78), smoothstep(.55, 1., wd.y));
   /* now and then a spirit tree: silver-leaved by day, softly shining by night */
   float spirit = step(.985, wd.z);
-  crownNear = mix(crownNear, vec3(.13, .18, .16) * mix(.6, 1.2, wd.y), spirit * .6);
+  crownNear = mix(crownNear, vec3(dot(crownNear, vec3(.33))) * vec3(1.5, 1.85, 1.8), spirit * .7);
   alb = mix(alb, mix(crownFar, crownNear, TF), tree);
-  /* close by, a crown is clumps of needles and leaves that each catch the light */
-  n = normalize(n + vec3(d1.y + .7 * d2.y, 0., d1.z + .7 * d2.z) * .5 * near * tree * TF);
+  /* close by, a broadleaf crown is clumps of leaves that each catch the light, and a fir its boughs */
+  n = normalize(n + vec3(d1.y + .7 * d2.y, 0., d1.z + .7 * d2.z) * .5 * near * tree * TF * (1. - fir));
+  n = normalize(mix(n, fnw, fir * boughs * .85));
   /* and a crown is lit as one soft mass, not leaf by leaf */
-  n = normalize(mix(n, normalize(ng + vec3(0., .5, 0.)), .45 * PAINT * tree * TF));
+  n = normalize(mix(n, normalize(ng + vec3(0., .5, 0.)), .45 * PAINT * tree * TF * (1. - .7 * fir)));
+  nm = normalize(mix(nm, normalize(ng + vec3(0., .5, 0.)), .45 * PAINT * tree * TF));
   float fl = G3.w;
   float bloom = smoothstep(.76 - .5 * fl, .9 - .44 * fl, n2(p.xz * 34. + 3.)) * mead * step(.01, fl) * (1. - G6.w) * (1. - tree);
   vec3 petal = mix(G9.rgb, G10.rgb, step(.5, n2(p.xz * 8.)));
@@ -175,10 +221,10 @@ export const WORLD_ALBEDO = `
   alb = mix(alb, sand, smoothstep(.018 + .03 * G6.w, .004, h));
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
   float wander = n2(p.xz * 2.3 + 40.), stroke = fbm(p.xz * 16. + 9.);
-  alb *= mix(vec3(.8, .92, 1.1), vec3(1.18, 1.04, .8), wander) * (.84 + .32 * stroke);
+  alb *= mix(vec3(.8, .92, 1.1), vec3(1.18, 1.04, .8), wander) * (.9 + .2 * stroke);
   /* calmer colour: a little of the green taken out, a little dusk-blue let in */
   alb = mix(alb, vec3(dot(alb, vec3(.3, .59, .11))) * vec3(.96, 1., 1.06), .2);
-  alb = mix(alb, vec3(.78, .83, .9), snow * (1. - .55 * tree));
+  alb = mix(alb, vec3(.78, .83, .9) * snC, snow * (1. - .55 * tree));
   /* the herds: pale sheep, brown deer, dark horses */
   vec2 bs = beast(p.xz);
   float isB = smoothstep(.05, .3, bs.x) * pasture(h, G4.w) * TF * (1. - tree);
@@ -209,14 +255,15 @@ export const WORLD_WATER = `
     body = mix(body, mix(body * .22, vec3(.8, .3, .06) * (AMB + KEYCOL), step(.8, tx(fid + 61.)) * w8.a), fish * .85);
 `;
 
-/** The light on the ground, painted. Inside ground(): n, sh, ao, alb, veg are set; it sets lin. */
+/** The light on the ground, painted. Inside ground(): n, nm, sh, ao, alb, veg are set; it sets lin. */
 export const WORLD_LIGHT = `
   /* leaves and grass let light through, so they turn from light to shade slowly */
   float lam = max(dot(n, KEY), 0.), wrapped = clamp((dot(n, KEY) + .45) / 1.45, 0., 1.);
   float dif = mix(lam, wrapped * wrapped, .75 * veg) * sh;
-  /* the tones gather into a few soft steps, the way gouache is laid down */
-  float q4 = dif * 4.;
-  dif = mix(dif, (floor(q4) + smoothstep(.25, .75, fract(q4))) / 4., PAINT);
+  /* the light gathers into a few soft steps over the land's big shapes, the way gouache is laid down;
+     within each step the photographs' ledges and stones still catch it */
+  float wm = clamp((dot(nm, KEY) + .45) / 1.45, 0., 1.), dm = mix(max(dot(nm, KEY), 0.), wm * wm, .75 * veg) * sh, q4 = dm * 4.;
+  dif = max(dif + ((floor(q4) + smoothstep(.25, .75, fract(q4))) / 4. - dm) * PAINT, 0.);
   vec3 lin = KEYCOL * dif * 2.5 + AMB * (.4 + .4 * n.y) * ao;
   /* light thrown back up by the sunlit ground, and shade that leans to violet */
   lin += KEYCOL * (.1 + .1 * veg) * (1. - dif) * (.4 + .6 * sh);
@@ -250,23 +297,13 @@ export const WORLD_AFLOAT = `
     col += (AMB + KEYCOL) * .1 * smoothstep(.02, .0, abs(length(rf) - ph * .35)) * (1. - ph) * step(.6, tx(rid + 37.)) * (1. - ice);
 `;
 
-/** The looks, and the air: how sunlight and moonlight are coloured and scattered on their way through it.
+/** The look, and the air: how sunlight and moonlight are coloured and scattered on their way through it.
  *  Goes in near the top of the shader, before anything that lights or colours. */
 export const WORLD_AIR = `
-/* the three looks the founder is choosing between (2026-11-21): 0 clear and true, 1 warm and painted,
-   2 misty and mystic. HAZE: dust in the air; FOGK: low haze; MISTK: valley mist; SHAFT: beams of light;
-   MOTES: pollen and fireflies; WARM, SAT: the grade; CLOUDK: more cloud; PAINT: light laid in soft steps;
-   VIOLET: shade leaning to violet */
-#ifndef LOOK
-#define LOOK 0
-#endif
-#if LOOK == 1
-const float HAZE = .1, FOGK = .7, MISTK = .6, SHAFT = 1., MOTES = 1.2, WARM = .55, SAT = 1.2, CLOUDK = .2, PAINT = .7, VIOLET = .7, ORBS = 0.;
-#elif LOOK == 2
-const float HAZE = .2, FOGK = 2., MISTK = 2.2, SHAFT = 3., MOTES = 2., WARM = -.25, SAT = .9, CLOUDK = .05, PAINT = .15, VIOLET = .5, ORBS = .6;
-#else
-const float HAZE = .07, FOGK = .55, MISTK = .45, SHAFT = .6, MOTES = .75, WARM = .06, SAT = 1.04, CLOUDK = 0., PAINT = 0., VIOLET = .15, ORBS = 0.;
-#endif
+/* the look (founder, 2026-11-21: warm, and misty after it): HAZE dust in the air; FOGK low haze; MISTK
+   valley mist; SHAFT beams of light; MOTES pollen and fireflies; WARM, SAT the grade; CLOUDK more cloud;
+   PAINT light laid in soft steps; VIOLET shade leaning to violet */
+const float HAZE = .1, FOGK = .7, MISTK = .6, SHAFT = 1., MOTES = 1.2, WARM = .55, SAT = 1.2, CLOUDK = .2, PAINT = .7, VIOLET = .7;
 /* the air (founder, 2026-11-21: "lighting that looks and feels real"): sunlight crosses more air the lower
    the sun, so it reddens; the air scatters blue overhead and a white glow around the sun. BR is how much
    the air thins each colour, straight up; airm() how much air a ray crosses at that height (Kasten-Young) */
@@ -332,6 +369,6 @@ export const WORLD_LIFE = `
     vec2 oid = floor(og), of = fract(og) - .5 - (vec2(tx(oid + 3.), tx(oid + 21.)) - .5) * .7;
     float od = length(of);
     float orb = (smoothstep(.05, .0, od) + .35 * exp(-od * 9.)) * step(.78, tx(oid + 13.)) * (.6 + .4 * sin(uTime * .5 + tx(oid) * 6.3));
-    col += vec3(.55, .85, 1.) * orb * ((.1 + .2 * LOW) * NIGHT + .05 * ORBS) * MOTES * (1. - uWx.y);
+    col += vec3(.55, .85, 1.) * orb * (.1 + .2 * LOW) * NIGHT * MOTES * (1. - uWx.y);
   }
 `;

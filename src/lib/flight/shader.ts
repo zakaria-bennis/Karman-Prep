@@ -21,6 +21,7 @@ import {
   WORLD_TERRAIN,
   WORLD_WATER,
 } from "./world-glsl";
+import { WORLD_TEX } from "./world-tex";
 
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
@@ -255,13 +256,15 @@ float shadow(vec3 p) {
   return clamp(s, 0., 1.);
 }
 
+#ifdef WORLD
+${WORLD_TEX}
+#endif
 vec3 ground(vec3 p, float t) {
   float e = .0009 * t + .0004;
   FINE = clamp(1.6 - t * .55, 0., 1.);
 #ifdef WORLD
   landHere(p.z);
   TF = clamp(1.7 - t * .6, 0., 1.);
-  TIER = 1.;
   vec2 hx0 = terrH2(p.xz - vec2(e, 0.)), hx1 = terrH2(p.xz + vec2(e, 0.)), hz0 = terrH2(p.xz - vec2(0., e)), hz1 = terrH2(p.xz + vec2(0., e));
   vec3 ng = normalize(vec3(hx0.x - hx1.x, 2. * e, hz0.x - hz1.x));
   vec3 n = normalize(vec3(hx0.x + hx0.y - hx1.x - hx1.y, 2. * e, hz0.x + hz0.y - hz1.x - hz1.y));
@@ -402,14 +405,12 @@ void main() {
   /* fly on and on, low enough to see the trees and the houses, rising and sinking a little */
   z = uWorld; alt = .11 + .07 * n2(vec2(z * .21, 5.)); tilt = -.11;
 #endif
-#ifdef WORLD
-  TIER = 0.;
-#endif
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
 #ifdef WORLD
   ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ro.xz + vec2(0., .2))) + .075, .06));
+  EYE = ro;
 #else
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
 #endif
@@ -618,7 +619,7 @@ ${WORLD_LIFE}
   col = clamp((col * (2.51 * col + .03)) / (col * (2.43 * col + .59) + .14), 0., 1.);
   col = pow(col, vec3(.4545));
 #ifdef WORLD
-  /* the darks lifted a touch toward blue, as air does, and the whole warmed or cooled by the look */
+  /* the darks lifted a touch toward blue, as air does, and the whole warmed by the look */
   col = col * vec3(.975, .975, .965) + vec3(.01, .013, .02);
   col *= mix(vec3(1.), vec3(1.035, 1., .93), WARM);
 #endif
