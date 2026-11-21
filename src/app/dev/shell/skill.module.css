@@ -1,8 +1,19 @@
 /*
- * One skill's page. It takes the Library's glass, inset (--pad, 12), row height (--cell, 48), corner
- * (16 inside, 28 outside), text sizes (13, 16, 20) and level colours (--p1 to --p3) from
- * library.module.css.
+ * One skill's page (SkillPage.tsx, SkillLesson.tsx). It takes the Library's glass, inset (--pad, 12),
+ * row height (--cell, 48), corner (16 inside, 28 outside), text sizes (13, 16, 20) and level greens
+ * (--p1 to --p3) from library.module.css. Calm and focused, with a little warmth: one amber for the
+ * lesson's sector, one gold for its arc, the greens for where the student stands.
  */
+.page {
+  --warm: #b8620c;
+  --gold: #a87a00;
+}
+
+:global([data-kp-mode="dark"]) .page {
+  --warm: #ffb054;
+  --gold: #ffd35e;
+}
+
 .page small {
   display: block;
   font-size: 13px;
@@ -10,12 +21,26 @@
   opacity: 0.8;
 }
 
-/* ---- 1. the level: three named steps, each in its own strength of the one hue ---- */
+/* ---- the right: the character, the trail of Karman's tails, the last set, Start ---- */
 .level {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 18px;
   padding: calc(var(--pad) * 2);
+}
+
+.hello {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.buddy {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
 }
 
 .tests {
@@ -25,58 +50,147 @@
   text-wrap: balance;
 }
 
-.page .ladder {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.page .due {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  margin-top: 10px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warm) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warm) 55%, transparent);
   font-size: 13px;
-  font-weight: 500;
-}
-
-.ladder li {
-  display: grid;
-  gap: 8px;
-  opacity: 0.72;
-}
-
-.ladder li[data-here] {
   font-weight: 600;
+}
+
+.due svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* four stops, Karman at each: the ones passed in full color, his own big and lit, the ones ahead dim
+   and waiting, joined by a dotted path */
+.page .trail {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: end;
+  padding: 0;
+  list-style: none;
+}
+
+.trail::before {
+  content: "";
+  position: absolute;
+  left: 12.5%;
+  right: 12.5%;
+  bottom: 44px;
+  border-top: 2px dotted currentColor;
+  opacity: 0.25;
+}
+
+.trail li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.stop {
+  display: grid;
+  place-items: end center;
+  height: 76px;
+}
+
+.trail li[data-ahead] .stop {
+  opacity: 0.38;
+  filter: grayscale(0.85);
+}
+
+.trail li[data-here] .stop {
+  filter: drop-shadow(0 0 14px var(--pglow));
+}
+
+.trail li[data-here] small {
+  font-weight: 700;
   opacity: 1;
 }
 
-.ladder i {
+.trail li[data-ahead] small {
+  opacity: 0.55;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--r-piece);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.last,
+.coins {
+  display: grid;
+  gap: 6px;
+}
+
+.last b,
+.coins b {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.last b span {
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.coins {
+  justify-items: end;
+}
+
+.coins b {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 20px;
+}
+
+.dots {
+  display: flex;
+  gap: 5px;
+}
+
+.dots i {
+  width: 14px;
   height: 14px;
-  border-radius: 5px;
-  background: var(--p0);
-  box-shadow: 0 0 0 1px var(--sq-edge);
+  border-radius: 50%;
+  background: #e2614f;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
 }
 
-.ladder li[data-on] i {
-  transform-origin: 0 50%;
-  animation: fill 0.35s var(--out) both;
-  animation-delay: calc(80ms + var(--s) * 70ms);
+.dots i[data-right] {
+  background: #3dbf86;
 }
 
-.ladder li[data-on][data-step="1"] i {
-  background: var(--p1);
+.page .start {
+  min-height: 60px;
+  /* the portal's buttons have no fill of their own (shell.module.css), so it is given back here */
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%), var(--go);
+  color: var(--on-go);
 }
 
-.ladder li[data-on][data-step="2"] i {
-  background: var(--p2);
+.start svg {
+  fill: none;
+  stroke: currentColor;
 }
 
-.ladder li[data-on][data-step="3"] i {
-  background: var(--p3);
-}
-
-@keyframes fill {
-  from {
-    transform: scaleX(0.1);
-    opacity: 0;
-  }
-}
-
-/* ---- 2. the lesson: a switch between the written lesson and the video ---- */
+/* ---- the lesson: a switch between the written lesson and the video ---- */
 .lesson,
 .more {
   display: grid;
@@ -86,10 +200,6 @@
 
 .more {
   gap: 4px;
-}
-
-.more h2 {
-  padding: var(--pad) var(--pad) 8px;
 }
 
 .toggle {
@@ -142,55 +252,223 @@
 
 .written {
   display: grid;
-  gap: 20px;
-  padding: var(--pad);
-  max-width: 68ch;
-}
-
-.written > p:first-of-type {
-  font-weight: 500;
+  gap: 26px;
+  padding: var(--pad) calc(var(--pad) * 1.5) var(--pad);
+  max-width: 72ch;
+  line-height: 1.55;
 }
 
 .written h3 {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-size: 16px;
+  font-weight: 650;
+}
+
+.written p {
+  margin: 0;
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: center;
+  gap: 24px;
+}
+
+.warm {
+  color: var(--warm);
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.page .rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.rules > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
   font-weight: 600;
 }
 
-/* lines standing in for the lesson's text until it is written */
-.written i {
-  display: block;
-  height: 10px;
-  margin-bottom: 8px;
-  border-radius: 5px;
-  background: var(--p0);
+.frac {
+  display: inline-grid;
+  vertical-align: middle;
+  font-size: 0.8em;
+  line-height: 1.1;
+  text-align: center;
 }
 
-.written i:last-child {
-  width: 62%;
+.frac span:first-child {
+  border-bottom: 1.5px solid currentColor;
+  padding: 0 2px;
+}
+
+.page .steps {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--warm) 22%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warm) 60%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* the picture: a circle, a slice of it in amber, its arc in gold */
+.slice {
+  width: 100%;
+  max-width: 180px;
+  overflow: visible;
+}
+
+.disc {
+  fill: color-mix(in srgb, currentColor 6%, transparent);
+  stroke: currentColor;
+  stroke-opacity: 0.45;
+  stroke-width: 1.5;
+}
+
+.sector {
+  fill: color-mix(in srgb, var(--warm) 38%, transparent);
+}
+
+.arc {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 70%, transparent));
+}
+
+.radius {
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-opacity: 0.8;
+}
+
+.centre {
+  fill: currentColor;
+}
+
+.mark,
+.angle {
+  fill: currentColor;
+  font: 600 14px var(--font-hanken);
+}
+
+.angle {
+  fill: var(--warm);
+}
+
+/* the strategy quiz, waiting at the end of the lesson */
+.strategy {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px 10px 10px;
+  border-radius: var(--r-piece);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  text-align: left;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.strategy b {
+  font-weight: 650;
+}
+
+.strategy > svg {
+  fill: none;
+  stroke: currentColor;
+  opacity: 0.6;
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.strategy:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  .strategy:hover > svg {
+    transform: translateX(3px);
+    opacity: 1;
+  }
+}
+
+.page .standIn {
+  font-size: 13px;
+  opacity: 0.6;
 }
 
 .video {
+  position: relative;
   display: grid;
   place-content: center;
   justify-items: center;
   gap: 12px;
   aspect-ratio: 16 / 9;
   border-radius: var(--r-lens);
-  background: var(--hover);
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      color-mix(in srgb, var(--warm) 22%, transparent),
+      transparent 60%
+    ),
+    var(--hover);
   box-shadow: inset 0 0 0 1px var(--lens-edge);
   text-align: center;
 }
 
+.video .slice {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  height: 70%;
+  opacity: 0.35;
+}
+
 .video p {
+  position: relative;
   font-weight: 600;
 }
 
 .play {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   background: var(--lens);
   box-shadow:
@@ -198,10 +476,32 @@
     inset 0 0 0 1px var(--lens-edge);
 }
 
+.play svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* ---- the other ways to practice it ---- */
 .page .row {
   display: grid;
   grid-template-columns: auto 1fr auto;
   width: 100%;
+}
+
+.row b small {
+  margin-top: 2px;
+}
+
+.reviewTile {
+  --tint: #e0705a;
+}
+
+.reviewTile svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .row:active {
@@ -220,12 +520,11 @@
   }
 }
 
-/* ---- with room: the lesson at the left, the level and the practice beside it ---- */
+/* ---- with room: the lesson at the left, everything else beside it ---- */
 @media (min-width: 960px) and (hover: hover) {
   .page {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
-    /* the right-hand pieces stretch, so the last one ends level with the lesson */
     align-items: stretch;
   }
 
@@ -240,12 +539,25 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ladder li[data-on] i {
-    animation: none;
+@media (max-width: 520px) {
+  .intro {
+    grid-template-columns: 1fr;
   }
 
-  .chev {
+  .slice {
+    justify-self: center;
+    max-width: 150px;
+  }
+
+  .stop {
+    height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chev,
+  .strategy,
+  .strategy > svg {
     transition: none;
   }
 }
