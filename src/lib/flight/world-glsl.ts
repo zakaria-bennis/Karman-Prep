@@ -9,6 +9,7 @@ export const WORLD_TERRAIN = `
 uniform sampler2D uLand;
 uniform vec3 uStrip;   /* where the table starts along the route, its columns per unit, and 1 / its columns */
 uniform vec2 uSun;     /* the sun: how high (degrees) and which way */
+uniform vec3 uView;    /* x 1 to fly down the river; y how high above the water (0: as usual); z the tilt */
 vec4 land(float z, float row) {
   float u = (z - uStrip.x) * uStrip.y - .5, i = floor(u), f = u - i;
   f = f * f * (3. - 2. * f);
@@ -45,9 +46,9 @@ float shape(vec2 x, float a) {
   float rv = riverAt(z);
   if (rv > .01) {
     float d = abs(x.x - riverX(z)), wide = .014 + .016 * rv, on = smoothstep(.01, .3, rv);
-    float rise = smoothstep(wide + .02, .45, d);
-    h = mix(h, mix(.004, h, rise * sqrt(rise)), on * step(.004, h));
-    h = mix(h, -.016 * smoothstep(wide + .02, wide * .5, d), smoothstep(wide + .02, wide, d) * on);
+    float rise = smoothstep(wide + .03, .45, d);
+    h = mix(h, mix(.0025, h, rise * sqrt(rise)), on * step(.0025, h));
+    h = mix(h, -.016 * smoothstep(wide + .03, wide * .4, d), smoothstep(wide + .03, wide * .8, d) * on);
   }
   return h;
 }
@@ -60,7 +61,12 @@ float townAt(vec2 x, float h) {
   /* no village on a river's banks */
   if (d > .02) d *= 1. - riverAt(x.y) * smoothstep(.26, .16, abs(x.x - riverX(x.y)));
   float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.5, .3, abs(x.x - pathX(x.y)));
-  return level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
+  float t = level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
+  if (t < .01) return 0.;
+  /* houses stand only on gentle ground: on a steep valley side a house lay along the slope like a white
+     smear, plain to see from down by the river */
+  float e = .004, c = terrL(x);
+  return t * smoothstep(.8, .5, length(vec2(terrL(x + vec2(e, 0.)) - c, terrL(x + vec2(0., e)) - c)) / e);
 }
 float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
 /* one tree in its cell: x = how far up its crown this point is (0 at its edge, 1 at its top), y = which tree;
@@ -235,7 +241,7 @@ export const WORLD_ALBEDO = `
   alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .88);
   /* the shore: a beach of the land's sand (by a river only a narrow bank of gravel), dark and wet where
      the water reaches, wider where the waves are bigger */
-  alb = mix(alb, sand, smoothstep(mix(.018 + .03 * G6.w, .0045, riverAt(p.z)), .0015, h));
+  alb = mix(alb, sand, smoothstep(mix(.018 + .03 * G6.w, .0028, riverAt(p.z)), .0012, h));
   alb *= mix(.6, 1., smoothstep(.0004, .0025 + .005 * land(p.z, 11.).y, h));
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
   float wander = n2(p.xz * 2.3 + 40.), stroke = fbm(p.xz * 16. + 9.);

@@ -534,20 +534,25 @@ function numbers(l: Land): number[] {
 const TABLE = LANDS.map(numbers);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-/** The land's numbers at a distance d along the endless route. `only` holds one land everywhere. */
-export function landAt(d: number, only?: number): number[] {
-  if (only !== undefined) return TABLE[only];
+/** The land's numbers at a distance d along the endless route. `only` holds one land everywhere, or,
+ *  given several, the route goes through those lands alone (each round shuffled the same way). */
+export function landAt(d: number, only?: number | readonly number[]): number[] {
+  if (typeof only === "number") return TABLE[only];
+  const pick = (i: number) => (only ? only[landIndex(i, only.length)] : landIndex(i));
   const i = Math.floor(d / STRETCH);
   const into = d - i * STRETCH;
-  const a = TABLE[landIndex(i)];
+  const a = TABLE[pick(i)];
   if (into <= STRETCH - BLEND) return a;
-  const b = TABLE[landIndex(i + 1)];
+  const b = TABLE[pick(i + 1)];
   const t = smooth((into - (STRETCH - BLEND)) / BLEND);
   return a.map((v, k) => v + (b[k] - v) * t);
 }
 
+/** The lands a river runs right through, so a flight down the river never comes to its end. */
+export const RIVER_LANDS = LANDS.filter((l) => l.river >= 0.5).map((l) => l.name);
+
 /** The table for the route from `start` on: COLS columns, ROWS rows, four bytes each. */
-export function strip(start: number, only?: number): Uint8Array {
+export function strip(start: number, only?: number | readonly number[]): Uint8Array {
   const data = new Uint8Array(COLS * ROWS * 4);
   for (let c = 0; c < COLS; c++) {
     const v = landAt(start + c / PER_UNIT, only);

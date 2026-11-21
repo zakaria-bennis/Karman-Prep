@@ -95,6 +95,12 @@ He said "do water", and asked again that nothing look glassy.
 
 1. ~~The alpine valley, finished in his look~~ (round two, above).
 2. ~~Water~~ (round three, above).
+   - **The Endless quiz's picture** (he said "Both, quiz first", 2026-11-21): the engine can now fly down a
+     river (`world.river`: how high above the water, and the tilt; `RIVER_LANDS` in `world.ts` lists the
+     lands that have one). Three views filmed for him in the Endless card's window, with the ∞ sign: A on
+     the water, B down the river, C from high above. Waiting for his pick. The Endless start page lives on
+     PR 307's branch, so it gets the chosen view once both branches meet. Houses now stand only on gentle
+     ground (on a steep side they smeared into white streaks).
 3. **The night sky:** the moon with its phase, stars with colour, the northern lights.
 4. **Each land in turn,** with its own life and its own real textures and trees (broadleaf trees, palms
    and bamboo from Poly Haven models, rendered in Blender the same way). A first list to agree with him:

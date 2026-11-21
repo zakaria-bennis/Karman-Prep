@@ -406,18 +406,25 @@ void main() {
 #ifdef WORLD
   /* fly on and on, low enough to see the trees and the houses, rising and sinking a little */
   z = uWorld; alt = .11 + .07 * n2(vec2(z * .21, 5.)); tilt = -.11;
+  /* or down the river (Endless mode's picture): at its own height above the water, following each bend */
+  if (uView.x > .5) { alt = uView.y + .012 * n2(vec2(z * .21, 5.)); tilt = uView.z; }
 #endif
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
 #ifdef WORLD
-  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ro.xz + vec2(0., .2))) + .075, .06));
+  ro.x += (riverX(z) - pathX(z)) * uView.x;
+  vec2 ahead = vec2(mix(ro.x, riverX(z + .2), uView.x), z + .2);
+  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ahead)) + mix(.075, .02, uView.x), mix(.06, .012, uView.x)));
   EYE = ro;
 #else
   ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
 #endif
   float zt = z + 1.3;
   vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + tilt, zt);
+#ifdef WORLD
+  ta.x += (riverX(zt) - pathX(zt)) * uView.x;
+#endif
   vec3 ww = normalize(ta - ro), uu = normalize(cross(vec3(0., 1., 0.), ww)), vv = cross(ww, uu);
   vec2 uv = (gl_FragCoord.xy * 2. - uRes) / uRes.y;
   /* a tall phone sees the same width of land as a wide screen sees height */

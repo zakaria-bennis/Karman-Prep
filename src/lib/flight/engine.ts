@@ -52,8 +52,19 @@ export interface FlightOptions {
   /** The portals' endless world (world.ts) instead of the site's fixed route. The camera flies on by
    *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
-   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
-  world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
+   *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built.
+   *  `lands` keeps the route to those lands alone. `river` flies down the river instead of the valley's
+   *  middle, `height` above the water, looking `tilt` up or down (Endless mode's picture). */
+  world?:
+    | boolean
+    | {
+        from?: number;
+        land?: string;
+        lands?: readonly string[];
+        settled?: number;
+        speed?: number;
+        river?: { height: number; tilt: number };
+      };
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -113,7 +124,8 @@ export class Flight {
     | "uLand"
     | "uStrip"
     | "uSun"
-    | "uTex",
+    | "uTex"
+    | "uView",
     WebGLUniformLocation | null
   > = {
     uRes: null,
@@ -127,6 +139,7 @@ export class Flight {
     uStrip: null,
     uSun: null,
     uTex: null,
+    uView: null,
   };
   /** The endless world: how far the camera had flown when this page opened, the stretch of route now in
    *  the land table, and when the sky began to settle and from where. */
@@ -456,7 +469,11 @@ export class Flight {
     const lap = Math.floor(d / WRAP) * WRAP;
     const start = Math.floor(d) - BEHIND;
     if (start !== this.stripAt) {
-      const only = opt.land ? LANDS.findIndex((l) => l.name === opt.land) : -1;
+      const held = opt.land ? LANDS.findIndex((l) => l.name === opt.land) : -1;
+      const some = opt.lands
+        ?.map((n) => LANDS.findIndex((l) => l.name === n))
+        .filter((i) => i >= 0);
+      const only = held >= 0 ? held : some?.length ? some : undefined;
       gl.activeTexture(gl.TEXTURE1);
       gl.texImage2D(
         gl.TEXTURE_2D,
@@ -467,7 +484,7 @@ export class Flight {
         0,
         gl.RGBA,
         gl.UNSIGNED_BYTE,
-        strip(start, only < 0 ? undefined : only)
+        strip(start, only)
       );
       gl.activeTexture(gl.TEXTURE0);
       this.stripAt = start;
@@ -499,6 +516,9 @@ export class Flight {
     }
     this.sun = sun;
     gl.uniform2f(this.uniforms.uSun, this.sun[0], this.sun[1]);
+    /* down the river, or along the valley's middle */
+    const r = opt.river;
+    gl.uniform3f(this.uniforms.uView, r ? 1 : 0, r?.height ?? 0, r?.tilt ?? 0);
   }
 
   /** Every so often, time one picture and draw softer or sharper to suit the device. */

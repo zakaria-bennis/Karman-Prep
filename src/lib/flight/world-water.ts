@@ -121,7 +121,7 @@ vec3 sea(vec3 p, vec3 rd, float tw, float jit) {
   /* foam: surf running up the beaches in lines, the open sea breaking white in a wind, a river along its banks */
   float surf = mix(.0012, .009, rough), lace = smoothstep(.42, .72, wav(w * 70. + WIND * T * .05).z);
   float runIn = fract(depth / surf * 1.6 + T * .2 + .35 * n2(w * 16.));
-  float foam = smoothstep(surf, 0., depth) * (smoothstep(.72, .97, runIn) * lace + smoothstep(surf * .3, 0., depth));
+  float foam = smoothstep(surf, 0., depth) * (smoothstep(.72, .97, runIn) * lace + smoothstep(surf * .3, 0., depth) * mix(1., lace, inRiver));
   foam += smoothstep(.62, .86, crest) * smoothstep(.45, 1., rough) * slick * smoothstep(.3, .6, lace) * .8;
   foam += inRiver * (smoothstep(.72, .92, crest) * .35 + smoothstep(.006, .0, depth) * .6) * lace;
   foam = clamp(foam, 0., 1.) * (1. - ice);
