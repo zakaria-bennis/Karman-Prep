@@ -4,7 +4,7 @@
 // sunlight and shade, trees, meadows in flower, water, in a window of its own (founder, 2026-11-20:
 // "photorealistic light and more intricate details in the flora and fauna", no drawn eclipse of a
 // moon). A different land every day, dealt from the date, from the greenest ones; day or night follows
-// the portal's light like the landscape behind every page. It drifts slowly on; held still when less
+// the portal's light: full day in light mode, just after sunset in dark mode. It drifts slowly on; held still when less
 // motion is asked for. A browser that cannot draw it keeps the window's plain glass.
 import { useEffect, useRef } from "react";
 import { prefersStill } from "@/lib/painting/motion";
@@ -37,15 +37,26 @@ export function DailyWorld({ day }: { day: Date }) {
     let gone = false;
     void import("@/lib/flight/engine").then(({ Flight }) => {
       if (gone) return;
+      const dark = () => root.getAttribute("data-kp-mode") === "dark";
+      // light mode shows full day; dark mode shows the sun just set (founder, 2026-11-20)
+      const world = {
+        land: LANDS[seed % LANDS.length],
+        from: 40 + (seed % 89) * 5,
+        speed: 0.8,
+        settled: dark() ? 0.15 : 1,
+      };
       const flight = new Flight(el, {
         still: prefersStill,
-        night: () => root.getAttribute("data-kp-mode") === "dark",
-        world: { land: LANDS[seed % LANDS.length], from: 40 + (seed % 89) * 5, speed: 0.8 },
+        night: dark,
+        world,
         keep: false,
         onReady: () => el.setAttribute("data-painted", ""),
       });
       if (!flight.start()) return;
-      const mode = new MutationObserver(() => flight.wake());
+      const mode = new MutationObserver(() => {
+        world.settled = dark() ? 0.15 : 1;
+        flight.wake();
+      });
       mode.observe(root, { attributes: true, attributeFilter: ["data-kp-mode"] });
       dispose = () => {
         mode.disconnect();

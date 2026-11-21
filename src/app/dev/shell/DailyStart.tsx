@@ -6,13 +6,12 @@
 //   Today   today's land, live (DailyWorld.tsx), with the student's own character in its middle, dressed
 //           as they have it, greeting them; the greeting and the date; and the streak, in a card of
 //           its own under them.
-//   Mix     today's ten: ten slots, Reading and Writing in a soft red and Math in blue, breathing in
-//           a wave across; the skills they come from, each with Karman showing where the student
+//   Mix     today's ten: the skills they come from, each with Karman showing where the student
 //           stands on it (ten different skills still fit); then one green Start.
 // Never skipped, and nothing starts until Start is pressed. Everything is a stand-in: no student
 // data is read yet.
 import gsap from "gsap";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { prefersStill } from "@/lib/painting/motion";
 import { TailsMark } from "../end-options/TailsStage";
 import go from "../end-options/parts.module.css";
@@ -82,19 +81,6 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
         { y: 16, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, ease: "power3.out", stagger: 0.07 }
       );
-      // the ten pop in (then breathe in a wave across them: dailyStart.module.css)
-      gsap.fromTo(
-        "[data-slot]",
-        { scale: 0, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.4,
-          ease: "back.out(3)",
-          stagger: 0.05,
-          delay: 0.3,
-        }
-      );
       gsap.fromTo(
         "[data-pick]",
         { x: 18, opacity: 0 },
@@ -114,9 +100,6 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
     }, el);
     return () => ctx.revert();
   }, []);
-  const slots = MIX.flatMap((m) =>
-    m.picks.flatMap((p) => Array.from({ length: p.n }, () => m.key))
-  );
   return (
     <div ref={ref} className={`${lib.library} ${styles.page}`}>
       <div className={styles.left}>
@@ -153,13 +136,6 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
 
       <section className={`${lib.glass} ${styles.mix}`} data-rise>
         <h2>Today&rsquo;s ten</h2>
-        <p className={styles.slots} aria-hidden="true">
-          {slots.map((key, i) => (
-            <i key={i} data-slot data-key={key} style={{ "--i": i } as CSSProperties}>
-              {i + 1}
-            </i>
-          ))}
-        </p>
         <div className={styles.groups}>
           {MIX.map((m) => (
             <div key={m.key} className={styles.group} data-key={m.key}>
