@@ -14,7 +14,7 @@
 // the new ones sweep out one after another, each with a rush of air, its tip catching fire as it
 // lands. When the last is out it is complete: a burst of light, a hop, and he settles into his sway.
 import gsap from "gsap";
-import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useRef } from "react";
 import { prefersStill } from "@/lib/painting/motion";
 import {
   BOX,
@@ -37,9 +37,6 @@ import { lightFox, type FoxState } from "./foxLight";
 import { FOXFIRE, GOLD, ICE, WARM, WHITE, stageFx, type Fx, type Light } from "./stageFx";
 import { gather, swish } from "./stageSound";
 import t from "./tailsStage.module.css";
-
-/** Whether the top stage has a thin gold ring behind him as well as its glow (page.tsx, ?ring=0). */
-export const AuraRing = createContext(true);
 
 function stateOf(level: number): FoxState {
   return {
@@ -110,7 +107,6 @@ export function TailsStage({
   size?: number;
   onPeak?: () => void;
 }) {
-  const ring = useContext(AuraRing);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const svg = useRef<SVGSVGElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -476,12 +472,7 @@ export function TailsStage({
   const startState = stateOf(from);
   return (
     <div className={t.stage} style={{ width: size, height: size }}>
-      <div
-        className={t.aura}
-        ref={aura}
-        data-on={from === 3 || undefined}
-        data-ring={ring || undefined}
-      />
+      <div className={t.aura} ref={aura} data-on={from === 3 || undefined} />
       <svg
         ref={svg}
         viewBox={BOX.join(" ")}

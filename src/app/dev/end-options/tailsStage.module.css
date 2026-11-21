@@ -21,7 +21,7 @@
   pointer-events: none;
 }
 
-/* behind him at the top: a soft gold halo, and (unless ?ring=0) a thin ring of light */
+/* behind him at the top: a soft gold halo, with no ring round it (founder, 2026-11-20) */
 .aura {
   position: absolute;
   inset: 4%;
@@ -34,17 +34,6 @@
   );
   opacity: 0;
   pointer-events: none;
-}
-
-.aura[data-ring] {
-  background:
-    radial-gradient(
-      circle,
-      rgb(255 214 120 / 0.42) 0%,
-      rgb(255 190 80 / 0.16) 45%,
-      transparent 68%
-    ),
-    radial-gradient(circle, transparent 60%, rgb(255 220 140 / 0.55) 62.5%, transparent 65%);
 }
 
 .aura[data-on] {
