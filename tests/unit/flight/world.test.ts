@@ -47,6 +47,14 @@ describe("the portals' endless world", () => {
       for (const v of landAt(0, LANDS.indexOf(l))) expect(v).toBeLessThanOrEqual(1);
   });
 
+  it("runs rivers through the inland lands, and the open sea is the roughest water", () => {
+    const rivers = LANDS.filter((l) => l.river > 0);
+    expect(rivers.length).toBeGreaterThanOrEqual(10);
+    for (const l of rivers) expect(l.lift).toBeGreaterThan(-0.08);
+    const sea = LANDS.find((l) => l.name === "ocean-islands");
+    for (const l of LANDS) expect(l.waves).toBeLessThanOrEqual(sea?.waves ?? 0);
+  });
+
   it("opens light mode at dawn and dark mode late in the sunset, then settles", () => {
     expect(sunAt(false, 0)[0]).toBeLessThan(5);
     expect(sunAt(false, 1)[0]).toBeGreaterThan(20);

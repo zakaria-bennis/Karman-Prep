@@ -11,17 +11,15 @@
 // lying in the valley drains away, and the camera sinks a little to its place; at night the northern lights
 // surge instead.
 import {
-  WORLD_AFLOAT,
   WORLD_AIR,
   WORLD_ALBEDO,
   WORLD_BUILT,
   WORLD_LIFE,
   WORLD_LIGHT,
-  WORLD_MIRROR,
   WORLD_TERRAIN,
-  WORLD_WATER,
 } from "./world-glsl";
 import { WORLD_TEX } from "./world-tex";
+import { WORLD_SEA } from "./world-water";
 
 export const VERT = `attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 
@@ -353,6 +351,10 @@ vec3 haze(vec3 col, vec3 p, vec3 rd, float t) {
   return mix(col, fogc * 1.08 + KEYCOL * .05, mist * mix(mix(.38, .62, max(LOW, NIGHT)), .985, XM));
 }
 
+#ifdef WORLD
+${WORLD_SEA}
+#endif
+
 void main() {
   float P = clamp(uP, 0., 1.);
   /* an opening: e runs 0 to 1, eased; left = how much of it is still to play */
@@ -466,12 +468,11 @@ void main() {
   } else if (tw < tmax) {
     /* water: ripples that move, the sky and the far shore mirrored in it, the sun's path, foam at the edge */
     vec3 p = ro + rd * tw;
+#ifdef WORLD
+    col = sea(p, rd, tw, jit);
+#else
     vec2 w = p.xz;
     float amp = .16 / (1. + tw * 2.2);
-#ifdef WORLD
-    /* the wind ruffles the water in patches and leaves the rest a calm mirror */
-    amp *= mix(.2, 1.5, smoothstep(.32, .68, n2(w * 2.6 + uTime * .015)));
-#endif
     vec3 nw = normalize(vec3(
       (n2(w * 70. + uTime * .5) - .5 + .5 * (n2(w * 170. - uTime * .9) - .5)) * amp, 1.,
       (n2(w * 70. + 9. - uTime * .4) - .5 + .5 * (n2(w * 170. + 5. + uTime * .7) - .5)) * amp));
@@ -487,42 +488,22 @@ void main() {
     }
     if (rhit > 0.) {
       vec3 q = p + rr * rhit;
-#ifdef WORLD
-${WORLD_MIRROR}
-#else
       vec3 land = mix(vec3(.02, .045, .022), vec3(.14, .125, .11), smoothstep(.45, .8, q.y));
       land = mix(land, vec3(.7, .75, .82), smoothstep(.78, .95, q.y)) * (KEYCOL * .9 + AMB * .6);
-#endif
       refl = haze(land, q, rr, rhit + tw);
     } else {
       vec4 cr = clouds(p, rr, 9., jit);
       refl = refl * (1. - cr.a) + cr.rgb;
     }
     float fres = .025 + .975 * pow(1. - max(dot(-rd, nw), 0.), 5.);
-#ifdef WORLD
-    /* clear water over pale sand shows its own colour more than the sky */
-    fres *= 1. - .6 * land(p.z, 8.).a * smoothstep(.12, .0, -terrL(w));
-#endif
     float depth = -terrL(w);
-#ifdef WORLD
-${WORLD_WATER}
-    /* ice: a frozen lake, pale and dull, with long cracks; it mirrors much less */
-    float crack = smoothstep(.03, .0, abs(n2(w * 9.) - .5)) + .6 * smoothstep(.02, .0, abs(n2(w * 23. + 4.) - .5));
-    vec3 frozen = mix(vec3(.62, .72, .8), vec3(.3, .44, .56), clamp(crack, 0., 1.)) * (AMB * .9 + KEYCOL * .7);
-    col = mix(mix(body, refl, fres), mix(frozen, refl, fres * .35), ice);
-#else
     float ice = 0.;
     vec3 body = mix(vec3(.05, .2, .19), vec3(.008, .04, .07), smoothstep(0., .07, depth)) * (AMB * 1.3 + KEYCOL * .5);
     body = mix(vec3(.36, .31, .22) * (AMB * .7 + KEYCOL), body, smoothstep(0., .014, depth));
     col = mix(body, refl, fres);
-#endif
     col += SUNCOL * pow(max(dot(rr, SUN), 0.), 520.) * 5. + NIGHT * vec3(.5, .6, .8) * pow(max(dot(rr, MOON), 0.), 700.) * 1.2;
     float edge = depth + .0025 * sin(uTime * 1.2 + n2(w * 30.) * 6.3);
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
-#ifdef WORLD
-    /* by night the sea shines blue where it breaks on the shore, and in patches where it is stirred */
-    col += NIGHT * vec3(.08, .55, .8) * (smoothstep(.012, .0, edge) * .7 * smoothstep(.0, .03, max(depth, -terrL(w + vec2(0., .05)))) + .05 * smoothstep(.6, .8, n2(w * 9. + uTime * .05)) * smoothstep(.1, .0, depth)) * (1. - ice);
-#endif
     /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
     vec2 bg = w * 8., bid = floor(bg);
     vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
@@ -533,8 +514,6 @@ ${WORLD_WATER}
     col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
     col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
     col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
-#ifdef WORLD
-${WORLD_AFLOAT}
 #endif
     col = haze(col, p, rd, tw);
     tend = tw;

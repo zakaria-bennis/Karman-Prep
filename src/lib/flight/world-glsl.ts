@@ -21,6 +21,10 @@ void landHere(float z) {
   G2 = land(z, 2.); G3 = land(z, 3.); G4 = land(z, 4.); G5 = land(z, 5.); G6 = land(z, 6.);
   G7 = land(z, 7.); G8 = land(z, 8.); G9 = land(z, 9.); G10 = land(z, 10.);
 }
+/* where the river runs: it winds along the valley floor, swinging under the flight and back; and how
+   wide a river this land has (0 none) */
+float riverX(float z) { return pathX(z) + .07 * sin(z * 2.3 + 1.) + .03 * sin(z * 5.1); }
+float riverAt(float z) { return land(z, 11.).x; }
 float shape(vec2 x, float a) {
   float z = x.y;
   vec4 l0 = land(z, 0.), l1 = land(z, 1.);
@@ -36,6 +40,15 @@ float shape(vec2 x, float a) {
   h += l0.z * .5 - .25;
   /* steps: mesas, canyon walls, sheer cliffs, terraced fields */
   if (l1.x > .01) { float s = h * 6. + .3 * m, fl = floor(s); h = mix(h, (fl + smoothstep(.7, .96, s - fl) - .3 * m) / 6., l1.x); }
+  /* a river (founder, 2026-11-21): the valley floor comes down to a flat plain beside it, as a river
+     valley's does, and the river runs across the plain in its own low banks */
+  float rv = riverAt(z);
+  if (rv > .01) {
+    float d = abs(x.x - riverX(z)), wide = .014 + .016 * rv, on = smoothstep(.01, .3, rv);
+    float rise = smoothstep(wide + .02, .45, d);
+    h = mix(h, mix(.004, h, rise * sqrt(rise)), on * step(.004, h));
+    h = mix(h, -.016 * smoothstep(wide + .02, wide * .5, d), smoothstep(wide + .02, wide, d) * on);
+  }
   return h;
 }
 `;
@@ -44,6 +57,8 @@ float shape(vec2 x, float a) {
 export const WORLD_BUILT = `
 float townAt(vec2 x, float h) {
   float d = land(x.y, 5.).a;
+  /* no village on a river's banks */
+  if (d > .02) d *= 1. - riverAt(x.y) * smoothstep(.26, .16, abs(x.x - riverX(x.y)));
   float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.5, .3, abs(x.x - pathX(x.y)));
   return level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
 }
@@ -139,9 +154,9 @@ export const WORLD_ALBEDO = `
   float rkH = .5, snH = .5;
   if (t < 3.5) {
     rkC = rock3(p, ng, 6.); rkN = TN; rkH = TH;
-    grC = flat2(uGrassC, uGrassN, p.xz, 14.); grN = TN;
-    snC = flat2(uSnowC, uSnowN, p.xz, 5.); snN = TN; snH = TH;
-    gdC = flat2(uGroundC, uGroundN, p.xz, 14.); gdN = TN;
+    grC = flat2(uGrass, uGrassN, p.xz, 14.); grN = TN;
+    snC = flat2(uSnow, uSnowN, p.xz, 5.); snN = TN; snH = TH;
+    gdC = flat2(uGround, uGroundN, p.xz, 14.); gdN = TN;
   }
   /* far off a wood is one soft canopy; near, each tree is itself */
   float canopy = band * flat1 * smoothstep(0., .55, G2.z);
@@ -183,7 +198,7 @@ export const WORLD_ALBEDO = `
     vec2 rt = normalize(vec2(vd.z, -vd.x));
     /* across: where the point is beside the trunk as the eye sees it; down: how far below the tip */
     vec2 suv = vec2((floor(wd.z * 4.) + .5 + .48 * clamp(dot(TRF.xy, rt), -1., 1.)) * .25, clamp(1. - (p.y - h) / max(TRF.z * band * TF, 1e-4), 0., 1.));
-    vec3 fc = texture2D(uTreeC, suv).rgb, fs = texture2D(uTreeN, suv).rgb;
+    vec3 fc = texture2D(uTree, suv).rgb, fs = texture2D(uTreeN, suv).rgb;
     boughs = smoothstep(.12, .6, fs.b);
     vec2 sn = fs.xy * 2. - 1.;
     fnw = normalize(vec3(rt.x, 0., rt.y) * sn.x + vec3(0., sn.y, 0.) - normalize(vec3(vd.x, 0., vd.z)) * sqrt(max(1. - dot(sn, sn), .05)));
@@ -218,7 +233,10 @@ export const WORLD_ALBEDO = `
   vec3 crop = pick < .4 ? G9.rgb : pick < .8 ? G10.rgb : .5 * (G9.rgb + G10.rgb) + vec3(.1, .08, .16);
   petal = mix(petal, crop * (.62 + .38 * mix(1., rows, FINE)), fields);
   alb = mix(alb, mix(grass, petal, .55 + .45 * r), bloom * .88);
-  alb = mix(alb, sand, smoothstep(.018 + .03 * G6.w, .004, h));
+  /* the shore: a beach of the land's sand (by a river only a narrow bank of gravel), dark and wet where
+     the water reaches, wider where the waves are bigger */
+  alb = mix(alb, sand, smoothstep(mix(.018 + .03 * G6.w, .0045, riverAt(p.z)), .0015, h));
+  alb *= mix(.6, 1., smoothstep(.0004, .0025 + .005 * land(p.z, 11.).y, h));
   /* no two fields the same green: the colour wanders warm and cool, and the brush shows */
   float wander = n2(p.xz * 2.3 + 40.), stroke = fbm(p.xz * 16. + 9.);
   alb *= mix(vec3(.8, .92, 1.1), vec3(1.18, 1.04, .8), wander) * (.9 + .2 * stroke);
@@ -235,26 +253,6 @@ export const WORLD_ALBEDO = `
   ao *= mix(1., .55 + .45 * wd.y, tree * TF);
 `;
 
-/** The colour of the water's body, with reefs and ice. Inside main(): p, w, depth are set; it sets body and ice. */
-export const WORLD_WATER = `
-    vec4 w8 = land(p.z, 8.), w7 = land(p.z, 7.);
-    float ice = land(p.z, 9.).a;
-    float clear = smoothstep(0., mix(.07, .2, w8.a), depth);
-    vec3 body = mix(w8.rgb, vec3(.008, .04, .07), clear) * (AMB * 1.3 + KEYCOL * .5);
-    /* a reef: beds of coral under clear shallow water */
-    float bed = w7.a * smoothstep(.1, .012, depth) * smoothstep(.46, .6, n2(w * 13. + 2.));
-    vec3 coral = mix(vec3(.5, .16, .2), vec3(.55, .32, .08), step(.5, n2(w * 37.)));
-    coral = mix(coral, vec3(.3, .16, .46), step(.74, n2(w * 29. + 8.)));
-    body = mix(body, coral * (.5 + .7 * n2(w * 90.)) * (AMB + KEYCOL * .8), bed * .8);
-    body = mix(w7.rgb * (AMB * .7 + KEYCOL), body, smoothstep(0., .014, depth));
-    /* fish: small dark shapes in shoals under the shallows, all swimming one way; a few are gold in clear water */
-    vec2 fg = w * 46. + vec2(uTime * .22, .12 * sin(uTime * .4 + w.x * 9.)), fid = floor(fg);
-    vec2 ff = fract(fg) - .5 - (vec2(tx(fid + 3.), tx(fid + 19.)) - .5) * .6;
-    float shoal = smoothstep(.5, .66, n2(w * 5. + vec2(uTime * .01, 4.)));
-    float fish = smoothstep(.16, .06, length(ff * vec2(1., 3.))) * step(.5, tx(fid + 47.)) * shoal * smoothstep(.004, .02, depth) * smoothstep(.16, .05, depth) * (1. - ice);
-    body = mix(body, mix(body * .22, vec3(.8, .3, .06) * (AMB + KEYCOL), step(.8, tx(fid + 61.)) * w8.a), fish * .85);
-`;
-
 /** The light on the ground, painted. Inside ground(): n, nm, sh, ao, alb, veg are set; it sets lin. */
 export const WORLD_LIGHT = `
   /* leaves and grass let light through, so they turn from light to shade slowly */
@@ -268,33 +266,6 @@ export const WORLD_LIGHT = `
   /* light thrown back up by the sunlit ground, and shade that leans to violet */
   lin += KEYCOL * (.1 + .1 * veg) * (1. - dif) * (.4 + .6 * sh);
   lin *= mix(vec3(1.), vec3(.84, .9, 1.22), (1. - dif) * VIOLET * DAY);
-`;
-
-/** What the water mirrors of the far shore. Inside main(): q (the point on the shore) is set; it sets land. */
-export const WORLD_MIRROR = `
-      vec4 m2 = land(q.z, 2.), m3 = land(q.z, 3.), m4 = land(q.z, 4.), m6 = land(q.z, 6.);
-      float mt = m2.x * 1.2, ms = m2.y * 1.5;
-      vec3 land = mix(m6.rgb * .8, mix(m3.rgb, m4.rgb * 1.7, m2.z), smoothstep(mt, mt - .16, q.y));
-      land = mix(land, vec3(.78, .83, .9), smoothstep(ms, ms + .12, q.y));
-      /* slopes that face the sun are bright in the mirror too */
-      float face = clamp(.6 + 9. * (q.y - terrL(q.xz + KEY.xz * .03)), .15, 1.3);
-      land *= KEYCOL * face * 1.5 + AMB * .6;
-`;
-
-/** Life on the water's surface. Inside main(): w, depth, ice, col are set. */
-export const WORLD_AFLOAT = `
-    /* swans near the shore, each trailing a wake, and the rings fish leave when they rise */
-    vec2 sg = w * 16. + vec2(uTime * .02, 0.), sid = floor(sg);
-    vec2 sf = fract(sg) - .5 - (vec2(tx(sid + 3.), tx(sid + 17.)) - .5) * .6;
-    float swan = step(.8, tx(sid + 43.)) * smoothstep(.004, .012, depth) * smoothstep(.1, .05, depth) * (1. - ice);
-    float bird = max(smoothstep(.07, .045, length(sf * vec2(1., 1.7))), smoothstep(.03, .015, length(sf - vec2(.07, 0.))));
-    float wake = smoothstep(.02, .0, abs(abs(sf.y) + (sf.x + .05) * .5)) * step(sf.x, -.05) * smoothstep(-.45, -.1, sf.x);
-    col += (AMB + KEYCOL) * .12 * wake * swan;
-    col = mix(col, vec3(.95, .94, .9) * (AMB * .9 + KEYCOL), bird * swan);
-    vec2 rg = w * 11., rid = floor(rg);
-    vec2 rf = fract(rg) - .5 - (vec2(tx(rid + 5.), tx(rid + 29.)) - .5) * .5;
-    float ph = fract(uTime * .11 + tx(rid + 13.));
-    col += (AMB + KEYCOL) * .1 * smoothstep(.02, .0, abs(length(rf) - ph * .35)) * (1. - ph) * step(.6, tx(rid + 37.)) * (1. - ice);
 `;
 
 /** The look, and the air: how sunlight and moonlight are coloured and scattered on their way through it.

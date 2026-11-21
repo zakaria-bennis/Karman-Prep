@@ -25,7 +25,7 @@ import {
   strip,
   sunAt,
 } from "./world";
-import { WORLD_PHOTOS, WORLD_PHOTO_DIR } from "./world-tex";
+import { WORLD_PHOTOS, WORLD_PHOTO_DIR, photoSampler } from "./world-tex";
 
 export type FlightLight = "dawn" | "day" | "sunset" | "night";
 
@@ -133,8 +133,8 @@ export class Flight {
   private flown = 3;
   private stripAt = Number.NaN;
   private landTex: WebGLTexture | null = null;
-  /** The world's photographs (world-tex.ts): each one's colour and tilt, as images and as textures, and
-   *  when the last of them arrived, so they fade in. */
+  /** The world's photographs (world-tex.ts), as images and as textures, and when the last of them
+   *  arrived, so they fade in. */
   private photos: HTMLImageElement[] = [];
   private photoTex: WebGLTexture[] = [];
   private photosAt = -1;
@@ -328,22 +328,18 @@ export class Flight {
       /* the world's photographs, from unit 2 on: one plain pixel each until they arrive (the land's own
          colour, lying flat); a device with too few units keeps the plain world */
       this.photoTex = [];
-      if ((gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) as number) >= 2 + WORLD_PHOTOS.length * 2) {
-        WORLD_PHOTOS.forEach((name, i) => {
-          for (const k of [0, 1]) {
-            const at = i * 2 + k;
-            const tex = gl.createTexture();
-            if (!tex) continue;
-            this.photoTex[at] = tex;
-            gl.activeTexture(gl.TEXTURE2 + at);
-            gl.bindTexture(gl.TEXTURE_2D, tex);
-            const plain = new Uint8Array([128, 128, 128]);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, plain);
-            const sampler = `u${name[0].toUpperCase()}${name.slice(1)}${k ? "N" : "C"}`;
-            gl.uniform1i(gl.getUniformLocation(prog, sampler), 2 + at);
-            const img = this.photos[at];
-            if (img?.complete && img.naturalWidth) this.upload(gl, at, img);
-          }
+      if ((gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) as number) >= 2 + WORLD_PHOTOS.length) {
+        WORLD_PHOTOS.forEach((name, at) => {
+          const tex = gl.createTexture();
+          if (!tex) return;
+          this.photoTex[at] = tex;
+          gl.activeTexture(gl.TEXTURE2 + at);
+          gl.bindTexture(gl.TEXTURE_2D, tex);
+          const plain = new Uint8Array([128, 128, 128]);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, plain);
+          gl.uniform1i(gl.getUniformLocation(prog, photoSampler(name)), 2 + at);
+          const img = this.photos[at];
+          if (img?.complete && img.naturalWidth) this.upload(gl, at, img);
         });
         gl.activeTexture(gl.TEXTURE0);
         if (!this.photos.length) this.loadPhotos();
@@ -355,22 +351,20 @@ export class Flight {
 
   /** Fetches the world's photographs, quietly, after the first picture; once all have arrived they fade in. */
   private loadPhotos() {
-    let left = WORLD_PHOTOS.length * 2;
-    WORLD_PHOTOS.forEach((name, i) => {
-      ["", "-n"].forEach((kind, k) => {
-        const img = new Image();
-        img.decoding = "async";
-        img.onload = () => {
-          const gl = this.gl;
-          if (gl && !gl.isContextLost()) this.upload(gl, i * 2 + k, img);
-          if (--left > 0) return;
-          this.photosAt = performance.now();
-          this.shown = { p: -1, night: -1 };
-          this.wake();
-        };
-        img.src = `${WORLD_PHOTO_DIR}${name}${kind}.jpg`;
-        this.photos[i * 2 + k] = img;
-      });
+    let left = WORLD_PHOTOS.length;
+    WORLD_PHOTOS.forEach((name, at) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        const gl = this.gl;
+        if (gl && !gl.isContextLost()) this.upload(gl, at, img);
+        if (--left > 0) return;
+        this.photosAt = performance.now();
+        this.shown = { p: -1, night: -1 };
+        this.wake();
+      };
+      img.src = `${WORLD_PHOTO_DIR}${name}.jpg`;
+      this.photos[at] = img;
     });
   }
 

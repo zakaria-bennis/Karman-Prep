@@ -71,12 +71,30 @@ to look "plasticky".
 How to make them again: `scripts/dev/world-textures.mjs` (the ground) and `scripts/dev/blender/` (the
 firs). Sources and licences: `public/site/world/README.md`.
 
+## Round three: water (rivers, lakes, the sea)
+
+He said "do water", and asked again that nothing look glassy.
+
+- **Real waves.** The sea's surface is built the way oceanographers model a wind sea (a JONSWAP spectrum
+  and a Fourier transform, `scripts/dev/world-waves.mjs`), laid at three sizes: swell, chop and ripples,
+  each moving at its own real speed, so long swells outrun short chop.
+- **A mirror broken by the waves.** The sky and the shore are mirrored through the waves; the rougher and
+  farther the water, the softer the mirror. Sunlight glitters on each wave facet and, far off, the
+  glints merge into the sun's path. At dusk the path is orange; at night the moon has one.
+- **Water you see into.** Water swallows red light first, then green: clear shallows over sand are
+  turquoise, deep water takes the land's own water colour (turquoise lagoon, teal fjord, green lake), and
+  murky water hides its bed. In clear water the light the waves focus dances on the bed.
+- **Foam.** Surf runs up the beaches in lines (wider where the sea is rougher), the open sea breaks white
+  in a wind, a river foams at its banks; the sand is dark and wet where the water reaches.
+- **Rivers.** Most inland lands now have a river winding down the valley floor, swinging under the flight
+  and back. The valley floor comes down to a green plain beside it, with a narrow gravel bank; villages
+  keep off the banks. The water streams down the valley. Bamboo forest has its river among the towers.
+- Each land says how rough its water is and how wide its river (`world.ts`: `waves`, `river`).
+
 ## Next, one thing at a time
 
 1. ~~The alpine valley, finished in his look~~ (round two, above).
-2. **Water:** rivers, lakes and the ocean, with real reflections that are not glassy: a real water
-   surface texture, ripples that break the mirror, foam and spray. The endless river picture needs this,
-   so it comes first.
+2. ~~Water~~ (round three, above).
 3. **The night sky:** the moon with its phase, stars with colour, the northern lights.
 4. **Each land in turn,** with its own life and its own real textures and trees (broadleaf trees, palms
    and bamboo from Poly Haven models, rendered in Blender the same way). A first list to agree with him:
@@ -97,8 +115,9 @@ firs). Sources and licences: `public/site/world/README.md`.
 
 Measured on the same computer at the same picture size (620,000 pixels): the world on `main` takes about
 26 ms a picture; round one took about 33 ms; round two about 31 ms (the photographs cost almost nothing;
-the old painted tiers were removed). The engine lowers its sharpness by itself on a slow device, so on a
-phone the picture stays smooth and is a little softer. The photographs add about 1.2 MB, fetched after the
+the old painted tiers were removed). Round three: about 31 ms over the fjord, 20 ms over the open sea, and
+34 ms down a river valley (more water to mirror, and a lower view). The engine lowers its sharpness by itself on a slow device, so on a
+phone the picture stays smooth and is a little softer. The photographs and the waves add about 1.4 MB, fetched after the
 first picture and kept by the browser for a day.
 
 ## How changes are shown

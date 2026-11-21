@@ -6,19 +6,38 @@
 // ledges, boughs) without changing what colour the land is. Until they arrive, every one is a single plain
 // pixel and the world is drawn as before.
 
-/** The photographs, in the order their textures are bound (unit 2 onward: each one's colour, then its
- *  tilt). Each has a colour sampler u<Name>C and a tilt sampler u<Name>N below. */
-export const WORLD_PHOTOS = ["rock", "grass", "snow", "ground", "tree"] as const;
+/** The photographs' files, in the order their textures are bound (unit 2 onward): each land photograph's
+ *  colour, then its tilt (-n); then the sea's surface (world-water.ts). */
+export const WORLD_PHOTOS = [
+  "rock",
+  "rock-n",
+  "grass",
+  "grass-n",
+  "snow",
+  "snow-n",
+  "ground",
+  "ground-n",
+  "tree",
+  "tree-n",
+  "waves",
+] as const;
+
+/** The shader's sampler for a photograph's file: rock is uRock, rock-n is uRockN. */
+export const photoSampler = (name: string) =>
+  `u${name
+    .split("-")
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join("")}`;
 
 /** Where they are served from (public/site/world/). */
 export const WORLD_PHOTO_DIR = "/site/world/";
 
 /** The samplers, and how to read a photograph. Goes in before ground(). */
 export const WORLD_TEX = `
-uniform sampler2D uRockC, uRockN, uGrassC, uGrassN, uSnowC, uSnowN, uGroundC, uGroundN;
+uniform sampler2D uRock, uRockN, uGrass, uGrassN, uSnow, uSnowN, uGround, uGroundN;
 /* the firs: four trees side by side, each from its tip (top) to the foot of its crown; tilt in red and
    green (across, up), and in blue how much of the tree is there */
-uniform sampler2D uTreeC, uTreeN;
+uniform sampler2D uTree, uTreeN;
 uniform float uTex;   /* 0 until the photographs have arrived, then 1 */
 vec3 EYE;             /* where the eye is */
 /* a photograph's colour, as a ratio to its own average: 1 is the land's own colour */
@@ -54,9 +73,9 @@ vec3 rock3(vec3 p, vec3 n, float s) {
   vec2 ty = vec2(ma.x, -ma.y) + .6 * vec2(mb.x, -mb.y) * M2;
   TN = (vec3(0., mx.y, mx.x) * w.x + vec3(ty.x, 0., ty.y) * w.y + vec3(mz.x, mz.y, 0.) * w.z) * uTex;
   TH = .5 + .6 * (mx.z * w.x + (ma.z + .6 * mb.z) * w.y + mz.z * w.z) * uTex;
-  vec3 cx = ratio(texture2D(uRockC, ux).rgb) * mix(vec3(1.), ratio(texture2D(uRockC, vx).rgb), .6);
-  vec3 cy = ratio(texture2D(uRockC, uy).rgb) * mix(vec3(1.), ratio(texture2D(uRockC, vy).rgb), .6);
-  vec3 cz = ratio(texture2D(uRockC, uz).rgb) * mix(vec3(1.), ratio(texture2D(uRockC, vz).rgb), .6);
+  vec3 cx = ratio(texture2D(uRock, ux).rgb) * mix(vec3(1.), ratio(texture2D(uRock, vx).rgb), .6);
+  vec3 cy = ratio(texture2D(uRock, uy).rgb) * mix(vec3(1.), ratio(texture2D(uRock, vy).rgb), .6);
+  vec3 cz = ratio(texture2D(uRock, uz).rgb) * mix(vec3(1.), ratio(texture2D(uRock, vz).rgb), .6);
   return cx * w.x + cy * w.y + cz * w.z;
 }
 `;
