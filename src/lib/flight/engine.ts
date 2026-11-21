@@ -53,6 +53,9 @@ export interface FlightOptions {
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
    *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built. */
   world?: boolean | { from?: number; land?: string; settled?: number; speed?: number };
+  /** False for a second, small view of the world (the Daily 10's picture): it does not remember how
+   *  far it flew, so the page's own landscape carries on from where it was. */
+  keep?: boolean;
   /** The first picture is on the canvas. */
   onReady?: () => void;
   /** The light now on screen, for the page's own colours. */
@@ -355,6 +358,7 @@ export class Flight {
 
   /** Remembers how far this tab has flown, so the next portal page carries on from there. */
   private keep() {
+    if (this.o.keep === false) return;
     try {
       sessionStorage.setItem(FLOWN_KEY, String(this.flown));
     } catch {

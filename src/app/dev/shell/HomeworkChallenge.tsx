@@ -7,7 +7,8 @@
 //                    same row, with its own look, until it is done.
 // Coins are not spoken of here: they appear only on Rewards.
 import gsap from "gsap";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { PlayQuiz, type Made } from "../end-options/PlayQuiz";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";
 import styles from "./homeworkChallenge.module.css";
@@ -28,14 +29,107 @@ function Mark({ size }: { size: number }) {
   );
 }
 
+/** Today's two (stand-ins): one Reading and Writing question and one Math question. */
+const TODAY: Made[] = [
+  {
+    subject: "reading_writing",
+    text: "The scientist's early results were promising; ______, she repeated the experiment twice before publishing. Which choice completes the text with the most logical transition?",
+    choices: ["nevertheless", "for example", "similarly", "in addition"],
+    right: 0,
+    why: "Promising results might make someone publish at once. She repeated it anyway, so the link is contrast: nevertheless.",
+  },
+  {
+    subject: "math",
+    text: "If 3(x − 4) = 2x + 5, what is the value of x?",
+    choices: ["9", "13", "17", "21"],
+    right: 2,
+    why: "3x − 12 = 2x + 5, so x = 17.",
+  },
+];
+
 export function ChallengeBanner({
   onStart,
   onLater,
+  now = false,
 }: {
+  /** The two questions are finished. */
   onStart: () => void;
   onLater: () => void;
+  /** Go straight in, as Take it on does (the small card's Start). */
+  now?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const quiz = useRef<HTMLDivElement>(null);
+  /** Taken on: the card fills the screen, Karman speeds off to the right, and the quiz comes in from
+   *  the left until it covers everything (founder, 2026-11-21). */
+  const [going, setGoing] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!going || !el) return;
+    const root = document.documentElement;
+    root.setAttribute("data-quiz-up", "");
+    const down = () => root.removeAttribute("data-quiz-up");
+    if (calm()) {
+      gsap.set(quiz.current, { visibility: "visible" });
+      return down;
+    }
+    const card = el.querySelector<HTMLElement>("[data-card]");
+    const flyer = el.querySelector<HTMLElement>('[class*="flyer"]');
+    // the city and the wind rush by faster and faster
+    const rushing = card?.getAnimations({ subtree: true }) ?? [];
+    const speed = { k: 1 };
+    const tl = gsap
+      .timeline()
+      .to(el.querySelectorAll("[data-rise]"), { opacity: 0, y: -10, duration: 0.2 })
+      .to(
+        card,
+        {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          borderRadius: 0,
+          "--h": `${window.innerHeight}px`,
+          duration: 0.6,
+          ease: "power3.inOut",
+        },
+        0
+      )
+      .to(el, { padding: 0, duration: 0.6, ease: "power3.inOut" }, 0)
+      .to(
+        speed,
+        {
+          k: 6,
+          duration: 1.2,
+          ease: "power2.in",
+          onUpdate: () => rushing.forEach((a) => (a.playbackRate = speed.k)),
+        },
+        0.1
+      )
+      // once he is gone the city keeps going behind the glass, at an easy pace
+      .to(
+        speed,
+        {
+          k: 1.5,
+          duration: 1.2,
+          ease: "power2.out",
+          onUpdate: () => rushing.forEach((a) => (a.playbackRate = speed.k)),
+        },
+        1.4
+      )
+      .to(flyer, { left: "140%", duration: 0.75, ease: "power3.in" }, 0.2)
+      .fromTo(
+        quiz.current,
+        { x: "-100%", visibility: "visible" },
+        { x: 0, duration: 0.85, ease: "power3.inOut" },
+        0.75
+      );
+    return () => {
+      tl.kill();
+      down();
+    };
+  }, [going]);
+  useEffect(() => {
+    if (now) setGoing(true);
+  }, [now]);
   // it arrives: the dark comes up, the card springs in, and its pieces follow one after another
   useEffect(() => {
     const el = ref.current;
@@ -61,7 +155,7 @@ export function ChallengeBanner({
   }, []);
   // Escape sends it away, as Later does
   useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && leave(onLater);
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !quiz.current && leave(onLater);
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,6 +175,7 @@ export function ChallengeBanner({
     <div
       ref={ref}
       className={styles.screen}
+      data-going={going || undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Today's challenge question"
@@ -90,7 +185,7 @@ export function ChallengeBanner({
         <span className={styles.shade} aria-hidden="true" />
         {/* the words stand in the sky at the top, and the choice at the foot, over the rooftops */}
         <h2 data-rise>Challenge question</h2>
-        <p data-rise>One hard question a day. This one is waiting.</p>
+        <p data-rise>One Reading question and one Math question, every day.</p>
         <span className={styles.room} />
         <p className={styles.streak} data-rise>
           <b>{STREAK}</b> days in a row
@@ -102,7 +197,7 @@ export function ChallengeBanner({
             autoFocus
             onClick={() => {
               chosen();
-              leave(onStart);
+              setGoing(true);
             }}
           >
             Take it on
@@ -119,6 +214,19 @@ export function ChallengeBanner({
           </button>
         </div>
       </div>
+      {going && (
+        <div ref={quiz} className={styles.quiz}>
+          <PlayQuiz
+            set={TODAY}
+            section="Challenge"
+            noWorld
+            topic="Today's two"
+            onAnswers={() => {}}
+            onFinish={() => leave(onStart)}
+            onExit={() => leave(onLater)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -159,6 +267,44 @@ export function ChallengeCard({ onStart }: { onStart: () => void }) {
       >
         Start
       </button>
+    </div>
+  );
+}
+
+/** True the first time this is asked on a day, in this browser (or when `again` asks for it). The
+ *  challenge's banner comes up then, on whichever page the student lands. */
+export function firstToday(again = false) {
+  const today = new Date().toDateString();
+  let seen = "";
+  try {
+    seen = window.localStorage.getItem("kp-challenge-day") ?? "";
+    window.localStorage.setItem("kp-challenge-day", today);
+  } catch {
+    // nothing can be remembered in a private window: it is shown each time
+  }
+  return seen !== today || again;
+}
+
+/** The challenge for students whose home is the Library (Free, Practice and Pro; founder,
+ *  2026-11-20: every plan gets it). The banner comes up once a day as on Homework; sent away with
+ *  Later, the small card waits in the corner until it is started. */
+export function LibraryChallenge({ intro }: { intro: number }) {
+  const [state, setState] = useState<"banner" | "go" | "later" | "done">("later");
+  useEffect(() => {
+    if (firstToday(intro > 0)) setState("banner");
+  }, [intro]);
+  if (state === "done") return null;
+  if (state === "banner" || state === "go")
+    return (
+      <ChallengeBanner
+        now={state === "go"}
+        onStart={() => setState("done")}
+        onLater={() => setState("later")}
+      />
+    );
+  return (
+    <div className={styles.corner}>
+      <ChallengeCard onStart={() => setState("go")} />
     </div>
   );
 }

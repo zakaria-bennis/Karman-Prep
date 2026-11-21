@@ -1,0 +1,178 @@
+/*
+ * Endless mode's start page (EndlessStart.tsx). It takes the Daily 10's layout
+ * (dailyStart.module.css); here are only its own pieces: the flowing sign and the three rows.
+ */
+
+/* a slow drift of color behind the sign, never quite the same twice: flow */
+.window {
+  background:
+    radial-gradient(circle at 30% 40%, rgb(255 184 77 / 0.35), transparent 55%),
+    radial-gradient(circle at 70% 60%, rgb(122 184 255 / 0.35), transparent 55%),
+    linear-gradient(160deg, #fdf2e4, #e9eefc);
+  background-size: 160% 160%;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+:global([data-kp-mode="dark"]) .window {
+  background:
+    radial-gradient(circle at 30% 40%, rgb(255 140 60 / 0.3), transparent 55%),
+    radial-gradient(circle at 70% 60%, rgb(90 140 255 / 0.32), transparent 55%),
+    linear-gradient(160deg, #141633, #0b0d22);
+  background-size: 160% 160%;
+}
+
+@keyframes drift {
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+.sign {
+  position: absolute;
+  inset: 8% 4%;
+  width: 92%;
+  height: 84%;
+  overflow: visible;
+}
+
+.track {
+  fill: none;
+  stroke: currentColor;
+  stroke-opacity: 0.12;
+  stroke-width: 22;
+  stroke-linejoin: round;
+}
+
+.drawn {
+  fill: none;
+  stroke: url(#endless-flow);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  opacity: 0.85;
+}
+
+/* light flowing round the sign without end */
+.pulse {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 0.06 0.94;
+  filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px rgb(255 200 120 / 0.9));
+  animation: flow 4.8s linear infinite;
+}
+
+@keyframes flow {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* the character at the sign's crossing, in the middle of the picture */
+.buddy {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  translate: -50% -50%;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.3));
+}
+
+.medal {
+  color: #e08a1e;
+  background: color-mix(in srgb, #e08a1e 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #e08a1e 45%, transparent);
+}
+
+/* how it goes: three rows sharing the column's height, depth from light as on the Daily 10 */
+
+.how {
+  display: grid;
+  grid-auto-rows: minmax(64px, 1fr);
+  gap: 10px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how li {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 0 22px 0 16px;
+  border-radius: 16px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0) 60%), var(--hover);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    inset 0 0 0 1px var(--lens-edge),
+    0 3px 8px -4px rgb(0 0 0 / 0.35);
+}
+
+.how li b {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.how li small {
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.mark svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.lives {
+  display: flex;
+  gap: 1px;
+}
+
+.lives svg {
+  fill: #ff6f7d;
+  stroke: none;
+}
+
+@media (max-width: 520px) {
+  .how li {
+    grid-template-columns: 52px 1fr;
+    gap: 12px;
+    padding: 12px 14px 12px 10px;
+  }
+
+  .mark {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+
+  .how li b {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window,
+  .pulse {
+    animation: none;
+  }
+}

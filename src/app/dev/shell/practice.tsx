@@ -17,6 +17,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
+import { openEndless } from "./endless";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -503,7 +504,14 @@ const MODES: { icon: IconName; name: string }[] = [
 ];
 
 /** The other ways to practice: one row of names, each with its icon. The same six on both sides. */
-export function Modes({ workshops = false }: { workshops?: boolean }) {
+export function Modes({
+  workshops = false,
+  section,
+}: {
+  workshops?: boolean;
+  /** The section these are for: its Endless mode runs the whole section. */
+  section?: string;
+}) {
   return (
     <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
       <header className={styles.modesHead}>
@@ -514,7 +522,15 @@ export function Modes({ workshops = false }: { workshops?: boolean }) {
       <ul>
         {MODES.map((mode) => (
           <li key={mode.name}>
-            <button type="button" className={styles.mode} onClick={() => tick()}>
+            <button
+              type="button"
+              className={styles.mode}
+              onClick={() => {
+                tick();
+                if (mode.icon === "endless" && section)
+                  openEndless({ kind: "section", name: section });
+              }}
+            >
               <Tile name={mode.icon} />
               <b>{mode.name}</b>
             </button>
@@ -522,5 +538,22 @@ export function Modes({ workshops = false }: { workshops?: boolean }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+/** Endless mode for one skill or one domain, as a row like the modes above (SkillPage, DomainPage). */
+export function EndlessButton({ kind, name }: { kind: "skill" | "domain"; name: string }) {
+  return (
+    <button
+      type="button"
+      className={styles.mode}
+      onClick={() => {
+        tick();
+        openEndless({ kind, name });
+      }}
+    >
+      <Tile name="endless" />
+      <b>Endless mode</b>
+    </button>
   );
 }
