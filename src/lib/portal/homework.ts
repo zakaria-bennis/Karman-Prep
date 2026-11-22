@@ -20,7 +20,7 @@ export type RealWork = Work & { from: number; href: string | null };
 export interface RealHomework {
   work: RealWork[];
   /** Live classes and 1:1 sessions ahead and just past: days from today, the time, the start. */
-  classes: { from: number; time: string; at: number }[];
+  classes: { from: number; time: string; at: number; joinUrl: string | null }[];
   dailyDone: boolean;
   challengeDone: boolean;
   /** The cohort's week now, and how many it has; a Private student has no count of weeks. */
@@ -50,7 +50,13 @@ export function kindOf(item: Pick<StudentHomeworkItem, "title" | "href">): Kind 
 }
 
 export function workOf(item: StudentHomeworkItem, todayKey: string): RealWork | null {
-  const due = item.dueOn ?? item.completedAt?.slice(0, 10) ?? null;
+  // The day it belongs to: its due time, else its due date, else the day it was done, else (open
+  // work with no date at all, like a cohort post) today. Days are Central, like the rest of Homework.
+  const due = item.dueAt
+    ? dayKey(item.dueAt)
+    : (item.dueOn ??
+      (item.completedAt ? dayKey(item.completedAt) : null) ??
+      (item.state !== "done" ? todayKey : null));
   if (!due) return null;
   const from = between(todayKey, due);
   const sort: Sort = item.source === "trial" ? "trial" : "skill";
@@ -116,6 +122,7 @@ export async function loadHomework(
       from: between(today, dayKey(b.start)),
       time: timeFormat.format(new Date(b.start)),
       at: Date.parse(b.start),
+      joinUrl: b.joinUrl ?? null,
     }))
     .sort((a, b) => a.at - b.at);
   // a cohort's nine weeks end on its SAT

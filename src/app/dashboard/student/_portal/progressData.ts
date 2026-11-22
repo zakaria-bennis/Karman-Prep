@@ -173,6 +173,9 @@ export type DayLog = {
   exam: number;
   /** Seconds a question took on timed work that day, on average; 0 if nothing was done. */
   pace: number;
+  /** How many answers the pace was taken from (a real student's log): exam questions count toward
+   *  questions but carry no time, so pace is weighted by this instead. */
+  timed?: number;
   /** What the day's practice was made of, for the Mistake Log: skill sets of 8 questions, bursts of
    *  5 (a time trial or endless mode), and whether the challenge question was answered. */
   sets: number;

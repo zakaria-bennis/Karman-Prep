@@ -111,6 +111,11 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     ])
   );
 
+  // A diagnostic taken as a quiz run also writes a diagnostic_results row at the same moment; keep only
+  // the run, which has the real section scores (the old row has only a score range).
+  const diagnosticRuns = new Set(
+    runs.filter((r) => r.kind === "diagnostic").map((r) => Date.parse(r.completed_at))
+  );
   const exams: ProgressInput["exams"][number][] = [
     ...runs
       .filter((r) => (r.kind === "full-test" || r.kind === "diagnostic") && r.result?.predicted)
@@ -122,10 +127,12 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         right: r.result!.right,
         asked: r.result!.total,
       })),
-    ...diagnostics.map((d) => ({
-      at: d.taken_at,
-      total: predictedFromRange(d.score_range_low, d.score_range_high),
-    })),
+    ...diagnostics
+      .filter((d) => !diagnosticRuns.has(Date.parse(d.taken_at)))
+      .map((d) => ({
+        at: d.taken_at,
+        total: predictedFromRange(d.score_range_low, d.score_range_high),
+      })),
   ];
   const student = buildStudent({
     nowMs,

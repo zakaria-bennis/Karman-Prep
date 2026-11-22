@@ -47,6 +47,8 @@ export type HomeworkDay = {
   class?: string;
   /** A real class: when it begins (the made-up ones begin at CLASS.hour). */
   classAt?: number;
+  /** A real class's meeting link (Zoom), when it has one. */
+  classJoin?: string | null;
   /** The week's full-length exam is taken this day. */
   exam: boolean;
   work: Work[];
@@ -155,7 +157,7 @@ export function realWeek(
   week: number,
   real: {
     work: readonly (Work & { from: number })[];
-    classes: readonly { from: number; time: string; at: number }[];
+    classes: readonly { from: number; time: string; at: number; joinUrl?: string | null }[];
   }
 ): HomeworkDay[] {
   const sunday = new Date(TODAY.getTime() - TODAY.getDay() * DAY + week * 7 * DAY);
@@ -168,6 +170,7 @@ export function realWeek(
       from,
       class: lesson?.time,
       classAt: lesson?.at,
+      classJoin: lesson?.joinUrl ?? null,
       exam: i === 6,
       work: real.work.filter((w) => w.from === from).map(({ from: _from, ...w }) => w),
     };
