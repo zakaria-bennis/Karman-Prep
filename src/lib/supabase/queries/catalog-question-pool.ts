@@ -12,6 +12,7 @@ import {
 } from "@/lib/question-bank/numeric-answer-set";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { practiceOnly, practicePlanOnly } from "@/lib/assembler/pools";
+import { generatedHidden } from "@/lib/generator/switch";
 
 /** One bad row is left out with a log line; it never breaks the whole skill. */
 function skipQuestion(questionId: string | null, reason: string) {
@@ -82,6 +83,8 @@ export async function fetchCatalogQuestionPool(
     evidence.delete(id);
   }
   const ids = [...evidence.keys()];
+  // An admin can hide every generated question at once (src/lib/generator/switch.ts).
+  const hideGenerated = ids.length > 0 && (await generatedHidden());
   const questions: QuizQuestionWithChoices[] = [];
   for (let offset = 0; offset < ids.length; offset += 200) {
     const query = db
@@ -96,7 +99,8 @@ export async function fetchCatalogQuestionPool(
       .gte("difficulty_level", scope.minimumDifficulty)
       .lte("difficulty_level", scope.maximumDifficulty);
     // Practice only: questions held for the full-length exams never reach a practice pool.
-    const practice = lane === "practice" ? practiceOnly(query) : query;
+    const shown = hideGenerated ? query.filter("origin", "neq", "generated") : query;
+    const practice = lane === "practice" ? practiceOnly(shown) : shown;
     const { data, error } = await (
       options.practiceSet ? practicePlanOnly(practice) : practice
     ).order("id", {
