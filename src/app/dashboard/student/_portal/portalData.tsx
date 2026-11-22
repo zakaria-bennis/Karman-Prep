@@ -45,3 +45,10 @@ export function useStreak(): number {
 export function useBestStreak(): number {
   return useContext(Ctx)?.bestStreak ?? 14;
 }
+
+/** For an admin only: a skill's live practice questions, original and generated (null for students). */
+export function useOriginCount(skill: string): { original: number; generated: number } | null {
+  const admin = useContext(Ctx)?.generatedAdmin;
+  if (!admin) return null;
+  return admin.counts[skill] ?? { original: 0, generated: 0 };
+}

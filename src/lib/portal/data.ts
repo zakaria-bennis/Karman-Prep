@@ -12,6 +12,7 @@ import type { Student } from "@/app/dashboard/student/_portal/progressData";
 import type { RealHomework, RealWorkshop } from "./homework";
 import type { RealRewards } from "./rewards";
 import type { RealSchedule } from "./schedule";
+import type { GeneratedAdminView } from "@/lib/generator/admin";
 
 /** The portal's three menus (src/app/dashboard/student/_portal/plans.ts). */
 export type PortalPlan = "practice" | "cohort" | "private";
@@ -55,4 +56,7 @@ export interface PortalData {
   /** Schedule, for Private students. */
   schedule: RealSchedule | null;
   rewards: RealRewards;
+  /** Only for an admin (checked on the server): live practice questions per skill, original and
+   *  generated, and whether the sitewide switch hides generated ones. Absent for every student. */
+  generatedAdmin?: GeneratedAdminView | null;
 }
