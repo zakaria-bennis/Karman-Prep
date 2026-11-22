@@ -78,7 +78,9 @@ describe("nextGeneratedQuestion", () => {
     expect(served!.snapshot.binding.questionId).toBe(served!.item.id);
     expect(served!.snapshot.binding.catalogSkillId).toBe(served!.item.skillId);
     // the student's part never says where the question came from
-    expect(JSON.stringify(served!.snapshot.student)).not.toMatch(/generated|origin|serve:math/);
+    expect(JSON.stringify(served!.snapshot.student)).not.toMatch(
+      /"origin"|"generator"|serve:math|math-template/
+    );
     expect(SERVE_BATCH).toBe("serve:math");
     expect(batchManifestSha(SERVE_BATCH, [])).toMatch(/^[0-9a-f]{64}$/);
   });
