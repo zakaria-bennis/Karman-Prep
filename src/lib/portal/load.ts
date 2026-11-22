@@ -11,6 +11,7 @@ import { challengeAnsweredCount } from "@/lib/daily-ten/challenge";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
 import { dailyTenDays, doneToday } from "@/lib/student/daily-ten";
 import { predictedFromRange } from "@/lib/student/progress";
+import type { ExamResult } from "@/lib/exams/result";
 import {
   levelsBySubSkill,
   loadRunAnswers,
@@ -62,42 +63,61 @@ async function rows<T>(q: PromiseLike<{ data: unknown; error: unknown }>): Promi
 export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
-  const [answers, runAnswers, stored, daily, runs, diagnostics, challenges, sessions, trials] =
-    await Promise.all([
-      loadSkillAnswers(ctx.clerkId),
-      loadRunAnswers(ctx.clerkId),
-      loadStoredLevels(ctx.clerkId, nowMs),
-      dailyTenDays(ctx.clerkId),
-      rows<RunRow>(
-        db
-          .from("quiz_runs")
-          .select("kind, completed_at, result")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
-        db
-          .from("diagnostic_results")
-          .select("taken_at, score_range_low, score_range_high")
-          .eq("user_id", ctx.userId)
-          .limit(100)
-      ),
-      rows<{ day: string }>(
-        db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-      rows<{ completed_at: string | null }>(
-        db
-          .from("catalog_practice_sessions")
-          .select("completed_at")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ started_at: string }>(
-        db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-    ]);
+  const [
+    answers,
+    runAnswers,
+    stored,
+    daily,
+    runs,
+    diagnostics,
+    challenges,
+    sessions,
+    trials,
+    examSittings,
+  ] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId, nowMs),
+    dailyTenDays(ctx.clerkId),
+    rows<RunRow>(
+      db
+        .from("quiz_runs")
+        .select("kind, completed_at, result")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
+      db
+        .from("diagnostic_results")
+        .select("taken_at, score_range_low, score_range_high")
+        .eq("user_id", ctx.userId)
+        .limit(100)
+    ),
+    rows<{ day: string }>(
+      db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    rows<{ completed_at: string | null }>(
+      db
+        .from("catalog_practice_sessions")
+        .select("completed_at")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ started_at: string }>(
+      db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    // The full-length exams (src/lib/exams): each finished one is a scored exam for the prediction.
+    rows<{ completed_at: string; result: ExamResult | null }>(
+      db
+        .from("exam_sittings")
+        .select("completed_at, result")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(200)
+    ),
+  ]);
 
   const every: SkillAnswer[] = [...answers, ...runAnswers];
   const levels = withStored(levelsBySubSkill(every, nowMs), stored);
@@ -126,6 +146,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         math: r.result!.predicted!.math,
         right: r.result!.right,
         asked: r.result!.total,
+      })),
+    ...examSittings
+      .filter((x) => x.result)
+      .map((x) => ({
+        at: x.completed_at,
+        total: x.result!.total,
+        rw: x.result!.reading.score,
+        math: x.result!.math.score,
+        right: x.result!.reading.right + x.result!.math.right,
+        asked: x.result!.reading.scored + x.result!.math.scored,
       })),
     ...diagnostics
       .filter((d) => !diagnosticRuns.has(Date.parse(d.taken_at)))

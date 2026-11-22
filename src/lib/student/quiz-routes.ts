@@ -40,8 +40,9 @@ export const domainQuiz = (domainId: string): QuizRoute => ({
  *  `?section=reading` or `?section=math` goes straight to that section's next round. */
 export const TIME_TRIAL: QuizRoute = { path: "/learn/time-trial", ready: true };
 
-/** Full-length tests (the assembler builds four forms). */
-export const fullLengthTest = (form: number): QuizRoute => ({
-  path: `/learn/test/${form}`,
+/** Full-length exams: the list of twenty, which opens the next one (src/app/learn/tests). The number
+ *  is kept for callers; exams go in order, so the list decides which one starts. */
+export const fullLengthTest = (_form: number): QuizRoute => ({
+  path: "/learn/tests",
   ready: true,
 });
