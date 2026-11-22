@@ -31,6 +31,7 @@ import { dayKey, streaks } from "@/lib/student/streak";
 import { loadHomework, workshopOf } from "./homework";
 import { loadSittings } from "./mistakes";
 import { loadRewards } from "./rewards";
+import { generatedAdminView } from "@/lib/generator/admin";
 import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
@@ -245,7 +246,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     dailyDone: doneToday(daily, nowMs),
     challengeDone: challengeToday >= challengeQuestionsPerDay(ctx.plan),
   };
-  const [sittings, homework, schedule, rewards] = await Promise.all([
+  const [sittings, homework, schedule, rewards, generatedAdmin] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
     // a Practice-menu student with a teacher or tutor (school seat, tutor code) has homework too
     plan === "practice" && !ctx.hasTutor
@@ -253,6 +254,8 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
       : loadHomework(db, ctx, calendar, done, student.days, nowMs),
     plan === "private" ? loadSchedule(db, ctx, calendar, nowMs) : null,
     loadRewards(db, ctx.clerkId, nowMs),
+    // admins only (users.role): original and generated counts per skill for the Library
+    generatedAdminView(),
   ]);
   const working = NAMES.filter((n) => skills[n].level === 1 || skills[n].level === 2);
   const workshops = (calendar?.events ?? [])
@@ -281,5 +284,6 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     bestStreak: run.longest,
     schedule,
     rewards,
+    generatedAdmin,
   };
 }

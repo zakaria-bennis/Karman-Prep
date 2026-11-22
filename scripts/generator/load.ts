@@ -25,31 +25,24 @@
  * --max-db-mb (default 400 for production) stops the run when the database grows past it.
  */
 import { execFileSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { buildCatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
 import { buildItem, isItem } from "@/lib/generator/math/core/build";
 import { templatesFor } from "@/lib/generator/math/registry";
+import { HIDE, insertQuestions, withIds } from "@/lib/generator/persist";
 import {
   batchManifestSha,
-  evidenceFor,
   fingerprint,
   fromMathItem,
   rowsFor,
-  sealOf,
   type StorableQuestion,
 } from "@/lib/generator/store";
 import { SKILLS72 } from "@/lib/skills/ids72";
-import type { QuizQuestionWithChoices } from "@/types/quiz";
 
 const BACKUP_ROOT = "/Users/zakariabennis/Karman-Prep-wt/generator-backups";
 const LOCAL_ENV = "/Users/zakariabennis/Karman-Prep-wt/overnight.env.local";
 const CHUNK = 200;
-// is_live is computed by the database (import_status ok and not archived): hiding a question
-// marks it for review and takes it out of the publish gate.
-const HIDE = { import_status: "needs_review", publish_status: "needs_human_review" };
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
@@ -289,63 +282,6 @@ function rwQuestions(
   return { questions, skipped };
 }
 
-async function insertChunk(
-  db: SupabaseClient,
-  chunk: { q: StorableQuestion; ids: { question: string; choices: string[] } }[],
-  batch: string,
-  manifest: string
-): Promise<{ admitted: number; hidden: string[] }> {
-  const rows = chunk.map(({ q, ids }) => rowsFor(q, batch, ids));
-  const questionIds = chunk.map((c) => c.ids.question);
-  const undo = async () => {
-    await db.from("quiz_questions").delete().in("id", questionIds);
-  };
-  try {
-    let r = await db.from("quiz_questions").insert(rows.map((x) => x.question));
-    if (r.error) throw new Error(`quiz_questions: ${r.error.message}`);
-    const choices = rows.flatMap((x) => x.choices);
-    if (choices.length) {
-      r = await db.from("answer_choices").insert(choices);
-      if (r.error) throw new Error(`answer_choices: ${r.error.message}`);
-    }
-    const back = await db
-      .from("quiz_questions")
-      .select("*, answer_choices(*)")
-      .in("id", questionIds);
-    if (back.error || !back.data) throw new Error(`read back: ${back.error?.message}`);
-    const byId = new Map((back.data as QuizQuestionWithChoices[]).map((row) => [row.id, row]));
-    const evidence = chunk.map(({ q, ids }) => {
-      const row = byId.get(ids.question);
-      if (!row) throw new Error(`question ${ids.question} did not read back`);
-      return {
-        id: randomUUID(),
-        question_id: ids.question,
-        raw_model_response: evidenceFor(q, batch, manifest, sealOf(row)),
-        review_required: false,
-        manual_correction_present: false,
-      };
-    });
-    r = await db.from("answer_key_entries").insert(evidence);
-    if (r.error) throw new Error(`answer_key_entries: ${r.error.message}`);
-    r = await db.from("question_skills72").insert(rows.map((x) => x.binding));
-    if (r.error) throw new Error(`question_skills72: ${r.error.message}`);
-    // The same gate every student lane uses.
-    const hidden: string[] = [];
-    for (const e of evidence) {
-      try {
-        buildCatalogDeliverySnapshot(byId.get(e.question_id)!, e.raw_model_response);
-      } catch {
-        hidden.push(e.question_id);
-      }
-    }
-    if (hidden.length) await db.from("quiz_questions").update(HIDE).in("id", hidden);
-    return { admitted: chunk.length - hidden.length, hidden };
-  } catch (error) {
-    await undo();
-    throw error;
-  }
-}
-
 async function removeBatch(db: SupabaseClient, batch: string, dryRun: boolean) {
   const rows = await selectAll<{ id: string }>(db, "quiz_questions", "id", [
     "generator->>batch",
@@ -433,10 +369,7 @@ async function main() {
   console.log(`database size before: ${before ?? "unknown"} MB (cap ${maxDb} MB)`);
   if (before !== null && before >= maxDb) throw new Error("database is already at the cap");
 
-  const planned = questions.map((q) => ({
-    q,
-    ids: { question: randomUUID(), choices: q.choices.map(() => randomUUID()) },
-  }));
+  const planned = questions.map(withIds);
   const manifest = batchManifestSha(batch, questions);
   const dir = join(BACKUP_ROOT, batch);
   if (!dryRun) {
@@ -479,7 +412,7 @@ async function main() {
     const chunk = planned.slice(i, i + CHUNK);
     for (let attempt = 1; ; attempt++) {
       try {
-        const result = await insertChunk(db, chunk, batch, manifest);
+        const result = await insertQuestions(db, chunk, batch, manifest);
         admitted += result.admitted;
         hiddenAll.push(...result.hidden);
         for (const { q, ids } of chunk) {

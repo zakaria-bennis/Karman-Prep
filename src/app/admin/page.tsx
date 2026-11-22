@@ -50,6 +50,7 @@ const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
     title: "Questions",
     links: [
       ["/admin/bank", "Question bank (read only)"],
+      ["/admin/generated", "Generated questions"],
       ["/admin/questions/dashboard", "Question overview"],
       ["/admin/questions/review", "Review questions"],
       ["/admin/questions/preview", "Question preview"],

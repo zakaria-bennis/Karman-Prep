@@ -17,7 +17,7 @@ import { EndlessButton, Modes, Today, TrialButton } from "./practice";
 import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, type Domain, type Section, type Skill } from "./skills72";
-import { useSkills } from "./portalData";
+import { useOriginCount, useSkills } from "./portalData";
 import { buzz, tick } from "./sound";
 
 export { SECTIONS, type Section };
@@ -72,6 +72,18 @@ export function Pips({ level }: { level: number }) {
       {[1, 2, 3].map((n) => (
         <i key={n} data-on={level >= n || undefined} />
       ))}
+    </span>
+  );
+}
+
+/** A skill's question count. An admin sees it split into original and generated (founder, 2026-11-22). */
+function Qty({ name, questions }: { name: string; questions: number }) {
+  const origin = useOriginCount(name);
+  if (!origin) return <span className={styles.qty}>{questions} questions</span>;
+  return (
+    <span className={styles.qty} title="Admin only: students see one count">
+      {origin.original.toLocaleString("en-US")} original ·{" "}
+      {origin.generated.toLocaleString("en-US")} generated
     </span>
   );
 }
@@ -365,7 +377,7 @@ export function DomainPage({
                 }}
               >
                 <span className={styles.label}>{skill.name}</span>
-                <span className={styles.qty}>{skill.questions} questions</span>
+                <Qty name={skill.name} questions={skill.questions} />
                 <Pips level={skill.level} />
                 <svg
                   className={styles.go}
@@ -429,7 +441,7 @@ export function LevelPage({
                   }}
                 >
                   <span className={styles.label}>{skill.name}</span>
-                  <span className={styles.qty}>{skill.questions} questions</span>
+                  <Qty name={skill.name} questions={skill.questions} />
                   <Pips level={skill.level} />
                   <svg
                     className={styles.go}
