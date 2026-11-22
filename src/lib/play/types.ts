@@ -23,6 +23,8 @@ export type PlayForm = {
   hearts?: number;
   /** Each question's 72-skill (and domain), for the levels, the coins and endless's picking. */
   skills?: Record<string, { s: string; d: string }>;
+  /** From the student's plan: core plans read only the Practice set (no generated questions). */
+  practiceSet?: boolean;
   /** Daily 10: the questions that are spaced reviews of due skills (src/lib/play/reviews.ts). */
   reviews?: string[];
   /** Endless: how much each skill is leaned on (weaker skills more), by 72-skill id. */

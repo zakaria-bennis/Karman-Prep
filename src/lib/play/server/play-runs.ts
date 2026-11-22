@@ -38,6 +38,7 @@ import { bankCoins, coinBalance, currentMultiplier, savedDays } from "./coins";
 import { loadLevels72, saveLevels72 } from "./levels72";
 import { pool72, skills72Of } from "./pool72";
 import { saveReviewOutcomes } from "./reviews";
+import { makeMath } from "./generated";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
 
 /** A skill set is 8 questions (founder, 2026-11-18). */
@@ -97,9 +98,22 @@ export async function startSkillSet(
     answeredInRuns(clerkId),
     pool72([skill.id], access.maxDifficulty, access.practiceSet),
   ]);
+  const level = levels.get(skill.id) ?? 0;
+  const startDifficulty = targetDifficulty(OLD_LEVEL[level], access.maxDifficulty);
+  // a Math skill short of eight fresh questions is filled up with questions made on demand
+  const fresh = pool.items.filter((i) => !history.has(i.id)).length;
+  if (fresh < SET_SIZE)
+    for (const m of await makeMath(
+      skill.id,
+      startDifficulty,
+      access.practiceSet,
+      SET_SIZE - fresh
+    )) {
+      pool.items.push(m.item);
+      pool.snapshots.set(m.item.id, m.snapshot);
+    }
   if (!pool.items.length) throw new Error("No distinct approved questions are available");
   const frozen = practiceSetPool(pool.items, history);
-  const level = levels.get(skill.id) ?? 0;
   const size = Math.min(SET_SIZE, frozen.length, access.questionsLeft ?? SET_SIZE);
   const form: RunForm = {
     title: skill.name,
@@ -116,7 +130,7 @@ export async function startSkillSet(
     adaptive: {
       size,
       skillId: pool.items[0].skillId,
-      startDifficulty: targetDifficulty(OLD_LEVEL[level], access.maxDifficulty),
+      startDifficulty,
       maxDifficulty: access.maxDifficulty,
     },
     play: { mode: "set", skillId: skill.id },
@@ -157,6 +171,20 @@ export async function startEndless(
       access.practiceSet
     ),
   ]);
+  const average = skills.reduce((n, s) => n + (levels.get(s.id) ?? 0), 0) / skills.length;
+  const startDifficulty = targetDifficulty(OLD_LEVEL[Math.floor(average)], access.maxDifficulty);
+  // a Math skill with no questions of its own left starts on questions made on demand
+  if (!pool.items.length) {
+    const made = (
+      await Promise.all(
+        skills.slice(0, 4).map((s) => makeMath(s.id, startDifficulty, access.practiceSet, 2))
+      )
+    ).flat();
+    for (const m of made) {
+      pool.items.push(m.item);
+      pool.snapshots.set(m.item.id, m.snapshot);
+    }
+  }
   if (!pool.items.length) throw new Error("No distinct approved questions are available");
   // a domain run leans on the skills the student knows least (Not started 4 to Proficient 1)
   const weights: Record<string, number> = {};
@@ -176,7 +204,6 @@ export async function startEndless(
     skillsOfQuestion[id] = { s: item.skill72, d: item.domain72 };
   }
   const first = skills[0];
-  const average = skills.reduce((n, s) => n + (levels.get(s.id) ?? 0), 0) / skills.length;
   const title = scopeName(scope);
   const form: RunForm = {
     title,
@@ -185,12 +212,21 @@ export async function startEndless(
       { key: "main", title, subject: subjectOf(first.section), seconds: null, questionIds: [] },
     ],
     adaptive: {
-      size: frozen.length,
+      // endless ends on its hearts or when nothing is left, never on a count (Math is made on
+      // demand as the run goes, src/lib/play/server/generated.ts)
+      size: 400,
       skillId: files.get(frozen[0])!.skillId,
-      startDifficulty: targetDifficulty(OLD_LEVEL[Math.floor(average)], access.maxDifficulty),
+      startDifficulty,
       maxDifficulty: access.maxDifficulty,
     },
-    play: { mode: "endless", scope, hearts: HEARTS, skills: skillsOfQuestion, weights },
+    play: {
+      mode: "endless",
+      scope,
+      hearts: HEARTS,
+      skills: skillsOfQuestion,
+      weights,
+      practiceSet: access.practiceSet,
+    },
   };
   const run = await insertRun({
     studentId: clerkId,

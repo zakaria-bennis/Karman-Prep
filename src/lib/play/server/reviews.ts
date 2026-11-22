@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { stableHash } from "@/lib/catalog-practice/picker";
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
 import { dueSkills, nextReview, outcomesOf, REVIEWS_MAX, type ReviewState } from "../reviews";
+import { makeMath } from "./generated";
 import { pool72, type Item72 } from "./pool72";
 
 const db = () => createAdminClient() as unknown as SupabaseClient;
@@ -65,7 +66,7 @@ export type ReviewPick = { item: Item72; snapshot: CatalogDeliverySnapshot };
 
 /** Up to five review questions for today's Daily 10: one for each due skill, the most overdue
  *  first, a question of that skill the student has never answered and that is not already in
- *  `taken`. A due skill with no fresh question left is skipped. */
+ *  `taken`. A due Math skill with none left gets one made on demand; any other is skipped. */
 export async function pickReviews(
   clerkId: string,
   today: string,
@@ -79,8 +80,10 @@ export async function pickReviews(
 ): Promise<ReviewPick[]> {
   const due = dueSkills(await loadReviews(clerkId), today, opts.max ?? REVIEWS_MAX);
   if (!due.length) return [];
-  const pool = await pool72(due, opts.maxDifficulty, opts.practiceSet).catch(() => null);
-  if (!pool) return [];
+  const pool = (await pool72(due, opts.maxDifficulty, opts.practiceSet).catch(() => null)) ?? {
+    items: [],
+    snapshots: new Map(),
+  };
   const out: ReviewPick[] = [];
   for (const skillId of due) {
     const fresh = pool.items
@@ -92,7 +95,12 @@ export async function pickReviews(
           pool.snapshots.has(i.id)
       )
       .sort((a, b) => (a.id < b.id ? -1 : 1));
-    if (!fresh.length) continue;
+    if (!fresh.length) {
+      // a Math skill with nothing fresh left gets a question made on demand, mid-way up
+      const [made] = await makeMath(skillId, Math.min(4, opts.maxDifficulty), opts.practiceSet);
+      if (made) out.push(made);
+      continue;
+    }
     const item = fresh[stableHash(`review:${clerkId}:${today}:${skillId}`) % fresh.length];
     out.push({ item, snapshot: pool.snapshots.get(item.id)! });
   }

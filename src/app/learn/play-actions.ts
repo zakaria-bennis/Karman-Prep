@@ -373,27 +373,6 @@ export async function actionFinishStrategy(input: {
   });
 }
 
-/** The admin-only "Generated" mark (shared contract 2): which of these questions the generator
- *  made. Checked on the server; a student always gets an empty list. */
-export async function actionGeneratedIds(input: { questionIds: string[] }) {
-  return wrap(async () => {
-    const { userId } = await safeAuth();
-    if (!userId || (await fetchUserRole(userId)) !== "admin") return [] as string[];
-    const { questionIds } = z
-      .object({ questionIds: z.array(z.string().uuid()).max(400) })
-      .strict()
-      .parse(input);
-    if (!questionIds.length) return [] as string[];
-    const { data, error } = await (createAdminClient() as unknown as SupabaseClient)
-      .from("quiz_questions")
-      .select("id")
-      .in("id", questionIds)
-      .eq("origin", "generated");
-    if (error || !data) return [] as string[];
-    return (data as { id: string }[]).map((r) => r.id);
-  });
-}
-
 /** Yesterday, when the student's streak broke there and they hold a Streak saver; else null. */
 export async function actionSaverOffer() {
   return wrap(async (): Promise<SaverOffer | null> => saverOffer(await studentId()));

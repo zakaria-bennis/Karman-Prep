@@ -43,23 +43,6 @@
   color: var(--quiz-bg);
   font-weight: 800;
 }
-/* An admin's quiet mark on a question the generator made: a small lens of the glass, muted
-   text, nothing that pulls the eye from the question. Students never see it. */
-.generated {
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 9px;
-  border: 1px solid color-mix(in srgb, var(--quiz-line) 80%, transparent);
-  border-radius: 999px;
-  background: var(--quiz-lens);
-  color: var(--quiz-text-muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  cursor: default;
-}
 .marker {
   display: inline-flex;
   align-items: center;

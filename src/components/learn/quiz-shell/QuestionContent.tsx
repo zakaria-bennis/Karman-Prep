@@ -51,7 +51,7 @@ export function QuestionContent(p: QuestionContentProps) {
     <>
       <QuestionHeader
         number={p.number}
-        generated={p.generated}
+        generated={p.generated ? q.id : undefined}
         mode={mode}
         markedForReview={!!ws?.markedForReview}
         bookmarked={p.bookmarked}

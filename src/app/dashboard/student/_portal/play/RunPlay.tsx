@@ -20,7 +20,8 @@ import {
   actionReportProblem,
   actionSetBookmark,
 } from "@/app/learn/saved-question-actions";
-import { actionGeneratedIds, actionUseSecondChance } from "@/app/learn/play-actions";
+import { actionUseSecondChance } from "@/app/learn/play-actions";
+import { useGenerated } from "./useGenerated";
 import type { RunReview, RunView } from "@/lib/assembler/run-types";
 import type { NoteSignals } from "@/lib/quiz/signals";
 
@@ -39,18 +40,6 @@ function useStudentState(ids: string) {
       .catch(() => undefined);
   }, [ids]);
   return student;
-}
-
-/** The admin-only "Generated" mark: asked of the server, which answers only an admin. */
-function useGenerated(ids: string) {
-  const [marked, setMarked] = useState<Record<string, true>>({});
-  useEffect(() => {
-    if (!ids) return;
-    actionGeneratedIds({ questionIds: ids.split(",") })
-      .then((r) => r.ok && setMarked(Object.fromEntries(r.value.map((id) => [id, true]))))
-      .catch(() => undefined);
-  }, [ids]);
-  return marked;
 }
 
 export type RunPlayProps = {

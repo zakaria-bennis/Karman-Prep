@@ -171,7 +171,14 @@ export async function insertRun(input: {
 export async function updateRun(
   runId: string,
   studentId: string,
-  patch: { form?: RunForm; sequence?: string[]; completed_at?: string; result?: RunResult }
+  patch: {
+    form?: RunForm;
+    sequence?: string[];
+    completed_at?: string;
+    result?: RunResult;
+    /** Endless adds a question made on demand to an open run (src/lib/play/server/generated.ts). */
+    snapshots?: CatalogDeliverySnapshot[];
+  }
 ): Promise<void> {
   const { error } = await db()
     .from("quiz_runs")

@@ -59,6 +59,7 @@ import {
 import type { RunForm, RunRecord, RunResponse, RunSectionForm, RunView } from "./run-types";
 import { finishPlay, nextEndless, playOver } from "@/lib/play/server/play-runs";
 import { pickReviews } from "@/lib/play/server/reviews";
+import { topUpEndless } from "@/lib/play/server/generated";
 import { REVIEWS_MAX, withReviews } from "@/lib/play/reviews";
 import { diagnosticSectionScore, predictedTotal, sectionScore } from "./score";
 import {
@@ -280,9 +281,17 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
 /** Appends the next adaptive question to the set when the last one is answered. */
 export async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunView> {
   const answered = new Set(responses.map((r) => r.questionId));
-  if (run.form.adaptive && run.sequence.every((id) => answered.has(id))) {
-    const families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
+  const adaptive = run.form.adaptive;
+  if (adaptive && run.sequence.every((id) => answered.has(id))) {
+    let families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
     const history = await answeredInRuns(run.studentId);
+    // endless: a Math skill running low gets one more question, made on demand
+    if (run.form.play?.mode === "endless" && !playOver(run, responses)) {
+      const before = run;
+      run = await topUpEndless(run, responses, families).catch(() => before);
+      if (run !== before)
+        families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
+    }
     // endless mode picks its own way (src/lib/play); a run that is over gets nothing more
     const next =
       run.form.play?.mode === "endless"
@@ -297,7 +306,10 @@ export async function serveNext(run: RunRecord, responses: RunResponse[]): Promi
       // The pool ran dry before ten: the set ends with what was answered.
       run = {
         ...run,
-        form: { ...run.form, adaptive: { ...run.form.adaptive, size: run.sequence.length } },
+        form: {
+          ...run.form,
+          adaptive: { ...adaptive, size: run.sequence.length },
+        },
       };
       await updateRun(run.id, run.studentId, { form: run.form });
     }
