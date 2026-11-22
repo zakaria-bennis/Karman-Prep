@@ -52,6 +52,8 @@ const plannedModuleSchema = z.object({
 
 export const sittingPlanSchema = z.object({
   version: z.literal(1),
+  /** Counts every save of the plan, so two tabs never both move it on (optimistic lock). */
+  rev: z.number().int().min(0),
   form: z.number().int().min(1).max(99),
   level: z.enum(["standard", "hard"]),
   accommodation: z.number().min(1).max(2),
@@ -102,6 +104,7 @@ export function newPlan(input: {
   const rw1 = { ...module1("rw1"), startedAt: input.startedAt.toISOString() };
   return {
     version: 1,
+    rev: 0,
     form: input.form,
     level: input.level,
     accommodation: input.accommodation,
