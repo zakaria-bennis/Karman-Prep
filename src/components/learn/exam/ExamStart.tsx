@@ -12,7 +12,7 @@ import { dayTime, zoneName } from "./format";
 import s from "./exam.module.css";
 
 const CHECKLIST = [
-  "A quiet place where nobody will interrupt you for about 2 hours and 15 minutes",
+  "A quiet place where nobody will interrupt you for about two and a half hours",
   "Your device charged or plugged in, with a steady connection",
   "Scratch paper and a pencil",
   "Your phone away. The calculator and reference sheet are built in",
