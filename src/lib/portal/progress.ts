@@ -47,7 +47,7 @@ export interface ProgressInput {
 
 const MS_DAY = 86_400_000;
 /** Whole days from one YYYY-MM-DD to another. */
-const between = (from: string, to: string) =>
+export const between = (from: string, to: string) =>
   Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / MS_DAY);
 const time = (at: string | number) => (typeof at === "number" ? at : Date.parse(at));
 

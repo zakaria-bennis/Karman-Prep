@@ -2,6 +2,7 @@
 // score, a log of every day, and the dates. A signed-in student's record is built on the server
 // (src/lib/portal/progress.ts) and carries its own day log (`log`); the made-up students below are
 // for the design page and work theirs out here.
+import type { RealSitting } from "./mistakeLogData";
 
 /** Today, from midnight. Every day of a log is counted back from it. */
 export const TODAY = new Date(new Date().setHours(0, 0, 0, 0));
@@ -25,6 +26,8 @@ export type Student = {
   blank?: boolean;
   /** A real student's own log of every day, from day 0 to today. */
   log?: readonly DayLog[];
+  /** A real student's sittings for the Mistake Log, newest first. */
+  sittings?: readonly RealSitting[];
 };
 
 /** Questions to answer before a full-length exam is suggested. It is a suggestion, not a gate

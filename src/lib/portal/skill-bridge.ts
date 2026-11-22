@@ -176,3 +176,12 @@ export function bridgedQuestions(name: string, countOf: (subSkillId: string) => 
     (BRIDGE[name] ?? []).reduce((sum, id) => sum + countOf(id) / (SHARERS.get(id) ?? 1), 0)
   );
 }
+
+/** The first of the 72 that reads a sub-skill: where a question tagged with it is filed. */
+const FIRST_READER = new Map<string, string>();
+for (const [name, subs] of Object.entries(BRIDGE))
+  for (const id of subs) if (!FIRST_READER.has(id)) FIRST_READER.set(id, name);
+
+/** Which of the 72 a question in this sub-skill belongs to, or null for one not in the bridge. */
+export const skillOfSubSkill = (subSkillId: string): string | null =>
+  FIRST_READER.get(subSkillId) ?? null;

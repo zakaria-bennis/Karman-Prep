@@ -480,7 +480,23 @@ export function QuestionView({
         <Chevron />
       </button>
       <p className={styles.prompt}>{sample.prompt}</p>
-      <ol className={styles.choices}>
+      {sample.typed && (
+        <ol className={styles.choices}>
+          <li data-is={q.right ? "right" : "missed"}>
+            <i>=</i>
+            <span>{sample.typed.given || "No answer"}</span>
+            <b>Your answer</b>
+          </li>
+          {!q.right && (
+            <li data-is="right">
+              <i>=</i>
+              <span>{sample.typed.correct}</span>
+              <b>Right answer</b>
+            </li>
+          )}
+        </ol>
+      )}
+      <ol className={styles.choices} hidden={sample.choices.length === 0}>
         {sample.choices.map((choice, i) => {
           const mine = i === q.picked;
           const answer = i === sample.answer;

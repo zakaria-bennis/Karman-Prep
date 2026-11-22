@@ -23,7 +23,17 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import lib from "./library.module.css";
-import { MODES, NO_SIFT, fits, sifted, sittingsOf, type Asked, type Sift } from "./mistakeLogData";
+import {
+  MODES,
+  NO_SIFT,
+  fits,
+  fromReal,
+  sifted,
+  sittingsOf,
+  type Asked,
+  type Sift,
+} from "./mistakeLogData";
+import { saveMark } from "./saveMark";
 import styles from "./mistakeLog.module.css";
 import { Sifts } from "./MistakeLogSift";
 import {
@@ -78,7 +88,10 @@ export default function MistakeLog({
   onTrail: (trail: Trail | null) => void;
 }) {
   const still = useReducedMotion() ?? false;
-  const sessions = useMemo(() => sittingsOf(student, activity(student)), [student]);
+  const sessions = useMemo(
+    () => (student.sittings ? fromReal(student.sittings) : sittingsOf(student, activity(student))),
+    [student]
+  );
   const [lens, setLens] = useState<Lens>("Sessions");
   const [sift, setSift] = useState<Sift>(NO_SIFT);
   const [openSession, setOpenSession] = useState<string | null>(null);
@@ -87,7 +100,7 @@ export default function MistakeLog({
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
   const [shown, setShown] = useState<Within>("All");
   const [many, setMany] = useState(STEP);
-  // bookmarks and flags changed on this page (nothing is saved yet)
+  // bookmarks and flags changed on this page; a real question's are saved as they change
   const [marks, setMarks] = useState<Record<string, Marked>>({});
 
   const sittings = useMemo(
@@ -382,7 +395,10 @@ export default function MistakeLog({
                   flags={flags}
                   named={!rail}
                   ways={ways}
-                  onMark={(next) => setMarks({ ...marks, [question.id]: next })}
+                  onMark={(next) => {
+                    saveMark(question, marks[question.id] ?? question, next);
+                    setMarks({ ...marks, [question.id]: next });
+                  }}
                   onStep={{ before: step(-1), after: step(1) }}
                   onSkill={onSkill}
                 />

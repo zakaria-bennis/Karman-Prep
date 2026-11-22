@@ -1,6 +1,7 @@
-// The Mistake Log's data: every session a student sat and every question in it. All of it is a
-// stand-in, built from the same made-up daily log as the rest of Progress, so the counts agree with
-// the calendar. Real sessions and answers will replace `sittingsOf` one for one.
+// The Mistake Log's data: every session a student sat and every question in it. A signed-in
+// student's sittings are read on the server with the questions as they were asked
+// (src/lib/portal/mistakes.ts) and come in through `fromReal`. The design page's made-up students
+// get theirs from `sittingsOf`, built from the same made-up daily log as the rest of Progress.
 //   A session is one sitting of one kind of work: a skill set (8 questions on one skill), the Daily
 //   10, a full-length exam, the challenge question, a time trial or a run of endless mode.
 //   The question shown for a past answer is one of eight samples, one for each domain: the bank's
@@ -19,7 +20,14 @@ export const MODES: Record<Mode, string> = {
   endless: "Endless mode",
 };
 
-export type Sample = { prompt: string; choices: string[]; answer: number; why: string };
+export type Sample = {
+  prompt: string;
+  choices: string[];
+  answer: number;
+  why: string;
+  /** A typed answer (no choices): what the student entered and what was right. */
+  typed?: { given: string; correct: string };
+};
 /** One sample question for each domain (stand-ins written for this page, not from the bank). */
 const SAMPLES: Record<string, Sample> = {
   "Information and Ideas": {
@@ -84,6 +92,8 @@ const SAMPLES: Record<string, Sample> = {
 
 export type Asked = {
   id: string;
+  /** The bank's question, for a real answer: bookmarks and flags are saved against it. */
+  questionId?: string;
   /** Its place in its session, counted from 1. */
   number: number;
   day: number;
@@ -115,6 +125,37 @@ export type Session = {
   /** A full-length exam's score. */
   score?: number;
 };
+
+/** A real sitting as the server sends it: plain data, each answer filed under one of the 72 by name. */
+export type RealSitting = Omit<Session, "asked" | "right" | "seconds"> & {
+  asked: (Omit<Asked, "found" | "session" | "sessionName" | "day" | "mode" | "number"> & {
+    skill: string;
+  })[];
+};
+
+/** A real student's sittings, newest first, in the page's own shape. */
+export function fromReal(sittings: readonly RealSitting[]): Session[] {
+  const byName = new Map(everySkill.map((f) => [f.skill.name, f]));
+  return sittings.map((s) => {
+    const asked = s.asked.map(
+      ({ skill, ...q }, i): Asked => ({
+        ...q,
+        number: i + 1,
+        day: s.day,
+        mode: s.mode,
+        session: s.id,
+        sessionName: s.name,
+        found: byName.get(skill) ?? everySkill[0],
+      })
+    );
+    return {
+      ...s,
+      asked,
+      right: asked.filter((q) => q.right).length,
+      seconds: asked.reduce((n, q) => n + q.seconds, 0),
+    };
+  });
+}
 
 /** The same "random" number every time for the same day and purpose. */
 const noise = (a: number, b: number, c = 0) => {

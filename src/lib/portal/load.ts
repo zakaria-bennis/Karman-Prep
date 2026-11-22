@@ -21,7 +21,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { SECTIONS, SKILLS } from "@/app/dev/shell/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
-import { buildStudent, type ProgressInput } from "./progress";
+import { dayKey } from "@/lib/student/streak";
+import { loadSittings } from "./mistakes";
+import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
 
 const NAMES = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));
@@ -135,5 +137,17 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     proficientNow: Object.values(skills).filter((s) => s.level === 3).length,
   });
 
-  return { plan: portalPlanOf(ctx.plan.id), firstName: ctx.firstName, skills, student };
+  const today = dayKey(nowMs);
+  const sittings = await loadSittings(
+    db,
+    ctx.clerkId,
+    (at) => student.days - between(dayKey(at), today)
+  );
+
+  return {
+    plan: portalPlanOf(ctx.plan.id),
+    firstName: ctx.firstName,
+    skills,
+    student: { ...student, sittings },
+  };
 }
