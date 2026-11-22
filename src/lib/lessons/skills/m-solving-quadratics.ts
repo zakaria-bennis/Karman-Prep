@@ -57,6 +57,18 @@ const lesson: Lesson = {
         { say: "The question asks for the positive one." },
       ],
       answer: "$x = 4$",
+      checkIn: {
+        text: "What is the positive solution of $x^2 + 2x = 35$?",
+        choices: ["$x = 7$", "$x = -7$", "$x = 5$", "$x = 35$"],
+        right: 2,
+        why: "Move 35 over: $x^2 + 2x - 35 = 0$. 7 and $-5$ multiply to $-35$ and add to 2, so $(x + 7)(x - 5) = 0$ and $x = -7$ or $x = 5$. The positive one is 5. $x = 7$ is the **Sign slips** trap: the factor $(x + 7)$ gives $-7$.",
+        twin: {
+          text: "What is the positive solution of $x^2 - x = 30$?",
+          choices: ["$x = 6$", "$x = 5$", "$x = -5$", "$x = 30$"],
+          right: 0,
+          why: "Move 30 over: $x^2 - x - 30 = 0$. $-6$ and 5 multiply to $-30$ and add to $-1$, so $(x - 6)(x + 5) = 0$ and $x = 6$ or $x = -5$. The positive one is 6. $x = 5$ is the **Sign slips** trap: the factor $(x + 5)$ gives $-5$.",
+        },
+      },
     },
     {
       title: "How many",
@@ -82,6 +94,28 @@ const lesson: Lesson = {
         },
       ],
       answer: "No real solutions",
+      checkIn: {
+        text: "How many real solutions does $3x^2 + 2x + 4 = 0$ have?",
+        choices: [
+          "No real solutions",
+          "Exactly one real solution",
+          "Exactly two real solutions",
+          "Infinitely many solutions",
+        ],
+        right: 0,
+        why: "Here $a = 3$, $b = 2$ and $c = 4$. The discriminant is $2^2 - 4(3)(4) = 4 - 48 = -44$. It is negative, so the curve never meets the x-axis. Exactly two comes from adding $4ac$ instead of subtracting it.",
+        twin: {
+          text: "How many real solutions does $9x^2 - 6x + 1 = 0$ have?",
+          choices: [
+            "No real solutions",
+            "Exactly one real solution",
+            "Exactly two real solutions",
+            "Infinitely many solutions",
+          ],
+          right: 1,
+          why: "Here $a = 9$, $b = -6$ and $c = 1$. The discriminant is $(-6)^2 - 4(9)(1) = 36 - 36 = 0$, so the curve just touches the x-axis once. No real solutions comes from treating $(-6)^2$ as $-36$.",
+        },
+      },
     },
     {
       title: "The formula",
@@ -102,6 +136,18 @@ const lesson: Lesson = {
       ],
       answer: "$2 + \\sqrt{5}$",
       tryFrom: 2,
+      checkIn: {
+        text: "What is the larger solution of $x^2 - 6x + 2 = 0$?",
+        choices: ["$6 + \\sqrt{7}$", "$3 - \\sqrt{7}$", "$-3 + \\sqrt{7}$", "$3 + \\sqrt{7}$"],
+        right: 3,
+        why: "With $a = 1$, $b = -6$ and $c = 2$, the discriminant is $36 - 8 = 28$, and $\\sqrt{28} = 2\\sqrt{7}$. So $x = \\frac{6 \\pm 2\\sqrt{7}}{2} = 3 \\pm \\sqrt{7}$, and the larger is $3 + \\sqrt{7}$. $6 + \\sqrt{7}$ is the **Dividing only part** trap.",
+        twin: {
+          text: "What is the larger solution of $x^2 + 2x - 2 = 0$?",
+          choices: ["$-2 + \\sqrt{3}$", "$-1 - \\sqrt{3}$", "$-1 + \\sqrt{3}$", "$1 + \\sqrt{3}$"],
+          right: 2,
+          why: "With $a = 1$, $b = 2$ and $c = -2$, the discriminant is $4 + 8 = 12$, and $\\sqrt{12} = 2\\sqrt{3}$. So $x = \\frac{-2 \\pm 2\\sqrt{3}}{2} = -1 \\pm \\sqrt{3}$, and the larger is $-1 + \\sqrt{3}$. $-2 + \\sqrt{3}$ is the **Dividing only part** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -58,6 +58,28 @@ const lesson: Lesson = {
         },
       ],
       answer: "Between 52% and 60% of all Pine City voters",
+      checkIn: {
+        text: "A random sample of 500 adults in Elm Town found that 40% walk to work. The margin of error is 3 percentage points. Which conclusion is best supported?",
+        choices: [
+          "Exactly 40% of all Elm Town adults walk to work.",
+          "It is plausible that between 38.5% and 41.5% of all Elm Town adults walk to work.",
+          "It is plausible that between 37% and 43% of all Elm Town adults walk to work.",
+          "It is plausible that between 37% and 43% of all adults in the state walk to work.",
+        ],
+        right: 2,
+        why: "The sample is random and drawn from Elm Town adults, so it speaks for them. The range is $40\\% - 3\\% = 37\\%$ to $40\\% + 3\\% = 43\\%$. The state choice is the **Wrong population** trap: the sample speaks only for Elm Town.",
+        twin: {
+          text: "A random sample of 300 students at Lake High School found that 65% take the bus. The margin of error is 5 percentage points. Which conclusion is best supported?",
+          choices: [
+            "It is plausible that between 60% and 70% of all Lake High School students take the bus.",
+            "Exactly 65% of all Lake High School students take the bus.",
+            "It is plausible that between 62.5% and 67.5% of all Lake High School students take the bus.",
+            "It is plausible that between 60% and 70% of all high school students in the country take the bus.",
+          ],
+          right: 0,
+          why: "The sample is random and drawn from Lake High School, so it speaks for its students. The range is $65\\% - 5\\% = 60\\%$ to $65\\% + 5\\% = 70\\%$. Exactly 65% is the **Too sure** trap: an estimate is never exact.",
+        },
+      },
     },
     {
       title: "Estimate a count",
@@ -78,6 +100,18 @@ const lesson: Lesson = {
       ],
       answer: "$540$",
       tryFrom: 1,
+      checkIn: {
+        text: "A random sample of 200 of the 2,500 employees at a company found that 12% bike to work. Based on the sample, about how many of the company's employees bike to work?",
+        choices: ["$24$", "$2200$", "$30$", "$300$"],
+        right: 3,
+        why: "The sample is random, so its rate can stand for all 2,500 employees: $0.12 \\times 2500 = 300$. 24 is 12% of the 200 people in the sample, the **Wrong population** trap: multiply by the population.",
+        twin: {
+          text: "A random sample of 150 of the 6,000 residents of a town found that 35% own a dog. Based on the sample, about how many of the town's residents own a dog?",
+          choices: ["$52.5$", "$2100$", "$3900$", "$210$"],
+          right: 1,
+          why: "The sample is random, so its rate can stand for all 6,000 residents: $0.35 \\times 6000 = 2100$. 52.5 is 35% of the 150 people in the sample, the **Wrong population** trap: multiply by the population.",
+        },
+      },
     },
   ],
   traps: [

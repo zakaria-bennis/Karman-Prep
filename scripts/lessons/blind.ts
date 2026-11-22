@@ -15,9 +15,10 @@ async function main(id: string) {
   const lesson = ((await import(pathToFileURL(file).href)) as { default: Lesson }).default;
 
   if (process.argv.includes("--check-ins")) {
-    const ask = (q: { passage?: string; text: string; choices: string[] }) => ({
+    const ask = (q: { passage?: string; text: string; choices: string[]; figure?: unknown }) => ({
       passage: q.passage,
       problem: q.text,
+      figure: q.figure,
       choices: q.choices,
     });
     console.log(

@@ -54,6 +54,18 @@ const lesson: Lesson = {
         { say: "The question asks for tacos, which is $x$.", show: "$x = 80 - 30 = 50$" },
       ],
       answer: "$50$ tacos",
+      checkIn: {
+        text: "A theater sold 120 tickets. Child tickets cost 5 dollars and adult tickets cost 8 dollars. The theater took in 840 dollars. How many child tickets did it sell?",
+        choices: ["$80$", "$40$", "$105$", "$168$"],
+        right: 1,
+        why: "Let $x$ be child tickets and $y$ adult tickets: $x + y = 120$ and $5x + 8y = 840$. Subtract 5 times the first: $3y = 240$, so $y = 80$ and $x = 40$. 80 is the **Mixed-up letters** trap: it is the adult tickets.",
+        twin: {
+          text: "A store sold 50 shirts. Plain shirts cost 10 dollars and printed shirts cost 15 dollars. The store took in 620 dollars. How many plain shirts did it sell?",
+          choices: ["$24$", "$62$", "$25$", "$26$"],
+          right: 3,
+          why: "Let $x$ be plain shirts and $y$ printed shirts: $x + y = 50$ and $10x + 15y = 620$. Subtract 10 times the first: $5y = 120$, so $y = 24$ and $x = 26$. 24 is the **Mixed-up letters** trap: it is the printed shirts.",
+        },
+      },
     },
     {
       title: "No solution",
@@ -81,6 +93,18 @@ const lesson: Lesson = {
       ],
       answer: "$k = 2$",
       tryFrom: 2,
+      checkIn: {
+        text: "For what value of $k$ does the system $2x + ky = 5$ and $4x + 6y = 9$ have no solution?",
+        choices: ["$6$", "$12$", "$3$", "$1.5$"],
+        right: 2,
+        why: "No solution means the $x$ and $y$ parts match while the right sides differ. Halve the second equation so its $x$ term is $2x$: $2x + 3y = 4.5$. So $k = 3$, and 5 and 4.5 differ. 6 skips the halving.",
+        twin: {
+          text: "For what value of $k$ does the system $kx + 5y = 4$ and $9x + 15y = 6$ have no solution?",
+          choices: ["$3$", "$9$", "$27$", "$1$"],
+          right: 0,
+          why: "No solution means the $x$ and $y$ parts match while the right sides differ. Divide the second equation by 3 so its $y$ term is $5y$: $3x + 5y = 2$. So $k = 3$, and 4 and 2 differ. 9 skips the dividing.",
+        },
+      },
     },
   ],
   traps: [

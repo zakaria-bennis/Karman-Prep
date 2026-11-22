@@ -54,6 +54,18 @@ const lesson: Lesson = {
         { say: "Cosine is adjacent over hypotenuse.", show: "$\\cos A = \\frac{12}{13}$" },
       ],
       answer: "$\\frac{12}{13}$",
+      checkIn: {
+        text: "In right triangle $ABC$, angle $C$ is the right angle, $AC = 8$, $BC = 15$ and $AB = 17$. What is $\\cos A$?",
+        choices: ["$\\frac{15}{17}$", "$\\frac{8}{17}$", "$\\frac{17}{8}$", "$\\frac{8}{15}$"],
+        right: 1,
+        why: "At angle $A$, the hypotenuse is $AB = 17$ and the leg that touches $A$ is $AC = 8$. Cosine is adjacent over hypotenuse: $\\frac{8}{17}$. $\\frac{15}{17}$ is the **Wrong corner** trap: it is $\\cos B$.",
+        twin: {
+          text: "In right triangle $ABC$, angle $C$ is the right angle, $AC = 24$, $BC = 7$ and $AB = 25$. What is $\\cos A$?",
+          choices: ["$\\frac{7}{25}$", "$\\frac{25}{24}$", "$\\frac{24}{7}$", "$\\frac{24}{25}$"],
+          right: 3,
+          why: "At angle $A$, the hypotenuse is $AB = 25$ and the leg that touches $A$ is $AC = 24$. Cosine is adjacent over hypotenuse: $\\frac{24}{25}$. $\\frac{7}{25}$ is the **Wrong corner** trap: it is $\\cos B$.",
+        },
+      },
     },
     {
       title: "Sine to cosine",
@@ -76,6 +88,18 @@ const lesson: Lesson = {
       ],
       answer: "$\\frac{8}{17}$",
       tryFrom: 1,
+      checkIn: {
+        text: "In right triangle $XYZ$, angle $Z$ is the right angle and $\\sin X = \\frac{5}{13}$. What is $\\cos Y$?",
+        choices: ["$\\frac{12}{13}$", "$\\frac{13}{5}$", "$\\frac{5}{13}$", "$\\frac{5}{12}$"],
+        right: 2,
+        why: "The sine says the side opposite $X$ is 5 and the hypotenuse is 13. That side touches $Y$, so it is adjacent to $Y$: $\\cos Y = \\frac{5}{13}$. $\\frac{12}{13}$ is $\\cos X$, the **Wrong corner** trap.",
+        twin: {
+          text: "In right triangle $ABC$, angle $C$ is the right angle and $\\sin A = \\frac{3}{5}$. What is $\\cos B$?",
+          choices: ["$\\frac{3}{5}$", "$\\frac{4}{5}$", "$\\frac{5}{3}$", "$\\frac{3}{4}$"],
+          right: 0,
+          why: "The sine says the side opposite $A$ is 3 and the hypotenuse is 5. That side touches $B$, so it is adjacent to $B$: $\\cos B = \\frac{3}{5}$. $\\frac{4}{5}$ is $\\cos A$, the **Wrong corner** trap.",
+        },
+      },
     },
   ],
   traps: [

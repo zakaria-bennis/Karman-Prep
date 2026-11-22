@@ -53,6 +53,18 @@ const lesson: Lesson = {
         { say: "Take the square root.", show: "$h = 12$" },
       ],
       answer: "$12$ feet",
+      checkIn: {
+        text: "A 17-foot ladder leans against a wall. Its foot is 8 feet from the wall. How high up the wall does the ladder reach, in feet?",
+        choices: ["$15$", "$\\sqrt{353}$", "$225$", "$9$"],
+        right: 0,
+        why: "The ladder is across from the right angle, so it is $c$. The height is a leg: $h^2 = 17^2 - 8^2 = 289 - 64 = 225$, so $h = 15$. 225 is the **Forgetting the root** trap, and $\\sqrt{353}$ adds the squares, the **Adding for a leg** trap.",
+        twin: {
+          text: "A 10-foot ladder leans against a wall. Its foot is 6 feet from the wall. How high up the wall does the ladder reach, in feet?",
+          choices: ["$\\sqrt{136}$", "$64$", "$8$", "$4$"],
+          right: 2,
+          why: "The ladder is across from the right angle, so it is $c$. The height is a leg: $h^2 = 10^2 - 6^2 = 100 - 36 = 64$, so $h = 8$. 64 is the **Forgetting the root** trap, and $\\sqrt{136}$ adds the squares, the **Adding for a leg** trap.",
+        },
+      },
     },
     {
       title: "Special triangle",
@@ -77,6 +89,18 @@ const lesson: Lesson = {
       ],
       answer: "$7\\sqrt{3}$",
       tryFrom: 1,
+      checkIn: {
+        text: "A right triangle has a $30^\\circ$ angle and a hypotenuse of 10. What is the length of the side across from the $60^\\circ$ angle?",
+        choices: ["$5$", "$5\\sqrt{3}$", "$10\\sqrt{3}$", "$5\\sqrt{2}$"],
+        right: 1,
+        why: "The hypotenuse is $2x = 10$, so $x = 5$. The side across from 60° is the long leg, $x\\sqrt{3} = 5\\sqrt{3}$. 5 is the short leg, across from 30°: the **Swapped special sides** trap.",
+        twin: {
+          text: "A right triangle has a $30^\\circ$ angle and a hypotenuse of 18. What is the length of the side across from the $60^\\circ$ angle?",
+          choices: ["$9$", "$18\\sqrt{3}$", "$9\\sqrt{2}$", "$9\\sqrt{3}$"],
+          right: 3,
+          why: "The hypotenuse is $2x = 18$, so $x = 9$. The side across from 60° is the long leg, $x\\sqrt{3} = 9\\sqrt{3}$. 9 is the short leg, across from 30°: the **Swapped special sides** trap.",
+        },
+      },
     },
   ],
   traps: [

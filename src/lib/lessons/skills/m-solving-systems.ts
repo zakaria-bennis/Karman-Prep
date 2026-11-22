@@ -60,6 +60,18 @@ const lesson: Lesson = {
         { say: "The question asks for $x + y$, not $x$.", show: "$3 + 4 = 7$" },
       ],
       answer: "$7$",
+      checkIn: {
+        text: "If $(x, y)$ is the solution to the system $2x + 3y = 11$ and $5x - 6y = 14$, what is the value of $x + y$?",
+        choices: ["$4$", "$5$", "$1$", "$3$"],
+        right: 1,
+        why: "Double the first equation: $4x + 6y = 22$. Add it to the second: $9x = 36$, so $x = 4$. Then $8 + 3y = 11$ gives $y = 1$, and $x + y = 5$. 4 is the **Answering the wrong letter** trap: it is only $x$.",
+        twin: {
+          text: "If $(x, y)$ is the solution to the system $3x + y = 20$ and $2x - 3y = 6$, what is the value of $x + y$?",
+          choices: ["$6$", "$2$", "$4$", "$8$"],
+          right: 3,
+          why: "Triple the first equation: $9x + 3y = 60$. Add it to the second: $11x = 66$, so $x = 6$. Then $18 + y = 20$ gives $y = 2$, and $x + y = 8$. 6 is the **Answering the wrong letter** trap: it is only $x$.",
+        },
+      },
     },
     {
       title: "Substitute",
@@ -85,6 +97,18 @@ const lesson: Lesson = {
       ],
       answer: "$(5, 9)$",
       tryFrom: 2,
+      checkIn: {
+        text: "Solve the system $y = 2x - 7$ and $3x + 2y = 21$.",
+        choices: ["$(4, 1)$", "$(3, 5)$", "$(5, 3)$", "$(5, 17)$"],
+        right: 2,
+        why: "Put $2x - 7$ in for $y$: $3x + 2(2x - 7) = 21$. The 2 reaches both terms, so $7x - 14 = 21$, $7x = 35$ and $x = 5$. Then $y = 2(5) - 7 = 3$. $(4, 1)$ comes from multiplying only the $2x$ by 2.",
+        twin: {
+          text: "Solve the system $y = 2x + 4$ and $2x + 3y = 36$.",
+          choices: ["$(3, 10)$", "$(4, 12)$", "$(10, 3)$", "$(3, 2)$"],
+          right: 0,
+          why: "Put $2x + 4$ in for $y$: $2x + 3(2x + 4) = 36$. The 3 reaches both terms, so $8x + 12 = 36$, $8x = 24$ and $x = 3$. Then $y = 2(3) + 4 = 10$. $(4, 12)$ comes from multiplying only the $2x$ by 3.",
+        },
+      },
     },
   ],
   traps: [

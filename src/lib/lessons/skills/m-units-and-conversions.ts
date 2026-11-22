@@ -51,6 +51,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$15$ miles per hour",
+      checkIn: {
+        text: "A cyclist moves at 44 feet per second. What is this speed in miles per hour? (1 mile = 5,280 feet)",
+        choices: ["$0.5$", "$158400$", "$\\frac{1}{120}$", "$30$"],
+        right: 3,
+        why: "Change seconds to hours, then feet to miles: $44 \\cdot 3600 = 158{,}400$ feet per hour, and $158{,}400 \\div 5280 = 30$. 0.5 uses 60 seconds in an hour, but an hour has 3,600. $\\frac{1}{120}$ is miles per second, the **Half a rate** trap.",
+        twin: {
+          text: "A car moves at 66 feet per second. What is this speed in miles per hour? (1 mile = 5,280 feet)",
+          choices: ["$0.75$", "$45$", "$237600$", "$\\frac{1}{80}$"],
+          right: 1,
+          why: "Change seconds to hours, then feet to miles: $66 \\cdot 3600 = 237{,}600$ feet per hour, and $237{,}600 \\div 5280 = 45$. 0.75 uses 60 seconds in an hour, but an hour has 3,600. $\\frac{1}{80}$ is miles per second, the **Half a rate** trap.",
+        },
+      },
     },
     {
       title: "Density",
@@ -72,6 +84,18 @@ const lesson: Lesson = {
       ],
       answer: "$2.7$ grams per cubic centimeter",
       tryFrom: 1,
+      checkIn: {
+        text: "A stone has a mass of 750 grams and a volume of 0.3 liters. What is its density in grams per cubic centimeter? (1 liter = 1,000 cubic centimeters)",
+        choices: ["$2.5$", "$2500$", "$0.4$", "$225$"],
+        right: 0,
+        why: "Change the volume first: $0.3 \\cdot 1000 = 300$ cubic centimeters. Density is mass over volume: $\\frac{750}{300} = 2.5$. 2500 is grams per liter, the **Half a rate** trap: it never changes the liters.",
+        twin: {
+          text: "A block of wood has a mass of 960 grams and a volume of 0.4 liters. What is its density in grams per cubic centimeter? (1 liter = 1,000 cubic centimeters)",
+          choices: ["$2400$", "$\\frac{5}{12}$", "$2.4$", "$384$"],
+          right: 2,
+          why: "Change the volume first: $0.4 \\cdot 1000 = 400$ cubic centimeters. Density is mass over volume: $\\frac{960}{400} = 2.4$. 2400 is grams per liter, the **Half a rate** trap: it never changes the liters.",
+        },
+      },
     },
   ],
   traps: [

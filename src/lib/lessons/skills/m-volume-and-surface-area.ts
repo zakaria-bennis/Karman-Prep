@@ -42,6 +42,18 @@ const lesson: Lesson = {
         { say: "Square first, then multiply.", show: "$V = 9\\pi \\cdot 10 = 90\\pi$" },
       ],
       answer: "$90\\pi$",
+      checkIn: {
+        text: "A can shaped like a cylinder has a radius of 4 inches and a height of 5 inches. What is its volume, in cubic inches?",
+        choices: ["$20\\pi$", "$80\\pi$", "$40\\pi$", "$72\\pi$"],
+        right: 1,
+        why: "The volume of a cylinder is $\\pi r^2 h = \\pi (4)^2 (5) = 16\\pi \\cdot 5 = 80\\pi$. $72\\pi$ is the surface area, the **Inside or outside** trap, and $20\\pi$ forgets to square the radius.",
+        twin: {
+          text: "A can shaped like a cylinder has a radius of 5 inches and a height of 6 inches. What is its volume, in cubic inches?",
+          choices: ["$30\\pi$", "$60\\pi$", "$110\\pi$", "$150\\pi$"],
+          right: 3,
+          why: "The volume of a cylinder is $\\pi r^2 h = \\pi (5)^2 (6) = 25\\pi \\cdot 6 = 150\\pi$. $110\\pi$ is the surface area, the **Inside or outside** trap, and $30\\pi$ forgets to square the radius.",
+        },
+      },
     },
     {
       title: "Cone, backward",
@@ -61,6 +73,18 @@ const lesson: Lesson = {
       ],
       answer: "$r = 6$",
       tryFrom: 1,
+      checkIn: {
+        text: "A cone has a volume of $12\\pi$ cubic centimeters and a height of 4 centimeters. What is the radius of its base, in centimeters?",
+        choices: ["$\\sqrt{3}$", "$9$", "$3$", "$6$"],
+        right: 2,
+        why: "Write $12\\pi = \\frac{1}{3}\\pi r^2 (4)$. Divide by $\\pi$ and multiply by 3: $36 = 4r^2$, so $r^2 = 9$ and $r = 3$. $\\sqrt{3}$ is the **Missing one third** trap, and 9 forgets the square root.",
+        twin: {
+          text: "A cone has a volume of $36\\pi$ cubic centimeters and a height of 3 centimeters. What is the radius of its base, in centimeters?",
+          choices: ["$6$", "$2\\sqrt{3}$", "$36$", "$12$"],
+          right: 0,
+          why: "Write $36\\pi = \\frac{1}{3}\\pi r^2 (3)$. Divide by $\\pi$ and multiply by 3: $108 = 3r^2$, so $r^2 = 36$ and $r = 6$. $2\\sqrt{3}$ is the **Missing one third** trap, and 36 forgets the square root.",
+        },
+      },
     },
   ],
   traps: [
