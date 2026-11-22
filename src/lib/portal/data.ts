@@ -6,6 +6,7 @@
  * Screens are wired one at a time (founder, 2026-11-21); a screen with no part here yet still
  * shows its stand-ins.
  */
+import type { PlanId } from "@/lib/plans/catalog";
 import type { SkillFacts } from "@/app/dashboard/student/_portal/skills72";
 import type { Student } from "@/app/dashboard/student/_portal/progressData";
 import type { RealHomework, RealWorkshop } from "./homework";
@@ -17,11 +18,25 @@ export type PortalPlan = "practice" | "cohort" | "private";
 
 export interface PortalData {
   plan: PortalPlan;
+  /** The exact plan (Free, Practice, Pro, a school seat...): the menus share three shapes, the locks
+   *  do not. */
+  planId: PlanId;
+  /** What the plan opens right now (src/lib/assembler/plan-gate.ts): questions left on Free (null
+   *  with no limit), whether a new full-length exam may start, and the hardest level open. */
+  access: { questionsLeft: number | null; canStartFullTest: boolean; maxDifficulty: number };
   firstName: string | null;
+  email: string | null;
   /** First and last name, as the menu shows it. */
   name: string;
   /** The SAT date the student entered (YYYY-MM-DD), if any. */
   testDate: string | null;
+  /** The official SAT dates still to come (YYYY-MM-DD), from the `sat_dates` table. */
+  satDates: string[];
+  /** The choices the student made in Settings, kept with the account (student_settings.prefs). The
+   *  portal reads the keys it knows and ignores the rest. */
+  prefs: Record<string, unknown>;
+  /** Whether the student has seen the portal's welcome (student_settings.welcomed_at). */
+  welcomed: boolean;
   /** Whether today's Daily 10 and challenge are done. */
   today: { dailyDone: boolean; challengeDone: boolean };
   /** Workshops coming up, for the Library. */
