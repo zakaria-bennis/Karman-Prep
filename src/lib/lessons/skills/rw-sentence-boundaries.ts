@@ -55,6 +55,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "1870;",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The bakery on Main Street sells out of bread by ______ the owner plans to hire a second baker so the shelves stay full all day.",
+        choices: ["noon,", "noon", "noon, then", "noon;"],
+        right: 3,
+        why: "Both sides are full sentences, so they need a semicolon (or a period) between them. A comma alone is the **Comma splice** trap, and then is not a joining word, so a comma before it is still a splice, the **Adverb splice** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The library added a new reading room last ______ it already fills up with students every afternoon.",
+          choices: ["spring;", "spring,", "spring", "spring, however"],
+          right: 0,
+          why: '"The library added a new reading room last spring" and "it already fills up with students every afternoon" are both full sentences, so a semicolon joins them. A comma alone is the **Comma splice** trap, and however cannot join two sentences either, the **Adverb splice** trap.',
+        },
+      },
     },
     {
       title: "One side short",
@@ -77,6 +93,22 @@ const lesson: Lesson = {
       ],
       answer: "sunrise,",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "After weeks of practice in the school gym, the dancers finally stepped onto the stage for their first ______ a moment none of them would forget.",
+        choices: ["performance;", "performance,", "performance.", "performance, it was"],
+        right: 1,
+        why: '"A moment none of them would forget" is not a full sentence: it has no verb of its own. It describes the performance, so a comma joins it to the sentence. A semicolon or a period would leave it standing alone as a fragment, the **Pause trap**.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The team's bus rolled into town late on Friday ______ hours after the game was supposed to begin.",
+          choices: ["night.", "night;", "night, it was", "night,"],
+          right: 3,
+          why: '"Hours after the game was supposed to begin" has no subject and verb of its own, so it cannot stand alone. A comma attaches it to the sentence. A period or semicolon would cut it off as a fragment, the **Pause trap**, and adding "it was" makes a comma splice.',
+        },
+      },
     },
   ],
   traps: [

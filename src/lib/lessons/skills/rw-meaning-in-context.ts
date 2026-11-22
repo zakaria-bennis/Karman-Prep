@@ -45,6 +45,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "remain true",
+      checkIn: {
+        text: "As used in the text, what does the word press most nearly mean?",
+        passage:
+          "The coach's plan was simple: the team would <u>press</u> the other side from the first whistle, crowding their players so they never had time to pass.",
+        choices: ["iron", "push hard against", "print", "flatten"],
+        right: 1,
+        why: "The team crowds the other players so they have no time to pass, so press means push hard against them. Iron and flatten are common meanings of press that do not fit a game, the **Dictionary trap**.",
+        twin: {
+          text: "As used in the text, what does the word carry most nearly mean?",
+          passage:
+            "The mayor's plan to build a new park did not <u>carry</u> at the town meeting: only twelve of the forty members voted for it.",
+          choices: ["lift", "bring along", "win approval", "transport"],
+          right: 2,
+          why: "Only twelve of forty members voted for the plan, so it did not carry means it did not win approval. Lift and transport are everyday meanings of carry that do not fit a vote, the **Dictionary trap**.",
+        },
+      },
     },
     {
       title: "Mind the tone",
@@ -64,6 +80,22 @@ const lesson: Lesson = {
       ],
       answer: "lacking excitement",
       tryFrom: 1,
+      checkIn: {
+        text: "As used in the text, what does the word tame most nearly mean?",
+        passage:
+          "Critics called the band's new album <u>tame</u>. After two loud, wild records, this one sticks to soft songs that never take a risk.",
+        choices: ["obedient", "unadventurous", "friendly", "wild"],
+        right: 1,
+        why: "The critics compare the album with two wild records and say it never takes a risk, so tame means unadventurous. Obedient is a common meaning of tame for animals, the **Dictionary trap**, and friendly is too warm for a complaint, the **Tone mismatch** trap.",
+        twin: {
+          text: "As used in the text, what does the word thin most nearly mean?",
+          passage:
+            "The chef admitted that the soup was a bit <u>thin</u>: it tasted mostly of water, with only a hint of the vegetables.",
+          choices: ["slender", "narrow", "watery", "delicate"],
+          right: 2,
+          why: "The soup tastes mostly of water, so thin means watery. Slender and narrow describe shapes, the **Dictionary trap**, and delicate sounds like praise, the **Tone mismatch** trap.",
+        },
+      },
     },
   ],
   traps: [

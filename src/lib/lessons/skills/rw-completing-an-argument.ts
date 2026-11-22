@@ -57,6 +57,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "tomato plants may not need full sun all day to produce fruit.",
+      checkIn: {
+        text: "Which choice most logically completes the text?",
+        passage:
+          "Many people believe that cats cannot be trained to follow commands. In one study, however, shelter cats learned to sit and to come when called after just two weeks of short daily lessons with treats. This suggests that ______",
+        choices: [
+          "cats learn commands faster than dogs do.",
+          "cats can never learn more than two commands.",
+          "only shelter cats can be trained.",
+          "cats may be more trainable than many people believe.",
+        ],
+        right: 3,
+        why: "The study shows cats learning commands, which goes against the old belief, so the careful conclusion is that cats may be more trainable than people think. Nothing compares cats with dogs, the **Possible but unsupported** trap.",
+        twin: {
+          text: "Which choice most logically completes the text?",
+          passage:
+            "Many people think that teenagers learn best late at night, when the house is quiet. In one study, however, students who studied in the early evening remembered more the next day than students who studied after 11 p.m. This suggests that ______",
+          choices: [
+            "studying late at night may not be the best choice for teenagers.",
+            "teenagers should never study after dinner.",
+            "teenagers remember more when they study with music.",
+            "the quiet of late night helps teenagers remember more.",
+          ],
+          right: 0,
+          why: 'Early-evening studiers remembered more than late-night studiers, which goes against the old belief, so the careful conclusion is that late night may not be best. "Never after dinner" goes too far, the **Too extreme** trap, and the last choice says the opposite of the study, the **Opposite** trap.',
+        },
+      },
     },
     {
       title: "Ruling out",
@@ -80,6 +106,32 @@ const lesson: Lesson = {
       ],
       answer: "runoff from heavy rain.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice most logically completes the text?",
+        passage:
+          "A school's gym lights kept flickering. The custodian listed three possible causes: loose bulbs, a bad switch, or old wiring. He tightened every bulb, and the lights still flickered. He then replaced the switch, and the flickering went on. Therefore, the most likely cause is ______",
+        choices: [
+          "a loose bulb.",
+          "a power outage in the town.",
+          "a mix of all three causes.",
+          "the old wiring.",
+        ],
+        right: 3,
+        why: "Tightening the bulbs and replacing the switch did not stop the flickering, so those two causes are ruled out. Only the old wiring is left. A power outage was never on the list, the **Possible but unsupported** trap.",
+        twin: {
+          text: "Which choice most logically completes the text?",
+          passage:
+            "A baker's bread kept coming out flat. She listed three possible causes: old yeast, an oven that was too cool, or too little kneading. She bought fresh yeast, and the bread was still flat. She checked the oven with a thermometer and found it at the right heat. Therefore, the most likely cause is ______",
+          choices: [
+            "too little kneading.",
+            "the old yeast.",
+            "the type of flour she used.",
+            "an oven that was too cool.",
+          ],
+          right: 0,
+          why: "Fresh yeast did not fix the bread, and the oven was at the right heat, so those causes are ruled out. Only too little kneading is left. The flour was never on the list, the **Possible but unsupported** trap.",
+        },
+      },
     },
   ],
   traps: [

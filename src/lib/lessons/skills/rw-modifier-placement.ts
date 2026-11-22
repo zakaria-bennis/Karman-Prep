@@ -57,6 +57,32 @@ const lesson: Lesson = {
         { say: "Only the choice that starts with Amira kept puts Amira right after the comma." },
       ],
       answer: "Amira kept a steady pace through all six days.",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The spelling bee lasted for eleven rounds. Having studied the dictionary every night for a year, ______",
+        choices: [
+          "Marcus's confidence never wavered.",
+          "the hardest words did not trip up Marcus.",
+          "every word was spelled correctly by Marcus.",
+          "Marcus spelled every word correctly.",
+        ],
+        right: 3,
+        why: "The opening phrase describes whoever studied, so Marcus himself must come right after the comma. Marcus's confidence did not study, the **Possessive dangler** trap, and the passive version puts the words first, the **Passive dodge** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The new bridge connects the two halves of the city. Designed by a young engineer named Eva Ruiz, ______",
+          choices: [
+            "the bridge opened to traffic in 2015.",
+            "Eva Ruiz used steel cables to hold up the road.",
+            "the city held a parade when it opened.",
+            "traffic began crossing it in 2015.",
+          ],
+          right: 0,
+          why: "The opening phrase describes what was designed, so the bridge must come right after the comma. Eva Ruiz, the city and traffic were not designed by her, the **Wrong noun first** trap.",
+        },
+      },
     },
     {
       title: "What was built?",
@@ -83,6 +109,32 @@ const lesson: Lesson = {
       ],
       answer: "the tower has survived two earthquakes and a fire.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The old lighthouse stands on a rocky point above the harbor. Painted red and white so ships could see it in fog, ______",
+        choices: [
+          "sailors could spot the lighthouse from miles away.",
+          "the lighthouse could be seen from miles away.",
+          "the lighthouse's beam guided ships for a century.",
+          "the keepers climbed its stairs every night.",
+        ],
+        right: 1,
+        why: "The opening phrase describes what was painted red and white, so the lighthouse must come right after the comma. Sailors and keepers were not painted, the **Wrong noun first** trap, and the beam is the **Possessive dangler** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The park's oldest oak shades the whole playground. Planted by the town's founders in 1820, ______",
+          choices: [
+            "the founders chose a spot near the river.",
+            "children have climbed its branches for generations.",
+            "the oak's branches now reach over the swings.",
+            "the oak now stands over eighty feet tall.",
+          ],
+          right: 3,
+          why: "The opening phrase describes what was planted, so the oak must come right after the comma. The founders and the children were not planted, the **Wrong noun first** trap, and the oak's branches is the **Possessive dangler** trap.",
+        },
+      },
     },
   ],
   traps: [

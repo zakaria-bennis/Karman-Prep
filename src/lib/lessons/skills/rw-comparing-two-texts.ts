@@ -58,6 +58,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "Allowing photos can bring new visitors to museums.",
+      checkIn: {
+        text: "Based on the texts, both authors would most likely agree with which statement?",
+        passage:
+          "**Text 1:** Four-day school weeks save districts money on buses and heating. Families in some towns also like the longer weekend for family time and part-time jobs.\n\n**Text 2:** A four-day week can cut costs, but the school days get longer, and younger students often struggle to stay focused through the extra hours.",
+        choices: [
+          "Younger students focus better during longer school days.",
+          "Every district should switch to a four-day week.",
+          "A four-day school week can save money.",
+          "Longer school days are hard for younger students.",
+        ],
+        right: 2,
+        why: "Both texts say a four-day week can cut costs. Only Text 2 says long days are hard on younger students, so that choice is the **Half right** trap, and neither text says every district should switch.",
+        twin: {
+          text: "Based on the texts, both authors would most likely agree with which statement?",
+          passage:
+            "**Text 1:** Self-driving cars could cut traffic crashes, since most crashes are caused by human mistakes. They may also give older people who no longer drive a way to get around.\n\n**Text 2:** Self-driving cars may well reduce crashes caused by human error. Still, their software can fail in snow or heavy rain, and no one yet knows how they will handle every road.",
+          choices: [
+            "Self-driving cars could reduce crashes caused by human mistakes.",
+            "Self-driving cars work well in snow and heavy rain.",
+            "Self-driving cars may help older people who no longer drive.",
+            "All cars should be self-driving within ten years.",
+          ],
+          right: 0,
+          why: "Both texts say self-driving cars could reduce crashes caused by people's mistakes. Only Text 1 mentions older people, the **Half right** trap, and Text 2 says the software can fail in bad weather.",
+        },
+      },
     },
     {
       title: "The exact split",
@@ -85,6 +111,32 @@ const lesson: Lesson = {
       answer:
         "Text 1 treats the asteroid as the main cause, while Text 2 says volcanoes had already put the dinosaurs at risk.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice best describes a difference in how the two texts explain the spread of new ideas?",
+        passage:
+          "**Text 1:** Some historians argue that the printing press spread new ideas across Europe mainly because books became cheap enough for ordinary people to buy.\n\n**Text 2:** Other historians agree that books became cheaper but argue that rising reading skills mattered more. In their view, cheap books would have changed little if most people still could not read.",
+        choices: [
+          "Text 1 says reading skills mattered most, while Text 2 says cheap books mattered most.",
+          "Text 1 credits mainly cheaper books, while Text 2 says rising reading skills mattered more.",
+          "Text 1 says books became cheaper, while Text 2 says books became more expensive.",
+          "Text 1 says the printing press spread ideas, while Text 2 says it had no effect at all.",
+        ],
+        right: 1,
+        why: 'Both texts accept that books became cheaper; they split on what mattered most. Text 1 points to cheap books, Text 2 to reading skills. The first choice gives each text the other\'s view, the **Swapped authors** trap, and "no effect at all" is the **Too extreme** trap.',
+        twin: {
+          text: "Which choice best describes a difference in how the two texts explain the drop in honeybee numbers?",
+          passage:
+            "**Text 1:** Many biologists think honeybee numbers are falling mainly because of a tiny mite that spreads disease through hives.\n\n**Text 2:** Other biologists agree the mite is harmful but argue that the loss of wildflowers matters more. Bees that cannot find enough food, they say, are too weak to fight off the mite in the first place.",
+          choices: [
+            "Text 1 says the mite is harmless, while Text 2 says it kills every hive.",
+            "Text 1 says lost wildflowers matter most, while Text 2 says the mite matters most.",
+            "Text 1 says bees eat wildflowers, while Text 2 says bees avoid them.",
+            "Text 1 treats the mite as the main cause, while Text 2 says lost wildflowers leave bees too weak to resist it.",
+          ],
+          right: 3,
+          why: "Both texts agree the mite is harmful; they split on the main cause. Text 1 blames the mite, Text 2 the loss of wildflowers that weakens bees. The second choice swaps the two views, the **Swapped authors** trap.",
+        },
+      },
     },
   ],
   traps: [

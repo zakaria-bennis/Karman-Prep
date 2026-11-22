@@ -59,6 +59,23 @@ const lesson: Lesson = {
         },
       ],
       answer: "$x^{\\frac{7}{6}}$",
+      checkIn: {
+        text: "For $x > 0$, which expression is equivalent to $\\sqrt[3]{x} \\cdot \\sqrt[4]{x^3}$?",
+        choices: [
+          "$x^{\\frac{1}{4}}$",
+          "$x^{\\frac{5}{3}}$",
+          "$x^{\\frac{13}{12}}$",
+          "$x^{\\frac{4}{7}}$",
+        ],
+        right: 2,
+        why: "As powers, the roots are $x^{\\frac{1}{3}}$ and $x^{\\frac{3}{4}}$. Multiplying adds the exponents: $\\frac{4}{12} + \\frac{9}{12} = \\frac{13}{12}$. $x^{\\frac{1}{4}}$ is the **Multiplying instead of adding** trap.",
+        twin: {
+          text: "For $x > 0$, which expression is equivalent to $\\sqrt{x} \\cdot \\sqrt[5]{x^2}$?",
+          choices: ["$x^{\\frac{9}{10}}$", "$x^{\\frac{1}{5}}$", "$x^3$", "$x^{\\frac{3}{7}}$"],
+          right: 0,
+          why: "As powers, the roots are $x^{\\frac{1}{2}}$ and $x^{\\frac{2}{5}}$. Multiplying adds the exponents: $\\frac{5}{10} + \\frac{4}{10} = \\frac{9}{10}$. $x^{\\frac{1}{5}}$ is the **Multiplying instead of adding** trap.",
+        },
+      },
     },
     {
       title: "Power, then divide",
@@ -74,6 +91,18 @@ const lesson: Lesson = {
       ],
       answer: "$2x^7$",
       tryFrom: 2,
+      checkIn: {
+        text: "For $x \\ne 0$, simplify $\\frac{(3x^2)^3}{9x^4}$.",
+        choices: ["$3x$", "$\\frac{x^2}{3}$", "$3x^{10}$", "$3x^2$"],
+        right: 3,
+        why: "The cube reaches both factors: $(3x^2)^3 = 27x^6$. Then $\\frac{27}{9} = 3$ and $x^{6 - 4} = x^2$, so the answer is $3x^2$. $\\frac{x^2}{3}$ is the **Power skips the number** trap: it cubes the $x^2$ but not the 3.",
+        twin: {
+          text: "For $x \\ne 0$, simplify $\\frac{(2x^4)^3}{4x^7}$.",
+          choices: ["$\\frac{x^5}{2}$", "$2x^5$", "$2$", "$2x^{19}$"],
+          right: 1,
+          why: "The cube reaches both factors: $(2x^4)^3 = 8x^{12}$. Then $\\frac{8}{4} = 2$ and $x^{12 - 7} = x^5$, so the answer is $2x^5$. $\\frac{x^5}{2}$ is the **Power skips the number** trap.",
+        },
+      },
     },
   ],
   traps: [

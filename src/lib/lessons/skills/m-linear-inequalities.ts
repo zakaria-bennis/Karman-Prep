@@ -62,6 +62,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$x \\le -2$",
+      checkIn: {
+        text: "Solve $7 - 2x > 15$.",
+        choices: ["$x < -4$", "$x > -4$", "$x < 4$", "$x < -11$"],
+        right: 0,
+        why: "Subtract 7 to get $-2x > 8$. Dividing by $-2$ flips the sign: $x < -4$. $x > -4$ is the **Forgetting to flip** trap: test $x = 0$ and you get $7 > 15$, which is false.",
+        twin: {
+          text: "Solve $4 - 5x \\le 19$.",
+          choices: ["$x \\le -3$", "$x \\ge 3$", "$x \\ge -3$", "$x \\le 3$"],
+          right: 2,
+          why: "Subtract 4 to get $-5x \\le 15$. Dividing by $-5$ flips the sign: $x \\ge -3$. $x \\le -3$ is the **Forgetting to flip** trap: test $x = -5$ and you get $29 \\le 19$, which is false.",
+        },
+      },
     },
     {
       title: "Test the points",
@@ -99,6 +111,18 @@ const lesson: Lesson = {
       ],
       answer: "$(1, 3)$",
       tryFrom: 3,
+      checkIn: {
+        text: "Which point is a solution to the system $y < x + 3$ and $x + y \\ge 4$?",
+        choices: ["$(1, 1)$", "$(3, 2)$", "$(1, 4)$", "$(2, 6)$"],
+        right: 1,
+        why: "Test each point in both. For $(3, 2)$: $2 < 6$ and $3 + 2 = 5 \\ge 4$, so both are true. $(1, 4)$ sits on the dashed edge, since $4 < 4$ is false: the **Edge included or not** trap.",
+        twin: {
+          text: "Which point is a solution to the system $y \\ge 2x - 1$ and $x + y < 6$?",
+          choices: ["$(2, 4)$", "$(3, 1)$", "$(0, 7)$", "$(1, 3)$"],
+          right: 3,
+          why: "Test each point in both. For $(1, 3)$: $3 \\ge 1$ and $1 + 3 = 4 < 6$, so both are true. $(2, 4)$ sits on the dashed edge, since $6 < 6$ is false: the **Edge included or not** trap.",
+        },
+      },
     },
   ],
   traps: [

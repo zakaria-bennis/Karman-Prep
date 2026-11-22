@@ -56,6 +56,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "are",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The keys to the old storage room ______ kept in a drawer in the main office. Only the janitor and the principal may use them.",
+        choices: ["are", "is", "was", "has been"],
+        right: 0,
+        why: 'The subject is keys, not room: "to the old storage room" only describes the keys. Plural keys takes are. Is matches room, the noun closest to the blank, the **Nearest noun** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The leaves on the tall maple tree beside the school ______ turning red earlier than usual this year.",
+          choices: ["is", "has been", "are", "was"],
+          right: 2,
+          why: 'The subject is leaves; "on the tall maple tree beside the school" just describes them. Plural leaves takes are. Is and was match tree or school, the **Nearest noun** trap.',
+        },
+      },
     },
     {
       title: "Each one",
@@ -72,6 +88,21 @@ const lesson: Lesson = {
       ],
       answer: "shows",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "Each of the students in the chess club ______ a turn to lead the Friday practice.",
+        choices: ["get", "are getting", "have gotten", "gets"],
+        right: 3,
+        why: "The subject is each, which means each one, so it is singular and takes gets. Students sits closer to the blank and pulls toward get, the **Nearest noun** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage: "Every one of the new laptops in the library ______ a charger in its case.",
+          choices: ["comes with", "come with", "are coming with", "have come with"],
+          right: 0,
+          why: "The subject is every one, which is singular, so it takes comes. Laptops is the nearest noun and pulls toward come, the **Nearest noun** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -63,6 +63,32 @@ const lesson: Lesson = {
       ],
       answer:
         "In a 2022 study of 120 students, Mara Lindqvist found that reading test scores were about the same with quiet music as in silence.",
+      checkIn: {
+        text: "The student wants to present the study's findings. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken the following notes:\n• In 2020, biologist Tomas Ferro studied how noise affects songbirds.\n• His team recorded robins in quiet parks and next to busy roads.\n• Robins near roads sang at a higher pitch.\n• Higher notes are easier to hear over low traffic noise.",
+        choices: [
+          "In 2020, biologist Tomas Ferro studied how noise affects songbirds.",
+          "Ferro's team recorded robins in quiet parks and next to busy roads.",
+          "In a 2020 study, Tomas Ferro found that robins living next to busy roads sang at a higher pitch than robins in quiet parks.",
+          "Higher notes are easier to hear over low traffic noise.",
+        ],
+        right: 2,
+        why: "Findings are what the study found: robins near roads sang higher. The first choice gives the aim and the second the method, the **Wrong part** trap, and the last is background.",
+        twin: {
+          text: "The student wants to present the study's findings. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken the following notes:\n• In 2019, nutrition scientist Asha Rao studied snacks and attention.\n• She gave 80 students either an apple or a candy bar before class.\n• She then timed how long each student stayed on task.\n• Students who ate apples stayed on task about ten minutes longer.",
+          choices: [
+            "Rao gave 80 students either an apple or a candy bar before class.",
+            "In a 2019 study of 80 students, Asha Rao found that students who ate apples stayed on task about ten minutes longer than those who ate candy bars.",
+            "In 2019, nutrition scientist Asha Rao studied snacks and attention.",
+            "Many students eat snacks before class.",
+          ],
+          right: 1,
+          why: "Only the second choice gives the result: apple eaters stayed on task longer. The first gives the method and the third the aim, the **Wrong part** trap.",
+        },
+      },
     },
     {
       title: "A new audience",
@@ -88,6 +114,32 @@ const lesson: Lesson = {
       answer:
         "Archaeologist Ji-woo Han studies ancient fishing tools, such as 3,000-year-old bone hooks.",
       tryFrom: 2,
+      checkIn: {
+        text: "The student wants to introduce Moreno's research to an audience unfamiliar with Moreno. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken the following notes:\n• Lucia Moreno is a marine biologist.\n• Moreno studies how octopuses solve problems.\n• In 2022, she gave octopuses jars with crabs sealed inside.\n• Most octopuses learned to twist the lids open.",
+        choices: [
+          "Moreno found that most octopuses learned to twist the lids open.",
+          "In 2022, Moreno gave octopuses jars with crabs inside.",
+          "Marine biologist Lucia Moreno studies how octopuses solve problems, such as opening sealed jars.",
+          "Octopuses live in oceans around the world.",
+        ],
+        right: 2,
+        why: "A new audience needs to know who Moreno is and what she studies, and only the third choice says both. The first two use her last name alone with no introduction, the **Missing context** trap.",
+        twin: {
+          text: "The student wants to introduce Mensah's research to an audience unfamiliar with Mensah. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken the following notes:\n• Kofi Mensah is an astronomer.\n• Mensah studies planets around other stars.\n• In 2023, he measured the light from a distant star.\n• He found signs of a planet about the size of Earth.",
+          choices: [
+            "Astronomer Kofi Mensah studies planets around other stars, such as one about the size of Earth.",
+            "Mensah found signs of a planet about the size of Earth.",
+            "In 2023, Mensah measured the light from a distant star.",
+            "Some stars are very far from Earth.",
+          ],
+          right: 0,
+          why: "Readers who do not know Mensah need his full name, his field and his topic, and only the first choice gives all three. The others jump to a result or a method with no introduction, the **Missing context** trap.",
+        },
+      },
     },
   ],
   traps: [

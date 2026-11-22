@@ -55,6 +55,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "sisters'",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The three brothers built a treehouse in their backyard last summer. The ______ treehouse now has a rope ladder and a small window.",
+        choices: ["brothers'", "brother's", "brothers", "brothers's"],
+        right: 0,
+        why: "Three brothers own one treehouse, so take the plural, brothers, and add an apostrophe after the s: brothers'. Brother's would mean one brother owns it, the **Wrong number of owners** trap, and brothers with no apostrophe shows no owner at all.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "Both teams practiced on the same field all week. On Saturday, the two ______ coaches shook hands before the game began.",
+          choices: ["team's", "teams'", "teams", "teams's"],
+          right: 1,
+          why: "Two teams each have a coach, so use the plural, teams, with an apostrophe after the s: teams'. Team's points to one team, the **Wrong number of owners** trap, and teams with no apostrophe shows no ownership.",
+        },
+      },
     },
     {
       title: "Two words change",
@@ -83,6 +99,22 @@ const lesson: Lesson = {
       ],
       answer: "its back flippers",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The old oak tree in the town square is over two hundred years old. Every fall, ______ leaves turn bright orange before they drop.",
+        choices: ["it's", "its'", "its", "it is"],
+        right: 2,
+        why: "The leaves belong to the tree, so use the possessive its, with no apostrophe. It's and it is both mean \"it is,\" which makes no sense here, the **Its or it's** trap, and its' is never correct.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "A hermit crab does not grow its own shell. When ______ current shell gets too small, the crab moves into a larger empty one.",
+          choices: ["its", "it's", "its'", "it is"],
+          right: 0,
+          why: "The shell belongs to the crab, so use the possessive its, with no apostrophe. It's means \"it is,\" the **Its or it's** trap, and its' is never correct.",
+        },
+      },
     },
   ],
   traps: [

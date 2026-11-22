@@ -239,7 +239,10 @@ describe("lessons", () => {
           if (!math) expect(e.choices, `${e.title}: Reading examples are questions`).toBeDefined();
           // a check-in after every example, and a twin that is a different question
           expect(e.checkIn, `${e.title}: check-in`).toBeDefined();
-          if (e.checkIn) expect(e.checkIn.twin.text, e.title).not.toBe(e.checkIn.text);
+          if (e.checkIn)
+            expect(`${e.checkIn.twin.passage ?? ""} ${e.checkIn.twin.text}`, e.title).not.toBe(
+              `${e.checkIn.passage ?? ""} ${e.checkIn.text}`
+            );
         }
       });
 
@@ -284,7 +287,10 @@ describe("lessons", () => {
       });
 
       it("draws pictures from sound numbers", () => {
-        const figures = [l.figure, ...l.examples.flatMap((e) => (e.figure ? [e.figure] : []))];
+        const figures = [
+          l.figure,
+          ...l.examples.flatMap((e) => [e.figure, e.checkIn?.figure, e.checkIn?.twin.figure]),
+        ].filter((f): f is Figure => Boolean(f));
         expect(figures.flatMap(figureErrors)).toEqual([]);
       });
 

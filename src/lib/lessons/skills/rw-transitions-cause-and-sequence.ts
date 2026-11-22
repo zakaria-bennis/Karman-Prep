@@ -53,6 +53,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "Consequently,",
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "Heavy rain fell on the valley for three days straight. ______ the river rose over its banks and flooded the park.",
+        choices: ["Previously,", "Consequently,", "For instance,", "Even so,"],
+        right: 1,
+        why: "The flood happened because of the rain, so the second sentence is a result: Consequently. Previously would place the flood before the rain, the **Timeline flip** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "The school's heating system broke on Monday morning. ______ classes moved to the warm gym until it was fixed.",
+          choices: ["As a result,", "Before that,", "In contrast,", "For example,"],
+          right: 0,
+          why: "Classes moved because the heat broke, so the second sentence is a result: As a result. Before that would put the move ahead of the breakdown, the **Timeline flip** trap.",
+        },
+      },
     },
     {
       title: "Order in time",
@@ -73,6 +89,22 @@ const lesson: Lesson = {
       ],
       answer: "Next,",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "To plant a tree, first dig a hole twice as wide as the tree's roots. ______ set the tree in the hole and fill it back in with soil.",
+        choices: ["Therefore,", "Meanwhile,", "Previously,", "Then,"],
+        right: 3,
+        why: "The steps happen in order: dig first, then set the tree in. Then shows the next step. Therefore would make the planting a result of the digging, the **Time is not cause** trap, and Previously flips the order, the **Timeline flip** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "To change a bike tire, first let all the air out of the old tube. ______ pry the tire off the wheel with a tire lever.",
+          choices: ["Next,", "As a result,", "Earlier,", "Meanwhile,"],
+          right: 0,
+          why: "Letting the air out comes first and prying the tire off comes after, so Next fits. As a result would make the second step a result of the first, the **Time is not cause** trap, and Earlier flips the order.",
+        },
+      },
     },
   ],
   traps: [

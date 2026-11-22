@@ -68,6 +68,8 @@ export interface CheckIn {
   choices: Rich[];
   right: number;
   why: Rich;
+  /** A graph, table or other picture the question needs, drawn in code. */
+  figure?: Figure;
   /** A near-identical question (the same steps, other numbers or words), shown after a miss. */
   twin: Omit<CheckIn, "twin">;
 }

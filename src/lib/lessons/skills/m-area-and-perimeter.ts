@@ -45,6 +45,18 @@ const lesson: Lesson = {
         { say: "Add the two pieces.", show: "$40 + 8\\pi$" },
       ],
       answer: "$40 + 8\\pi$",
+      checkIn: {
+        text: "A window is a rectangle 12 feet wide and 7 feet tall with a half circle on top. The half circle's diameter is the rectangle's top side. What is the area of the window, in square feet?",
+        choices: ["$84 + 18\\pi$", "$84 + 72\\pi$", "$84 + 36\\pi$", "$26 + 6\\pi$"],
+        right: 0,
+        why: "The radius is half of 12, which is 6, so the half circle is $\\frac{1}{2}\\pi (6)^2 = 18\\pi$. The rectangle is $12 \\times 7 = 84$. $84 + 72\\pi$ is the **Diameter for radius** trap: it uses 12 as the radius.",
+        twin: {
+          text: "A window is a rectangle 4 feet wide and 9 feet tall with a half circle on top. The half circle's diameter is the rectangle's top side. What is the area of the window, in square feet?",
+          choices: ["$36 + 8\\pi$", "$36 + 4\\pi$", "$36 + 2\\pi$", "$22 + 2\\pi$"],
+          right: 2,
+          why: "The radius is half of 4, which is 2, so the half circle is $\\frac{1}{2}\\pi (2)^2 = 2\\pi$. The rectangle is $4 \\times 9 = 36$. $36 + 8\\pi$ uses 4 as the radius, the **Diameter for radius** trap.",
+        },
+      },
     },
     {
       title: "Fence around",
@@ -68,6 +80,18 @@ const lesson: Lesson = {
       ],
       answer: "$42$",
       tryFrom: 1,
+      checkIn: {
+        text: "A garden is shaped like an L. Its bottom side is 10 feet, its left side is 8 feet, its top side is 4 feet, and its short right side is 3 feet. How many feet of fencing go all the way around it?",
+        choices: ["$25$", "$36$", "$50$", "$31$"],
+        right: 1,
+        why: "The two missing edges are $10 - 4 = 6$ and $8 - 3 = 5$. All six edges add to $10 + 3 + 6 + 5 + 4 + 8 = 36$. 25 adds only the four sides that were given, and 50 is the area, not the fence.",
+        twin: {
+          text: "A garden is shaped like an L. Its bottom side is 14 feet, its left side is 10 feet, its top side is 6 feet, and its short right side is 5 feet. How many feet of fencing go all the way around it?",
+          choices: ["$35$", "$100$", "$40$", "$48$"],
+          right: 3,
+          why: "The two missing edges are $14 - 6 = 8$ and $10 - 5 = 5$. All six edges add to $14 + 5 + 8 + 5 + 6 + 10 = 48$. 35 adds only the four sides that were given, and 100 is the area, not the fence.",
+        },
+      },
     },
   ],
   traps: [

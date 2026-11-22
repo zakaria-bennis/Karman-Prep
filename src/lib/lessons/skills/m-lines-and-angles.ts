@@ -52,6 +52,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$65^\\circ$",
+      checkIn: {
+        text: "Two parallel lines are cut by a transversal. Two acute angles, one at each crossing, measure $(4x - 5)^\\circ$ and $(2x + 35)^\\circ$. What is the measure of each of these angles?",
+        choices: ["$20^\\circ$", "$105^\\circ$", "$75^\\circ$", "$95^\\circ$"],
+        right: 2,
+        why: "Two acute angles are equal, so $4x - 5 = 2x + 35$ and $x = 20$. Put it back in: $4(20) - 5 = 75$. 20 is the **Answering with x** trap: it is $x$, not the angle.",
+        twin: {
+          text: "Two parallel lines are cut by a transversal. Two acute angles, one at each crossing, measure $(5x - 12)^\\circ$ and $(2x + 24)^\\circ$. What is the measure of each of these angles?",
+          choices: ["$48^\\circ$", "$12^\\circ$", "$132^\\circ$", "$108^\\circ$"],
+          right: 0,
+          why: "Two acute angles are equal, so $5x - 12 = 2x + 24$ and $x = 12$. Put it back in: $5(12) - 12 = 48$. 12 is the **Answering with x** trap: it is $x$, not the angle.",
+        },
+      },
     },
     {
       title: "One of each",
@@ -74,6 +86,18 @@ const lesson: Lesson = {
       ],
       answer: "$95^\\circ$",
       tryFrom: 2,
+      checkIn: {
+        text: "Two parallel lines are cut by a transversal. An obtuse angle measures $(6x - 10)^\\circ$ and an acute angle measures $(2x + 30)^\\circ$. What is the measure of the obtuse angle?",
+        choices: ["$20^\\circ$", "$70^\\circ$", "$50^\\circ$", "$110^\\circ$"],
+        right: 3,
+        why: "An acute and an obtuse angle add to 180°: $8x + 20 = 180$, so $x = 20$. The obtuse angle is $6(20) - 10 = 110$. 50° comes from setting them equal, the **Equal or supplementary** trap.",
+        twin: {
+          text: "Two parallel lines are cut by a transversal. An obtuse angle measures $(5x + 5)^\\circ$ and an acute angle measures $(x + 25)^\\circ$. What is the measure of the obtuse angle?",
+          choices: ["$25^\\circ$", "$130^\\circ$", "$50^\\circ$", "$30^\\circ$"],
+          right: 1,
+          why: "An acute and an obtuse angle add to 180°: $6x + 30 = 180$, so $x = 25$. The obtuse angle is $5(25) + 5 = 130$. 30° comes from setting them equal, the **Equal or supplementary** trap.",
+        },
+      },
     },
   ],
   traps: [

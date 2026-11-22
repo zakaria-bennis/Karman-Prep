@@ -61,6 +61,18 @@ const lesson: Lesson = {
         { say: "The right side is $r^2$, so take its square root.", show: "$r = \\sqrt{25} = 5$" },
       ],
       answer: "$5$",
+      checkIn: {
+        text: "A circle has the equation $x^2 + y^2 + 4x - 6y - 3 = 0$. What is its radius?",
+        choices: ["$16$", "$\\sqrt{3}$", "$4$", "$\\sqrt{10}$"],
+        right: 2,
+        why: "Complete both squares: $(x + 2)^2 + (y - 3)^2 = 3 + 4 + 9 = 16$. The right side is $r^2$, so $r = \\sqrt{16} = 4$. 16 is the **Radius squared** trap.",
+        twin: {
+          text: "A circle has the equation $x^2 + y^2 - 2x + 8y - 19 = 0$. What is its radius?",
+          choices: ["$6$", "$36$", "$\\sqrt{19}$", "$\\sqrt{35}$"],
+          right: 0,
+          why: "Complete both squares: $(x - 1)^2 + (y + 4)^2 = 19 + 1 + 16 = 36$. The right side is $r^2$, so $r = \\sqrt{36} = 6$. 36 is the **Radius squared** trap.",
+        },
+      },
     },
     {
       title: "Find the center",
@@ -88,6 +100,18 @@ const lesson: Lesson = {
       ],
       answer: "$(5, -1)$",
       tryFrom: 1,
+      checkIn: {
+        text: "A circle has the equation $x^2 + y^2 + 8x - 6y + 21 = 0$. What are the coordinates of its center?",
+        choices: ["$(4, -3)$", "$(8, -6)$", "$(-8, 6)$", "$(-4, 3)$"],
+        right: 3,
+        why: "Complete both squares: $(x + 4)^2 + (y - 3)^2 = -21 + 16 + 9 = 4$. Flip the signs inside the squares to read the center, $(-4, 3)$. $(4, -3)$ is the **Unflipped signs** trap.",
+        twin: {
+          text: "A circle has the equation $x^2 + y^2 - 6x + 12y + 29 = 0$. What are the coordinates of its center?",
+          choices: ["$(-3, 6)$", "$(3, -6)$", "$(6, -12)$", "$(-6, 12)$"],
+          right: 1,
+          why: "Complete both squares: $(x - 3)^2 + (y + 6)^2 = -29 + 9 + 36 = 16$. Flip the signs inside the squares to read the center, $(3, -6)$. $(-3, 6)$ is the **Unflipped signs** trap.",
+        },
+      },
     },
   ],
   traps: [

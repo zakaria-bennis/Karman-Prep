@@ -64,6 +64,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "Each dragon fruit flower opens after dark and lasts only that one night.",
+      checkIn: {
+        text: "The student wants to emphasize how fast a hummingbird's heart can beat. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken these notes:\n· The ruby-throated hummingbird weighs about as much as a penny.\n· Its heart can beat over 1,000 times a minute while it flies.\n· It drinks nectar from tube-shaped flowers.\n· It spends winters in Central America.",
+        choices: [
+          "The ruby-throated hummingbird drinks nectar and spends winters in Central America.",
+          "The ruby-throated hummingbird, which weighs about as much as a penny, drinks nectar from tube-shaped flowers.",
+          "Weighing about as much as a penny, the ruby-throated hummingbird spends its winters in Central America.",
+          "While it flies, a ruby-throated hummingbird's heart can beat over 1,000 times a minute.",
+        ],
+        right: 3,
+        why: "Only the last choice is about the heartbeat, which is the goal. The others are true and come from the notes, but they are about food, weight or winter, the **True but off goal** trap.",
+        twin: {
+          text: "The student wants to emphasize how long a Greenland shark can live. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken these notes:\n· The Greenland shark lives in cold, deep Arctic waters.\n· It swims at less than 2 miles per hour.\n· Scientists estimate that some live for more than 250 years.\n· It can grow over 20 feet long.",
+          choices: [
+            "Scientists estimate that some Greenland sharks live for more than 250 years.",
+            "The Greenland shark swims at less than 2 miles per hour in cold, deep Arctic waters.",
+            "The Greenland shark can grow over 20 feet long.",
+            "A slow swimmer, the Greenland shark can grow over 20 feet long.",
+          ],
+          right: 0,
+          why: "The goal is how long the shark lives, and only the first choice gives its life span. The other choices are true, but they are about speed and size, the **True but off goal** trap.",
+        },
+      },
     },
     {
       title: "A generalization",
@@ -91,6 +117,32 @@ const lesson: Lesson = {
       answer:
         "Some animals, such as squirrels, woodpeckers and pikas, store food to get through the winter.",
       tryFrom: 2,
+      checkIn: {
+        text: "The student wants to make a generalization about how some plants spread their seeds. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken these notes:\n· Some plants spread their seeds far from the parent plant.\n· Dandelion seeds float away on the wind.\n· Burdock seeds hook onto animal fur.\n· Coconuts can float across the ocean to new beaches.",
+        choices: [
+          "Dandelion seeds float away on the wind.",
+          "Burdock seeds hook onto fur, while coconuts float across the ocean.",
+          "Some plants, such as dandelions, burdock and coconut palms, spread their seeds far from the parent plant.",
+          "Coconuts can float across the ocean and land on new beaches.",
+        ],
+        right: 2,
+        why: "A generalization speaks about plants in general, with the examples as support. The other choices each describe one or two plants, the **Wrong level** trap: they are too specific for the goal.",
+        twin: {
+          text: "The student wants to make a generalization about how some animals use tools. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken these notes:\n· Some animals use objects as tools.\n· Sea otters crack open shellfish with rocks.\n· Chimpanzees fish for termites with sticks.\n· Some crows bend twigs into hooks to pull out insects.",
+          choices: [
+            "Sea otters crack open shellfish by hitting them with rocks.",
+            "Chimpanzees use sticks, while crows bend twigs into hooks.",
+            "Some crows bend twigs into hooks to pull insects out of holes.",
+            "Some animals, including sea otters, chimpanzees and crows, use objects as tools.",
+          ],
+          right: 3,
+          why: "Only the last choice makes a general claim about animals, with three examples behind it. The others describe one or two animals, the **Wrong level** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -54,6 +54,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "has developed",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "Mr. Lee started teaching piano in 2012. Since then, he ______ more than two hundred students, and several of them now play in the city orchestra.",
+        choices: ["teaches", "had taught", "has taught", "will teach"],
+        right: 2,
+        why: "Since then runs from a past moment up to now, so it calls for has taught. Had taught would place it before some other past event, the **Wrong timeline** trap, and teaches ignores the time word, the **Missed time word** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The town began recycling glass in 2018. Since that year, it ______ enough bottles to fill two swimming pools.",
+          choices: ["has collected", "collects", "had collected", "will collect"],
+          right: 0,
+          why: "Since that year runs from 2018 up to now, so it calls for has collected. Had collected would place it before another past event, the **Wrong timeline** trap.",
+        },
+      },
     },
     {
       title: "Two past events",
@@ -77,6 +93,22 @@ const lesson: Lesson = {
       ],
       answer: "had blocked",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "By the time the firefighters arrived at the barn, the rain ______ the fire out, so they only had to check for smoke.",
+        choices: ["puts", "has put", "will put", "had put"],
+        right: 3,
+        why: "The rain put out the fire before the firefighters arrived, an earlier past event, so it takes had put. Has put would tie it to the present, the **Wrong timeline** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "When Maria opened her locker after lunch, she saw that someone ______ a birthday card inside it.",
+          choices: ["had left", "leaves", "has left", "will leave"],
+          right: 0,
+          why: "Someone left the card before Maria opened her locker, an earlier past event, so it takes had left. Has left would tie it to the present, the **Wrong timeline** trap.",
+        },
+      },
     },
   ],
   traps: [

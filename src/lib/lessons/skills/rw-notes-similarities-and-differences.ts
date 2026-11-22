@@ -62,6 +62,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "Venus and Earth are both rocky planets, and Venus is about 95% as wide as Earth.",
+      checkIn: {
+        text: "The student wants to emphasize a similarity between owls and hawks. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken the following notes:\n• Owls and hawks are both birds of prey.\n• Both catch small animals with their sharp talons.\n• Owls hunt mostly at night.\n• Hawks hunt mostly during the day.\n• Some owls can turn their heads about 270 degrees.",
+        choices: [
+          "Owls and hawks are both birds of prey that catch small animals with sharp talons.",
+          "Owls hunt mostly at night, while hawks hunt mostly during the day.",
+          "Some owls can turn their heads about 270 degrees.",
+          "Owls, some of which can turn their heads about 270 degrees, hunt mostly at night.",
+        ],
+        right: 0,
+        why: "The goal is a similarity, so the answer must say what both birds share: both are birds of prey that catch animals with talons. The night-and-day choice is true but shows a difference, and the last two tell only about owls, the **One-sided** trap.",
+        twin: {
+          text: "The student wants to emphasize a similarity between bees and butterflies. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken the following notes:\n• Bees and butterflies both visit flowers to drink nectar.\n• Both carry pollen from one flower to another.\n• Bees live together in large groups.\n• Most butterflies live alone.\n• A butterfly tastes with its feet.",
+          choices: [
+            "Bees live together in large groups, while most butterflies live alone.",
+            "A butterfly tastes with its feet.",
+            "Bees, which live in large groups, visit flowers to drink nectar.",
+            "Bees and butterflies both drink nectar from flowers and carry pollen from one flower to another.",
+          ],
+          right: 3,
+          why: "Only the last choice names what both insects do: drink nectar and carry pollen. The first choice is a difference, not a similarity, and the other two tell about only one insect, the **One-sided** trap.",
+        },
+      },
     },
     {
       title: "A difference",
@@ -86,6 +112,32 @@ const lesson: Lesson = {
       answer:
         "While a violinist holds the instrument under the chin, a cellist sits and rests it on the floor.",
       tryFrom: 2,
+      checkIn: {
+        text: "The student wants to emphasize a difference in the animals' skin. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+        passage:
+          "While researching a topic, a student has taken the following notes:\n• Frogs and toads are both amphibians.\n• Both lay their eggs in water.\n• Frogs have smooth, wet skin.\n• Toads have dry, bumpy skin.\n• Toads usually walk, while frogs usually hop.",
+        choices: [
+          "Frogs and toads are both amphibians that lay their eggs in water.",
+          "Frogs have smooth, wet skin, but toads have dry, bumpy skin.",
+          "Toads have dry, bumpy skin.",
+          "Toads usually walk, while frogs usually hop.",
+        ],
+        right: 1,
+        why: "The goal is a difference in skin, so the answer must describe both skins side by side. The walking-and-hopping choice is a difference, but not in skin, and the choice about toads alone is the **One-sided** trap.",
+        twin: {
+          text: "The student wants to emphasize a difference in how the two guitars make their sound louder. Which choice most effectively uses relevant information from the notes to accomplish this goal?",
+          passage:
+            "While researching a topic, a student has taken the following notes:\n• Acoustic and electric guitars both usually have six strings.\n• Both are played by plucking or strumming.\n• An acoustic guitar's hollow body makes its sound louder.\n• An electric guitar needs an amplifier to be heard well.\n• Electric guitars were first sold in the 1930s.",
+          choices: [
+            "Acoustic and electric guitars both usually have six strings and are played by plucking or strumming.",
+            "An electric guitar needs an amplifier to be heard well.",
+            "Electric guitars were first sold in the 1930s.",
+            "An acoustic guitar's hollow body makes its sound louder, while an electric guitar needs an amplifier.",
+          ],
+          right: 3,
+          why: "The goal compares how each guitar gets louder, so the answer needs both: the hollow body and the amplifier. The amplifier choice tells about only one guitar, the **One-sided** trap, and the first choice is a similarity.",
+        },
+      },
     },
   ],
   traps: [

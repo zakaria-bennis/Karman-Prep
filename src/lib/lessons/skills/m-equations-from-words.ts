@@ -50,6 +50,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$C = 60 + 45h$",
+      checkIn: {
+        text: "A gym charges a 50 dollar sign-up fee plus 30 dollars for each month. Which equation gives the total cost $C$, in dollars, for $m$ months?",
+        choices: ["$C = 50 + 30m$", "$C = 30 + 50m$", "$C = 80m$", "$C = 50m + 30m$"],
+        right: 0,
+        why: "The 50 dollar fee is paid once, so it is the start. Each month adds 30 dollars, so 30 multiplies $m$. $C = 30 + 50m$ is the **Start and rate swapped** trap: test $m = 0$ and you should get the fee, 50.",
+        twin: {
+          text: "A taxi charges 4 dollars to start a ride plus 2 dollars for each mile. Which equation gives the total fare $F$, in dollars, for a ride of $d$ miles?",
+          choices: ["$F = 2 + 4d$", "$F = 6d$", "$F = 4 + 2d$", "$F = 4d + 2d$"],
+          right: 2,
+          why: "The 4 dollars is paid once, so it is the start. Each mile adds 2 dollars, so 2 multiplies $d$. $F = 2 + 4d$ is the **Start and rate swapped** trap: test $d = 0$ and you should get 4.",
+        },
+      },
     },
     {
       title: "Draining tank",
@@ -69,6 +81,18 @@ const lesson: Lesson = {
       ],
       answer: "$t = 24$",
       tryFrom: 2,
+      checkIn: {
+        text: "A pool holds 900 gallons of water. It drains at 20 gallons per minute. After how many minutes will the pool hold 300 gallons?",
+        choices: ["$15$", "$30$", "$45$", "$60$"],
+        right: 1,
+        why: "The amount is $900 - 20t$. Set it equal to 300: $900 - 20t = 300$, so $20t = 600$ and $t = 30$. 15 divides only the 300 gallons left, not the 600 that drained out.",
+        twin: {
+          text: "A candle is 30 centimeters tall. It burns down 2 centimeters per hour. After how many hours will it be 12 centimeters tall?",
+          choices: ["$6$", "$15$", "$21$", "$9$"],
+          right: 3,
+          why: "The height is $30 - 2t$. Set it equal to 12: $30 - 2t = 12$, so $2t = 18$ and $t = 9$. 6 divides only the 12 centimeters left, not the 18 that burned.",
+        },
+      },
     },
   ],
   traps: [

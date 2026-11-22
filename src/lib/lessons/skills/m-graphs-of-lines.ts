@@ -51,6 +51,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$(4, 0)$",
+      checkIn: {
+        text: "What is the $x$-intercept of the line $3x - 4y = 24$?",
+        choices: ["$(0, -6)$", "$(-6, 0)$", "$(8, 0)$", "$(0, 8)$"],
+        right: 2,
+        why: "On the $x$-axis, $y = 0$, so $3x = 24$ and $x = 8$. The point is $(8, 0)$. $(0, -6)$ is the $y$-intercept, the **Wrong intercept** trap.",
+        twin: {
+          text: "What is the $x$-intercept of the line $2x + 5y = 30$?",
+          choices: ["$(15, 0)$", "$(0, 6)$", "$(6, 0)$", "$(0, 15)$"],
+          right: 0,
+          why: "On the $x$-axis, $y = 0$, so $2x = 30$ and $x = 15$. The point is $(15, 0)$. $(0, 6)$ is the $y$-intercept, the **Wrong intercept** trap.",
+        },
+      },
     },
     {
       title: "Point and slope",
@@ -69,6 +81,18 @@ const lesson: Lesson = {
       ],
       answer: "$y = -2x + 7$",
       tryFrom: 2,
+      checkIn: {
+        text: "A line has a slope of 3 and passes through $(2, -1)$. Which equation defines the line?",
+        choices: ["$y = 3x + 5$", "$y = 3x - 1$", "$y = 3x + 7$", "$y = 3x - 7$"],
+        right: 3,
+        why: "Start from $y + 1 = 3(x - 2)$. Distribute to get $y + 1 = 3x - 6$, then subtract 1: $y = 3x - 7$. Check: $3(2) - 7 = -1$. $y = 3x + 5$ is the **Point sign flip** trap: it uses $x + 2$ instead of $x - 2$.",
+        twin: {
+          text: "A line has a slope of $-4$ and passes through $(-1, 6)$. Which equation defines the line?",
+          choices: ["$y = -4x + 10$", "$y = -4x + 2$", "$y = -4x + 6$", "$y = -4x - 10$"],
+          right: 1,
+          why: "Start from $y - 6 = -4(x + 1)$. Distribute to get $y - 6 = -4x - 4$, then add 6: $y = -4x + 2$. Check: $-4(-1) + 2 = 6$. $y = -4x + 10$ is the **Point sign flip** trap: it uses $x - 1$ instead of $x + 1$.",
+        },
+      },
     },
   ],
   traps: [

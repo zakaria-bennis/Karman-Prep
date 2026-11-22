@@ -50,6 +50,22 @@ const lesson: Lesson = {
         { say: "Tenacity, refusing to give up, is left, and it matches the prediction." },
       ],
       answer: "tenacity",
+      checkIn: {
+        text: "Which choice completes the text with the most logical and precise word or phrase?",
+        passage:
+          "Even when the bridge project faced storms, delays and budget cuts, the chief engineer never lost hope and kept the crews working. The town later honored her for her ______.",
+        choices: ["obstinacy", "perseverance", "indifference", "frivolity"],
+        right: 1,
+        why: "She kept going through storms and budget cuts, and the town honored her, so the word must be positive and mean not giving up: perseverance. Obstinacy also means not giving up, but it is negative (stubbornness), the **Wrong charge** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical and precise word or phrase?",
+          passage:
+            "For thirty years, the librarian answered every question with care and never turned a reader away. Visitors often thanked her for her ______.",
+          choices: ["dedication", "officiousness", "lethargy", "audacity"],
+          right: 0,
+          why: "Thirty years of careful help, never turning a reader away, earns thanks, so the word is positive: dedication. Officiousness sounds similar but means being pushy and meddling, the **Wrong charge** trap.",
+        },
+      },
     },
     {
       title: "Negative charge",
@@ -70,6 +86,22 @@ const lesson: Lesson = {
       ],
       answer: "dubious",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text with the most logical and precise word or phrase?",
+        passage:
+          "The company said its new drink could cure colds, but it offered no studies or test results to back up the claim. Doctors called the promise ______.",
+        choices: ["persuasive", "authoritative", "unfounded", "scrupulous"],
+        right: 2,
+        why: "With no studies or test results behind it, the promise has no support, so the word must be negative: unfounded. Persuasive and authoritative praise the claim, the **Wrong charge** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical and precise word or phrase?",
+          passage:
+            "The witness said she saw the thief clearly, but it was midnight, the street had no lights, and she was standing a block away. The detective found her account ______.",
+          choices: ["credible", "implausible", "eloquent", "meticulous"],
+          right: 1,
+          why: "Midnight, no streetlights and a block away all make a clear view unlikely, so the word must be negative: implausible. Credible says the opposite, the **Wrong charge** trap.",
+        },
+      },
     },
   ],
   traps: [

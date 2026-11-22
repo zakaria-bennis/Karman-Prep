@@ -49,6 +49,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "simple",
+      checkIn: {
+        text: "Which choice completes the text with the most logical and precise word or phrase?",
+        passage:
+          "Most of the town's old houses are crowded close together on narrow streets. The new library, by contrast, is ______: it stands alone in the middle of a wide, open park.",
+        choices: ["cramped", "historic", "set apart", "noisy"],
+        right: 2,
+        why: '"By contrast" signals the opposite of crowded close together, and the colon explains: it stands alone in a park. Set apart fits. Cramped repeats the old houses\' idea, the **Missed contrast** trap, and historic fits the topic of buildings but not the clue.',
+        twin: {
+          text: "Which choice completes the text with the most logical and precise word or phrase?",
+          passage:
+            "Last year's science fair projects were mostly simple posters. This year's projects, however, were ______: many students built working robots and detailed models.",
+          choices: ["ambitious", "plain", "colorful", "brief"],
+          right: 0,
+          why: '"However" signals a change from simple posters, and the colon gives the proof: working robots and detailed models. Ambitious fits. Plain describes last year\'s posters, the **Missed contrast** trap.',
+        },
+      },
     },
     {
       title: "Right strength",
@@ -68,6 +84,22 @@ const lesson: Lesson = {
       ],
       answer: "modest",
       tryFrom: 1,
+      checkIn: {
+        text: "Which choice completes the text with the most logical and precise word or phrase?",
+        passage:
+          "The new bridge cut the drive across the river from 40 minutes to 5 minutes. Commuters called the change ______, saying it gave them back over an hour each day.",
+        choices: ["slight", "dramatic", "expensive", "temporary"],
+        right: 1,
+        why: "Cutting a 40-minute drive to 5 minutes and saving over an hour a day is a big change, so dramatic fits. Slight is the right kind of word but the wrong strength, the **Wrong strength** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical and precise word or phrase?",
+          passage:
+            "The team's new shoes made runners only a little faster, cutting their mile times by about one second. The coach described the improvement as ______, though still worth having.",
+          choices: ["huge", "harmful", "remarkable", "small"],
+          right: 3,
+          why: 'One second off a mile is a little change, and "though still worth having" admits it is minor, so small fits. Huge and remarkable are too strong, the **Wrong strength** trap.',
+        },
+      },
     },
   ],
   traps: [

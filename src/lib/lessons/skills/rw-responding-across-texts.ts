@@ -58,6 +58,32 @@ const lesson: Lesson = {
       ],
       answer:
         "By arguing that the claim overlooks students who need a teacher to keep them on track",
+      checkIn: {
+        text: "Based on the texts, how would the author of Text 2 most likely respond to the claim in Text 1?",
+        passage:
+          "**Text 1:** Electric cars give off no exhaust. If everyone drove one, cars would no longer harm the air at all.\n\n**Text 2:** Electric cars do not give off exhaust, which is a real gain for city air. But the electricity that charges them often comes from power plants that burn coal or gas, so their effect on the air depends on how that power is made.",
+        choices: [
+          "By agreeing that electric cars would end all harm to the air",
+          "By arguing that electric cars make city air dirtier than gas cars do",
+          "By arguing that electric cars cost too much for most families",
+          "By pointing out that the claim ignores how the electricity for the cars is made",
+        ],
+        right: 3,
+        why: "Text 2 agrees that no exhaust is a gain, but adds that the power often comes from plants that burn coal or gas. So it would say Text 1 leaves that out. Saying electric cars make the air dirtier goes much further than Text 2 does, the **Too extreme** trap.",
+        twin: {
+          text: "Based on the texts, how would the author of Text 2 most likely respond to the claim in Text 1?",
+          passage:
+            "**Text 1:** Homework teaches students to work on their own. Schools should give every student at least two hours of it each night.\n\n**Text 2:** Some homework helps students practice what they learned in class. But studies of younger students find little benefit from long assignments, and too much homework can leave students tired and less eager to learn.",
+          choices: [
+            "By arguing that the claim overlooks the drawbacks of long assignments",
+            "By agreeing that every student needs at least two hours of homework each night",
+            "By insisting that schools should ban homework completely",
+            "By arguing that students should study in groups instead of alone",
+          ],
+          right: 0,
+          why: "Text 2 grants that some homework helps, but warns that long assignments bring little benefit and can tire students, so it would push back on two hours a night. Banning homework goes further than Text 2 does, the **Too extreme** trap.",
+        },
+      },
     },
     {
       title: "Another cause",
@@ -87,6 +113,32 @@ const lesson: Lesson = {
       answer:
         "By arguing that the link between coffee and long life may be explained by other habits",
       tryFrom: 2,
+      checkIn: {
+        text: "Based on the texts, how would the author of Text 2 most likely respond to the conclusion in Text 1?",
+        passage:
+          "**Text 1:** Students who eat breakfast every day earn higher grades than students who skip it. Eating breakfast, then, must make students do better in school.\n\n**Text 2:** Families who make breakfast every day may also keep regular bedtimes and check on homework. Those habits, not the meal itself, could explain the higher grades.",
+        choices: [
+          "By claiming that eating breakfast lowers students' grades",
+          "By arguing that the link between breakfast and grades may be explained by other family habits",
+          "By agreeing that breakfast is the reason for the higher grades",
+          "By questioning whether the grades were recorded correctly",
+        ],
+        right: 1,
+        why: "Text 2 suggests that other habits, like regular bedtimes, could explain the grades, so it would say Text 1 jumps too fast from a link to a cause. Claiming breakfast lowers grades turns the finding around, which Text 2 never does.",
+        twin: {
+          text: "Based on the texts, how would the author of Text 2 most likely respond to the conclusion in Text 1?",
+          passage:
+            "**Text 1:** Cities with more bike lanes have fewer traffic deaths. Building bike lanes, then, must make streets safer for everyone.\n\n**Text 2:** Cities that build many bike lanes often also lower speed limits and add crosswalks at the same time. Those changes could explain much of the drop in traffic deaths.",
+          choices: [
+            "By agreeing that bike lanes alone explain the drop in traffic deaths",
+            "By arguing that bike lanes cause more traffic deaths",
+            "By questioning whether the cities counted their bike lanes correctly",
+            "By arguing that other street changes may explain the drop in traffic deaths",
+          ],
+          right: 3,
+          why: "Text 2 points to lower speed limits and new crosswalks added at the same time, so it would say the drop may not be due to bike lanes alone. Saying bike lanes cause more deaths reverses the finding, which Text 2 never claims.",
+        },
+      },
     },
   ],
   traps: [

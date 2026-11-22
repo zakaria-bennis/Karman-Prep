@@ -52,6 +52,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "To keep from floating away while they sleep",
+      checkIn: {
+        text: "According to the text, why do honeybees beat their wings at the hive's entrance?",
+        passage:
+          "Honeybees sometimes gather at the hive's entrance on hot days and beat their wings together. The moving air flows into the hive and keeps the wax combs inside from getting too warm and melting.",
+        choices: [
+          "To warn other bees of danger",
+          "To dry the honey stored in the combs",
+          "To keep the wax combs from melting",
+          "To gather at the entrance on hot days",
+        ],
+        right: 2,
+        why: "The text says the moving air keeps the wax combs from getting too warm and melting. Drying honey may be true of bees, but this text never says it, the **Outside fact** trap, and gathering at the entrance is what they do, not why.",
+        twin: {
+          text: "According to the text, what protects the frogs' cells while they are frozen?",
+          passage:
+            "In winter, some frogs let parts of their bodies freeze solid. A sugar in their blood protects their cells from damage, so when spring comes, the frogs thaw out and hop away.",
+          choices: [
+            "A sugar in their blood",
+            "The warm mud at the bottom of ponds",
+            "Thawing out in the spring",
+            "A thick layer of fat under the skin",
+          ],
+          right: 0,
+          why: "The text says a sugar in the frogs' blood protects their cells. Warm mud and fat are never mentioned, the **Outside fact** trap, and thawing in spring is what happens later, not what protects them.",
+        },
+      },
     },
     {
       title: "A result",
@@ -76,6 +102,32 @@ const lesson: Lesson = {
       ],
       answer: "It lost most of its customers and shut down.",
       tryFrom: 2,
+      checkIn: {
+        text: "According to the text, what happened to the one-room schoolhouse after the factory opened?",
+        passage:
+          "In 1920, a large factory opened in the farming town of Elm Grove. Over the next decade, many young people left their family farms to take factory jobs. The town's one-room schoolhouse, which had taught farm children for fifty years, was replaced by a brick school with eight classrooms.",
+        choices: [
+          "It was turned into a factory.",
+          "It taught farm children for fifty more years.",
+          "It moved to a nearby farm.",
+          "It was replaced by a larger brick school.",
+        ],
+        right: 3,
+        why: "The text says the schoolhouse was replaced by a brick school with eight classrooms. Fifty years is how long it had already taught, moved into the wrong place, the **Mash-up** trap.",
+        twin: {
+          text: "According to the text, what happened to Clearwater's main street after the highway opened?",
+          passage:
+            "When a new highway opened north of Clearwater in 1965, trucks stopped using the town's main street. Within a few years, the gas station and diner on that street had closed, and the town turned the old main street into a park.",
+          choices: [
+            "It was widened to carry more trucks.",
+            "It was turned into a park.",
+            "It got a new gas station and diner.",
+            "It became part of the new highway.",
+          ],
+          right: 1,
+          why: "The text says the town turned the old main street into a park. The gas station and diner closed rather than opened, so that choice mixes up the details, the **Mash-up** trap.",
+        },
+      },
     },
   ],
   traps: [

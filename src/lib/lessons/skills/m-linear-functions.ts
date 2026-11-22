@@ -42,6 +42,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$22$",
+      checkIn: {
+        text: "For $h(x) = -5x + 8$, what is $h(-2)$?",
+        choices: ["$1$", "$-2$", "$18$", "$2$"],
+        right: 2,
+        why: "Replace $x$ with $(-2)$: $h(-2) = -5(-2) + 8 = 10 + 8 = 18$. A negative times a negative is positive. 1 is the **Missing parentheses** trap: $-5 - 2 + 8$.",
+        twin: {
+          text: "For $g(x) = -4x + 3$, what is $g(-5)$?",
+          choices: ["$23$", "$-6$", "$-17$", "$2$"],
+          right: 0,
+          why: "Replace $x$ with $(-5)$: $g(-5) = -4(-5) + 3 = 20 + 3 = 23$. A negative times a negative is positive. $-6$ is the **Missing parentheses** trap: $-4 - 5 + 3$.",
+        },
+      },
     },
     {
       title: "Work backward",
@@ -58,6 +70,18 @@ const lesson: Lesson = {
       ],
       answer: "$k = 10$",
       tryFrom: 2,
+      checkIn: {
+        text: "A plumber's charge, in dollars, for $h$ hours of work is $C(h) = 40h + 60$. If $C(k) = 260$, what is the value of $k$?",
+        choices: ["$10460$", "$8$", "$6.5$", "$5$"],
+        right: 3,
+        why: "260 is what $C$ equals, so it is an output. Set $40k + 60 = 260$, subtract 60 to get $40k = 200$, and divide: $k = 5$. 10460 is the **Input for output** trap: it works out $C(260)$.",
+        twin: {
+          text: "A phone plan's cost, in dollars, for $g$ gigabytes of data is $P(g) = 4g + 12$. If $P(k) = 48$, what is the value of $k$?",
+          choices: ["$204$", "$9$", "$15$", "$12$"],
+          right: 1,
+          why: "48 is what $P$ equals, so it is an output. Set $4k + 12 = 48$, subtract 12 to get $4k = 36$, and divide: $k = 9$. 204 is the **Input for output** trap: it works out $P(48)$.",
+        },
+      },
     },
   ],
   traps: [

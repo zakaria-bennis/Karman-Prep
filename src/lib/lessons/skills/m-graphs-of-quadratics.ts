@@ -57,6 +57,18 @@ const lesson: Lesson = {
         { say: "The maximum value is the y-value, 7. The 3 only says where it happens." },
       ],
       answer: "$7$",
+      checkIn: {
+        text: "The function $f$ is defined by $f(x) = -2x^2 + 12x - 5$. What is the maximum value of $f$?",
+        choices: ["$13$", "$3$", "$-5$", "$6$"],
+        right: 0,
+        why: "The parabola opens down, so the vertex is the top. Its x-value is $-\\frac{12}{2(-2)} = 3$, and $f(3) = -18 + 36 - 5 = 13$. 3 is the **Where, not what** trap: it only says where the maximum happens.",
+        twin: {
+          text: "The function $f$ is defined by $f(x) = -x^2 + 10x - 9$. What is the maximum value of $f$?",
+          choices: ["$5$", "$-9$", "$16$", "$10$"],
+          right: 2,
+          why: "The parabola opens down, so the vertex is the top. Its x-value is $-\\frac{10}{2(-1)} = 5$, and $f(5) = -25 + 50 - 9 = 16$. 5 is the **Where, not what** trap: it only says where the maximum happens.",
+        },
+      },
     },
     {
       title: "From intercepts",
@@ -72,6 +84,18 @@ const lesson: Lesson = {
       ],
       answer: "$-32$",
       tryFrom: 1,
+      checkIn: {
+        text: "The graph of $y = 3(x + 2)(x - 4)$ is a parabola. What is the y-coordinate of its vertex?",
+        choices: ["$1$", "$-27$", "$-9$", "$-15$"],
+        right: 1,
+        why: "The graph crosses at $x = -2$ and $x = 4$, so the vertex is halfway, at $x = 1$. Then $y = 3(1 + 2)(1 - 4) = 3(3)(-3) = -27$. 1 is only the vertex's x-value, the **Where, not what** trap.",
+        twin: {
+          text: "The graph of $y = 2(x + 5)(x - 1)$ is a parabola. What is the y-coordinate of its vertex?",
+          choices: ["$-2$", "$-9$", "$14$", "$-18$"],
+          right: 3,
+          why: "The graph crosses at $x = -5$ and $x = 1$, so the vertex is halfway, at $x = -2$. Then $y = 2(-2 + 5)(-2 - 1) = 2(3)(-3) = -18$. $-2$ is only the vertex's x-value, the **Where, not what** trap.",
+        },
+      },
     },
   ],
   traps: [

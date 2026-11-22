@@ -59,6 +59,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "January;",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The tour visits three cities: Austin, which is known for ______ Denver, which sits near the mountains; and Seattle, which is famous for its coffee.",
+        choices: ["music;", "music,", "music", "music:"],
+        right: 0,
+        why: "The items already have commas inside them, so semicolons separate the items to keep them clear. A comma there blurs where one city ends and the next begins, the **Mixed marks** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The club elected three officers: Ana, who will lead ______ Ben, who will keep the records; and Chloe, who will manage the money.",
+          choices: ["meetings,", "meetings", "meetings;", "meetings:"],
+          right: 2,
+          why: "Each officer comes with a comma inside the item, so semicolons must separate the items, as the one after records shows. A comma there is the **Mixed marks** trap.",
+        },
+      },
     },
     {
       title: "Before the verb",
@@ -79,6 +95,20 @@ const lesson: Lesson = {
       ],
       answer: "potatoes",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage: "Apples, pears, and ______ ripen in the orchard behind the school each fall.",
+        choices: ["plums;", "plums", "plums,", "plums:"],
+        right: 1,
+        why: "The list of fruits is the subject of the sentence, and a subject goes straight into its verb, ripen, with no comma. A comma after the last item is the **Comma before the verb** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage: "Rain, wind, and ______ made the long drive home slow and tiring.",
+          choices: ["fog,", "fog;", "fog:", "fog"],
+          right: 3,
+          why: "Rain, wind, and fog together are the subject, and the verb made follows with no mark between them. A comma after the last item is the **Comma before the verb** trap.",
+        },
+      },
     },
   ],
   traps: [

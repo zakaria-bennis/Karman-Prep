@@ -51,6 +51,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "For instance,",
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "Some animals can survive without drinking water for a long time. ______ the kangaroo rat of the American desert can live its whole life without drinking, getting water from the seeds it eats.",
+        choices: ["In other words,", "However,", "Similarly,", "For example,"],
+        right: 3,
+        why: "The second sentence names one animal that shows the first sentence's point, so it is an example: For example. In other words would restate the idea instead of giving a case of it, the **Example or restatement** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "Some buildings are designed to save energy. ______ one office tower in Seattle collects rainwater for its toilets and gets power from solar panels on its roof.",
+          choices: ["For instance,", "In other words,", "Nevertheless,", "Likewise,"],
+          right: 0,
+          why: "The second sentence describes one building that shows the first sentence's point, so it is an example: For instance. In other words would restate the idea, the **Example or restatement** trap.",
+        },
+      },
     },
     {
       title: "Same idea again",
@@ -71,6 +87,22 @@ const lesson: Lesson = {
       ],
       answer: "In other words,",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "The museum's new rule says visitors may look at the paintings but must not touch them. ______ the art is for viewing only.",
+        choices: ["For example,", "In other words,", "Similarly,", "However,"],
+        right: 1,
+        why: "The second sentence repeats the rule in new words: look but do not touch means viewing only. That calls for In other words. For example would need one specific case of the rule, the **Example or restatement** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "The teacher said the test would cover only the last two chapters of the book. ______ students did not need to review anything from the earlier chapters.",
+          choices: ["In other words,", "For instance,", "Likewise,", "Even so,"],
+          right: 0,
+          why: "The second sentence says the same thing as the first in new words: only the last two chapters means nothing earlier. That calls for In other words. For instance would need a specific case, the **Example or restatement** trap.",
+        },
+      },
     },
   ],
   traps: [

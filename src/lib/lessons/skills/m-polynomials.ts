@@ -49,6 +49,18 @@ const lesson: Lesson = {
         { say: "Work it out.", show: "$16 - 20 + 2 + 7 = 5$" },
       ],
       answer: "$5$",
+      checkIn: {
+        text: "The polynomial $p$ is defined by $p(x) = x^3 - 2x^2 - 4x + 6$. What is the remainder when $p(x)$ is divided by $x - 3$?",
+        choices: ["$-27$", "$6$", "$3$", "$0$"],
+        right: 2,
+        why: "The divisor is $x - 3$, so the remainder is $p(3) = 27 - 18 - 12 + 6 = 3$. $-27$ is the **Flipped zero** trap: it finds $p(-3)$ instead. 6 is $p(0)$, the **Intercept mix-up** trap.",
+        twin: {
+          text: "The polynomial $p$ is defined by $p(x) = 2x^3 + 3x^2 - x + 4$. What is the remainder when $p(x)$ is divided by $x + 2$?",
+          choices: ["$2$", "$30$", "$4$", "$0$"],
+          right: 0,
+          why: "The divisor is $x + 2$, so the remainder is $p(-2) = -16 + 12 + 2 + 4 = 2$. 30 is the **Flipped zero** trap: it finds $p(2)$ instead. 4 is $p(0)$, the **Intercept mix-up** trap.",
+        },
+      },
     },
     {
       title: "Testing factors",
@@ -71,6 +83,18 @@ const lesson: Lesson = {
       ],
       answer: "$x + 1$",
       tryFrom: 2,
+      checkIn: {
+        text: "The polynomial $p$ is defined by $p(x) = x^3 - 13x - 12$. Which of these is a factor of $p(x)$?",
+        choices: ["$x + 4$", "$x - 1$", "$x - 3$", "$x - 4$"],
+        right: 3,
+        why: "A factor $x - a$ means $p(a) = 0$. For $x - 4$, $p(4) = 64 - 52 - 12 = 0$, so it is a factor. $x + 4$ is the **Flipped zero** trap: it needs $p(-4)$, which is $-24$.",
+        twin: {
+          text: "The polynomial $p$ is defined by $p(x) = x^3 - 19x + 30$. Which of these is a factor of $p(x)$?",
+          choices: ["$x - 5$", "$x + 5$", "$x + 2$", "$x + 3$"],
+          right: 1,
+          why: "A factor $x + 5$ means $p(-5) = 0$. Check: $p(-5) = -125 + 95 + 30 = 0$, so it is a factor. $x - 5$ is the **Flipped zero** trap: $p(5) = 60$, not 0.",
+        },
+      },
     },
   ],
   traps: [

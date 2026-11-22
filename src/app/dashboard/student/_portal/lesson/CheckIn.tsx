@@ -6,6 +6,7 @@
 import { useState } from "react";
 import type { CheckIn as CheckInData } from "@/lib/lessons/types";
 import { Choices } from "./Choices";
+import { Figure } from "./figures/Figure";
 import { LessonText } from "./LessonText";
 import styles from "./lesson.module.css";
 
@@ -28,6 +29,7 @@ function Question({
       <p className={styles.problem}>
         <LessonText text={q.text} />
       </p>
+      {q.figure && <Figure fig={q.figure} className={styles.exampleFigure} />}
       <Choices choices={q.choices} right={q.right} why={q.why} label={label} onPick={onPick} />
     </>
   );

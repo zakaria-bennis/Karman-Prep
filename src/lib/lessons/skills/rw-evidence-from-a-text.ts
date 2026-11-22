@@ -60,6 +60,32 @@ const lesson: Lesson = {
       ],
       answer:
         "“She laughed with her new friends at the market, then went home and reread her grandmother's letters until the ink blurred.”",
+      checkIn: {
+        text: "Which quotation from the story most effectively illustrates the claim?",
+        passage:
+          "In a short story, a boy named Theo starts his first job at a busy restaurant. The story suggests that Theo is nervous about the job but also proud to have it.",
+        choices: [
+          "“Theo's hands shook as he carried the first plates to the tables.”",
+          "“The restaurant was always busy on Friday nights.”",
+          "“Theo tied his apron with shaking hands, yet he smiled each time he caught sight of the name tag pinned to his shirt.”",
+          "“His manager said she was proud of how fast he learned.”",
+        ],
+        right: 2,
+        why: "The claim has two feelings, nervous and proud, so the quotation must show both. Shaking hands show nerves, and smiling at his name tag shows pride. The plates quotation shows only nerves, the **Half the claim** trap, and the manager's pride is the **Wrong person** trap.",
+        twin: {
+          text: "Which quotation from the novel most effectively illustrates the claim?",
+          passage:
+            "In a novel, a girl named June leaves her small town to attend college in a big city. The novel suggests that June is excited about the city but also lonely there.",
+          choices: [
+            "“June's roommate said the city felt too loud.”",
+            "“June walked the bright streets every evening, thrilled by the crowds, and then ate dinner alone in her quiet room.”",
+            "“June was thrilled by the crowds and the bright lights of the streets.”",
+            "“The college's library stayed open until midnight.”",
+          ],
+          right: 1,
+          why: "The claim pairs excitement with loneliness, and only the second quotation shows both: thrilled by the crowds, then dinner alone. The third shows only excitement, the **Half the claim** trap, and the roommate's view is the **Wrong person** trap.",
+        },
+      },
     },
     {
       title: "Praise and sorrow",
@@ -86,6 +112,32 @@ const lesson: Lesson = {
       answer:
         "“For forty years you fought the waves and fed the town; how quiet you sit now, and how I mourn your empty deck.”",
       tryFrom: 2,
+      checkIn: {
+        text: "Which quotation from the poem most effectively illustrates the claim?",
+        passage:
+          "In a poem, the speaker describes an old oak tree that was cut down. The speaker admires how long the tree stood but grieves that it is gone.",
+        choices: [
+          "“The road crew came on Monday with their saws.”",
+          "“Three hundred winters you stood against the wind; now only a stump remains, and I miss your shade.”",
+          "“How tall and strong you stood, the proudest tree on the hill.”",
+          "“The neighbors said the tree's roots had cracked the sidewalk.”",
+        ],
+        right: 1,
+        why: 'The claim has admiration and grief, so the line must show both. "Three hundred winters you stood" admires the tree, and "I miss your shade" grieves. The proud-tree line has only admiration, the **Half the claim** trap.',
+        twin: {
+          text: "Which quotation from the poem most effectively illustrates the claim?",
+          passage:
+            "In a poem, the speaker describes an old movie theater that has closed. The speaker praises the joy the theater once brought but is saddened that it has closed.",
+          choices: [
+            "“How grand you were, the brightest marquee on Main Street.”",
+            "“The owner sold the building to a bank last spring.”",
+            "“Children lined up for tickets on Saturday mornings.”",
+            "“You filled a thousand summer nights with laughter; now your doors are chained, and the street is dark without you.”",
+          ],
+          right: 3,
+          why: "The claim pairs praise for the joy the theater gave with sadness that it closed. Only the last line has both: laughter on summer nights, then chained doors and a dark street. The marquee line is only praise, the **Half the claim** trap.",
+        },
+      },
     },
   ],
   traps: [

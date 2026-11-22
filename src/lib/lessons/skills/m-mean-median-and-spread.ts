@@ -54,6 +54,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$4$",
+      checkIn: {
+        text: "A data set is 8, 10, 11, 13, 14, 16, 33. If the value 33 is removed, by how much does the mean decrease?",
+        choices: ["$3$", "$1$", "$12$", "$15$"],
+        right: 0,
+        why: "The sum is 105, so the mean is $105 \\div 7 = 15$. Without 33, the sum is 72 and the count is 6, so the new mean is 12. It drops $15 - 12 = 3$. 12 is the new mean, not how much it dropped.",
+        twin: {
+          text: "A data set is 6, 7, 9, 10, 13, 33. If the value 33 is removed, by how much does the mean decrease?",
+          choices: ["$0.5$", "$9$", "$4$", "$13$"],
+          right: 2,
+          why: "The sum is 78, so the mean is $78 \\div 6 = 13$. Without 33, the sum is 45 and the count is 5, so the new mean is 9. It drops $13 - 9 = 4$. 9 is the new mean, not how much it dropped.",
+        },
+      },
     },
     {
       title: "A missing value",
@@ -66,6 +78,18 @@ const lesson: Lesson = {
       ],
       answer: "$86$",
       tryFrom: 1,
+      checkIn: {
+        text: "The mean of four test scores is 80. Three of the scores are 72, 90 and 81. What is the fourth score?",
+        choices: ["$81$", "$77$", "$80$", "$157$"],
+        right: 1,
+        why: "Turn the mean into a sum: $80 \\cdot 4 = 320$. The three known scores add to 243, so the fourth is $320 - 243 = 77$. 157 uses 5 as the count, the **Wrong count** trap.",
+        twin: {
+          text: "The mean of five numbers is 30. Four of the numbers are 24, 35, 28 and 37. What is the fifth number?",
+          choices: ["$31$", "$30$", "$56$", "$26$"],
+          right: 3,
+          why: "Turn the mean into a sum: $30 \\cdot 5 = 150$. The four known numbers add to 124, so the fifth is $150 - 124 = 26$. 56 uses 6 as the count, the **Wrong count** trap.",
+        },
+      },
     },
   ],
   traps: [

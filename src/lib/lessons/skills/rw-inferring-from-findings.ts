@@ -56,6 +56,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "cannot by itself show whether breakfast or sleep explains the higher scores.",
+      checkIn: {
+        text: "Which choice most logically completes the text?",
+        passage:
+          "In a survey of 200 adults, people who owned dogs walked more each day than people who did not. However, the dog owners also lived closer to parks than the other adults did. Therefore, the survey ______",
+        choices: [
+          "shows that owning a dog makes people walk more.",
+          "cannot by itself show whether the dogs or the nearby parks explain the extra walking.",
+          "proves that living near a park has no effect on walking.",
+          "shows that everyone should get a dog.",
+        ],
+        right: 1,
+        why: "The dog owners differed in two ways, dogs and nearby parks, so the survey cannot tell which one explains the walking. Saying dogs cause it is the **Cause from a link** trap, and telling everyone to get a dog is the **Overreach** trap.",
+        twin: {
+          text: "Which choice most logically completes the text?",
+          passage:
+            "In a study of 120 workers, those who worked in offices with plants reported less stress. However, the offices with plants also had more windows than the offices without them. Therefore, the study ______",
+          choices: [
+            "proves that windows have no effect on stress.",
+            "shows that every office should be filled with plants.",
+            "shows that plants lower workers' stress.",
+            "cannot by itself show whether the plants or the windows explain the lower stress.",
+          ],
+          right: 3,
+          why: "The offices with plants also had more windows, so the study cannot tell which one lowered stress. Saying plants did it is the **Cause from a link** trap, and filling every office with plants is the **Overreach** trap.",
+        },
+      },
     },
     {
       title: "One group",
@@ -83,6 +109,32 @@ const lesson: Lesson = {
       ],
       answer: "may reduce soreness in mice, at least over a short time.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice most logically completes the text?",
+        passage:
+          "Researchers gave a new plant food to 30 tomato plants in a greenhouse. Over six weeks, those plants grew more fruit than 30 tomato plants given plain water. The researchers concluded that the new plant food ______",
+        choices: [
+          "will help every kind of plant grow more fruit.",
+          "works better than every other plant food sold today.",
+          "may help tomato plants in a greenhouse grow more fruit.",
+          "will work just as well on farms in any weather.",
+        ],
+        right: 2,
+        why: "The test used only tomato plants in a greenhouse for six weeks, so the safe conclusion stays inside those limits. Every kind of plant goes past what was tested, the **Overreach** trap, and farms in any weather ignore the greenhouse, the **Missed limit** trap.",
+        twin: {
+          text: "Which choice most logically completes the text?",
+          passage:
+            "A school tested a new reading app with 25 third graders for one month. Those students read faster at the end of the month than 25 third graders who did not use the app. The school concluded that the app ______",
+          choices: [
+            "may help third graders read faster, at least over a short time.",
+            "will help students of every age read faster.",
+            "is the best reading tool ever made.",
+            "will keep working for years after students stop using it.",
+          ],
+          right: 0,
+          why: "The app was tested only on third graders for one month, so the careful conclusion stays inside those limits. Every age goes past the group tested, the **Overreach** trap, and years later ignores the one-month limit, the **Missed limit** trap.",
+        },
+      },
     },
   ],
   traps: [

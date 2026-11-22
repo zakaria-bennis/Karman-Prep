@@ -61,6 +61,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "It describes a problem, gives one community's response, and reports the result.",
+      checkIn: {
+        text: "Which choice best describes the overall structure of the text?",
+        passage:
+          "For years, the city's river was too polluted for swimming. In 2015, volunteers began planting trees along its banks and cleaning trash from the water every month. Last summer, for the first time in decades, the city opened a public swimming beach on the river.",
+        choices: [
+          "It reports a result, then explains the problem that caused it.",
+          "It describes a problem, explains how volunteers responded, and reports the result.",
+          "It describes a problem, then argues that cities cannot solve it alone.",
+          "It praises volunteers, then argues that every city should clean its rivers.",
+        ],
+        right: 1,
+        why: "The text moves in three steps: the river was too polluted, volunteers planted trees and cleaned it, and now there is a swimming beach. The choice that starts with the result gets the order wrong, the **Wrong order** trap, and the arguing choices claim more than the text does.",
+        twin: {
+          text: "Which choice best describes the overall structure of the text?",
+          passage:
+            "Many students at one high school skipped breakfast because the bus came too early to eat at home. The school began handing out free breakfast bags at the front door each morning. Within a year, teachers reported fewer students feeling tired in first-period classes.",
+          choices: [
+            "It describes a problem, then explains why the school's plan failed.",
+            "It reports a result, then explains the problem behind it.",
+            "It criticizes the bus schedule, then argues that every school should serve breakfast.",
+            "It describes a problem, explains the school's response, and reports the result.",
+          ],
+          right: 3,
+          why: "The text moves from a problem (students skipped breakfast), to a response (free breakfast bags), to a result (fewer tired students). Starting with the result gets the order wrong, the **Wrong order** trap, and nothing in the text says the plan failed.",
+        },
+      },
     },
     {
       title: "View, then pushback",
@@ -86,6 +112,32 @@ const lesson: Lesson = {
       ],
       answer: "It presents a view, then offers two points that push back against it.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice best describes the overall structure of the text?",
+        passage:
+          "Some people say video games only waste time. Yet many games ask players to plan ahead and solve hard puzzles. And team games often require players to talk clearly and work together to win.",
+        choices: [
+          "It presents a view, then offers two points that support it.",
+          "It describes how video games are made, then compares them with board games.",
+          "It presents a view, then offers two points that push back against it.",
+          "It proves that video games are better than any other hobby.",
+        ],
+        right: 2,
+        why: 'The text opens with a view (games only waste time), and "Yet" turns against it with two points: planning and teamwork. The support choice gets the direction wrong, since the points argue against the view. Proves is too strong, the **Strong verb** trap.',
+        twin: {
+          text: "Which choice best describes the overall structure of the text?",
+          passage:
+            "Many people believe that cities have no room for wildlife. However, peregrine falcons nest on tall buildings in dozens of American cities. And coyotes have been seen living quietly in city parks from Chicago to Los Angeles.",
+          choices: [
+            "It presents a view, then offers two examples that push back against it.",
+            "It presents a view, then offers two examples that support it.",
+            "It describes how falcons and coyotes hunt, then compares the two animals.",
+            "It proves that wild animals prefer cities to the countryside.",
+          ],
+          right: 0,
+          why: 'The text opens with a belief (cities have no room for wildlife), and "However" turns against it with two examples: falcons and coyotes living in cities. Saying the examples support the view gets the direction wrong, and proves is too strong, the **Strong verb** trap.',
+        },
+      },
     },
   ],
   traps: [
