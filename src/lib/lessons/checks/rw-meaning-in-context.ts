@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // the shelves "struck her with a sadness": filled her with it
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 2 }],
+    [{ index: 1 }, { index: 2 }],
+  ],
 };
 
 export default checks;

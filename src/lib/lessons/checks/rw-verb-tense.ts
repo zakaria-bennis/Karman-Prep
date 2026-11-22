@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 1 }, // "Since the new factory opened": present perfect, has grown
     { index: 2 }, // rested for 300 years "before the team's discovery" in 2019 (past): had rested
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 3 }, { index: 0 }],
+  ],
 };
 
 export default checks;

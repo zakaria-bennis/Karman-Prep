@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // the parenthesis opened before "a stone mill" must close, with no comma before the verb
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 3 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

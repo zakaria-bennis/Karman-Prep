@@ -59,6 +59,8 @@ export function toMathjs(latex: string): string {
   return s
     .replace(/\{/g, "(")
     .replace(/\}/g, ")")
+    // a lone letter before a bracket multiplies it: 2x(x + 4) is 2x times (x + 4), not a call
+    .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*\(/g, "$1$2*(")
     .replace(/(\d),(\d{3})(?!\d)/g, "$1$2")
     .trim();
 }

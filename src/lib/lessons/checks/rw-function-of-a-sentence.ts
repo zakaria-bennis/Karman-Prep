@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "Yet ... no real sun could cast" complicates the critics' view that she is a realist
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 0 }, { index: 2 }],
+  ],
 };
 
 export default checks;

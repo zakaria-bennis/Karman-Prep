@@ -22,6 +22,13 @@ const checks: LessonChecks = {
     // 3(x - 4) = 2(x + 1): 3x - 12 = 2x + 2, x = 14, so x - 4 is
     (2 + 12) / (3 - 2) - 4,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // 6x - 6 - 2x - 6 = 8 and 3x + 12 - 5x + 10 = 6
+    [(8 + 6 + 6) / (6 - 2), (6 - 12 - 10) / (3 - 5)],
+    // times 4: 2x + x + 3 = 24; times 6: 2x + x + 3 = 30
+    [(24 - 3) / 3, (30 - 3) / 3],
+  ],
 };
 
 export default checks;

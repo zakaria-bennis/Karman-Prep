@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 2 }, // "The pool on Elm Street, ..., ___ at six": subject needs its main verb
     { index: 1 }, // "colonies ... often ___ more honey": plural subject needs main verb produce
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 1 }],
+    [{ index: 0 }, { index: 3 }],
+  ],
 };
 
 export default checks;

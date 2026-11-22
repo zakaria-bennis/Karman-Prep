@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "Cheap books mattered, but only once people had been taught": the common account leaves out schools
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 3 }, { index: 0 }],
+  ],
 };
 
 export default checks;

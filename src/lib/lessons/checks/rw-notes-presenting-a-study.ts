@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // study and findings for an unfamiliar audience: names the researcher, the study, and the result
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 1 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "plain, careful terms", "dull precision": prosaic
     { index: 0 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 0 }],
+    [{ index: 2 }, { index: 1 }],
+  ],
 };
 
 export default checks;

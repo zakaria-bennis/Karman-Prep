@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "the walls stretch for nearly 5 kilometers" | "walking the loop takes two hours": a semicolon
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // similarity: "both study distant galaxies from space"
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 3 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

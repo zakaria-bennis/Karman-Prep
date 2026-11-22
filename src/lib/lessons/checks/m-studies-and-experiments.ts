@@ -17,6 +17,19 @@ const checks: LessonChecks = {
     { text: "Randomly select 300 of the district's students, then randomly assign" },
     { text: "Standing desks likely reduce back pain for the company's employees." },
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // random assignment allows cause, but volunteers limit it to people like them
+    [
+      { text: "caused higher scores among students like those in the study" },
+      { text: "caused heavier lifts among members like those in the study" },
+    ],
+    // a random sample with no assignment: a link, for the group sampled from
+    [
+      { text: "Among the district's students, more sleep is linked to higher grades" },
+      { text: "Among the library's members, reading more is linked to lower stress" },
+    ],
+  ],
 };
 
 export default checks;

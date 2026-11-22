@@ -17,6 +17,11 @@ const checks: LessonChecks = {
     // rate (314 - 380) / (10 - 4), then back 4 minutes from 380
     380 - ((314 - 380) / (10 - 4)) * 4,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(-2 - 8) / (3 - -1), (3 - -1) / (2 - -4)],
+    [(34 - 50) / (5 - 1), (24 - 14) / (8 - 3)],
+  ],
 };
 
 export default checks;

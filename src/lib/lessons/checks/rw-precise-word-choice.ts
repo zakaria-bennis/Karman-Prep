@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "limited to a careful cleaning and a fresh coat of wax"
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

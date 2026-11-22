@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 2 }, // "Barking at the mail carrier, the dog woke": the dog barks
     { index: 3 }, // "Unlike most spiders" must be followed by a spider: "the jumping spider hunts"
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

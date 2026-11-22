@@ -18,6 +18,12 @@ const checks: LessonChecks = {
     { text: "About how tall is a 25-year-old tree likely to be?" },
     0.03 * 400 + 1.2 - (0.03 * 250 + 1.2),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [3 * 7.5 + 20, 4 * 5.5 + 10],
+    // residual = actual minus predicted
+    [21 - (-2 * 6 + 30), 75 - (8 * 4 + 50)],
+  ],
 };
 
 export default checks;

@@ -17,6 +17,12 @@ const checks: LessonChecks = {
     // not adults: 100 - 64 = 36 sparrows, 140 - 80 = 60 finches
     (100 - 64) / (100 - 64 + (140 - 80)),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // given the condition, the probability is the cell over that row's or column's total
+    [24 / (24 + 36), 30 / (18 + 30)],
+    [20 / (20 + 28), 48 / (48 + 60)],
+  ],
 };
 
 export default checks;

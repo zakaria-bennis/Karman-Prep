@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 0 }, // "the geese ... flapped ___ wings": subject geese is plural, so their
     { index: 2 }, // "each polyp ... ___ soft body": one polyp owns it, so its
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 2 }],
+  ],
 };
 
 export default checks;

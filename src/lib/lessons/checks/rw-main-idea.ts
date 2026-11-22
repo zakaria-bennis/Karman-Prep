@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 3 }, // "central point the text makes" asks for the main idea; "purpose" asks for function
     { index: 2 }, // "Recent tests suggest something else: small white lumps of lime"
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 3 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

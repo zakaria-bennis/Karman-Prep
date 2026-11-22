@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // one measure, a survey "however" shows its limits, planners' revised view
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 3 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

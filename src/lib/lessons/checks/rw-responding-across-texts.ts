@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // Text 2 "do mention trouble with her eyes. Yet ... a new interest as much as a loss"
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;
