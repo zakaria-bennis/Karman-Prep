@@ -222,6 +222,8 @@ test("AR-61 five question changes in one second leave one calculator and no stal
   await setRows(page, [{ id: "1", latex: RUNAWAY }]);
   await burst("Back");
   await page.waitForTimeout(2500);
+  await trigger(page).click(); // closed with the question again; it reopens clean
+  await expect(rowItem(page)).toBeVisible();
   const c = await counters(page);
   const s = await snapshot(page);
   expect(c?.calculators).toBe(1);

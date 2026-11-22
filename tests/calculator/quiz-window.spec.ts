@@ -7,6 +7,7 @@ import {
   latex,
   openCalculator,
   row,
+  rowItem,
   side,
   trigger,
   workspace,
@@ -211,20 +212,18 @@ test("AR-28, L-11, KB-12, L-6, AR-22 full screen is modal and fills the viewport
           ? "shadow"
           : (a.getAttribute("aria-label") ?? "light");
     });
-  // full screen in the quiz has no X: the Calculator button closes it (founder, 2026-11-17)
+  // full screen in the quiz has no title bar: the Calculator button and Escape close it (founder,
+  // 2026-11-17), so Tab and Shift+Tab wrap inside the calculator itself
   const close = trigger(page);
-  await close.focus();
-  const seen = new Set<string>();
-  for (let i = 0; i < 80; i++) {
-    await page.keyboard.press("Tab");
-    seen.add(await where());
+  await rowItem(page).click();
+  for (const key of ["Tab", "Shift+Tab"]) {
+    const seen = new Set<string>();
+    for (let i = 0; i < 60; i++) {
+      await page.keyboard.press(key);
+      seen.add(await where());
+    }
+    expect([...seen], key).toEqual(["shadow"]);
   }
-  expect(seen.has("outside")).toBe(false);
-  expect(seen.has("shadow")).toBe(true);
-  expect(seen.has("Close calculator")).toBe(true);
-  await close.focus();
-  await page.keyboard.press("Shift+Tab");
-  expect(await where()).toBe("shadow");
   await close.click();
   expect(await background()).toEqual([false, null, ""]);
   await expect(trigger(page)).toBeFocused();

@@ -127,8 +127,16 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
       }
       calculator.focusExpression(id);
     },
+    // AR-28: Tab past the window's end wraps to its title bar while the bar shows; the quiz hides it
+    // docked and full screen (founder, 2026-11-17), so then to the calculator's first element.
     focusBoundary(edge) {
-      calculator.focusBoundary(edge);
+      const bar = [
+        ...options.frame.querySelectorAll<HTMLElement>(
+          '[data-calculator-titlebar] :is(button:not([disabled]), [tabindex="0"])'
+        ),
+      ].find((el) => el.getClientRects().length > 0);
+      if (edge === "first" && bar) bar.focus();
+      else calculator.focusBoundary(edge);
     },
     setReducedMotion(value) {
       calculator.updateSettings({ reducedMotion: value });
