@@ -99,7 +99,7 @@ test("TH-1, TH-14 window chrome, every title-bar control, the move handle, grip,
       contrastRatio(hex((await styleOf(page, "[role=separator]")).color), await barColour(page)),
       skin
     ).toBeGreaterThanOrEqual(3);
-    await ring(page, skin, "Undock calculator");
+    // docked in the quiz, the window has no title bar (founder, 2026-11-17): only the separator
     await ring(page, skin, "Resize calculator dock", "separator");
   }
   await page.getByRole("button", { name: "Maximize calculator" }).click();

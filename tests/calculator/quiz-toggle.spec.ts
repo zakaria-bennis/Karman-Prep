@@ -15,7 +15,6 @@ import {
   press,
   row,
   rowItem,
-  side,
   trigger,
 } from "./quiz-helpers";
 
@@ -75,7 +74,9 @@ test.describe("wide window", () => {
     await row(page).focus();
     await page.keyboard.type("y=2x");
     await press(page, "Next");
+    await trigger(page).click(); // the quiz closed it with the question (founder, 2026-11-08)
     await expect(rowItem(page)).toBeVisible();
+    await expect(frame(page)).not.toHaveAttribute("data-entering");
     expect(await latex(page)).toEqual([""]);
     expect(await box(page)).toEqual(placed);
     await expect(trigger(page)).toHaveAttribute("aria-pressed", "true");
@@ -160,7 +161,7 @@ test.describe("wide window", () => {
 test.describe("phone", () => {
   test.beforeEach(({ isMobile }) => test.skip(!isMobile, "phone layout"));
 
-  test("the side button reopens full screen with the question's calculator as it was; the next question is clean", async ({
+  test("the Calculator button reopens full screen with the question's calculator as it was; the next question is clean", async ({
     page,
   }, info) => {
     await openCalculator(page, "diagnostic");
@@ -169,28 +170,28 @@ test.describe("phone", () => {
     await row(page).focus();
     await page.keyboard.type("y=3x");
     await shot(page, "1-open", info.project.name);
-    await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+    await trigger(page).click();
     await expect(frame(page)).toBeHidden();
-    await expect(side(page)).toHaveAttribute("aria-expanded", "false");
+    await expect(trigger(page)).toHaveAttribute("aria-pressed", "false");
     await shot(page, "2-closed", info.project.name);
-    await side(page).click();
+    await trigger(page).click();
     await expect(frame(page)).toHaveAttribute("data-mode", "fullscreen");
     expect(await latex(page)).toEqual(["y=3x"]);
     await shot(page, "3-reopened", info.project.name);
-    await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+    await trigger(page).click();
     await press(page, "Next");
-    await side(page).click();
+    await trigger(page).click();
     await expect(rowItem(page)).toBeVisible();
     expect(await latex(page)).toEqual([""]);
     await shot(page, "4-next-question-clean", info.project.name);
   });
 
-  test("the side button works from the keyboard too", async ({ page }) => {
+  test("the Calculator button works from the keyboard too", async ({ page }) => {
     await openCalculator(page, "diagnostic");
-    await page.getByRole("button", { name: "Close calculator", exact: true }).focus();
+    await trigger(page).focus();
     await page.keyboard.press("Enter");
     await expect(frame(page)).toBeHidden();
-    await side(page).focus();
+    await trigger(page).focus();
     await page.keyboard.press("Enter");
     await expect(frame(page)).toHaveAttribute("data-mode", "fullscreen");
   });

@@ -7,9 +7,7 @@ import {
   RUNAWAY,
   chromeOnly,
   openCalculator,
-  phoneSized,
   rowItem,
-  side,
   trigger,
   calculatorRequests,
 } from "./quiz-helpers";
@@ -98,11 +96,11 @@ test("AR-31 a failed chunk shows the reload panel, stays failed for the page and
   const hostModule = /\/calculator\/host\/quiz-host\.ts/;
   await page.route(hostModule, (route) => route.abort());
   await page.goto("/?flow=diagnostic");
-  const open = () => (phoneSized(page) ? side(page) : trigger(page)).click();
+  const open = () => trigger(page).click();
   const panel = page.getByText("The calculator could not load. Reload the page to try again.");
   await open();
   await expect(panel).toBeVisible();
-  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click(); // the Calculator button closes it (no title bar when docked)
   await open();
   await expect(panel).toBeVisible();
   await page.unroute(hostModule);
@@ -134,7 +132,7 @@ test("AR-31 a mount failure shows Retry, which mounts from the module already lo
     if (r.url().includes("/calculator/host/quiz-host")) requests++;
   });
   await page.goto("/?flow=diagnostic");
-  await (phoneSized(page) ? side(page) : trigger(page)).click();
+  await trigger(page).click();
   await expect(page.getByText("The calculator could not load.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(rowItem(page)).toBeVisible();
