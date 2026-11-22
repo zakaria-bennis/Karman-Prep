@@ -25,7 +25,7 @@ import { Icon } from "./practice";
 import { useBestStreak, usePortalData, useStreak } from "./portalData";
 import styles from "./dailyStart.module.css";
 
-type Pick = { skill: string; n: number; level: number };
+type Pick = { skill: string; n: number; level: number; review?: boolean };
 /** Ten different skills: the most a Daily 10 can come from, so the page is drawn for the fullest. */
 const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
   {
@@ -89,7 +89,12 @@ function grouped(picks: DailyPick[]): typeof MIX {
     const counts = new Map<string, Pick>();
     for (const p of picks.filter((p) => p.section === m.key)) {
       const had = counts.get(p.skill);
-      counts.set(p.skill, { skill: p.skill, n: (had?.n ?? 0) + 1, level: p.level });
+      counts.set(p.skill, {
+        skill: p.skill,
+        n: (had?.n ?? 0) + 1,
+        level: p.level,
+        review: had?.review || p.review,
+      });
     }
     return { ...m, picks: [...counts.values()] };
   }).filter((m) => m.picks.length > 0);
@@ -197,6 +202,7 @@ export function DailyStart({
                   <li key={p.skill} data-pick>
                     <TailsMark level={p.level} size={32} />
                     <span>{p.skill}</span>
+                    {p.review && <small className={styles.review}>Review</small>}
                     {p.n > 1 && <b>×{p.n}</b>}
                   </li>
                 ))}

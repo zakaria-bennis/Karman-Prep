@@ -116,6 +116,16 @@ describe("challenge multiplier", () => {
     expect(multiplierOn(days, "2026-11-21")).toBe(1.1);
     expect(multiplierOn(days, "2026-11-22")).toBe(1);
   });
+  it("keeps going over a day kept with a Streak saver, adding nothing for it", () => {
+    const days = [
+      { day: "2026-11-19", answers: [{ ok: true }, { ok: true }] },
+      { day: "2026-11-21", answers: [{ ok: true }] },
+    ];
+    expect(multiplierOn(days, "2026-11-22")).toBe(1.1);
+    expect(multiplierOn(days, "2026-11-22", ["2026-11-20"])).toBe(1.3);
+    // yesterday saved: today has not reset it
+    expect(multiplierOn(days.slice(0, 1), "2026-11-21", ["2026-11-20"])).toBe(1.2);
+  });
   it("is capped at x3", () => {
     const days = Array.from({ length: 15 }, (_, i) => ({
       day: `2026-11-${String(i + 1).padStart(2, "0")}`,

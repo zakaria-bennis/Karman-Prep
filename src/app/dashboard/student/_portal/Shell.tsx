@@ -41,6 +41,7 @@ import Chat from "./Chat";
 import Homework from "./Homework";
 import Schedule from "./Schedule";
 import { LibraryChallenge } from "./HomeworkChallenge";
+import { StreakSaverAsk } from "./StreakSaverAsk";
 import LibraryHero from "./LibraryHero";
 import { EndlessStart, useEndlessTrail } from "./EndlessStart";
 import { Where } from "./Where";
@@ -548,6 +549,7 @@ function Shell() {
             </button>
           )}
         </div>
+        {!welcome && <StreakSaverAsk />}
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
         {PLANS[plan].home === "library" && page === "library" && !section && !welcome && (
           <LibraryChallenge intro={intro} />

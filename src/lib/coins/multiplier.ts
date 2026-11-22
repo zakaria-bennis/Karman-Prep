@@ -20,16 +20,27 @@ function gap(from: string, to: string): number {
 /** The multiplier now (`today` is the challenge's day key), from every day the student answered. A
  *  day missed between two answered days resets it; so does missing all of yesterday. Today, not yet
  *  answered, is not missed. */
-export function multiplierOn(days: readonly ChallengeDay[], today: string): number {
-  return multiplierPath(days, today).now;
+export function multiplierOn(
+  days: readonly ChallengeDay[],
+  today: string,
+  saved: readonly string[] = []
+): number {
+  return multiplierPath(days, today, saved).now;
 }
 
-/** The multiplier now, and the highest it has ever been (Rewards' record). */
+/** The multiplier now, and the highest it has ever been (Rewards' record). `saved` are days kept
+ *  with a Streak saver: they bridge a gap without adding to the multiplier. */
 export function multiplierPath(
   days: readonly ChallengeDay[],
-  today: string
+  today: string,
+  saved: readonly string[] = []
 ): { now: number; top: number } {
-  const sorted = [...days].filter((d) => d.answers.length > 0 && d.day <= today);
+  const answered = days.filter((d) => d.answers.length > 0);
+  const had = new Set(answered.map((d) => d.day));
+  const bridges: ChallengeDay[] = saved
+    .filter((day) => !had.has(day))
+    .map((day) => ({ day, answers: [] }));
+  const sorted = [...answered, ...bridges].filter((d) => d.day <= today);
   sorted.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
   let value = 1;
   let top = 1;

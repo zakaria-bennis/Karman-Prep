@@ -34,9 +34,11 @@ import { SKILLS72, skill72, type Section72 } from "@/lib/skills/ids72";
 import { streaks } from "@/lib/student/streak";
 import { dailyMoves, setMove } from "../mastery";
 import type { Level72, PlayForm, PlayResult, PlayScope } from "../types";
-import { bankCoins, coinBalance, currentMultiplier } from "./coins";
+import { bankCoins, coinBalance, currentMultiplier, savedDays } from "./coins";
 import { loadLevels72, saveLevels72 } from "./levels72";
 import { pool72, skills72Of } from "./pool72";
+import { saveReviewOutcomes } from "./reviews";
+import { utcDayKey } from "@/lib/daily-challenge/selection";
 
 /** A skill set is 8 questions (founder, 2026-11-18). */
 export const SET_SIZE = 8;
@@ -480,6 +482,7 @@ export async function finishPlay(
       skillId: skillOf(r)?.id ?? "",
       ok: r.isCorrect,
       rescued: play.rescued === r.questionId,
+      ...(play.reviews?.includes(r.questionId) ? { review: true } : {}),
       seconds: r.seconds,
     }));
     const out: PlayResult = {
@@ -515,11 +518,20 @@ export async function finishPlay(
           sets: stored.get(m.skillId)?.sets ?? 0,
         }))
       );
-      const days = await dailyTenDays(clerkId).catch(() => [] as string[]);
+      const [days, saved] = await Promise.all([
+        dailyTenDays(clerkId).catch(() => [] as string[]),
+        savedDays(clerkId),
+      ]);
       const today = run.scope ?? "";
-      const run_ = streaks([...new Set([...days, today])].filter(Boolean).sort(), today);
+      const run_ = streaks([...new Set([...days, ...saved, today])].filter(Boolean).sort(), today);
       out.streak = { days: result.streak ?? run_.current, best: run_.longest };
     }
+    // every skill touched moves along its spaced-review schedule (a miss: back tomorrow)
+    await saveReviewOutcomes(
+      clerkId,
+      answers.map((a) => ({ skillId: a.skillId, ok: a.ok || a.rescued })),
+      play.mode === "daily" && run.scope ? run.scope : utcDayKey(new Date())
+    ).catch(() => undefined);
     if (play.mode === "endless") {
       out.endless = {
         run: answers.filter((a) => a.ok).length,

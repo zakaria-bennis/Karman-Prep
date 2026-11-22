@@ -176,7 +176,7 @@ export async function loadRewards(
 ): Promise<RealRewards> {
   // the page still draws when the student's things cannot be read, with no coins to spend (and
   // nothing is written from it)
-  const [awards, read, boxes, answers] = await Promise.all([
+  const [awards, read, boxes, answers, saved] = await Promise.all([
     loadAwards(db, clerkId),
     loadRewardRow(db, clerkId).catch(() => null),
     loadOldBoxes(db, clerkId).catch(() => null),
@@ -188,6 +188,15 @@ export async function loadRewards(
       .then(
         (r) => (r.data ?? []) as { day: string; is_correct: boolean }[],
         () => []
+      ),
+    db
+      .from("student_streak_saves")
+      .select("day")
+      .eq("student_id", clerkId)
+      .limit(1000)
+      .then(
+        (r) => ((r.data ?? []) as { day: string }[]).map((d) => d.day),
+        () => [] as string[]
       ),
   ]);
   const row = read ?? { spent: 0, owned: [], passes: {}, face: "fox", outfit: {} };
@@ -219,6 +228,6 @@ export async function loadRewards(
     passes: row.passes,
     face: row.face,
     outfit: row.outfit,
-    multiplier: multiplierPath(challengeDaysOf(answers), utcDayKey(new Date(nowMs))),
+    multiplier: multiplierPath(challengeDaysOf(answers), utcDayKey(new Date(nowMs)), saved),
   };
 }

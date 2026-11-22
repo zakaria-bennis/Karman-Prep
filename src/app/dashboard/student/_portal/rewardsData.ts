@@ -62,11 +62,10 @@ export type Pass = {
   bank?: number;
   icon: PassKind;
 };
-/** Passes whose effect is not built yet: shown, but not sold to a signed-in student (PR 309
- *  review, 2026-11-22). The Exam pass opens an exam outside Saturday (src/lib/exams/window.ts) and a
- *  Second chance puts a skill set's miss right (src/lib/play); the Streak saver waits for the
- *  streak to read it. */
-export const PASSES_COMING_SOON: readonly string[] = ["Streak saver"];
+/** Passes whose effect is not built yet: shown, but not sold to a signed-in student. Every pass
+ *  works now: the Exam pass opens an exam outside Saturday (src/lib/exams/window.ts), a Second
+ *  chance puts a skill set's miss right and a Streak saver keeps a missed day (src/lib/play). */
+export const PASSES_COMING_SOON: readonly string[] = [];
 
 export const PASSES: Pass[] = [
   {

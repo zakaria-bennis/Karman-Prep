@@ -74,7 +74,24 @@ export async function challengeDays(clerkId: string): Promise<ChallengeDay[]> {
   return challengeDaysOf(data as { day: string; is_correct: boolean }[]);
 }
 
+/** Days kept with a Streak saver (student_streak_saves, migration 20261122040200). A table not
+ *  there yet reads as none. */
+export async function savedDays(clerkId: string): Promise<string[]> {
+  const { data, error } = await db()
+    .from("student_streak_saves")
+    .select("day")
+    .eq("student_id", clerkId)
+    .limit(1000)
+    .then(
+      (r) => r,
+      () => ({ data: null, error: true })
+    );
+  if (error || !data) return [];
+  return (data as { day: string }[]).map((r) => r.day);
+}
+
 /** The challenge multiplier now (x1 to x3). */
 export async function currentMultiplier(clerkId: string, now = new Date()): Promise<number> {
-  return multiplierOn(await challengeDays(clerkId), utcDayKey(now));
+  const [days, saved] = await Promise.all([challengeDays(clerkId), savedDays(clerkId)]);
+  return multiplierOn(days, utcDayKey(now), saved);
 }
