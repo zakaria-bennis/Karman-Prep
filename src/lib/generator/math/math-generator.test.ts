@@ -82,7 +82,9 @@ describe.each(templates.map((t) => [t.id, t] as const))("template %s", (_id, tem
         continue;
       }
       built++;
-      stems.add(result.stem + result.choices.map((c) => c.text).join("|"));
+      stems.add(
+        result.stem + result.choices.map((c) => c.text).join("|") + JSON.stringify(result.figure)
+      );
       difficulties.add(result.difficulty);
       for (const p of recheck(result)) problems.push(`seed ${seed}: ${p}`);
     }

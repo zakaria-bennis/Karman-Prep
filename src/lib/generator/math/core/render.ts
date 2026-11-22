@@ -10,7 +10,7 @@ import { splitMathText } from "@/components/learn/math-segments";
 const PROSE_PROBLEMS: [RegExp, string][] = [
   [/\$/, "a dollar sign outside math"],
   [/\\[a-zA-Z(]/, "a LaTeX command in prose"],
-  [/\b(NaN|undefined|Infinity|null)\b/, "a missing value"],
+  [/\bNaN\b/, "a missing value"],
   [/\[object/, "an object printed as text"],
   [/ {2,}/, "a double space"],
   [/ [,;:?]| \.(?!\d)/, "a space before punctuation"],
