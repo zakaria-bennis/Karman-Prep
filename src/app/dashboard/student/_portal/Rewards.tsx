@@ -73,7 +73,7 @@ export default function Rewards({
   const real = data?.rewards ?? null;
   const skills = useSkills();
   // a signed-in student's own progress toward each character; the design page keeps its stand-ins
-  const cast = useMemo(
+  const crew = useMemo(
     () =>
       data
         ? CHARACTERS.map((c) =>
@@ -168,8 +168,8 @@ export default function Rewards({
   /** Puts a thing on, or takes it off if it is already on. */
   const wear = (item: Accessory) =>
     setOutfit({ ...outfit, [item.slot]: outfit[item.slot] === item.id ? undefined : item.id });
-  const unlocked = cast.filter((c) => c.done >= c.of).length;
-  const chosen = cast[picked];
+  const unlocked = crew.filter((c) => c.done >= c.of).length;
+  const chosen = crew[picked];
   const has = chosen.done >= chosen.of;
   const hidden = chosen.mystery && !has;
 
@@ -263,7 +263,9 @@ export default function Rewards({
             <div className={styles.part}>
               <h3>This week</h3>
               {real && real.week.length === 0 && (
-                <p className={styles.ends}>No coins yet this week. Finish a Daily 10 to earn your first.</p>
+                <p className={styles.ends}>
+                  No coins yet this week. Finish a Daily 10 to earn your first.
+                </p>
               )}
               <ul className={styles.earned}>
                 {(real?.week ?? EARNED).map((row) => (
@@ -409,7 +411,7 @@ export default function Rewards({
             <p className={cast.how}>{chosen.challenge}</p>
           </div>
           <div className={cast.grid} role="group" aria-label="Characters">
-            {cast.map((c, i) => {
+            {crew.map((c, i) => {
               const mine = c.done >= c.of;
               const secret = c.mystery && !mine;
               return (

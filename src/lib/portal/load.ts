@@ -182,9 +182,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   // a Free student whose usage could not be read is shown nothing locked; the server still counts
   const access = quizAccessFor(
     ctx.plan,
-    limited
-      ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 })
-      : undefined
+    limited ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 }) : undefined
   );
   // Free answers one of the two challenge questions a day; every other plan both
   const done = {

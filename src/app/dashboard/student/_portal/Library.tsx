@@ -152,9 +152,7 @@ export default function Library({
     d.skills.reduce((n, sk) => n + sk.level, 0) / (d.skills.length * TOP);
   // with nothing practiced yet no domain is weaker than another, so none is named
   const weakest = domains.some((d) => climb(d) > 0)
-    ? [...domains].sort(
-        (x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0]
-      )[0]
+    ? [...domains].sort((x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0])[0]
     : null;
 
   useEffect(() => {

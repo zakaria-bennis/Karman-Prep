@@ -263,10 +263,10 @@ export default function Homework({
       : left === 0
         ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
         : [
-          `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
-          `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
-          ...(day.class ? [`Class at ${day.class}`] : []),
-        ];
+            `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
+            `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
+            ...(day.class ? [`Class at ${day.class}`] : []),
+          ];
   const R = 74;
   const round = 2 * Math.PI * R;
 
