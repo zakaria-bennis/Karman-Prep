@@ -50,7 +50,9 @@ const DOMAIN_NAMES: Record<string, string> = {
   geometry: "Geometry and Trigonometry",
 };
 
-const SKILL_NAMES = new Map(CATALOG_SKILLS.map((skill) => [skill.id, skill.label]));
+/** Sentence case, as the portal writes skill names ("Text structure and purpose"). */
+const sentence = (label: string) => label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+const SKILL_NAMES = new Map(CATALOG_SKILLS.map((skill) => [skill.id, sentence(skill.label)]));
 
 export type SectionSummary = {
   score: number;

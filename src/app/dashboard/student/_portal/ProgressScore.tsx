@@ -22,6 +22,7 @@
 //     month away, gold within a month, red within a week (founder, 2026-11-16).
 // Every number is a stand-in (progressData.ts). The demo bar switches between four made-up students so
 // the scaling can be seen.
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import { GoButton, Tile } from "./practice";
@@ -83,6 +84,7 @@ function Waiting({
   answered: number;
   free: boolean;
 }) {
+  const router = useRouter();
   const taken = student.exams.length;
   if (free)
     return (
@@ -109,7 +111,7 @@ function Waiting({
           <p>
             <b>{taken}</b> of 2 taken
           </p>
-          <GoButton>Start a full-length exam</GoButton>
+          <GoButton onDone={() => router.push("/learn/tests")}>Start a full-length exam</GoButton>
         </>
       ) : (
         <>
@@ -125,7 +127,14 @@ function Waiting({
             <b>{answered}</b> of {BEFORE_EXAM} questions before your first exam
           </p>
           <GoButton>Start the Daily 10</GoButton>
-          <button type="button" className={styles.sooner} onClick={() => tick()}>
+          <button
+            type="button"
+            className={styles.sooner}
+            onClick={() => {
+              tick();
+              router.push("/learn/tests");
+            }}
+          >
             Take an exam now
           </button>
         </>
