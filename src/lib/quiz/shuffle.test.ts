@@ -185,6 +185,8 @@ describe("remapLetterMentions", () => {
       "Choice A is right; D and B are incorrect."
     );
     expect(remap("A is the best answer.")).toBe("C is the best answer.");
+    expect(remap("so μ < 11.6. So D must be true.")).toBe("so μ < 11.6. So B must be true.");
+    expect(remap("B cannot be true, and C is false.")).toBe("A cannot be true, and D is false.");
   });
 
   it("swaps all letters at once", () => {

@@ -130,8 +130,9 @@ const LIST = String.raw`${LETTER}(?:${JOIN}${LETTER})*`;
  *  answer is B", "answer choice C", "Choice: B". */
 const NAMED = String.raw`\b(?:[Aa]nswers?(?:\s+[Cc]hoices?)?(?:\s+(?:is|was))?|[Cc]hoices?|[Oo]ptions?)(?:\s*:\s*|\s+)`;
 /** What a sentence says of a bare letter that is a choice: "B is incorrect", "C and D are wrong",
- *  "A is the best answer". (A sentence that starts "A is" is never the word "a".) */
-const VERDICT = String.raw`\s+(?:is|are|was|were)\s+(?:not\s+|also\s+|both\s+|all\s+)?(?:(?:in)?correct\b|wrong\b|the\s+(?:best|correct|right)\s+(?:answer|choice)\b)`;
+ *  "A is the best answer", "So D must be true". (A sentence that starts "A is" is never the word
+ *  "a".) */
+const VERDICT = String.raw`\s+(?:(?:is|are|was|were)\s+(?:not\s+|also\s+|both\s+|all\s+)?(?:(?:in)?correct\b|wrong\b|true\b|false\b|right\b|the\s+(?:best|correct|right)\s+(?:answer|choice)\b)|(?:must|should|cannot|can't|could)\s+(?:not\s+)?be\s+(?:true|false|correct|right|wrong)\b)`;
 
 // Written without look-behind, which older iPhones cannot read: the character before is kept in
 // a group and put back. Groups: 1 named words, 2 their list; 3 before, 4 a lone "(B)"; 5 line
