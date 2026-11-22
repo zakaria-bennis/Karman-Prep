@@ -177,7 +177,7 @@ async function publishOne(f: Final) {
   if (e1) throw new Error(`update ${f.id}: ${e1.message}`);
   if ((upd ?? []).length !== 1) return { outcome: "skipped: row changed while publishing" };
 
-  if (key) {
+  if (key && evidenceOf(key.raw_model_response)) {
     const raw = structuredClone(key.raw_model_response) as Json;
     const ev = evidenceOf(raw)!;
     const record = {

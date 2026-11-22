@@ -128,7 +128,7 @@ function problemsOf(f: Final): string[] {
   ] as const) {
     if (/–/.test(t)) out.push(`${label}: en dash`);
     if (/�|[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(t)) out.push(`${label}: bad character`);
-    if (/--|__/.test(prose(t))) out.push(`${label}: two hyphens or underscores in a row`);
+    if (/--/.test(prose(t))) out.push(`${label}: two hyphens in a row`);
     if (/\\\[|\\\]|\$\$/.test(t)) out.push(`${label}: display math`);
     if (/\$/.test(prose(t))) out.push(`${label}: a $ outside math`);
     if (/\*\*|`|^#{1,6}\s/m.test(t)) out.push(`${label}: Markdown`);

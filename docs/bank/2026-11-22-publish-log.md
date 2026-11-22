@@ -14,6 +14,8 @@ the automatic checks in `scripts/bank/check-explanations.ts` (format, KaTeX, no 
 answer is the key, every wrong choice named, the hint gives nothing away). Every question is resealed
 in the same step (`scripts/bank/publish-explanations.ts`) and read back.
 
-| Batch   | Time  | Count | What changed                                         | Checks                                                     | Result                                      |
-| ------- | ----- | ----- | ---------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| pilot-5 | 11:28 | 5     | explanation, hint, per-choice text cleared; resealed | writer, checker, automatic; then the app's own pool reader | 5 replaced, 5 of 5 still served to students |
+| Batch    | Time  | Count | What changed                                                                                     | Checks                                                                                           | Result                                                           |
+| -------- | ----- | ----- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| pilot-5  | 11:28 | 5     | explanation, hint, per-choice text cleared; resealed                                             | writer, checker, automatic; then the app's own pool reader                                       | 5 replaced, 5 of 5 still served to students                      |
+| tags-01  | 18:55 | 9,829 | question_skills72 rows, both classifiers agreed                                                  | two independent blind classifiers (Opus and Sonnet)                                              | written; 804 disagreements wait for the judge                    |
+| batch-01 | 20:37 | 1,367 | explanation, hint, per-choice text cleared; 1,346 resealed, 21 had no seal before and none after | writer, independent checker, automatic checks; 12 random questions through the app's pool reader | 1,367 replaced, 12 of 12 still served; database 156 MB to 160 MB |
