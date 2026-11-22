@@ -124,20 +124,18 @@ function dbSizeMb(target: string): number | null {
   }
 }
 
-async function selectAll<T>(
+async function selectAll<T extends { id: string }>(
   db: SupabaseClient,
   table: string,
   columns: string,
-  filter?: (
-    q: ReturnType<SupabaseClient["from"]>["select"] extends (...a: never[]) => infer R ? R : never
-  ) => unknown
+  eq?: [string, string]
 ): Promise<T[]> {
   const rows: T[] = [];
   let last: string | null = null;
   let size = 500;
   for (;;) {
     let q = db.from(table).select(columns).order("id", { ascending: true }).limit(size);
-    if (filter) q = filter(q as never) as typeof q;
+    if (eq) q = q.eq(eq[0], eq[1]);
     if (last) q = q.gt("id", last);
     const { data, error } = await q;
     if (error) {
@@ -145,9 +143,10 @@ async function selectAll<T>(
       size = Math.floor(size / 2);
       continue;
     }
-    rows.push(...((data ?? []) as T[]));
-    if ((data ?? []).length < size) break;
-    last = (data as { id: string }[])[data!.length - 1].id;
+    const page = (data ?? []) as unknown as T[];
+    rows.push(...page);
+    if (page.length < size) break;
+    last = page[page.length - 1].id;
   }
   return rows;
 }
@@ -163,12 +162,10 @@ async function existingState(db: SupabaseClient) {
       question_text: string;
       answer_choices: { choice_text: string; letter: string }[];
     }
-  >(
-    db,
-    "quiz_questions",
-    "id, generator, question_text, answer_choices(choice_text, letter)",
-    (q) => (q as unknown as { eq: (c: string, v: string) => unknown }).eq("origin", "generated")
-  );
+  >(db, "quiz_questions", "id, generator, question_text, answer_choices(choice_text, letter)", [
+    "origin",
+    "generated",
+  ]);
   const stable = new Set<string>();
   const prints = new Set<string>();
   const maxSeed = new Map<string, number>();
@@ -196,9 +193,10 @@ async function originalPrints(db: SupabaseClient): Promise<Set<string>> {
     id: string;
     question_text: string;
     answer_choices: { choice_text: string; letter: string }[];
-  }>(db, "quiz_questions", "id, question_text, answer_choices(choice_text, letter)", (q) =>
-    (q as unknown as { eq: (c: string, v: string) => unknown }).eq("origin", "original")
-  );
+  }>(db, "quiz_questions", "id, question_text, answer_choices(choice_text, letter)", [
+    "origin",
+    "original",
+  ]);
   return new Set(
     rows.map((r) =>
       fingerprint({
@@ -343,9 +341,10 @@ async function insertChunk(
 }
 
 async function removeBatch(db: SupabaseClient, batch: string, dryRun: boolean) {
-  const rows = await selectAll<{ id: string }>(db, "quiz_questions", "id", (q) =>
-    (q as unknown as { eq: (c: string, v: string) => unknown }).eq("generator->>batch", batch)
-  );
+  const rows = await selectAll<{ id: string }>(db, "quiz_questions", "id", [
+    "generator->>batch",
+    batch,
+  ]);
   console.log(`batch ${batch}: ${rows.length} questions`);
   if (dryRun || !rows.length) return;
   let deleted = 0;
