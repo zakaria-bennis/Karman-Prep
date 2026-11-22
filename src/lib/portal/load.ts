@@ -34,6 +34,7 @@ import { loadRewards } from "./rewards";
 import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
+import { loadSkill72Counts } from "@/lib/bank/skills72-read";
 
 const NAMES = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));
 
@@ -74,6 +75,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     sessions,
     trials,
     examSittings,
+    tagged,
   ] = await Promise.all([
     loadSkillAnswers(ctx.clerkId),
     loadRunAnswers(ctx.clerkId),
@@ -117,6 +119,8 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         .not("completed_at", "is", null)
         .limit(200)
     ),
+    // live questions behind each of the 72, from the bank's real tags (Bank stream, 2026-11-22)
+    loadSkill72Counts(db),
   ]);
 
   const every: SkillAnswer[] = [...answers, ...runAnswers];
@@ -126,7 +130,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
       name,
       {
         level: bridgedLevel(name, levels),
-        questions: bridgedQuestions(name, subSkillQuestionCount),
+        questions: tagged.get(name) ?? bridgedQuestions(name, subSkillQuestionCount),
       },
     ])
   );
