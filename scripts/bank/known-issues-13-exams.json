@@ -1,0 +1,154 @@
+{
+  "source": "docs/answer-key-checks/2026-11-22-corrections-list-13-exams.pdf on branch claude/zishan-wani-prompt-007e14 (read only, another session's review of 13 released exam PDFs). Only the 7 exams also in the bank are listed. Each item is a suspect to adjudicate, never a fix by itself.",
+  "exams": {
+    "202406us": "da9412b3e6ff-202406us",
+    "202410usv1": ["e8c08e2fee87-202410usv1", "b82978a1cd32-202410usv1"],
+    "202512usv1": "5791f1a42ac4-202512usv1_copy",
+    "202606asiav1": "65499c5e7648-202606asiav1",
+    "202610asiav5": "90997f5f7328-202610asiav5",
+    "202611asiav1": "202611asiav1",
+    "202611asiav2": "202611asiav2"
+  },
+  "items": [
+    [
+      "202406us",
+      "reading",
+      "M2",
+      10,
+      "key: A -> B (self-dealing about 9% of forms but 40% of penalties)"
+    ],
+    ["202406us", "reading", "M1", 5, "printed key B, hand correction D (correction right)"],
+    ["202406us", "reading", "M1", 23, "printed key A, hand correction D (correction right)"],
+    ["202406us", "reading", "M2", 3, "printed key A, hand correction B (correction right)"],
+    ["202406us", "reading", "M2", 9, "printed key A, hand correction B (correction right)"],
+    ["202406us", "reading", "M2", 11, "printed key B, hand correction A (correction right)"],
+    ["202406us", "reading", "M2", 12, "printed key D, hand correction C (correction right)"],
+    ["202406us", "reading", "M2", 13, "printed key A, hand correction C (correction right)"],
+    ["202406us", "reading", "M2", 20, "printed key A, hand correction C (correction right)"],
+    ["202406us", "reading", "M2", 21, "printed key A, hand correction B (correction right)"],
+    ["202406us", "reading", "M2", 27, "printed key C, hand correction B (correction right)"],
+    ["202406us", "reading", "M2", 8, "not scored: passage missing, table cut off in the source"],
+    ["202406us", "math", "M2", 2, "not scored: choices B, C and D cut off in the source"],
+    ["202406us", "math", "M2", 6, "not scored: top of the question (what the graph shows) cut off"],
+    [
+      "202406us",
+      "math",
+      "M2",
+      1,
+      "choices B to D cut off in the source; keyed A visible and correct"
+    ],
+    ["202410usv1", "reading", "M2", 10, "key: D -> C (D also defensible)"],
+    ["202410usv1", "math", "M1", 17, "key: 4 -> 4 or 5 (both are solutions)"],
+    ["202410usv1", "math", "M2", 2, "key: 14 -> 14, 15 or 16 (all three work)"],
+    [
+      "202410usv1",
+      "math",
+      "M2",
+      22,
+      "key: 923.077 -> 113/2 or 56.5 (printed value was a leftover)"
+    ],
+    ["202410usv1", "reading", "M1", 7, "printed key A, hand correction D (correction right)"],
+    ["202410usv1", "math", "M1", 11, "printed key 0.002, hand correction .038 (correction right)"],
+    ["202410usv1", "math", "M1", 15, "printed key A, hand correction C (correction right)"],
+    ["202410usv1", "reading", "M1", 15, "not scored: question missing from the source file"],
+    [
+      "202410usv1",
+      "reading",
+      "M2",
+      22,
+      "not scored: question missing from the source file, no key"
+    ],
+    ["202512usv1", "math", "M1", 22, "key: 58% -> 58 (58% cannot be typed)"],
+    [
+      "202512usv1",
+      "math",
+      "M2",
+      5,
+      "printed C, hand correction A; given values g(14)=28, g(12)=35 match no choice (repaired to g(4)=18, g(2)=25 in the PDF)"
+    ],
+    [
+      "202512usv1",
+      "math",
+      "M2",
+      12,
+      "keep printed C; hand correction D was wrong (item III is -77pi/6)"
+    ],
+    ["202512usv1", "reading", "M2", 15, "printed key A, hand correction B (correction right)"],
+    ["202512usv1", "reading", "M2", 16, "printed key D, hand correction B (correction right)"],
+    ["202512usv1", "reading", "M2", 18, "printed key D, hand correction B (correction right)"],
+    ["202512usv1", "reading", "M2", 19, "printed key A, hand correction B (correction right)"],
+    ["202512usv1", "reading", "M2", 22, "printed key B, hand correction D (correction right)"],
+    ["202512usv1", "reading", "M2", 23, "printed key D, hand correction C (correction right)"],
+    ["202512usv1", "reading", "M2", 24, "printed key C, hand correction B (correction right)"],
+    [
+      "202512usv1",
+      "math",
+      "M1",
+      9,
+      "source repair: leading minus signs lost from all four choices (-1/6, -1/3)"
+    ],
+    ["202512usv1", "math", "M1", 11, "source repair: point printed (1400), should be (1, 400)"],
+    [
+      "202512usv1",
+      "math",
+      "M2",
+      7,
+      "source repair: duplicated question sentence; table minus signs lost (-1/5, -1/2)"
+    ],
+    ["202512usv1", "math", "M2", 8, "source repair: point printed (-80), should be (-8, 0)"],
+    [
+      "202606asiav1",
+      "reading",
+      "M2",
+      21,
+      "key: D -> B (blank between subject and verb needs 'highlighting')"
+    ],
+    ["202606asiav1", "math", "M2", 2, "printed key C, hand correction D (correction right)"],
+    ["202606asiav1", "math", "M2", 11, "printed key 960, hand correction 324 (correction right)"],
+    ["202606asiav1", "reading", "M2", 12, "source repair: underline was on the wrong sentence"],
+    [
+      "202606asiav1",
+      "reading",
+      "M2",
+      18,
+      "source repair: extra word 'celebrating' after the blank"
+    ],
+    ["202606asiav1", "reading", "M1", 5, "not scored: question missing from the source file"],
+    ["202606asiav1", "reading", "M1", 6, "not scored: question missing from the source file"],
+    ["202606asiav1", "reading", "M1", 7, "not scored: question missing from the source file"],
+    [
+      "202606asiav1",
+      "math",
+      "M1",
+      9,
+      "not scored: choices are only the words Mean, Median, Range, Standard deviation"
+    ],
+    ["202610asiav5", "math", "M2", 19, "key: 13 -> 5/13 (asks for s/t; accept 5/13, .3846, .3847)"],
+    [
+      "202611asiav1",
+      "reading",
+      "M2",
+      14,
+      "key: A -> C (only C shows the 1 km2 and 10 km2 grids giving different results)"
+    ],
+    ["202611asiav1", "math", "M1", 8, "key: 6 -> 6 or -10 (both are x-intercepts)"],
+    [
+      "202611asiav1",
+      "reading",
+      "M1",
+      17,
+      "source repair: 'longer' and 'shorter' swapped (blueshift/redshift science)"
+    ],
+    [
+      "202611asiav1",
+      "math",
+      "M2",
+      15,
+      "source repair: struck-through 'a = 1/2' should read 'sin a = 1/2'"
+    ],
+    ["202611asiav2", "reading", "M2", 12, "printed key A, hand correction C (correction right)"],
+    ["202611asiav2", "reading", "M1", 6, "source repair: channel name TRMP5 should be TRPM5"],
+    ["202611asiav2", "math", "M2", 6, "source repair: missing line name (line l)"],
+    ["202611asiav2", "math", "M2", 22, "source repair: missing angle symbols"]
+  ]
+}
