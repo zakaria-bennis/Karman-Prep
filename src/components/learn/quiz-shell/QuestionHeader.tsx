@@ -1,15 +1,19 @@
 "use client";
+import { lazy, Suspense } from "react";
 import type { QuizMode } from "@/lib/quiz/mode";
 import styles from "./pane.module.css";
 import shell from "./quiz-shell.module.css";
 import { BookmarkIcon, EliminatorIcon, ReviewMarkIcon } from "./icons";
 
+/** The admin's mark and Report button, loaded only when an admin has one to see. */
+const GeneratedMark = lazy(() => import("@/components/admin/GeneratedMark"));
+
 /** Question number, markers and the eliminator toggle (spec: Bluebook tools). Asking the tutor
- *  about a question is in the More menu (founder, 2026-11-17). An admin also sees a quiet
- *  "Generated" mark on a question the generator made; students never do. */
+ *  about a question is in the More menu (founder, 2026-11-17). An admin also sees the
+ *  "Generated" mark and its Report button on a question the generator made; students never do. */
 export function QuestionHeader({
   number,
-  generated = false,
+  generated,
   mode,
   markedForReview,
   bookmarked,
@@ -20,8 +24,8 @@ export function QuestionHeader({
   showEliminator,
 }: {
   number: number;
-  /** The host's admin-only mark for a generated question. */
-  generated?: boolean;
+  /** Admins only: the question's id when the generator made it (the mark and its Report). */
+  generated?: string;
   mode: QuizMode;
   markedForReview: boolean;
   bookmarked: boolean;
@@ -38,9 +42,9 @@ export function QuestionHeader({
         {number}
       </span>
       {generated && (
-        <span className={styles.generated} title="Made by the question generator">
-          Generated
-        </span>
+        <Suspense fallback={null}>
+          <GeneratedMark questionId={generated} />
+        </Suspense>
       )}
       {mode.markForReview && (
         <button
