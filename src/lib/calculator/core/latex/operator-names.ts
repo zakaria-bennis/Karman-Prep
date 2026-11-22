@@ -502,6 +502,35 @@ PANEL_PRESENTATIONS.set("log", [
   panelEntry("log", "logₐ", "log base a", [action("cmd", "\\log"), action("cmd", "_")]),
 ]);
 
+// Statistics and List operations (founder, 2026-11-22: list statistics within a tap on a
+// phone). The aliases (stddev, variance, ...) stay typed only, so each button is one function.
+const LIST_SPOKEN: readonly (readonly [name: string, spoken: string])[] = [
+  ["mean", "mean"],
+  ["median", "median"],
+  ["min", "minimum"],
+  ["max", "maximum"],
+  ["quartile", "quartile"],
+  ["quantile", "quantile"],
+  ["stdev", "standard deviation"],
+  ["stdevp", "population standard deviation"],
+  ["var", "variance"],
+  ["varp", "population variance"],
+  ["cov", "covariance"],
+  ["mad", "mean absolute deviation"],
+  ["corr", "correlation"],
+  ["count", "count"],
+  ["total", "total"],
+  ["repeat", "repeat"],
+  ["join", "join"],
+  ["sort", "sort"],
+  ["unique", "unique"],
+  ["length", "length"],
+];
+for (const [name, spoken] of LIST_SPOKEN) {
+  const head = name === "min" || name === "max" ? `\\${name}` : `\\operatorname{${name}}`;
+  PANEL_PRESENTATIONS.set(name, [functionEntry(name, name, spoken, head)]);
+}
+
 /**
  * Buttons that are notation rather than a name, after a category's names. FN-61: Calculus's d/dx
  * writes `\frac{d}{dx}` with the caret after it, as live Desmos's key does (captured 2026-10-26).
@@ -528,7 +557,8 @@ const PANEL_CATEGORIES: readonly PanelCategory[] = Object.freeze(
   })
 );
 
-/** Phase 1: categories 1, 2 and 8 in that order, 8 holding exp, ln, log and logₐ only (K-4). */
+/** Categories 1 to 4 and 8 in that order: Trig, Inverse trig, Statistics, List operations and
+ *  Calculus (exp, ln, log, logₐ and d/dx); the rest follow K-4's schedule. */
 export function panelCategories(): readonly PanelCategory[] {
   return PANEL_CATEGORIES;
 }

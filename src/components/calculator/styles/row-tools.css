@@ -24,7 +24,7 @@
   height: 26px;
   padding: 0 4px 2px;
   border: 1px solid var(--kc-letter-border);
-  border-radius: var(--kc-radius-small);
+  border-radius: var(--kc-letter-radius);
   background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   box-shadow:
     inset 0 1px color-mix(in srgb, var(--kc-list) 25%, transparent),
@@ -252,4 +252,16 @@
   border-bottom-width: 0;
   border-top-color: var(--kc-tooltip);
   border-bottom-color: transparent;
+}
+
+/* Phones: an add-slider name is at least 40 px tall to the finger (2026-11-22). */
+@media (pointer: coarse) {
+  .kc-letter-button {
+    position: relative;
+  }
+  .kc-letter-button::after {
+    content: "";
+    position: absolute;
+    inset: -7px -2px;
+  }
 }

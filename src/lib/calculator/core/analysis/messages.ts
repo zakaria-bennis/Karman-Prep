@@ -96,7 +96,8 @@ const MESSAGES: Readonly<Record<RowErrorCode, string>> = {
   "inference-short": "Each list needs at least 2 values.",
   "colon-side": "':' needs something on both sides.",
   "colon-condition": "Put a condition before ':', like x>1.",
-  "piecewise-condition": "A piecewise needs at least one condition.",
+  // a student's {4, 7} meant as a list is the usual way here (2026-11-22)
+  "piecewise-condition": "Lists use [ ], like [4, 7]. { } needs a condition.",
   "piecewise-part": "Only the last piecewise part can skip a condition.",
   "piecewise-types": "Piecewise parts can't mix {n} and {k}.",
   "comparator-types": "Can't compare {n} to {k}.",
@@ -183,6 +184,10 @@ export function rowErrorMessage(code: RowErrorCode, names: string[]): string {
   }
   if (code === "equation-required" && names.length === 0) {
     return "Add an equals sign to make an equation.";
+  }
+  // x or y in a fit is almost always the data's name typed without its subscript (2026-11-22)
+  if (code === "regression-predictor" && (n === "x" || n === "y")) {
+    return `Use the data's name here, like ${n}_1, not ${n}.`;
   }
   if (code === "unmatched") return MESSAGES.unmatched.replace("{n}", n).replace("{k}", CLOSERS[n]);
   // PR-24: a trig, hyperbolic, ln or log name on its own reads as an empty call.

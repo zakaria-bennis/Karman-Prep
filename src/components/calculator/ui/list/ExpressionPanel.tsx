@@ -224,7 +224,7 @@ export function ExpressionPanel(props: ExpressionPanelProps): JSX.Element {
   const presence = useRowPresence(rows);
   const list = useListLifecycle(engine, settings.expressionsCollapsed);
   const inputMark = useInputMark();
-  useSliderPlayback(engine); // SLIDERS-30
+  useSliderPlayback(engine, list.panelRef); // SLIDERS-30; pauses while the host hides it
   const { items, exitDone } = presence;
   // While collapsed no row is mounted to report its exit, so a row that leaves then is done.
   useEffect(() => {

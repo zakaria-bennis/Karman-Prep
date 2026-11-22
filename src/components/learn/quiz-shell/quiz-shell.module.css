@@ -946,12 +946,41 @@
   --kc-letter-bottom: color-mix(in srgb, var(--quiz-ink) 8%, transparent);
   --kc-letter-border: var(--quiz-line);
   /* Error tips */
+  --kc-error-tip-width: 240px;
+  --kc-error-tip-pad: 8px 12px;
+  --kc-error-tip-radius: 12px;
+  --kc-error-tip-shadow: var(--kc-popover-shadow);
 
   /* Statistics */
 
   /* Regressions */
+  --kc-tr-control-radius: 11px;
+  --kc-tr-control-fill: var(--kc-pill);
+  --kc-tr-list-shadow: var(--kc-popover-shadow);
+  --kc-tr-menu-edge: var(--quiz-line);
+  --kc-tr-button-radius: 9px;
+  --kc-tr-danger: var(--kc-error);
+  --kc-tr-plot-edge: var(--quiz-line);
+  --kc-tr-plot-radius: 9px;
 
   /* Sliders, tables and menus */
+  --kc-slider-tick: color-mix(in srgb, var(--quiz-ink) 40%, transparent);
+  --kc-slider-menu-edge: var(--quiz-line);
+  --kc-slider-button-radius: 9px;
+  --kc-letter-radius: 9px;
+  --kc-table-radius: 12px;
+  --kc-table-fill: color-mix(in srgb, var(--quiz-ink) 4%, transparent);
+  --kc-table-edge: inset 0 0 0 1px var(--quiz-line);
+  --kc-table-strong-rule: color-mix(in srgb, var(--quiz-ink) 55%, transparent);
+  --kc-table-focus-radius: 8px;
+  --kc-table-button-radius: 9px;
+  --kc-menu-edge: var(--quiz-line);
+  --kc-add-item-width: 100%;
+  --kc-add-item-pad: 4px 6px;
+  --kc-add-item-radius: 10px;
+  --kc-add-item-hover: color-mix(in srgb, var(--quiz-ink) 8%, transparent);
+  --kc-menu-item-rest: 0.8;
+  --kc-menu-item-hover: 1;
 
 }
 /* Docked, the graph is as tall as 55% of the calculator's width, so with x from -10 to 10 the

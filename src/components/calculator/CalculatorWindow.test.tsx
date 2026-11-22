@@ -146,12 +146,12 @@ it("AR-23 the dock splitter is a separator stepping 16 px, with Home at 25% of t
   }
 });
 
-it("AR-28 full screen adds focus sentinels: start asks for the last boundary, end wraps to the title bar", () => {
+it("AR-28 full screen adds focus sentinels: start asks for the last boundary, end for the first (the host picks the title bar while it shows)", () => {
   const { props, rerender } = setup("floating");
   expect(document.querySelectorAll("[data-focus-sentinel]")).toHaveLength(0);
   rerender("fullscreen");
   document.querySelector<HTMLElement>('[data-focus-sentinel="start"]')!.focus();
   expect(props.onFocusBoundary).toHaveBeenCalledWith("last");
   document.querySelector<HTMLElement>('[data-focus-sentinel="end"]')!.focus();
-  expect(screen.getByRole("button", { name: "Close calculator" })).toHaveFocus();
+  expect(props.onFocusBoundary).toHaveBeenLastCalledWith("first");
 });

@@ -29,11 +29,12 @@ export const workspace = (page: Page) => page.locator("[data-calculator-workspac
  * calculator (shared quiz shell, 2026-10-27). */
 export const shiftHost = (page: Page) => page.locator("[data-calculator-dock-shift]").first();
 
-/** Where the shell asks the dock to start: 8 px under the shell's top bar. */
-export const dockTopOf = async (page: Page) => {
-  const top = (await page.locator('[data-quiz-bar="top"]').boundingBox())!;
-  return Math.round(top.y + top.height) + 8;
-};
+/** Where the docked calculator starts: a card 12 px under the top of the screen, beside the
+ * card that holds the bars and the question (founder, 2026-11-17, fifth round). */
+export const dockTopOf = async (_page: Page) => 12;
+
+/** The docked card's width in the quiz: half the screen, less the 12 px gaps on each side. */
+export const quizDockWidth = (viewportWidth: number) => Math.round(viewportWidth / 2) - 24;
 
 export const phoneSized = (page: Page) => {
   const { width, height } = page.viewportSize()!;
@@ -69,10 +70,17 @@ export function calculatorRequests(page: Page) {
   return urls;
 }
 
+/** The quiz offers no Undock button (founder, 2026-11-17: no title bar when docked or full
+ * screen), but a window left floating keeps its bar; the specs set floating through the store. */
+export const undock = (page: Page) =>
+  page.evaluate(() =>
+    globalThis.__calculatorWindowStore!.set({ mode: "floating", restoreMode: "floating" })
+  );
+
 /**
- * Opens the calculator from the toolbar (the side button on phones). L-4 docks the first open
- * of a page session on wide viewports; most window tests start from the floating window, so the
- * helper undocks unless `docked` is asked for.
+ * Opens the calculator from the quiz's top-bar Calculator button (phones too: the quiz has no
+ * side tab). L-4 docks the first open of a page session on wide viewports; most window tests
+ * start from the floating window, so the helper makes it float unless `docked` is asked for.
  */
 export async function openCalculator(
   page: Page,
@@ -82,10 +90,10 @@ export async function openCalculator(
 ) {
   if (size) await page.setViewportSize(size);
   await page.goto(`/?flow=${flow}`);
-  await (phoneSized(page) ? side(page) : trigger(page)).click();
+  await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
   if (!options.docked && (await frame(page).getAttribute("data-mode")) === "docked") {
-    await page.getByRole("button", { name: "Undock calculator", exact: true }).click();
+    await undock(page);
     await expect(frame(page)).toHaveAttribute("data-mode", "floating");
   }
   // AN-10: geometry is read once the 200 ms entry animation has ended.

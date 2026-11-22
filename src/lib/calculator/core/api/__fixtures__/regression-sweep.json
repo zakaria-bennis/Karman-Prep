@@ -2608,7 +2608,7 @@
     ],
     "desmos": [
       {
-        "error": "x can't be a regression parameter.",
+        "error": "Use the data's name here, like x_1, not x.",
         "graph": false,
         "desmosText": "'x' may not be used as a regression parameter. Try using a different variable name."
       }
@@ -2625,7 +2625,7 @@
     ],
     "desmos": [
       {
-        "error": "y can't be a regression parameter.",
+        "error": "Use the data's name here, like y_1, not y.",
         "graph": false,
         "desmosText": "'y' may not be used as a regression parameter. Try using a different variable name."
       }

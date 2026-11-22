@@ -32,7 +32,7 @@ it("A11Y-10 the summary reads each parameter, R squared and r", () => {
     r: 1,
   });
   expect(regressionSummary(row)).toBe(
-    "Regression: m equals 600, b equals negative 1164000, R squared equals 1, r equals 1"
+    "Regression: m equals 600, b equals negative 1164000, r squared equals 1, r equals 1"
   );
   expect(parameterValues(row).map((v) => `${v.shown} = ${v.value}`)).toEqual([
     "m = 600",

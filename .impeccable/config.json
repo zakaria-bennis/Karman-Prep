@@ -56,6 +56,12 @@
         ],
         "createdAt": "2026-11-11T19:27:38.394Z",
         "reason": "Founder asked on 2026-11-11 for a sunrise through the footer's Karman letters"
+      },
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-11-22T21:31:58.401Z",
+        "reason": "Calculator spec TH-17 (docs/superpowers/specs/calculator): the window title uses the calculator's UI font, Arial; set in commit 82379a42, before this session"
       }
     ]
   }
