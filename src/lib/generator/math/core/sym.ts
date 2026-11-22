@@ -55,6 +55,7 @@ export class Sym {
 
   /** coef * sqrt(n), simplified. */
   static root(n: number, coef: Frac | number = 1): Sym {
+    if (n === 0) return Sym.rat(0);
     const { out, inside } = simplifyRoot(n);
     return Sym.from([[{ pi: 0, rad: inside }, F(coef).mul(out)]]);
   }

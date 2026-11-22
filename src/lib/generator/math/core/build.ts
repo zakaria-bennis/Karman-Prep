@@ -194,9 +194,12 @@ const sentence = (text: string) => {
 };
 
 /** A clause after a label's colon: a lower-case first letter (unless it starts a name), one period. */
+// Ordinary words that start a clause; any other capitalized first word (a name) keeps its capital.
+const COMMON =
+  /^(A|An|The|This|That|These|Those|It|Its|You|Your|Each|Both|Since|Because|So|Then|If|When|With|Here|There|Now|Only|All|Every|One|No|Not|In|On|At|For|From|To|Of|By|As|Add|Subtract|Divide|Multiply|Substitute|Use|Set|Write|Find|Plug|Put|Solve|Expand|Factor|Combine|Move|Take|Count|Read|Look|Compare|Square|Simplify|Start|Check|Name|Let|Call|Undo|Clear|Collect|Distribute|Replace|Rewrite|Match|Recall|Remember|Notice|Apply|Work|Get|Keep|Turn|Change|Convert|Split|Group|Pick|Test|Try|Go|Mark|Draw|Label|Measure|Average|Order|Sort|List|Note|Since|Raise|Reduce|Cancel|Cross|Equate|Isolate|Translate|Interpret|Identify|Determine|Compute|Calculate|Evaluate|Estimate|Round|Halve|Double|Both|Either|Neither|Half|Twice|Three|Two|Four|Five)\b/;
 const clause = (text: string) => {
   const t = sentence(text);
-  return /^[A-Z][a-z]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
+  return COMMON.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
 };
 
 /** The founder's full-teaching explanation, in plain text with $...$ math. */
@@ -214,7 +217,9 @@ export function composeExplanation(draft: Draft, wrong: Slip[], key: string | nu
     lines.push(
       fits
         ? `You can enter ${key} or ${decimal}.`
-        : `You can enter ${key}, or a decimal that fills the box (${truncated(q)} or ${rounded(q)}).`
+        : truncated(q) === rounded(q)
+          ? `You can enter ${key}, or the decimal ${truncated(q)}.`
+          : `You can enter ${key}, or a decimal that fills the box (${truncated(q)} or ${rounded(q)}).`
     );
   }
   lines.push("");
@@ -383,7 +388,11 @@ export function buildItem(template: Template, seed: number): MathItem | BuildFai
         problems.push(`render: ${issue.problem} in "${issue.text}"`);
     }
     // Explanations name choices by their words, never by letter, so shuffled choices still read right.
-    if (/\b(choice|option|answer) [ABCD]\b|\([ABCD]\)/i.test(explanation)) {
+    if (
+      /\b[Cc]hoice [ABCD]\b|\b[Oo]ption [ABCD]\b|\b[Aa]nswer [ABCD]\b|\([ABCD]\)/.test(
+        explanation.replace(/\$[^$]*\$/g, "")
+      )
+    ) {
       problems.push("explanation names a choice by letter");
     }
 

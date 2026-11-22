@@ -18,8 +18,8 @@ import { renderIssues } from "@/lib/generator/math/core/render";
 import { fingerprint, type StorableQuestion } from "@/lib/generator/store";
 import { skill72 } from "@/lib/skills/ids72";
 
-const BANK =
-  "/private/tmp/claude-501/-Users-zakariabennis-Karman-Prep--claude-worktrees-pc-generator-c9fb7f/e01ff29f-ecbf-4fa7-a2bb-86967e6b8a15/scratchpad/bank/_all_rows.json";
+// Real Reading and Writing question texts, dumped read-only from the bank for the copy check.
+const BANK = "/Users/zakariabennis/Karman-Prep-wt/generator-work/bank/_rw_texts.json";
 
 const args = process.argv.slice(2);
 const arg = (name: string) => {
