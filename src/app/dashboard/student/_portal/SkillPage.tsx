@@ -4,31 +4,31 @@
 // (page.tsx). The founder's layout, kept (2026-11-20): the lesson at the left, written or video
 // (SkillLesson.tsx), and everything else at the right, made livelier:
 //   the student's own character, dressed as they have it, looking round
-//   where they stand, as Karman's tails: asleep, two, four, nine (end-options/TailsStage.tsx)
+//   where they stand, as Karman's tails: asleep, two, four, nine (play/fox/TailsStage.tsx)
 //   their last set on this skill, one dot an answer, and the coins a set can earn
 //   when it is due, if it was set as homework (the date only, not who set it)
 //   one green Start, glowing; then, small, Endless mode, Time trial and Review mistakes
 // What moves a skill up is never said here: the level-up is a surprise. No timer, difficulty or
 // calculator switch: skill sets are untimed, their difficulty adjusts itself, and the calculator is
-// always there. Everything shown is a stand-in: no student data is read yet.
+// always there. A signed-in student plays for real over this page (play/PlayLayer.tsx): Start is
+// eight questions on this one of the 72 skills, Time trial and Review mistakes too; the design page
+// plays eight made-up questions.
 import gsap from "gsap";
-import { useRouter } from "next/navigation";
 import { useLayoutEffect, useRef } from "react";
 import { Coin } from "@/components/portal/Coin";
 import { prefersStill } from "@/lib/painting/motion";
-import { TailsMark } from "@/app/dev/end-options/TailsStage";
-import go from "@/app/dev/end-options/parts.module.css";
-import { ACCESSORIES } from "./accessories";
-import { openEndless } from "./endless";
-import { getEquipped } from "./equipped";
+import { SKILLS72 } from "@/lib/skills/ids72";
+import { TailsMark } from "./play/fox/TailsStage";
+import go from "./play/go.module.css";
+import { CIRCLES } from "./play/demo-questions";
+import { usePlay } from "./play/PlayLayer";
+import { openEndless, openTrial } from "./endless";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon, Tile } from "./practice";
 import practice from "./practice.module.css";
 import { SkillLesson } from "./SkillLesson";
 import { usePortalData } from "./portalData";
-import { catalogSkillOf } from "@/lib/portal/skill-bridge";
-import { practiceSet } from "@/lib/student/quiz-routes";
 import styles from "./skill.module.css";
 
 const LEVELS = ["Not started", "Learning", "Understanding", "Proficient"] as const;
@@ -50,27 +50,6 @@ const LAST_WHEN = "2 days ago";
 const COINS = 120;
 const DUE = "Thursday";
 const TO_REVIEW = 3;
-
-/** Start: the set is played on the real quiz screen and ends on the new ending (end-options, ?play=1),
- *  in the same light, with the character as it is dressed, then comes back here. */
-function playSetUrl(name: string, level: number) {
-  const dark = document.documentElement.getAttribute("data-kp-mode") !== "light";
-  const { face, outfit } = getEquipped();
-  const wear = Object.values(outfit)
-    .map((id) => ACCESSORIES.find((a) => a.id === id)?.name)
-    .filter(Boolean)
-    .join(",");
-  const q = new URLSearchParams({
-    play: "1",
-    skill: name,
-    from: String(level),
-    mode: dark ? "dark" : "light",
-    face,
-    back: `/dev/shell?night=${dark ? 1 : 0}`,
-  });
-  if (wear) q.set("wear", wear);
-  return `/dev/end-options?${q}`;
-}
 
 function Trail({ level }: { level: number }) {
   return (
@@ -122,7 +101,7 @@ const dueWord = (from: number) =>
 
 export default function SkillPage({ skill }: { skill: OpenSkill }) {
   const page = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+  const startRef = useRef<HTMLButtonElement>(null);
   const level = Math.max(0, Math.min(3, skill.level));
   const real = usePortalData() !== null;
   const {
@@ -131,6 +110,18 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
     due: DUE,
     toReview: TO_REVIEW,
   } = useSkillFacts(skill.name);
+  const skillId = SKILLS72.find((s) => s.name === skill.name)?.id ?? null;
+  const { layer, play } = usePlay();
+  const start = (from: Element | null) =>
+    real && skillId
+      ? play({ kind: "set", skillId, skill: skill.name }, from)
+      : play({ kind: "demo", title: skill.name, questions: CIRCLES }, from);
+  const other = (icon: "endless" | "trial" | "review", from: Element) => {
+    if (icon === "endless") return openEndless({ kind: "skill", name: skill.name });
+    if (icon === "trial") return openTrial({ kind: "skill", name: skill.name });
+    if (real && skillId) return play({ kind: "review", skillId }, from);
+    play({ kind: "demo", title: `${skill.name}: review`, questions: CIRCLES.slice(0, 3) }, from);
+  };
   // the right side comes in piece by piece: the character, the stops along the trail one after
   // another, the last set's dots, then Start
   useLayoutEffect(() => {
@@ -231,12 +222,8 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
           type="button"
           className={`${go.go} ${styles.start}`}
           data-rise
-          onClick={() => {
-            // a signed-in student plays a real skill set on the live quiz screen
-            const catalog = real ? catalogSkillOf(skill.name) : null;
-            if (catalog) return window.location.assign(practiceSet(catalog).path);
-            router.push(playSetUrl(skill.name, level));
-          }}
+          ref={startRef}
+          onClick={() => start(startRef.current)}
         >
           <span>Start skill set</span>
           <Icon name="go" size={20} />
@@ -261,7 +248,8 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
             key={name}
             type="button"
             className={`${practice.mode} ${styles.row}`}
-            onClick={() => icon === "endless" && openEndless({ kind: "skill", name: skill.name })}
+            disabled={icon === "review" && real && TO_REVIEW === 0}
+            onClick={(e) => other(icon, e.currentTarget)}
           >
             {icon === "review" ? (
               <span className={`${practice.tile} ${styles.reviewTile}`}>
@@ -290,6 +278,7 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
           </button>
         ))}
       </section>
+      {layer}
     </div>
   );
 }

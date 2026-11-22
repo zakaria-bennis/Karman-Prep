@@ -52,13 +52,9 @@ test.describe("admin impersonation", () => {
     // We should have been redirected to /dashboard/student and
     // the page should render the target's seeded data.
     await expect(page).toHaveURL(/\/dashboard\/student/);
-    // The student portal's Today page renders for the target: its one main button
-    // (the Daily 10, the next homework, or the Library once both are done).
-    await expect(
-      page
-        .getByRole("link", { name: /Start Your Daily 10|Start this homework|Open the Library/i })
-        .first()
-    ).toBeVisible();
+    // The student portal renders for the target, its menu first (Library is on every plan).
+    await expect(page).toHaveTitle(/Your portal/);
+    await expect(page.getByRole("button", { name: "Library" }).first()).toBeVisible();
 
     // ── 4. Navigate to /learn while still impersonated ─────
     // The banner is site-wide so it should follow us.

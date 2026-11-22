@@ -15,14 +15,15 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalData, useStreak } from "./portalData";
-import { CHALLENGE, DAILY_10, TIME_TRIAL } from "@/lib/student/quiz-routes";
 import { FREE_PLAN } from "@/lib/marketing/offer";
 import { isLocked } from "@/lib/portal/locks";
-import { askUpgrade, startOr } from "./upgradeStore";
+import { askUpgrade } from "./upgradeStore";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
-import { openEndless } from "./endless";
+import { openEndless, openTrial } from "./endless";
+import { DailyStart } from "./DailyStart";
+import { usePlay } from "./play/PlayLayer";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -491,7 +492,7 @@ function FreeLeft({ left }: { left: number }) {
 
 /** Today's two tasks. Each shows Start until it is done; then it rests, ticked. */
 export function Today() {
-  /* a signed-in student's own day: what is already done, and Start opens the real quiz */
+  /* a signed-in student's own day: what is already done, and Start plays it over the page */
   const real = usePortalData();
   const gate = real && { planId: real.planId, access: real.access };
   const streak = useStreak();
@@ -500,6 +501,17 @@ export function Today() {
       ? { daily: real.today.dailyDone, challenge: real.today.challengeDone }
       : ({} as Record<string, boolean>)
   );
+  const playingKey = useRef<string | null>(null);
+  const { layer, play } = usePlay(undefined, (finished) => {
+    const key = playingKey.current;
+    if (finished && key) setDone((d) => ({ ...d, [key]: true }));
+  });
+  const playTask = (key: string) => {
+    playingKey.current = key;
+    if (key === "daily")
+      play({ kind: "daily" }, null, (start) => <DailyStart onStart={() => start()} onGo={start} />);
+    else play({ kind: "challenge" }, null);
+  };
   return (
     <section className={`${styles.glass} ${styles.today}`} aria-label="Today">
       <h2>Today</h2>
@@ -530,10 +542,12 @@ export function Today() {
                 onDone={() =>
                   !real
                     ? setDone((d) => ({ ...d, [task.key]: true }))
-                    : task.key === "daily"
-                      ? startOr(gate, "questions", DAILY_10.path)
+                    : task.key === "daily" &&
+                        gate &&
+                        isLocked("questions", gate.planId, gate.access)
+                      ? askUpgrade("questions")
                       : // the challenge question never uses up Free's 100 (founder, 2026-11-14)
-                        window.location.assign(CHALLENGE.path)
+                        playTask(task.key)
                 }
               >
                 Start
@@ -542,6 +556,7 @@ export function Today() {
           </li>
         ))}
       </ul>
+      {layer}
     </section>
   );
 }
@@ -606,13 +621,12 @@ export function Modes({
                   return out
                     ? askUpgrade("questions")
                     : openEndless({ kind: "section", name: section });
-                // a signed-in student goes to the live quiz pages that exist
+                // a time trial on the whole section opens its start page (TrialStart.tsx)
+                if (mode.icon === "trial" && section)
+                  return out
+                    ? askUpgrade("questions")
+                    : openTrial({ kind: "section", name: section });
                 if (!real) return;
-                if (mode.icon === "trial") {
-                  const trial = new URL(TIME_TRIAL.path, window.location.origin);
-                  trial.searchParams.set("section", section === "Math" ? "math" : "reading");
-                  startOr(gate, "questions", trial.href);
-                }
                 // the list of full-length exams, which knows which one is next and what the plan
                 // still opens
                 if (mode.icon === "exam") window.location.assign("/learn/tests");
@@ -625,6 +639,23 @@ export function Modes({
         ))}
       </ul>
     </section>
+  );
+}
+
+/** A time trial on one domain, as a row like the modes above (DomainPage). */
+export function TrialButton({ kind, name }: { kind: "skill" | "domain"; name: string }) {
+  return (
+    <button
+      type="button"
+      className={styles.mode}
+      onClick={() => {
+        tick();
+        openTrial({ kind, name });
+      }}
+    >
+      <Tile name="trial" />
+      <b>Time trial</b>
+    </button>
   );
 }
 

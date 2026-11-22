@@ -37,7 +37,6 @@ import {
   type Work as WorkPiece,
 } from "./homeworkData";
 import { usePortalData } from "./portalData";
-import { CHALLENGE, DAILY_10 } from "@/lib/student/quiz-routes";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -274,18 +273,14 @@ export default function Homework({
   const R = 74;
   const round = 2 * Math.PI * R;
 
-  // its Start runs the Daily 10; until the quiz is joined up, it comes back here with it done
-  if (dailyOpen)
-    return (
-      <DailyStart
-        onStart={() => {
-          if (real) return window.location.assign(DAILY_10.path);
-          closeDaily();
-          setDailyDone(true);
-          setCheer(cheer + 1);
-        }}
-      />
-    );
+  // its Start plays the Daily 10 over the page; played to its ending, it comes back here done
+  // (the design page skips straight to done)
+  const dailyPlayed = () => {
+    closeDaily();
+    setDailyDone(true);
+    setCheer(cheer + 1);
+  };
+  if (dailyOpen) return <DailyStart onStart={dailyPlayed} onFinished={dailyPlayed} />;
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
@@ -294,7 +289,6 @@ export default function Homework({
         <ChallengeBanner
           now={challenge === "go"}
           onStart={() => {
-            if (real) return window.location.assign(CHALLENGE.path);
             setChallenge("done");
             setCheer(cheer + 1);
           }}
@@ -459,6 +453,9 @@ export default function Homework({
               onFinish={(id) => {
                 const href = day.work.find((w) => w.id === id)?.href;
                 if (href) return window.location.assign(href);
+                // a signed-in student's work is done only when it really is (the design page
+                // marks it done on the spot)
+                if (real) return;
                 setFinished([...finished, id]);
                 setCheer(cheer + 1);
               }}

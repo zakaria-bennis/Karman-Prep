@@ -13,7 +13,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
-import { EndlessButton, Modes, Today } from "./practice";
+import { EndlessButton, Modes, Today, TrialButton } from "./practice";
 import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, type Domain, type Section, type Skill } from "./skills72";
@@ -319,6 +319,7 @@ export function DomainPage({
         <Band skills={domain.skills} />
         <Key skills={domain.skills} />
         <EndlessButton kind="domain" name={domain.name} />
+        <TrialButton kind="domain" name={domain.name} />
       </section>
 
       <div className={`${styles.filter} ${styles.levels}`} role="group" aria-label="Show">

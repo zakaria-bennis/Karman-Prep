@@ -8,7 +8,7 @@
 //   own questions take their place once the Mistake Log reads real answers.
 import { everySkill, type Found } from "./progressBreakdowns";
 import type { DayLog, Student } from "./progressData";
-import type { Section } from "./skills72";
+import { SECTIONS, type Section, type Skill } from "./skills72";
 
 export type Mode = "skill" | "daily" | "exam" | "challenge" | "trial" | "endless";
 export const MODES: Record<Mode, string> = {
@@ -133,9 +133,20 @@ export type RealSitting = Omit<Session, "asked" | "right" | "seconds"> & {
   })[];
 };
 
-/** A real student's sittings, newest first, in the page's own shape. */
-export function fromReal(sittings: readonly RealSitting[]): Session[] {
-  const byName = new Map(everySkill.map((f) => [f.skill.name, f]));
+/** A real student's sittings, newest first, in the page's own shape. `skills` are the student's own
+ *  (useSkills), so each skill shows their real level, not the design page's stand-in. */
+export function fromReal(
+  sittings: readonly RealSitting[],
+  skills?: Record<Section, { name: string; skills: Skill[] }[]>
+): Session[] {
+  const found: Found[] = skills
+    ? SECTIONS.flatMap((section) =>
+        skills[section].flatMap((domain) =>
+          domain.skills.map((skill) => ({ section, domain: domain.name, skill }))
+        )
+      )
+    : everySkill;
+  const byName = new Map(found.map((f) => [f.skill.name, f]));
   return sittings.map((s) => {
     const asked = s.asked.map(
       ({ skill, ...q }, i): Asked => ({
@@ -145,7 +156,7 @@ export function fromReal(sittings: readonly RealSitting[]): Session[] {
         mode: s.mode,
         session: s.id,
         sessionName: s.name,
-        found: byName.get(skill) ?? everySkill[0],
+        found: byName.get(skill) ?? found[0],
       })
     );
     return {

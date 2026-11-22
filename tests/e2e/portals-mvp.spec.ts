@@ -97,23 +97,18 @@ test.describe("cookie page", () => {
 });
 
 test.describe("student portal", () => {
-  test("Today, Progress, Library, time trials and Settings open", async ({ page }) => {
+  test("the portal's Progress, Library, Rewards and Account views open", async ({ page }) => {
     const errors = watchErrors(page);
     await impersonate(page, "dev-seed-mid@karman.local");
     await expect(page).toHaveURL(/\/dashboard\/student/);
-    await expect(page).toHaveTitle(/Today/);
+    await expect(page).toHaveTitle(/Your portal/);
 
-    for (const [path, title] of [
-      ["/dashboard/student/progress", /Progress/],
-      ["/dashboard/student/library", /Library/],
-      ["/learn/time-trial", /Time trial/],
-      ["/dashboard/student/settings", /Settings/],
-    ] as const) {
-      const response = await page.goto(path);
-      expect(response?.status(), path).toBe(200);
-      await expect(page).toHaveTitle(title);
+    // the portal is one page; each view opens with ?page=
+    for (const view of ["progress", "library", "rewards", "account"]) {
+      const response = await page.goto(`/dashboard/student?page=${view}`);
+      expect(response?.status(), view).toBe(200);
+      await expect(page).toHaveTitle(/Your portal/);
     }
-    await expect(page.getByRole("heading", { name: "Sound and motion" })).toBeVisible();
     expect(errors).toEqual([]);
   });
 });

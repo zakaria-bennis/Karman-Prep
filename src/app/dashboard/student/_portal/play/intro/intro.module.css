@@ -1,0 +1,56 @@
+/* The layer the transition plays on, over the ending (ActivityEnd.tsx), which waits unseen under it
+   until the quiz screen has been taken (Intro.tsx); the quiz itself is the player's, underneath.
+   Presses pass through to the ending. */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  visibility: visible;
+  pointer-events: none;
+}
+
+.canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  /* over the veil: the pieces of the quiz, the streaks, the sparks */
+  z-index: 80;
+  pointer-events: none;
+}
+
+/* the light drawn in toward the middle as the pull grows: over the landscape, under the pieces */
+.veil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(4 3 12 / 0.55) 0%,
+    rgb(4 3 12 / 0.8) 40%,
+    rgb(4 3 12 / 0.92) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the burst of light where it breaks (or explodes) */
+.flash {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 90vmax;
+  height: 90vmax;
+  margin: -45vmax 0 0 -45vmax;
+  z-index: 85;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 255 255 / 1),
+    rgb(255 244 214 / 0.65) 22%,
+    rgb(255 196 120 / 0.2) 45%,
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+}

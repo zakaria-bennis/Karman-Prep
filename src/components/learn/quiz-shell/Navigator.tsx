@@ -16,6 +16,8 @@ export type SquareInfo = {
   marked: boolean;
   bookmarked: boolean;
   verdict: "correct" | "wrong" | null;
+  /** Put right with a second chance. */
+  rescued?: boolean;
 };
 
 export function squareName(s: SquareInfo): string {
@@ -25,6 +27,7 @@ export function squareName(s: SquareInfo): string {
   if (s.marked) parts.push("marked for review");
   if (s.bookmarked) parts.push("bookmarked");
   if (s.verdict) parts.push(s.verdict);
+  if (s.rescued) parts.push("put right");
   return parts.join(", ");
 }
 
@@ -34,7 +37,8 @@ export function squaresFor(
   workspaces: Record<string, QuestionWorkspace>,
   reviews: Record<string, StudentQuizReview>,
   saved: Record<string, unknown>,
-  mode: QuizMode
+  mode: QuizMode,
+  putRight?: (questionId: string) => boolean
 ): SquareInfo[] {
   return Array.from({ length: total }, (_, index) => {
     const q = questions[index];
@@ -48,6 +52,7 @@ export function squaresFor(
       bookmarked: !!(q && saved[q.id]),
       verdict:
         mode.grading === "instant" && review ? (review.isCorrect ? "correct" : "wrong") : null,
+      ...(q && putRight?.(q.id) ? { rescued: true } : {}),
     };
   });
 }
@@ -87,6 +92,7 @@ export function NavigatorGrid({
             type="button"
             className={styles.square}
             data-state={s.locked ? "locked" : (s.verdict ?? (s.answered ? "answered" : "open"))}
+            data-rescued={s.rescued || undefined}
             aria-current={i === current ? "true" : undefined}
             aria-label={squareName(s)}
             disabled={s.locked}

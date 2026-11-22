@@ -47,4 +47,21 @@ export type QuizShellProps = {
   /** A completed skill set moved the skill's band (skill practice only). */
   levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
   onLevelUpDone?(): void;
+  /** Shuffles each multiple-choice question's choices in an order fixed by this seed and the
+   *  question's id (src/lib/quiz/shuffle.ts): the same student sees the same order every time.
+   *  Letters go by place. Everything handed back (onSelectAnswer, onSubmit, onSignals) is in the
+   *  question's own letters; reviews come in its own letters too. Typed answers never move. */
+  shuffleSeed?: string;
+  /** Question ids made by the generator. Pass it only after a server-side admin check: the shell
+   *  shows a quiet "Generated" mark on these and never works it out for itself. */
+  generated?: Readonly<Record<string, true>>;
+  /** Endless: the bottom bar's dots grow from one to ten and older ones scroll back, with the
+   *  hearts beside them. `hearts` is how many the run began with, `lost` how many are gone. Pass
+   *  `total` as the questions answered plus one. */
+  endless?: { hearts: number; lost: number };
+  /** Second chances the student holds. After a miss graded in front of them, the explanation
+   *  offers one (one a set); `onUse` resolves true once it is spent. */
+  rescue?: { left: number; onUse(questionId: string): Promise<boolean> };
+  /** Questions already put right with a second chance (their dots show it). */
+  rescued?: Readonly<Record<string, true>>;
 };
