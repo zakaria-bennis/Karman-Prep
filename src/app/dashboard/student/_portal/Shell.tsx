@@ -65,12 +65,12 @@ import { PLAN_NAMES } from "@/lib/student/plan-gate";
 import Rewards from "./Rewards";
 import { Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
+import { useEscapeStat, useMode, useRail } from "./useShellEffects";
 import { setEquipped } from "./equipped";
 import type { FaceKind } from "./characters";
 import { Sticker, type StickerName } from "./stickers";
 
 import { OPEN, POP, SLIDE, SLIDE_OVER, STILL, TURN } from "./shellMotion";
-const RAIL = "(min-width: 960px) and (hover: hover)";
 /** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
 
 function Shell() {
@@ -156,17 +156,7 @@ function Shell() {
   const [free, setFree] = useState(false);
   /* which way the next page slides: 1 going deeper, -1 coming back */
   const dir = useRef(1);
-  /* Escape steps back out of a number's page to Progress */
-  useEffect(() => {
-    if (!inStat) return;
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      dir.current = -1;
-      setStat(null);
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [inStat]);
+  useEscapeStat(inStat, dir, () => setStat(null));
   // `domain` holds a domain's name or, from the key beside the ring, a level's name
   const openDomain = section && domain ? skills[section].find((d) => d.name === domain) : undefined;
   const openLevel =
@@ -198,18 +188,8 @@ function Shell() {
   };
   const [world] = useState(() => ({}));
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-kp-mode", dark ? "dark" : "light");
-    document.documentElement.setAttribute("data-kp-look", "lit");
-  }, [dark]);
-
-  useEffect(() => {
-    const m = matchMedia(RAIL);
-    const set = () => setRail(m.matches);
-    set();
-    m.addEventListener("change", set);
-    return () => m.removeEventListener("change", set);
-  }, []);
+  useMode(dark);
+  useRail(setRail);
 
   /* ---- the lens: the lit piece of glass under the current item. It is moved by a spring, so a new
      press, or a finger that grabs it, redirects it from wherever it is. ---- */
