@@ -1,0 +1,787 @@
+/*
+ * The frame for the screens around an activity (StageFrame.tsx, FlowFrame.tsx): the quiz's live
+ * landscape with pieces of frosted glass on it, the way back at the top left and the screen's name
+ * on a small piece of glass (founder, 2026-11-19: titles plain on glass, never white type on the
+ * picture). Colors are the stage's (stage.module.css); at night the glass is a little thinner and
+ * more saturated, so it is as lively by night as by day.
+ *
+ * Dark is the default look. Light comes from the saved choice (data-kp-mode on the root, which
+ * QuizWorld sets) or, before that is set, from the device.
+ *
+ * Old portal parts still inside (Card, Row, Cta, SectionHeader, Num, Ring, SkillSquares and the
+ * kp- classes) are restyled here, under the frame only: the parent, tutor and school portals keep
+ * theirs. Their tokens (--accent, --mute, --line, --l1 to --l4 ...) are mapped to the new look, so
+ * the result screens and the reward layer take its colors.
+ *
+ * Type is Hanken Grotesk. A control is at least 44 tall; a main button 56 (64 from a tablet up).
+ * (The -webkit- line of a backdrop filter comes first: the other way round the build drops both.)
+ */
+.frame {
+  --ink: #f6f1e7;
+  --soft: #cfc9d8;
+  --pane: rgb(18 20 42 / 0.56);
+  --frost: blur(22px) saturate(1.8) brightness(0.9);
+  --edge: rgb(255 255 255 / 0.17);
+  --shine: rgb(255 255 255 / 0.22);
+  --lift: 0 18px 44px -18px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.22);
+  --tray: rgb(255 255 255 / 0.1);
+  --hover: rgb(255 255 255 / 0.07);
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+  --right: #6fd9a4;
+  --miss: #ff8f7e;
+  --sky: #141627;
+  --sq-edge: rgb(255 255 255 / 0.62);
+  --line: rgb(255 255 255 / 0.14);
+  --card: rgb(255 255 255 / 0.08);
+  /* skill levels: one green, light for New, dark for Conquered, the same way round in both modes */
+  --l1: #c5f0da;
+  --l2: #9be0c0;
+  --l3: #45b48a;
+  --l4: #0e6f53;
+  /* the old parts' names for the same colors */
+  --bg: var(--sky);
+  --mute: var(--soft);
+  --accent: var(--go);
+  --accent-ink: var(--on-go);
+  --late: var(--miss);
+  --good: var(--right);
+  --kp-r: 12px;
+  --font-sans: var(--font-hanken), "Hanken Grotesk", system-ui, sans-serif;
+  --font-hand: var(--font-caveat), Caveat, cursive;
+  --out: cubic-bezier(0.16, 1, 0.3, 1);
+  --r: 22px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+  padding: calc(max(16px, env(safe-area-inset-top)) + 60px) max(12px, env(safe-area-inset-right))
+    max(24px, calc(env(safe-area-inset-bottom) + 12px)) max(12px, env(safe-area-inset-left));
+  overflow-x: clip;
+  background: var(--sky);
+  color: var(--ink);
+  font: 500 16px/1.45 var(--font-sans);
+  font-variant-numeric: lining-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  color-scheme: dark;
+}
+
+:global(:root[data-kp-mode="light"]) .frame {
+  --ink: #1d1a22;
+  --soft: #4b4552;
+  --pane: rgb(255 251 244 / 0.6);
+  --frost: blur(22px) saturate(1.7) brightness(1.06);
+  --edge: rgb(255 255 255 / 0.6);
+  --shine: rgb(255 255 255 / 0.75);
+  --lift: 0 18px 44px -18px rgb(24 28 58 / 0.45), 0 2px 8px rgb(24 28 58 / 0.08);
+  --tray: rgb(29 26 34 / 0.08);
+  --hover: rgb(29 26 34 / 0.06);
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+  --right: #1a7d50;
+  --miss: #c2402f;
+  --sky: #cdd6ea;
+  --sq-edge: rgb(10 70 52 / 0.6);
+  --line: rgb(29 26 34 / 0.14);
+  --card: rgb(255 255 255 / 0.3);
+  --l1: #c4ebd6;
+  --l2: #86d0ac;
+  --l3: #38a47b;
+  --l4: #0a5a43;
+  color-scheme: light;
+}
+
+/* before the saved choice is read, a light device starts light (the same block as above) */
+@media (prefers-color-scheme: light) {
+  :global(:root:not([data-kp-mode])) .frame {
+    --ink: #1d1a22;
+    --soft: #4b4552;
+    --pane: rgb(255 251 244 / 0.6);
+    --frost: blur(22px) saturate(1.7) brightness(1.06);
+    --edge: rgb(255 255 255 / 0.6);
+    --shine: rgb(255 255 255 / 0.75);
+    --lift: 0 18px 44px -18px rgb(24 28 58 / 0.45), 0 2px 8px rgb(24 28 58 / 0.08);
+    --tray: rgb(29 26 34 / 0.08);
+    --hover: rgb(29 26 34 / 0.06);
+    --go: #0a5a43;
+    --on-go: #fffdf8;
+    --right: #1a7d50;
+    --miss: #c2402f;
+    --sky: #cdd6ea;
+    --sq-edge: rgb(10 70 52 / 0.6);
+    --line: rgb(29 26 34 / 0.14);
+    --card: rgb(255 255 255 / 0.3);
+    --l1: #c4ebd6;
+    --l2: #86d0ac;
+    --l3: #38a47b;
+    --l4: #0a5a43;
+    color-scheme: light;
+  }
+}
+
+.frame ::selection {
+  background: color-mix(in srgb, var(--go) 40%, transparent);
+  color: var(--ink);
+}
+
+.frame :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---- the glass: the way back, the name, and every piece of the content ---- */
+.back,
+.title,
+.column > :not(:has(:global(.kp-card))),
+.frame :global(.kp-card) {
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--edge),
+    inset 0 1px 0 var(--shine);
+}
+
+.back {
+  position: absolute;
+  z-index: 2;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding: 0 18px 0 10px;
+  border-radius: 22px;
+  color: var(--ink);
+  font-weight: 650;
+  text-decoration: none;
+  transition: transform 0.2s var(--out);
+}
+
+.back svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.back:active {
+  transform: scale(0.96);
+}
+
+/* short content sits in the middle of the sky; long content starts under the way back */
+.body {
+  align-self: center;
+  justify-self: center;
+  display: grid;
+  gap: 12px;
+  width: min(100%, 680px);
+  min-width: 0;
+}
+
+.column {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.title {
+  justify-self: start;
+  max-width: 100%;
+  margin: 0;
+  padding: 10px 16px 11px;
+  border-radius: 16px;
+  font: 700 20px/1.2 var(--font-sans);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  animation: rise 0.42s var(--out) backwards;
+}
+
+.column > :not(:has(:global(.kp-card))),
+.frame :global(.kp-card) {
+  margin: 0;
+  padding: 20px 18px;
+  border: 0;
+  border-radius: var(--r);
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: break-word;
+  animation: rise 0.42s var(--out) backwards;
+}
+
+/* the pieces settle one after another, just after the name */
+.column > :nth-child(1) {
+  animation-delay: 50ms;
+}
+
+.column > :nth-child(2) {
+  animation-delay: 100ms;
+}
+
+.column > :nth-child(3) {
+  animation-delay: 150ms;
+}
+
+.column > :nth-child(n + 4) {
+  animation-delay: 200ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* ---- a short state screen (Message) ---- */
+.message {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.message h2 {
+  font: 750 26px/1.12 var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.message p {
+  max-width: 60ch;
+  color: var(--soft);
+  line-height: 1.5;
+}
+
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* the stage's one button (Go) leads; on a phone each button takes its own line */
+.acts > [data-rise] {
+  flex: 3 1 auto;
+}
+
+/* loading: three orbs circling in step */
+.orbs {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-right: 12px;
+  vertical-align: -2px;
+  color: var(--go);
+  animation: orbit 0.9s linear infinite;
+}
+
+.orbs b {
+  position: absolute;
+  top: 0;
+  left: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  transform-origin: 3px 11px;
+}
+
+.orbs b:nth-child(2) {
+  transform: rotate(120deg);
+  opacity: 0.7;
+}
+
+.orbs b:nth-child(3) {
+  transform: rotate(240deg);
+  opacity: 0.4;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- buttons: the old main button reads as the stage's; a quiet way beside it ---- */
+.frame :global(.kp-cta) {
+  position: relative;
+  flex: 3 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  max-width: 100%;
+  min-height: 56px;
+  margin: 0;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 28px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0) 55%), var(--go);
+  color: var(--on-go);
+  font: 750 18px/1.2 var(--font-sans);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -2px 0 rgb(0 0 0 / 0.16),
+    0 2px 0 color-mix(in srgb, var(--go) 60%, #000),
+    0 12px 24px -10px color-mix(in srgb, var(--go) 85%, transparent);
+  transition:
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 200ms ease,
+    filter 160ms ease;
+  touch-action: manipulation;
+}
+
+/* the stage's arrow in place of the old chevron */
+.frame :global(.kp-cta) :global(.kp-chev) {
+  display: none;
+}
+
+.frame :global(.kp-cta)::after {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13M12.5 6.5L18 12l-5.5 5.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h13M12.5 6.5L18 12l-5.5 5.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 200ms var(--out);
+}
+
+.frame :global(.kp-cta):not(:disabled):active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.25);
+}
+
+.frame :global(.kp-cta):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.quiet,
+.frame :global(.kp-link) {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin: 0;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--tray);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--ink);
+  font: 650 16px/1.2 var(--font-sans);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--out),
+    background 0.2s var(--out);
+  touch-action: manipulation;
+}
+
+.quiet:active,
+.frame :global(.kp-link):active {
+  transform: scale(0.97);
+}
+
+/* a small toggle inside a piece ("See all 7") stays a text button */
+.frame :global(.kp-card) > :global(button.kp-link) {
+  flex: none;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: none;
+  box-shadow: none;
+  font-size: 15px;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 4px;
+}
+
+@media (hover: hover) {
+  .back:hover svg {
+    transform: translateX(-2px);
+  }
+
+  .frame :global(.kp-cta):not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.55),
+      inset 0 -2px 0 rgb(0 0 0 / 0.16),
+      0 4px 0 color-mix(in srgb, var(--go) 60%, #000),
+      0 18px 30px -12px color-mix(in srgb, var(--go) 90%, transparent);
+  }
+
+  .frame :global(.kp-cta):not(:disabled):hover::after {
+    transform: translateX(3px);
+  }
+
+  .quiet:hover,
+  .frame :global(.kp-link):hover {
+    background: color-mix(in srgb, var(--ink) 16%, transparent);
+  }
+
+  .frame :global(.kp-card) > :global(button.kp-link):hover {
+    background: var(--hover);
+  }
+
+  .frame :global(a.kp-row):hover {
+    background: var(--hover);
+    transform: none;
+  }
+}
+
+/* ---- headings and words inside a piece ---- */
+.frame :global(.kp-title) {
+  margin: 0;
+  font: 750 26px/1.12 var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.frame :global(.kp-meta) {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--soft);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.frame :global(.kp-sec-h) {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 6px;
+}
+
+.frame :global(.kp-sec-h) > :first-child {
+  margin: 0;
+  font: 700 18px/1.25 var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+.frame :global(.kp-sec-h) small {
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ---- rows: a hairline between them; a row that opens something lights up and points on ---- */
+.frame :global(.kp-row) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 0;
+  border: 0;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background 0.18s var(--out),
+    transform 0.2s var(--out);
+}
+
+.frame :global(.kp-row) + :global(.kp-row) {
+  box-shadow: 0 -1px 0 var(--line);
+}
+
+.frame :global(.kp-row) b {
+  display: block;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.frame :global(.kp-row) small {
+  display: block;
+  margin-top: 2px;
+  color: var(--soft);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.frame :global(.kp-row) > span:last-child:not(:first-child) {
+  flex: none;
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 650;
+  text-align: right;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.frame :global(a.kp-row) {
+  margin-inline: -10px;
+  padding-inline: 10px;
+  border-radius: 14px;
+}
+
+.frame :global(a.kp-row) > span:last-child:not(:first-child) {
+  color: var(--go);
+}
+
+.frame :global(a.kp-row)::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 0 -6px;
+  border-top: 2px solid var(--go);
+  border-right: 2px solid var(--go);
+  transform: rotate(45deg);
+}
+
+.frame :global(a.kp-row):active {
+  transform: scale(0.99);
+}
+
+/* ---- numbers, rings and squares ---- */
+.frame :global(.kp-num),
+.frame :global(.kp-big) {
+  font-family: var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.frame :global(.kp-big) {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* a score standing on its own (not inside a ring) is larger */
+.frame p > :global(.kp-big) {
+  font-size: 72px;
+}
+
+.frame :global(.kp-sqs) :global(.kp-sq) {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+}
+
+.frame :global(.kp-sqs) :global(.kp-sq[data-level="0"]) {
+  background: transparent;
+}
+
+/* ---- a question review that folds: a chevron says it opens ---- */
+.frame :global(.kp-card) details > summary {
+  position: relative;
+  min-height: 44px;
+  padding-right: 36px;
+  list-style: none;
+}
+
+.frame :global(.kp-card) details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.frame :global(.kp-card) details > summary::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--soft);
+  border-bottom: 2px solid var(--soft);
+  transform: rotate(45deg);
+  transition: transform 0.25s var(--out);
+}
+
+.frame :global(.kp-card) details[open] > summary::after {
+  transform: translateY(5px) rotate(-135deg);
+}
+
+/* ---- the old box (Panel), if a page still wraps its cards in one: no box, just the pieces ---- */
+.frame :global(section.kp-panel) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.frame :global(.kp-p-main),
+.frame :global(.kp-p-side) {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.frame :global(.kp-p-main) > :first-child,
+.frame :global(.kp-p-side) > :first-child {
+  margin-top: 0;
+}
+
+/* ============ a tablet ============ */
+@media (min-width: 700px) {
+  .frame {
+    padding: calc(max(16px, env(safe-area-inset-top)) + 64px) max(24px, env(safe-area-inset-right))
+      max(32px, calc(env(safe-area-inset-bottom) + 16px)) max(24px, env(safe-area-inset-left));
+    font-size: 17px;
+  }
+
+  .body,
+  .column {
+    gap: 14px;
+  }
+
+  .title {
+    padding: 11px 18px 12px;
+    border-radius: 18px;
+    font-size: 24px;
+  }
+
+  .column > :not(:has(:global(.kp-card))),
+  .frame :global(.kp-card) {
+    padding: 24px;
+    border-radius: 26px;
+  }
+
+  .message h2,
+  .frame :global(.kp-title) {
+    font-size: 30px;
+  }
+
+  .message p,
+  .frame :global(.kp-meta) {
+    font-size: 16px;
+  }
+
+  .frame :global(.kp-sec-h) > :first-child {
+    font-size: 20px;
+  }
+
+  .frame :global(.kp-cta),
+  .quiet,
+  .frame :global(.kp-link) {
+    min-height: 64px;
+    border-radius: 32px;
+  }
+
+  .frame :global(.kp-cta),
+  .acts > [data-rise] {
+    font-size: 20px;
+  }
+
+  .frame p > :global(.kp-big) {
+    font-size: 88px;
+  }
+}
+
+/* ============ a computer: a second column beside the first ============ */
+@media (min-width: 1100px) {
+  .frame {
+    padding-top: calc(max(16px, env(safe-area-inset-top)) + 72px);
+    padding-inline: max(32px, env(safe-area-inset-left)) max(32px, env(safe-area-inset-right));
+  }
+
+  .body[data-side] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+    align-items: start;
+    width: min(100%, 1120px);
+  }
+
+  .body[data-side] > .title {
+    grid-column: 1 / -1;
+  }
+
+  .message h2,
+  .frame :global(.kp-title) {
+    font-size: 32px;
+  }
+}
+
+/* ---- the device asks for solid glass, or for more contrast ---- */
+@media (prefers-reduced-transparency: reduce) {
+  .frame {
+    --pane: rgb(22 24 44 / 0.94);
+    --frost: none;
+  }
+
+  :global(:root[data-kp-mode="light"]) .frame {
+    --pane: rgb(251 246 238 / 0.94);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) and (prefers-color-scheme: light) {
+  :global(:root:not([data-kp-mode])) .frame {
+    --pane: rgb(251 246 238 / 0.94);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .frame {
+    --pane: rgb(16 18 32 / 0.97);
+    --edge: rgb(255 255 255 / 0.6);
+    --soft: #e6e1ec;
+  }
+
+  :global(:root[data-kp-mode="light"]) .frame {
+    --pane: rgb(251 246 238 / 0.97);
+    --edge: rgb(29 26 34 / 0.7);
+    --soft: #2f2a36;
+  }
+}
+
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
+  :global(:root:not([data-kp-mode])) .frame {
+    --pane: rgb(251 246 238 / 0.97);
+    --edge: rgb(29 26 34 / 0.7);
+    --soft: #2f2a36;
+  }
+}
+
+/* ---- still: the device asks for it, or Settings, Reduce motion. Every move lands at once. ---- */
+@media (prefers-reduced-motion: reduce) {
+  .frame *,
+  .frame *::before,
+  .frame *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:global(:root[data-kp-still]) .frame *,
+:global(:root[data-kp-still]) .frame *::before,
+:global(:root[data-kp-still]) .frame *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
