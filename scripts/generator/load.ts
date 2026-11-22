@@ -4,6 +4,8 @@
  *
  *   # Math: generate and load up to N new questions per skill
  *   npx tsx scripts/generator/load.ts --target local --math --skills all --per-skill 50 --batch gen-math-test
+ *   # or bring every Math skill up to 900 stored generated questions
+ *   npx tsx scripts/generator/load.ts --target production --math --skills all --top-up-to 900 --batch gen-math-r2
  *   # Reading and Writing: load checked items from the workflow's output (JSON Lines)
  *   npx tsx scripts/generator/load.ts --target production --rw-file out/rw.jsonl --batch gen-rw-1
  *   # Undo a batch (questions nobody has answered are deleted; answered ones are hidden)
@@ -169,11 +171,14 @@ async function existingState(db: SupabaseClient) {
   const stable = new Set<string>();
   const prints = new Set<string>();
   const maxSeed = new Map<string, number>();
+  const perSkill = new Map<string, number>();
   for (const row of generated) {
     if (row.generator?.stable_id) stable.add(row.generator.stable_id);
     const t = row.generator?.template;
     const s = row.generator?.seed;
     if (t && typeof s === "number") maxSeed.set(t, Math.max(maxSeed.get(t) ?? 0, s));
+    const k = (row.generator as { skill72?: string })?.skill72;
+    if (k) perSkill.set(k, (perSkill.get(k) ?? 0) + 1);
     prints.add(
       fingerprint({
         questionText: row.question_text,
@@ -185,7 +190,7 @@ async function existingState(db: SupabaseClient) {
       })
     );
   }
-  return { generated, stable, prints, maxSeed };
+  return { generated, stable, prints, maxSeed, perSkill };
 }
 
 async function originalPrints(db: SupabaseClient): Promise<Set<string>> {
@@ -213,7 +218,7 @@ async function originalPrints(db: SupabaseClient): Promise<Set<string>> {
 
 function mathQuestions(
   skills: string[],
-  perSkill: number,
+  perSkill: number | ((skill: string) => number),
   seen: { stable: Set<string>; prints: Set<string>; maxSeed: Map<string, number> },
   originals: Set<string>
 ): { questions: StorableQuestion[]; perSkillCount: Record<string, number>; failures: number } {
@@ -228,7 +233,8 @@ function mathQuestions(
     const misses = new Map(templates.map((t) => [t.id, 0]));
     let made = 0;
     let index = 0;
-    while (made < perSkill) {
+    const goal = typeof perSkill === "number" ? perSkill : perSkill(skill);
+    while (made < goal) {
       const live = templates.filter((t) => (misses.get(t.id) ?? 0) < 200);
       if (!live.length) break;
       const t = live[index++ % live.length];
@@ -401,7 +407,11 @@ async function main() {
       list === "all"
         ? SKILLS72.filter((s) => s.section === "Math").map((s) => s.id)
         : list.split(",").map((s) => s.trim());
-    const perSkill = Number(arg("per-skill", "10"));
+    // --top-up-to N: bring every skill up to N stored generated questions; else add --per-skill each.
+    const topUp = arg("top-up-to");
+    const perSkill = topUp
+      ? (skill: string) => Math.max(0, Number(topUp) - (seen.perSkill.get(skill) ?? 0))
+      : Number(arg("per-skill", "10"));
     const made = mathQuestions(skills, perSkill, seen, originals);
     questions = made.questions;
     console.log(

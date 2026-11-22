@@ -117,7 +117,9 @@ function problems(item: Item): string[] {
     const parsed = parseFigureSpec(item.figure);
     if (!parsed.ok) out.push(`figure: ${parsed.errors.slice(0, 2).join("; ")}`);
   }
-  if (copiesBank(`${item.questionText} ${(item.choices ?? []).join(" ")}`)) {
+  // The question line is standard SAT wording; only the passage and the choices must be new.
+  const passage = item.questionText.trim().replace(/\n\n[^\n]+$/, "");
+  if (copiesBank(`${passage} ${(item.choices ?? []).join(" ")}`)) {
     out.push("shares a 12-word run with a real question");
   }
   return out;
