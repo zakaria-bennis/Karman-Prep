@@ -37,7 +37,11 @@ const settled = new Set(
     .filter((k) => k.verdict === "confirmed" || k.verdict.startsWith("kept"))
     .map((k) => k.id)
 );
-const done = new Set(jsonl(join(work, "results", "explain-final.jsonl")).map((r) => r.id));
+const done = new Set(
+  jsonl(join(work, "results", "explain-final.jsonl"))
+    .filter((r) => r.status.startsWith("passed"))
+    .map((r) => r.id)
+);
 const queued = new Set(
   existsSync(join(work, "batches", "explain", "queued.json"))
     ? JSON.parse(readFileSync(join(work, "batches", "explain", "queued.json"), "utf8"))
