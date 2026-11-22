@@ -26,6 +26,10 @@ import { when } from "@/components/messages/Thread";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { recentParentNotes } from "@/lib/parent/messages";
 import { postFamilyNoteAction } from "./actions";
+import { StudentKarman } from "@/components/tutor/StudentKarman";
+import { weekSet } from "@/lib/portal/review-sets";
+import { loadStudentSummary } from "@/lib/portal/student-summary";
+import { dayKey } from "@/lib/student/streak";
 import "@/components/portal-extras/forms.css";
 
 export const metadata: Metadata = { title: "Student" };
@@ -62,13 +66,21 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged, timing, familyNotes] = await Promise.all([
+  const [statuses, attempts, flagged, timing, familyNotes, summary] = await Promise.all([
     fetchNodeStatuses(studentId),
     fetchAllAttemptsForStudent(studentId),
     fetchFlaggedQuestionsForStudent(studentId),
     getTimingAccommodation(studentId),
     recentParentNotes(student.id),
+    loadStudentSummary(studentId).catch(() => null),
   ]);
+  // this week's curated review set: the tutor (or an admin) is this student's teacher here
+  const reviewSet = summary
+    ? await weekSet(
+        { clerkId: studentId, planId: summary.data.planId, hasTutor: true },
+        dayKey(Date.now())
+      ).catch(() => null)
+    : null;
 
   // Preload per-attempt responses (expandable in Quiz History tab) — first 20 only for perf
   const responsesByAttempt: Record<
@@ -149,6 +161,15 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           <MoreLink href="/tutor">All students</MoreLink>
         </div>
       </Card>
+
+      {summary && (
+        <StudentKarman
+          summary={summary}
+          set={reviewSet}
+          studentClerkId={studentId}
+          firstName={student.first_name?.trim() || "your student"}
+        />
+      )}
 
       <Card label="Note for the family" id="family-note">
         <SectionHeader title="Note for the family" note="they see it in Messages" />

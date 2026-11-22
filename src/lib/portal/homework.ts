@@ -13,6 +13,8 @@ import { dayKey } from "@/lib/student/streak";
 import { SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import type { Kind, Sort, Work } from "@/app/dashboard/student/_portal/homeworkData";
 import { between } from "./progress";
+import { getsReviewSets } from "./review-set-rules";
+import { studentSets } from "./review-sets";
 
 /** A piece of work on its day: days from today (0 today, less than 0 past), and where it opens. */
 export type RealWork = Work & { from: number; href: string | null };
@@ -80,6 +82,25 @@ export function workOf(item: StudentHomeworkItem, todayKey: string): RealWork | 
   };
 }
 
+/** A sent review set as Homework shows it: Mixed work, due the Friday before the exam. */
+export function reviewWorkOf(
+  r: { id: string; dueOn: string; size: number; done: boolean },
+  todayKey: string
+): RealWork {
+  const from = between(todayKey, r.dueOn);
+  return {
+    id: `review:${r.id}`,
+    kind: "mixed",
+    sort: "skill",
+    name: "Review set",
+    much: `${r.size} questions`,
+    state: r.done ? "done" : from >= 0 ? "todo" : from >= -MISSING_DAYS ? "missing" : "closed",
+    from,
+    href: null,
+    review: r.id,
+  };
+}
+
 const timeFormat = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
@@ -95,7 +116,7 @@ export async function loadHomework(
   nowMs: number
 ): Promise<RealHomework> {
   const today = dayKey(nowMs);
-  const [homework, cohort] = await Promise.all([
+  const [homework, cohort, reviews] = await Promise.all([
     ctx.hasTutor
       ? loadStudentHomework({ userId: ctx.userId, clerkId: ctx.clerkId }, { nowMs }).catch(
           () => null
@@ -112,11 +133,16 @@ export async function loadHomework(
         (r) => (r.data as { cohorts: { sat_date: string } | null } | null)?.cohorts ?? null,
         () => null
       ),
+    getsReviewSets(ctx.plan.id, ctx.hasTutor)
+      ? studentSets(ctx.clerkId, today).catch(() => [])
+      : Promise.resolve([]),
   ]);
 
-  const work = (homework?.items ?? [])
-    .map((i) => workOf(i, today))
-    .filter((w): w is RealWork => w !== null);
+  const work = [
+    ...(homework?.items ?? []).map((i) => workOf(i, today)),
+    // the curated review sets the tutor sent, due the Friday before the exam
+    ...reviews.map((r) => reviewWorkOf(r, today)),
+  ].filter((w): w is RealWork => w !== null);
   const classes = (calendar?.booked ?? [])
     .map((b) => ({
       from: between(today, dayKey(b.start)),

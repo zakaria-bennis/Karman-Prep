@@ -25,6 +25,8 @@ import { joinOpen } from "@/lib/parent/join-window";
 import { childTestDate, loadOfficialScores } from "@/lib/parent/messages";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 import { testDay } from "@/lib/parent/test-day";
+import { ChildSummary } from "@/components/parent/ChildSummary";
+import { loadStudentSummary } from "@/lib/portal/student-summary";
 
 export const metadata: Metadata = { title: "Week" };
 export const dynamic = "force-dynamic";
@@ -36,10 +38,11 @@ export default async function ParentWeekPage({
 }) {
   const ctx = await requireParentContext();
   const child = await requireChild(ctx, (await params).studentId);
-  const [week, testDate, official] = await Promise.all([
+  const [week, testDate, official, summary] = await Promise.all([
     loadChildWeek(child),
     childTestDate(child.id),
     loadOfficialScores(child.id),
+    loadStudentSummary(child.clerkId).catch(() => null),
   ]);
   const day = testDay({
     today: new Date().toISOString().slice(0, 10),
@@ -72,6 +75,7 @@ export default async function ParentWeekPage({
         )}
         <MoreLink href={`${base}/progress`}>Progress and skills</MoreLink>
       </Card>
+      {summary && <ChildSummary summary={summary} firstName={child.firstName} />}
       {week.tutorNote && (
         <Card>
           <SectionHeader title="From the tutor" />

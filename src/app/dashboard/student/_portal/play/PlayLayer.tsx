@@ -28,6 +28,7 @@ import {
 } from "@/app/learn/play-actions";
 import type { RunView } from "@/lib/assembler/run-types";
 import type { PlayScope } from "@/lib/play/types";
+import { actionStartReviewSet } from "@/lib/portal/review-set-actions";
 import { usePortalData } from "../portalData";
 import { ActivityEnd } from "./ActivityEnd";
 import { ChallengePlay } from "./ChallengePlay";
@@ -41,7 +42,8 @@ export type PlayRequest =
   | { kind: "set"; skillId: string; skill: string }
   | { kind: "daily" }
   | { kind: "endless"; scope: PlayScope }
-  | { kind: "review"; skillId?: string; questionIds?: string[] }
+  /** Mistakes to review, or (`setId`) a curated review set the tutor sent. */
+  | { kind: "review"; skillId?: string; questionIds?: string[]; setId?: string }
   | { kind: "trial"; scope: PlayScope }
   | { kind: "challenge"; noWorld?: boolean }
   | { kind: "strategy"; skillId: string; skill: string; questions: LocalQuestion[] }
@@ -89,6 +91,7 @@ async function open(request: PlayRequest): Promise<Opened | { error: string; lim
     case "endless":
       return run(actionStartEndless({ scope: request.scope }));
     case "review":
+      if (request.setId) return run(actionStartReviewSet({ setId: request.setId }));
       return run(actionStartReview({ skillId: request.skillId, questionIds: request.questionIds }));
     case "trial":
       return run(actionStartTrial({ scope: request.scope }));

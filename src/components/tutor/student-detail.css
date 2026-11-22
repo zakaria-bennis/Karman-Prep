@@ -564,3 +564,27 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* every answer in the student's Mistake Log (/tutor/[studentId]/answers): one sitting a fold */
+.kp-answers {
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+.kp-answers summary {
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  cursor: pointer;
+}
+.kp-answers ol {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 12px;
+  padding-left: 22px;
+}
+.kp-answers li p {
+  margin: 2px 0;
+  overflow-wrap: anywhere;
+}

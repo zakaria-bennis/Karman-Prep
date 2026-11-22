@@ -37,6 +37,7 @@ import {
   type Work as WorkPiece,
 } from "./homeworkData";
 import { usePortalData } from "./portalData";
+import { usePlay } from "./play/PlayLayer";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -192,6 +193,12 @@ export default function Homework({
   const FIRST = -(weekNow - 1) * 7 - TODAY.getDay();
   /** Work finished on this page by pressing it, until each activity has its own screen. */
   const [finished, setFinished] = useState<string[]>([]);
+  // a review set the tutor sent opens here; finished, it is marked done on the spot
+  const playing = useRef<string | null>(null);
+  const { layer, play } = usePlay(undefined, (done) => {
+    const id = playing.current;
+    if (done && id) setFinished((f) => [...f, id]);
+  });
   const [cheer, setCheer] = useState(0);
   const [dailyDone, setDailyDone] = useState(real?.dailyDone ?? false);
   /** The Daily 10's start page is open. */
@@ -284,6 +291,7 @@ export default function Homework({
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
+      {layer}
       <ExamBanner day={exam} now={now} number={weekNow + week} open={examOpen} />
       {(challenge === "banner" || challenge === "go") && (
         <ChallengeBanner
@@ -451,8 +459,12 @@ export default function Homework({
                 window.scrollTo({ top: 0 });
               }}
               onFinish={(id) => {
-                const href = day.work.find((w) => w.id === id)?.href;
-                if (href) return window.location.assign(href);
+                const piece = day.work.find((w) => w.id === id);
+                if (piece?.review) {
+                  playing.current = id;
+                  return play({ kind: "review", setId: piece.review });
+                }
+                if (piece?.href) return window.location.assign(piece.href);
                 // a signed-in student's work is done only when it really is (the design page
                 // marks it done on the spot)
                 if (real) return;
