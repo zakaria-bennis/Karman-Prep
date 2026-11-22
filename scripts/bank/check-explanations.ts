@@ -80,7 +80,7 @@ function norm(t: string): string {
     .toLowerCase()
     .replace(/[.,;:!?"]+$/g, "");
 }
-const numbers = (t: string) => norm(t).match(/\d+(?:\.\d+)?/g) ?? [];
+const numbers = (t: string): string[] => norm(t).match(/\d+(?:\.\d+)?/g) ?? [];
 function mentions(text: string, choice: string): boolean {
   const t = norm(text);
   const c = norm(choice).replace(/^"|"$/g, "");
