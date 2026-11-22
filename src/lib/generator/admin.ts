@@ -7,7 +7,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { adminOrNull } from "@/lib/auth/admin-guard";
 import { createAdminClient } from "@/lib/supabase/server";
-import { skill72 } from "@/lib/skills/ids72";
+import { SKILLS72, skill72 } from "@/lib/skills/ids72";
 import { HIDE } from "./persist";
 import { generatedHidden } from "./switch";
 
@@ -23,24 +23,58 @@ export interface GeneratedAdminView {
   hidden: boolean;
 }
 
-/** Live practice questions per skill, original and generated, by skill name. Empty when unreadable. */
+const COUNTS_FRESH_MS = 5 * 60_000;
+let countsCache: { counts: OriginCounts; at: number } | null = null;
+
+/** One skill's live practice questions of one origin, counted directly (before the view exists). */
+async function countOne(client: SupabaseClient, skillId: string, origin: string): Promise<number> {
+  const { count, error } = await client
+    .from("question_skills72")
+    .select("question_id, quiz_questions!inner(id)", { count: "exact", head: true })
+    .eq("skill_id", skillId)
+    .eq("quiz_questions.origin", origin)
+    .eq("quiz_questions.is_live", true)
+    .eq("quiz_questions.pool", "practice");
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+/** Live practice questions per skill, original and generated, by skill name. Read from the
+ *  skill72_origin_counts view (migration 20261122060000); until that is applied, counted skill by
+ *  skill. Kept for five minutes. Empty when unreadable. */
 export async function loadOriginCounts(client: SupabaseClient = db()): Promise<OriginCounts> {
+  if (countsCache && Date.now() - countsCache.at < COUNTS_FRESH_MS) return countsCache.counts;
   const out: OriginCounts = {};
   try {
     const { data, error } = await client
       .from("skill72_origin_counts")
       .select("skill_id, origin, questions");
-    if (error || !data) return out;
-    for (const row of data as { skill_id: string; origin: string; questions: number }[]) {
-      const name = skill72(row.skill_id)?.name;
-      if (!name) continue;
-      const entry = (out[name] ??= { original: 0, generated: 0 });
-      if (row.origin === "generated") entry.generated += row.questions;
-      else entry.original += row.questions;
+    if (!error && data) {
+      for (const row of data as { skill_id: string; origin: string; questions: number }[]) {
+        const name = skill72(row.skill_id)?.name;
+        if (!name) continue;
+        const entry = (out[name] ??= { original: 0, generated: 0 });
+        if (row.origin === "generated") entry.generated += row.questions;
+        else entry.original += row.questions;
+      }
+    } else {
+      for (let i = 0; i < SKILLS72.length; i += 12) {
+        await Promise.all(
+          SKILLS72.slice(i, i + 12).map(async (skill) => {
+            const [original, generated] = await Promise.all([
+              countOne(client, skill.id, "original"),
+              countOne(client, skill.id, "generated"),
+            ]);
+            out[skill.name] = { original, generated };
+          })
+        );
+      }
     }
   } catch {
     // an empty map: the Library shows its usual counts
+    return out;
   }
+  countsCache = { counts: out, at: Date.now() };
   return out;
 }
 
