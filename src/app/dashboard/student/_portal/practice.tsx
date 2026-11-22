@@ -15,11 +15,13 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalData, useStreak } from "./portalData";
-import { CHALLENGE, DAILY_10, fullLengthTest } from "@/lib/student/quiz-routes";
+import { fullLengthTest } from "@/lib/student/quiz-routes";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
 import { openEndless, openTrial } from "./endless";
+import { DailyStart } from "./DailyStart";
+import { usePlay } from "./play/PlayLayer";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -457,7 +459,7 @@ const TASKS = [
 
 /** Today's two tasks. Each shows Start until it is done; then it rests, ticked. */
 export function Today() {
-  /* a signed-in student's own day: what is already done, and Start opens the real quiz */
+  /* a signed-in student's own day: what is already done, and Start plays it over the page */
   const real = usePortalData();
   const streak = useStreak();
   const [done, setDone] = useState<Record<string, boolean>>(() =>
@@ -465,6 +467,17 @@ export function Today() {
       ? { daily: real.today.dailyDone, challenge: real.today.challengeDone }
       : ({} as Record<string, boolean>)
   );
+  const playingKey = useRef<string | null>(null);
+  const { layer, play } = usePlay(undefined, (finished) => {
+    const key = playingKey.current;
+    if (finished && key) setDone((d) => ({ ...d, [key]: true }));
+  });
+  const playTask = (key: string) => {
+    playingKey.current = key;
+    if (key === "daily")
+      play({ kind: "daily" }, null, (start) => <DailyStart onStart={() => start()} onGo={start} />);
+    else play({ kind: "challenge" }, null);
+  };
   return (
     <section className={`${styles.glass} ${styles.today}`} aria-label="Today">
       <h2>Today</h2>
@@ -492,9 +505,7 @@ export function Today() {
               <GoButton
                 label={`Start ${task.name}`}
                 onDone={() =>
-                  real
-                    ? window.location.assign(task.key === "daily" ? DAILY_10.path : CHALLENGE.path)
-                    : setDone((d) => ({ ...d, [task.key]: true }))
+                  !real ? setDone((d) => ({ ...d, [task.key]: true })) : playTask(task.key)
                 }
               >
                 Start
@@ -503,6 +514,7 @@ export function Today() {
           </li>
         ))}
       </ul>
+      {layer}
     </section>
   );
 }

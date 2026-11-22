@@ -12,6 +12,7 @@
 import gsap from "gsap";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { QuizWorld } from "@/components/learn/quiz-shell/QuizWorld";
 import { prefersStill } from "@/lib/painting/motion";
 import {
@@ -137,7 +138,8 @@ export function PlayLayer({
   intro?: (start: (from?: Element | null) => void) => ReactNode;
   /** What the ending's buttons do, beyond Done (which closes this). */
   actions?: Omit<EndActions, "done">;
-  onClose(): void;
+  /** `finished`: the activity reached its ending before it was closed. */
+  onClose(finished: boolean): void;
 }) {
   const router = useRouter();
   const portal = usePortalData();
@@ -231,10 +233,11 @@ export function PlayLayer({
     setPhase({ at: "ending", opened, end });
   }, []);
 
+  const finished = phase.at === "ending" || phase.at === "ended";
   const close = useCallback(() => {
-    onClose();
+    onClose(finished);
     router.refresh();
-  }, [onClose, router]);
+  }, [onClose, router, finished]);
 
   const error = (text: string) => setPhase({ at: "error", text });
   let body: ReactNode = null;
@@ -421,7 +424,11 @@ function endActions(
 }
 
 /** A start page's player: `play(request, startButton)` opens an activity over the portal. */
-export function usePlay(actions?: Omit<EndActions, "done">) {
+export function usePlay(
+  actions?: Omit<EndActions, "done">,
+  /** Called when the layer closes; `finished` when the activity reached its ending. */
+  onClosed?: (finished: boolean) => void
+) {
   const [now, setNow] = useState<{
     request: PlayRequest;
     from: DOMRect | null;
@@ -437,15 +444,22 @@ export function usePlay(actions?: Omit<EndActions, "done">) {
     },
     []
   );
-  const layer = now ? (
-    <PlayLayer
-      key={JSON.stringify(now.request)}
-      request={now.request}
-      from={now.from}
-      intro={now.intro}
-      actions={actions}
-      onClose={() => setNow(null)}
-    />
-  ) : null;
+  // on the page's body, so no moving or clipped parent (a sliding skill page) holds it in
+  const layer = now
+    ? createPortal(
+        <PlayLayer
+          key={JSON.stringify(now.request)}
+          request={now.request}
+          from={now.from}
+          intro={now.intro}
+          actions={actions}
+          onClose={(finished) => {
+            setNow(null);
+            onClosed?.(finished);
+          }}
+        />,
+        document.body
+      )
+    : null;
   return { layer, play, playing: now?.request ?? null, close: () => setNow(null) };
 }

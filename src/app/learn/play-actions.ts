@@ -25,6 +25,7 @@ import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import { bankCoins, challengeDays, coinBalance } from "@/lib/play/server/coins";
 import { loadLevels72 } from "@/lib/play/server/levels72";
 import {
+  endlessBest,
   startEndless,
   startReview,
   startSkillSet,
@@ -116,6 +117,15 @@ export async function actionStartReview(input: { skillId?: string; questionIds?:
       .strict()
       .parse(input);
     return { view: await startReview(id, parsed), seed: seedOf(id) };
+  });
+}
+
+/** The best endless run on a scope, and when it was set. */
+export async function actionEndlessBest(input: { scope: PlayScope }) {
+  return wrap(async () => {
+    const id = await studentId();
+    const { scope } = z.object({ scope: scopeSchema }).strict().parse(input);
+    return endlessBest(id, scope);
   });
 }
 

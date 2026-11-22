@@ -401,9 +401,25 @@ const ACTIVITY: Record<PlayForm["mode"], CoinActivity> = {
 
 /** The best endless run before this one, on the same scope. */
 async function bestEndless(clerkId: string, scope: string, runId: string): Promise<number> {
+  return (await bestRunOn(clerkId, scope, runId)).run;
+}
+
+/** The best endless run on a scope, and when it was set (the start page's card). */
+export async function endlessBest(
+  clerkId: string,
+  scope: PlayScope
+): Promise<{ run: number; when: string | null }> {
+  return bestRunOn(clerkId, `endless:${scopeKey(scope)}`, "");
+}
+
+async function bestRunOn(
+  clerkId: string,
+  scope: string,
+  runId: string
+): Promise<{ run: number; when: string | null }> {
   const { data } = await db()
     .from("quiz_runs")
-    .select("id, result")
+    .select("id, result, completed_at")
     .eq("student_id", clerkId)
     .eq("kind", "practice-set")
     .eq("scope", scope)
@@ -413,9 +429,15 @@ async function bestEndless(clerkId: string, scope: string, runId: string): Promi
       (r) => r,
       () => ({ data: null })
     );
-  let best = 0;
-  for (const r of (data ?? []) as { id: string; result: RunResult | null }[])
-    if (r.id !== runId) best = Math.max(best, r.result?.play?.endless?.run ?? 0);
+  let best = { run: 0, when: null as string | null };
+  for (const r of (data ?? []) as {
+    id: string;
+    result: RunResult | null;
+    completed_at: string | null;
+  }[]) {
+    const run = r.result?.play?.endless?.run ?? 0;
+    if (r.id !== runId && run > best.run) best = { run, when: r.completed_at };
+  }
   return best;
 }
 
