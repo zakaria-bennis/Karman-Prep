@@ -150,3 +150,9 @@ migration. Only the Bank, Generator and Exams streams write to the live question
   read-only. It held about 152 MB before tonight. Generated questions are loaded in stages and stop near
   400 MB, so tonight's count is below the 200,000 goal. Reaching 200,000 stored questions needs a paid
   Supabase plan (a spending decision), or Math questions built on demand from their seed.
+
+## Laptop limits (founder, 2026-11-22 afternoon)
+
+After the Mac crashed from overload, every heavy command runs through one lock: `sh ~/.karman-heavy/heavy.sh
+<command>`, so only one build, test run, type check, dev server or browser runs at a time on the whole Mac.
+At most four sessions run at once; the rest wait their turn. No parallel helpers that run commands.
