@@ -15,7 +15,10 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalData, useStreak } from "./portalData";
-import { CHALLENGE, DAILY_10, TIME_TRIAL, fullLengthTest } from "@/lib/student/quiz-routes";
+import { CHALLENGE, DAILY_10, TIME_TRIAL } from "@/lib/student/quiz-routes";
+import { FREE_PLAN } from "@/lib/marketing/offer";
+import { isLocked } from "@/lib/portal/locks";
+import { askUpgrade, startOr } from "./upgradeStore";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
@@ -455,10 +458,42 @@ const TASKS = [
   },
 ] as const;
 
+/** Free's questions, said plainly at the top of Today: how many of the 100 are left, as a count and
+ *  a thin band. Pressing it opens the Upgrade sheet; once none are left it says so. */
+function FreeLeft({ left }: { left: number }) {
+  const total = FREE_PLAN.questionLimit;
+  return (
+    <button
+      type="button"
+      className={styles.freeLeft}
+      data-out={left === 0 || undefined}
+      onClick={() => {
+        tick();
+        askUpgrade(left === 0 ? "questions" : "plan");
+      }}
+    >
+      <span>
+        {left === 0 ? (
+          <>You&rsquo;ve used your {total} free questions</>
+        ) : (
+          <>
+            <b>{left}</b> of {total} free questions left
+          </>
+        )}
+      </span>
+      <em>Upgrade</em>
+      <i aria-hidden="true">
+        <i style={{ width: `${Math.round((left / total) * 100)}%` }} />
+      </i>
+    </button>
+  );
+}
+
 /** Today's two tasks. Each shows Start until it is done; then it rests, ticked. */
 export function Today() {
   /* a signed-in student's own day: what is already done, and Start opens the real quiz */
   const real = usePortalData();
+  const gate = real && { planId: real.planId, access: real.access };
   const streak = useStreak();
   const [done, setDone] = useState<Record<string, boolean>>(() =>
     real
@@ -468,6 +503,7 @@ export function Today() {
   return (
     <section className={`${styles.glass} ${styles.today}`} aria-label="Today">
       <h2>Today</h2>
+      {real?.access.questionsLeft != null && <FreeLeft left={real.access.questionsLeft} />}
       <ul>
         {TASKS.map((task) => (
           <li key={task.key} className={styles.task}>
@@ -492,9 +528,12 @@ export function Today() {
               <GoButton
                 label={`Start ${task.name}`}
                 onDone={() =>
-                  real
-                    ? window.location.assign(task.key === "daily" ? DAILY_10.path : CHALLENGE.path)
-                    : setDone((d) => ({ ...d, [task.key]: true }))
+                  !real
+                    ? setDone((d) => ({ ...d, [task.key]: true }))
+                    : task.key === "daily"
+                      ? startOr(gate, "questions", DAILY_10.path)
+                      : // the challenge question never uses up Free's 100 (founder, 2026-11-14)
+                        window.location.assign(CHALLENGE.path)
                 }
               >
                 Start
@@ -526,12 +565,32 @@ export function Modes({
   section?: string;
 }) {
   const real = usePortalData();
+  const gate = real && { planId: real.planId, access: real.access };
+  /* workshops are for Pro and the taught plans; Free and Practice see them locked (founder,
+     2026-11-14); a taught student finds them in Today's place instead */
+  const showWorkshops = real ? real.plan === "practice" : workshops;
+  const lockedWorkshops = real !== null && isLocked("workshops", real.planId, real.access);
   return (
     <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
       <header className={styles.modesHead}>
         <h2>More ways to practice</h2>
         {/* a Pro student opens the workshops coming up from here */}
-        {workshops && <UpcomingWorkshops />}
+        {showWorkshops &&
+          (lockedWorkshops ? (
+            <button
+              type="button"
+              className={styles.lockedWorkshops}
+              onClick={() => {
+                tick();
+                askUpgrade("workshops");
+              }}
+            >
+              <Lock />
+              Workshops
+            </button>
+          ) : (
+            <UpcomingWorkshops />
+          ))}
       </header>
       <ul>
         {MODES.map((mode) => (
@@ -541,19 +600,22 @@ export function Modes({
               className={styles.mode}
               onClick={() => {
                 tick();
+                // Free's 100 questions used up: what asks new questions opens the Upgrade sheet
+                const out = gate !== null && isLocked("questions", gate.planId, gate.access);
                 if (mode.icon === "endless" && section)
-                  return openEndless({ kind: "section", name: section });
+                  return out
+                    ? askUpgrade("questions")
+                    : openEndless({ kind: "section", name: section });
                 // a signed-in student goes to the live quiz pages that exist
                 if (!real) return;
                 if (mode.icon === "trial") {
                   const trial = new URL(TIME_TRIAL.path, window.location.origin);
                   trial.searchParams.set("section", section === "Math" ? "math" : "reading");
-                  window.location.assign(trial.href);
+                  startOr(gate, "questions", trial.href);
                 }
-                if (mode.icon === "exam") {
-                  const taken = real.student.exams.length;
-                  window.location.assign(fullLengthTest((taken % 4) + 1).path);
-                }
+                // the list of full-length exams, which knows which one is next and what the plan
+                // still opens
+                if (mode.icon === "exam") window.location.assign("/learn/tests");
               }}
             >
               <Tile name={mode.icon} />
@@ -563,6 +625,16 @@ export function Modes({
         ))}
       </ul>
     </section>
+  );
+}
+
+/** A padlock, drawn in the icons' own stroke. */
+export function Lock({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={styles.lock}>
+      <rect x="5" y="10.5" width="14" height="10" rx="2.5" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
+    </svg>
   );
 }
 

@@ -1,0 +1,306 @@
+/*
+ * The Upgrade sheet (Upgrade.tsx). A veil dims the world; one piece of glass rises over it: from the
+ * bottom edge on a phone, in the middle on a wide screen. Pro leads: its card is washed with the
+ * page's green and its button is filled; Practice's button is the green outline the portal uses.
+ */
+.veil {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(10 12 28 / 0.42);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+:global([data-kp-mode="light"]) .veil {
+  background: rgb(36 30 56 / 0.24);
+}
+
+.sheet {
+  --tray: color-mix(in srgb, var(--ink) 9%, transparent);
+  --soft: color-mix(in srgb, var(--ink) 74%, transparent);
+  /* the Library's green (library.module.css), for the plans' marks and buttons */
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+  --p2: #38a47b;
+  position: relative;
+  width: min(660px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 28px 24px 24px;
+  border-radius: 24px;
+  color: var(--ink);
+  background: var(--glass);
+  /* a touch more frost than the page under it, so the sheet reads as the top piece */
+  -webkit-backdrop-filter: blur(calc(30px * var(--frost-k, 0.7))) saturate(1.6);
+  backdrop-filter: blur(calc(30px * var(--frost-k, 0.7))) saturate(1.6);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+}
+
+:global([data-kp-mode="dark"]) .sheet {
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+  --p2: #45b48a;
+}
+
+.sheet[data-one] {
+  width: min(420px, 100%);
+}
+
+.sheet h2 {
+  margin: 0 52px 6px 0;
+  font:
+    700 clamp(22px, 4.6vw, 28px) / 1.15 var(--font-hanken),
+    var(--font-sans);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.say {
+  margin: 0;
+  color: var(--soft);
+  font-size: 16px;
+  font-weight: 500;
+  text-wrap: pretty;
+}
+
+.sheet .close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  color: inherit;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.sheet .close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.sheet .close:active {
+  transform: scale(0.92);
+}
+
+.sheet .close:focus-visible,
+.buy:focus-visible,
+.sheet .term button:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* monthly or three months: the portal's own tray with one sliding pill (settingsControls Seg) */
+.term {
+  width: min(100%, 300px);
+  margin: 18px 0 16px;
+}
+
+.sheet .term button {
+  position: relative;
+  height: 44px;
+  border-radius: 10px;
+  color: inherit;
+  font-weight: 600;
+  touch-action: manipulation;
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.plan {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+}
+
+.plan[data-lead] {
+  background: color-mix(in srgb, var(--go) 15%, transparent);
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--go) 55%, transparent),
+    0 14px 30px -18px color-mix(in srgb, var(--go) 70%, transparent);
+}
+
+.plan h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.price b {
+  font-size: 36px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.price span {
+  color: var(--soft);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.plan ul {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  margin: 4px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.plan li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.plan li svg {
+  flex: none;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--go);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.buy {
+  display: flex;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  color: var(--go);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: inset 0 0 0 2px var(--go);
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    background-color 0.2s var(--out),
+    color 0.2s var(--out);
+}
+
+.buy[data-lead] {
+  background: var(--go);
+  color: var(--on-go);
+}
+
+@media (hover: hover) {
+  .buy:hover:not([data-lead]) {
+    background: var(--go);
+    color: var(--on-go);
+  }
+
+  .buy[data-lead]:hover {
+    background: color-mix(in srgb, var(--go) 86%, #fff);
+  }
+}
+
+.buy:active {
+  transform: scale(0.97);
+}
+
+.buy[aria-busy] {
+  cursor: progress;
+}
+
+.orbs {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.orbs i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: orb 0.9s ease-in-out infinite;
+}
+
+.orbs i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.orbs i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes orb {
+  50% {
+    transform: translateY(-4px);
+    opacity: 0.55;
+  }
+}
+
+/* a phone: the sheet rises from the bottom edge, as wide as the screen, clear of the home line */
+@media (max-width: 640px) {
+  .veil {
+    align-items: end;
+    padding: 0;
+  }
+
+  .sheet,
+  .sheet[data-one] {
+    width: 100%;
+    max-height: 92dvh;
+    padding: 24px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+  }
+
+  .plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .plan {
+    padding: 16px;
+  }
+
+  .price b {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbs i {
+    animation: none;
+  }
+
+  .buy,
+  .sheet .close {
+    transition: none;
+  }
+}

@@ -57,8 +57,8 @@ import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Page, type Plan } from "./plans";
-import MusicOffer from "./MusicOffer";
 import { DemoSwitches } from "./DemoSwitches";
+import { ShellOverlays } from "./ShellOverlays";
 import Rewards from "./Rewards";
 import { Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
@@ -88,6 +88,10 @@ function Shell() {
     planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
   );
   const [dark, setDark] = useState(q.get("night") !== "0");
+  /* a new student's first visit (or the first after paying): the welcome, once */
+  const [welcome, setWelcome] = useState(
+    () => real !== null && (!real.welcomed || q.get("welcome") === "1")
+  );
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
@@ -528,7 +532,7 @@ function Shell() {
           )}
         </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
-        {PLANS[plan].home === "library" && page === "library" && !section && (
+        {PLANS[plan].home === "library" && page === "library" && !section && !welcome && (
           <LibraryChallenge intro={intro} />
         )}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
@@ -602,7 +606,7 @@ function Shell() {
                   window.scrollTo({ top: 0 });
                 }}
                 extraTime={extraTime}
-                free={free && plan === "practice"}
+                free={real ? real.planId === "free" : free && plan === "practice"}
                 onSkill={openSkill}
               />
             </motion.div>
@@ -611,7 +615,9 @@ function Shell() {
         {page === "chat" && plan !== "practice" && (
           <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
         )}
-        {page === "homework" && <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />}
+        {page === "homework" && !welcome && (
+          <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />
+        )}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "account" && (
@@ -637,8 +643,17 @@ function Shell() {
         )}
       </main>
 
-      {/* after 8 PM the offer of classical music comes in at the top right (MusicOffer.tsx) */}
-      <MusicOffer key={offer} force={offer > 0} />
+      <ShellOverlays
+        welcome={welcome}
+        paid={q.get("welcome") === "1"}
+        offer={offer}
+        onWelcomed={() => {
+          setWelcome(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete("welcome");
+          window.history.replaceState(null, "", url);
+        }}
+      />
 
       {!real && q.get("demo") !== "0" && (
         <DemoSwitches
