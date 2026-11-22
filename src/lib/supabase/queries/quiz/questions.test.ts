@@ -17,6 +17,10 @@ vi.mock("@/lib/supabase/server", () => ({
           calls.push(["eq", column, value]);
           return query;
         },
+        filter(column: string, operator: string, value: unknown) {
+          calls.push(["filter", column, operator, value]);
+          return query;
+        },
         in(column: string, values: unknown[]) {
           calls.push(["in", column, values]);
           return query;
@@ -46,6 +50,7 @@ describe("fetchQuestionsForNode publication boundary", () => {
     await fetchQuestionsForNode("ma-00");
     expect(calls).toContainEqual(["eq", "node_id", "ma-00"]);
     expect(calls).toContainEqual(["eq", "is_live", true]);
+    expect(calls).toContainEqual(["filter", "pool", "eq", "practice"]);
     expect(calls).toContainEqual([
       "in",
       "publish_status",

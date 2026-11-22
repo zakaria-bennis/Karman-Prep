@@ -101,7 +101,10 @@ function buildModule(
 ): AssembledModule {
   const shape = MODULE_SHAPE[section];
   const counts = domainCounts(section, kind, shape.size);
-  const need = difficultyCounts(difficultyMix(section, kind, level), shape.size - shape.pretest);
+  const mix = difficultyMix(section, kind, level);
+  const need = difficultyCounts(mix, shape.size - shape.pretest);
+  // Trial questions follow the module's own difficulty mix, so they blend in.
+  const pretestNeed = difficultyCounts(mix, shape.pretest);
   // Pretest slots go to the Domains with the most questions, so they blend in.
   const pretestDomains = [...counts.entries()]
     .sort((p, q) => q[1] - p[1] || seeded(picker.seed, p[0]) - seeded(picker.seed, q[0]))
@@ -139,7 +142,7 @@ function buildModule(
     }
     while (pretest-- > 0) {
       const fromDomain = pretestPool.filter((i) => i.domainId === domain);
-      const item = pickByDifficulty(fromDomain, [1, 1, 1, 1, 1, 1, 1], picker);
+      const item = pickByDifficulty(fromDomain, pretestNeed, picker);
       if (item) slots.push({ item, pretest: true });
     }
   }
