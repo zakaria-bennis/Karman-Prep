@@ -1,18 +1,35 @@
 "use client";
+import type { ReactNode } from "react";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import MathText from "../MathText";
 import { raisePowers } from "@/lib/quiz/tidy-math";
 import styles from "./pane.module.css";
 
-/** The explanation after grading (instant mode) or in review (locked mode). */
-export function Explanation({ q, review }: { q: StudentQuizQuestion; review: StudentQuizReview }) {
+/** The explanation after grading (instant mode) or in review (locked mode). `action` sits at the
+ *  right of its title (the second chance, after a miss). */
+export function Explanation({
+  q,
+  review,
+  action,
+}: {
+  q: StudentQuizQuestion;
+  review: StudentQuizReview;
+  action?: ReactNode;
+}) {
   const perChoice = (review.explanation_per_choice ?? null) as Record<
     string,
     string | undefined
   > | null;
   return (
     <section aria-label="Explanation" className={styles.explanation} data-ink-block="explanation">
-      <h3 className={styles.explanationTitle}>Explanation</h3>
+      {action ? (
+        <div className={styles.explanationHead}>
+          <h3 className={styles.explanationTitle}>Explanation</h3>
+          {action}
+        </div>
+      ) : (
+        <h3 className={styles.explanationTitle}>Explanation</h3>
+      )}
       {review.explanation_text && (
         <MathText
           text={raisePowers(review.explanation_text)}

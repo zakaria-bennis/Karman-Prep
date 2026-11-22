@@ -1,0 +1,92 @@
+/*
+ * A character's face for each mood (Mood in mood.tsx sets data-mood on the wrapper). Every one of the
+ * sixteen faces draws its eyes the same way (characters.tsx, Fox.tsx): the open eyes (.m-lid), closed
+ * happy eyes (.m-eH), worried brows (.m-bS) and determined brows (.m-bD), the last three hidden until
+ * a mood shows them. A face with the shared smile (.m-mouth) also turns it up or down.
+ */
+[data-mood] .m-lid,
+[data-mood] .m-eH,
+[data-mood] .m-bS,
+[data-mood] .m-bD,
+[data-mood] .m-mouth,
+[data-mood] .m-blush {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+/* every mood blinks now and then */
+[data-mood] .m-lid {
+  animation: blink 4.2s infinite;
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+
+/* happy: the eyes close into smiling arcs, the cheeks glow, the smile grows */
+[data-mood="happy"] .m-lid {
+  opacity: 0;
+}
+
+[data-mood="happy"] .m-eH {
+  opacity: 1 !important;
+}
+
+[data-mood="happy"] .m-blush {
+  opacity: 0.9 !important;
+  transform: scale(1.25);
+}
+
+[data-mood="happy"] .m-mouth {
+  transform: scale(1.7, 2.2);
+}
+
+/* wow: the eyes go wide */
+[data-mood="wow"] .m-lid {
+  animation: none;
+  transform: scale(1.3);
+}
+
+[data-mood="wow"] .m-mouth {
+  transform: scale(1.2, 2.6);
+}
+
+/* worried: brows up in the middle, the eyes a little smaller, the smile turned down */
+[data-mood="worried"] .m-bS {
+  opacity: 1 !important;
+}
+
+[data-mood="worried"] .m-lid {
+  transform: scale(0.9, 0.82);
+  animation: none;
+}
+
+[data-mood="worried"] .m-mouth {
+  transform: scale(1.1, -1);
+}
+
+/* determined: brows down in the middle, a firm small smile */
+[data-mood="determined"] .m-bD {
+  opacity: 1 !important;
+}
+
+[data-mood="determined"] .m-mouth {
+  transform: scale(1.3, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mood] .m-lid {
+    animation: none;
+  }
+}

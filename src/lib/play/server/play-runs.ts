@@ -43,7 +43,7 @@ export const SET_SIZE = 8;
 /** Endless: misses that end a run (founder, 2026-11-21: three hearts). */
 export const HEARTS = 3;
 /** Endless: the most questions one run draws from, never repeating one. */
-const ENDLESS_POOL = 150;
+const ENDLESS_POOL = 120;
 /** Review: the most mistakes in one review. */
 const REVIEW_SIZE = 10;
 
@@ -533,7 +533,7 @@ const SECOND_CHANCE = "Second chance";
  * bought on Rewards and the miss counts as right for the level. One a set. If the set already
  * finished, its level is worked out again.
  */
-export async function useSecondChance(
+export async function spendSecondChance(
   clerkId: string,
   runId: string,
   questionId: string

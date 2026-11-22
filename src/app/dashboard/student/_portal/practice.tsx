@@ -15,11 +15,11 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalData, useStreak } from "./portalData";
-import { CHALLENGE, DAILY_10, TIME_TRIAL, fullLengthTest } from "@/lib/student/quiz-routes";
+import { CHALLENGE, DAILY_10, fullLengthTest } from "@/lib/student/quiz-routes";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
-import { openEndless } from "./endless";
+import { openEndless, openTrial } from "./endless";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -543,13 +543,11 @@ export function Modes({
                 tick();
                 if (mode.icon === "endless" && section)
                   return openEndless({ kind: "section", name: section });
+                // a time trial on the whole section opens its start page (TrialStart.tsx)
+                if (mode.icon === "trial" && section)
+                  return openTrial({ kind: "section", name: section });
                 // a signed-in student goes to the live quiz pages that exist
                 if (!real) return;
-                if (mode.icon === "trial") {
-                  const trial = new URL(TIME_TRIAL.path, window.location.origin);
-                  trial.searchParams.set("section", section === "Math" ? "math" : "reading");
-                  window.location.assign(trial.href);
-                }
                 if (mode.icon === "exam") {
                   const taken = real.student.exams.length;
                   window.location.assign(fullLengthTest((taken % 4) + 1).path);
@@ -563,6 +561,23 @@ export function Modes({
         ))}
       </ul>
     </section>
+  );
+}
+
+/** A time trial on one domain, as a row like the modes above (DomainPage). */
+export function TrialButton({ kind, name }: { kind: "skill" | "domain"; name: string }) {
+  return (
+    <button
+      type="button"
+      className={styles.mode}
+      onClick={() => {
+        tick();
+        openTrial({ kind, name });
+      }}
+    >
+      <Tile name="trial" />
+      <b>Time trial</b>
+    </button>
   );
 }
 

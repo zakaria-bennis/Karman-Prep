@@ -45,3 +45,10 @@ export const fullLengthTest = (form: number): QuizRoute => ({
   path: `/learn/test/${form}`,
   ready: true,
 });
+
+/** A strategy quiz: the compass, at most five questions on one skill's strategy, opened from the
+ *  end of that skill's lesson (overnight build, 2026-11-22). */
+export const strategyQuiz = (skillId: string): QuizRoute => ({
+  path: `/learn/strategy/${encodeURIComponent(skillId)}`,
+  ready: true,
+});
