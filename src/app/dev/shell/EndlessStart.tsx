@@ -3,7 +3,8 @@
 // Endless mode's start page (founder, 2026-11-21), in the Daily 10's layout (dailyStart.module.css).
 // It draws from wherever it was started (endless.ts): one skill, one domain (leaning on the
 // student's weakest skills there) or a whole section. The feeling is flow:
-//   Left    the endless sign, drawn large, with light flowing round it without end, and the
+//   Left    the endless sign, drawn large, with light flowing round it without end, over a live river
+//           seen from just above the water (founder's pick, 2026-11-21: "A, on the water"), and the
 //           student's own character, dressed as they have it, at its crossing; under it the name of
 //           what the run draws from; and their best run in a card of its own.
 //   Right   how it goes: questions keep coming, three misses end the run, and where they come from;
@@ -11,6 +12,7 @@
 // Never skipped; nothing starts until Start. Stand-ins: no student data is read.
 import gsap from "gsap";
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { RIVER_LANDS } from "@/lib/flight/world";
 import { prefersStill } from "@/lib/painting/motion";
 import go from "../end-options/parts.module.css";
 import { closeEndless, type EndlessRun } from "./endless";
@@ -21,6 +23,7 @@ import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./dailyStart.module.css";
 import own from "./endlessStart.module.css";
+import { WorldWindow } from "./WorldWindow";
 
 /** Stand-ins: the longest run this student has had here, and when. */
 const BEST = 27;
@@ -36,6 +39,13 @@ const FROM = {
 /** The endless sign: a figure eight on its side, as one path, centered at 0, 0. */
 const LOOP =
   "M0 0 C40 -64 150 -64 150 0 C150 64 40 64 0 0 C-40 -64 -150 -64 -150 0 C-150 64 -40 64 0 0Z";
+
+/** Where down the river this run's picture starts: each skill, domain or section has its own stretch. */
+function riverFrom(name: string) {
+  let h = 7;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 9973;
+  return 40 + (h % 89) * 5;
+}
 
 function Lives() {
   return (
@@ -91,6 +101,7 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
       <div className={styles.left}>
         <section className={`${lib.glass} ${styles.today}`} data-rise>
           <div className={`${styles.window} ${own.window}`}>
+            <WorldWindow from={riverFrom(run.name)} lands={RIVER_LANDS} river />
             <svg className={own.sign} viewBox="-190 -100 380 200" aria-hidden="true">
               <defs>
                 <linearGradient id="endless-flow" x1="0" y1="0" x2="1" y2="0">
