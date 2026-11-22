@@ -56,13 +56,15 @@ export function toMathjs(latex: string): string {
         ? `${s.slice(0, at)} ((${a})/(${b})) ${s.slice(b1)}`
         : `${s.slice(0, at)} nthRoot(${b}, ${a}) ${s.slice(b1)}`;
   }
-  return s
-    .replace(/\{/g, "(")
-    .replace(/\}/g, ")")
-    // a lone letter before a bracket multiplies it: 2x(x + 4) is 2x times (x + 4), not a call
-    .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*\(/g, "$1$2*(")
-    .replace(/(\d),(\d{3})(?!\d)/g, "$1$2")
-    .trim();
+  return (
+    s
+      .replace(/\{/g, "(")
+      .replace(/\}/g, ")")
+      // a lone letter before a bracket multiplies it: 2x(x + 4) is 2x times (x + 4), not a call
+      .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*\(/g, "$1$2*(")
+      .replace(/(\d),(\d{3})(?!\d)/g, "$1$2")
+      .trim()
+  );
 }
 
 /** The right-hand side of an equation ("x = 4" gives "4"); the text itself otherwise. */
