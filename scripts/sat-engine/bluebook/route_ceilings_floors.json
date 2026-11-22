@@ -1,0 +1,202 @@
+[
+  {
+    "test": 7,
+    "section": "rw",
+    "easy_ceiling": 600,
+    "hard_floor": 440,
+    "routing": "<=4 M1 misses of 20-pt items or <=8 of 10-pt items -> hard; depends on item weights",
+    "kind": "analysis (deliberate-answer experiment)",
+    "url": "https://www.testdaily.cn/103844/",
+    "note": "Also 570 easy max when misses were 10-pt items. 2025-04-11."
+  },
+  {
+    "test": 7,
+    "section": "math",
+    "easy_ceiling": 570,
+    "hard_floor": 460,
+    "routing": "<=6 M1 misses -> hard; 7 misses: consecutive -> hard, spread -> easy",
+    "kind": "analysis (experiment)",
+    "url": "https://www.testdaily.cn/103844/",
+    "note": ""
+  },
+  {
+    "test": 7,
+    "section": "rw",
+    "easy_ceiling": 600,
+    "hard_floor": 440,
+    "routing": "<=4 M1 mistakes",
+    "kind": "analysis (method undisclosed; matches TestDaily)",
+    "url": "https://www.alphatestai.com/blog/161-digital-sat-scoring-decoded-2026-strategy-for-minimizing-point-loss",
+    "note": "Likely derived from TestDaily. Dec 2025."
+  },
+  {
+    "test": 7,
+    "section": "math",
+    "easy_ceiling": 570,
+    "hard_floor": 460,
+    "routing": "<=5 M1 mistakes",
+    "kind": "analysis",
+    "url": "https://www.alphatestai.com/blog/161-digital-sat-scoring-decoded-2026-strategy-for-minimizing-point-loss",
+    "note": ""
+  },
+  {
+    "test": 1,
+    "section": "math",
+    "easy_ceiling": 540,
+    "hard_floor": 460,
+    "routing": "~14-15 of 22 M1 correct",
+    "kind": "analysis",
+    "url": "https://www.testdaily.cn/76855/",
+    "note": "2023-04-08"
+  },
+  {
+    "test": 1,
+    "section": "rw",
+    "easy_ceiling": "560 (example) / ~580 (summary)",
+    "hard_floor": null,
+    "routing": "~17-18 of 27 M1 correct",
+    "kind": "analysis",
+    "url": "https://www.testdaily.cn/76855/",
+    "note": "internally inconsistent"
+  },
+  {
+    "test": 1,
+    "section": "both",
+    "easy_ceiling": "up to 600",
+    "hard_floor": "as low as 450",
+    "routing": "~2/3 of M1 correct",
+    "kind": "analysis",
+    "url": "https://www.applerouth.com/blog/deep-dive-on-the-4-digital-sat-practice-tests",
+    "note": ""
+  },
+  {
+    "test": 1,
+    "section": "rw",
+    "easy_ceiling": 560,
+    "hard_floor": null,
+    "routing": "10 M1 misses still hard; ~11 misses -> easy",
+    "kind": "analysis (author trials)",
+    "url": "https://www.edisonos.com/digital-sat/scoring-algorithm",
+    "note": "hard route with 10 M2 misses = 660"
+  },
+  {
+    "test": 1,
+    "section": "math",
+    "easy_ceiling": 560,
+    "hard_floor": null,
+    "routing": "10 M1 misses -> hard, 11 -> easy",
+    "kind": "analysis (author trials)",
+    "url": "https://www.edisonos.com/digital-sat/scoring-algorithm",
+    "note": "conflicts with other PT1 sources (15/22)"
+  },
+  {
+    "test": "beta 2022",
+    "section": "math",
+    "easy_ceiling": "~650 (36/44)",
+    "hard_floor": 460,
+    "routing": "15/22 M1",
+    "kind": "analysis",
+    "url": "https://applerouth.com/blog/first-impressions-of-the-new-digital-sat",
+    "note": "RW routing 18/27 cited from Summit Education"
+  },
+  {
+    "test": 1,
+    "section": "rw",
+    "easy_ceiling": null,
+    "hard_floor": null,
+    "routing": ">=15/27 RW, >=11/22 Math",
+    "kind": "analysis",
+    "url": "http://bj.xdf.cn/vip/zd/134002.html",
+    "note": "2022; outlier thresholds"
+  },
+  {
+    "test": "adaptive sample tests (2022)",
+    "section": "rw",
+    "easy_ceiling": "hard to exceed 600",
+    "hard_floor": null,
+    "routing": ">=14 correct routed hard; anomaly 17->hard, 18->easy",
+    "kind": "analysis",
+    "url": "https://www.jingsailian.com/liuxue/236837.html",
+    "note": "2022-11-23"
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "620-630",
+    "hard_floor": "450 (hard range 450-800)",
+    "routing": null,
+    "kind": "analysis (estimate)",
+    "url": "https://www.applerouth.com/blog/the-complete-guide-to-the-digital-adaptive-sat",
+    "note": "2024-09-27"
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "~590",
+    "hard_floor": "~450",
+    "routing": "RW ~18/27, Math ~13/22",
+    "kind": "analysis (Piqosity, cited by LearnQ)",
+    "url": "https://blogs.learnq.ai/sat-score-ceiling/",
+    "note": ""
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "~590 (article); ~550 (staff comment)",
+    "hard_floor": "~450",
+    "routing": "RW ~70% (15-17), Math ~60% (12-14)",
+    "kind": "analysis ('hundreds of Bluebook practice tests', informal)",
+    "url": "https://www.piqosity.com/?p=12419",
+    "note": "staff comment: ~10 pts per correct answer, ~130-pt bonus for hard module"
+  },
+  {
+    "test": "general",
+    "section": "rw",
+    "easy_ceiling": "570-600",
+    "hard_floor": null,
+    "routing": "5-6 M1 errors can still reach hard",
+    "kind": "analysis (unnamed Bluebook results)",
+    "url": "https://www.panoedu.org/post/how-your-digital-sat-score-is-calculated",
+    "note": ""
+  },
+  {
+    "test": "general",
+    "section": "math",
+    "easy_ceiling": 580,
+    "hard_floor": null,
+    "routing": "~15/22",
+    "kind": "calculator (method unstated)",
+    "url": "https://satprepin.com/digital-sat-score-calculator-new-and-insanely-powerful/",
+    "note": ""
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "RW ~650, Math ~670 (model)",
+    "hard_floor": null,
+    "routing": null,
+    "kind": "calculator model",
+    "url": "https://prepgenix.com/blog/bluebook-scores-vs-real-sat/",
+    "note": ""
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "high 500s-low 600s",
+    "hard_floor": "~high 500s lower end of hard range",
+    "routing": "~70-75% M1",
+    "kind": "analysis (coaching observation)",
+    "url": "https://www.ivystrides.com/blog/digital-sat-module-1-score-ceiling/",
+    "note": ""
+  },
+  {
+    "test": "general",
+    "section": "both",
+    "easy_ceiling": "600-650",
+    "hard_floor": null,
+    "routing": "RW ~17/27, Math ~14/22 (community-derived)",
+    "kind": "calculator",
+    "url": "https://prepdrills.com/digital-sat-score-calculator/",
+    "note": ""
+  }
+]
