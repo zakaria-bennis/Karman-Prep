@@ -137,7 +137,15 @@ export async function loadHomework(
 /** A workshop from the calendar, as the Library shows it: its side, its day, and whether it covers a
  *  skill the student is still working on. */
 export function workshopOf(
-  e: { id: string; title: string; start: string; saved: boolean },
+  e: {
+    id: string;
+    kind: "workshop" | "office_hours";
+    title: string;
+    start: string;
+    end: string;
+    saved: boolean;
+    joinUrl: string | null;
+  },
   working: readonly string[],
   timeZone: string
 ): RealWorkshop {
@@ -160,6 +168,11 @@ export function workshopOf(
     time: part({ hour: "numeric", minute: "2-digit" }),
     fits: working.some((n) => words.includes(n.toLowerCase())),
     saved: e.saved,
+    kind: e.kind,
+    start: e.start,
+    end: e.end,
+    // only a secure link is ever offered to join
+    joinUrl: e.joinUrl && e.joinUrl.startsWith("https://") ? e.joinUrl : null,
   };
 }
 
@@ -172,4 +185,10 @@ export type RealWorkshop = {
   time: string;
   fits: boolean;
   saved: boolean;
+  /** Office hours are open to every paid plan, with no spot to save. */
+  kind: "workshop" | "office_hours";
+  start: string;
+  end: string;
+  /** Opens to join from half an hour before until it ends (joinOpen). */
+  joinUrl: string | null;
 };

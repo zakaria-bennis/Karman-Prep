@@ -117,7 +117,12 @@ function Shell() {
   const [page, setPage] = useState<Page>(() => {
     // Settings is the Account page (older links say ?page=settings)
     const asked = (q.get("page") === "settings" ? "account" : q.get("page")) as Page | null;
-    const has: readonly Page[] = [...PLANS[plan].rail, "account"];
+    // a Practice-menu student's teacher or tutor homework opens from its link (?page=homework)
+    const has: readonly Page[] = [
+      ...PLANS[plan].rail,
+      "account",
+      ...(real?.homework ? (["homework"] as const) : []),
+    ];
     return asked && has.includes(asked) ? asked : PLANS[plan].home;
   });
   const [skill, setSkill] = useState<OpenSkill | null>(null);
@@ -582,7 +587,7 @@ function Shell() {
                   rail={rail}
                   section={section}
                   taught={plan !== "practice"}
-                  pro={plan === "practice" && !free}
+                  pro={real ? real.planId === "pro" : plan === "practice" && !free}
                   onDomain={(name) => {
                     dir.current = 1;
                     setDomain(name);

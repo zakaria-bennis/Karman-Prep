@@ -290,6 +290,8 @@ async function openTimes(eventTypeId: number, lengths: readonly Length[]) {
 
 /** Whether the student has a tutor the page can name. */
 export const hasTutor = () => state.tutorName !== null;
+/** The tutor has bound a booking calendar, so open times can be asked for. */
+export const isLive = () => state.live !== null;
 /** The tutor's first name, as the page says it mid-sentence ("your tutor" with no tutor yet). */
 export const tutorFirst = () => state.tutorName?.split(" ")[0] ?? "your tutor";
 /** The SAT on the calendar: the student's own date (none if they have not entered one), or the

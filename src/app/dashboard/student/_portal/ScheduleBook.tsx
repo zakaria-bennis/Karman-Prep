@@ -40,7 +40,7 @@ import {
   type Length,
   type Session,
 } from "./scheduleData";
-import { hasTutor, satDayOf, schedule, tutorFirst } from "./scheduleStore";
+import { hasTutor, isLive, isReal, satDayOf, schedule, tutorFirst } from "./scheduleStore";
 import { LEVELS } from "./skills72";
 import { chosen, tick } from "./sound";
 import page from "./schedule.module.css";
@@ -232,13 +232,17 @@ export default function Book({
           <div className={styles.none}>
             <b>Nothing open</b>
             <p>
-              {hasTutor()
-                ? `${tutorFirst()} has no open times in the next four weeks.`
-                : "Your tutor has no open times yet."}
+              {!hasTutor()
+                ? "We're matching you with a tutor. Booking opens here once you're paired."
+                : isReal() && !isLive()
+                  ? `${tutorFirst()} is setting up their calendar.`
+                  : `${tutorFirst()} has no open times in the next four weeks.`}
             </p>
-            <button type="button" className={page.go} onClick={onChat}>
-              {hasTutor() ? `Message ${tutorFirst()}` : "Open chat"}
-            </button>
+            {hasTutor() && (
+              <button type="button" className={page.go} onClick={onChat}>
+                Message {tutorFirst()}
+              </button>
+            )}
           </div>
         )
       ) : (
