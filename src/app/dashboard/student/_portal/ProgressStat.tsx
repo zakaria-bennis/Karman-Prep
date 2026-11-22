@@ -23,6 +23,7 @@ import page from "./progressDetails.module.css";
 import { Graph, Spans, niceMarks, spanFor, type SpanKey } from "./ProgressGraph";
 import { STATS, ledger, minSec, wayOf, type StatKey } from "./progressStats";
 import { tick } from "./sound";
+import { usePortalData } from "./portalData";
 
 export default function ProgressStat({
   rail,
@@ -41,6 +42,7 @@ export default function ProgressStat({
   onSkill: (found: Found) => void;
 }) {
   const still = useReducedMotion() ?? false;
+  const signedIn = usePortalData() !== null;
   const book = useMemo(() => ledger(student, logs), [student, logs]);
   const [wanted, setWanted] = useState<SpanKey | null>(null);
   const [at, setAt] = useState<number | null>(null);
@@ -51,7 +53,8 @@ export default function ProgressStat({
   const pacing = key === "pace";
   const stat = STATS[key === "questions" && rate ? "accuracy" : key];
   const span = spanFor(wanted, student.days, stat.allTime);
-  const from = span.days === Infinity ? 0 : student.days - span.days;
+  // on a student's first day there are fewer days behind them than the span: never start before 0
+  const from = span.days === Infinity ? 0 : Math.max(0, student.days - span.days);
   const series = useMemo(
     () =>
       pacing ? paceOf(book.pace, part) : key === "questions" && rate ? book.accuracy : book[key],
@@ -68,7 +71,7 @@ export default function ProgressStat({
   const over = goal === null ? 0 : series[day] - goal;
   // a count of exams over time says nothing, so that page is its list alone, across the whole page
   const lone = key === "exams";
-  const pages = ["Trend", ...panesOf(key, student)];
+  const pages = ["Trend", ...panesOf(key, student, signedIn)];
   const swap = (go: () => void) => {
     go();
     setAt(null);

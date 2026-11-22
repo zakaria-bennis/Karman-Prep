@@ -1,0 +1,120 @@
+/* Free's paywall inside a quiz (FreeLimitPrompt.tsx): no box of its own, it lies on the quiz's
+   glass. The page's green carries the buttons; Pro leads with a filled one. */
+.wall {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: inherit;
+}
+
+.wall h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.say {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.82;
+}
+
+.term {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: min(100%, 260px);
+  padding: 4px;
+  border-radius: 14px;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.wall .term button {
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wall .term button[aria-checked="true"] {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.plans {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plans li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 12px 16px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.plans li[data-lead] {
+  background: color-mix(in srgb, #2fb383 16%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #2fb383 60%, transparent);
+}
+
+.plans span {
+  display: grid;
+  gap: 2px;
+}
+
+.plans b {
+  font-size: 17px;
+}
+
+.plans small {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.buy {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 2px #2fb383;
+}
+
+.buy[data-lead] {
+  color: #0d241c;
+  background: #8fe6c3;
+  box-shadow: none;
+}
+
+.buy:focus-visible,
+.back:focus-visible,
+.wall .term button:focus-visible {
+  outline: 3px solid #45b48a;
+  outline-offset: 3px;
+}
+
+.back {
+  justify-self: start;
+  padding: 8px 0;
+  color: inherit;
+  font-weight: 600;
+  opacity: 0.8;
+}

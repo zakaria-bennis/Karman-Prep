@@ -257,13 +257,16 @@ export default function Homework({
     .filter((w) => w.state !== "done")
     .reduce((n, w) => n + (w.sort === "cards" ? 4 : parseInt(w.much, 10) * 1.3), 0);
   const lines =
-    left === 0
-      ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
-      : [
-          `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
-          `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
-          ...(day.class ? [`Class at ${day.class}`] : []),
-        ];
+    all === 0
+      ? // nothing was ever set for this day: say so, without praise for work that never existed
+        ["Nothing assigned yet", "Your tutor's work shows up here"]
+      : left === 0
+        ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
+        : [
+            `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
+            `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
+            ...(day.class ? [`Class at ${day.class}`] : []),
+          ];
   const R = 74;
   const round = 2 * Math.PI * R;
 
@@ -307,7 +310,7 @@ export default function Homework({
                 r={R}
                 className={styles.fill}
                 strokeDasharray={round}
-                strokeDashoffset={round * (1 - (all ? done / all : 1))}
+                strokeDashoffset={round * (1 - (all ? done / all : 0))}
                 transform="rotate(-90 84 84)"
               />
             </svg>
