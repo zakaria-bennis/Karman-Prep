@@ -48,6 +48,7 @@ import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
 import Settings from "./Settings";
 import { TEXT_SIZES, frostOf, setSetting, useSettings } from "./settingsStore";
+import { startsDark } from "@/lib/portal/prefs";
 import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
@@ -87,7 +88,12 @@ function Shell() {
   const [plan, setPlan] = useState<Plan>(
     planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
   );
-  const [dark, setDark] = useState(q.get("night") !== "0");
+  const [dark, setDark] = useState(() => startsDark(q.get("night"), real?.prefs));
+  /* light or dark is kept with a signed-in student's account, like every other choice */
+  const chooseDark = (next: boolean) => (
+    setDark(next),
+    setSetting("theme", next ? "dark" : "light")
+  );
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
@@ -453,7 +459,7 @@ function Shell() {
         open={menu && rail}
         still={still}
         dark={dark}
-        onDark={setDark}
+        onDark={chooseDark}
         onSettings={() => (go("account"), setMenu(false))}
         onClose={() => setMenu(false)}
       />
@@ -620,7 +626,7 @@ function Shell() {
             folder={q.get("folder")}
             plan={plan}
             dark={dark}
-            onDark={setDark}
+            onDark={chooseDark}
             onGo={go}
             onTrail={setTrail}
           />

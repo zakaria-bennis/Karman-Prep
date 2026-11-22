@@ -2,11 +2,20 @@
 import { useEffect } from "react";
 import { chat, presenceNow, useChat, waiting } from "./chatStore";
 import type { Plan } from "./plans";
+import { useSettings } from "./settingsStore";
 import styles from "./shell.module.css";
 
-/** The profile picture until a student sets one of their own: Karman's plain one, a soft violet sky
- *  and a figure, its head at the circle's middle. */
+/** The student's picture: their own once they set one (Settings, Profile), drawn inside the same
+ *  square so every circle that holds it stays as it is. Until then, Karman's plain one: a soft violet
+ *  sky and a figure, its head at the circle's middle (never the fox). */
 export function Me() {
+  const { photo } = useSettings();
+  if (photo)
+    return (
+      <svg viewBox="0 0 34 34" width="34" height="34">
+        <image href={photo} width="34" height="34" preserveAspectRatio="xMidYMid slice" />
+      </svg>
+    );
   return (
     <svg viewBox="0 0 34 34" width="34" height="34">
       <defs>

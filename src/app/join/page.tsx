@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-import JoinPage from "@/components/tutor-affiliate/JoinPage";
+// /join: a student adds their tutor's code in Settings (Parent, tutor and class).
+import { toSettings } from "@/lib/portal/settings-redirects";
 
-export const metadata: Metadata = { title: "Tutor code" };
 export const dynamic = "force-dynamic";
 
-export default function Page() {
-  return <JoinPage code="" />;
+export default async function Page() {
+  return toSettings("people", {}, "/join");
 }
