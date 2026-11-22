@@ -124,7 +124,8 @@
   align-items: center;
   gap: 12px;
 }
-.quiet {
+.pane .quiet,
+.sheet .quiet {
   min-height: 52px;
   padding: 0 20px;
   border-radius: 26px;
@@ -404,7 +405,7 @@
   font-size: 14px;
   color: var(--soft);
 }
-.test button {
+.pane .test button {
   min-height: 40px;
   padding: 0 14px;
   border-radius: 20px;
