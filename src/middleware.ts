@@ -24,6 +24,7 @@ import {
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { KARMAN_AUTH_ROUTES } from "@/lib/auth/routes";
 import { SITE_PAGES } from "@/components/site/routes";
+import { siteLock } from "@/lib/site-lock/lock";
 
 /** Dev-only auth bypass. When NODE_ENV !== "production" and
  *  DEV_IMPERSONATE_CLERK_ID is set, the entire Clerk gate is
@@ -183,11 +184,22 @@ function launchedMiddleware(request: NextRequest, event: NextFetchEvent) {
 
 // Pick at module load — bypass branch skips Clerk's per-request
 // publishable-key check entirely. Cannot fire in production.
-export default DEV_AUTH_BYPASS_ACTIVE
+const innerMiddleware = DEV_AUTH_BYPASS_ACTIVE
   ? bypassMiddleware
   : LAUNCHED
     ? launchedMiddleware
     : realMiddleware;
+
+/** The site-wide password lock runs first, on every request (src/lib/site-lock/lock.ts). It is off when
+ *  the Worker has no SITE_PASSWORD secret. www still goes to karmanprep.com first, so the lock's cookie is
+ *  set on the one address the site uses. */
+export default async function middleware(request: NextRequest, event: NextFetchEvent) {
+  if (request.headers.get("host") !== "www.karmanprep.com") {
+    const locked = await siteLock(request, process.env.SITE_PASSWORD);
+    if (locked) return locked;
+  }
+  return innerMiddleware(request, event);
+}
 
 export const config = {
   matcher: [
