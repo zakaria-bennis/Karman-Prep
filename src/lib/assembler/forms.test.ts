@@ -5,7 +5,6 @@ import {
   SECTION_SHAPE,
   assembleDiagnostic,
   assembleDomainQuiz,
-  assembleFullLengthForms,
   assembleTrialModule,
   routeHarder,
   type BankItem,
@@ -38,71 +37,8 @@ function syntheticPool(): BankItem[] {
 }
 
 const families = (items: BankItem[]) => items.map((i) => i.family);
-const allItems = (form: ReturnType<typeof assembleFullLengthForms>[number]) =>
-  form.sections.flatMap((s) => [...s.module1, ...s.easier, ...s.harder]);
 
-describe("full-length forms", () => {
-  const pool = syntheticPool();
-  const forms = assembleFullLengthForms(pool, { upTo: 4, maxDifficulty: 7 });
-
-  it("has the SAT shape: 27 + 27 Reading and Writing, 22 + 22 Math", () => {
-    for (const form of forms) {
-      for (const section of form.sections) {
-        const size = SECTION_SHAPE[section.section].perModule;
-        expect(section.module1).toHaveLength(size);
-        expect(section.easier).toHaveLength(size);
-        expect(section.harder).toHaveLength(size);
-      }
-    }
-    expect(SECTION_SHAPE.reading.minutes).toBe(32);
-    expect(SECTION_SHAPE.math.minutes).toBe(35);
-  });
-
-  it("never repeats a family within a form or across the four forms", () => {
-    const seen = forms.flatMap((form) => families(allItems(form)));
-    expect(new Set(seen).size).toBe(seen.length);
-  });
-
-  it("follows each Domain's count and spreads its skills", () => {
-    const module1 = forms[0].sections.find((s) => s.section === "math")!.module1;
-    for (const { domainId, count } of MODULE_BLUEPRINT.math) {
-      const inDomain = module1.filter((i) => i.domainId === domainId);
-      expect(inDomain).toHaveLength(count);
-      const perSkill = new Map<string, number>();
-      for (const i of inDomain) perSkill.set(i.skillId, (perSkill.get(i.skillId) ?? 0) + 1);
-      expect(Math.max(...perSkill.values()) - Math.min(...perSkill.values())).toBeLessThanOrEqual(
-        1
-      );
-    }
-  });
-
-  it("makes Module 2 easier or harder by difficulty band", () => {
-    const rw = forms[0].sections[0];
-    const mean = (items: BankItem[]) => items.reduce((n, i) => n + i.difficulty, 0) / items.length;
-    expect(Math.max(...rw.easier.map((i) => i.difficulty))).toBeLessThanOrEqual(3);
-    expect(Math.min(...rw.harder.map((i) => i.difficulty))).toBeGreaterThanOrEqual(5);
-    expect(mean(rw.easier)).toBeLessThan(mean(rw.module1));
-    expect(mean(rw.harder)).toBeGreaterThan(mean(rw.module1));
-  });
-
-  it("keeps a core plan inside difficulty 1 to 5", () => {
-    const core = assembleFullLengthForms(pool, { upTo: 1, maxDifficulty: 5 });
-    expect(Math.max(...allItems(core[0]).map((i) => i.difficulty))).toBeLessThanOrEqual(5);
-    expect(Math.min(...core[0].sections[1].harder.map((i) => i.difficulty))).toBeGreaterThanOrEqual(
-      4
-    );
-  });
-
-  it("is deterministic and skips families the student already met", () => {
-    const again = assembleFullLengthForms(pool, { upTo: 4, maxDifficulty: 7 });
-    expect(again.map((f) => allItems(f).map((i) => i.id))).toEqual(
-      forms.map((f) => allItems(f).map((i) => i.id))
-    );
-    const taken = new Set(families(allItems(forms[0])));
-    const next = assembleFullLengthForms(pool, { upTo: 1, maxDifficulty: 7, exclude: taken });
-    expect(families(allItems(next[0])).some((f) => taken.has(f))).toBe(false);
-  });
-
+describe("Module 2 routing (time trials and earlier runs)", () => {
   it("routes by Module 1 right answers", () => {
     expect(routeHarder("reading", 14)).toBe(false);
     expect(routeHarder("reading", 15)).toBe(true);
@@ -229,16 +165,6 @@ describe.skipIf(!existsSync(BANK))("coverage against the live bank export", () =
     difficulty: r.difficulty,
     family: r.family,
   }));
-
-  it.each([5, 7])("fills four full-length forms at max difficulty %i", (maxDifficulty) => {
-    const forms = assembleFullLengthForms(pool, { upTo: 4, maxDifficulty });
-    const seen = forms.flatMap((f) => families(allItems(f)));
-    expect(new Set(seen).size).toBe(seen.length);
-    for (const form of forms)
-      for (const section of form.sections)
-        for (const part of [section.module1, section.easier, section.harder])
-          expect(part).toHaveLength(SECTION_SHAPE[section.section].perModule);
-  });
 
   it("fills a Domain quiz for every Domain on the core pool", () => {
     for (const section of ["reading", "math"] as const)
