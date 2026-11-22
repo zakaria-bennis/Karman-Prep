@@ -6,11 +6,8 @@
  */
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { loadCalendar } from "@/components/student-portal/calendar/load";
-import { challengeAnsweredCount } from "@/lib/daily-ten/challenge";
-import { utcDayKey } from "@/lib/daily-challenge/selection";
+import type { CalendarData } from "@/components/student-portal/calendar/load";
 import type { StudentContext } from "@/lib/student/context";
-import { doneToday } from "@/lib/student/daily-ten";
 import { loadStudentHomework, type StudentHomeworkItem } from "@/lib/student/homework";
 import { dayKey } from "@/lib/student/streak";
 import { SKILLS } from "@/app/dev/shell/skills72";
@@ -86,19 +83,18 @@ const timeFormat = new Intl.DateTimeFormat("en-US", {
 export async function loadHomework(
   db: SupabaseClient,
   ctx: StudentContext,
-  dailyDays: readonly string[],
+  calendar: CalendarData | null,
+  done: { dailyDone: boolean; challengeDone: boolean },
   studentDays: number,
   nowMs: number
 ): Promise<RealHomework> {
   const today = dayKey(nowMs);
-  const [homework, calendar, challenge, cohort] = await Promise.all([
+  const [homework, cohort] = await Promise.all([
     ctx.hasTutor
       ? loadStudentHomework({ userId: ctx.userId, clerkId: ctx.clerkId }, { nowMs }).catch(
           () => null
         )
       : null,
-    ctx.showCalendar ? loadCalendar(ctx, nowMs).catch(() => null) : null,
-    challengeAnsweredCount(ctx.clerkId, utcDayKey(new Date(nowMs))).catch(() => 0),
     db
       .from("cohort_members")
       .select("cohorts(sat_date)")
@@ -132,9 +128,48 @@ export async function loadHomework(
   return {
     work,
     classes,
-    dailyDone: doneToday(dailyDays as string[], nowMs),
-    challengeDone: challenge >= 2,
+    ...done,
     weekNow,
     weeks: cohort ? COHORT_WEEKS : null,
   };
 }
+
+/** A workshop from the calendar, as the Library shows it: its side, its day, and whether it covers a
+ *  skill the student is still working on. */
+export function workshopOf(
+  e: { id: string; title: string; start: string; saved: boolean },
+  working: readonly string[],
+  timeZone: string
+): RealWorkshop {
+  const at = new Date(e.start);
+  const part = (o: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat("en-US", { ...o, timeZone }).format(at);
+  const kind = kindOf({ title: e.title, href: null });
+  const words = e.title.toLowerCase();
+  return {
+    id: e.id,
+    sections:
+      kind === "math"
+        ? ["Math"]
+        : kind === "rw"
+          ? ["Reading and Writing"]
+          : ["Reading and Writing", "Math"],
+    topic: e.title,
+    day: part({ weekday: "short" }),
+    date: Number(part({ day: "numeric" })),
+    time: part({ hour: "numeric", minute: "2-digit" }),
+    fits: working.some((n) => words.includes(n.toLowerCase())),
+    saved: e.saved,
+  };
+}
+
+export type RealWorkshop = {
+  id: string;
+  sections: ("Reading and Writing" | "Math")[];
+  topic: string;
+  day: string;
+  date: number;
+  time: string;
+  fits: boolean;
+  saved: boolean;
+};

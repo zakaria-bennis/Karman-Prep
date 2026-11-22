@@ -7,7 +7,7 @@
  */
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { loadCalendar } from "@/components/student-portal/calendar/load";
+import type { CalendarData } from "@/components/student-portal/calendar/load";
 import type { StudentContext } from "@/lib/student/context";
 import type { Account, Length, Pack, Session } from "@/app/dev/shell/scheduleData";
 import { PRIVATE_PACKAGES } from "@/lib/marketing/offer";
@@ -63,12 +63,13 @@ export function sessionOf(b: BookingRow, nowMs: number): Session {
 export async function loadSchedule(
   db: SupabaseClient,
   ctx: StudentContext,
+  calendar: CalendarData | null,
   nowMs: number
 ): Promise<RealSchedule | null> {
   const pack: Pack | null =
     ctx.plan.id === "private-10" || ctx.plan.id === "private-20" ? ctx.plan.id : null;
   if (!pack) return null;
-  const [bookings, purchases, calendar] = await Promise.all([
+  const [bookings, purchases] = await Promise.all([
     db
       .from("bookings")
       .select(
@@ -88,7 +89,6 @@ export async function loadSchedule(
         (r) => (r.data ?? []) as { hours: number; created_at: string }[],
         () => []
       ),
-    loadCalendar(ctx, nowMs).catch(() => null),
   ]);
   const packHours = PRIVATE_PACKAGES.find((p) => p.id === pack)?.hours ?? 0;
   const sessions = bookings.map((b) => sessionOf(b, nowMs));

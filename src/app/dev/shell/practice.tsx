@@ -14,6 +14,8 @@
 // Everything is a stand-in: nothing starts yet, and the streak is a made-up number.
 import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { usePortalData, useStreak } from "./portalData";
+import { CHALLENGE, DAILY_10, TIME_TRIAL, fullLengthTest } from "@/lib/student/quiz-routes";
 import styles from "./practice.module.css";
 import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
@@ -449,13 +451,20 @@ const TASKS = [
     icon: "challenge",
     name: "Challenge question",
     what: "One hard question.",
-    streak: "3 day streak",
+    streak: true,
   },
 ] as const;
 
 /** Today's two tasks. Each shows Start until it is done; then it rests, ticked. */
 export function Today() {
-  const [done, setDone] = useState<Record<string, boolean>>({});
+  /* a signed-in student's own day: what is already done, and Start opens the real quiz */
+  const real = usePortalData();
+  const streak = useStreak();
+  const [done, setDone] = useState<Record<string, boolean>>(() =>
+    real
+      ? { daily: real.today.dailyDone, challenge: real.today.challengeDone }
+      : ({} as Record<string, boolean>)
+  );
   return (
     <section className={`${styles.glass} ${styles.today}`} aria-label="Today">
       <h2>Today</h2>
@@ -475,14 +484,18 @@ export function Today() {
               {task.streak && (
                 <span className={styles.streak}>
                   <Icon name="flame" size={18} />
-                  {task.streak}
+                  {streak} day streak
                 </span>
               )}
             </span>
             {!done[task.key] && (
               <GoButton
                 label={`Start ${task.name}`}
-                onDone={() => setDone((d) => ({ ...d, [task.key]: true }))}
+                onDone={() =>
+                  real
+                    ? window.location.assign(task.key === "daily" ? DAILY_10.path : CHALLENGE.path)
+                    : setDone((d) => ({ ...d, [task.key]: true }))
+                }
               >
                 Start
               </GoButton>
@@ -512,6 +525,7 @@ export function Modes({
   /** The section these are for: its Endless mode runs the whole section. */
   section?: string;
 }) {
+  const real = usePortalData();
   return (
     <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
       <header className={styles.modesHead}>
@@ -528,7 +542,18 @@ export function Modes({
               onClick={() => {
                 tick();
                 if (mode.icon === "endless" && section)
-                  openEndless({ kind: "section", name: section });
+                  return openEndless({ kind: "section", name: section });
+                // a signed-in student goes to the live quiz pages that exist
+                if (!real) return;
+                if (mode.icon === "trial") {
+                  const trial = new URL(TIME_TRIAL.path, window.location.origin);
+                  trial.searchParams.set("section", section === "Math" ? "math" : "reading");
+                  window.location.assign(trial.href);
+                }
+                if (mode.icon === "exam") {
+                  const taken = real.student.exams.length;
+                  window.location.assign(fullLengthTest((taken % 4) + 1).path);
+                }
               }}
             >
               <Tile name={mode.icon} />

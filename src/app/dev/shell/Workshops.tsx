@@ -9,12 +9,15 @@
 //                      button to sign up.
 //   UpcomingWorkshops  for Pro students: a button at the top right of "More ways to practice" that
 //                      opens the workshops coming up, each with its own sign-up.
-// The workshops themselves are stand-ins until real ones are scheduled.
+// A signed-in student sees the workshops on the calendar (live_events) and signs up through the
+// calendar's own action; the design page shows stand-ins.
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import type { Section } from "./skills72";
 import { chosen, tick } from "./sound";
 import styles from "./workshops.module.css";
+import { usePortalData } from "./portalData";
+import { actionSetEventSpot } from "@/components/student-portal/calendar/actions";
 
 type Workshop = {
   id: string;
@@ -25,6 +28,9 @@ type Workshop = {
   time: string;
   /** It covers a skill this student is still working on. */
   fits: boolean;
+  /** A real workshop: whether a spot is saved, and the sign-up goes to the calendar. */
+  saved?: boolean;
+  real?: boolean;
 };
 const WORKSHOPS: Workshop[] = [
   {
@@ -66,7 +72,7 @@ const WORKSHOPS: Workshop[] = [
 ];
 
 function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
-  const [inIt, setIn] = useState(false);
+  const [inIt, setIn] = useState(workshop.saved ?? false);
   return (
     <div className={styles.row} data-big={big || undefined} data-in={inIt || undefined}>
       {/* the day, as a page from a calendar */}
@@ -89,6 +95,12 @@ function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
           setIn(!inIt);
           if (inIt) tick();
           else chosen();
+          if (workshop.real)
+            void actionSetEventSpot({ eventId: workshop.id, save: !inIt }).then((r) => {
+              if (r.ok) return setIn(r.saved);
+              setIn(inIt);
+              window.alert(r.message);
+            });
         }}
       >
         {inIt ? (
@@ -113,8 +125,17 @@ function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
   );
 }
 
+/** The workshops shown: the real ones for a signed-in student, otherwise the stand-ins. */
+function useWorkshops(): Workshop[] {
+  const real = usePortalData();
+  if (!real) return WORKSHOPS;
+  return real.workshops.flatMap((w) =>
+    w.sections.map((section) => ({ ...w, id: w.id, section, real: true }))
+  );
+}
+
 export function WorkshopBanner({ section }: { section: Section }) {
-  const next = WORKSHOPS.find((w) => w.section === section);
+  const next = useWorkshops().find((w) => w.section === section);
   return (
     <section className={styles.banner} aria-label="Workshop">
       <span className={styles.lights} aria-hidden="true" />
@@ -125,6 +146,7 @@ export function WorkshopBanner({ section }: { section: Section }) {
 }
 
 export function UpcomingWorkshops() {
+  const all = useWorkshops();
   const still = useReducedMotion() ?? false;
   const [open, setOpen] = useState(false);
   return (
@@ -159,7 +181,7 @@ export function UpcomingWorkshops() {
             exit={still ? undefined : { height: 0, opacity: 0 }}
             transition={still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38 }}
           >
-            {WORKSHOPS.map((w) => (
+            {all.map((w) => (
               <li key={w.id}>
                 <Row workshop={w} />
               </li>

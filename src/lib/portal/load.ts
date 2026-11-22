@@ -6,7 +6,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SkillLevel } from "@/components/portal/skill-levels";
 import type { StudentContext } from "@/lib/student/context";
-import { dailyTenDays } from "@/lib/student/daily-ten";
+import { loadCalendar } from "@/components/student-portal/calendar/load";
+import { challengeAnsweredCount } from "@/lib/daily-ten/challenge";
+import { utcDayKey } from "@/lib/daily-challenge/selection";
+import { dailyTenDays, doneToday } from "@/lib/student/daily-ten";
 import { predictedFromRange } from "@/lib/student/progress";
 import {
   levelsBySubSkill,
@@ -22,7 +25,7 @@ import { SECTIONS, SKILLS } from "@/app/dev/shell/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
 import { dayKey, streaks } from "@/lib/student/streak";
-import { loadHomework } from "./homework";
+import { loadHomework, workshopOf } from "./homework";
 import { loadSittings } from "./mistakes";
 import { loadRewards } from "./rewards";
 import { loadSchedule } from "./schedule";
@@ -143,16 +146,37 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const today = dayKey(nowMs);
   const plan = portalPlanOf(ctx.plan.id);
   const run = streaks([...new Set(challenges.map((c) => c.day))].sort(), today);
+  const [calendar, challengeToday, names] = await Promise.all([
+    ctx.showCalendar ? loadCalendar(ctx, nowMs).catch(() => null) : null,
+    challengeAnsweredCount(ctx.clerkId, utcDayKey(new Date(nowMs))).catch(() => 0),
+    db
+      .from("users")
+      .select("first_name, last_name")
+      .eq("id", ctx.userId)
+      .maybeSingle()
+      .then(
+        (r) => r.data as { first_name: string | null; last_name: string | null } | null,
+        () => null
+      ),
+  ]);
+  const done = { dailyDone: doneToday(daily, nowMs), challengeDone: challengeToday >= 2 };
   const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
-    plan === "practice" ? null : loadHomework(db, ctx, daily, student.days, nowMs),
-    plan === "private" ? loadSchedule(db, ctx, nowMs) : null,
+    plan === "practice" ? null : loadHomework(db, ctx, calendar, done, student.days, nowMs),
+    plan === "private" ? loadSchedule(db, ctx, calendar, nowMs) : null,
     loadRewards(db, ctx.clerkId, nowMs),
   ]);
+  const working = NAMES.filter((n) => skills[n].level === 1 || skills[n].level === 2);
+  const workshops = (calendar?.events ?? [])
+    .filter((e) => e.kind === "workshop")
+    .map((e) => workshopOf(e, working, calendar?.timeZone ?? "America/Chicago"));
 
   return {
     plan,
     firstName: ctx.firstName,
+    name: [names?.first_name, names?.last_name].filter(Boolean).join(" ") || ctx.firstName || "",
+    today: done,
+    workshops,
     skills,
     student: { ...student, sittings },
     homework,

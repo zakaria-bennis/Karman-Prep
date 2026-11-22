@@ -185,3 +185,11 @@ for (const [name, subs] of Object.entries(BRIDGE))
 /** Which of the 72 a question in this sub-skill belongs to, or null for one not in the bridge. */
 export const skillOfSubSkill = (subSkillId: string): string | null =>
   FIRST_READER.get(subSkillId) ?? null;
+
+/** The catalog skill a skill set for one of the 72 is drawn from: its first sub-skill's. */
+export function catalogSkillOf(name: string): string | null {
+  const first = BRIDGE[name]?.[0];
+  if (!first) return null;
+  // a sub-skill id is its catalog skill's id, or that id and "--" and a key
+  return first.split("--")[0];
+}

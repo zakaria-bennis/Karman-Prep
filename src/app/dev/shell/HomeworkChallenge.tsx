@@ -12,7 +12,8 @@ import { PlayQuiz, type Made } from "../end-options/PlayQuiz";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";
 import styles from "./homeworkChallenge.module.css";
-import { useStreak } from "./portalData";
+import { usePortalData, useStreak } from "./portalData";
+import { CHALLENGE } from "@/lib/student/quiz-routes";
 import { chosen, tick } from "./sound";
 
 /** A hexagon with a question mark that tips from side to side: the challenge question's own mark
@@ -59,6 +60,8 @@ export function ChallengeBanner({
   now?: boolean;
 }) {
   const streak = useStreak();
+  /* a signed-in student answers the real two questions on the live quiz page */
+  const real = usePortalData() !== null;
   const ref = useRef<HTMLDivElement>(null);
   const quiz = useRef<HTMLDivElement>(null);
   /** Taken on: the card fills the screen, Karman speeds off to the right, and the quiz comes in from
@@ -129,8 +132,10 @@ export function ChallengeBanner({
     };
   }, [going]);
   useEffect(() => {
-    if (now) setGoing(true);
-  }, [now]);
+    if (!now) return;
+    if (real) window.location.assign(CHALLENGE.path);
+    else setGoing(true);
+  }, [now, real]);
   // it arrives: the dark comes up, the card springs in, and its pieces follow one after another
   useEffect(() => {
     const el = ref.current;
@@ -198,6 +203,7 @@ export function ChallengeBanner({
             autoFocus
             onClick={() => {
               chosen();
+              if (real) return window.location.assign(CHALLENGE.path);
               setGoing(true);
             }}
           >
@@ -291,10 +297,11 @@ export function firstToday(again = false) {
  *  2026-11-20: every plan gets it). The banner comes up once a day as on Homework; sent away with
  *  Later, the small card waits in the corner until it is started. */
 export function LibraryChallenge({ intro }: { intro: number }) {
-  const [state, setState] = useState<"banner" | "go" | "later" | "done">("later");
+  const done = usePortalData()?.today.challengeDone ?? false;
+  const [state, setState] = useState<"banner" | "go" | "later" | "done">(done ? "done" : "later");
   useEffect(() => {
-    if (firstToday(intro > 0)) setState("banner");
-  }, [intro]);
+    if (firstToday(intro > 0) && !done) setState("banner");
+  }, [intro, done]);
   if (state === "done") return null;
   if (state === "banner" || state === "go")
     return (

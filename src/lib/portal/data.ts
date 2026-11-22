@@ -8,7 +8,7 @@
  */
 import type { SkillFacts } from "@/app/dev/shell/skills72";
 import type { Student } from "@/app/dev/shell/progressData";
-import type { RealHomework } from "./homework";
+import type { RealHomework, RealWorkshop } from "./homework";
 import type { RealRewards } from "./rewards";
 import type { RealSchedule } from "./schedule";
 
@@ -18,6 +18,12 @@ export type PortalPlan = "practice" | "cohort" | "private";
 export interface PortalData {
   plan: PortalPlan;
   firstName: string | null;
+  /** First and last name, as the menu shows it. */
+  name: string;
+  /** Whether today's Daily 10 and challenge are done. */
+  today: { dailyDone: boolean; challengeDone: boolean };
+  /** Workshops coming up, for the Library. */
+  workshops: RealWorkshop[];
   /** Each of the 72 skills: the student's level (0 to 3) and the questions behind it. */
   skills: SkillFacts;
   /** Progress and the Mistake Log: exams, the test date and a log of every day. */

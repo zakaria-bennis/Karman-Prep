@@ -26,6 +26,9 @@ import lib from "./library.module.css";
 import { Icon, Tile } from "./practice";
 import practice from "./practice.module.css";
 import { SkillLesson } from "./SkillLesson";
+import { usePortalData } from "./portalData";
+import { catalogSkillOf } from "@/lib/portal/skill-bridge";
+import { practiceSet } from "@/lib/student/quiz-routes";
 import styles from "./skill.module.css";
 
 const LEVELS = ["Not started", "Learning", "Understanding", "Proficient"] as const;
@@ -40,7 +43,8 @@ export interface OpenSkill {
   questions?: number;
 }
 
-/** Stand-ins until the student's data is read: the last set, the coins, the due date. */
+/** The design page's stand-ins: the last set, the coins, the due date. A signed-in student's own
+ *  come from `useSkillFacts`; "Up to 120" coins is what a set can earn. */
 const LAST = [1, 1, 0, 1, 1, 1, 0, 1];
 const LAST_WHEN = "2 days ago";
 const COINS = 120;
@@ -89,10 +93,44 @@ function Trail({ level }: { level: number }) {
   );
 }
 
+/** The last set on this skill, the homework due on it and the misses to review, for a signed-in
+ *  student; the stand-ins on the design page. */
+function useSkillFacts(name: string) {
+  const real = usePortalData();
+  if (!real)
+    return { last: LAST, lastWhen: LAST_WHEN, due: DUE as string | null, toReview: TO_REVIEW };
+  const sittings = real.student.sittings ?? [];
+  const mine = sittings.find((s) => s.mode === "skill" && s.asked.some((q) => q.skill === name));
+  const missed = sittings.flatMap((s) => s.asked).filter((q) => q.skill === name && !q.right);
+  const work = real.homework?.work.find(
+    (w) => w.state !== "done" && w.from >= 0 && w.name.includes(name)
+  );
+  return {
+    last: (mine?.asked ?? []).filter((q) => q.skill === name).map((q) => (q.right ? 1 : 0)),
+    lastWhen: mine ? daysAgo(real.student.days - mine.day) : "",
+    due: work ? dueWord(work.from) : null,
+    toReview: missed.length,
+  };
+}
+const daysAgo = (n: number) => (n === 0 ? "today" : n === 1 ? "yesterday" : `${n} days ago`);
+const dueWord = (from: number) =>
+  from === 0
+    ? "today"
+    : from === 1
+      ? "tomorrow"
+      : new Date(Date.now() + from * 86_400_000).toLocaleDateString("en-US", { weekday: "long" });
+
 export default function SkillPage({ skill }: { skill: OpenSkill }) {
   const page = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const level = Math.max(0, Math.min(3, skill.level));
+  const real = usePortalData() !== null;
+  const {
+    last: LAST,
+    lastWhen: LAST_WHEN,
+    due: DUE,
+    toReview: TO_REVIEW,
+  } = useSkillFacts(skill.name);
   // the right side comes in piece by piece: the character, the stops along the trail one after
   // another, the last set's dots, then Start
   useLayoutEffect(() => {
@@ -148,10 +186,12 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
           </span>
           <div>
             {skill.tests && <p className={styles.tests}>{skill.tests}</p>}
-            <p className={styles.due}>
-              <Icon name="check" size={14} />
-              Due {DUE}
-            </p>
+            {DUE && (
+              <p className={styles.due}>
+                <Icon name="check" size={14} />
+                Due {DUE}
+              </p>
+            )}
           </div>
         </div>
 
@@ -160,17 +200,20 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
         <div className={styles.facts} data-rise>
           <div className={styles.last}>
             <small>Last set</small>
-            {level === 0 ? (
+            {LAST.length === 0 ? (
               <b>None yet</b>
             ) : (
               <>
-                <span className={styles.dots} aria-label={`${LAST.filter(Boolean).length} of 8`}>
+                <span
+                  className={styles.dots}
+                  aria-label={`${LAST.filter(Boolean).length} of ${LAST.length}`}
+                >
                   {LAST.map((right, i) => (
                     <i key={i} data-dot data-right={right === 1 || undefined} />
                   ))}
                 </span>
                 <b>
-                  {LAST.filter(Boolean).length} of 8 <span>· {LAST_WHEN}</span>
+                  {LAST.filter(Boolean).length} of {LAST.length} <span>· {LAST_WHEN}</span>
                 </b>
               </>
             )}
@@ -188,7 +231,12 @@ export default function SkillPage({ skill }: { skill: OpenSkill }) {
           type="button"
           className={`${go.go} ${styles.start}`}
           data-rise
-          onClick={() => router.push(playSetUrl(skill.name, level))}
+          onClick={() => {
+            // a signed-in student plays a real skill set on the live quiz screen
+            const catalog = real ? catalogSkillOf(skill.name) : null;
+            if (catalog) return window.location.assign(practiceSet(catalog).path);
+            router.push(playSetUrl(skill.name, level));
+          }}
         >
           <span>Start skill set</span>
           <Icon name="go" size={20} />

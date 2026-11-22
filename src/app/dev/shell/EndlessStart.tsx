@@ -20,6 +20,10 @@ export { useEndlessTrail } from "./endless";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./dailyStart.module.css";
+import { usePortalData, useSkills } from "./portalData";
+import { SECTIONS, type Section } from "./skills72";
+import { catalogSkillOf } from "@/lib/portal/skill-bridge";
+import { practiceSet } from "@/lib/student/quiz-routes";
 import own from "./endlessStart.module.css";
 import { WorldWindow } from "./WorldWindow";
 
@@ -54,6 +58,26 @@ function Lives() {
 }
 
 export function EndlessStart({ run }: { run: EndlessRun }) {
+  /* a signed-in student's run is a skill set on the live quiz page: on this skill, or on the
+     weakest skill of this domain or side, as the old endless mode chose each round */
+  const real = usePortalData() !== null;
+  const skills = useSkills();
+  const start = () => {
+    if (!real) return closeEndless();
+    const pool =
+      run.kind === "skill"
+        ? [run.name]
+        : (run.kind === "section"
+            ? skills[run.name as Section].flatMap((d) => d.skills)
+            : (SECTIONS.flatMap((s) => skills[s]).find((d) => d.name === run.name)?.skills ?? [])
+          )
+            .filter((k) => k.level < 3)
+            .sort((a, b) => a.level - b.level)
+            .map((k) => k.name);
+    const catalog = catalogSkillOf(pool[0] ?? run.name);
+    if (catalog) window.location.assign(practiceSet(catalog).path);
+    else closeEndless();
+  };
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -125,7 +149,7 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
           ))}
         </ul>
         {/* until the endless quiz is joined up, Start comes back to where the run began */}
-        <button type="button" className={`${go.go} ${styles.start}`} onClick={closeEndless}>
+        <button type="button" className={`${go.go} ${styles.start}`} onClick={start}>
           <span>Start endless</span>
           <Icon name="go" size={20} />
         </button>

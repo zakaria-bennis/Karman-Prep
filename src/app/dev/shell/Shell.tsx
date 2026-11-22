@@ -97,6 +97,7 @@ function Shell() {
   const still = useReducedMotion() ?? false;
   /* a signed-in student: their own plan, and no demo switches */
   const real = usePortalData();
+  const who = real?.name || "Maya Okafor";
   // a real student's character wears what they last chose, on every page
   useState(() => {
     if (real) setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
@@ -443,7 +444,7 @@ function Shell() {
           type="button"
           className={styles.who}
           data-account
-          aria-label="Maya Okafor, account"
+          aria-label={`${who}, account`}
           aria-haspopup="menu"
           aria-expanded={menu}
           onClick={() => setMenu(!menu)}
@@ -454,7 +455,7 @@ function Shell() {
             </b>
           </span>
           <span className={styles.word}>
-            Maya Okafor
+            {who}
             <small>{PLANS[plan].name}</small>
           </span>
         </button>

@@ -19,10 +19,9 @@ import { DailyWorld } from "./DailyWorld";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
-import { useBestStreak, useStreak } from "./portalData";
+import { useBestStreak, usePortalData, useStreak } from "./portalData";
 import styles from "./dailyStart.module.css";
 
-const NAME = "Maya";
 type Pick = { skill: string; n: number; level: number };
 /** Ten different skills: the most a Daily 10 can come from, so the page is drawn for the fullest. */
 const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
@@ -80,6 +79,7 @@ export function greeting(hour: number) {
 }
 
 export function DailyStart({ onStart }: { onStart: () => void }) {
+  const first = usePortalData()?.firstName || "Maya";
   const ref = useRef<HTMLDivElement>(null);
   // the time is read in the browser only, so the scene the server drew never disagrees with it
   const [now, setNow] = useState<Date | null>(null);
@@ -131,7 +131,7 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
             </span>
           </div>
           <div className={styles.hello}>
-            <h2>{now ? `${greeting(now.getHours())}, ${NAME}` : `Hello, ${NAME}`}</h2>
+            <h2>{now ? `${greeting(now.getHours())}, ${first}` : `Hello, ${first}`}</h2>
             <p suppressHydrationWarning>
               {now?.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
