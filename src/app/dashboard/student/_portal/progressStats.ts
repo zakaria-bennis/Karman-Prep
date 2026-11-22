@@ -155,9 +155,11 @@ export function ledger(student: Student, logs: DayLog[]): Record<StatKey, number
         ? Math.round((recent.reduce((n, l) => n + l.correct, 0) / asked) * 100)
         : (out.accuracy[day - 1] ?? 0)
     );
+    // pace is weighted by the answers it was timed on (exam questions have no time)
+    const timed = recent.reduce((n, l) => n + (l.timed ?? l.questions), 0);
     out.pace.push(
-      asked
-        ? Math.round(recent.reduce((n, l) => n + l.pace * l.questions, 0) / asked)
+      timed
+        ? Math.round(recent.reduce((n, l) => n + l.pace * (l.timed ?? l.questions), 0) / timed)
         : (out.pace[day - 1] ?? 0)
     );
   }

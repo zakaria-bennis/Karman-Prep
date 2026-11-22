@@ -22,7 +22,6 @@
 //     month away, gold within a month, red within a week (founder, 2026-11-16).
 // Every number is a stand-in (progressData.ts). The demo bar switches between four made-up students so
 // the scaling can be seen.
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import { GoButton, Tile } from "./practice";
@@ -44,7 +43,9 @@ import {
   BEFORE_EXAM,
 } from "./progressData";
 import { tick } from "./sound";
-import { useStudent } from "./portalData";
+import { usePortalData, useStudent } from "./portalData";
+import { askUpgrade, startOr } from "./upgradeStore";
+import { DAILY_10 } from "@/lib/student/quiz-routes";
 
 /** How near the test is, for the badge's color: within a week, within a month, or farther off. */
 const nearness = (days: number) => (days <= 7 ? "week" : days <= 31 ? "month" : "far");
@@ -84,14 +85,17 @@ function Waiting({
   answered: number;
   free: boolean;
 }) {
-  const router = useRouter();
   const taken = student.exams.length;
+  const real = usePortalData();
+  const gate = real && { planId: real.planId, access: real.access };
+  // the list of full-length exams knows which one is next and what the plan still opens
+  const exams = () => real && window.location.assign("/learn/tests");
   if (free)
     return (
       <div className={styles.waiting}>
         <Tile name="exam" />
         <h2>Your predicted score comes with Practice or Pro</h2>
-        <GoButton>Upgrade</GoButton>
+        <GoButton onDone={() => askUpgrade("score")}>Upgrade</GoButton>
       </div>
     );
   const ready = taken > 0 || answered >= BEFORE_EXAM;
@@ -111,7 +115,7 @@ function Waiting({
           <p>
             <b>{taken}</b> of 2 taken
           </p>
-          <GoButton onDone={() => router.push("/learn/tests")}>Start a full-length exam</GoButton>
+          <GoButton onDone={exams}>Start a full-length exam</GoButton>
         </>
       ) : (
         <>
@@ -126,13 +130,15 @@ function Waiting({
           <p>
             <b>{answered}</b> of {BEFORE_EXAM} questions before your first exam
           </p>
-          <GoButton>Start the Daily 10</GoButton>
+          <GoButton onDone={() => startOr(gate, "questions", DAILY_10.path)}>
+            Start the Daily 10
+          </GoButton>
           <button
             type="button"
             className={styles.sooner}
             onClick={() => {
               tick();
-              router.push("/learn/tests");
+              exams();
             }}
           >
             Take an exam now

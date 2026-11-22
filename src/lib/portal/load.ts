@@ -22,6 +22,8 @@ import {
 } from "@/lib/student/skill-levels-server";
 import { subSkillQuestionCount } from "@/lib/subskills/map";
 import { createAdminClient } from "@/lib/supabase/server";
+import { quizAccessFor } from "@/lib/assembler/plan-gate";
+import { challengeQuestionsPerDay, getUsage } from "@/lib/plans";
 import { SECTIONS, SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
@@ -129,6 +131,11 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     ])
   );
 
+  // A diagnostic taken as a quiz run also writes a diagnostic_results row at the same moment; keep only
+  // the run, which has the real section scores (the old row has only a score range).
+  const diagnosticRuns = new Set(
+    runs.filter((r) => r.kind === "diagnostic").map((r) => Date.parse(r.completed_at))
+  );
   const exams: ProgressInput["exams"][number][] = [
     ...runs
       .filter((r) => (r.kind === "full-test" || r.kind === "diagnostic") && r.result?.predicted)
@@ -150,10 +157,12 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         right: x.result!.reading.right + x.result!.math.right,
         asked: x.result!.reading.scored + x.result!.math.scored,
       })),
-    ...diagnostics.map((d) => ({
-      at: d.taken_at,
-      total: predictedFromRange(d.score_range_low, d.score_range_high),
-    })),
+    ...diagnostics
+      .filter((d) => !diagnosticRuns.has(Date.parse(d.taken_at)))
+      .map((d) => ({
+        at: d.taken_at,
+        total: predictedFromRange(d.score_range_low, d.score_range_high),
+      })),
   ];
   const student = buildStudent({
     nowMs,
@@ -176,7 +185,10 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const today = dayKey(nowMs);
   const plan = portalPlanOf(ctx.plan.id);
   const run = streaks([...new Set(challenges.map((c) => c.day))].sort(), today);
-  const [calendar, challengeToday, names] = await Promise.all([
+  const limited =
+    ctx.plan.entitlements.questionLimit !== null ||
+    ctx.plan.entitlements.fullLengthTestLimit !== null;
+  const [calendar, challengeToday, names, usage, satDates, settings] = await Promise.all([
     ctx.showCalendar ? loadCalendar(ctx, nowMs).catch(() => null) : null,
     challengeAnsweredCount(ctx.clerkId, utcDayKey(new Date(nowMs))).catch(() => 0),
     db
@@ -188,8 +200,32 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         (r) => r.data as { first_name: string | null; last_name: string | null } | null,
         () => null
       ),
+    // only a plan with limits (Free) needs its usage counted
+    limited ? getUsage(ctx.clerkId).catch(() => undefined) : undefined,
+    rows<{ test_date: string }>(
+      db.from("sat_dates").select("test_date").gte("test_date", today).order("test_date")
+    ),
+    db
+      .from("student_settings")
+      .select("prefs, welcomed_at")
+      .eq("user_id", ctx.userId)
+      .maybeSingle()
+      .then(
+        (r) =>
+          r.data as { prefs: Record<string, unknown> | null; welcomed_at: string | null } | null,
+        () => null
+      ),
   ]);
-  const done = { dailyDone: doneToday(daily, nowMs), challengeDone: challengeToday >= 2 };
+  // a Free student whose usage could not be read is shown nothing locked; the server still counts
+  const access = quizAccessFor(
+    ctx.plan,
+    limited ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 }) : undefined
+  );
+  // Free answers one of the two challenge questions a day; every other plan both
+  const done = {
+    dailyDone: doneToday(daily, nowMs),
+    challengeDone: challengeToday >= challengeQuestionsPerDay(ctx.plan),
+  };
   const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
     plan === "practice" ? null : loadHomework(db, ctx, calendar, done, student.days, nowMs),
@@ -203,6 +239,12 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
 
   return {
     plan,
+    planId: ctx.plan.id,
+    access,
+    email: ctx.email,
+    satDates: [...new Set(satDates.map((d) => d.test_date.slice(0, 10)))],
+    prefs: settings?.prefs ?? {},
+    welcomed: Boolean(settings?.welcomed_at),
     firstName: ctx.firstName,
     name: [names?.first_name, names?.last_name].filter(Boolean).join(" ") || ctx.firstName || "",
     today: done,

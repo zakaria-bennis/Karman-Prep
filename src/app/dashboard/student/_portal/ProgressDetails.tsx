@@ -43,9 +43,26 @@ import { dateOf, streak, type DayLog, type Student } from "./progressData";
 import styles from "./progressDetails.module.css";
 import { clock, minSec, type StatKey } from "./progressStats";
 import { LEVELS, SECTIONS } from "./skills72";
+import { usePortalData } from "./portalData";
+
+/** Panes still drawn from stand-in breakdowns (progressBreakdowns.ts), not the student's own answers:
+ *  a signed-in student does not see them until they are worked out from real data. */
+const STAND_IN = new Set([
+  "By domain",
+  "By mode",
+  "Missed most",
+  "Sections",
+  "Recent gains",
+  "Recent slips",
+  "By outcome",
+  "Slowest skills",
+]);
 
 /** The panes each number's page has, in order. On a phone each is a page of its own. */
-export const panesOf = (stat: StatKey, student: Student): string[] =>
+export const panesOf = (stat: StatKey, student: Student, real = false): string[] =>
+  panesFor(stat, student).filter((pane) => !real || !STAND_IN.has(pane));
+
+const panesFor = (stat: StatKey, student: Student): string[] =>
   ({
     time: ["By domain", "By weekday"],
     questions: ["By domain", "By mode", "Missed most"],
@@ -61,7 +78,9 @@ export const Only = createContext<string | null>(null);
 
 function Pane({ title, children }: { title: string; children: ReactNode }) {
   const only = useContext(Only);
+  const real = usePortalData() !== null;
   if (only !== null && only !== title) return null;
+  if (real && STAND_IN.has(title)) return null;
   return (
     <section className={`${lib.glass} ${styles.pane}`} aria-label={title}>
       <h2>{title}</h2>

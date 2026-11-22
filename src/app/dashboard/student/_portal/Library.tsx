@@ -150,9 +150,10 @@ export default function Library({
   // twelve skills comparable with one of six. A tie goes to the domain with more skills not started.
   const climb = (d: Domain) =>
     d.skills.reduce((n, sk) => n + sk.level, 0) / (d.skills.length * TOP);
-  const weakest = [...domains].sort(
-    (x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0]
-  )[0];
+  // with nothing practiced yet no domain is weaker than another, so none is named
+  const weakest = domains.some((d) => climb(d) > 0)
+    ? [...domains].sort((x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0])[0]
+    : null;
 
   useEffect(() => {
     if (still || !root.current) return;

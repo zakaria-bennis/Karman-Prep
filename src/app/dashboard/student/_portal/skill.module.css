@@ -1,8 +1,9 @@
 /*
  * One skill's page (SkillPage.tsx, SkillLesson.tsx). It takes the Library's glass, inset (--pad, 12),
  * row height (--cell, 48), corner (16 inside, 28 outside), text sizes (13, 16, 20) and level greens
- * (--p1 to --p3) from library.module.css. Calm and focused, with a little warmth: one amber for the
- * lesson's sector, one gold for its arc, the greens for where the student stands.
+ * (--p1 to --p3) from library.module.css. Calm and focused, with a little warmth: the lesson's two
+ * accents, amber (--warm) and gold (--gold), set here for lesson/lesson.module.css, and the greens for
+ * where the student stands.
  */
 .page {
   --warm: #b8620c;
@@ -250,237 +251,6 @@
     inset 0 0 0 1px var(--lens-edge);
 }
 
-.written {
-  display: grid;
-  gap: 26px;
-  padding: var(--pad) calc(var(--pad) * 1.5) var(--pad);
-  max-width: 72ch;
-  line-height: 1.55;
-}
-
-.written h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-  font-weight: 650;
-}
-
-.written p {
-  margin: 0;
-}
-
-.intro {
-  display: grid;
-  grid-template-columns: 1fr 180px;
-  align-items: center;
-  gap: 24px;
-}
-
-.warm {
-  color: var(--warm);
-}
-
-.gold {
-  color: var(--gold);
-}
-
-.page .rules {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.rules > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  font-weight: 600;
-}
-
-.frac {
-  display: inline-grid;
-  vertical-align: middle;
-  font-size: 0.8em;
-  line-height: 1.1;
-  text-align: center;
-}
-
-.frac span:first-child {
-  border-bottom: 1.5px solid currentColor;
-  padding: 0 2px;
-}
-
-.page .steps {
-  display: grid;
-  gap: 8px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
-}
-
-.steps li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  counter-increment: step;
-}
-
-.steps li::before {
-  content: counter(step);
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--warm) 22%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warm) 60%, transparent);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* the picture: a circle, a slice of it in amber, its arc in gold */
-.slice {
-  width: 100%;
-  max-width: 180px;
-  overflow: visible;
-}
-
-.disc {
-  fill: color-mix(in srgb, currentColor 6%, transparent);
-  stroke: currentColor;
-  stroke-opacity: 0.45;
-  stroke-width: 1.5;
-}
-
-.sector {
-  fill: color-mix(in srgb, var(--warm) 38%, transparent);
-}
-
-.arc {
-  fill: none;
-  stroke: var(--gold);
-  stroke-width: 5;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gold) 70%, transparent));
-}
-
-.radius {
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-opacity: 0.8;
-}
-
-.centre {
-  fill: currentColor;
-}
-
-.mark,
-.angle {
-  fill: currentColor;
-  font: 600 14px var(--font-hanken);
-}
-
-.angle {
-  fill: var(--warm);
-}
-
-/* the strategy quiz, waiting at the end of the lesson */
-.strategy {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 16px 10px 10px;
-  border-radius: var(--r-piece);
-  background: var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  text-align: left;
-  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
-}
-
-.strategy b {
-  font-weight: 650;
-}
-
-.strategy > svg {
-  fill: none;
-  stroke: currentColor;
-  opacity: 0.6;
-  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.45, 1);
-}
-
-.strategy:active {
-  transform: scale(0.985);
-}
-
-@media (hover: hover) {
-  .strategy:hover > svg {
-    transform: translateX(3px);
-    opacity: 1;
-  }
-}
-
-.page .standIn {
-  font-size: 13px;
-  opacity: 0.6;
-}
-
-.video {
-  position: relative;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 12px;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--r-lens);
-  background:
-    radial-gradient(
-      circle at 50% 40%,
-      color-mix(in srgb, var(--warm) 22%, transparent),
-      transparent 60%
-    ),
-    var(--hover);
-  box-shadow: inset 0 0 0 1px var(--lens-edge);
-  text-align: center;
-}
-
-.video .slice {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  height: 70%;
-  opacity: 0.35;
-}
-
-.video p {
-  position: relative;
-  font-weight: 600;
-}
-
-.play {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: var(--lens);
-  box-shadow:
-    var(--lens-shade),
-    inset 0 0 0 1px var(--lens-edge);
-}
-
-.play svg {
-  fill: currentColor;
-  stroke: currentColor;
-}
-
 /* ---- the other ways to practice it ---- */
 .page .row {
   display: grid;
@@ -540,24 +310,13 @@
 }
 
 @media (max-width: 520px) {
-  .intro {
-    grid-template-columns: 1fr;
-  }
-
-  .slice {
-    justify-self: center;
-    max-width: 150px;
-  }
-
   .stop {
     height: 64px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chev,
-  .strategy,
-  .strategy > svg {
+  .chev {
     transition: none;
   }
 }
