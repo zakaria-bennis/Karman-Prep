@@ -548,8 +548,9 @@ export function landAt(d: number, only?: number | readonly number[]): number[] {
   return a.map((v, k) => v + (b[k] - v) * t);
 }
 
-/** The lands a river runs right through, so a flight down the river never comes to its end. */
-export const RIVER_LANDS = LANDS.filter((l) => l.river >= 0.5).map((l) => l.name);
+/** The lands a river runs right through, open and moving, so a flight down the river never comes to its
+ *  end. Frozen lands are left out: on their ice the river looked like a white road (2026-11-21). */
+export const RIVER_LANDS = LANDS.filter((l) => l.river >= 0.5 && l.ice < 0.5).map((l) => l.name);
 
 /** The table for the route from `start` on: COLS columns, ROWS rows, four bytes each. */
 export function strip(start: number, only?: number | readonly number[]): Uint8Array {
