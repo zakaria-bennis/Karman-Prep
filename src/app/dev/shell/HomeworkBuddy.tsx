@@ -171,7 +171,7 @@ export function Buddy({ size, cheer }: { size: number; cheer: number }) {
   );
 }
 
-const when = (day: HomeworkDay) => new Date(day.date).setHours(CLASS.hour, 0, 0, 0);
+const when = (day: HomeworkDay) => day.classAt ?? new Date(day.date).setHours(CLASS.hour, 0, 0, 0);
 const countdown = (ms: number) => {
   const t = cut(ms);
   return t.days > 0

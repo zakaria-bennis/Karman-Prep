@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The portal's today is the real one; these rules are checked on the Sunday they were written for
+// (Nov 15, 2026), set before the modules below read the clock.
+vi.hoisted(() => {
+  vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 10, 15, 9) });
+});
 import {
   DAY,
   EXAM_REVIEW,

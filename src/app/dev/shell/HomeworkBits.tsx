@@ -12,6 +12,8 @@ import { calm, cut, finish, stir, two } from "./homeworkMotion";
 import { Shore } from "./HomeworkShore";
 import styles from "./homework.module.css";
 import { chosen, tick } from "./sound";
+import { usePortalData } from "./portalData";
+import { fullLengthTest } from "@/lib/student/quiz-routes";
 
 const HOUR = 3_600_000;
 
@@ -168,7 +170,10 @@ export function Item({
             type="button"
             className={styles.begin}
             aria-label={`Review ${work.name}`}
-            onClick={() => tick()}
+            onClick={() => {
+              tick();
+              if (work.href) window.location.assign(work.href);
+            }}
           >
             Review
           </button>
@@ -294,6 +299,7 @@ export function ExamBanner({
   open: boolean;
 }) {
   const { face, outfit } = useEquipped();
+  const real = usePortalData() !== null;
   const midnight = new Date(day.date).setHours(0, 0, 0, 0);
   const opens = midnight + EXAM.opens * HOUR;
   const closes = midnight + EXAM.closes * HOUR;
@@ -339,7 +345,16 @@ export function ExamBanner({
         <p className={styles.over}>Done</p>
       ) : open ? (
         <div className={styles.go}>
-          <button ref={start} type="button" className={styles.start} onClick={() => tick()}>
+          <button
+            ref={start}
+            type="button"
+            className={styles.start}
+            onClick={() => {
+              tick();
+              // a real student goes to the week's form; the four forms take turns
+              if (real) window.location.assign(fullLengthTest(((number - 1) % 4) + 1).path);
+            }}
+          >
             Start exam
           </button>
           <p>

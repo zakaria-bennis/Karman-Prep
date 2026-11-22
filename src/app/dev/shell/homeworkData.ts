@@ -1,5 +1,6 @@
-// Homework's data: a Cohort or Private student's work. All of it is a stand-in until tutors assign
-// real work. What is his (founder, 2026-11-16):
+// Homework's data: a Cohort or Private student's work. A signed-in student's comes from the server
+// (src/lib/portal/homework.ts) through `realWeek`; the design page's is made up by `weekOf`.
+// What is his (founder, 2026-11-16):
 //   - Homework opens on the day: what matters at the left, the day's work at the right. The days
 //     ahead are stepped to, and a button shows the whole week.
 //   - Only four things are assigned: skill sets, strategy quizzes, flashcards and time trials. The
@@ -35,6 +36,8 @@ export type Work = {
   /** How much there is: "8 questions". */
   much: string;
   state: "todo" | "done" | "missing" | "closed";
+  /** A real piece: where Start (or Review, once done) opens it. */
+  href?: string | null;
 };
 export type HomeworkDay = {
   date: Date;
@@ -42,6 +45,8 @@ export type HomeworkDay = {
   from: number;
   /** A live class that day, by its time. */
   class?: string;
+  /** A real class: when it begins (the made-up ones begin at CLASS.hour). */
+  classAt?: number;
   /** The week's full-length exam is taken this day. */
   exam: boolean;
   work: Work[];
@@ -144,3 +149,27 @@ export function weekOf(week: number): HomeworkDay[] {
 /** The cohort is in its third week of nine. */
 export const WEEK_NOW = 3;
 export const WEEKS = 9;
+
+/** A real student's week, Sunday to Saturday, from the work and classes the server read. */
+export function realWeek(
+  week: number,
+  real: {
+    work: readonly (Work & { from: number })[];
+    classes: readonly { from: number; time: string; at: number }[];
+  }
+): HomeworkDay[] {
+  const sunday = new Date(TODAY.getTime() - TODAY.getDay() * DAY + week * 7 * DAY);
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(sunday.getTime() + i * DAY);
+    const from = Math.round((date.getTime() - TODAY.getTime()) / DAY);
+    const lesson = real.classes.find((c) => c.from === from);
+    return {
+      date,
+      from,
+      class: lesson?.time,
+      classAt: lesson?.at,
+      exam: i === 6,
+      work: real.work.filter((w) => w.from === from).map(({ from: _from, ...w }) => w),
+    };
+  });
+}

@@ -27,7 +27,17 @@ import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
 import { ChallengeBanner, ChallengeCard, firstToday } from "./HomeworkChallenge";
 import { arrive, useClock } from "./homeworkMotion";
-import { WEEK_NOW, WEEKS, weekOf, type HomeworkDay, type Work as WorkPiece } from "./homeworkData";
+import {
+  CLASS,
+  WEEK_NOW,
+  WEEKS,
+  realWeek,
+  weekOf,
+  type HomeworkDay,
+  type Work as WorkPiece,
+} from "./homeworkData";
+import { usePortalData } from "./portalData";
+import { CHALLENGE, DAILY_10 } from "@/lib/student/quiz-routes";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -35,7 +45,6 @@ import { DAY, TODAY } from "./progressData";
 import { tick } from "./sound";
 
 const DONE = { kind: "mixed", sort: "skill", state: "done" } as const;
-const FIRST = -(WEEK_NOW - 1) * 7 - TODAY.getDay();
 const LAST = 13 - TODAY.getDay();
 const name = (day: HomeworkDay) =>
   day.from === 0
@@ -174,10 +183,16 @@ export default function Homework({
   onTrail: (trail: Trail | null) => void;
 }) {
   const now = useClock();
+  /* a signed-in student's own work; the design page's is made up */
+  const real = usePortalData()?.homework ?? null;
+  const weekFor = (w: number) => (real ? realWeek(w, real) : weekOf(w));
+  const weekNow = real?.weekNow ?? WEEK_NOW;
+  const weeks = real ? real.weeks : WEEKS;
+  const FIRST = -(weekNow - 1) * 7 - TODAY.getDay();
   /** Work finished on this page by pressing it, until each activity has its own screen. */
   const [finished, setFinished] = useState<string[]>([]);
   const [cheer, setCheer] = useState(0);
-  const [dailyDone, setDailyDone] = useState(false);
+  const [dailyDone, setDailyDone] = useState(real?.dailyDone ?? false);
   /** The Daily 10's start page is open. */
   const [dailyOpen, setDailyOpen] = useState(false);
   // demo only: ?face=owl&wear=Top hat,Scarf dresses the student's character, to look at it dressed
@@ -195,12 +210,14 @@ export default function Homework({
     onTrail(null);
   };
   /** The challenge question: its banner is up, or sent away, or the question is done. */
-  const [challenge, setChallenge] = useState<"banner" | "go" | "later" | "done">("later");
+  const [challenge, setChallenge] = useState<"banner" | "go" | "later" | "done">(
+    real?.challengeDone ? "done" : "later"
+  );
   // its banner comes up once a day: the first time Homework is opened that day (remembered in
   // this browser). `intro` shows it again, to look at it.
   useEffect(() => {
-    if (firstToday(intro > 0)) setChallenge("banner");
-  }, [intro]);
+    if (firstToday(intro > 0) && !real?.challengeDone) setChallenge("banner");
+  }, [intro, real?.challengeDone]);
   /** Which way the last step went, so what arrives comes in from that side. */
   const body = useRef<HTMLDivElement>(null);
   const from = useRef(0);
@@ -214,14 +231,17 @@ export default function Homework({
       ...d,
       work: d.work.map((w) => (finished.includes(w.id) ? { ...w, state: "done" as const } : w)),
     }));
-  const days = mark(weekOf(week));
+  const days = mark(weekFor(week));
   const day = days[new Date(TODAY.getTime() + at * DAY).getDay()];
   const exam = days[6];
   const { all, done } = tally(day);
   const left = all - done;
   // the next class from now, whatever day is being looked at
-  const next = [...weekOf(0), ...weekOf(1)].find(
-    (d) => d.class && new Date(d.date).setHours(20, 30, 0, 0) > now
+  const next = [...weekFor(0), ...weekFor(1)].find(
+    (d) =>
+      d.class &&
+      (d.classAt ? d.classAt + CLASS.minutes * 60_000 : new Date(d.date).setHours(20, 30, 0, 0)) >
+        now
   );
   const go = (to: number) => {
     from.current = to > at ? 1 : -1;
@@ -252,6 +272,7 @@ export default function Homework({
     return (
       <DailyStart
         onStart={() => {
+          if (real) return window.location.assign(DAILY_10.path);
           closeDaily();
           setDailyDone(true);
           setCheer(cheer + 1);
@@ -261,11 +282,12 @@ export default function Homework({
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
-      <ExamBanner day={exam} now={now} number={WEEK_NOW + week} open={examOpen} />
+      <ExamBanner day={exam} now={now} number={weekNow + week} open={examOpen} />
       {(challenge === "banner" || challenge === "go") && (
         <ChallengeBanner
           now={challenge === "go"}
           onStart={() => {
+            if (real) return window.location.assign(CHALLENGE.path);
             setChallenge("done");
             setCheer(cheer + 1);
           }}
@@ -304,7 +326,7 @@ export default function Homework({
             type="button"
             className={styles.arrow}
             aria-label={whole ? "The week before" : "The day before"}
-            disabled={whole ? week <= -(WEEK_NOW - 1) : at <= FIRST}
+            disabled={whole ? week <= -(weekNow - 1) : at <= FIRST}
             onClick={() => go(at - (whole ? 7 : 1))}
           >
             <Chevron back />
@@ -314,7 +336,8 @@ export default function Homework({
               <>
                 {short(days[0])} to {short(days[6])}{" "}
                 <small>
-                  Week {WEEK_NOW + week} of {WEEKS}
+                  Week {weekNow + week}
+                  {weeks !== null && ` of ${weeks}`}
                 </small>
               </>
             ) : (
@@ -427,6 +450,8 @@ export default function Homework({
                 window.scrollTo({ top: 0 });
               }}
               onFinish={(id) => {
+                const href = day.work.find((w) => w.id === id)?.href;
+                if (href) return window.location.assign(href);
                 setFinished([...finished, id]);
                 setCheer(cheer + 1);
               }}

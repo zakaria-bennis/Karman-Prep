@@ -19,7 +19,7 @@ import { DailyWorld } from "./DailyWorld";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
-import { STREAK } from "./rewardsData";
+import { useBestStreak, useStreak } from "./portalData";
 import styles from "./dailyStart.module.css";
 
 const NAME = "Maya";
@@ -49,24 +49,24 @@ const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
     ],
   },
 ];
-/** Stand-in: the longest streak this student has had. */
-const BEST = 14;
 
 /** The streak, in a card of its own: how many days in a row, what today makes it, the best so far.
  *  Shared by the start pages of the Daily 10 and the challenge question (ChallengeStart.tsx). */
 export function Streak() {
+  const streak = useStreak();
+  const best = useBestStreak();
   return (
     <section className={`${lib.glass} ${styles.streak}`} data-rise>
       <span className={styles.flame} data-flame aria-hidden="true">
         <Icon name="flame" size={40} />
       </span>
       <p>
-        <b>{STREAK} days in a row</b>
-        <small>Today makes {STREAK + 1}</small>
+        <b>{streak} days in a row</b>
+        <small>Today makes {streak + 1}</small>
       </p>
       <p className={styles.best}>
         <small>Best</small>
-        <b>{BEST}</b>
+        <b>{best}</b>
       </p>
     </section>
   );

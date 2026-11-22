@@ -6,6 +6,7 @@ import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { PortalData } from "@/lib/portal/data";
 import { SKILLS, buildSkills, type Domain, type Section } from "./skills72";
 import { STUDENTS, type Student, type StudentKey } from "./progressData";
+import { STREAK } from "./rewardsData";
 
 const Ctx = createContext<PortalData | null>(null);
 
@@ -33,4 +34,14 @@ export function useSkills(): Record<Section, Domain[]> {
 export function useStudent(key: StudentKey): Student {
   const data = useContext(Ctx);
   return data?.student ?? STUDENTS[key];
+}
+
+/** Days in a row with the challenge question answered. */
+export function useStreak(): number {
+  return useContext(Ctx)?.streak ?? STREAK;
+}
+
+/** The longest run of days the student has kept the challenge going (14 on the design page). */
+export function useBestStreak(): number {
+  return useContext(Ctx)?.bestStreak ?? 14;
 }

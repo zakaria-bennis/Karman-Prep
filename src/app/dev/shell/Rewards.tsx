@@ -40,11 +40,11 @@ import {
   EARNED,
   PASSES,
   RECORDS,
-  STREAK,
   COINS,
   multiplierFor,
   type Pass,
 } from "./rewardsData";
+import { useStreak } from "./portalData";
 import { ping, tick } from "./sound";
 
 const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
@@ -88,7 +88,8 @@ export default function Rewards({
   const [picked, setPicked] = useState(0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
 
-  const multiplier = multiplierFor(STREAK);
+  const streak = useStreak();
+  const multiplier = multiplierFor(streak);
   const buy = (pass: Pass) => {
     setCoins(coins - pass.price);
     setHeld({ ...held, [pass.name]: (held[pass.name] ?? 0) + 1 });
@@ -179,18 +180,18 @@ export default function Rewards({
               <div
                 className={styles.climb}
                 role="img"
-                aria-label={`${STREAK} of ${DAYS_TO_TOP} days toward 5x`}
+                aria-label={`${streak} of ${DAYS_TO_TOP} days toward 5x`}
               >
                 {Array.from({ length: DAYS_TO_TOP }, (_, i) => (
-                  <i key={i} data-on={i < STREAK || undefined} />
+                  <i key={i} data-on={i < streak || undefined} />
                 ))}
               </div>
               <p className={styles.ends}>
                 <span>
-                  <b>{STREAK}</b> day streak
+                  <b>{streak}</b> day streak
                 </span>
                 <span>
-                  {multiplier < 5 ? `${times(multiplierFor(STREAK + 1))} tomorrow` : "At the top"}
+                  {multiplier < 5 ? `${times(multiplierFor(streak + 1))} tomorrow` : "At the top"}
                 </span>
               </p>
             </div>

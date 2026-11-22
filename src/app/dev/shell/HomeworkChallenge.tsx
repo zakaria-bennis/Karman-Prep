@@ -12,7 +12,7 @@ import { PlayQuiz, type Made } from "../end-options/PlayQuiz";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";
 import styles from "./homeworkChallenge.module.css";
-import { STREAK } from "./rewardsData";
+import { useStreak } from "./portalData";
 import { chosen, tick } from "./sound";
 
 /** A hexagon with a question mark that tips from side to side: the challenge question's own mark
@@ -58,6 +58,7 @@ export function ChallengeBanner({
   /** Go straight in, as Take it on does (the small card's Start). */
   now?: boolean;
 }) {
+  const streak = useStreak();
   const ref = useRef<HTMLDivElement>(null);
   const quiz = useRef<HTMLDivElement>(null);
   /** Taken on: the card fills the screen, Karman speeds off to the right, and the quiz comes in from
@@ -188,7 +189,7 @@ export function ChallengeBanner({
         <p data-rise>One Reading question and one Math question, every day.</p>
         <span className={styles.room} />
         <p className={styles.streak} data-rise>
-          <b>{STREAK}</b> days in a row
+          <b>{streak}</b> days in a row
         </p>
         <div className={styles.pair} data-rise>
           <button
@@ -232,6 +233,7 @@ export function ChallengeBanner({
 }
 
 export function ChallengeCard({ onStart }: { onStart: () => void }) {
+  const streak = useStreak();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current || calm()) return;
@@ -252,7 +254,7 @@ export function ChallengeCard({ onStart }: { onStart: () => void }) {
       <Mark size={40} />
       <p>
         <b>Challenge</b>
-        <small>{STREAK} days in a row</small>
+        <small>{streak} days in a row</small>
       </p>
       <button
         type="button"
