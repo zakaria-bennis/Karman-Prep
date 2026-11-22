@@ -35,7 +35,7 @@ import {
   type Session,
   type Sky,
 } from "./scheduleData";
-import { schedule, tutorFirst, type Sync } from "./scheduleStore";
+import { isReal, schedule, tutorFirst, type Sync } from "./scheduleStore";
 import { chosen, tick } from "./sound";
 import styles from "./schedule.module.css";
 import hrs from "./scheduleHours.module.css";
@@ -71,7 +71,7 @@ export function Changes({
           className={styles.danger}
           onClick={() => {
             tick();
-            schedule.cancel(session.id, now);
+            void schedule.cancel(session.id, now);
           }}
         >
           Yes, cancel
@@ -121,9 +121,11 @@ export function Changes({
       <small>
         {change.late
           ? "Uses your one late change"
-          : change.why === "moves"
-            ? `Moves return ${monthDay(movesBack(now)).replace(/, \d+$/, "")}`
-            : `${left} ${left === 1 ? "move" : "moves"} left`}
+          : change.why === "moved"
+            ? "Moved once already"
+            : change.why === "moves"
+              ? `Moves return ${monthDay(movesBack(now)).replace(/, \d+$/, "")}`
+              : `${left} ${left === 1 ? "move" : "moves"} left`}
       </small>
     </div>
   );
@@ -327,7 +329,9 @@ export function Hours({
           <span>{left === 1 ? "hour left" : "hours left"}</span>
         </p>
         <p className={hrs.fine}>
-          <span>Use by {monthDay(expiresAt(account)).replace(/ \d+,/, "")}</span>
+          {expiresAt(account) !== null && (
+            <span>Use by {monthDay(expiresAt(account)!).replace(/ \d+,/, "")}</span>
+          )}
           {account.pack === "private-10" && <span>60 min a week</span>}
         </p>
       </div>
@@ -388,7 +392,8 @@ export function Past({
   onDone: () => void;
   onHomework: () => void;
 }) {
-  const kept = now < recordingUntil(session);
+  // real sessions have no recording yet: nothing to play is shown
+  const kept = !!session.recording && now < recordingUntil(session);
   const [playing, setPlaying] = useState(false);
   const [at, setAt] = useState(0);
   const length = session.minutes * 60;
@@ -458,7 +463,7 @@ export function Past({
             <span>Here until {monthDay(recordingUntil(session))}</span>
           </p>
         </div>
-      ) : (
+      ) : !session.recording ? null : (
         <p className={past.gone}>
           Recordings are kept for {RULES.recordingMonths} months. This one is no longer here.
         </p>
@@ -538,7 +543,10 @@ export function SyncOffer({ sync }: { sync: Sync }) {
       window.clearInterval(timer);
     };
   }, []);
-  const showing = (sync === "ask" || said !== null) && wide !== null && (!wide || clear);
+  // nothing is synced for a real student yet, so the offer is not made to them (calendar feeds
+  // are being wired in Settings)
+  const showing =
+    !isReal() && (sync === "ask" || said !== null) && wide !== null && (!wide || clear);
   useEffect(() => {
     if (!showing || !el.current || calm()) return;
     gsap.fromTo(el.current, wide ? { x: 60, opacity: 0 } : { y: -12, opacity: 0 }, {

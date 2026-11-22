@@ -89,7 +89,7 @@ function Row({
           </small>
         </span>
         <i>{session.minutes === 60 ? "1h" : session.minutes === 90 ? "1.5h" : "2h"}</i>
-        {gone ? (
+        {gone && (session.recording || session.state === "missed") ? (
           <span className={rows.play} data-missed={session.state === "missed" || undefined}>
             <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
               {session.state === "missed" ? (

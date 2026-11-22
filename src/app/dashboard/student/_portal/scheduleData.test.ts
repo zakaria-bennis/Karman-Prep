@@ -24,6 +24,7 @@ import {
   priceOf,
   recommend,
   recordingUntil,
+  setCalendarTimes,
   standIn,
   subjectOf,
   tutorStarts,
@@ -72,8 +73,8 @@ describe("hours", () => {
 
   it("run out 12 months after they were bought", () => {
     const a = fresh();
-    const end = new Date(expiresAt(a));
-    const begun = new Date(a.boughtAt);
+    const end = new Date(expiresAt(a)!);
+    const begun = new Date(a.boughtAt!);
     expect(end.getFullYear()).toBe(begun.getFullYear() + 1);
     expect(end.getMonth()).toBe(begun.getMonth());
   });
@@ -176,6 +177,18 @@ describe("changing a session", () => {
     expect(movesLeft(a, NOW)).toBe(3);
   });
 
+  it("a session moved once cannot be moved again, but can be canceled", () => {
+    expect(changeOf(fresh(), { ...session(60), moved: true }, NOW)).toMatchObject({
+      move: false,
+      cancel: true,
+      why: "moved",
+    });
+  });
+
+  it("with no known purchase date there is no 'use by' date", () => {
+    expect(expiresAt({ ...fresh(), boughtAt: null })).toBeNull();
+  });
+
   it("once it has begun it cannot be changed", () => {
     expect(changeOf(fresh(), session(-0.1), NOW)).toMatchObject({ move: false, cancel: false });
   });
@@ -273,6 +286,28 @@ describe("the week", () => {
     expect(start.toDateString()).toBe(new Date(NOW).toDateString());
     expect(new Date(weekStart(NOW + 6 * DAY)).toDateString()).toBe(start.toDateString());
     expect(new Date(weekStart(NOW + 7 * DAY)).toDateString()).not.toBe(start.toDateString());
+  });
+});
+
+describe("a real tutor's calendar", () => {
+  it("offers only the starts it gives for that length", () => {
+    const a = fresh();
+    const open = choices(a, NOW, 60)
+      .flatMap((d) => d.times)
+      .slice(0, 3);
+    setCalendarTimes(
+      new Map([
+        [60, new Set(open)],
+        [90, new Set([open[0]])],
+      ])
+    );
+    try {
+      expect(choices(a, NOW, 60).flatMap((d) => d.times)).toEqual(open);
+      expect(choices(a, NOW, 90).flatMap((d) => d.times)).toEqual([open[0]]);
+      expect(choices(a, NOW, 120).flatMap((d) => d.times)).toEqual([]);
+    } finally {
+      setCalendarTimes(null);
+    }
   });
 });
 
