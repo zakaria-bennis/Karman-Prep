@@ -23,6 +23,8 @@ export type PlayForm = {
   hearts?: number;
   /** Each question's 72-skill (and domain), for the levels, the coins and endless's picking. */
   skills?: Record<string, { s: string; d: string }>;
+  /** Daily 10: the questions that are spaced reviews of due skills (src/lib/play/reviews.ts). */
+  reviews?: string[];
   /** Endless: how much each skill is leaned on (weaker skills more), by 72-skill id. */
   weights?: Record<string, number>;
   /** Skill sets: the question put right with a Second chance (one a set). */
@@ -35,6 +37,8 @@ export type PlayAnswer = {
   skill: string;
   ok: boolean;
   rescued?: boolean;
+  /** A spaced review of a due skill (Daily 10). */
+  review?: boolean;
   seconds: number;
 };
 

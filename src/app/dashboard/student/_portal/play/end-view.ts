@@ -21,6 +21,8 @@ export type EndAnswer = {
   ok: boolean;
   /** A miss put right with a Second chance (skill sets only): it counts as right for the level. */
   rescued?: boolean;
+  /** A spaced review of a skill that was due (Daily 10). */
+  review?: boolean;
   /** The skill it came from (Daily 10, endless across a domain or section, review). */
   skill?: string;
   /** Seconds spent (time trials; also kept for others). */

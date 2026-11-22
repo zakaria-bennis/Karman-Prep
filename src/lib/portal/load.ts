@@ -188,7 +188,17 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
 
   const today = dayKey(nowMs);
   const plan = portalPlanOf(ctx.plan.id);
-  const run = streaks([...new Set(challenges.map((c) => c.day))].sort(), today);
+  // days kept with a Streak saver count as kept (src/lib/play/saver.ts)
+  const saved = await db
+    .from("student_streak_saves")
+    .select("day")
+    .eq("student_id", ctx.clerkId)
+    .limit(1000)
+    .then(
+      (r) => ((r.data ?? []) as { day: string }[]).map((d) => d.day),
+      () => [] as string[]
+    );
+  const run = streaks([...new Set([...challenges.map((c) => c.day), ...saved])].sort(), today);
   const limited =
     ctx.plan.entitlements.questionLimit !== null ||
     ctx.plan.entitlements.fullLengthTestLimit !== null;

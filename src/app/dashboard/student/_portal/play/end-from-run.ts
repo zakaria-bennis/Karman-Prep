@@ -17,6 +17,7 @@ export function endFromRun(
     ? play.answers.map((a) => ({
         ok: a.ok,
         rescued: a.rescued || undefined,
+        review: a.review || undefined,
         skill: a.skill || undefined,
         seconds: fallback.worked?.[a.questionId]
           ? Math.round(fallback.worked[a.questionId] / 1000)

@@ -58,6 +58,8 @@ import {
 } from "./run-store";
 import type { RunForm, RunRecord, RunResponse, RunSectionForm, RunView } from "./run-types";
 import { finishPlay, nextEndless, playOver } from "@/lib/play/server/play-runs";
+import { pickReviews } from "@/lib/play/server/reviews";
+import { REVIEWS_MAX, withReviews } from "@/lib/play/reviews";
 import { diagnosticSectionScore, predictedTotal, sectionScore } from "./score";
 import {
   buildView,
@@ -113,7 +115,8 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   if (perSection("reading") < 10 || perSection("math") < 10) {
     const more = await loadAdmittedBank(
       CATALOG_SKILLS.map((skill) => skill.id).filter((id) => !first.includes(id)),
-      access.maxDifficulty
+      access.maxDifficulty,
+      access.practiceSet
     );
     bank = {
       items: [...bank.items, ...more.items],
@@ -150,11 +153,44 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   });
   if (access.questionsLeft !== null) picks = picks.slice(0, access.questionsLeft);
   if (!picks.length) throw new Error("No distinct approved questions are available");
-  const ids = picks.map((p) => p.questionId);
+  // up to five of the ten are spaced reviews of skills that are due (src/lib/play/reviews.ts)
+  const sectionOfPick = new Map(bank.items.map((item) => [item.id, item.section as string]));
+  const reviews = await pickReviews(clerkId, day, {
+    maxDifficulty: access.maxDifficulty,
+    practiceSet: access.practiceSet,
+    answered: history,
+    taken: new Set(picks.map((p) => p.questionId)),
+    max: Math.min(REVIEWS_MAX, picks.length),
+  }).catch(() => []);
+  const ten = withReviews(
+    picks.map((p) => ({
+      questionId: p.questionId,
+      section: sectionOfPick.get(p.questionId) ?? "",
+    })),
+    reviews.map((r) => ({ questionId: r.item.id, section: r.item.section as string }))
+  );
+  const ids = ten.map((p) => p.questionId);
+  const snapshots = new Map([
+    ...bank.snapshots,
+    ...reviews.map((r) => [r.item.id, r.snapshot] as const),
+  ]);
+  const reviewIds = reviews.map((r) => r.item.id).filter((id) => ids.includes(id));
   const form: RunForm = {
     title: "Daily 10",
     grading: "instant",
-    play: { mode: "daily" },
+    play: {
+      mode: "daily",
+      ...(reviewIds.length
+        ? {
+            reviews: reviewIds,
+            skills: Object.fromEntries(
+              reviews
+                .filter((r) => reviewIds.includes(r.item.id))
+                .map((r) => [r.item.id, { s: r.item.skill72, d: r.item.domain72 }])
+            ),
+          }
+        : {}),
+    },
     sections: [
       {
         key: "main",
@@ -172,7 +208,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
       runKey,
       scope: day,
       form,
-      snapshots: ids.map((id) => bank.snapshots.get(id)!),
+      snapshots: ids.map((id) => snapshots.get(id)!),
       sequence: ids,
     })
   );

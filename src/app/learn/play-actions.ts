@@ -15,6 +15,7 @@ import { openDailyTen, serveNext } from "@/lib/assembler/runs";
 import { getOwnedRun } from "@/lib/assembler/run-store";
 import type { RunView } from "@/lib/assembler/run-types";
 import { loadDailySlot, reviewDailyAnswer } from "@/lib/daily-challenge/server";
+import { saverOffer, spendStreakSaver, type SaverOffer } from "@/lib/play/server/saver";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
 import { recordChallengeAnswer } from "@/lib/daily-ten/challenge";
 import { coinsFor } from "@/lib/coins/earn";
@@ -22,7 +23,13 @@ import { multiplierOn } from "@/lib/coins/multiplier";
 import { isSkill72Id, skill72 } from "@/lib/skills/ids72";
 import { streaks } from "@/lib/student/streak";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
-import { bankCoins, challengeDays, coinBalance } from "@/lib/play/server/coins";
+import {
+  bankCoins,
+  challengeDays,
+  coinBalance,
+  currentMultiplier,
+  savedDays,
+} from "@/lib/play/server/coins";
 import { loadLevels72 } from "@/lib/play/server/levels72";
 import {
   endlessBest,
@@ -54,6 +61,9 @@ const SAY: Record<string, string> = {
   "Nothing to review": "There are no mistakes to review here yet.",
   "No second chances left": "You have no Second chances left. You can buy one on Rewards.",
   "No second chance here": "A Second chance can't be used here.",
+  "There is no missed day to save.": "There is no missed day to save.",
+  "Your streak saver was not used. Try again.": "Your streak saver was not used. Try again.",
+  "You have no streak savers left.": "You have no Streak savers left.",
   "Question is not next in this session":
     "This question was already answered in another tab. Reload to continue.",
 };
@@ -171,7 +181,14 @@ export async function actionSecondChances() {
   });
 }
 
-export type DailyPick = { skill: string; skillId: string; level: Level72; section: "rw" | "math" };
+export type DailyPick = {
+  skill: string;
+  skillId: string;
+  level: Level72;
+  section: "rw" | "math";
+  /** A spaced review of a skill that was due. */
+  review?: boolean;
+};
 
 /** Today's Daily 10 (opened, the same ten all day) and the skills its ten come from. */
 export async function actionDailyMix(input: { timeZone?: string }) {
@@ -191,8 +208,9 @@ export async function actionDailyMix(input: { timeZone?: string }) {
       skills72Of(ids.map((q) => ({ questionId: q, catalogSkillId: catalog.get(q) ?? "" }))),
       loadLevels72(id),
     ]);
+    const play = run?.form.play;
     const picks: DailyPick[] = ids.flatMap((q) => {
-      const s = filed.get(q);
+      const s = skill72(play?.skills?.[q]?.s ?? "") ?? filed.get(q);
       if (!s) return [];
       return [
         {
@@ -200,6 +218,7 @@ export async function actionDailyMix(input: { timeZone?: string }) {
           skillId: s.id,
           level: levels.get(s.id) ?? 0,
           section: s.section === "Math" ? "math" : "rw",
+          ...(play?.reviews?.includes(q) ? { review: true } : {}),
         },
       ];
     });
@@ -226,11 +245,12 @@ export async function actionChallengeToday() {
     const now = new Date();
     const day = utcDayKey(now);
     const top = await maxDifficultyFor(id);
-    const [reading, math, open, days] = await Promise.all([
+    const [reading, math, open, days, saved] = await Promise.all([
       loadDailySlot("reading", top, now),
       loadDailySlot("math", top, now),
       challengeSubjectsLeft(id, day),
       challengeDays(id),
+      savedDays(id),
     ]);
     const questions: ChallengeToday["questions"] = [];
     for (const slot of [reading, math])
@@ -241,8 +261,8 @@ export async function actionChallengeToday() {
       questions,
       answered: {},
       open,
-      multiplier: multiplierOn(days, day),
-      streak: streaks(days.map((d) => d.day).sort(), day).current,
+      multiplier: multiplierOn(days, day, saved),
+      streak: streaks([...new Set([...days.map((d) => d.day), ...saved])].sort(), day).current,
       seed: seedOf(id),
     };
   });
@@ -272,7 +292,8 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
     const open = await challengeSubjectsLeft(id, parsed.day);
     if (!open.includes(parsed.subject))
       throw new PlanLimitError("Upgrade to answer both challenge questions every day.");
-    const before = multiplierOn(await challengeDays(id), parsed.day);
+    const saved = await savedDays(id);
+    const before = multiplierOn(await challengeDays(id), parsed.day, saved);
     const review = await reviewDailyAnswer(
       parsed.subject,
       parsed.day,
@@ -291,7 +312,7 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
     const left = await challengeSubjectsLeft(id, parsed.day);
     if (left.length) return { review, done: null };
     const days = await challengeDays(id);
-    const after = multiplierOn(days, parsed.day);
+    const after = multiplierOn(days, parsed.day, saved);
     const today = days.find((d) => d.day === parsed.day)?.answers ?? [];
     const walletBefore = await coinBalance(id);
     const earned = coinsFor({
@@ -301,7 +322,7 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
       multiplier: after,
     });
     await bankCoins(id, `challenge:${parsed.day}`, "challenge", earned);
-    const run = streaks(days.map((d) => d.day).sort(), parsed.day);
+    const run = streaks([...new Set([...days.map((d) => d.day), ...saved])].sort(), parsed.day);
     const done: ChallengeDone = {
       multiplier: { before, after },
       streak: { days: run.current, best: run.longest },
@@ -328,7 +349,7 @@ export async function actionFinishStrategy(input: {
       .strict()
       .parse(input);
     const walletBefore = await coinBalance(id);
-    const multiplier = multiplierOn(await challengeDays(id), utcDayKey(new Date()));
+    const multiplier = await currentMultiplier(id);
     const earned = coinsFor({
       activity: "strategy",
       answers: Array.from({ length: parsed.total }, (_, i) => ({
@@ -371,4 +392,14 @@ export async function actionGeneratedIds(input: { questionIds: string[] }) {
     if (error || !data) return [] as string[];
     return (data as { id: string }[]).map((r) => r.id);
   });
+}
+
+/** Yesterday, when the student's streak broke there and they hold a Streak saver; else null. */
+export async function actionSaverOffer() {
+  return wrap(async (): Promise<SaverOffer | null> => saverOffer(await studentId()));
+}
+
+/** Spends one Streak saver on yesterday. */
+export async function actionSpendSaver() {
+  return wrap(async () => spendStreakSaver(await studentId()));
 }
