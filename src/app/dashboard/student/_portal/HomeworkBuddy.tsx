@@ -178,6 +178,16 @@ const countdown = (ms: number) => {
     ? `${t.days}d ${two(t.hours)}h ${two(t.minutes)}m ${two(t.seconds)}s`
     : `${two(t.hours)}h ${two(t.minutes)}m ${two(t.seconds)}s`;
 };
+/** A class's meeting link if it is a safe web address (https), else null. */
+const safeLink = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  try {
+    return new URL(url).protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+};
+
 /** Whether the class's door is open: from a little before it begins until it ends. */
 const doorOpen = (day: HomeworkDay, now: number) =>
   now >= when(day) - CLASS.early * MIN && now < when(day) + CLASS.minutes * MIN;
@@ -221,8 +231,9 @@ const chalk = (root: Element | null) => {
 
 export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
   const ref = useRef<HTMLButtonElement>(null);
-  const [going, setGoing] = useState(false);
+  const [going, setGoing] = useState<false | "open" | "early" | "none">(false);
   const live = doorOpen(day, now);
+  const link = safeLink(day.classJoin);
   useEffect(() => chalk(ref.current), []);
   useEffect(() => {
     if (!going) return;
@@ -244,10 +255,12 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
           { rotate: 0, duration: 0.8, ease: "elastic.out(1, 0.3)" }
         )
       }
-      // pressing it goes to the class's Zoom room (there is no link to open yet, so it only says so)
+      // pressing it opens the class's Zoom room once the door is open; before then, or with no link
+      // yet, it says so plainly and opens nothing
       onClick={() => {
         ping();
-        setGoing(true);
+        if (live && link) window.open(link, "_blank", "noopener,noreferrer");
+        setGoing(!live ? "early" : link ? "open" : "none");
         if (!calm())
           gsap.fromTo(
             ref.current,
@@ -264,11 +277,15 @@ export function ClassButton({ day, now }: { day: HomeworkDay; now: number }) {
           {day.class}
         </b>
         <em aria-live="polite" suppressHydrationWarning>
-          {going
+          {going === "open"
             ? "Opening Zoom"
-            : live
-              ? "Join now"
-              : countdown(when(day) - CLASS.early * MIN - now)}
+            : going === "none"
+              ? "Link not ready yet"
+              : going === "early"
+                ? `Opens ${CLASS.early} minutes before`
+                : live
+                  ? "Join now"
+                  : countdown(when(day) - CLASS.early * MIN - now)}
         </em>
       </span>
       <svg

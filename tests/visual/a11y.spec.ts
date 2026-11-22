@@ -53,7 +53,7 @@ const PAGES_TO_SCAN = [
   },
   {
     persona: "student_mid",
-    url: "/dashboard/student/progress",
+    url: "/dashboard/student?page=progress",
     email: "dev-seed-mid@karman.local",
   },
   { persona: "student_mid", url: "/dashboard/student/chat", email: "dev-seed-mid@karman.local" },

@@ -1,0 +1,135 @@
+/*
+ * A time trial's start page (TrialStart.tsx), in the Daily 10's layout (dailyStart.module.css) and
+ * endless's rows (endlessStart.module.css). Its own pieces: the stopwatch's window, the pace track,
+ * the accuracy chip, the hyped Start and the count of three.
+ */
+
+/* the stopwatch races in a warm window: dusk orange into a deep red, glowing */
+.window {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgb(255 190 92 / 0.55), transparent 60%),
+    radial-gradient(90% 80% at 80% 90%, rgb(214 40 40 / 0.45), transparent 65%),
+    linear-gradient(160deg, #ff8a3d, #c8302a);
+}
+
+:global(html[data-kp-mode="dark"]) .window {
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgb(255 150 60 / 0.45), transparent 60%),
+    radial-gradient(90% 80% at 80% 90%, rgb(160 20 30 / 0.55), transparent 65%),
+    linear-gradient(160deg, #6a1f12, #2a0b10);
+}
+
+.watch {
+  color: rgb(255 255 255 / 0.85);
+  filter: drop-shadow(0 14px 24px rgb(0 0 0 / 0.35));
+  animation: race 1.4s ease-in-out infinite;
+}
+
+@keyframes race {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate(6px, -4px) rotate(1deg);
+  }
+}
+
+/* the pace: notches from 1.25x down to 0.75x, this round lit */
+.pace {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.pace p {
+  margin: 0;
+}
+
+.track {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track li {
+  height: 22px;
+  border-radius: 6px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  transform-origin: 50% 100%;
+}
+
+.track li[data-past] {
+  background: color-mix(in srgb, #ff8a3d 55%, transparent);
+}
+
+.track li[data-here] {
+  background: linear-gradient(to top, #e2412b, #ffb35c);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 0.6),
+    0 6px 16px -4px #ff6a2b;
+}
+
+.bar {
+  font: 800 20px/1 var(--font-hanken, system-ui);
+  color: #e2552b;
+}
+
+:global(html[data-kp-mode="dark"]) .bar {
+  color: #ff9a5c;
+}
+
+/* the Start: the portal's green, with a warmer glow for the race */
+.start {
+  --go: #ff6a2b;
+  --on-go: #fff;
+}
+
+/* three, two, one */
+.count {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgb(0 0 0 / 0.18);
+}
+
+.count b {
+  font: 900 min(36vw, 220px) / 1 var(--font-hanken, system-ui);
+  color: #fff;
+  text-shadow:
+    0 0 40px rgb(255 120 40 / 0.85),
+    0 10px 30px rgb(0 0 0 / 0.4);
+  animation: pop 0.65s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .watch,
+  .count b {
+    animation: none;
+  }
+}

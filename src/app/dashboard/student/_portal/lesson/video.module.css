@@ -1,0 +1,314 @@
+/*
+ * The video walk-through (LessonVideo.tsx): a 16:9 board of soft glass, the narration as a caption at
+ * its foot, and plain controls under it. The board's writing takes the lesson's accents (--warm, --gold).
+ */
+.player {
+  display: grid;
+  gap: 10px;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--r-piece);
+  background:
+    radial-gradient(
+      120% 90% at 20% 0%,
+      color-mix(in srgb, var(--warm) 10%, transparent),
+      transparent 60%
+    ),
+    var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stage:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.board {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  min-height: 0;
+  padding: 16px 20px 64px;
+  animation: enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.title {
+  margin: 0;
+  color: var(--warm);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.work {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  min-height: 0;
+}
+
+.work[data-wide] {
+  grid-template-columns: 1fr;
+}
+
+.lines {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.problem {
+  margin: 0;
+  font-weight: 560;
+}
+
+.line {
+  margin: 0;
+  font-size: 16px;
+  animation: enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choices li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 14px;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.choices li i {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.4px currentColor;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.choices li[data-pick] {
+  background: color-mix(in srgb, #17885a 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px #17885a;
+}
+
+:global([data-kp-mode="dark"]) .choices li[data-pick] {
+  background: color-mix(in srgb, #6fe3ae 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px #6fe3ae;
+}
+
+.figure {
+  display: grid;
+  place-items: center;
+  max-height: 100%;
+  min-width: 0;
+}
+
+.figure > * {
+  max-height: 100%;
+}
+
+.caption {
+  position: absolute;
+  inset: auto 12px 10px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgb(10 12 28 / 0.72);
+  color: #fffdf8;
+  font-size: 14.5px;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.big {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: auto;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+.big svg,
+.play svg {
+  fill: currentColor;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.play,
+.cc {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cc[aria-pressed="false"] {
+  opacity: 0.55;
+}
+
+.play:focus-visible,
+.cc:focus-visible,
+.scrub:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.scrub {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    var(--warm) var(--at, 0%),
+    color-mix(in srgb, currentColor 18%, transparent) var(--at, 0%)
+  );
+  appearance: none;
+  cursor: pointer;
+}
+
+.scrub::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--warm);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  appearance: none;
+}
+
+.scrub::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--warm);
+}
+
+.time {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.voice {
+  margin: 0;
+  font-size: 12.5px;
+  opacity: 0.65;
+}
+
+.soon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-piece);
+  background:
+    radial-gradient(
+      circle at 50% 40%,
+      color-mix(in srgb, var(--warm) 18%, transparent),
+      transparent 60%
+    ),
+    var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  text-align: center;
+}
+
+.soon p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0 24px;
+}
+
+.soon span {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+@media (max-width: 620px) {
+  .stage {
+    aspect-ratio: 4 / 5;
+  }
+
+  .work {
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .figure {
+    max-height: 42%;
+  }
+
+  .choices {
+    grid-template-columns: 1fr;
+  }
+
+  .board {
+    padding: 14px 14px 76px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board,
+  .line {
+    animation: none;
+  }
+
+  .choices li {
+    transition: none;
+  }
+}

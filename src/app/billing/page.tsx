@@ -4,16 +4,14 @@
 // The pricing and For tutors pages link here as
 // /billing?plan=practice&term=month; that plan shows preselected
 // and checkout starts only when the user clicks. Students see it
-// inside the student portal.
+// in the portal's Settings (Plan and billing).
 // ============================================================
 
 import type { Metadata } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
-import { Panel } from "@/components/portal";
-import StudentPortal from "@/components/student-portal/StudentPortal";
-import { loadStudentContext } from "@/lib/student/context";
+import { settingsHref } from "@/lib/portal/settings-rules";
 import { resolveEffectiveClerkId, resolveEffectiveRole } from "@/lib/supabase/queries/admin";
 import BillingClient, { type BillingSelection } from "@/components/dashboard/BillingClient";
 import { BILLING_TERMS, hasTermChoice, type BillingTerm } from "@/lib/integrations/stripe/prices";
@@ -51,6 +49,10 @@ export default async function BillingPage({
     redirect(`/auth/sign-in?redirect_url=${encodeURIComponent(back)}`);
   }
 
+  // A student's plan and billing live in the portal's Settings (Plan and billing).
+  const { clerkId } = await resolveEffectiveClerkId(userId);
+  if ((await resolveEffectiveRole(clerkId)) === "student") redirect(settingsHref("plan"));
+
   const supabase = createAdminClient();
   const { data: sub } = await supabase
     .from("subscriptions")
@@ -60,28 +62,14 @@ export default async function BillingPage({
     .limit(1)
     .maybeSingle();
 
-  const billing = (
-    <BillingClient
-      subscription={sub ?? null}
-      selected={selected}
-      required={params.required === "1"}
-    />
-  );
-
-  // Students see billing inside their portal; everyone else gets the plain page.
-  const { clerkId } = await resolveEffectiveClerkId(userId);
-  if ((await resolveEffectiveRole(clerkId)) === "student") {
-    const ctx = await loadStudentContext();
-    return (
-      <StudentPortal ctx={ctx} title="Billing & Subscription">
-        <Panel label="Billing">{billing}</Panel>
-      </StudentPortal>
-    );
-  }
   return (
     <main className="mx-auto max-w-3xl px-4 pt-8 sm:px-6">
       <h1 className="text-2xl font-bold text-ivory">Billing & Subscription</h1>
-      {billing}
+      <BillingClient
+        subscription={sub ?? null}
+        selected={selected}
+        required={params.required === "1"}
+      />
     </main>
   );
 }

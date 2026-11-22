@@ -284,7 +284,8 @@ export async function loadStudentHomework(
     const kind = str(r.kind);
     const target = str(r.target_id);
     const done = r.status === "completed";
-    let href = "/dashboard/student?page=library#tests";
+    // A full-length test opens the exam list, which starts the next exam (src/app/learn/tests).
+    let href = "/learn/tests";
     let size: StudentHomeworkItem["size"] = {
       questions: FULL_LENGTH.questions,
       timedMinutes: FULL_LENGTH.minutes,

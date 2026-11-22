@@ -20,6 +20,7 @@ import { MODES, type Asked, type Session } from "./mistakeLogData";
 import styles from "./mistakeLog.module.css";
 import { clock, minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
+import { GeneratedMark } from "./play/GeneratedMark";
 
 export const dayName = (student: Student, day: number) =>
   day === student.days
@@ -409,6 +410,8 @@ export function QuestionView({
           {!named && <h2>Question {q.number}</h2>}
           <p className={styles.when}>
             {q.mode === "skill" ? MODES.skill : q.sessionName}, {dayName(student, q.day)}
+            {/* admins only: a question the generator made (checked on the server) */}
+            <GeneratedMark questionId={q.questionId} />
           </p>
         </div>
         <div className={styles.tools}>

@@ -168,8 +168,44 @@ export function difficultyRangeFor(plan: PlanAccess): {
   };
 }
 
+/**
+ * Whether the plan reads only the Practice plan's fixed set of 5,000 (quiz_questions.practice_plan,
+ * levels 1 to 6, never an exam question; founder, 2026-11-13): every core plan (Free, Practice, a
+ * school seat). Pro and up read every practice question.
+ */
+export function usesPracticeSet(plan: PlanAccess): boolean {
+  return plan.entitlements.pool === "core";
+}
+
 /** Questions left under the plan's limit; null when there is no limit. */
 export function questionsLeft(plan: PlanAccess, usage: PlanUsage): number | null {
   const limit = plan.entitlements.questionLimit;
   return limit === null ? null : Math.max(0, limit - usage.questionsAnswered);
+}
+
+export const CHALLENGE_SUBJECTS = ["math", "reading"] as const;
+export type ChallengeSubject = (typeof CHALLENGE_SUBJECTS)[number];
+
+/**
+ * Daily challenge questions the plan may answer each day. Everyone sees today's two (one Math, one
+ * Reading and Writing); Free answers one of them a day (founder, 2026-11-14: "100 questions and one
+ * challenge question a day"). Free is the one plan with a question limit, so that marks it.
+ */
+export function challengeQuestionsPerDay(plan: PlanAccess): 1 | 2 {
+  return plan.entitlements.questionLimit === null ? 2 : 1;
+}
+
+/**
+ * Which of today's challenge subjects the student may still answer, given the ones already answered
+ * today: both while under the plan's daily allowance, none once it is used. A subject already
+ * answered is never "open" again (its review stays visible to the student).
+ */
+export function challengeSubjectsOpen(
+  plan: PlanAccess,
+  answeredToday: readonly string[]
+): ChallengeSubject[] {
+  const answered = new Set(answeredToday);
+  const used = CHALLENGE_SUBJECTS.filter((s) => answered.has(s)).length;
+  if (used >= challengeQuestionsPerDay(plan)) return [];
+  return CHALLENGE_SUBJECTS.filter((s) => !answered.has(s));
 }

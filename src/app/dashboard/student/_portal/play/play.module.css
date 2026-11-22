@@ -1,0 +1,126 @@
+/*
+ * The layer an activity plays in (PlayLayer.tsx): over the whole portal, above its menus. While the
+ * questions are fetched the Start button's glass grows into the screen; the quiz screen and the
+ * ending draw their own landscape and glass on top.
+ */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  isolation: isolate;
+}
+
+/* the frost that grows from the Start button: the portal stays faintly visible behind it */
+.grow {
+  position: absolute;
+  inset: 0;
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  backdrop-filter: blur(22px) saturate(1.2);
+  background: color-mix(in srgb, var(--glass, rgb(255 255 255 / 0.5)) 70%, transparent);
+}
+
+:global(html[data-kp-mode="dark"]) .grow {
+  background: rgb(10 16 30 / 0.55);
+}
+
+.quiz {
+  position: absolute;
+  inset: 0;
+}
+
+.wait {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 28px 24px;
+  border-radius: 24px;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  background: rgb(255 255 255 / 0.55);
+  color: #10182b;
+  font: 650 17px/1.4 var(--font-hanken, system-ui);
+  text-align: center;
+  box-shadow: 0 18px 50px -24px rgb(0 0 0 / 0.45);
+}
+
+:global(html[data-kp-mode="dark"]) .wait {
+  background: rgb(22 30 48 / 0.62);
+  color: #eef2fb;
+}
+
+.wait p {
+  margin: 0;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  border-right-color: transparent;
+  opacity: 0.7;
+  animation: turn 0.9s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.go,
+.back {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 24px;
+  font: 700 16px/1 var(--font-hanken, system-ui);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.go {
+  background: #2fd27a;
+  color: #06331b;
+}
+
+.back {
+  background: rgb(127 127 127 / 0.18);
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+/* a start page shown inside the layer (the Daily 10's, from the Library): the landscape behind it,
+   the page centered with the portal's own margins */
+.intro {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  align-items: center;
+}
+
+.intro > * {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}

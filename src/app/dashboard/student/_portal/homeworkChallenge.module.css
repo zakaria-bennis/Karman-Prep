@@ -230,12 +230,6 @@
 }
 
 /* taken on: the quiz comes in from the left over the whole screen */
-.quiz {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  visibility: hidden;
-}
 
 /* taken on, it rises over everything, the menu too */
 .screen[data-going] {

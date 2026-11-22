@@ -622,6 +622,11 @@
   font-weight: 650;
   cursor: pointer;
 }
+/* The middle of the bottom bar gives way first on a narrow screen (Endless's strip of dots
+   scrolls inside it), so Back and Next keep their room. */
+.navSlot {
+  min-width: 0;
+}
 
 /* Question area. */
 .area {

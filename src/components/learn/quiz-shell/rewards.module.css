@@ -110,6 +110,181 @@
 [data-layout="compact"] .count {
   display: none;
 }
+
+/* A question put right with a second chance: its red dot keeps its cross, and a ring of the
+   right colour settles round it, like a stamp coming down. */
+.dot[data-rescued]::after {
+  content: "";
+  position: absolute;
+  inset: -4.5px;
+  border: 2px solid var(--quiz-correct);
+  border-radius: 50%;
+  box-shadow: 0 0 8px -1px color-mix(in srgb, var(--quiz-correct) 70%, transparent);
+  pointer-events: none;
+}
+.dots:not([data-still]) .dot[data-rescued]::after {
+  animation: ring-down 460ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes ring-down {
+  from {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+[data-layout="compact"] .dot[data-rescued]::after {
+  inset: -3.5px;
+  border-width: 1.5px;
+}
+
+/* Endless: the dots ride in a strip ten dots wide at most; older ones are a scroll back, and a
+   soft fade at an edge says there are more that way. The strip's padding is room for a dot's
+   glow, ring and burst inside its own edges. */
+.strip {
+  --dot: 22px;
+  --gap: 7px;
+  position: relative;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--gap);
+  min-width: 0;
+  max-width: calc(10 * var(--dot) + 9 * var(--gap) + 20px);
+  margin: 0 -3px;
+  padding: 13px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.strip::-webkit-scrollbar {
+  display: none;
+}
+.strip[data-more="before"] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 26px);
+  mask-image: linear-gradient(to right, transparent, #000 26px);
+}
+.strip[data-more="after"] {
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 26px);
+  mask-image: linear-gradient(to left, transparent, #000 26px);
+}
+.strip[data-more="both"] {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 26px,
+    #000 calc(100% - 26px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 26px,
+    #000 calc(100% - 26px),
+    transparent
+  );
+}
+[data-layout="compact"] .strip {
+  --dot: 15px;
+  --gap: 3px;
+  margin: 0;
+  padding: 13px 6px;
+}
+
+/* The hearts: a warm red that is rosy by day and brighter by night, each with a small glow of
+   its own, as a filled dot has. A lost one is its outline. */
+.hearts {
+  --heart: color-mix(in srgb, var(--quiz-wrong) 55%, #ff2d55);
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin-right: 3px;
+}
+.heart {
+  display: block;
+  width: 19px;
+  height: 19px;
+  overflow: visible;
+}
+.heartLine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--quiz-text-muted) 75%, transparent);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+.heart[data-full] .heartLine {
+  stroke: var(--heart);
+}
+.heartFill {
+  fill: var(--heart);
+}
+.heart[data-full] {
+  filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--heart) 55%, transparent));
+}
+/* the break: a small swell, then the halves tip apart along the crack and fade */
+.heartLeft,
+.heartRight {
+  transform-box: view-box;
+  transform-origin: 12px 20px;
+}
+.hearts:not([data-still]) .heartLeft {
+  animation: break-left 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hearts:not([data-still]) .heartRight {
+  animation: break-right 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes break-left {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  24% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-2.5px, 2px) rotate(-24deg) scale(0.92);
+    opacity: 0;
+  }
+}
+@keyframes break-right {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  24% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(2.5px, 2px) rotate(24deg) scale(0.92);
+    opacity: 0;
+  }
+}
+[data-layout="compact"] .hearts {
+  gap: 1px;
+  margin-right: 1px;
+}
+[data-layout="compact"] .heart {
+  width: 15px;
+  height: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-rescued]::after,
+  .heartLeft,
+  .heartRight {
+    animation: none !important;
+  }
+  .heartLeft,
+  .heartRight {
+    display: none;
+  }
+}
 .levelUp {
   position: absolute;
   left: 50%;

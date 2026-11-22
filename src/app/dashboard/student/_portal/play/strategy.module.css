@@ -1,0 +1,119 @@
+/*
+ * A strategy quiz's start page (StrategyStart.tsx): the landscape behind, one pane of glass in the
+ * middle with the compass, the strategy's name and Start; a way back to the lesson at the top left.
+ */
+.page {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: #10182b;
+  font-family: var(--font-hanken, system-ui);
+}
+
+:global(html[data-kp-mode="dark"]) .page {
+  color: #eef2fb;
+}
+
+.back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px 0 10px;
+  border: 0;
+  border-radius: 22px;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  background: rgb(255 255 255 / 0.5);
+  color: inherit;
+  font: 650 15px/1 var(--font-hanken, system-ui);
+  cursor: pointer;
+}
+
+:global(html[data-kp-mode="dark"]) .back {
+  background: rgb(22 30 48 / 0.6);
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(480px, 100%);
+  padding: 32px 28px 28px;
+  border-radius: 28px;
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+  backdrop-filter: blur(22px) saturate(1.15);
+  background: rgb(255 255 255 / 0.55);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 24px 60px -30px rgb(0 0 0 / 0.5);
+  text-align: center;
+}
+
+:global(html[data-kp-mode="dark"]) .card {
+  background: rgb(18 26 44 / 0.6);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 24px 60px -30px rgb(0 0 0 / 0.7);
+}
+
+.compass {
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  opacity: 0.75;
+}
+
+.card h1 {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: clamp(24px, 6vw, 32px);
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.card p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 28px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%), #2fd27a;
+  color: #06331b;
+  font: 750 18px/1 var(--font-hanken, system-ui);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 14px 30px -12px #2fd27a;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.go:active {
+  transform: scale(0.97);
+}

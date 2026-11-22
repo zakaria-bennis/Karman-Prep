@@ -48,18 +48,21 @@ import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
 import Settings from "./Settings";
 import { TEXT_SIZES, frostOf, setSetting, useSettings } from "./settingsStore";
+import { startsDark } from "@/lib/portal/prefs";
 import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
-import Progress, { STUDENTS, type StudentKey } from "./Progress";
+import Progress, { type StudentKey } from "./Progress";
 import type { Found } from "./progressBreakdowns";
 import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Page, type Plan } from "./plans";
-import MusicOffer, { forgetMusic } from "./MusicOffer";
+import { DemoSwitches } from "./DemoSwitches";
+import { ShellOverlays } from "./ShellOverlays";
+import { PLAN_NAMES } from "@/lib/student/plan-gate";
 import Rewards from "./Rewards";
-import { ChatDemo, Me, Unread, useChatPlan } from "./shellBits";
+import { Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
 import { setEquipped } from "./equipped";
 import type { FaceKind } from "./characters";
@@ -75,18 +78,28 @@ function Shell() {
   const still = useReducedMotion() ?? false;
   /* a signed-in student: their own plan, and no demo switches */
   const real = usePortalData();
-  const who = real?.name || "Maya Okafor";
+  const who = real ? real.name || real.email || "You" : "Maya Okafor";
   // a real student's character wears what they last chose, on every page
   useState(() => {
     if (!real) return;
     setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
     setSetting("testDate", real.testDate);
-    if (real.name) setSetting("name", real.name);
+    setSetting("name", real.name);
   });
   const [plan, setPlan] = useState<Plan>(
-    planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
+    /* ?plan= switches the design page only; a signed-in student always sees their own */
+    real ? real.plan : planQ !== null && planQ in PLANS ? (planQ as Plan) : "practice"
   );
-  const [dark, setDark] = useState(q.get("night") !== "0");
+  const [dark, setDark] = useState(() => startsDark(q.get("night"), real?.prefs));
+  /* light or dark is kept with a signed-in student's account, like every other choice */
+  const chooseDark = (next: boolean) => (
+    setDark(next),
+    setSetting("theme", next ? "dark" : "light")
+  );
+  /* a new student's first visit (or the first after paying): the welcome, once */
+  const [welcome, setWelcome] = useState(
+    () => real !== null && (!real.welcomed || q.get("welcome") === "1")
+  );
   const [rail, setRail] = useState(false);
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
@@ -102,8 +115,14 @@ function Shell() {
   const seen: readonly Page[] = rail ? items : away.length > 0 ? inView(bar, away, turned) : bar;
   /* ?page= opens a tab this plan has (the quiz screens send a student back with it) */
   const [page, setPage] = useState<Page>(() => {
-    const asked = q.get("page") as Page | null;
-    const has: readonly Page[] = [...PLANS[plan].rail, "settings", "account"];
+    // Settings is the Account page (older links say ?page=settings)
+    const asked = (q.get("page") === "settings" ? "account" : q.get("page")) as Page | null;
+    // a Practice-menu student's teacher or tutor homework opens from its link (?page=homework)
+    const has: readonly Page[] = [
+      ...PLANS[plan].rail,
+      "account",
+      ...(real?.homework ? (["homework"] as const) : []),
+    ];
     return asked && has.includes(asked) ? asked : PLANS[plan].home;
   });
   const [skill, setSkill] = useState<OpenSkill | null>(null);
@@ -129,7 +148,7 @@ function Shell() {
   const extraTime = kept.extraTime;
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
-  useChatPlan(plan);
+  useChatPlan(plan, real !== null);
   const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
@@ -168,7 +187,11 @@ function Shell() {
     setPage("library");
     setSection(found.section);
     setDomain(found.domain);
-    setSkill({ ...found.skill, domain: found.domain });
+    // the student's own level, not the stand-in the found skill may carry
+    const mine = skills[found.section]
+      .flatMap((d) => d.skills)
+      .find((k) => k.name === found.skill.name);
+    setSkill({ ...(mine ?? found.skill), domain: found.domain });
     setStat(null);
     window.scrollTo({ top: 0 });
   };
@@ -442,7 +465,7 @@ function Shell() {
           </span>
           <span className={styles.word}>
             {who}
-            <small>{PLANS[plan].name}</small>
+            <small>{real ? PLAN_NAMES[real.planId] : PLANS[plan].name}</small>
           </span>
         </button>
       </motion.nav>
@@ -451,7 +474,7 @@ function Shell() {
         open={menu && rail}
         still={still}
         dark={dark}
-        onDark={setDark}
+        onDark={chooseDark}
         onSettings={() => (go("account"), setMenu(false))}
         onClose={() => setMenu(false)}
       />
@@ -526,7 +549,7 @@ function Shell() {
           )}
         </div>
         {page === "library" && !section && <LibraryHero onPick={setSection} />}
-        {PLANS[plan].home === "library" && page === "library" && !section && (
+        {PLANS[plan].home === "library" && page === "library" && !section && !welcome && (
           <LibraryChallenge intro={intro} />
         )}
         {/* opening a skill slides its page in from the right, over the Library; going back slides it away */}
@@ -568,7 +591,7 @@ function Shell() {
                   rail={rail}
                   section={section}
                   taught={plan !== "practice"}
-                  pro={plan === "practice" && !free}
+                  pro={real ? real.planId === "pro" : plan === "practice" && !free}
                   onDomain={(name) => {
                     dir.current = 1;
                     setDomain(name);
@@ -600,7 +623,7 @@ function Shell() {
                   window.scrollTo({ top: 0 });
                 }}
                 extraTime={extraTime}
-                free={free && plan === "practice"}
+                free={real ? real.planId === "free" : free && plan === "practice"}
                 onSkill={openSkill}
               />
             </motion.div>
@@ -609,15 +632,18 @@ function Shell() {
         {page === "chat" && plan !== "practice" && (
           <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
         )}
-        {page === "homework" && <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />}
+        {page === "homework" && !welcome && (
+          <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />
+        )}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
         {page === "rewards" && <Rewards rail={rail} onTrail={setTrail} />}
         {page === "account" && (
           <Settings
             rail={rail}
+            folder={q.get("folder")}
             plan={plan}
             dark={dark}
-            onDark={setDark}
+            onDark={chooseDark}
             onGo={go}
             onTrail={setTrail}
           />
@@ -634,54 +660,32 @@ function Shell() {
         )}
       </main>
 
-      {/* after 8 PM the offer of classical music comes in at the top right (MusicOffer.tsx) */}
-      <MusicOffer key={offer} force={offer > 0} />
+      <ShellOverlays
+        welcome={welcome}
+        paid={q.get("welcome") === "1"}
+        offer={offer}
+        onWelcomed={() => {
+          setWelcome(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete("welcome");
+          window.history.replaceState(null, "", url);
+        }}
+      />
 
       {!real && q.get("demo") !== "0" && (
-        <div className={styles.demo} role="group" aria-label="Demo switches">
-          {(Object.keys(PLANS) as Plan[]).map((k) => (
-            <button key={k} type="button" aria-pressed={plan === k} onClick={() => choosePlan(k)}>
-              {PLANS[k].label}
-            </button>
-          ))}
-          {(page === "progress" || page === "mistakes") &&
-            (Object.keys(STUDENTS) as StudentKey[]).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={student === k}
-                onClick={() => setStudent(k)}
-              >
-                {STUDENTS[k].label}
-              </button>
-            ))}
-          {page === "progress" && plan === "practice" && (
-            <button type="button" aria-pressed={free} onClick={() => setFree(!free)}>
-              Free plan
-            </button>
-          )}
-          {plan !== "practice" && <ChatDemo plan={plan} />}
-          {page === "homework" && (
-            <>
-              <button type="button" aria-pressed={examOpen} onClick={() => setExamOpen(!examOpen)}>
-                Exam open
-              </button>
-              <button type="button" onClick={() => setIntro(intro + 1)}>
-                Challenge intro
-              </button>
-            </>
-          )}
-          {/* shows the late-night offer of music now, whatever the hour and whatever was answered */}
-          <button
-            type="button"
-            onClick={() => {
-              forgetMusic();
-              setOffer(offer + 1);
-            }}
-          >
-            Offer music
-          </button>
-        </div>
+        <DemoSwitches
+          plan={plan}
+          onPlan={choosePlan}
+          page={page}
+          student={student}
+          onStudent={setStudent}
+          free={free}
+          onFree={setFree}
+          examOpen={examOpen}
+          onExamOpen={setExamOpen}
+          onIntro={() => setIntro(intro + 1)}
+          onOffer={() => setOffer(offer + 1)}
+        />
       )}
     </div>
   );

@@ -43,6 +43,23 @@
   color: var(--quiz-bg);
   font-weight: 800;
 }
+/* An admin's quiet mark on a question the generator made: a small lens of the glass, muted
+   text, nothing that pulls the eye from the question. Students never see it. */
+.generated {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--quiz-line) 80%, transparent);
+  border-radius: 999px;
+  background: var(--quiz-lens);
+  color: var(--quiz-text-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: default;
+}
 .marker {
   display: inline-flex;
   align-items: center;
@@ -516,6 +533,28 @@
   padding-top: 18px;
   border-top: 1px solid var(--quiz-line);
   line-height: 1.6;
+}
+/* The title with an action at its right (the second chance); on a narrow page the action drops
+   under the title rather than squeezing it. */
+.explanationHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 0 0 10px;
+}
+/* with the button there, the title keeps its place and the button rises into the page's margin */
+.explanationHead:has(button) {
+  margin: -13px 0 10px;
+}
+/* on a phone or a tablet the page's top edge holds the grip that resizes it: stay clear of it */
+:global([data-layout="compact"]) .explanationHead:has(button),
+:global([data-layout="medium"]) .explanationHead:has(button) {
+  margin-top: 0;
+}
+.explanationHead .explanationTitle {
+  margin: 0;
 }
 .explanationTitle {
   margin: 0 0 10px;

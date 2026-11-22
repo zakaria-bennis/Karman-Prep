@@ -1,7 +1,7 @@
 "use client";
 // The Daily 10 ending, "Box first" (approved round five, with the founder's reward layer): a new
-// companion's moment when one joined, then the box (today's tokens fly to the balance, and a
-// mystery box opens when the balance pays for one), then one calm column: the score, each
+// companion's moment when one joined, then the box (today's coins fly to the balance; boxes open
+// only in the portal's Rewards), then one calm column: the score, each
 // section, the answers, the one next step, and the top three skills, with the student's companion
 // peeking over the card. The painting's accent (no marigold), a squared box with no machine and no
 // shadow. Tap or press any key to skip the box; reduced motion holds every moment still.
@@ -35,7 +35,6 @@ export function DailyTenEnd({
   const [rewards, setRewards] = useState<RewardState | null | undefined>(undefined);
   const [phase, setPhase] = useState<EndingPhase | null>(null);
   const [joining, setJoining] = useState(0);
-  const [balance, setBalance] = useState<number | null>(null);
   const fresh = useMemo(
     () => (rewards ? rewards.companions.filter((c) => !c.seen).map((c) => c.animal) : []),
     [rewards]
@@ -65,7 +64,6 @@ export function DailyTenEnd({
   useEffect(() => {
     if (phase || !phases.length) return;
     setPhase(phases[0]);
-    setBalance(rewards ? rewards.balance : null);
     // Each companion's moment plays once.
     if (fresh.length) void actionCompanionsSeen({ animals: fresh }).catch(() => undefined);
   }, [phase, phases, rewards, fresh]);
@@ -102,11 +100,7 @@ export function DailyTenEnd({
               tokens={result.tokens}
               balanceBefore={rewards ? Math.max(0, rewards.balance - result.tokens) : 0}
               balanceAfter={rewards ? rewards.balance : null}
-              animal={animal}
-              onDone={(b) => {
-                if (b !== null) setBalance(b);
-                advance("box");
-              }}
+              onDone={() => advance("box")}
             />
           ) : (
             <section className={s.message} aria-busy="true">
@@ -151,12 +145,7 @@ export function DailyTenEnd({
           )}
           {result.tokens > 0 && (
             <span>
-              <Num count>+{result.tokens}</Num> tokens
-            </span>
-          )}
-          {balance !== null && (
-            <span>
-              <Num count>{balance}</Num> {balance === 1 ? "token" : "tokens"} to spend
+              <Num count>+{result.tokens}</Num> coins
             </span>
           )}
         </p>

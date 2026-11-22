@@ -597,3 +597,105 @@
   flex: 1 1 100%;
   margin: 0;
 }
+
+/* ---- Free's questions at the top of Today: how many of the 100 are left, and the way up ---- */
+.today .freeLeft {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  padding: 12px 14px 14px;
+  border-radius: var(--r-lens);
+  color: inherit;
+  text-align: left;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  font-size: 15px;
+  font-weight: 500;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.today .freeLeft b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.today .freeLeft em {
+  color: var(--go);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* the band: what is left of the 100, in the Library's green */
+.today .freeLeft > i {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.today .freeLeft > i > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--go);
+}
+
+.today .freeLeft[data-out] {
+  background: color-mix(in srgb, var(--go) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--go) 55%, transparent);
+}
+
+.today .freeLeft[data-out] > i {
+  display: none;
+}
+
+.today .freeLeft:active {
+  transform: scale(0.98);
+}
+
+.today .freeLeft:focus-visible,
+.modes .lockedWorkshops:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* Workshops, locked for Free and Practice: the same pill as Pro's, with a padlock */
+.modes .lockedWorkshops {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  opacity: 0.86;
+  transition: background 0.2s var(--out);
+}
+
+@media (hover: hover) {
+  .modes .lockedWorkshops:hover {
+    background: var(--hover);
+    opacity: 1;
+  }
+}
+
+.lock {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today .freeLeft {
+    transition: none;
+  }
+}

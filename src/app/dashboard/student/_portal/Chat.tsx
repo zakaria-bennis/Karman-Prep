@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import ChatThread, { Face, Here, gist } from "./ChatThread";
 import { classFaces, chat, personOf, useChat, type Presence, type Thread } from "./chatStore";
 import { connectLive } from "./chatLive";
+import { usePortalData } from "./portalData";
 import styles from "./chat.module.css";
 import { Scold } from "./ChatScold";
 import { calm } from "./homeworkMotion";
@@ -124,12 +125,15 @@ export default function Chat({
 }) {
   const { threads, presence, paused, warning, inQuiz, live, peers } = useChat();
   // signed in, with a class chat: the messages are the real ones. Otherwise the stand-ins stay.
+  const signedIn = usePortalData() !== null;
+  const [tried, setTried] = useState(false);
   useEffect(() => {
     let stop: (() => void) | null = null;
     let gone = false;
     void connectLive().then((s) => {
       if (gone) s?.();
       else stop = s;
+      if (!gone) setTried(true);
     });
     return () => {
       gone = true;
@@ -165,6 +169,16 @@ export default function Chat({
   }, [starting]);
 
   const strangers = peers.filter((id) => !threads.some((t) => t.with === id));
+
+  // a signed-in student with no class chat and no tutor yet: say so plainly
+  if (signedIn && tried && threads.length === 0)
+    return (
+      <div className={`${lib.library} ${styles.chat}`}>
+        <p className={`${lib.glass} ${styles.shut}`}>
+          No chats yet. Your class and your tutor show up here once you are placed.
+        </p>
+      </div>
+    );
 
   // in a skill set, a quiz or an exam there is no chat, and nothing of it to see
   if (inQuiz)

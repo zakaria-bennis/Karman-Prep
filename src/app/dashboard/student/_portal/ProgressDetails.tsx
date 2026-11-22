@@ -31,7 +31,6 @@ import {
   longestStreak,
   mostMissed,
   paceOf,
-  skillsOf,
   recentGains,
   recentSlips,
   slowest,
@@ -43,9 +42,25 @@ import { dateOf, streak, type DayLog, type Student } from "./progressData";
 import styles from "./progressDetails.module.css";
 import { clock, minSec, type StatKey } from "./progressStats";
 import { LEVELS, SECTIONS } from "./skills72";
+import { usePortalData, useSkills } from "./portalData";
+
+/** Panes still drawn from stand-in breakdowns (progressBreakdowns.ts), not the student's own answers:
+ *  a signed-in student does not see them until they are worked out from real data. */
+const STAND_IN = new Set([
+  "By domain",
+  "By mode",
+  "Missed most",
+  "Recent gains",
+  "Recent slips",
+  "By outcome",
+  "Slowest skills",
+]);
 
 /** The panes each number's page has, in order. On a phone each is a page of its own. */
-export const panesOf = (stat: StatKey, student: Student): string[] =>
+export const panesOf = (stat: StatKey, student: Student, real = false): string[] =>
+  panesFor(stat, student).filter((pane) => !real || !STAND_IN.has(pane));
+
+const panesFor = (stat: StatKey, student: Student): string[] =>
   ({
     time: ["By domain", "By weekday"],
     questions: ["By domain", "By mode", "Missed most"],
@@ -61,7 +76,9 @@ export const Only = createContext<string | null>(null);
 
 function Pane({ title, children }: { title: string; children: ReactNode }) {
   const only = useContext(Only);
+  const real = usePortalData() !== null;
   if (only !== null && only !== title) return null;
+  if (real && STAND_IN.has(title)) return null;
   return (
     <section className={`${lib.glass} ${styles.pane}`} aria-label={title}>
       <h2>{title}</h2>
@@ -222,6 +239,9 @@ export default function Details({
   part: PacePart;
   onSkill: (found: Found) => void;
 }) {
+  const real = usePortalData() !== null;
+  // the student's own levels (the made-up ones on the design page)
+  const levels = useSkills();
   const to = student.days;
   const inSpan = (key: StatKey) => book[key][to] - (from > 0 ? book[key][from] : 0);
   const accuracy = book.accuracy[to];
@@ -289,7 +309,7 @@ export default function Details({
         <Pane title="Sections">
           <div className={styles.rings}>
             {SECTIONS.map((section) => {
-              const skills = skillsOf(section);
+              const skills = levels[section].flatMap((d) => d.skills);
               const counts = tally(skills);
               return (
                 <div key={section}>
@@ -337,7 +357,7 @@ export default function Details({
             <tr>
               <th scope="col">Exam</th>
               <th scope="col">Date</th>
-              <th scope="col">Pace per question</th>
+              {!real && <th scope="col">Pace per question</th>}
               <th scope="col">Score</th>
               <td />
             </tr>
@@ -353,7 +373,7 @@ export default function Details({
                     day: "numeric",
                   })}
                 </td>
-                <td>{minSec(row.pace)}</td>
+                {!real && <td>{minSec(row.pace)}</td>}
                 <td>{row.total}</td>
                 <td>
                   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
