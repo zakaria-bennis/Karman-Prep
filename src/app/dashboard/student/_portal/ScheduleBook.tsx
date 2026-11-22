@@ -14,6 +14,9 @@
 //             full-length exam's review, to tap, and a line of the student's own.
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { activity } from "./progressData";
+import { ledger } from "./progressStats";
+import { usePortalData, useSkills } from "./portalData";
 import { calm } from "./homeworkMotion";
 import Cheer from "./ScheduleCheer";
 import { press, wave } from "./scheduleMotion";
@@ -22,6 +25,7 @@ import {
   HOUR,
   RECOMMENDED,
   RULES,
+  recommendFor,
   SAT_DAY,
   choices,
   clock,
@@ -36,7 +40,7 @@ import {
   type Length,
   type Session,
 } from "./scheduleData";
-import { isLive, satDayOf, schedule, tutorFirst } from "./scheduleStore";
+import { hasTutor, isLive, isReal, satDayOf, schedule, tutorFirst } from "./scheduleStore";
 import { LEVELS } from "./skills72";
 import { chosen, tick } from "./sound";
 import page from "./schedule.module.css";
@@ -65,7 +69,17 @@ export default function Book({
   onBuy: () => void;
   onChat: () => void;
 }) {
-  const lengths = isLive() ? lengthsFor("private-10") : lengthsFor(account.pack);
+  const lengths = lengthsFor(account.pack);
+  // what to work on: a real student's own skill levels and pace; the design page's made-up ones
+  const real = usePortalData();
+  const skills = useSkills();
+  const picks = useMemo(() => {
+    if (!real) return RECOMMENDED;
+    const pace = ledger(real.student, activity(real.student)).pace.at(-1) ?? 0;
+    return recommendFor(skills, pace);
+  }, [real, skills]);
+  const [busy, setBusy] = useState(false);
+  const sat = satDayOf(SAT_DAY);
   const [minutes, setMinutes] = useState<Length>(moving?.minutes ?? lengths[0]);
   // the page's clock ticks every second; the open times only need the minute
   const minute = Math.floor(now / 60_000) * 60_000;
@@ -165,11 +179,16 @@ export default function Book({
   const times = useRef<HTMLUListElement>(null);
   useEffect(() => wave(times.current), [day, minutes]);
 
-  const send = () => {
-    if (start === null) return;
+  // the celebration waits for the booking to go through; a refusal is said by the store
+  const send = async () => {
+    if (start === null || busy) return;
     chosen();
-    if (moving) schedule.move(moving.id, start, now);
-    else schedule.book({ start, minutes, focus, note: note.trim() || undefined });
+    setBusy(true);
+    const ok = moving
+      ? await schedule.move(moving.id, start, now)
+      : await schedule.book({ start, minutes, focus, note: note.trim() || undefined });
+    setBusy(false);
+    if (!ok) return;
     onBooked();
     setDone({ start, minutes });
   };
@@ -212,10 +231,18 @@ export default function Book({
         ) : (
           <div className={styles.none}>
             <b>Nothing open</b>
-            <p>{tutorFirst()} has no open times in the next four weeks.</p>
-            <button type="button" className={page.go} onClick={onChat}>
-              Message {tutorFirst()}
-            </button>
+            <p>
+              {!hasTutor()
+                ? "We're matching you with a tutor. Booking opens here once you're paired."
+                : isReal() && !isLive()
+                  ? `${tutorFirst()} is setting up their calendar.`
+                  : `${tutorFirst()} has no open times in the next four weeks.`}
+            </p>
+            {hasTutor() && (
+              <button type="button" className={page.go} onClick={onChat}>
+                Message {tutorFirst()}
+              </button>
+            )}
           </div>
         )
       ) : (
@@ -233,7 +260,7 @@ export default function Book({
                   const info = days.find((d) => d.day === cell);
                   const date = new Date(cell);
                   const open = info?.times.length ?? 0;
-                  const sat = sameDay(satDayOf(SAT_DAY), cell);
+                  const satHere = sat !== null && sameDay(sat, cell);
                   const own = mine.find((s) => sameDay(s.start, cell));
                   const can = !!info && (open > 0 || !!info.why);
                   return (
@@ -244,9 +271,9 @@ export default function Book({
                       aria-pressed={cell === day}
                       disabled={!can && !own}
                       data-open={open > 0 || undefined}
-                      data-sat={sat || undefined}
+                      data-sat={satHere || undefined}
                       data-sky={own ? skyOf(own.start) : undefined}
-                      aria-label={`${dateLong(cell)}${open > 0 ? `, ${open} open` : ", nothing open"}${own ? `, your session at ${clock(own.start)}` : ""}${sat ? ", your SAT" : ""}`}
+                      aria-label={`${dateLong(cell)}${open > 0 ? `, ${open} open` : ", nothing open"}${own ? `, your session at ${clock(own.start)}` : ""}${satHere ? ", your SAT" : ""}`}
                       onClick={(e) => {
                         tick();
                         press(e.currentTarget.querySelector("[data-face]"));
@@ -256,7 +283,7 @@ export default function Book({
                     >
                       <span data-face>
                         <b>{date.getDate()}</b>
-                        {sat && <em>SAT</em>}
+                        {satHere && <em>SAT</em>}
                       </span>
                     </button>
                   );
@@ -326,7 +353,7 @@ export default function Book({
             <div className={styles.focus}>
               <h3>Work on</h3>
               <ol className={styles.picks}>
-                {RECOMMENDED.map(({ skill, subject, level, value }) => {
+                {picks.map(({ skill, subject, level, value }) => {
                   const on = focus.includes(skill);
                   return (
                     <li key={skill}>
@@ -381,7 +408,12 @@ export default function Book({
                 </>
               )}
             </p>
-            <button type="button" className={page.go} disabled={start === null} onClick={send}>
+            <button
+              type="button"
+              className={page.go}
+              disabled={start === null || busy}
+              onClick={() => void send()}
+            >
               {moving ? "Move session" : "Confirm"}
             </button>
             {moving && start !== null && moving.start - now < RULES.noticeHours * HOUR && (

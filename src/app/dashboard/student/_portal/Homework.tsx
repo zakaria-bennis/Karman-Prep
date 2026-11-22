@@ -37,7 +37,6 @@ import {
   type Work as WorkPiece,
 } from "./homeworkData";
 import { usePortalData } from "./portalData";
-import { CHALLENGE, DAILY_10 } from "@/lib/student/quiz-routes";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
@@ -184,7 +183,9 @@ export default function Homework({
 }) {
   const now = useClock();
   /* a signed-in student's own work; the design page's is made up */
-  const real = usePortalData()?.homework ?? null;
+  const data = usePortalData();
+  const real = data?.homework ?? null;
+  const matching = data?.placementPending ?? false;
   const weekFor = (w: number) => (real ? realWeek(w, real) : weekOf(w));
   const weekNow = real?.weekNow ?? WEEK_NOW;
   const weeks = real ? real.weeks : WEEKS;
@@ -257,28 +258,29 @@ export default function Homework({
     .filter((w) => w.state !== "done")
     .reduce((n, w) => n + (w.sort === "cards" ? 4 : parseInt(w.much, 10) * 1.3), 0);
   const lines =
-    left === 0
-      ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
-      : [
-          `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
-          `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
-          ...(day.class ? [`Class at ${day.class}`] : []),
-        ];
+    all === 0
+      ? // nothing was ever set for this day: say so, without praise for work that never existed
+        matching
+        ? ["We're matching you with a tutor", "Their work shows up here once you're paired"]
+        : ["Nothing assigned yet", "Your tutor's work shows up here"]
+      : left === 0
+        ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
+        : [
+            `${left} ${day.from < 0 ? "missed" : day.from === 0 ? "left today" : "to do"}`,
+            `About ${Math.max(5, Math.round(minutes / 5) * 5)} minutes`,
+            ...(day.class ? [`Class at ${day.class}`] : []),
+          ];
   const R = 74;
   const round = 2 * Math.PI * R;
 
-  // its Start runs the Daily 10; until the quiz is joined up, it comes back here with it done
-  if (dailyOpen)
-    return (
-      <DailyStart
-        onStart={() => {
-          if (real) return window.location.assign(DAILY_10.path);
-          closeDaily();
-          setDailyDone(true);
-          setCheer(cheer + 1);
-        }}
-      />
-    );
+  // its Start plays the Daily 10 over the page; played to its ending, it comes back here done
+  // (the design page skips straight to done)
+  const dailyPlayed = () => {
+    closeDaily();
+    setDailyDone(true);
+    setCheer(cheer + 1);
+  };
+  if (dailyOpen) return <DailyStart onStart={dailyPlayed} onFinished={dailyPlayed} />;
 
   return (
     <div className={`${lib.library} ${styles.homework}`} data-whole={whole || undefined}>
@@ -287,7 +289,6 @@ export default function Homework({
         <ChallengeBanner
           now={challenge === "go"}
           onStart={() => {
-            if (real) return window.location.assign(CHALLENGE.path);
             setChallenge("done");
             setCheer(cheer + 1);
           }}
@@ -307,7 +308,7 @@ export default function Homework({
                 r={R}
                 className={styles.fill}
                 strokeDasharray={round}
-                strokeDashoffset={round * (1 - (all ? done / all : 1))}
+                strokeDashoffset={round * (1 - (all ? done / all : 0))}
                 transform="rotate(-90 84 84)"
               />
             </svg>
@@ -452,6 +453,9 @@ export default function Homework({
               onFinish={(id) => {
                 const href = day.work.find((w) => w.id === id)?.href;
                 if (href) return window.location.assign(href);
+                // a signed-in student's work is done only when it really is (the design page
+                // marks it done on the spot)
+                if (real) return;
                 setFinished([...finished, id]);
                 setCheer(cheer + 1);
               }}

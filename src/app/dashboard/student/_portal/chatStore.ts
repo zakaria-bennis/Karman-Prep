@@ -40,6 +40,8 @@ export const meet = (id: string, name: string, role?: Person["role"]) => {
 };
 
 export type Shared = {
+  /** The bank's question, for a signed-in student's own; the made-up ones have none. */
+  id?: string;
   skill: string;
   section: "Reading and Writing" | "Math";
   /** Where the student met it: "Daily 10, Nov 14". */
@@ -270,6 +272,11 @@ export const chat = {
   start: (plan: "cohort" | "private") => {
     if (state.live) return;
     set({ ...state, threads: plan === "cohort" ? cohort() : alone() });
+  },
+  /** A signed-in student: no made-up chats; the live ones (chatLive.ts) fill the list. */
+  empty: () => {
+    if (state.live) return;
+    set({ ...state, threads: [], peers: [] });
   },
   presence: (presence: Presence) => set({ ...state, presence }),
   quiz: (inQuiz: boolean) => set({ ...state, inQuiz }),

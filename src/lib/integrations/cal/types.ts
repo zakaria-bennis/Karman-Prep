@@ -36,6 +36,9 @@ export interface CreateBookingParams {
   eventTypeId: number | string;
   /** ISO start time. End is derived from the event type's duration. */
   start: IsoDateTime;
+  /** A length other than the event type's own (90 or 120); Cal takes it only when the event type
+   *  offers several lengths. */
+  lengthInMinutes?: number;
   attendee: CalAttendee;
   metadata: BookingMetadata;
 }

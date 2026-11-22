@@ -119,6 +119,8 @@ export async function getAvailability(args: {
   dateFrom: string; // ISO date or datetime
   dateTo: string; // ISO date or datetime
   timeZone?: string;
+  /** The session's length, for an event type that offers several (90 or 120). */
+  duration?: number;
 }): Promise<AvailableSlot[]> {
   // Verified against the live Cal v2 API on 2026-04-25:
   // GET /v2/slots/available with cal-api-version=2024-08-13 returns
@@ -139,6 +141,7 @@ export async function getAvailability(args: {
       startTime: args.dateFrom,
       endTime: args.dateTo,
       timeZone: args.timeZone,
+      duration: args.duration,
     },
   });
 

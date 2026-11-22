@@ -8,12 +8,12 @@
 // Coins are not spoken of here: they appear only on Rewards.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
-import { PlayQuiz, type Made } from "@/app/dev/end-options/PlayQuiz";
+import { usePlay } from "./play/PlayLayer";
+import type { LocalQuestion } from "./play/LocalPlay";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";
 import styles from "./homeworkChallenge.module.css";
 import { usePortalData, useStreak } from "./portalData";
-import { CHALLENGE } from "@/lib/student/quiz-routes";
 import { chosen, tick } from "./sound";
 
 /** A hexagon with a question mark that tips from side to side: the challenge question's own mark
@@ -30,8 +30,9 @@ function Mark({ size }: { size: number }) {
   );
 }
 
-/** Today's two (stand-ins): one Reading and Writing question and one Math question. */
-const TODAY: Made[] = [
+/** The design page's two (stand-ins): one Reading and Writing question and one Math question. A
+ *  signed-in student's are today's real two, answered over the city (play/ChallengePlay.tsx). */
+const TODAY: LocalQuestion[] = [
   {
     subject: "reading_writing",
     text: "The scientist's early results were promising; ______, she repeated the experiment twice before publishing. Which choice completes the text with the most logical transition?",
@@ -60,13 +61,21 @@ export function ChallengeBanner({
   now?: boolean;
 }) {
   const streak = useStreak();
-  /* a signed-in student answers the real two questions on the live quiz page */
+  /* a signed-in student answers the real two questions, over the same city */
   const real = usePortalData() !== null;
   const ref = useRef<HTMLDivElement>(null);
-  const quiz = useRef<HTMLDivElement>(null);
+  const { layer, play, playing } = usePlay(undefined, (finished) =>
+    leave(finished ? onStart : onLater)
+  );
+  const busy = useRef(false);
+  const playReal = () => play({ kind: "challenge", noWorld: true }, null);
+  const playDemo = () => play({ kind: "demo", title: "Challenge", questions: TODAY }, null);
   /** Taken on: the card fills the screen, Karman speeds off to the right, and the quiz comes in from
    *  the left until it covers everything (founder, 2026-11-21). */
   const [going, setGoing] = useState(false);
+  useEffect(() => {
+    busy.current = going || playing !== null;
+  }, [going, playing]);
   useEffect(() => {
     const el = ref.current;
     if (!going || !el) return;
@@ -74,7 +83,7 @@ export function ChallengeBanner({
     root.setAttribute("data-quiz-up", "");
     const down = () => root.removeAttribute("data-quiz-up");
     if (calm()) {
-      gsap.set(quiz.current, { visibility: "visible" });
+      (real ? playReal : playDemo)();
       return down;
     }
     const card = el.querySelector<HTMLElement>("[data-card]");
@@ -120,22 +129,17 @@ export function ChallengeBanner({
         1.4
       )
       .to(flyer, { left: "140%", duration: 0.75, ease: "power3.in" }, 0.2)
-      .fromTo(
-        quiz.current,
-        { x: "-100%", visibility: "visible" },
-        { x: 0, duration: 0.85, ease: "power3.inOut" },
-        0.75
-      );
+      // once he is gone, the questions come in over the city
+      .call(() => (real ? playReal : playDemo)(), [], 0.95);
     return () => {
       tl.kill();
       down();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [going]);
   useEffect(() => {
-    if (!now) return;
-    if (real) window.location.assign(CHALLENGE.path);
-    else setGoing(true);
-  }, [now, real]);
+    if (now) setGoing(true);
+  }, [now]);
   // it arrives: the dark comes up, the card springs in, and its pieces follow one after another
   useEffect(() => {
     const el = ref.current;
@@ -161,7 +165,7 @@ export function ChallengeBanner({
   }, []);
   // Escape sends it away, as Later does
   useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && !quiz.current && leave(onLater);
+    const key = (e: KeyboardEvent) => e.key === "Escape" && !busy.current && leave(onLater);
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,7 +198,13 @@ export function ChallengeBanner({
         <p data-rise>One Reading question and one Math question, every day.</p>
         <span className={styles.room} />
         <p className={styles.streak} data-rise>
-          <b>{streak}</b> days in a row
+          {streak > 0 ? (
+            <>
+              <b>{streak}</b> {streak === 1 ? "day" : "days"} in a row
+            </>
+          ) : (
+            "Answer today's to start your streak"
+          )}
         </p>
         <div className={styles.pair} data-rise>
           <button
@@ -203,7 +213,6 @@ export function ChallengeBanner({
             autoFocus
             onClick={() => {
               chosen();
-              if (real) return window.location.assign(CHALLENGE.path);
               setGoing(true);
             }}
           >
@@ -221,19 +230,7 @@ export function ChallengeBanner({
           </button>
         </div>
       </div>
-      {going && (
-        <div ref={quiz} className={styles.quiz}>
-          <PlayQuiz
-            set={TODAY}
-            section="Challenge"
-            noWorld
-            topic="Today's two"
-            onAnswers={() => {}}
-            onFinish={() => leave(onStart)}
-            onExit={() => leave(onLater)}
-          />
-        </div>
-      )}
+      {layer}
     </div>
   );
 }
@@ -260,7 +257,11 @@ export function ChallengeCard({ onStart }: { onStart: () => void }) {
       <Mark size={40} />
       <p>
         <b>Challenge</b>
-        <small>{streak} days in a row</small>
+        <small>
+          {streak > 0
+            ? `${streak} ${streak === 1 ? "day" : "days"} in a row`
+            : "Start your streak today"}
+        </small>
       </p>
       <button
         type="button"

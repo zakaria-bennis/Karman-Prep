@@ -8,13 +8,16 @@
 //           its own under them.
 //   Mix     today's ten: the skills they come from, each with Karman showing where the student
 //           stands on it (ten different skills still fit); then one green Start.
-// Never skipped, and nothing starts until Start is pressed. Everything is a stand-in: no student
-// data is read yet.
+// Never skipped, and nothing starts until Start is pressed. A signed-in student's ten are today's
+// real ones (the same all day), and Start plays them over the page (play/PlayLayer.tsx); the design
+// page shows ten stand-in skills.
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { prefersStill } from "@/lib/painting/motion";
-import { TailsMark } from "@/app/dev/end-options/TailsStage";
-import go from "@/app/dev/end-options/parts.module.css";
+import { actionDailyMix, type DailyPick } from "@/app/learn/play-actions";
+import { TailsMark } from "./play/fox/TailsStage";
+import go from "./play/go.module.css";
+import { usePlay } from "./play/PlayLayer";
 import { DailyWorld } from "./DailyWorld";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
@@ -54,6 +57,8 @@ const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
 export function Streak() {
   const streak = useStreak();
   const best = useBestStreak();
+  // the streak counts challenge days: once today's is answered, today is already in it
+  const kept = usePortalData()?.today.challengeDone ?? false;
   return (
     <section className={`${lib.glass} ${styles.streak}`} data-rise>
       <span className={styles.flame} data-flame aria-hidden="true">
@@ -61,7 +66,7 @@ export function Streak() {
       </span>
       <p>
         <b>{streak} days in a row</b>
-        <small>Today makes {streak + 1}</small>
+        <small>{kept ? "Today is in" : `Today makes ${streak + 1}`}</small>
       </p>
       <p className={styles.best}>
         <small>Best</small>
@@ -78,9 +83,48 @@ export function greeting(hour: number) {
   return "Good evening";
 }
 
-export function DailyStart({ onStart }: { onStart: () => void }) {
-  const first = usePortalData()?.firstName || "Maya";
+/** Today's real ten, grouped by section as the page draws them. */
+function grouped(picks: DailyPick[]): typeof MIX {
+  return MIX.map((m) => {
+    const counts = new Map<string, Pick>();
+    for (const p of picks.filter((p) => p.section === m.key)) {
+      const had = counts.get(p.skill);
+      counts.set(p.skill, { skill: p.skill, n: (had?.n ?? 0) + 1, level: p.level });
+    }
+    return { ...m, picks: [...counts.values()] };
+  }).filter((m) => m.picks.length > 0);
+}
+
+export function DailyStart({
+  onStart,
+  onFinished,
+  onGo,
+}: {
+  /** The design page's Start (no student signed in). */
+  onStart: () => void;
+  /** A signed-in student's Daily 10 was played to its ending and closed. */
+  onFinished?: () => void;
+  /** Shown inside a player already (Today's Start): Start hands over to it. */
+  onGo?: (from: Element | null) => void;
+}) {
+  const portal = usePortalData();
+  const real = portal !== null;
+  const first = portal?.firstName || "Maya";
   const ref = useRef<HTMLDivElement>(null);
+  const start = useRef<HTMLButtonElement>(null);
+  const [mix, setMix] = useState<typeof MIX | null>(real ? null : MIX);
+  const { layer, play } = usePlay(undefined, (finished) => finished && onFinished?.());
+  useEffect(() => {
+    if (!real) return;
+    let live = true;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    actionDailyMix({ timeZone })
+      .then((r) => live && setMix(r.ok ? grouped(r.value.picks) : []))
+      .catch(() => live && setMix([]));
+    return () => {
+      live = false;
+    };
+  }, [real]);
   // the time is read in the browser only, so the scene the server drew never disagrees with it
   const [now, setNow] = useState<Date | null>(null);
   const [cheer, setCheer] = useState(0);
@@ -144,7 +188,8 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
       <section className={`${lib.glass} ${styles.mix}`} data-rise>
         <h2>Today&rsquo;s ten</h2>
         <div className={styles.groups}>
-          {MIX.map((m) => (
+          {mix === null && <p className={styles.wait}>Picking today&rsquo;s ten</p>}
+          {(mix ?? []).map((m) => (
             <div key={m.key} className={styles.group} data-key={m.key}>
               <h3>{m.section}</h3>
               <ul>
@@ -159,11 +204,19 @@ export function DailyStart({ onStart }: { onStart: () => void }) {
             </div>
           ))}
         </div>
-        <button type="button" className={`${go.go} ${styles.start}`} onClick={onStart}>
+        <button
+          ref={start}
+          type="button"
+          className={`${go.go} ${styles.start}`}
+          onClick={() =>
+            onGo ? onGo(start.current) : real ? play({ kind: "daily" }, start.current) : onStart()
+          }
+        >
           <span>Start Daily 10</span>
           <Icon name="go" size={20} />
         </button>
       </section>
+      {layer}
     </div>
   );
 }

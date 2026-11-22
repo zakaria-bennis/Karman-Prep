@@ -2,6 +2,7 @@
 
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { assertQuestionsLeft } from "@/lib/assembler/plan-gate";
+import { PLAN_ENTITLEMENTS, difficultyRangeFor, getPlan, usesPracticeSet } from "@/lib/plans";
 import { withPlanLimit } from "@/lib/assembler/plan-limit";
 import { awardForAnswer } from "@/lib/quiz/points";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
@@ -16,13 +17,31 @@ import {
   supabaseCatalogSessionStore,
 } from "@/lib/catalog-practice/supabase-store";
 
-const service = createCatalogPracticeService({
+const deps = {
   fetchPool: fetchCatalogQuestionPool,
   loadEvidence: loadCatalogQuestionEvidence,
   loadOwnedAssignment: loadActiveAssignment,
   store: supabaseCatalogSessionStore,
   award: awardForAnswer,
-});
+};
+const service = createCatalogPracticeService(deps);
+
+/** Starting a session reads the pool: a core plan (Free, Practice, a school seat) reads only the
+ *  Practice plan's fixed set, at most its own top level. */
+async function serviceFor(clerkId: string) {
+  const plan = await getPlan(clerkId).catch(() => ({ entitlements: PLAN_ENTITLEMENTS.free }));
+  const cap = difficultyRangeFor(plan).maximumDifficulty;
+  const practiceSet = usesPracticeSet(plan);
+  return createCatalogPracticeService({
+    ...deps,
+    fetchPool: (input) =>
+      fetchCatalogQuestionPool(
+        { ...input, maximumDifficulty: Math.min(input.maximumDifficulty, cap) },
+        "practice",
+        { practiceSet }
+      ),
+  });
+}
 
 async function studentId(): Promise<string> {
   const { userId } = await safeAuth();
@@ -33,11 +52,13 @@ async function studentId(): Promise<string> {
 }
 
 export async function actionStartCatalogPractice(input: StartCatalogPracticeInput) {
-  return service.start(input, await studentId());
+  const id = await studentId();
+  return (await serviceFor(id)).start(input, id);
 }
 
 export async function actionResumeCatalogPractice(sessionId: string) {
-  return service.resume(sessionId, await studentId());
+  const id = await studentId();
+  return (await serviceFor(id)).resume(sessionId, id);
 }
 
 export async function actionSubmitCatalogPractice(input: {

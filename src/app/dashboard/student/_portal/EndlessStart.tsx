@@ -8,22 +8,25 @@
 //           of what the run draws from; and their best run in a card of its own.
 //   Right   how it goes: questions keep coming, three misses end the run, and where they come from;
 //           then one green Start.
-// Never skipped; nothing starts until Start. Stand-ins: no student data is read.
+// Never skipped; nothing starts until Start. A signed-in student's best run is their own, and Start
+// plays the run over the page (play/PlayLayer.tsx); the design page shows stand-ins and plays
+// eight made-up questions.
 import gsap from "gsap";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { RIVER_LANDS } from "@/lib/flight/world";
 import { prefersStill } from "@/lib/painting/motion";
-import go from "@/app/dev/end-options/parts.module.css";
-import { closeEndless, type EndlessRun } from "./endless";
+import { actionEndlessBest } from "@/app/learn/play-actions";
+import go from "./play/go.module.css";
+import { CIRCLES } from "./play/demo-questions";
+import { usePlay } from "./play/PlayLayer";
+import { scopeOf, TrialStart } from "./TrialStart";
+import { type EndlessRun } from "./endless";
 
 export { useEndlessTrail } from "./endless";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./dailyStart.module.css";
-import { usePortalData, useSkills } from "./portalData";
-import { SECTIONS, type Section } from "./skills72";
-import { catalogSkillOf } from "@/lib/portal/skill-bridge";
-import { practiceSet } from "@/lib/student/quiz-routes";
+import { usePortalData } from "./portalData";
 import own from "./endlessStart.module.css";
 import { WorldWindow } from "./WorldWindow";
 
@@ -57,27 +60,40 @@ function Lives() {
   );
 }
 
+/** Endless mode's start page, or a time trial's (the same store opens both, endless.ts). */
 export function EndlessStart({ run }: { run: EndlessRun }) {
-  /* a signed-in student's run is a skill set on the live quiz page: on this skill, or on the
-     weakest skill of this domain or side, as the old endless mode chose each round */
+  return run.mode === "trial" ? <TrialStart run={run} /> : <EndlessPage run={run} />;
+}
+
+function EndlessPage({ run }: { run: EndlessRun }) {
   const real = usePortalData() !== null;
-  const skills = useSkills();
-  const start = () => {
-    if (!real) return closeEndless();
-    const pool =
-      run.kind === "skill"
-        ? [run.name]
-        : (run.kind === "section"
-            ? skills[run.name as Section].flatMap((d) => d.skills)
-            : (SECTIONS.flatMap((s) => skills[s]).find((d) => d.name === run.name)?.skills ?? [])
-          )
-            .filter((k) => k.level < 3)
-            .sort((a, b) => a.level - b.level)
-            .map((k) => k.name);
-    const catalog = catalogSkillOf(pool[0] ?? run.name);
-    if (catalog) window.location.assign(practiceSet(catalog).path);
-    else closeEndless();
-  };
+  const scope = scopeOf(run);
+  const button = useRef<HTMLButtonElement>(null);
+  const { layer, play } = usePlay();
+  const [best, setBest] = useState<{ run: number; when: string | null } | null>(
+    real ? null : { run: BEST, when: BEST_WHEN }
+  );
+  useEffect(() => {
+    if (!real || !scope) return;
+    let live = true;
+    actionEndlessBest({ scope })
+      .then((r) => {
+        if (!live || !r.ok) return;
+        const when = r.value.when
+          ? new Date(r.value.when).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          : null;
+        setBest({ run: r.value.run, when });
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [real, run.kind, run.name]);
+  const start = () =>
+    real && scope
+      ? play({ kind: "endless", scope }, button.current)
+      : play({ kind: "demo", title: run.name, questions: CIRCLES }, button.current);
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -125,13 +141,15 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
             <Icon name="endless" size={34} />
           </span>
           <p>
-            <b>{BEST} in a row</b>
+            <b>{best && best.run > 0 ? `${best.run} in a row` : "No run yet"}</b>
             <small>Your best run</small>
           </p>
-          <p className={styles.best}>
-            <small>Set on</small>
-            <b>{BEST_WHEN}</b>
-          </p>
+          {best?.when && best.run > 0 && (
+            <p className={styles.best}>
+              <small>Set on</small>
+              <b>{best.when}</b>
+            </p>
+          )}
         </section>
       </div>
 
@@ -148,12 +166,12 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
             </li>
           ))}
         </ul>
-        {/* until the endless quiz is joined up, Start comes back to where the run began */}
-        <button type="button" className={`${go.go} ${styles.start}`} onClick={start}>
+        <button ref={button} type="button" className={`${go.go} ${styles.start}`} onClick={start}>
           <span>Start endless</span>
           <Icon name="go" size={20} />
         </button>
       </section>
+      {layer}
     </div>
   );
 }

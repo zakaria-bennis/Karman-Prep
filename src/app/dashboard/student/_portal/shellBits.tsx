@@ -2,11 +2,20 @@
 import { useEffect } from "react";
 import { chat, presenceNow, useChat, waiting } from "./chatStore";
 import type { Plan } from "./plans";
+import { useSettings } from "./settingsStore";
 import styles from "./shell.module.css";
 
-/** The profile picture until a student sets one of their own: Karman's plain one, a soft violet sky
- *  and a figure, its head at the circle's middle. */
+/** The student's picture: their own once they set one (Settings, Profile), drawn inside the same
+ *  square so every circle that holds it stays as it is. Until then, Karman's plain one: a soft violet
+ *  sky and a figure, its head at the circle's middle (never the fox). */
 export function Me() {
+  const { photo } = useSettings();
+  if (photo)
+    return (
+      <svg viewBox="0 0 34 34" width="34" height="34">
+        <image href={photo} width="34" height="34" preserveAspectRatio="xMidYMid slice" />
+      </svg>
+    );
   return (
     <svg viewBox="0 0 34 34" width="34" height="34">
       <defs>
@@ -43,11 +52,13 @@ export function Unread() {
 
 /** Chat begins as the plan has it (a Cohort student has every kind of chat, a Private student their
  *  tutor only), and knows whether the tutor's hours are over. */
-export function useChatPlan(plan: Plan) {
+export function useChatPlan(plan: Plan, real = false) {
   useEffect(() => {
-    if (plan !== "practice") chat.start(plan);
+    // a signed-in student sees only their real chats, never the design page's
+    if (real) chat.empty();
+    else if (plan !== "practice") chat.start(plan);
     chat.presence(presenceNow());
-  }, [plan]);
+  }, [plan, real]);
 }
 
 /** Demo switches for Chat: someone writes, the tutor announces, or it is after the tutor's hours. */

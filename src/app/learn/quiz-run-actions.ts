@@ -11,7 +11,6 @@ import {
   sectionSchema,
   startDiagnostic,
   startDomainQuiz,
-  startFullTest,
   startPracticeSet,
   submitSection,
 } from "@/lib/assembler/runs";
@@ -93,18 +92,6 @@ export async function actionStartDomainQuiz(input: { domainId: string }) {
       z.object({ domainId: z.string().min(1).max(60) }).parse(input).domainId
     )
   );
-}
-
-export async function actionStartFullTest(input: { form: number }) {
-  return wrap(async () => {
-    const id = await studentId();
-    const view = await startFullTest(
-      id,
-      z.object({ form: z.number().int().min(1).max(4) }).parse(input).form
-    );
-    await trackServer("test_started", id, { kind: "full" }); // analytics funnel step
-    return view;
-  });
 }
 
 export async function actionStartTimeTrial(input: { section: string }) {

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // The Daily 10's "Box first" ending on real reward state, played with Reduce motion on so every
-// moment stands finished: a new companion's moment, then the box with its mystery box offer, then
+// moment stands finished: a new companion's moment, then the box (no box to open: boxes open only
+// in the portal's Rewards), then
 // the results with the balance. The companion never appears before the questions are over.
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -68,7 +69,7 @@ beforeEach(() => {
 });
 
 describe("the Daily 10 ending", () => {
-  it("plays a new companion, then the box with its offer, then the results", async () => {
+  it("plays a new companion, then the box, then the results, and never offers a box", async () => {
     state.mockResolvedValue({ ok: true, value: rewards() });
     await act(async () => {
       render(<DailyTenEnd user={user} run={run} />);
@@ -78,15 +79,10 @@ describe("the Daily 10 ending", () => {
     expect(seen).toHaveBeenCalledWith({ animals: ["bunny"] });
 
     await act(async () => fireEvent.click(screen.getByRole("button", { name: /Continue/ })));
-    expect(screen.getByText("Enough for a mystery box")).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "Tokens: 330" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Open it/ })).toBeInTheDocument();
-
-    await act(async () =>
-      fireEvent.click(screen.getByRole("button", { name: "Save it for later" }))
-    );
+    expect(screen.queryByText("Enough for a mystery box")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Open it/ })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Your Daily 10 is done" })).toBeInTheDocument();
-    expect(screen.getByText("tokens to spend", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText("to spend", { exact: false })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Rewards" })).toHaveAttribute(
       "href",
       "/dashboard/student?page=rewards"

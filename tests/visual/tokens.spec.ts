@@ -48,7 +48,7 @@ const PAGES_TO_AUDIT = [
   { persona: "student_mid", url: "/dashboard/student", email: "dev-seed-mid@karman.local" },
   {
     persona: "student_mid",
-    url: "/dashboard/student/progress",
+    url: "/dashboard/student?page=progress",
     email: "dev-seed-mid@karman.local",
   },
   { persona: "student_mid", url: "/learn", email: "dev-seed-mid@karman.local" },

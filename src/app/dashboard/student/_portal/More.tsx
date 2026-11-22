@@ -6,10 +6,10 @@
 //   The Account page itself is Settings (Settings.tsx).
 //   AccountMenu  the small menu the profile opens on a desktop (founder, 2026-11-15: Settings
 //                lives here, not in the rail).
-// Signing out does nothing yet: the dev page has no session.
 import { AnimatePresence, motion } from "framer-motion";
 import { PLANS, type Plan } from "./plans";
 import { Sticker, type StickerName } from "./stickers";
+import { useSignOut } from "./useSignOut";
 import shell from "./shell.module.css";
 
 const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
@@ -43,6 +43,7 @@ export function AccountMenu({
   onSettings: () => void;
   onClose: () => void;
 }) {
+  const { signOut, leaving } = useSignOut();
   return (
     <AnimatePresence>
       {open && (
@@ -60,8 +61,14 @@ export function AccountMenu({
             Settings
           </button>
           <Look dark={dark} onDark={onDark} />
-          <button type="button" role="menuitem" className={shell.row} onClick={onClose}>
-            Sign out
+          <button
+            type="button"
+            role="menuitem"
+            className={shell.row}
+            disabled={leaving}
+            onClick={() => (onClose(), signOut())}
+          >
+            {leaving ? "Signing out" : "Sign out"}
           </button>
         </motion.div>
       )}

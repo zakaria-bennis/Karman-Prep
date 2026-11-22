@@ -1,0 +1,363 @@
+/* Option 1, made like Homework: its ring and its glass (homework.module.css), no time anywhere. */
+.page {
+  margin-top: var(--pad);
+}
+
+/* ---- left: the character in its ring, the percent right under it, and how the set went ---- */
+.side {
+  align-content: start;
+  transition:
+    background 0.35s var(--out),
+    box-shadow 0.35s var(--out),
+    -webkit-backdrop-filter 0.35s var(--out),
+    backdrop-filter 0.35s var(--out);
+}
+
+/* before the character is home, its pane has no glass yet: only the character, its ring and the
+   percent are there, out in the middle of the screen */
+.side[data-bare] {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.percent {
+  font: 400 44px/1 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: color-mix(in srgb, var(--ring) 70%, var(--ink));
+}
+
+/* the ring takes the color it has filled to; room is kept above for a hat */
+.ring {
+  overflow: visible;
+}
+
+.fill {
+  stroke: var(--ring);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ring) 70%, transparent));
+  transition: none;
+}
+
+.ring[data-gold] .fill {
+  filter: drop-shadow(0 0 10px rgb(247 196 52 / 0.9));
+}
+
+.about {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.verdict {
+  margin: 0;
+  font: 400 28px/1.15 var(--font-serif);
+  color: color-mix(in srgb, var(--ring) 55%, var(--ink));
+}
+
+.levelRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  font-size: 15px;
+  transition: box-shadow 0.6s var(--out);
+}
+
+.levelRow[data-lit] {
+  box-shadow:
+    inset 0 0 0 1px var(--glass-edge),
+    0 0 24px -4px rgb(120 230 190 / 0.7);
+}
+
+/* the skill's stage, still; it pops as the new one lands */
+.stageMark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: -6px 0;
+  animation: land 0.6s cubic-bezier(0.3, 1.6, 0.45, 1) both;
+}
+
+@keyframes land {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stageMark {
+    animation: none;
+  }
+}
+
+.coinRow {
+  margin: 4px 0 0;
+}
+
+/* ---- right: the answers, the next step ---- */
+.main {
+  gap: 14px;
+}
+
+.answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* an answer: clear glass with a clean edge in green or red, and a solid disc for its number */
+.answer {
+  --c: #f24d4d;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px 8px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--c) 12%, rgb(255 255 255 / 0.1));
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--c) 75%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
+  transition: background 0.2s var(--out);
+}
+
+.answer[data-ok] {
+  --c: #1fbf68;
+}
+
+.answer:hover {
+  background: color-mix(in srgb, var(--c) 20%, rgb(255 255 255 / 0.12));
+}
+
+.answer b {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.answer svg {
+  flex: none;
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the number sits in the optical middle of its disc: Hanken's lining figures, a hair raised */
+.num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding-bottom: 1px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font: 750 16px/1 var(--font-hanken);
+  font-style: normal;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* the next step, at the bottom right: the one button, the others centered under it */
+.next {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: min(380px, 100%);
+  margin: auto 0 0 auto;
+  padding-top: 18px;
+}
+
+.next > div {
+  width: 100%;
+}
+
+@media (max-width: 959px) {
+  .hero {
+    grid-row: span 2;
+  }
+
+  .percent {
+    font-size: 30px;
+  }
+
+  .about {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .levelRow,
+  .coinRow {
+    grid-column: 1 / -1;
+  }
+
+  .answers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .next {
+    margin: 4px auto 0;
+  }
+}
+
+/* by night the panes stay clear glass: the color is in the edge and the disc, not the fill */
+:global([data-kp-mode="dark"]) .answer {
+  background: color-mix(in srgb, var(--c) 7%, rgb(255 255 255 / 0.05));
+}
+
+:global([data-kp-mode="dark"]) .answer:hover {
+  background: color-mix(in srgb, var(--c) 14%, rgb(255 255 255 / 0.07));
+}
+
+/* until the last question's glass has become the ring, the ending waits unseen */
+.page[data-held] [data-pane] {
+  visibility: hidden;
+}
+
+.pop {
+  display: grid;
+  place-items: center;
+}
+
+/* ---- the activities' own parts ---- */
+.sub {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--soft, inherit);
+}
+
+.factIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -6px 0;
+}
+
+.factIcon[data-flame] {
+  color: #f2a93b;
+}
+
+.levelRow small {
+  margin-left: 6px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* a long endless run: one small disc an answer */
+.discs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.discs li {
+  --c: #f24d4d;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font: 750 12px/1 var(--font-hanken);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.discs li[data-ok] {
+  --c: #1fbf68;
+}
+
+/* a time trial's pacing: a bar a question, the SAT's own pace drawn across */
+.bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 220px;
+  padding-bottom: 30px;
+}
+
+.bars > span {
+  flex: 1;
+  min-width: 6px;
+  max-width: 34px;
+  border-radius: 8px 8px 4px 4px;
+  background: #f24d4d;
+}
+
+.bars > span[data-ok] {
+  background: #1fbf68;
+}
+
+.paceLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-bottom: 30px;
+  border-top: 2px dashed color-mix(in srgb, var(--ink) 55%, transparent);
+  pointer-events: none;
+}
+
+.barsKey {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* the Daily 10's skills that moved */
+.moves {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moves li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: var(--hover);
+  font-size: 15px;
+}
+
+.moves li span {
+  flex: 1;
+}
+
+.moves li[data-up] b {
+  color: #1fbf68;
+}

@@ -47,12 +47,13 @@ export const QUESTION_BANK = {
   /** Selectable skills in src/data/curriculum/approved-skill-taxonomy.json. */
   skills: 39,
   difficultyLevels: 7,
-  /** What each self-study plan holds (founder, 2026-11-13): Practice has every question at levels 1 to 5,
-   *  Pro has every question. Counted in the live bank on 2026-11-13 (read-only): 10,588 live, 8,846 at
-   *  levels 1 to 5 and 1,742 at levels 6 and 7. The site rounds down. This is how the plan gate already
-   *  splits them (CORE_MAX_DIFFICULTY in src/lib/plans/catalog.ts). */
-  practiceCount: 8800,
-  proExtraCount: 1700,
+  /** What each self-study plan holds (founder, 2026-11-13): Practice is a fixed set of 5,000 at levels 1
+   *  to 6 (quiz_questions.practice_plan, marked 2026-11-22, never an exam question); Pro has every practice
+   *  question. Counted in production on 2026-11-22 by the Exams stream: 5,000 in the set and 2,467 more
+   *  live practice questions (the 2,940 held for the 20 exams are in neither). The site rounds down. The
+   *  plan gate reads the set (usesPracticeSet in src/lib/plans). */
+  practiceCount: 5000,
+  proExtraCount: 2400,
   /** Full-length practice tests in each plan (founder, 2026-11-13). The app does not yet enforce these. */
   practiceTests: 5,
   proTests: 20,

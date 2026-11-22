@@ -1,0 +1,5613 @@
+{
+ "builtAt": "2026-11-22T10:46:55.369Z",
+ "seed": "karman-exams-2026-11-22",
+ "pool": {
+  "checked": 10407,
+  "eligible": 8686,
+  "hidden": 0
+ },
+ "heldQuestions": 2940,
+ "problems": [],
+ "forms": [
+  {
+   "form": 1,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        5,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.24,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        5,
+        1
+       ]
+      },
+      "meanDifficulty": 4.28,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        9,
+        7,
+        2,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.85,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 2,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        7,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.72,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.15,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        6,
+        2,
+        1
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 3,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        5,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.24,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        9,
+        7,
+        2,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.85,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        4,
+        4,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.5,
+      "studentProduced": 4
+     }
+    }
+   }
+  },
+  {
+   "form": 4,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        7,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.72,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        1,
+        2,
+        5,
+        4,
+        5,
+        2,
+        1
+       ]
+      },
+      "meanDifficulty": 4,
+      "studentProduced": 5
+     }
+    }
+   }
+  },
+  {
+   "form": 5,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        5,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.24,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 5
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        4,
+        3,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.55,
+      "studentProduced": 4
+     }
+    }
+   }
+  },
+  {
+   "form": 6,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        7,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.72,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        1,
+        2,
+        5,
+        4,
+        5,
+        3,
+        0
+       ]
+      },
+      "meanDifficulty": 3.95,
+      "studentProduced": 4
+     }
+    }
+   }
+  },
+  {
+   "form": 7,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        5,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.24,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        4,
+        3,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.55,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 8,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.76,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.16,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        6,
+        3,
+        0
+       ]
+      },
+      "meanDifficulty": 4.15,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 9,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.28,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 4
+     }
+    }
+   }
+  },
+  {
+   "form": 10,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.76,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 5
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        4,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 11,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.28,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 12,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.76,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        6,
+        3,
+        0
+       ]
+      },
+      "meanDifficulty": 4.15,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 13,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.28,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 14,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.76,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 5
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        6,
+        2,
+        1
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 15,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        5,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.24,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        5,
+        1
+       ]
+      },
+      "meanDifficulty": 4.28,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 4
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 5
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 16,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        7,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 3.72,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        9,
+        6,
+        2,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        5,
+        7,
+        8,
+        1
+       ]
+      },
+      "meanDifficulty": 4.84,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 5
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ]
+      },
+      "meanDifficulty": 4.25,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 17,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        0,
+        1
+       ]
+      },
+      "meanDifficulty": 3.32,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 5
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 18,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        1,
+        1
+       ]
+      },
+      "meanDifficulty": 3.8,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.15,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        2,
+        2
+       ]
+      },
+      "meanDifficulty": 4.3,
+      "studentProduced": 5
+     }
+    }
+   }
+  },
+  {
+   "form": 19,
+   "level": "standard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        5,
+        8,
+        5,
+        4,
+        0,
+        1
+       ]
+      },
+      "meanDifficulty": 3.32,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        8,
+        8,
+        4,
+        2,
+        0,
+        0
+       ],
+       "got": [
+        3,
+        8,
+        8,
+        5,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.72,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        5,
+        6,
+        5,
+        6,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        5,
+        6,
+        6,
+        5,
+        0
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        5,
+        8,
+        4,
+        2,
+        1,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.3,
+      "studentProduced": 5
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ],
+       "got": [
+        10,
+        7,
+        2,
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 1.7,
+      "studentProduced": 6
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ],
+       "got": [
+        0,
+        3,
+        7,
+        4,
+        4,
+        2,
+        0
+       ]
+      },
+      "meanDifficulty": 3.75,
+      "studentProduced": 6
+     }
+    }
+   }
+  },
+  {
+   "form": 20,
+   "level": "hard",
+   "report": {
+    "reading": {
+     "module1": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        2,
+        0
+       ],
+       "got": [
+        1,
+        3,
+        7,
+        6,
+        6,
+        1,
+        1
+       ]
+      },
+      "meanDifficulty": 3.8,
+      "studentProduced": 0
+     },
+     "easier": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 9,
+        "got": 9
+       },
+       "info_ideas": {
+        "target": 7,
+        "got": 7
+       },
+       "conventions": {
+        "target": 5,
+        "got": 5
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        2,
+        6,
+        8,
+        5,
+        3,
+        1,
+        0
+       ],
+       "got": [
+        2,
+        6,
+        8,
+        6,
+        3,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 3.08,
+      "studentProduced": 0
+     },
+     "harder": {
+      "size": 27,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "craft_structure": {
+        "target": 7,
+        "got": 7
+       },
+       "info_ideas": {
+        "target": 8,
+        "got": 8
+       },
+       "conventions": {
+        "target": 6,
+        "got": 6
+       },
+       "expression_ideas": {
+        "target": 6,
+        "got": 6
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        1,
+        3,
+        5,
+        6,
+        9,
+        1
+       ],
+       "got": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        8,
+        0
+       ]
+      },
+      "meanDifficulty": 4.72,
+      "studentProduced": 0
+     }
+    },
+    "math": {
+     "module1": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ],
+       "got": [
+        3,
+        6,
+        5,
+        3,
+        2,
+        1,
+        0
+       ]
+      },
+      "meanDifficulty": 2.9,
+      "studentProduced": 6
+     },
+     "easier": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 4,
+        "got": 4
+       },
+       "geometry": {
+        "target": 3,
+        "got": 3
+       }
+      },
+      "difficulty": {
+       "target": [
+        6,
+        8,
+        4,
+        1,
+        1,
+        0,
+        0
+       ],
+       "got": [
+        6,
+        8,
+        4,
+        2,
+        0,
+        0,
+        0
+       ]
+      },
+      "meanDifficulty": 2.1,
+      "studentProduced": 4
+     },
+     "harder": {
+      "size": 22,
+      "trial": 2,
+      "shortfall": 0,
+      "domains": {
+       "algebra": {
+        "target": 7,
+        "got": 7
+       },
+       "advanced_math": {
+        "target": 8,
+        "got": 8
+       },
+       "data_analysis": {
+        "target": 3,
+        "got": 3
+       },
+       "geometry": {
+        "target": 4,
+        "got": 4
+       }
+      },
+      "difficulty": {
+       "target": [
+        0,
+        2,
+        5,
+        4,
+        5,
+        3,
+        1
+       ],
+       "got": [
+        0,
+        2,
+        5,
+        4,
+        6,
+        2,
+        1
+       ]
+      },
+      "meanDifficulty": 4.2,
+      "studentProduced": 6
+     }
+    }
+   }
+  }
+ ]
+}

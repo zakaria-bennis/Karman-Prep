@@ -3,8 +3,11 @@
  * src/app/dashboard/student/_portal/skills72.ts). The bank is still tagged with the 39 catalog skills, split into
  * 92 sub-skills (src/lib/subskills/taxonomy.ts), and every level a student earns is stored against
  * a sub-skill. Until the bank is retagged into the 72 (decided 2026-11-18, not done), each of the 72
- * reads the sub-skills that cover what it tests. When the retag lands, this file is deleted and
- * the levels are read by the 72 directly.
+ * reads the sub-skills that cover what it tests. The retag landed on 2026-11-22 (question_skills72,
+ * read through src/lib/bank/): the Library's question counts and the Mistake Log's skills now come
+ * from the real tags. This bridge still serves the levels (until the Quiz modes stream's
+ * student_skill72_levels takes over) and the catalog skill a skill set is drawn from, and stands in
+ * for any question that has no tag yet. Delete it when those two move.
  *
  * Pure data and arithmetic, safe on the client.
  */
