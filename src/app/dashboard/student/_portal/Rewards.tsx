@@ -22,7 +22,7 @@
 // Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
@@ -39,18 +39,22 @@ import {
   DAYS_TO_TOP,
   EARNED,
   PASSES,
+  PASSES_COMING_SOON,
   RECORDS,
   COINS,
   multiplierFor,
   type Pass,
 } from "./rewardsData";
-import { useBestStreak, usePortalData, useStreak } from "./portalData";
+import { useBestStreak, usePortalData, useSkills, useStreak } from "./portalData";
+import { withProgress } from "./characterProgress";
 import {
   actionBuyPass,
   actionOpenBox,
   actionWear,
   type SpendResult,
 } from "@/lib/portal/reward-actions";
+import { nextPrize } from "@/lib/portal/box-order";
+import { MULTIPLIER_CAP, MULTIPLIER_STEP } from "@/lib/coins/multiplier";
 import { ping, tick } from "./sound";
 
 const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
@@ -68,7 +72,24 @@ export default function Rewards({
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
   /* a signed-in student's own coins, things and passes, saved as they change */
-  const real = usePortalData()?.rewards ?? null;
+  const data = usePortalData();
+  const real = data?.rewards ?? null;
+  const skills = useSkills();
+  // a signed-in student's own progress toward each character; the design page keeps its stand-ins
+  const crew = useMemo(
+    () =>
+      data
+        ? CHARACTERS.map((c) =>
+            withProgress(c, {
+              skills,
+              exams: data.student.exams,
+              bestStreak: data.bestStreak,
+              lifetimeCoins: data.rewards.lifetime,
+            })
+          )
+        : CHARACTERS,
+    [data, skills]
+  );
   const [coins, setCoins] = useState(real?.coins ?? COINS);
   /** The things to wear that have been won from boxes, by id, newest last. */
   const [owned, setOwned] = useState<string[]>(real?.owned ?? []);
@@ -93,8 +114,13 @@ export default function Rewards({
   const spendReal = (go: () => Promise<SpendResult>, undo: () => void) =>
     void go()
       .then((r) => {
-        if (r.ok) return setCoins(r.coins);
+        if (r.ok) {
+          if (r.owned) setOwned(r.owned);
+          return setCoins(r.coins);
+        }
         undo();
+        // another tab opened a box: catch up with what the student really has
+        if (r.owned) setOwned(r.owned);
         window.alert(r.error);
       })
       .catch(() => {
@@ -123,7 +149,16 @@ export default function Rewards({
 
   const streak = useStreak();
   const best = useBestStreak();
-  const multiplier = multiplierFor(streak);
+  // a signed-in student's is the one their coins are paid with (src/lib/coins: +0.1 a right
+  // challenge answer, +0.05 a wrong one, up to x3); the design page keeps its stand-in climb
+  const paid = real?.multiplier ?? null;
+  const multiplier = paid ? paid.now : multiplierFor(streak);
+  const steps = paid ? Math.round((MULTIPLIER_CAP - 1) / MULTIPLIER_STEP.right) : DAYS_TO_TOP;
+  const climbed = paid ? Math.round((paid.now - 1) / MULTIPLIER_STEP.right) : streak;
+  const top = paid ? MULTIPLIER_CAP : 5;
+  const tomorrow = paid
+    ? Math.min(MULTIPLIER_CAP, Math.round((paid.now + 2 * MULTIPLIER_STEP.right) * 100) / 100)
+    : multiplierFor(streak + 1);
   const buy = (pass: Pass) => {
     setCoins(coins - pass.price);
     setHeld({ ...held, [pass.name]: (held[pass.name] ?? 0) + 1 });
@@ -140,18 +175,14 @@ export default function Rewards({
   /** The next thing a box gives: one not yet won, taken in an order that looks like chance and
    *  reaches all 100 before it repeats. */
   const next = (): Accessory => {
-    const many = ACCESSORIES.length;
-    for (let n = owned.length; n < owned.length + many; n++) {
-      const pick = ACCESSORIES[(n * 37 + 11) % many];
-      if (!owned.includes(pick.id)) return pick;
-    }
-    return ACCESSORIES[0];
+    const id = nextPrize(owned, ACCESSORIES.length);
+    return ACCESSORIES.find((a) => a.id === id) ?? ACCESSORIES[0];
   };
   /** Puts a thing on, or takes it off if it is already on. */
   const wear = (item: Accessory) =>
     setOutfit({ ...outfit, [item.slot]: outfit[item.slot] === item.id ? undefined : item.id });
-  const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
-  const chosen = CHARACTERS[picked];
+  const unlocked = crew.filter((c) => c.done >= c.of).length;
+  const chosen = crew[picked];
   const has = chosen.done >= chosen.of;
   const hidden = chosen.mystery && !has;
 
@@ -222,14 +253,14 @@ export default function Rewards({
               <p className={styles.figure}>
                 <b>{times(multiplier)}</b> multiplier
               </p>
-              {/* the climb from 1x to 5x, a step for each day in a row */}
+              {/* the climb to the top, a step for each 0.1 (each day in a row on the design page) */}
               <div
                 className={styles.climb}
                 role="img"
-                aria-label={`${streak} of ${DAYS_TO_TOP} days toward 5x`}
+                aria-label={`${climbed} of ${steps} steps toward ${top}x`}
               >
-                {Array.from({ length: DAYS_TO_TOP }, (_, i) => (
-                  <i key={i} data-on={i < streak || undefined} />
+                {Array.from({ length: steps }, (_, i) => (
+                  <i key={i} data-on={i < climbed || undefined} />
                 ))}
               </div>
               <p className={styles.ends}>
@@ -237,13 +268,20 @@ export default function Rewards({
                   <b>{streak}</b> day streak
                 </span>
                 <span>
-                  {multiplier < 5 ? `${times(multiplierFor(streak + 1))} tomorrow` : "At the top"}
+                  {multiplier < top
+                    ? `${paid ? "Up to " : ""}${times(tomorrow)} tomorrow`
+                    : "At the top"}
                 </span>
               </p>
             </div>
 
             <div className={styles.part}>
               <h3>This week</h3>
+              {real && real.week.length === 0 && (
+                <p className={styles.ends}>
+                  No coins yet this week. Finish a Daily 10 to earn your first.
+                </p>
+              )}
               <ul className={styles.earned}>
                 {(real?.week ?? EARNED).map((row) => (
                   <li key={row.name}>
@@ -265,7 +303,7 @@ export default function Rewards({
                     { name: "Best day", value: real.bestDay.toLocaleString("en-US") },
                     { name: "Boxes opened", value: String(owned.length) },
                     { name: "Longest streak", value: `${best} days` },
-                    { name: "Top multiplier", value: `${multiplierFor(best)}x` },
+                    { name: "Top multiplier", value: times(real.multiplier.top) },
                   ]
                 : RECORDS
               ).map((record) => (
@@ -315,6 +353,7 @@ export default function Rewards({
               <ul>
                 {PASSES.map((pass) => {
                   const mine = held[pass.name] ?? 0;
+                  const soon = !!real && PASSES_COMING_SOON.includes(pass.name);
                   return (
                     <li key={pass.name} className={styles.pass}>
                       <PassIcon kind={pass.icon} />
@@ -328,14 +367,20 @@ export default function Rewards({
                         <button
                           type="button"
                           className={styles.price}
-                          disabled={(mine > 0 && !!pass.next) || coins < pass.price}
+                          disabled={soon || (mine > 0 && !!pass.next) || coins < pass.price}
                           aria-label={`Buy ${pass.name} for ${pass.price} coins`}
                           onClick={() => buy(pass)}
                         >
                           <Coin size={20} />
                           {count(pass.price)}
                         </button>
-                        <small>{mine > 0 && pass.next ? `Next ${pass.next}` : pass.limit}</small>
+                        <small>
+                          {soon
+                            ? "Coming soon"
+                            : mine > 0 && pass.next
+                              ? `Next ${pass.next}`
+                              : pass.limit}
+                        </small>
                         <small>
                           {mine > 0
                             ? `You have ${mine}${pass.bank ? ` of ${pass.bank}` : ""}`
@@ -388,7 +433,7 @@ export default function Rewards({
             <p className={cast.how}>{chosen.challenge}</p>
           </div>
           <div className={cast.grid} role="group" aria-label="Characters">
-            {CHARACTERS.map((c, i) => {
+            {crew.map((c, i) => {
               const mine = c.done >= c.of;
               const secret = c.mystery && !mine;
               return (

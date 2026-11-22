@@ -24,6 +24,8 @@ export type QuestionContentProps = {
   pickOffer: string | null;
   /** The explanation is shown beside the question instead (a miss on a wide screen). */
   explanationAside?: boolean;
+  /** The admin-only "Generated" mark (the host checked the viewer is an admin). */
+  generated?: boolean;
   onAnswer(value: string | null): void;
   onCross(letter: string): void;
   onToggleReview(): void;
@@ -49,6 +51,7 @@ export function QuestionContent(p: QuestionContentProps) {
     <>
       <QuestionHeader
         number={p.number}
+        generated={p.generated}
         mode={mode}
         markedForReview={!!ws?.markedForReview}
         bookmarked={p.bookmarked}

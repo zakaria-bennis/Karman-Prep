@@ -99,14 +99,14 @@
   cursor: auto;
 }
 
-.frame[data-mode="maximized"],
-.frame[data-mode="fullscreen"] {
+.frame[data-mode="maximized"] {
   inset: 0;
   border-radius: 0;
 }
 
 /* On a phone the calculator covers the screen but for a small margin, so it plainly sits over the
-   quiz (founder, 2026-11-17), and it rises from the bottom. */
+   quiz (founder, 2026-11-17), and it rises from the bottom. Full screen sets its own inset and
+   corners, so it needs no share of the maximized rule above. */
 .frame[data-mode="fullscreen"] {
   inset: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));

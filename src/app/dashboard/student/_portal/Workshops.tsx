@@ -18,6 +18,7 @@ import { chosen, tick } from "./sound";
 import styles from "./workshops.module.css";
 import { usePortalData } from "./portalData";
 import { actionSetEventSpot } from "@/components/student-portal/calendar/actions";
+import { joinOpen } from "@/lib/student/calendar";
 
 type Workshop = {
   id: string;
@@ -31,6 +32,10 @@ type Workshop = {
   /** A real workshop: whether a spot is saved, and the sign-up goes to the calendar. */
   saved?: boolean;
   real?: boolean;
+  kind?: "workshop" | "office_hours";
+  start?: string;
+  end?: string;
+  joinUrl?: string | null;
 };
 const WORKSHOPS: Workshop[] = [
   {
@@ -73,6 +78,16 @@ const WORKSHOPS: Workshop[] = [
 
 function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
   const [inIt, setIn] = useState(workshop.saved ?? false);
+  const drop = workshop.kind === "office_hours";
+  // a saved workshop, or office hours, can be joined from half an hour before until it ends
+  const join =
+    workshop.joinUrl &&
+    workshop.start &&
+    workshop.end &&
+    (inIt || drop) &&
+    joinOpen(workshop.start, workshop.end, Date.now())
+      ? workshop.joinUrl
+      : null;
   return (
     <div className={styles.row} data-big={big || undefined} data-in={inIt || undefined}>
       {/* the day, as a page from a calendar */}
@@ -87,40 +102,48 @@ function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
         </span>
         {workshop.fits && <em>On a skill you are working on</em>}
       </p>
-      <button
-        type="button"
-        className={styles.join}
-        aria-pressed={inIt}
-        onClick={() => {
-          setIn(!inIt);
-          if (inIt) tick();
-          else chosen();
-          if (workshop.real)
-            void actionSetEventSpot({ eventId: workshop.id, save: !inIt }).then((r) => {
-              if (r.ok) return setIn(r.saved);
-              setIn(inIt);
-              window.alert(r.message);
-            });
-        }}
-      >
-        {inIt ? (
-          <>
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M5.500 12.500l4.200 4.200L18.500 8" />
-            </svg>
-            You&apos;re in
-          </>
-        ) : (
-          "Sign up"
-        )}
-      </button>
+      {join ? (
+        <a className={styles.join} href={join} target="_blank" rel="noopener noreferrer">
+          Join
+        </a>
+      ) : drop ? (
+        <span className={styles.drop}>Drop in</span>
+      ) : (
+        <button
+          type="button"
+          className={styles.join}
+          aria-pressed={inIt}
+          onClick={() => {
+            setIn(!inIt);
+            if (inIt) tick();
+            else chosen();
+            if (workshop.real)
+              void actionSetEventSpot({ eventId: workshop.id, save: !inIt }).then((r) => {
+                if (r.ok) return setIn(r.saved);
+                setIn(inIt);
+                window.alert(r.message);
+              });
+          }}
+        >
+          {inIt ? (
+            <>
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M5.500 12.500l4.200 4.200L18.500 8" />
+              </svg>
+              You&apos;re in
+            </>
+          ) : (
+            "Sign up"
+          )}
+        </button>
+      )}
     </div>
   );
 }
@@ -181,8 +204,13 @@ export function UpcomingWorkshops() {
             exit={still ? undefined : { height: 0, opacity: 0 }}
             transition={still ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 38 }}
           >
+            {all.length === 0 && (
+              <li>
+                <p className={styles.none}>None coming up.</p>
+              </li>
+            )}
             {all.map((w) => (
-              <li key={w.id}>
+              <li key={`${w.id}-${w.section}`}>
                 <Row workshop={w} />
               </li>
             ))}

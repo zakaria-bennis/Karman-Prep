@@ -622,6 +622,11 @@
   font-weight: 650;
   cursor: pointer;
 }
+/* The middle of the bottom bar gives way first on a narrow screen (Endless's strip of dots
+   scrolls inside it), so Back and Next keep their room. */
+.navSlot {
+  min-width: 0;
+}
 
 /* Question area. */
 .area {
@@ -931,6 +936,23 @@
   --kc-focus-bar-label: #ffffff;
   --kc-accent: var(--quiz-pick);
   --kc-boundary: color-mix(in srgb, var(--quiz-ink) 45%, transparent);
+  /* The screens finished on 2026-11-22 (tables, sliders, regressions, error tips, statistics):
+     the focus ring and the selection in the quiz's own pick, so no calculator skin's blue shows
+     through, and the tones the calculator mixes into a solid made see-through. */
+  --kc-focus-ring: color-mix(in srgb, var(--quiz-pick) 75%, transparent);
+  --kc-selection: color-mix(in srgb, var(--quiz-pick) 28%, transparent);
+  --kc-hidden-ring: color-mix(in srgb, var(--quiz-ink) 40%, transparent);
+  --kc-letter-top: color-mix(in srgb, var(--quiz-ink) 5%, transparent);
+  --kc-letter-bottom: color-mix(in srgb, var(--quiz-ink) 8%, transparent);
+  --kc-letter-border: var(--quiz-line);
+  /* Error tips */
+
+  /* Statistics */
+
+  /* Regressions */
+
+  /* Sliders, tables and menus */
+
 }
 /* Docked, the graph is as tall as 55% of the calculator's width, so with x from -10 to 10 the
    default window runs from -5.5 to 5.5 on y, round numbers, with squares still square (founder,

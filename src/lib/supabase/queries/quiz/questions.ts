@@ -22,6 +22,7 @@ import {
   numericAnswerSetFromEvidence,
   reviewedNumericAnswers,
 } from "@/lib/question-bank/numeric-answer-set";
+import { practiceOnly } from "@/lib/assembler/pools";
 
 // ── Live-question filter ─────────────────────────────────────
 // PDF-imported questions land with import_status = 'needs_review'
@@ -58,9 +59,12 @@ export async function fetchQuestionsForNode(
   const supabase = createAdminClient();
   let query = supabase.from("quiz_questions").select("*, answer_choices(*)").eq("node_id", nodeId);
   if (!opts.includeFlagged) {
-    query = query
-      .eq("is_live", true)
-      .in("publish_status", ["publish_ready", "publish_ready_with_verified_repair"]);
+    // Practice only: questions held for the full-length exams are never served here.
+    query = practiceOnly(
+      query
+        .eq("is_live", true)
+        .in("publish_status", ["publish_ready", "publish_ready_with_verified_repair"])
+    );
   }
   const { data, error } = await query
     .order("display_order", { ascending: true })

@@ -8,6 +8,7 @@ vi.mock("@/lib/auth/tutor-access", () => ({ canTutorAccessStudent: mocks.access 
 vi.mock("@/lib/plans", () => ({
   getPlan: vi.fn(async () => ({ entitlements: { pool: "mastery" } })),
   difficultyRangeFor: () => ({ minimumDifficulty: 1, maximumDifficulty: 7 }),
+  usesPracticeSet: () => false,
 }));
 vi.mock("@/lib/supabase/queries/catalog-question-pool", () => ({
   fetchCatalogQuestionPool: mocks.pool,

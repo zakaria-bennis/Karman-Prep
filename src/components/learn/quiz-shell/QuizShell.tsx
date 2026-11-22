@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { sectionStart } from "@/lib/quiz/workspace";
-import { showsDots, type DotState } from "@/lib/quiz/rewards";
+import { showsDots } from "@/lib/quiz/rewards";
+import { toOriginal } from "@/lib/quiz/shuffle";
 import { track } from "@/lib/analytics/client";
 import styles from "./quiz-shell.module.css";
 import { AnnotationContext } from "./annotation-context";
@@ -27,13 +28,16 @@ import { Timer } from "./Timer";
 import { BarButton, TopBar } from "./TopBar";
 import { QuizWorld } from "./QuizWorld";
 import { Explanation } from "./Explanation";
-import { ProgressDots } from "./Rewards";
+import { RunProgress } from "./RunProgress";
+import { SecondChance } from "./SecondChance";
 import { LevelUpCard } from "./LevelUpCard";
 import { useQuizLayout } from "./use-quiz-layout";
 import { useShellState } from "./use-shell-state";
 import { useShortcuts } from "./use-shortcuts";
 import { KEYS_SLOT_ID } from "./NumericEntry";
 import { useAnswerRecord } from "./use-answer-record";
+import { useSecondChance } from "./use-second-chance";
+import { shownWorkspace, useShuffle } from "./use-shuffle";
 import { traceMark, useGuard, type GuardEvent } from "./use-guard";
 import {
   useBarHeight,
@@ -47,11 +51,20 @@ import {
 export type { QuizShellProps } from "./quiz-shell-props";
 
 export function QuizShell(props: QuizShellProps) {
-  const { mode, questions, index, attemptKey } = props;
+  const { mode, index, attemptKey } = props;
+  // With a seed the questions are drawn with their choices shuffled, re-lettered by place, and
+  // their reviews to match (use-shuffle.ts). What the shell keeps and hands back stays in each
+  // question's own letters.
+  const { questions, reviews, mapFor } = useShuffle(
+    props.shuffleSeed,
+    props.questions,
+    props.reviews
+  );
   const layout = useQuizLayout();
   const q = questions[index];
   const total = props.total ?? questions.length;
-  const review = q ? props.reviews[q.id] : undefined;
+  const review = q ? reviews[q.id] : undefined;
+  const shuffled = q ? mapFor(q.id) : null;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
   const [eliminatorOn, setEliminatorOn] = useState(false);
@@ -60,9 +73,15 @@ export function QuizShell(props: QuizShellProps) {
   const [calcOpen, setCalcOpen] = useState(false);
   // The record of how each question is answered (use-answer-record.ts), for the host to save.
   const working = q ? s.workspaces[q.id] : undefined;
+  // the order the choices were shown in, in the question's own letters (a tutor can rebuild it)
   const letters = useMemo(
-    () => (q?.answer_format === "multiple_choice" ? q.answer_choices.map((c) => c.letter) : []),
-    [q]
+    () =>
+      shuffled
+        ? [...shuffled.order]
+        : q?.answer_format === "multiple_choice"
+          ? q.answer_choices.map((c) => c.letter)
+          : [],
+    [q, shuffled]
   );
   const noteRecord = useAnswerRecord({
     attemptKey,
@@ -122,15 +141,26 @@ export function QuizShell(props: QuizShellProps) {
   const qid = q?.id;
   const missed = instant && !!review && !review.isCorrect;
   const holding = useMissHold(qid, !!review, missed, () => setCalcOpen(false));
-  useRewards(questions, index, props.reviews, instant, total);
+  useRewards(questions, index, reviews, instant, total);
 
+  /** A pick comes in as the letter shown; it is kept and handed on as the question's own. */
   const answerWith = (value: string | null) => {
     if (!q || locked) return;
-    s.act({ type: "answer", value });
-    props.onSelectAnswer?.(q.id, value);
+    const own = toOriginal(shuffled, value);
+    s.act({ type: "answer", value: own });
+    props.onSelectAnswer?.(q.id, own);
   };
   const [saveNotice, setSaveNotice] = useNotice(5000);
   const [hint, setHint] = useNotice(3200);
+  const chance = useSecondChance({
+    q,
+    review,
+    instant,
+    questions,
+    rescue: props.rescue,
+    rescued: props.rescued,
+    onFail: () => setSaveNotice("That did not go through. Try again."),
+  });
   const tools = useShellTools({
     s,
     q,
@@ -167,7 +197,7 @@ export function QuizShell(props: QuizShellProps) {
     pick: (letter) => {
       if (!q || q.answer_format !== "multiple_choice" || checking) return;
       if (!q.answer_choices.some((c) => c.letter === letter)) return;
-      if (s.workspaces[q.id]?.crossedOut.includes(letter)) return;
+      if (s.workspaces[q.id]?.crossedOut.includes(toOriginal(shuffled, letter))) return;
       answerWith(letter);
     },
     mark: () => mode.markForReview && s.act({ type: "toggleReview", allowed: true }),
@@ -205,29 +235,34 @@ export function QuizShell(props: QuizShellProps) {
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
   const ws = s.ws;
   const answer = ws?.answer ?? null;
-  const squares = squaresFor(total, questions, s.workspaces, props.reviews, s.saved, mode);
+  const squares = squaresFor(
+    total,
+    questions,
+    s.workspaces,
+    reviews,
+    s.saved,
+    mode,
+    chance.isPutRight
+  );
   const math = q.subject === "math";
   // The explanation is never under the answers (founder, 2026-11-17). Once a question is graded
   // it has a page of its own: at the right on a wide screen; on a phone or a tablet it comes up
   // from the bottom and the question draws up into the top half, each scrolling on its own.
   const explained = instant && !!review;
   const missAside = explained;
-  const dots: DotState[] = Array.from({ length: total }, (_, i) => {
-    const item = questions[i];
-    const r = item ? props.reviews[item.id] : undefined;
-    if (r) return r.isCorrect ? "correct" : "wrong";
-    if (i === index) return "current";
-    return item ? "open" : "locked";
-  });
+  // the run of dots (Endless: hearts, a strip of ten that scrolls, and the run's length)
   const progress =
     props.progress ??
-    (instant && showsDots(total) ? (
-      <ProgressDots
-        states={dots}
-        label={`Question ${index + 1} of ${total}`}
-        count={`${index + 1} of ${total}`}
+    (instant && (props.endless || showsDots(total)) ? (
+      <RunProgress
+        questions={questions}
+        reviews={reviews}
+        index={index}
+        total={total}
+        endless={props.endless}
+        putRight={chance.isPutRight}
         onOpen={() => setDialog("nav")}
-        onGo={(i) => i !== index && props.onNavigate(i)}
+        onGo={props.onNavigate}
       />
     ) : undefined);
 
@@ -348,12 +383,27 @@ export function QuizShell(props: QuizShellProps) {
                   layout={layout}
                   questionKey={q.id}
                   direction={direction}
-                  aside={missAside && review ? <Explanation q={q} review={review} /> : null}
+                  aside={
+                    missAside && review ? (
+                      <Explanation
+                        q={q}
+                        review={review}
+                        action={
+                          <SecondChance
+                            state={chance.state}
+                            left={chance.left}
+                            onUse={chance.use}
+                          />
+                        }
+                      />
+                    ) : null
+                  }
                   wrap={(c) => (
                     <CalculatorFrame
                       enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
                       attemptKey={attemptKey}
                       questionId={q.id}
+                      remember={!!s.saved[q.id]}
                       open={calcOpen}
                       onOpenChange={(open) => {
                         setCalcOpen(open);
@@ -385,8 +435,9 @@ export function QuizShell(props: QuizShellProps) {
                         q={q}
                         number={index + 1}
                         mode={mode}
-                        ws={ws}
+                        ws={shownWorkspace(ws, shuffled)}
                         review={review}
+                        generated={props.generated?.[q.id] === true}
                         bookmarked={!!s.saved[q.id]}
                         eliminatorOn={eliminatorOn}
                         figureHere={!hasPassage(q)}
@@ -394,7 +445,9 @@ export function QuizShell(props: QuizShellProps) {
                         pickOffer={s.pickOffer}
                         explanationAside={explained}
                         onAnswer={answerWith}
-                        onCross={(letter) => s.act({ type: "toggleCross", letter })}
+                        onCross={(letter) =>
+                          s.act({ type: "toggleCross", letter: toOriginal(shuffled, letter) })
+                        }
                         onToggleReview={() =>
                           s.act({ type: "toggleReview", allowed: mode.markForReview })
                         }

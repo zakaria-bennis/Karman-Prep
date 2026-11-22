@@ -18,7 +18,15 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./progressActivity.module.css";
-import { DAY, TODAY, dateOf, streak, type DayLog, type Student } from "./progressData";
+import {
+  DAY,
+  TODAY,
+  dateOf,
+  proficientOn,
+  streak,
+  type DayLog,
+  type Student,
+} from "./progressData";
 import { Spans, spanFor, type SpanKey } from "./ProgressGraph";
 import { STATS, STAT_ORDER, clock, ledger, wayOf, type Stat, type StatKey } from "./progressStats";
 import { tick } from "./sound";
@@ -220,7 +228,11 @@ export function Calendar({ student, logs }: { student: Student; logs: DayLog[] }
   const monthDays = Array.from({ length }, (_, i) => logOf(i + 1)).filter((day) => day >= 0);
   const practiced = monthDays.filter((day) => logs[day].questions > 0).length;
   const log = logs[picked];
-  const improved = Math.min(log.sets, (log.day * 7) % 4);
+  // a signed-in student's days carry how many skills were proficient; the design page makes it up
+  const improved =
+    logs[0]?.proficient !== undefined
+      ? Math.max(0, proficientOn(logs, picked) - proficientOn(logs, picked - 1))
+      : Math.min(log.sets, (log.day * 7) % 4);
   const when = dateOf(student, picked);
 
   return (

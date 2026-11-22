@@ -217,3 +217,9 @@
     font-size: 24px;
   }
 }
+
+/* while today's ten are picked */
+.wait {
+  margin: 0;
+  opacity: 0.7;
+}

@@ -52,8 +52,10 @@ export type OneTimePlanId = (typeof ONE_TIME_PLAN_IDS)[number];
 export const GRANT_PLAN_IDS = ["practice", "pro", ...ONE_TIME_PLAN_IDS] as const;
 export type GrantPlanId = (typeof GRANT_PLAN_IDS)[number];
 
-/** Highest difficulty in the core pool. Difficulty runs 1 to 7; 6 and 7 are the mastery pool. */
-export const CORE_MAX_DIFFICULTY = 5;
+/** Highest difficulty in the core pool: the Practice plan's fixed set reaches level 6 (founder,
+ *  2026-11-13: every level 7 question is Pro's), and core plans read only that set
+ *  (`usesPracticeSet`). Difficulty runs 1 to 7. */
+export const CORE_MAX_DIFFICULTY = 6;
 export const MAX_DIFFICULTY = 7;
 
 const practice: PlanEntitlements = {

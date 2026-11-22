@@ -249,7 +249,86 @@ export function Row({
   );
 }
 
+/** A folder's group of rows on one piece of glass, its name (if it needs one) at the top. */
+export function Group({ title, children }: { title?: string; children: ReactNode }) {
+  return (
+    <section className={styles.group}>
+      <div className={styles.rows}>
+        {title && <h2>{title}</h2>}
+        {children}
+      </div>
+    </section>
+  );
+}
+
+/** A choice from a short list, one to a line, the chosen one ticked. */
+export function Pick<T extends string>({
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  value: T | null;
+  options: readonly { value: T | null; label: string; extra?: ReactNode }[];
+  onChange: (value: T | null) => void;
+  label: string;
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className={styles.pick}>
+      {options.map((option) => (
+        <button
+          key={option.value ?? "none"}
+          type="button"
+          role="radio"
+          aria-checked={option.value === value}
+          onClick={() => {
+            tick();
+            onChange(option.value);
+          }}
+        >
+          <i aria-hidden="true" />
+          <span>{option.label}</span>
+          {option.extra}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** What just happened, said in place under the control (never a pop-up): done, a problem with what
+ *  to do about it, or a plain note. */
+export function Say({
+  tone = "note",
+  children,
+}: {
+  tone?: "note" | "done" | "problem";
+  children: ReactNode;
+}) {
+  return (
+    <p className={styles.say} data-tone={tone} role={tone === "problem" ? "alert" : "status"}>
+      {tone !== "note" && (
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+          <circle cx="10" cy="10" r="8.250" />
+          {tone === "done" ? (
+            <path d="M6.500 10.300l2.300 2.300 4.700-5" />
+          ) : (
+            <path d="M10 5.800v5M10 14.100v.1" />
+          )}
+        </svg>
+      )}
+      <span>{children}</span>
+    </p>
+  );
+}
+
 const ICONS = {
+  scholarship: (
+    <>
+      <circle cx="12" cy="9.500" r="5.500" />
+      <path d="M9.200 14.300L7.500 20.500l4.500-2.300 4.500 2.300-1.700-6.200" />
+      <path d="M12 6.800l.900 1.800 2 .3-1.450 1.400.35 2-1.800-.95-1.800.95.35-2-1.450-1.400 2-.3Z" />
+    </>
+  ),
   people: (
     <>
       <circle cx="9" cy="9" r="3" />

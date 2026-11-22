@@ -13,6 +13,7 @@ import { Shore } from "./HomeworkShore";
 import styles from "./homework.module.css";
 import { chosen, tick } from "./sound";
 import { usePortalData } from "./portalData";
+import type { RealWork } from "@/lib/portal/homework";
 import { fullLengthTest } from "@/lib/student/quiz-routes";
 
 const HOUR = 3_600_000;
@@ -91,7 +92,11 @@ export function Item({
   onFinish?: (id: string) => void;
 }) {
   const state = { todo: "", done: "Done", missing: "Missing", closed: "Closed" }[work.state];
-  const open = work.state === "todo" || work.state === "missing";
+  // a signed-in student's piece with nowhere to go yet (scheduled by the tutor, not unlocked) waits:
+  // no Start, so it can never be played through as if it were done (PR 309 review)
+  const real = usePortalData() !== null;
+  const waits = real && !(work as Partial<RealWork>).href;
+  const open = (work.state === "todo" || work.state === "missing") && !waits;
   const done = work.state === "done";
   return (
     <li data-in>
@@ -147,6 +152,9 @@ export function Item({
             </>
           )}
         </svg>
+        {waits && !small && work.state !== "done" && work.state !== "closed" && (
+          <span className={styles.waits}>Not open yet</span>
+        )}
         {open && !small && onFinish && (
           <button
             type="button"

@@ -1,17 +1,17 @@
 /*
  * Server only. The student's rewards on real data: tokens from student_point_awards, the boxes
- * they opened, the companions they earned and what their companion wears. Tables and the atomic
- * box function: supabase/migrations/20261112231500_rewards.sql. Rules: ./economy.ts.
+ * they opened (retired 2026-11-22: boxes open only in the portal's Rewards now), the companions they
+ * earned and what their companion wears. Tables: supabase/migrations/20261112231500_rewards.sql.
+ * Rules: ./economy.ts.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { dailyTenDays } from "@/lib/assembler/run-store";
-import { BOX_BONUS_TOKENS, BOX_COST, STARTER, isAccessory, isAnimal } from "./catalog";
-import type { AccessoryId, AnimalId } from "./catalog";
+import { STARTER, isAccessory, isAnimal } from "./catalog";
+import type { AnimalId } from "./catalog";
 import {
   balanceOf,
   earnedCompanions,
-  shuffledAccessories,
   type OpenedBox,
   type RewardFacts,
   type RewardState,
@@ -123,46 +123,6 @@ export async function loadRewardState(
   };
 }
 
-export type OpenedPrize = {
-  prize: { kind: "accessory"; id: AccessoryId } | { kind: "tokens"; bonus: number };
-  balance: number;
-  repeated: boolean;
-};
-
-export class NotEnoughTokens extends Error {
-  constructor() {
-    super("not_enough_tokens");
-  }
-}
-
-/**
- * Opens one mystery box for `requestId` (one per tap). The database spends the tokens and picks
- * the prize under a per-student lock, so two taps or two tabs can never spend the same tokens
- * twice, and the same request opens one box only.
- */
-export async function openRewardBox(clerkId: string, requestId: string): Promise<OpenedPrize> {
-  const { data, error } = await db().rpc("open_reward_box", {
-    p_student: clerkId,
-    p_request: requestId,
-    p_cost: BOX_COST,
-    p_order: shuffledAccessories(),
-    p_bonus: BOX_BONUS_TOKENS,
-  });
-  if (error) {
-    if (/not_enough_tokens/.test(error.message)) throw new NotEnoughTokens();
-    throw new Error("The box could not be opened");
-  }
-  const row = (Array.isArray(data) ? data[0] : data) as
-    | { prize_kind: string; prize_id: string; bonus: number; balance: number; repeated: boolean }
-    | undefined;
-  if (!row) throw new Error("The box could not be opened");
-  const prize =
-    row.prize_kind === "accessory" && isAccessory(row.prize_id)
-      ? ({ kind: "accessory", id: row.prize_id } as const)
-      : ({ kind: "tokens", bonus: Number(row.bonus) } as const);
-  return { prize, balance: Number(row.balance), repeated: !!row.repeated };
-}
-
 /** Every box the student opened (cost and bonus), for a balance outside the Rewards page. */
 export async function loadOpenedBoxes(clerkId: string): Promise<OpenedBox[]> {
   const { data } = await db()
@@ -174,24 +134,6 @@ export async function loadOpenedBoxes(clerkId: string): Promise<OpenedBox[]> {
     cost: Number(b.cost),
     bonus: Number(b.bonus),
   }));
-}
-
-/** Shows a companion the student owns, wearing an accessory they own (or none). */
-export async function setRewardWear(
-  clerkId: string,
-  animal: AnimalId,
-  accessory: AccessoryId | null
-): Promise<void> {
-  const state = await loadRewardState(clerkId, { write: true });
-  if (!state.companions.some((c) => c.animal === animal)) throw new Error("not_owned");
-  if (accessory && !state.accessories.includes(accessory)) throw new Error("not_owned");
-  const { error } = await db()
-    .from("student_reward_wear")
-    .upsert(
-      { student_id: clerkId, animal, accessory, updated_at: new Date().toISOString() },
-      { onConflict: "student_id" }
-    );
-  if (error) throw new Error("The choice could not be saved");
 }
 
 /** Marks companions' "joins you" moments as shown. */

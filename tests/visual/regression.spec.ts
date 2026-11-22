@@ -54,7 +54,7 @@ const PERSONAS = [
   {
     key: "student_mid",
     email: "dev-seed-mid@karman.local",
-    pages: ["/dashboard/student", "/learn", "/dashboard/student/progress"],
+    pages: ["/dashboard/student", "/learn", "/dashboard/student?page=progress"],
   },
   {
     key: "student_stuck",

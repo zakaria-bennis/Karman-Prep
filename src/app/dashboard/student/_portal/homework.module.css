@@ -1004,3 +1004,11 @@
     backdrop-filter: none;
   }
 }
+
+/* a signed-in student's piece the tutor has not opened yet: said quietly where Start would be */
+.homework .waits {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.65;
+}

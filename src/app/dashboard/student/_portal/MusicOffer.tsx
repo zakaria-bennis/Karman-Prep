@@ -13,6 +13,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import styles from "./musicOffer.module.css";
 import { ping, tick } from "./sound";
+import { setSetting } from "./settingsStore";
 
 const KEY = "kp-music";
 /** After this many refusals in a row the offer is not made again. */
@@ -74,6 +75,8 @@ export default function MusicOffer({ force = false }: { force?: boolean }) {
 
   const accept = () => {
     keep({ on: true, refused: 0 });
+    // "Turn it on" really turns the focus music on (Settings: Sounds and music)
+    setSetting("music", true);
     setStage("on");
     ping();
   };

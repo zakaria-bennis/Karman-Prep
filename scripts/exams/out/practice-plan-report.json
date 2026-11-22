@@ -1,0 +1,19 @@
+{
+ "at": "2026-11-22T10:53:55.519Z",
+ "candidates": 6829,
+ "chosen": 5000,
+ "confirmed": 4741,
+ "byLevel": [
+  675,
+  1081,
+  905,
+  914,
+  794,
+  631
+ ],
+ "bySection": {
+  "reading": 2831,
+  "math": 2169
+ },
+ "skills": 39
+}

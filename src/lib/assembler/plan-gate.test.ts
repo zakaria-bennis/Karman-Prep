@@ -17,7 +17,7 @@ const used = (questionsAnswered: number, fullLengthTestsCompleted = 0) => ({
 describe("quiz access comes from src/lib/plans", () => {
   it("opens the core pool to Free, Practice and school seats, and every question to Pro plans", () => {
     for (const id of ["free", "practice", "school"] as const)
-      expect(quizAccessFor(plan(id), used(0)).maxDifficulty).toBe(5);
+      expect(quizAccessFor(plan(id), used(0)).maxDifficulty).toBe(6);
     for (const id of ["pro", "cohort", "private-10", "private-20", "tutor-affiliate"] as const)
       expect(quizAccessFor(plan(id)).maxDifficulty).toBe(7);
   });

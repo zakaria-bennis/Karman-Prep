@@ -87,6 +87,7 @@ export function buildStudent(input: ProgressInput): Student {
   for (const l of log) {
     l.minutes = Math.round(seconds[l.day] / 60);
     l.pace = l.questions ? Math.round(seconds[l.day] / l.questions) : 0;
+    l.timed = l.questions;
   }
   for (const k of input.dailyDays)
     if (log[between(first, k)]) log[between(first, k)].daily10 = true;

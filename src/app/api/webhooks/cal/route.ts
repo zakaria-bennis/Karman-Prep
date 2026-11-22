@@ -234,8 +234,15 @@ export const POST = withWebhookInstrumentation("cal", async (req: Request) => {
       }
 
       case "BOOKING_CANCELLED": {
-        const withinWindow = isWithinCancellationWindow(booking.scheduled_start);
-        const forfeit = shouldForfeitCredit(booking.plan_tier, withinWindow);
+        // Already cancelled by /api/bookings/cancel, which decided the window and the credit
+        // (the late pass included): use its decision, for the tokens and for the email.
+        const decided = booking.status === "cancelled";
+        const withinWindow = decided
+          ? booking.cancelled_within_window === true
+          : isWithinCancellationWindow(booking.scheduled_start);
+        const forfeit = decided
+          ? booking.credit_forfeited
+          : shouldForfeitCredit(booking.plan_tier, withinWindow);
         if (booking.status !== "cancelled") {
           await updateBooking(booking.id, {
             status: "cancelled",

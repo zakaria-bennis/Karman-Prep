@@ -13,7 +13,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
-import { EndlessButton, Modes, Today } from "./practice";
+import { EndlessButton, Modes, Today, TrialButton } from "./practice";
 import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, type Domain, type Section, type Skill } from "./skills72";
@@ -150,9 +150,10 @@ export default function Library({
   // twelve skills comparable with one of six. A tie goes to the domain with more skills not started.
   const climb = (d: Domain) =>
     d.skills.reduce((n, sk) => n + sk.level, 0) / (d.skills.length * TOP);
-  const weakest = [...domains].sort(
-    (x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0]
-  )[0];
+  // with nothing practiced yet no domain is weaker than another, so none is named
+  const weakest = domains.some((d) => climb(d) > 0)
+    ? [...domains].sort((x, y) => climb(x) - climb(y) || tally(y.skills)[0] - tally(x.skills)[0])[0]
+    : null;
 
   useEffect(() => {
     if (still || !root.current) return;
@@ -318,6 +319,7 @@ export function DomainPage({
         <Band skills={domain.skills} />
         <Key skills={domain.skills} />
         <EndlessButton kind="domain" name={domain.name} />
+        <TrialButton kind="domain" name={domain.name} />
       </section>
 
       <div className={`${styles.filter} ${styles.levels}`} role="group" aria-label="Show">

@@ -28,7 +28,7 @@ export type FaceKind =
 const INK = "#24180F";
 function Eyes({ x = 15, y = -28, r = 6 }: { x?: number; y?: number; r?: number }) {
   // the eyes as drawn, then what a mood can show instead (hidden until a mood asks for it, see
-  // src/app/dev/end-options/moods.css): happy closed eyes, worried brows, determined brows
+  // play/moods.css): happy closed eyes, worried brows, determined brows
   const brow = (inner: number, outer: number) =>
     `M${-x - r * 1.3} ${y - r * outer}L${-x + r * 1.1} ${y - r * inner}M${x + r * 1.3} ${y - r * outer}L${x - r * 1.1} ${y - r * inner}`;
   return (
