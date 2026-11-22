@@ -1,0 +1,635 @@
+/*
+ * The Reading and Writing pictures (TextFigs.tsx, RoadSentenceFigs.tsx). They are HTML, so their words
+ * wrap, and they build on figure.module.css: its glass cards, marks, tags and tones (warm, gold, blue,
+ * green, red and ink set --tone). Calm and readable from 240 px wide on a phone to about 320 px on a
+ * desktop: text at 14.5 px, labels at 11 to 13, color only where it means something, day and night
+ * through the page's glass (--lens, --lens-edge). Icons are drawn in code with one stroke, never glyphs.
+ */
+.root {
+  --ring: rgb(255 255 255 / 0.9);
+  grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: break-word;
+}
+
+:global([data-kp-mode="dark"]) .root {
+  --ring: rgb(14 16 34 / 0.9);
+}
+
+.root p {
+  margin: 0;
+}
+
+/* a small drawn icon: one round 1.8 stroke, drawn one unit to one pixel */
+.icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* read aloud, not shown */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- a marked passage: the highlights lie in a layer under the words, so the words never blink ---- */
+.passage {
+  display: grid;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.passage > p {
+  grid-area: 1 / 1;
+}
+
+.glow {
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+.ghost {
+  visibility: hidden;
+}
+
+.clone {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* the words' own mark: the same box as the highlight under it, and no color of its own */
+.inked {
+  padding: 0 2px;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+}
+
+/* ---- two texts, and how the second answers the first ---- */
+.two {
+  container-type: inline-size;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.text {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.title {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  opacity: 0.72;
+}
+
+.relation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tone) 16%, var(--lens));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tone) 55%, transparent);
+  color: var(--tone);
+}
+
+/* stacked, the second text is below the first, so the arrows turn to point down */
+.badge svg {
+  transform: rotate(90deg);
+}
+
+.relWord {
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@container (min-width: 340px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .relation {
+    flex-direction: column;
+    align-self: center;
+    gap: 4px;
+  }
+
+  .badge svg {
+    transform: none;
+  }
+}
+
+.caption {
+  font-size: 14px;
+  opacity: 0.88;
+}
+
+/* ---- notes and a goal ---- */
+.goal {
+  background: color-mix(in srgb, var(--tone) 13%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 48%, transparent);
+  font-weight: 560;
+}
+
+.goal .lead {
+  margin: 0 6px 0 0;
+}
+
+.list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noteCard {
+  position: relative;
+  isolation: isolate;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.used {
+  font-weight: 560;
+}
+
+.unused {
+  opacity: 0.55;
+}
+
+/* the light behind a card or chip that is lit: it pops in on its own, under the words */
+.lit {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--tone) 15%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tone) 65%, transparent);
+}
+
+/* ---- the transition road: a sign on a post, and the road's shape ---- */
+.road {
+  justify-self: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+/* the post stands at x = 40 of 240 (16.667%), 14 px in from the sign's left edge */
+.sign {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  height: 24px;
+  margin-left: calc(16.667% - 14px);
+  padding: 0 9px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--tone) 20%, var(--lens));
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--tone) 62%, transparent),
+    0 3px 8px -5px rgb(24 28 58 / 0.45);
+  color: var(--tone);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+
+.roadSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.bed {
+  fill: none;
+  stroke: currentColor;
+  stroke-opacity: 0.1;
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.post {
+  stroke: currentColor;
+  stroke-opacity: 0.45;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.domino {
+  fill: color-mix(in srgb, currentColor 7%, transparent);
+  stroke: currentColor;
+  stroke-opacity: 0.6;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.pip {
+  fill: currentColor;
+  fill-opacity: 0.6;
+}
+
+.lens {
+  fill: none;
+  stroke: currentColor;
+  stroke-opacity: 0.7;
+  stroke-width: 2.2;
+}
+
+.handle {
+  stroke: currentColor;
+  stroke-opacity: 0.7;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+
+.after b {
+  color: var(--tone);
+}
+
+/* ---- a sentence in blocks, with its joints and an arc between two blocks ---- */
+.sentence {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 4px;
+  width: 100%;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.part {
+  display: inline-grid;
+  justify-items: stretch;
+  gap: 3px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.box {
+  padding: 2px 7px;
+  border: 1.5px solid color-mix(in srgb, var(--tone) 42%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  text-align: center;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.extra {
+  border-style: dashed;
+  border-color: color-mix(in srgb, currentColor 48%, transparent);
+  background: none;
+}
+
+.plain {
+  border-color: transparent;
+  background: none;
+}
+
+.role {
+  justify-self: center;
+  color: var(--tone);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.extra + .role {
+  color: inherit;
+  opacity: 0.72;
+}
+
+.joint {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  padding: 2px 5px;
+  border: 1.5px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+  font-weight: 800;
+}
+
+.jointMark {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+/* a wrong mark is struck through: a drawn slash, corner to corner */
+.struck::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1px;
+  right: 1px;
+  height: 1.75px;
+  margin-top: -0.875px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: rotate(-50deg);
+}
+
+.links {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.arc {
+  fill: none;
+  stroke: var(--tone);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.end {
+  fill: var(--tone);
+}
+
+.linkLabel {
+  fill: var(--tone);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---- the timeline: down the page when narrow, left to right from 360 px ---- */
+.timeline {
+  container-type: inline-size;
+}
+
+.track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 6px;
+  padding-bottom: 12px;
+}
+
+.axis {
+  position: absolute;
+  top: 4px;
+  bottom: 2px;
+  left: 11px;
+  width: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.axisHead {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  margin-left: -6px;
+  stroke-width: 2;
+  transform: rotate(90deg);
+}
+
+.zone {
+  position: relative;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-left: 32px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  opacity: 0.7;
+}
+
+.zone:first-of-type {
+  margin-top: 0;
+}
+
+/* where the zone starts on the line */
+.zone::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 7px;
+  width: 10px;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.now {
+  opacity: 1;
+}
+
+.event {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-areas:
+    "dot label"
+    "dot verb";
+  column-gap: 8px;
+  align-items: center;
+  line-height: 1.35;
+}
+
+.evLabel {
+  grid-area: label;
+}
+
+.verb {
+  grid-area: verb;
+}
+
+.dot {
+  position: relative;
+  z-index: 1;
+  grid-area: dot;
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 2.5px var(--ring);
+}
+
+@container (min-width: 360px) {
+  .track {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    grid-template-rows: auto auto 16px auto;
+    row-gap: 4px;
+    padding: 0 14px 0 0;
+  }
+
+  .axis {
+    position: relative;
+    inset: auto;
+    grid-row: 3;
+    grid-column: 1 / -1;
+    align-self: center;
+    width: auto;
+    height: 2px;
+    margin-right: -12px;
+  }
+
+  .axisHead {
+    top: 50%;
+    right: -7px;
+    bottom: auto;
+    left: auto;
+    margin: -6px 0 0;
+    transform: none;
+  }
+
+  .zone {
+    grid-row: 1;
+    grid-column: var(--col) / span var(--span);
+    margin: 0;
+    padding: 0 0 4px;
+    border-bottom: 1.5px solid color-mix(in srgb, currentColor 28%, transparent);
+    text-align: center;
+  }
+
+  .zone::before {
+    display: none;
+  }
+
+  .event {
+    grid-row: 2 / span 3;
+    grid-column: var(--col);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: subgrid;
+    grid-template-areas: none;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .evLabel {
+    grid-area: auto;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .dot {
+    grid-area: auto;
+    grid-row: 2;
+  }
+
+  .verb {
+    grid-area: auto;
+    grid-row: 3;
+    align-self: start;
+  }
+}
+
+/* ---- words for a blank ---- */
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* with notes under them, the words sit in even columns */
+.noted {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  align-items: start;
+  gap: 10px 8px;
+}
+
+.word {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  min-width: 0;
+}
+
+.chip {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.fit {
+  padding-left: 9px;
+}
+
+.fit > svg {
+  color: var(--tone);
+}
+
+.miss {
+  opacity: 0.5;
+}
+
+.why {
+  font-size: 12.5px;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+
+.filled {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.filled > svg {
+  margin-top: 4px;
+  color: var(--tone);
+}
+
+.fill {
+  color: inherit;
+}

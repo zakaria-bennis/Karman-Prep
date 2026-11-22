@@ -1,0 +1,87 @@
+/*
+ * The geometry pictures' own classes (GeometryFigs.tsx, SolidFigs.tsx); the shared ones (tones, label,
+ * area, dot, thin, dashed) are in figure.module.css. Outlines in the text color, a little lighter than
+ * a plotted line; hidden edges dashed and fainter; a solid's faces a faint wash of the text color, a
+ * shade apart, so it reads as an object; lit angles a translucent wedge in their tone.
+ */
+.edge {
+  fill: none;
+  stroke: var(--tone, currentColor);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* a lit side */
+.heavy {
+  stroke-width: 4;
+}
+
+/* a perimeter, traced */
+.trace {
+  stroke-width: 4.2;
+}
+
+.hiddenEdge {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-opacity: 0.55;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+
+/* a height or a hidden radius: dashed, in its tone */
+.measure {
+  fill: none;
+  stroke: var(--tone, currentColor);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+
+/* a lit angle */
+.wedge {
+  fill: color-mix(in srgb, var(--tone, currentColor) 30%, transparent);
+  stroke: var(--tone, currentColor);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+/* the corner a trig view is taken from */
+.angle {
+  fill: color-mix(in srgb, currentColor 12%, transparent);
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-opacity: 0.8;
+  stroke-linejoin: round;
+}
+
+/* the marks that say two lines are parallel, and equal-side ticks */
+.mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.face {
+  fill: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.faceLit {
+  fill: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.faceDim {
+  fill: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+/* a trig tag ("opposite"), written along its side */
+.tag {
+  fill: var(--tone, currentColor);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
