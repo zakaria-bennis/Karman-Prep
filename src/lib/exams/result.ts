@@ -9,11 +9,12 @@
  * - Coins by improvement over the last exam (founder, 2026-11-20). The amounts are stand-ins, aimed at the
  *   ~3,000 coins a week of a steady student.
  */
-import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { medianCut, routeHarder } from "@/lib/sat-engine/routing";
 import { scoreSection, toResponses, type AnsweredItem } from "@/lib/sat-engine/scoring";
 import type { EngineItem } from "@/lib/sat-engine/params";
+import { buildPacing, type PaceNorms, type Pacing } from "./pacing";
 import { MODULE_ORDER, type ExamSection, type ModuleKey } from "./plan";
+import { reinforceSkills, type ReinforceSkill } from "./reinforce";
 
 export type GradedAnswer = {
   module: ModuleKey;
@@ -22,6 +23,8 @@ export type GradedAnswer = {
   trial: boolean;
   answered: boolean;
   seconds: number;
+  /** The question's skill among the 72, when tagged. */
+  skill72: string | null;
 };
 
 /** Harder or easier Module 2, from the scored Module 1 answers. */
@@ -50,10 +53,6 @@ const DOMAIN_NAMES: Record<string, string> = {
   geometry: "Geometry and Trigonometry",
 };
 
-/** Sentence case, as the portal writes skill names ("Text structure and purpose"). */
-const sentence = (label: string) => label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
-const SKILL_NAMES = new Map(CATALOG_SKILLS.map((skill) => [skill.id, sentence(skill.label)]));
-
 export type SectionSummary = {
   score: number;
   low: number;
@@ -65,8 +64,6 @@ export type SectionSummary = {
   se: number;
   domains: { id: string; name: string; right: number; total: number }[];
 };
-
-export type NextStep = { skillId: string; name: string; missed: number; total: number };
 
 export type ExamResult = {
   version: 1;
@@ -82,7 +79,9 @@ export type ExamResult = {
   coins: number;
   /** The portal's predicted score (the latest exam once there are two) before and after this one. */
   predicted: { before: number | null; after: number | null };
-  nextSteps: NextStep[];
+  /** Every skill with a scored miss, the costliest first (the ending shows three, then See all). */
+  reinforce: ReinforceSkill[];
+  pacing: Pacing;
   /** Minutes used in each module. */
   minutes: Record<ModuleKey, number>;
   completedAt: string;
@@ -135,27 +134,6 @@ function sectionSummary(
   };
 }
 
-/** The three skills with the most scored misses (ties: the larger share missed). */
-export function nextSteps(answers: readonly GradedAnswer[]): NextStep[] {
-  const bySkill = new Map<string, { missed: number; total: number }>();
-  for (const a of answers) {
-    if (a.trial) continue;
-    const s = bySkill.get(a.item.skillId) ?? { missed: 0, total: 0 };
-    s.total++;
-    if (!a.correct) s.missed++;
-    bySkill.set(a.item.skillId, s);
-  }
-  return [...bySkill.entries()]
-    .filter(([, s]) => s.missed > 0)
-    .sort(([, a], [, b]) => b.missed - a.missed || b.missed / b.total - a.missed / a.total)
-    .slice(0, 3)
-    .map(([skillId, s]) => ({
-      skillId,
-      name: SKILL_NAMES.get(skillId) ?? "A skill to practice",
-      ...s,
-    }));
-}
-
 export function buildResult(input: {
   form: number;
   answers: readonly GradedAnswer[];
@@ -165,6 +143,8 @@ export function buildResult(input: {
   /** Totals of earlier scored exams (any kind the portal counts), oldest first. */
   earlier: readonly number[];
   completedAt: Date;
+  /** Learned expected times (src/lib/exams/pacing.ts). */
+  norms: PaceNorms;
 }): ExamResult {
   const reading = sectionSummary(
     "reading",
@@ -192,7 +172,25 @@ export function buildResult(input: {
     improvement: input.previousTotal === null ? null : total - input.previousTotal,
     coins,
     predicted: { before, after },
-    nextSteps: nextSteps(input.answers),
+    reinforce: reinforceSkills(
+      input.answers.map((a) => ({
+        section: a.item.section,
+        item: a.item,
+        correct: a.correct,
+        trial: a.trial,
+        skill72: a.skill72,
+      }))
+    ),
+    pacing: buildPacing(
+      input.answers.map((a) => ({
+        module: a.module,
+        skill72: a.skill72,
+        difficulty: a.item.difficulty,
+        seconds: a.seconds,
+        answered: a.answered,
+      })),
+      input.norms
+    ),
     minutes: Object.fromEntries(
       MODULE_ORDER.map((key) => [key, input.minutes[key] ?? 0])
     ) as Record<ModuleKey, number>,

@@ -285,5 +285,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     schedule,
     rewards,
     generatedAdmin,
+    reinforce: lastReinforce(examSittings),
   };
+}
+
+/** The latest finished exam's three costliest Reinforce skills (src/lib/exams/reinforce.ts). */
+function lastReinforce(sittings: readonly { completed_at: string; result: ExamResult | null }[]) {
+  const last = [...sittings]
+    .filter((x) => x.result?.reinforce)
+    .sort((a, b) => b.completed_at.localeCompare(a.completed_at))[0];
+  return (last?.result?.reinforce ?? [])
+    .slice(0, 3)
+    .map(({ skillId, name, points }) => ({ skillId, name, points }));
 }

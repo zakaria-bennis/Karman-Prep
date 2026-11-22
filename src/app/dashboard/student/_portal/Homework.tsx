@@ -24,6 +24,7 @@ import type { FaceKind } from "./characters";
 import { setEquipped, useEquipped } from "./equipped";
 import { DailyStart } from "./DailyStart";
 import { DailyTen, ExamBanner, Item, wearing } from "./HomeworkBits";
+import { HomeworkReinforce } from "./HomeworkReinforce";
 import { Buddy, ClassButton, Ticker } from "./HomeworkBuddy";
 import { ChallengeBanner, ChallengeCard, firstToday } from "./HomeworkChallenge";
 import { arrive, useClock } from "./homeworkMotion";
@@ -315,6 +316,7 @@ export default function Homework({
             <Buddy size={104} cheer={cheer} />
           </div>
           <Ticker lines={lines} />
+          <HomeworkReinforce />
 
           {/* the next class: a button with a clock counting down to it */}
           {next && <ClassButton day={next} now={now} />}

@@ -59,4 +59,6 @@ export interface PortalData {
   /** Only for an admin (checked on the server): live practice questions per skill, original and
    *  generated, and whether the sitewide switch hides generated ones. Absent for every student. */
   generatedAdmin?: GeneratedAdminView | null;
+  /** The last full-length exam's Reinforce skills (the three costliest): Homework suggests them. */
+  reinforce: { skillId: string; name: string; points: number }[];
 }

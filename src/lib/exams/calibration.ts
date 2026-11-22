@@ -12,6 +12,8 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { calibrate, estimatePopulation, type Answer } from "@/lib/sat-engine/calibrate";
 import { coldStartParams, paramsOf } from "@/lib/sat-engine/params";
 import { loadExamQuestions } from "./questions";
+import { NORM_MIN_ANSWERS, bandOf, median } from "./pacing";
+import { skill72Tags } from "./store";
 
 export const CALIBRATION_MODEL = "karman-3pl-em-exams-v1";
 /** Below this many finished sittings of a form, nothing is written. */
@@ -91,4 +93,68 @@ export async function recalibrateForm(
     if (!writeError) updated++;
   }
   return { sittings: ids.length, updated };
+}
+
+/**
+ * Expected times learned from real students (pacing.ts): every answered exam question's seconds, from
+ * finished sittings, grouped by skill (the 72) and difficulty band; a group's median is written once it has
+ * NORM_MIN_ANSWERS answers. Runs after each finished exam.
+ */
+export async function learnPaceNorms(): Promise<{ groups: number }> {
+  const { data: done } = await db()
+    .from("exam_sittings")
+    .select("id")
+    .not("completed_at", "is", null)
+    .limit(5000);
+  const sittings = ((done ?? []) as { id: string }[]).map((s) => s.id);
+  if (!sittings.length) return { groups: 0 };
+  const rows: { question_id: string; seconds: number }[] = [];
+  for (let i = 0; i < sittings.length && rows.length < 60000; i += 100) {
+    const { data } = await db()
+      .from("exam_responses")
+      .select("question_id, seconds")
+      .in("sitting_id", sittings.slice(i, i + 100))
+      .not("answer", "is", null)
+      .gt("seconds", 0)
+      .limit(20000);
+    rows.push(...((data ?? []) as { question_id: string; seconds: number }[]));
+  }
+  const ids = [...new Set(rows.map((r) => r.question_id))];
+  const tags = await skill72Tags(ids);
+  const levels = new Map<string, number>();
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data } = await db()
+      .from("quiz_questions")
+      .select("id, difficulty_level")
+      .in("id", ids.slice(i, i + 200));
+    for (const q of (data ?? []) as { id: string; difficulty_level: number | null }[])
+      levels.set(q.id, q.difficulty_level ?? 4);
+  }
+  const groups = new Map<string, number[]>();
+  for (const r of rows) {
+    const skill = tags.get(r.question_id);
+    if (!skill) continue;
+    const key = `${skill}|${bandOf(levels.get(r.question_id) ?? 4)}`;
+    groups.set(key, [...(groups.get(key) ?? []), r.seconds]);
+  }
+  const ready = [...groups.entries()].filter(([, s]) => s.length >= NORM_MIN_ANSWERS);
+  if (ready.length) {
+    const { error } = await db()
+      .from("exam_pace_norms")
+      .upsert(
+        ready.map(([key, seconds]) => {
+          const [skill_id, band] = key.split("|");
+          return {
+            skill_id,
+            band,
+            median_seconds: Math.max(1, Math.min(3600, median(seconds))),
+            answers: seconds.length,
+            updated_at: new Date().toISOString(),
+          };
+        }),
+        { onConflict: "skill_id,band" }
+      );
+    if (error) throw new Error("Pace norms could not be saved");
+  }
+  return { groups: ready.length };
 }
