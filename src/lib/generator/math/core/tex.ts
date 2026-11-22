@@ -151,8 +151,8 @@ export function sym(value: Sym | Q): string {
     const magnitude = coef.abs();
     let body: string;
     if (tail === "") body = num(magnitude);
-    else if (magnitude.isInt()) body = `${magnitude.n === 1 ? "" : magnitude.n}${tail}`;
-    else body = `\\frac{${magnitude.n === 1 ? "" : magnitude.n}${tail}}{${magnitude.d}}`;
+    else if (magnitude.isInt()) body = `${magnitude.n === 1 ? "" : int(magnitude.n)}${tail}`;
+    else body = `\\frac{${magnitude.n === 1 ? "" : int(magnitude.n)}${tail}}{${magnitude.d}}`;
     const negative = coef.n < 0;
     if (index === 0) return `${negative ? "-" : ""}${body}`;
     return `${negative ? "-" : "+"} ${body}`;
