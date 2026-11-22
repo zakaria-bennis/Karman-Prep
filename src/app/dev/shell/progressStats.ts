@@ -3,7 +3,7 @@
 // stock: what it stands at now, how far it moved over a span, and a line of how it got there. A line
 // that fell is red and one that rose is green, whatever the number. Pacing alone is drawn upside down,
 // faster at the top, so a student getting faster sees a line that rises.
-import { SKILLS, proficientBy, type DayLog, type Student } from "./progressData";
+import { SKILLS, proficientOn, type DayLog, type Student } from "./progressData";
 
 export type StatKey = "time" | "questions" | "skills" | "exams" | "pace" | "accuracy" | "days";
 /** The numbers shown beside the score, in his order. Accuracy is kept as a number but has no place of
@@ -147,7 +147,7 @@ export function ledger(student: Student, logs: DayLog[]): Record<StatKey, number
     const asked = recent.reduce((n, l) => n + l.questions, 0);
     out.time.push(minutes);
     out.questions.push(questions);
-    out.skills.push(proficientBy(day));
+    out.skills.push(proficientOn(logs, day));
     out.exams.push(exams);
     out.days.push(practiced);
     out.accuracy.push(

@@ -31,19 +31,19 @@ import {
   CHIPS,
   DAY,
   NAMES,
-  STUDENTS,
   TODAY,
   dateOf,
   long,
   predict,
   short,
-  split,
+  pointOf,
   type Series,
   type Student,
   type StudentKey,
   BEFORE_EXAM,
 } from "./progressData";
 import { tick } from "./sound";
+import { useStudent } from "./portalData";
 
 /** How near the test is, for the badge's color: within a week, within a month, or farther off. */
 const nearness = (days: number) => (days <= 7 ? "week" : days <= 31 ? "month" : "far");
@@ -150,7 +150,7 @@ export default function ProgressScore({
   wanted: SpanKey | null;
   onSpan: (span: SpanKey) => void;
 }) {
-  const student: Student = STUDENTS[key];
+  const student: Student = useStudent(key);
   const all = useMemo(() => predict(student), [student]);
   const [series, setSeries] = useState<Series>("total");
   const [at, setAt] = useState<number | null>(null);
@@ -168,7 +168,7 @@ export default function ProgressScore({
   const from = span.days === Infinity ? first0 : Math.max(first0, student.days - span.days);
   const points = useMemo(() => all.filter((p) => p.day >= from), [all, from]);
   const exams = useMemo(
-    () => student.exams.filter((e) => e.day >= from).map((e) => split(e.day, e.score)),
+    () => student.exams.filter((e) => e.day >= from).map(pointOf),
     [student, from]
   );
   const latest = points[points.length - 1];

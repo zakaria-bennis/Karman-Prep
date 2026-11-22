@@ -35,7 +35,7 @@ import PortalFlight from "@/components/portal/PortalFlight";
 import { portalFontVars } from "@/components/portal/fonts";
 import styles from "./shell.module.css";
 import Library, { DomainPage, LevelPage, type Section } from "./Library";
-import { PortalDataProvider, usePortalData, useSkills } from "./portalData";
+import { PortalDataProvider, usePortalData, useSkills, useStudent } from "./portalData";
 import type { PortalData } from "@/lib/portal/data";
 import Chat from "./Chat";
 import Homework from "./Homework";
@@ -122,6 +122,7 @@ function Shell() {
   const inSkill = page === "library" && skill !== null;
   const [domain, setDomain] = useState<string | null>(null);
   const [student, setStudent] = useState<StudentKey>("weeks9");
+  const realOrStandIn = useStudent(student);
   /* the number whose own page is open in Progress, if any */
   const [stat, setStat] = useState<StatKey | null>(null);
   /* what is open inside the Mistake Log on a phone: it names the page and the way back */
@@ -632,7 +633,7 @@ function Shell() {
           <MistakeLog
             key={student}
             rail={rail}
-            student={STUDENTS[student]}
+            student={realOrStandIn}
             flags={plan !== "practice"}
             onSkill={openSkill}
             onTrail={setTrail}

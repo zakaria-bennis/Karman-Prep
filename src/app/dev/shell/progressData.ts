@@ -1,13 +1,15 @@
-// The made-up students behind the Progress page, and what is worked out from them: the line of the
-// predicted score, a log of every day, and the dates. Nothing here is read from a real student. When
-// real data arrives, these functions are what it replaces.
+// The students behind the Progress page, and what is worked out from them: the line of the predicted
+// score, a log of every day, and the dates. A signed-in student's record is built on the server
+// (src/lib/portal/progress.ts) and carries its own day log (`log`); the made-up students below are
+// for the design page and work theirs out here.
 
-/** The day the stand-ins call today, fixed so the server and the browser draw the same page. */
-export const TODAY = new Date(2026, 10, 15);
+/** Today, from midnight. Every day of a log is counted back from it. */
+export const TODAY = new Date(new Date().setHours(0, 0, 0, 0));
 export const DAY = 86_400_000;
 export const round10 = (n: number) => Math.round(n / 10) * 10;
 
-export type Exam = { day: number; score: number };
+/** A full-length exam: its day and total, and its two sections when they were stored. */
+export type Exam = { day: number; score: number; rw?: number; math?: number };
 export type Student = {
   label: string;
   /** Days since they began. */
@@ -19,8 +21,10 @@ export type Student = {
   now: number;
   /** Days until the test date they entered, if they entered one. */
   testIn: number | null;
-  /** A student who has answered nothing yet (stand-in data only). */
+  /** A student who has answered nothing yet. */
   blank?: boolean;
+  /** A real student's own log of every day, from day 0 to today. */
+  log?: readonly DayLog[];
 };
 
 /** Questions to answer before a full-length exam is suggested. It is a suggestion, not a gate
@@ -94,6 +98,12 @@ export const CHIPS: Record<Series, string> = {
 
 export type Point = { day: number } & Record<Series, number>;
 
+/** An exam's point on the graph: its own two sections, or, for a stand-in, the total split. */
+export const pointOf = (exam: Exam): Point =>
+  exam.rw !== undefined && exam.math !== undefined
+    ? { day: exam.day, total: exam.score, rw: exam.rw, math: exam.math }
+    : split(exam.day, exam.score);
+
 /** A total split into its two sections (stand-in arithmetic). */
 export const split = (day: number, total: number): Point => {
   const math = round10(total * (0.51 + 0.015 * Math.sin(day / 9)));
@@ -106,6 +116,7 @@ export const split = (day: number, total: number): Point => {
 export function predict(student: Student): Point[] {
   const { exams, days, now } = student;
   if (exams.length < 2) return [];
+  if (student.log) return predictReal(exams, days);
   const marks = [...exams, ...(student.turns ?? []), { day: days, score: now }].sort(
     (a, b) => a.day - b.day
   );
@@ -117,6 +128,26 @@ export function predict(student: Student): Point[] {
     const t = b.day === a.day ? 1 : (day - a.day) / (b.day - a.day);
     const wobble = day === days ? 0 : Math.sin(day * 0.9) * 4 + Math.sin(day * 0.31) * 5;
     points.push(split(day, round10(a.score + (b.score - a.score) * t + wobble)));
+  }
+  return points;
+}
+
+/** A real student's line: straight from exam to exam, held level from the last exam to today. No
+ *  texture is added; nothing between two exams is known. */
+function predictReal(exams: readonly Exam[], days: number): Point[] {
+  const marks = [...exams].sort((a, b) => a.day - b.day).map(pointOf);
+  const points: Point[] = [];
+  for (let day = marks[0].day; day <= days; day++) {
+    const next = marks.findIndex((m) => m.day >= day);
+    if (next === -1) {
+      points.push({ ...marks[marks.length - 1], day });
+      continue;
+    }
+    const a = marks[Math.max(0, next - 1)];
+    const b = marks[next];
+    const t = b.day === a.day ? 1 : (day - a.day) / (b.day - a.day);
+    const at = (k: Series) => round10(a[k] + (b[k] - a[k]) * t);
+    points.push({ day, total: at("rw") + at("math"), rw: at("rw"), math: at("math") });
   }
   return points;
 }
@@ -144,6 +175,8 @@ export type DayLog = {
   sets: number;
   fives: number;
   challenge: boolean;
+  /** How many of the 72 skills were Proficient at the end of the day (a real student's log). */
+  proficient?: number;
 };
 
 /** Seconds a question the real SAT allows, on average: 134 minutes for 98 questions. Standard time;
@@ -159,6 +192,7 @@ const noise = (day: number, k: number) => {
 /** Every day from the first to today (stand-in): most days have practice, some are rest days, exam days
  *  are long, and the last stretch is an unbroken run of Daily 10s. */
 export function activity(student: Student): DayLog[] {
+  if (student.log) return [...student.log];
   const run = Math.min(12, Math.ceil(student.days / 2));
   const logs: DayLog[] = [];
   for (let day = 0; day <= student.days; day++) {
@@ -192,7 +226,15 @@ export function activity(student: Student): DayLog[] {
 
 /** How many skills were Proficient by a given day (stand-in), out of 72. */
 export const SKILLS = 72;
-export const proficientBy = (day: number) => Math.min(SKILLS, Math.floor(Math.max(0, day) * 0.4));
+const proficientBy = (day: number) => Math.min(SKILLS, Math.floor(Math.max(0, day) * 0.4));
+
+/** How many skills were Proficient at the end of a day: from the log when it says, else stand-in. */
+export const proficientOn = (logs: readonly DayLog[], day: number) =>
+  day < 0
+    ? logs[0]?.proficient !== undefined
+      ? 0
+      : proficientBy(day)
+    : (logs[day]?.proficient ?? proficientBy(day));
 
 /** The sums over a run of days, both ends included. */
 export function sumOver(logs: DayLog[], from: number, to: number) {
@@ -205,7 +247,7 @@ export function sumOver(logs: DayLog[], from: number, to: number) {
     practiced: days.filter((l) => l.questions > 0).length,
     accuracy: questions ? Math.round((correct / questions) * 100) : 0,
     exams: days.filter((l) => l.exam > 0).length,
-    proficient: proficientBy(to) - proficientBy(from - 1),
+    proficient: proficientOn(logs, to) - proficientOn(logs, from - 1),
   };
 }
 

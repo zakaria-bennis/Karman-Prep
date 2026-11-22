@@ -5,6 +5,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { PortalData } from "@/lib/portal/data";
 import { SKILLS, buildSkills, type Domain, type Section } from "./skills72";
+import { STUDENTS, type Student, type StudentKey } from "./progressData";
 
 const Ctx = createContext<PortalData | null>(null);
 
@@ -25,4 +26,11 @@ export const usePortalData = () => useContext(Ctx);
 export function useSkills(): Record<Section, Domain[]> {
   const data = useContext(Ctx);
   return useMemo(() => (data ? buildSkills(data.skills) : SKILLS), [data]);
+}
+
+/** The student behind Progress and the Mistake Log: the signed-in one, or the made-up one picked by
+ *  the design page's switches. */
+export function useStudent(key: StudentKey): Student {
+  const data = useContext(Ctx);
+  return data?.student ?? STUDENTS[key];
 }

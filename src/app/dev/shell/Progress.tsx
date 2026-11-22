@@ -26,6 +26,7 @@ import type { Found } from "./progressBreakdowns";
 import type { SpanKey } from "./ProgressGraph";
 import ProgressScore from "./ProgressScore";
 import { tick } from "./sound";
+import { useStudent } from "./portalData";
 
 export { STUDENTS, type StudentKey };
 
@@ -53,7 +54,7 @@ export default function Progress({
   free: boolean;
 }) {
   const still = useReducedMotion() ?? false;
-  const student: Student = STUDENTS[key];
+  const student: Student = useStudent(key);
   const logs = useMemo(() => activity(student), [student]);
   const [page, setPage] = useState<(typeof PAGES)[number]>("Score");
   // one span of time for the whole page: set on the score or on the numbers, it moves both
