@@ -1,0 +1,540 @@
+// Stable IDs for the 72 skills (founder, 2026-11-15), shared by the question bank, the generator, the exams,
+// the lessons and the portal (overnight build, 2026-11-22). Made once from the Library's list
+// (src/app/dashboard/student/_portal/skills72.ts): "rw-" or "m-" and the skill's name in lowercase with
+// dashes. Never change an ID once written: questions, lessons and student history point at it. The test
+// beside this file fails if the Library's list and this one drift apart.
+
+export type Section72 = "Reading and Writing" | "Math";
+
+export interface Skill72 {
+  id: string;
+  section: Section72;
+  domain: string;
+  name: string;
+  /** What the skill tests, in one line. */
+  tests: string;
+}
+
+export const SKILLS72: readonly Skill72[] = [
+  {
+    id: "rw-main-idea",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Main idea",
+    tests: "The central point of a short passage.",
+  },
+  {
+    id: "rw-key-details",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Key details",
+    tests: "What the text states directly.",
+  },
+  {
+    id: "rw-evidence-from-a-text",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Evidence from a text",
+    tests: "The quotation that best supports a claim.",
+  },
+  {
+    id: "rw-evidence-from-research",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Evidence from research",
+    tests: "The finding that supports or weakens a hypothesis.",
+  },
+  {
+    id: "rw-reading-tables",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Reading tables",
+    tests: "Using figures from a table to complete a claim.",
+  },
+  {
+    id: "rw-reading-graphs",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Reading graphs",
+    tests: "Using a bar, line or scatter graph to complete a claim.",
+  },
+  {
+    id: "rw-completing-an-argument",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Completing an argument",
+    tests: "The conclusion that logically follows from the text.",
+  },
+  {
+    id: "rw-inferring-from-findings",
+    section: "Reading and Writing",
+    domain: "Information and Ideas",
+    name: "Inferring from findings",
+    tests: "What a study's result implies, and what it does not.",
+  },
+  {
+    id: "rw-precise-word-choice",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Precise word choice",
+    tests: "The everyday word that fits the sentence's exact meaning.",
+  },
+  {
+    id: "rw-advanced-vocabulary",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Advanced vocabulary",
+    tests: "Less common words, chosen by meaning.",
+  },
+  {
+    id: "rw-meaning-in-context",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Meaning in context",
+    tests: "What a familiar word means as it is used here, and its tone.",
+  },
+  {
+    id: "rw-text-structure",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Text structure",
+    tests: "How a passage is organised from start to finish.",
+  },
+  {
+    id: "rw-main-purpose",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Main purpose",
+    tests: "Why the author wrote the text.",
+  },
+  {
+    id: "rw-function-of-a-sentence",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Function of a sentence",
+    tests: "What one underlined sentence does in the passage.",
+  },
+  {
+    id: "rw-comparing-two-texts",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Comparing two texts",
+    tests: "Where two authors agree and where they differ.",
+  },
+  {
+    id: "rw-responding-across-texts",
+    section: "Reading and Writing",
+    domain: "Craft and Structure",
+    name: "Responding across texts",
+    tests: "How one author would answer the other's claim.",
+  },
+  {
+    id: "rw-notes-similarities-and-differences",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Notes: similarities and differences",
+    tests: "Using notes to state how two things compare.",
+  },
+  {
+    id: "rw-notes-presenting-a-study",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Notes: presenting a study",
+    tests: "Using notes to introduce research and its findings.",
+  },
+  {
+    id: "rw-notes-writing-for-a-goal",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Notes: writing for a goal",
+    tests: "Choosing the facts that fit a stated aim and audience.",
+  },
+  {
+    id: "rw-transitions-adding-on",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Transitions: adding on",
+    tests: "Words that continue or add to an idea.",
+  },
+  {
+    id: "rw-transitions-contrast",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Transitions: contrast",
+    tests: "Words that turn against or concede a point.",
+  },
+  {
+    id: "rw-transitions-cause-and-sequence",
+    section: "Reading and Writing",
+    domain: "Expression of Ideas",
+    name: "Transitions: cause and sequence",
+    tests: "Words that show a result or an order in time.",
+  },
+  {
+    id: "rw-sentence-boundaries",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Sentence boundaries",
+    tests: "Fragments, run-ons, and joining two full sentences.",
+  },
+  {
+    id: "rw-linking-clauses",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Linking clauses",
+    tests: "Joining a main clause to a dependent one.",
+  },
+  {
+    id: "rw-essential-and-extra-details",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Essential and extra details",
+    tests: "Commas around added information, names and titles.",
+  },
+  {
+    id: "rw-colons-and-dashes",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Colons and dashes",
+    tests: "Introducing an explanation or a list.",
+  },
+  {
+    id: "rw-lists-and-series",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Lists and series",
+    tests: "Commas and semicolons between items.",
+  },
+  {
+    id: "rw-unneeded-punctuation",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Unneeded punctuation",
+    tests: "Marks that split a sentence where nothing belongs.",
+  },
+  {
+    id: "rw-subject-verb-agreement",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Subject-verb agreement",
+    tests: "Matching the verb to its real subject.",
+  },
+  {
+    id: "rw-pronoun-agreement",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Pronoun agreement",
+    tests: "Matching a pronoun to the noun it stands for.",
+  },
+  {
+    id: "rw-verb-forms",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Verb forms",
+    tests: "A full verb against an -ing or to- form.",
+  },
+  {
+    id: "rw-verb-tense",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Verb tense",
+    tests: "The tense the timeline of the sentence needs.",
+  },
+  {
+    id: "rw-modifier-placement",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Modifier placement",
+    tests: "Putting a describing phrase next to what it describes.",
+  },
+  {
+    id: "rw-plurals-and-possessives",
+    section: "Reading and Writing",
+    domain: "Standard English Conventions",
+    name: "Plurals and possessives",
+    tests: "Plural, possessive and contraction forms.",
+  },
+  {
+    id: "m-solving-linear-equations",
+    section: "Math",
+    domain: "Algebra",
+    name: "Solving linear equations",
+    tests: "One variable, including fractions and brackets.",
+  },
+  {
+    id: "m-number-of-solutions",
+    section: "Math",
+    domain: "Algebra",
+    name: "Number of solutions",
+    tests: "When a linear equation has none, one or infinitely many.",
+  },
+  {
+    id: "m-equations-from-words",
+    section: "Math",
+    domain: "Algebra",
+    name: "Equations from words",
+    tests: "Writing a linear equation for a situation.",
+  },
+  {
+    id: "m-slope-and-rate-of-change",
+    section: "Math",
+    domain: "Algebra",
+    name: "Slope and rate of change",
+    tests: "Finding slope and saying what it means.",
+  },
+  {
+    id: "m-graphs-of-lines",
+    section: "Math",
+    domain: "Algebra",
+    name: "Graphs of lines",
+    tests: "Intercepts and the forms of a line's equation.",
+  },
+  {
+    id: "m-parallel-and-perpendicular-lines",
+    section: "Math",
+    domain: "Algebra",
+    name: "Parallel and perpendicular lines",
+    tests: "How the slopes of two lines relate.",
+  },
+  {
+    id: "m-linear-functions",
+    section: "Math",
+    domain: "Algebra",
+    name: "Linear functions",
+    tests: "Evaluating f(x) and reading it in context.",
+  },
+  {
+    id: "m-solving-systems",
+    section: "Math",
+    domain: "Algebra",
+    name: "Solving systems",
+    tests: "Two equations, by substitution or elimination.",
+  },
+  {
+    id: "m-systems-in-context",
+    section: "Math",
+    domain: "Algebra",
+    name: "Systems in context",
+    tests: "Word problems, and systems with no or many solutions.",
+  },
+  {
+    id: "m-linear-inequalities",
+    section: "Math",
+    domain: "Algebra",
+    name: "Linear inequalities",
+    tests: "Solving them and reading their graphs.",
+  },
+  {
+    id: "m-expanding-and-factoring",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Expanding and factoring",
+    tests: "Rewriting polynomial expressions.",
+  },
+  {
+    id: "m-rational-expressions",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Rational expressions",
+    tests: "Simplifying, adding and dividing fractions with variables.",
+  },
+  {
+    id: "m-exponents-and-radicals",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Exponents and radicals",
+    tests: "The exponent rules, roots and fractional powers.",
+  },
+  {
+    id: "m-solving-quadratics",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Solving quadratics",
+    tests: "Factoring, the formula, and how many solutions there are.",
+  },
+  {
+    id: "m-graphs-of-quadratics",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Graphs of quadratics",
+    tests: "Vertex, intercepts and the three forms.",
+  },
+  {
+    id: "m-exponential-functions",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Exponential functions",
+    tests: "Growth, decay and what each number means.",
+  },
+  {
+    id: "m-radical-and-rational-equations",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Radical and rational equations",
+    tests: "Solving them, and spotting false solutions.",
+  },
+  {
+    id: "m-nonlinear-systems",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Nonlinear systems",
+    tests: "Where a line meets a parabola or circle.",
+  },
+  {
+    id: "m-polynomials",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Polynomials",
+    tests: "Zeros, factors and the shape of the graph.",
+  },
+  {
+    id: "m-functions-and-transformations",
+    section: "Math",
+    domain: "Advanced Math",
+    name: "Functions and transformations",
+    tests: "Notation, composition and shifting a graph.",
+  },
+  {
+    id: "m-ratios-and-proportions",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Ratios and proportions",
+    tests: "Ratios, rates and scaling.",
+  },
+  {
+    id: "m-units-and-conversions",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Units and conversions",
+    tests: "Changing units, including speed and density.",
+  },
+  {
+    id: "m-percentages",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Percentages",
+    tests: "Percent of, percent change and repeated change.",
+  },
+  {
+    id: "m-mean-median-and-spread",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Mean, median and spread",
+    tests: "Centre, range and standard deviation.",
+  },
+  {
+    id: "m-reading-data-displays",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Reading data displays",
+    tests: "Histograms, box plots and dot plots.",
+  },
+  {
+    id: "m-scatterplots",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Scatterplots",
+    tests: "Lines of best fit and predicting from them.",
+  },
+  {
+    id: "m-probability",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Probability",
+    tests: "Simple and conditional, from two-way tables.",
+  },
+  {
+    id: "m-samples-and-margin-of-error",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Samples and margin of error",
+    tests: "What a sample can say about a population.",
+  },
+  {
+    id: "m-studies-and-experiments",
+    section: "Math",
+    domain: "Problem-Solving and Data Analysis",
+    name: "Studies and experiments",
+    tests: "When a result can be generalised or show a cause.",
+  },
+  {
+    id: "m-area-and-perimeter",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Area and perimeter",
+    tests: "Flat shapes, including composite ones.",
+  },
+  {
+    id: "m-volume-and-surface-area",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Volume and surface area",
+    tests: "Prisms, cylinders, cones and spheres.",
+  },
+  {
+    id: "m-lines-and-angles",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Lines and angles",
+    tests: "Angle relationships with parallel lines.",
+  },
+  {
+    id: "m-triangles",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Triangles",
+    tests: "Angle sums, similar and congruent triangles.",
+  },
+  {
+    id: "m-right-triangles",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Right triangles",
+    tests: "The Pythagorean theorem and special right triangles.",
+  },
+  {
+    id: "m-trigonometric-ratios",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Trigonometric ratios",
+    tests: "Sine, cosine and tangent, and how they relate.",
+  },
+  {
+    id: "m-circles",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Circles",
+    tests: "Arcs, sectors and angles in a circle.",
+  },
+  {
+    id: "m-circle-equations",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Circle equations",
+    tests: "The equation of a circle in the plane.",
+  },
+  {
+    id: "m-radians",
+    section: "Math",
+    domain: "Geometry and Trigonometry",
+    name: "Radians",
+    tests: "Radians, degrees and the unit circle.",
+  },
+];
+
+const BY_ID = new Map(SKILLS72.map((s) => [s.id, s]));
+
+/** The skill with this ID, or undefined. */
+export function skill72(id: string): Skill72 | undefined {
+  return BY_ID.get(id);
+}
+
+/** True for one of the 72 IDs. */
+export function isSkill72Id(id: string): boolean {
+  return BY_ID.has(id);
+}
+
+/** The skills of one section, in the Library's order. */
+export function skills72In(section: Section72): Skill72[] {
+  return SKILLS72.filter((s) => s.section === section);
+}
