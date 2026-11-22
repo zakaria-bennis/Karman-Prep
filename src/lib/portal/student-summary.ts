@@ -9,7 +9,8 @@
  */
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ExamResult, NextStep } from "@/lib/exams/result";
+import type { ExamResult } from "@/lib/exams/result";
+import type { ReinforceSkill } from "@/lib/exams/reinforce";
 import { createAdminClient } from "@/lib/supabase/server";
 import { studentContextFor } from "@/lib/student/context";
 import type { PortalData } from "./data";
@@ -22,7 +23,7 @@ export type LastExam = {
   change: number | null;
   completedAt: string;
   /** The skills that cost the most points, most first (the exam ending's Reinforce skills). */
-  reinforce: NextStep[];
+  reinforce: ReinforceSkill[];
 };
 
 export type StudentSummary = {
@@ -79,7 +80,7 @@ export async function loadStudentSummary(clerkId: string): Promise<StudentSummar
           total: last.result.total,
           change: last.result.improvement,
           completedAt: last.completed_at,
-          reinforce: last.result.nextSteps,
+          reinforce: last.result.reinforce ?? [],
         }
       : null,
     trend: scored.map((s) => ({ at: s.completed_at, total: s.result!.total })),
