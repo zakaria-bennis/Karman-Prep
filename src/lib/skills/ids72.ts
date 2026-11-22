@@ -98,7 +98,7 @@ export const SKILLS72: readonly Skill72[] = [
     section: "Reading and Writing",
     domain: "Craft and Structure",
     name: "Text structure",
-    tests: "How a passage is organised from start to finish.",
+    tests: "How a passage is organized from start to finish.",
   },
   {
     id: "rw-main-purpose",
@@ -420,7 +420,7 @@ export const SKILLS72: readonly Skill72[] = [
     section: "Math",
     domain: "Problem-Solving and Data Analysis",
     name: "Mean, median and spread",
-    tests: "Centre, range and standard deviation.",
+    tests: "Center, range and standard deviation.",
   },
   {
     id: "m-reading-data-displays",
@@ -455,7 +455,7 @@ export const SKILLS72: readonly Skill72[] = [
     section: "Math",
     domain: "Problem-Solving and Data Analysis",
     name: "Studies and experiments",
-    tests: "When a result can be generalised or show a cause.",
+    tests: "When a result can be generalized or show a cause.",
   },
   {
     id: "m-area-and-perimeter",
