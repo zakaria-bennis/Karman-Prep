@@ -31,6 +31,7 @@ import { loadRewards } from "./rewards";
 import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
+import { loadSkill72Counts } from "@/lib/bank/skills72-read";
 
 const NAMES = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));
 
@@ -60,42 +61,54 @@ async function rows<T>(q: PromiseLike<{ data: unknown; error: unknown }>): Promi
 export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
-  const [answers, runAnswers, stored, daily, runs, diagnostics, challenges, sessions, trials] =
-    await Promise.all([
-      loadSkillAnswers(ctx.clerkId),
-      loadRunAnswers(ctx.clerkId),
-      loadStoredLevels(ctx.clerkId, nowMs),
-      dailyTenDays(ctx.clerkId),
-      rows<RunRow>(
-        db
-          .from("quiz_runs")
-          .select("kind, completed_at, result")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
-        db
-          .from("diagnostic_results")
-          .select("taken_at, score_range_low, score_range_high")
-          .eq("user_id", ctx.userId)
-          .limit(100)
-      ),
-      rows<{ day: string }>(
-        db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-      rows<{ completed_at: string | null }>(
-        db
-          .from("catalog_practice_sessions")
-          .select("completed_at")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ started_at: string }>(
-        db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-    ]);
+  const [
+    answers,
+    runAnswers,
+    stored,
+    daily,
+    runs,
+    diagnostics,
+    challenges,
+    sessions,
+    trials,
+    tagged,
+  ] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId, nowMs),
+    dailyTenDays(ctx.clerkId),
+    rows<RunRow>(
+      db
+        .from("quiz_runs")
+        .select("kind, completed_at, result")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
+      db
+        .from("diagnostic_results")
+        .select("taken_at, score_range_low, score_range_high")
+        .eq("user_id", ctx.userId)
+        .limit(100)
+    ),
+    rows<{ day: string }>(
+      db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    rows<{ completed_at: string | null }>(
+      db
+        .from("catalog_practice_sessions")
+        .select("completed_at")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ started_at: string }>(
+      db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    // live questions behind each of the 72, from the bank's real tags (Bank stream, 2026-11-22)
+    loadSkill72Counts(db),
+  ]);
 
   const every: SkillAnswer[] = [...answers, ...runAnswers];
   const levels = withStored(levelsBySubSkill(every, nowMs), stored);
@@ -104,7 +117,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
       name,
       {
         level: bridgedLevel(name, levels),
-        questions: bridgedQuestions(name, subSkillQuestionCount),
+        questions: tagged.get(name) ?? bridgedQuestions(name, subSkillQuestionCount),
       },
     ])
   );
