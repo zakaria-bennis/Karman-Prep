@@ -55,4 +55,6 @@ export interface PortalData {
   /** Schedule, for Private students. */
   schedule: RealSchedule | null;
   rewards: RealRewards;
+  /** The last full-length exam's Reinforce skills (the three costliest): Homework suggests them. */
+  reinforce: { skillId: string; name: string; points: number }[];
 }

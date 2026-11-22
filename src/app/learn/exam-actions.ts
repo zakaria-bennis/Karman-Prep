@@ -12,7 +12,7 @@ import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 
-import { recalibrateForm } from "@/lib/exams/calibration";
+import { learnPaceNorms, recalibrateForm } from "@/lib/exams/calibration";
 import {
   ExamError,
   endBreak,
@@ -58,6 +58,7 @@ function learnLater(form: number, finishedNow: boolean) {
   after(async () => {
     try {
       await recalibrateForm(form);
+      await learnPaceNorms();
     } catch (error) {
       console.error("[exams] calibration", error instanceof Error ? error.message : error);
     }

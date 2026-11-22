@@ -53,7 +53,7 @@ import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
 import Progress, { type StudentKey } from "./Progress";
-import type { Found } from "./progressBreakdowns";
+import { useSkillLink, type Found } from "./skillLink";
 import { STATS, type StatKey } from "./progressStats";
 import { LEVELS as LEVEL_NAMES } from "./skills72";
 import SkillPage, { type OpenSkill } from "./SkillPage";
@@ -196,6 +196,7 @@ function Shell() {
     window.scrollTo({ top: 0 });
   };
   const [world] = useState(() => ({}));
+  useSkillLink(q.get("skill"), openSkill);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-kp-mode", dark ? "dark" : "light");

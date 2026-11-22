@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EngineItem } from "@/lib/sat-engine/params";
-import {
-  EXAM_COINS,
-  buildResult,
-  chooseRoute,
-  examCoins,
-  nextSteps,
-  type GradedAnswer,
-} from "./result";
+import { EXAM_COINS, buildResult, chooseRoute, examCoins, type GradedAnswer } from "./result";
 import type { ModuleKey } from "./plan";
 
 const item = (
@@ -39,6 +32,7 @@ function module(
     trial: i === 5 || i === 9,
     answered: true,
     seconds: 60,
+    skill72: section === "math" ? "m-linear-functions" : "rw-main-idea",
   }));
 }
 
@@ -64,6 +58,7 @@ describe("exam routing and scoring", () => {
       previousTotal: null,
       earlier: [],
       completedAt: new Date("2026-11-28T18:00:00Z"),
+      norms: new Map(),
     });
     const weak = buildResult({
       form: 1,
@@ -78,6 +73,7 @@ describe("exam routing and scoring", () => {
       previousTotal: null,
       earlier: [],
       completedAt: new Date("2026-11-28T18:00:00Z"),
+      norms: new Map(),
     });
     for (const r of [strong, weak]) {
       expect(r.reading.score).toBeGreaterThanOrEqual(200);
@@ -106,6 +102,7 @@ describe("exam routing and scoring", () => {
       minutes: { rw1: 1, rw2: 1, m1: 1, m2: 1 },
       previousTotal: null,
       completedAt: new Date(),
+      norms: new Map(),
     };
     expect(buildResult({ ...base, earlier: [] }).predicted).toEqual({ before: null, after: null });
     const one = buildResult({ ...base, earlier: [1010] });
@@ -114,19 +111,23 @@ describe("exam routing and scoring", () => {
     expect(two.predicted).toEqual({ before: 1090, after: two.total });
   });
 
-  it("names the three skills with the most misses", () => {
-    const answers = [
-      ...module("rw1", "reading", 10, 2, "rw-skill-transitions"),
-      ...module("rw2", "reading", 10, 6, "rw-skill-inferences"),
-      ...module("m1", "math", 10, 8, "ma-skill-circles"),
-      ...module("m2", "math", 10, 10, "ma-skill-percentages"),
-    ];
-    const steps = nextSteps(answers);
-    expect(steps.map((s) => s.skillId)).toEqual([
-      "rw-skill-transitions",
-      "rw-skill-inferences",
-      "ma-skill-circles",
+  it("lists Reinforce skills by the points their misses cost, and a pacing strip per module", () => {
+    const r = buildResult({
+      form: 1,
+      answers: [...module("rw1", "reading", 27, 20), ...module("m1", "math", 22, 11)],
+      routes: { reading: "harder", math: "easier" },
+      minutes: { rw1: 1, rw2: 1, m1: 1, m2: 1 },
+      previousTotal: null,
+      earlier: [],
+      completedAt: new Date(),
+      norms: new Map(),
+    });
+    expect(r.reinforce.map((s) => s.skillId).sort()).toEqual([
+      "m-linear-functions",
+      "rw-main-idea",
     ]);
-    expect(steps[0].name).toBe("Transitions");
+    expect(r.reinforce[0].points).toBeGreaterThan(0);
+    expect(r.pacing.modules.map((m) => m.key)).toEqual(["rw1", "m1"]);
+    expect(r.pacing.modules[0].marks).toHaveLength(27);
   });
 });

@@ -38,7 +38,9 @@ import {
   readResponses,
   savePlan,
   sittingById,
+  paceNorms,
   sittingsOf,
+  skill72Tags,
   studentFacts,
   writeResponses,
   type ResponseRow,
@@ -133,6 +135,7 @@ function graded(
         trial,
         answered: !!answer,
         seconds: prior?.seconds ?? 0,
+        skill72: null,
       });
   });
   return { rows, answers };
@@ -159,9 +162,10 @@ async function gradedAnswers(
 ) {
   const modules = keys.map((key) => moduleOf(plan, key));
   const ids = modules.flatMap((m) => m.questionIds);
-  const [questions, responses] = await Promise.all([
+  const [questions, responses, tags] = await Promise.all([
     loadExamQuestions(ids),
     readResponses(sitting.id),
+    skill72Tags(ids),
   ]);
   const byId = new Map(responses.map((r) => [r.question_id, r]));
   const answers: GradedAnswer[] = [];
@@ -179,6 +183,7 @@ async function gradedAnswers(
         trial: part.trialIds.includes(id),
         answered: !!row?.answer,
         seconds: row?.seconds ?? 0,
+        skill72: tags.get(id) ?? null,
       });
     }
   }
@@ -229,6 +234,7 @@ async function finish(sitting: SittingRecord, plan: SittingPlan, userId: string 
     previousTotal,
     earlier,
     completedAt: now,
+    norms: await paceNorms(),
   });
   await completeSitting(sitting.id, result, result.coins);
   return result;

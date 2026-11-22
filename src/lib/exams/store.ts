@@ -314,3 +314,33 @@ export async function otherScoredExams(clerkId: string, userId: string | null) {
     }[],
   };
 }
+
+/** Each question's skill among the 72 (question_skills72, written by the Bank stream). */
+export async function skill72Tags(ids: readonly string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data, error } = await db()
+      .from("question_skills72")
+      .select("question_id, skill_id")
+      .in("question_id", ids.slice(i, i + 200));
+    if (error) continue;
+    for (const row of (data ?? []) as { question_id: string; skill_id: string }[])
+      out.set(row.question_id, row.skill_id);
+  }
+  return out;
+}
+
+/** Learned expected times by `${skillId}|${band}` (exam_pace_norms); empty until enough answers. */
+export async function paceNorms(): Promise<Map<string, number>> {
+  const { data, error } = await db()
+    .from("exam_pace_norms")
+    .select("skill_id, band, median_seconds")
+    .limit(1000);
+  if (error) return new Map();
+  return new Map(
+    ((data ?? []) as { skill_id: string; band: string; median_seconds: number }[]).map((r) => [
+      `${r.skill_id}|${r.band}`,
+      r.median_seconds,
+    ])
+  );
+}
