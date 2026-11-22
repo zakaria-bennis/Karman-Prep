@@ -13,7 +13,7 @@ const PROSE_PROBLEMS: [RegExp, string][] = [
   [/\b(NaN|undefined|Infinity|null)\b/, "a missing value"],
   [/\[object/, "an object printed as text"],
   [/ {2,}/, "a double space"],
-  [/ [,.;:?]/, "a space before punctuation"],
+  [/ [,;:?]| \.(?!\d)/, "a space before punctuation"],
 ];
 
 const MATH_PROBLEMS: [RegExp, string][] = [
