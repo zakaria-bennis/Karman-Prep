@@ -112,6 +112,17 @@ export async function loadStudentContext(): Promise<StudentContext> {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId, isImpersonating } = await resolveEffectiveClerkId(realUserId);
+  const ctx = await studentContextFor(clerkId, isImpersonating);
+  if (!ctx) redirect("/onboarding");
+  return ctx;
+}
+
+/** The same context for any student by Clerk id, for a page that has already checked the viewer may
+ *  see them (their tutor, their parent). Null when there is no such account yet. */
+export async function studentContextFor(
+  clerkId: string,
+  isImpersonating = false
+): Promise<StudentContext | null> {
   const db = createAdminClient() as unknown as Db;
 
   const [{ data: user }, { data: sub }] = await Promise.all([
@@ -119,7 +130,7 @@ export async function loadStudentContext(): Promise<StudentContext> {
     db.from("subscriptions").select("*").eq("user_id", clerkId).maybeSingle(),
   ]);
   const row = (user ?? null) as Record<string, unknown> | null;
-  if (!row || typeof row.id !== "string") redirect("/onboarding");
+  if (!row || typeof row.id !== "string") return null;
 
   const userId = row.id as string;
   // The most generous of the student's own subscription, purchases, school seat and tutor code.

@@ -38,6 +38,8 @@ export type Work = {
   state: "todo" | "done" | "missing" | "closed";
   /** A real piece: where Start (or Review, once done) opens it. */
   href?: string | null;
+  /** A curated review set the tutor sent (review_sets): Start opens it here, not by a link. */
+  review?: string;
 };
 export type HomeworkDay = {
   date: Date;
