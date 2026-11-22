@@ -100,18 +100,20 @@ describe("operator-name allowlist", () => {
       expect.arrayContaining(["abs", "length"])
     );
   });
-  it("PR-12 panelCategories gives categories 1, 2 and 8 with K-5 actions", () => {
+  it("PR-12 panelCategories gives categories 1, 2, 3, 4 and 8 with K-5 actions", () => {
     expect(O.CATEGORY_HEADINGS.join("|")).toBe(
       "Trig|Inverse trig|Statistics|List operations|Visualizations|Probability distributions|" +
         "Inference|Calculus|Hyperbolic trig|Geometry|Custom colors|Number theory|Matrices|Complex|Advanced"
     );
     const cats = O.panelCategories(),
-      [trig, inverse, calculus] = cats;
+      [trig, inverse, , , calculus] = cats;
     expect(
       cats.map((c) => `${c.id} ${c.heading}: ${c.entries.map((e) => e.label).join(" ")}`)
     ).toEqual([
       "1 Trig: sin cos tan csc sec cot",
       "2 Inverse trig: sin⁻¹ cos⁻¹ tan⁻¹ csc⁻¹ sec⁻¹ cot⁻¹",
+      "3 Statistics: mean median min max quartile quantile stdev stdevp var varp cov mad corr count total",
+      "4 List operations: repeat join sort unique length",
       "8 Calculus: exp ln log logₐ d/dx",
     ]);
     expect(calculus.entries.map((e) => e.name).join(" ")).toBe("exp ln log log ddx");

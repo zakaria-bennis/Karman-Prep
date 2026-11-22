@@ -20,6 +20,9 @@ it("words students type for statistics get the function to use instead (2026-11-
   expect(await tip("range(L)", "L=[1,2]")).toBe("For the range, use max(L) - min(L).");
   expect(await tip("\\sum\\left([1,2]\\right)")).toBe("To add up a list, use total(L).");
   expect(await tip("avg(L)", "L=[1,2]")).toBe("For the average, use mean(L).");
+  expect(await tip("\\operatorname{stats}(L)", "L=[1,2]")).toBe(
+    "For min, Q1, median, Q3 and max, use quartile(L,[0,1,2,3,4])."
+  );
 });
 
 it("f(2) before f is defined, = in a fit, x in a fit and { } for a list say what to do", async () => {

@@ -35,6 +35,9 @@ const UNKNOWN_NAMES: ReadonlySet<string> = new Set([
 export function studentHint(latex: string, code: string, names: readonly string[]): string | null {
   const text = plain(latex);
   if (/^\\sum\s*\(/.test(text)) return "To add up a list, use total(L).";
+  if (/^stats\s*\(/.test(text)) {
+    return "For min, Q1, median, Q3 and max, use quartile(L,[0,1,2,3,4]).";
+  }
   if (!UNKNOWN_NAMES.has(code)) return null;
   const word = /^([A-Za-z]+)\s*\(/.exec(text)?.[1];
   if (word !== undefined && word.length > 1) {

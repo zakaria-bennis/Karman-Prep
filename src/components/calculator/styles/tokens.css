@@ -112,6 +112,10 @@
   /* Hooks added on 2026-11-22 for the screens moved onto the quiz's glass. Each default is
      today's classic value, so only a host that sets one sees a change. */
   /* Error tips */
+  --kc-error-tip-width: 200px;
+  --kc-error-tip-pad: 5px 8px;
+  --kc-error-tip-radius: var(--kc-radius-chip);
+  --kc-error-tip-shadow: none;
 
   /* Statistics */
 
@@ -126,6 +130,21 @@
   --kc-tr-plot-radius: 6px;
 
   /* Sliders, tables and menus */
+  --kc-slider-tick: var(--kc-list); /* a step's dot on the track */
+  --kc-slider-menu-edge: var(--kc-boundary);
+  --kc-slider-button-radius: 4px; /* the speed buttons */
+  --kc-letter-radius: var(--kc-radius-small); /* an add-slider name */
+  --kc-table-radius: 0px;
+  --kc-table-fill: transparent;
+  --kc-table-edge: none;
+  --kc-table-strong-rule: var(--kc-text); /* under the header and after the first column */
+  --kc-table-focus-radius: 0px;
+  --kc-table-button-radius: 4px;
+  --kc-menu-edge: var(--kc-boundary); /* the add menu and a column's style menu */
+  --kc-add-item-width: 100px; /* a row of the Add item menu */
+  --kc-add-item-pad: 0px;
+  --kc-add-item-radius: 0px;
+  --kc-add-item-hover: transparent;
 
 
   /* Tones mixed from the roles */

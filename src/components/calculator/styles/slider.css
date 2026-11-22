@@ -142,7 +142,7 @@
   height: 2px;
   margin-left: -1px;
   border-radius: 2px;
-  background: var(--kc-list);
+  background: var(--kc-slider-tick);
 }
 
 /* SLIDERS-12: the 2 px zero marker, ink at 0.35. */
@@ -298,6 +298,7 @@
 .kc-slider-menu::before,
 .kc-slider-menu::after {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   top: 10px;
   z-index: 1;
@@ -320,8 +321,8 @@
   box-sizing: border-box;
   width: 141px;
   padding: 12px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border: 1px solid var(--kc-slider-menu-edge);
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);
 }
@@ -361,7 +362,7 @@
   width: 26px;
   height: 26px;
   border: 1px solid color-mix(in srgb, var(--kc-text) 20%, transparent);
-  border-radius: 4px;
+  border-radius: var(--kc-slider-button-radius);
   color: var(--kc-text-secondary);
   cursor: pointer;
 }
@@ -391,4 +392,21 @@
   font-size: 0.75em;
   font-style: normal;
   line-height: 0;
+}
+
+/* Phones: the slider's small controls get finger-sized targets without growing on screen
+   (2026-11-22). */
+@media (pointer: coarse) {
+  .kc-slider-play,
+  .kc-slider-mode,
+  .kc-slider-speed-button {
+    position: relative;
+  }
+  .kc-slider-play::after,
+  .kc-slider-mode::after,
+  .kc-slider-speed-button::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
 }

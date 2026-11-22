@@ -18,6 +18,9 @@
   max-width: calc(100% - 15px);
   margin-left: 15px;
   overflow-x: auto;
+  border-radius: var(--kc-table-radius);
+  background: var(--kc-table-fill);
+  box-shadow: var(--kc-table-edge);
   font-family: var(--kc-font-math);
   font-size: 14.72px;
 }
@@ -47,7 +50,7 @@
 
 .kc-table-cell:first-child {
   min-width: 61px;
-  border-right-color: var(--kc-text);
+  border-right-color: var(--kc-table-strong-rule);
 }
 
 .kc-table-cell[data-slot="true"],
@@ -61,7 +64,7 @@
 
 .kc-table-row[data-header="true"] > .kc-table-cell {
   height: 42px;
-  border-bottom-color: var(--kc-text);
+  border-bottom-color: var(--kc-table-strong-rule);
 }
 
 .kc-table .mq-math-mode {
@@ -92,6 +95,7 @@
 .kc-table-cell:focus-within {
   outline: 2px solid var(--kc-focus-ring);
   outline-offset: -2px;
+  border-radius: var(--kc-table-focus-radius);
 }
 
 .kc-table-field .kc-math-field.mq-editable-field,
@@ -120,7 +124,7 @@
   height: 24px;
   padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--kc-table-button-radius);
   color: var(--kc-text-secondary);
   cursor: pointer;
 }

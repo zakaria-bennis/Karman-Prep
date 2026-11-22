@@ -109,9 +109,15 @@ it("lists, [1...10], mean, median, stdev, stdevp, min, max, total and repeat", a
       "\\min(L)+\\max(L)",
       "\\operatorname{total}([1...10])",
       "\\operatorname{mean}(\\operatorname{repeat}([1,2,3],[2,3,5]))",
-      "\\operatorname{mean}(2L)"
+      "\\operatorname{mean}(2L)",
+      "\\operatorname{quartile}(L,[0,1,2,3,4])"
     )
   );
+  // the five-number summary the stats hint points to
+  expect(m.engine.expressionAnalysis.r9?.evaluation).toEqual({
+    type: "list",
+    value: [2, 4, 4.5, 6, 9],
+  });
   expect(value(m, "r1")).toBe(5);
   expect(value(m, "r2")).toBe(4.5);
   expect(value(m, "r3")).toBeCloseTo(2, 12);
