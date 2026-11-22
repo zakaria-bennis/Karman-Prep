@@ -131,7 +131,7 @@ const lesson: Lesson = {
         "She flipped the fraction; the slope is $\\frac{5}{2}$.",
       ],
       right: 0,
-      why: "This is A is not slope. Get $y$ alone: $5y = -2x + 10$, so $y = -\\frac{2}{5}x + 2$ and the slope is $-\\frac{2}{5}$. The 2 is only the $x$ coefficient in standard form. $-2$ still ignores the 5 in front of $y$. 10 divided by 2 is 5, the $x$-intercept's value, not a slope. $\\frac{5}{2}$ flips the fraction and drops the sign.",
+      why: "This is the **A is not slope** trap. Get $y$ alone: $5y = -2x + 10$, so $y = -\\frac{2}{5}x + 2$ and the slope is $-\\frac{2}{5}$. The 2 is only the $x$ coefficient in standard form. $-2$ still ignores the 5 in front of $y$. 10 divided by 2 is 5, the $x$-intercept's value, not a slope. $\\frac{5}{2}$ flips the fraction and drops the sign.",
       subject: "math",
     },
     {

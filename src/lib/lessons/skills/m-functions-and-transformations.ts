@@ -118,7 +118,7 @@ const lesson: Lesson = {
     text: "Let $f(x) = 4x - 1$ and $g(x) = x + 3$. What is the value of $g(f(2))$?",
     choices: ["$10$", "$12$", "$19$", "$35$"],
     right: 0,
-    why: "Start inside: $f(2) = 4(2) - 1 = 7$. Then $g(7) = 7 + 3 = 10$. $19$ is Outside first: it finds $f(g(2)) = f(5)$. $35$ multiplies $f(2) \\cdot g(2) = 7 \\cdot 5$, and $12$ adds them.",
+    why: "Start inside: $f(2) = 4(2) - 1 = 7$. Then $g(7) = 7 + 3 = 10$. $19$ is the **Outside first** trap: it finds $f(g(2)) = f(5)$. $35$ multiplies $f(2) \\cdot g(2) = 7 \\cdot 5$, and $12$ adds them.",
   },
   quiz: [
     {
@@ -137,21 +137,21 @@ const lesson: Lesson = {
         "Find $f(1)$ and $g(1)$, then add them.",
       ],
       right: 0,
-      why: "Start inside the parentheses. The inside function is $f$, so find $f(1) = 5$, then $g(5) = 25 - 1 = 24$. Finding $g(1)$ first is the Outside first trap: it gives $f(g(1)) = f(0) = 3$, the answer to a different question. Multiplying gives $5 \\cdot 0 = 0$ and adding gives 5. A composition feeds one output into the next function; it does not combine two outputs.",
+      why: "Start inside the parentheses. The inside function is $f$, so find $f(1) = 5$, then $g(5) = 25 - 1 = 24$. Finding $g(1)$ first is the **Outside first** trap: it gives $f(g(1)) = f(0) = 3$, the answer to a different question. Multiplying gives $5 \\cdot 0 = 0$ and adding gives 5. A composition feeds one output into the next function; it does not combine two outputs.",
       subject: "math",
     },
     {
       text: "Maya finds $f(-3)$ for $f(x) = x^2 + 4x$. She writes $-3^2 + 4(-3) = -9 - 12 = -21$. What is the correct value of $f(-3)$?",
       choices: ["$-21$", "$-3$", "$3$", "$21$"],
       right: 1,
-      why: "Replace every $x$ with $-3$, in parentheses: $(-3)^2 + 4(-3) = 9 - 12 = -3$. Maya's $-21$ is the Missing parentheses trap: without them, $-3^2$ means $-(3^2) = -9$. $21$ squares correctly but turns $4(-3)$ into $+12$. $3$ makes both slips: $-9 + 12$.",
+      why: "Replace every $x$ with $-3$, in parentheses: $(-3)^2 + 4(-3) = 9 - 12 = -3$. Maya's $-21$ is the **Missing parentheses** trap: without them, $-3^2$ means $-(3^2) = -9$. $21$ squares correctly but turns $4(-3)$ into $+12$. $3$ makes both slips: $-9 + 12$.",
       subject: "math",
     },
     {
       text: "The graph of $y = f(x) + 5$ is the graph of $y = f(x)$ moved up 5. How is the graph of $y = f(x + 5)$ moved?",
       choices: ["Up 5", "Down 5", "Left 5", "Right 5"],
       right: 2,
-      why: "The $+5$ is inside the parentheses, so it moves the graph sideways, opposite the sign: left 5. Check with a point: if $f(0) = 2$, the new graph reaches 2 when $x + 5 = 0$, at $x = -5$. Right 5 is the Backward shift trap. Up 5 treats the inside number like the outside one, which answers the other question. Down 5 mixes both mistakes.",
+      why: "The $+5$ is inside the parentheses, so it moves the graph sideways, opposite the sign: left 5. Check with a point: if $f(0) = 2$, the new graph reaches 2 when $x + 5 = 0$, at $x = -5$. Right 5 is the **Backward shift** trap. Up 5 treats the inside number like the outside one, which answers the other question. Down 5 mixes both mistakes.",
       subject: "math",
     },
     {

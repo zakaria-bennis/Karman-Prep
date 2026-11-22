@@ -114,7 +114,7 @@ const lesson: Lesson = {
         "Find 6% of 750, which is 45, and subtract $45t$.",
       ],
       right: 0,
-      why: "The start is 750, and a 6% drop keeps 94%, so the factor is 0.94 and the model is $750(0.94)^t$. The factor 0.06 is Percent as factor: it would leave only 6% each year. 1.06 is growth, not a drop. Subtracting $45t$ is Treating it as linear: after the first year, 6% is taken of fewer than 750 fish.",
+      why: "The start is 750, and a 6% drop keeps 94%, so the factor is 0.94 and the model is $750(0.94)^t$. The factor 0.06 is the **Percent as factor** trap: it would leave only 6% each year. 1.06 is growth, not a drop. Subtracting $45t$ is the **Treating it as linear** trap: after the first year, 6% is taken of fewer than 750 fish.",
       subject: "math",
     },
     {
@@ -138,7 +138,7 @@ const lesson: Lesson = {
         "A savings account earns 3% interest each year on its balance.",
       ],
       right: 3,
-      why: "Exponential means the same factor every step, and 3% of a growing balance multiplies it by 1.03 each year. The tempting gym also grows each month, but by the same 40 members: adding a fixed amount is linear, and missing that is Treating it as linear. The plant adds a fixed 2 centimeters, and the taxi adds a fixed 2 dollars per mile, so both are linear too.",
+      why: "Exponential means the same factor every step, and 3% of a growing balance multiplies it by 1.03 each year. The tempting gym also grows each month, but by the same 40 members: adding a fixed amount is linear, and missing that is the **Treating it as linear** trap. The plant adds a fixed 2 centimeters, and the taxi adds a fixed 2 dollars per mile, so both are linear too.",
       subject: "math",
     },
     {

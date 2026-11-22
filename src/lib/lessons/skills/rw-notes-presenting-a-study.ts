@@ -136,7 +136,7 @@ const lesson: Lesson = {
         "Engineer Kofi Mensah designs low-cost water filters made from sand and crushed charcoal.",
       ],
       right: 3,
-      why: "The checklist for a new audience: who Mensah is and what his work is. Only the choice that starts Engineer Kofi Mensah gives both. Mensah's filters and Mensah tested both use his name without saying who he is, which is Missing context. The 20 liters choice names no one and no project, so it is Partial.",
+      why: "The checklist for a new audience: who Mensah is and what his work is. Only the choice that starts Engineer Kofi Mensah gives both. Mensah's filters and Mensah tested both use his name without saying who he is, which is the **Missing context** trap. The 20 liters choice names no one and no project, so it is the **Partial** trap.",
       subject: "reading",
     },
     {
@@ -188,7 +188,7 @@ const lesson: Lesson = {
         "Crows are clever birds that live in many cities.",
       ],
       right: 1,
-      why: "The checklist: who Whitlock is, the study, and its findings. Only one choice gives all three. The first choice states the finding but never says who Whitlock is or what the boxes are, which is Missing context. The third introduces her and the method but gives no result, so it is Partial. Clever city crows are not in the notes.",
+      why: "The checklist: who Whitlock is, the study, and its findings. Only one choice gives all three. The first choice states the finding but never says who Whitlock is or what the boxes are, which is the **Missing context** trap. The third introduces her and the method but gives no result, so it is the **Partial** trap. Clever city crows are not in the notes.",
       subject: "reading",
     },
   ],

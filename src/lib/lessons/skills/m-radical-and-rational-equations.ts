@@ -107,14 +107,14 @@ const lesson: Lesson = {
     text: "What is the solution to $\\sqrt{3x + 4} = x$?",
     choices: ["$-1$", "$1$", "$4$", "$-1$ and $4$"],
     right: 2,
-    why: "Square both sides: $3x + 4 = x^2$, so $x^2 - 3x - 4 = (x - 4)(x + 1) = 0$. Check: $\\sqrt{16} = 4$ works, but $x = -1$ gives $\\sqrt{1} = -1$, which is false. So only 4 works. Keeping both is Skipping the check, $-1$ alone keeps the false one, and 1 comes from factoring with the signs flipped.",
+    why: "Square both sides: $3x + 4 = x^2$, so $x^2 - 3x - 4 = (x - 4)(x + 1) = 0$. Check: $\\sqrt{16} = 4$ works, but $x = -1$ gives $\\sqrt{1} = -1$, which is false. So only 4 works. Keeping both is the **Skipping the check** trap, $-1$ alone keeps the false one, and 1 comes from factoring with the signs flipped.",
   },
   quiz: [
     {
       text: "What is the solution to $\\frac{2x}{x - 5} = \\frac{10}{x - 5} + x$?",
       choices: ["$-5$", "$-2$", "$2$", "$5$"],
       right: 2,
-      why: "Multiply every term by $x - 5$: $2x = 10 + x(x - 5)$, so $x^2 - 7x + 10 = (x - 2)(x - 5) = 0$. The tempting 5 is A zero bottom: it makes $x - 5 = 0$, so it is crossed out. $x = 2$ checks: $-\\frac{4}{3} = -\\frac{10}{3} + 2$. $-2$ and $-5$ come from flipping the signs of the factors.",
+      why: "Multiply every term by $x - 5$: $2x = 10 + x(x - 5)$, so $x^2 - 7x + 10 = (x - 2)(x - 5) = 0$. The tempting 5 is the **A zero bottom** trap: it makes $x - 5 = 0$, so it is crossed out. $x = 2$ checks: $-\\frac{4}{3} = -\\frac{10}{3} + 2$. $-2$ and $-5$ come from flipping the signs of the factors.",
       subject: "math",
     },
     {
@@ -126,7 +126,7 @@ const lesson: Lesson = {
         "Square only the root to get $x - 2 + 4 = x$.",
       ],
       right: 1,
-      why: "Get the root alone first: $\\sqrt{x - 2} = x - 4$. Squaring gives $x^2 - 9x + 18 = 0$, so $x = 3$ or 6, and only 6 checks. Squaring both sides right away is Squaring too soon: $(\\sqrt{x - 2} + 4)^2$ is not $x - 2 + 16$. Squaring only the root breaks the balance. Subtracting $x$ leaves the root stuck with other terms.",
+      why: "Get the root alone first: $\\sqrt{x - 2} = x - 4$. Squaring gives $x^2 - 9x + 18 = 0$, so $x = 3$ or 6, and only 6 checks. Squaring both sides right away is the **Squaring too soon** trap: $(\\sqrt{x - 2} + 4)^2$ is not $x - 2 + 16$. Squaring only the root breaks the balance. Subtracting $x$ leaves the root stuck with other terms.",
       subject: "math",
     },
     {
@@ -138,7 +138,7 @@ const lesson: Lesson = {
         "Neither is a solution, because squaring is not allowed.",
       ],
       right: 2,
-      why: "Check each in the original. $x = 4$: $\\sqrt{9} = 3$ and $4 - 1 = 3$, so it works. $x = 0$: $\\sqrt{1} = 1$ but $0 - 1 = -1$, so it fails. Keeping both is Skipping the check: solving the squared equation is not enough. Only 0 keeps the wrong one. Squaring is allowed, as long as you check.",
+      why: "Check each in the original. $x = 4$: $\\sqrt{9} = 3$ and $4 - 1 = 3$, so it works. $x = 0$: $\\sqrt{1} = 1$ but $0 - 1 = -1$, so it fails. Keeping both is the **Skipping the check** trap: solving the squared equation is not enough. Only 0 keeps the wrong one. Squaring is allowed, as long as you check.",
       subject: "math",
     },
     {
@@ -157,7 +157,7 @@ const lesson: Lesson = {
       text: "What is the solution to $\\frac{6}{x^2 - 9} = \\frac{1}{x - 3}$?",
       choices: ["$x = -3$", "$x = 3$", "$x = 9$", "There is no solution."],
       right: 3,
-      why: "The common bottom is $x^2 - 9 = (x - 3)(x + 3)$, so $x$ cannot be 3 or $-3$. Multiply both sides by it: $6 = x + 3$, so $x = 3$. But 3 makes a bottom 0, so it is crossed out, and nothing is left. The tempting $x = 3$ is A zero bottom. $x = -3$ is a sign slip and also makes a bottom 0. $x = 9$ comes from factoring $x^2 - 9$ as $(x - 3)^2$.",
+      why: "The common bottom is $x^2 - 9 = (x - 3)(x + 3)$, so $x$ cannot be 3 or $-3$. Multiply both sides by it: $6 = x + 3$, so $x = 3$. But 3 makes a bottom 0, so it is crossed out, and nothing is left. The tempting $x = 3$ is the **A zero bottom** trap. $x = -3$ is a sign slip and also makes a bottom 0. $x = 9$ comes from factoring $x^2 - 9$ as $(x - 3)^2$.",
       subject: "math",
     },
   ],

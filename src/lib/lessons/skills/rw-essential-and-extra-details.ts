@@ -128,7 +128,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["chef, Theo Grant,", "chef, Theo Grant", "chef Theo Grant,", "chef Theo Grant"],
       right: 3,
-      why: "Lift out the name: Last spring, chef opened a small bakery. That breaks, so the name is essential. Chef is a label right before the name, so no marks at all. The pair of commas is the Commas around a label trap. The single comma after chef splits the label from the name, and the comma after Grant cuts the subject off from its verb, opened.",
+      why: "Lift out the name: Last spring, chef opened a small bakery. That breaks, so the name is essential. Chef is a label right before the name, so no marks at all. The pair of commas is the **Commas around a label** trap. The single comma after chef splits the label from the name, and the comma after Grant cuts the subject off from its verb, opened.",
       subject: "reading",
     },
     {
@@ -170,7 +170,7 @@ const lesson: Lesson = {
         "who weighed it",
       ],
       right: 2,
-      why: "Lift out each part. His only daughter grew it from seed still works and means the same, so a high school senior is extra and needs commas. Farmer is a label right before a name, so adding commas there is the Commas around a label trap. Without that won first place or who weighed it, you cannot tell which pumpkin or which judge, so both are essential.",
+      why: "Lift out each part. His only daughter grew it from seed still works and means the same, so a high school senior is extra and needs commas. Farmer is a label right before a name, so adding commas there is the **Commas around a label** trap. Without that won first place or who weighed it, you cannot tell which pumpkin or which judge, so both are essential.",
       subject: "reading",
     },
     {
@@ -179,7 +179,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["1782,", "1782)", "1782", "1782),"],
       right: 1,
-      why: "The extra part opened with a parenthesis, so a parenthesis must close it right after 1782. A comma there is the Half pair trap: it opens with one mark and closes with another. No mark leaves the parenthesis open forever. A parenthesis plus a comma closes the part but then puts a comma between the subject, building, and its verb, houses.",
+      why: "The extra part opened with a parenthesis, so a parenthesis must close it right after 1782. A comma there is the **Half pair** trap: it opens with one mark and closes with another. No mark leaves the parenthesis open forever. A parenthesis plus a comma closes the part but then puts a comma between the subject, building, and its verb, houses.",
       subject: "reading",
     },
   ],

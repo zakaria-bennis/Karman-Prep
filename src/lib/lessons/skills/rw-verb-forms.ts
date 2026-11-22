@@ -113,7 +113,7 @@ const lesson: Lesson = {
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     choices: ["pitching", "to pitch", "pitches", "having pitched"],
     right: 1,
-    why: "The sentence already has its main verb, learned, and the blank is the last item in a list: to read, to build, and to pitch. The list needs one form, so to pitch fits. Pitching is the Broken list trap. Pitches is a full verb that does not match the students or the list. Having pitched breaks the list too.",
+    why: "The sentence already has its main verb, learned, and the blank is the last item in a list: to read, to build, and to pitch. The list needs one form, so to pitch fits. Pitching is the **Broken list** trap. Pitches is a full verb that does not match the students or the list. Having pitched breaks the list too.",
   },
   quiz: [
     {
@@ -136,7 +136,7 @@ const lesson: Lesson = {
         "Find the subject, towers, and check whether it has a main verb yet.",
       ],
       right: 3,
-      why: "Start with the subject and its verb. The subject is towers, and designed, wanted and finished all sit inside the describing phrase, so the towers still need a main verb: have changed. Matching finished or designed is the Lost subject trap, since verbs inside the phrase do not count. Picking the -ing form is the Smooth -ing trap: changing would leave the towers with no main verb.",
+      why: "Start with the subject and its verb. The subject is towers, and designed, wanted and finished all sit inside the describing phrase, so the towers still need a main verb: have changed. Matching finished or designed is the **Lost subject** trap, since verbs inside the phrase do not count. Picking the -ing form is the **Smooth -ing** trap: changing would leave the towers with no main verb.",
       subject: "reading",
     },
     {
@@ -150,7 +150,7 @@ const lesson: Lesson = {
         "The blank needs to push, since the runners have a goal.",
       ],
       right: 0,
-      why: "Strip the sentence: the runners ______ toward the finish line. Tired and cheered only describe the runners, so the blank must be the main verb, and pushing cannot be one. The student fell for Smooth -ing. Plenty of correct sentences use -ing forms to describe. Matching street is the Lost subject trap; the runners are plural. To push is not a main verb either.",
+      why: "Strip the sentence: the runners ______ toward the finish line. Tired and cheered only describe the runners, so the blank must be the main verb, and pushing cannot be one. The student fell for Smooth -ing. Plenty of correct sentences use -ing forms to describe. Matching street is the **Lost subject** trap; the runners are plural. To push is not a main verb either.",
       subject: "reading",
     },
     {
@@ -171,7 +171,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["producing", "produce", "to produce", "having produced"],
       right: 1,
-      why: "Strip the second sentence: honeybee colonies often ______ more honey. The verbs live and bloom sit inside clauses that describe the colonies and the cities, so the colonies still need a main verb: produce. Treating bloom as the main verb is the Lost subject trap, and it leads to producing, which is also the Smooth -ing trap. To produce and having produced cannot be main verbs either.",
+      why: "Strip the second sentence: honeybee colonies often ______ more honey. The verbs live and bloom sit inside clauses that describe the colonies and the cities, so the colonies still need a main verb: produce. Treating bloom as the main verb is the **Lost subject** trap, and it leads to producing, which is also the **Smooth -ing** trap. To produce and having produced cannot be main verbs either.",
       subject: "reading",
     },
   ],

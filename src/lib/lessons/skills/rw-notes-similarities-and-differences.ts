@@ -136,7 +136,7 @@ const lesson: Lesson = {
         "Stratus clouds, unlike cumulus clouds, sometimes bring light drizzle.",
       ],
       right: 2,
-      why: "Goal first: a difference in shape. Only the while choice names both clouds and contrasts puffy heaps with flat layers. Both made of water droplets is the Wrong link. Flat layers and drizzle describes stratus clouds only, so it is One-sided. The drizzle choice is a difference, but in weather, not shape, and the notes never say cumulus clouds lack drizzle.",
+      why: "Goal first: a difference in shape. Only the while choice names both clouds and contrasts puffy heaps with flat layers. Both made of water droplets is the Wrong link. Flat layers and drizzle describes stratus clouds only, so it is the **One-sided** trap. The drizzle choice is a difference, but in weather, not shape, and the notes never say cumulus clouds lack drizzle.",
       subject: "reading",
     },
     {
@@ -178,7 +178,7 @@ const lesson: Lesson = {
         "Sperm whales hunt squid in deep water.",
       ],
       right: 0,
-      why: "The goal names a difference in diet, so the choice must name both whales and contrast their food: krill versus squid. The size choice is the look-alike. It has the right link and both whales, but it compares size, not diet. Both breathing air is the Wrong link. Sperm whales hunting squid is One-sided.",
+      why: "The goal names a difference in diet, so the choice must name both whales and contrast their food: krill versus squid. The size choice is the look-alike. It has the right link and both whales, but it compares size, not diet. Both breathing air is the Wrong link. Sperm whales hunting squid is the **One-sided** trap.",
       subject: "reading",
     },
     {
@@ -192,7 +192,7 @@ const lesson: Lesson = {
         "Hubble was launched in 1990, more than 30 years before Webb.",
       ],
       right: 2,
-      why: "The goal is a similarity. Only one choice names both telescopes and ends on a shared point: both study distant galaxies from space. Its opening, 31 years apart, is true, since 2021 minus 1990 is 31. The long while choice uses the Most notes but states differences. The Webb choice is One-sided. More than 30 years before Webb is a difference, the Wrong link.",
+      why: "The goal is a similarity. Only one choice names both telescopes and ends on a shared point: both study distant galaxies from space. Its opening, 31 years apart, is true, since 2021 minus 1990 is 31. The long while choice uses the Most notes but states differences. The Webb choice is the **One-sided** trap. More than 30 years before Webb is a difference, the Wrong link.",
       subject: "reading",
     },
   ],

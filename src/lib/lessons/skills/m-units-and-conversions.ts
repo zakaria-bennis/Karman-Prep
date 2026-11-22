@@ -103,14 +103,14 @@ const lesson: Lesson = {
     text: "A rug has an area of 6 square feet. What is its area in square inches? (1 foot = 12 inches)",
     choices: ["$0.5$", "$72$", "$144$", "$864$"],
     right: 3,
-    why: "Each square foot is 12 inches by 12 inches, so it holds $12 \\cdot 12 = 144$ square inches. Then $6 \\cdot 144 = 864$. $72$ is the Squared units trap: it multiplies by 12 only once. $144$ is just one square foot, and $0.5$ divides by 12 instead of multiplying.",
+    why: "Each square foot is 12 inches by 12 inches, so it holds $12 \\cdot 12 = 144$ square inches. Then $6 \\cdot 144 = 864$. $72$ is the **Squared units** trap: it multiplies by 12 only once. $144$ is just one square foot, and $0.5$ divides by 12 instead of multiplying.",
   },
   quiz: [
     {
       text: "A bottle holds 1.5 liters of oil with a mass of 1,380 grams. What is the density of the oil, in grams per cubic centimeter? (1 liter = 1,000 cubic centimeters)",
       choices: ["$0.92$", "$1.09$", "$920$", "$2{,}070$"],
       right: 0,
-      why: "Change the volume first: $1.5 \\cdot 1000 = 1500$ cubic centimeters. Density is mass over volume: $\\frac{1380}{1500} = 0.92$. The tempting $920$ is Half a rate: it divides by 1.5 liters, so it is grams per liter, not per cubic centimeter. $1.09$ flips the fraction to volume over mass, and $2{,}070$ multiplies mass by volume.",
+      why: "Change the volume first: $1.5 \\cdot 1000 = 1500$ cubic centimeters. Density is mass over volume: $\\frac{1380}{1500} = 0.92$. The tempting $920$ is the **Half a rate** trap: it divides by 1.5 liters, so it is grams per liter, not per cubic centimeter. $1.09$ flips the fraction to volume over mass, and $2{,}070$ multiplies mass by volume.",
       subject: "math",
     },
     {
@@ -129,7 +129,7 @@ const lesson: Lesson = {
       text: "A floor has an area of 30 square yards. Jo converts it to square feet: $30 \\cdot 3 = 90$ square feet. (1 yard = 3 feet) What is the correct area in square feet?",
       choices: ["$10$", "$90$", "$270$", "$810$"],
       right: 2,
-      why: "Each square yard is 3 feet by 3 feet, so it holds 9 square feet, and $30 \\cdot 9 = 270$ square feet. Jo's $90$ is the Squared units trap: she multiplied by 3 only once. $10$ divides by 3 instead of multiplying, and $810$ multiplies by $3^3 = 27$, which is the factor for cubic units.",
+      why: "Each square yard is 3 feet by 3 feet, so it holds 9 square feet, and $30 \\cdot 9 = 270$ square feet. Jo's $90$ is the **Squared units** trap: she multiplied by 3 only once. $10$ divides by 3 instead of multiplying, and $810$ multiplies by $3^3 = 27$, which is the factor for cubic units.",
       subject: "math",
     },
     {
@@ -141,14 +141,14 @@ const lesson: Lesson = {
         "How many inches tall is a stack of three boxes that are each 1 foot tall?",
       ],
       right: 1,
-      why: "Square inches measure area, so the glass needs the squared factor: $3 \\cdot 2 = 6$ square feet, and $6 \\cdot 144 = 864$ square inches. The trim around the frame is a length, 8 feet, so it uses 12 once: 96 inches. Using 144 there is the Squared units trap in reverse. The board and the stack are lengths too: 72 inches and 36 inches.",
+      why: "Square inches measure area, so the glass needs the squared factor: $3 \\cdot 2 = 6$ square feet, and $6 \\cdot 144 = 864$ square inches. The trim around the frame is a length, 8 feet, so it uses 12 once: 96 inches. Using 144 there is the **Squared units** trap in reverse. The board and the stack are lengths too: 72 inches and 36 inches.",
       subject: "math",
     },
     {
       text: "A pump moves water at 18 liters per minute. How many hours does it take the pump to fill a pool that holds 54 cubic meters of water? (1 cubic meter = 1,000 liters)",
       choices: ["$0.05$", "$3$", "$50$", "$3{,}000$"],
       right: 2,
-      why: "Cancel the units step by step. 54 cubic meters is $54 \\cdot 1000 = 54{,}000$ liters. At 18 liters per minute that takes $\\frac{54{,}000}{18} = 3{,}000$ minutes, and $\\frac{3000}{60} = 50$ hours. The tempting $3{,}000$ is Half a rate: it stops at minutes when the question asks for hours. $3$ divides 54 by 18 with no conversions, and $0.05$ skips the change to liters.",
+      why: "Cancel the units step by step. 54 cubic meters is $54 \\cdot 1000 = 54{,}000$ liters. At 18 liters per minute that takes $\\frac{54{,}000}{18} = 3{,}000$ minutes, and $\\frac{3000}{60} = 50$ hours. The tempting $3{,}000$ is the **Half a rate** trap: it stops at minutes when the question asks for hours. $3$ divides 54 by 18 with no conversions, and $0.05$ skips the change to liters.",
       subject: "math",
     },
   ],

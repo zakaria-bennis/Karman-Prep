@@ -102,7 +102,7 @@ const lesson: Lesson = {
       "Neither the mean nor the median changes.",
     ],
     right: 0,
-    why: "Before, the sum is 40, so the mean is 8, and the median is 7. After adding 16, the sum is 56 over 6 values, a mean of about 9.33. With 6 values, the median is the mean of 7 and 9, which is 8. Both rise. Picking only the mean is the Wrong count trap: the count changed, so the middle moved.",
+    why: "Before, the sum is 40, so the mean is 8, and the median is 7. After adding 16, the sum is 56 over 6 values, a mean of about 9.33. With 6 values, the median is the mean of 7 and 9, which is 8. Both rise. Picking only the mean is the **Wrong count** trap: the count changed, so the middle moved.",
   },
   quiz: [
     {
@@ -121,14 +121,14 @@ const lesson: Lesson = {
         "Subtract the smallest number from the largest.",
       ],
       right: 2,
-      why: "Sort first. In order, the numbers are 18, 18, 22, 25, 31, 36, 40, and the fourth of the 7 is the median, 25. Taking 40 because it sits fourth in the list as written is the Unsorted median trap. Adding and dividing by 7 finds the mean, about 27.1. Subtracting the smallest from the largest finds the range, 22.",
+      why: "Sort first. In order, the numbers are 18, 18, 22, 25, 31, 36, 40, and the fourth of the 7 is the median, 25. Taking 40 because it sits fourth in the list as written is the **Unsorted median** trap. Adding and dividing by 7 finds the mean, about 27.1. Subtracting the smallest from the largest finds the range, 22.",
       subject: "math",
     },
     {
       text: "A data set is 2, 5, 8, 10, 14, 26. Sam removes 26 and says the median is still 9, because removing the largest value never changes the median. What is the new median?",
       choices: ["$7.8$", "$8$", "$9$", "$10$"],
       right: 1,
-      why: "Recount after the change. Without 26, there are 5 values: 2, 5, 8, 10, 14. The middle one, the third, is 8. Sam's $9$ is the Wrong count trap: with 6 values the median was the mean of 8 and 10, but removing a value moved the middle. $10$ is the fourth value, the old middle spot, and $7.8$ is the new mean.",
+      why: "Recount after the change. Without 26, there are 5 values: 2, 5, 8, 10, 14. The middle one, the third, is 8. Sam's $9$ is the **Wrong count** trap: with 6 values the median was the mean of 8 and 10, but removing a value moved the middle. $10$ is the fourth value, the old middle spot, and $7.8$ is the new mean.",
       subject: "math",
     },
     {
@@ -140,7 +140,7 @@ const lesson: Lesson = {
         "Set A has the larger mean; the sets have the same standard deviation.",
       ],
       right: 0,
-      why: "Mean is about size; standard deviation is about spread. Set A's mean is 103 and set B's is 60, so A's mean is larger. But A's values sit within 2 of their mean, while B's sit as far as 40 from theirs, so B is far more spread out. Giving A the larger standard deviation is the Spread is not size trap. Both sets are evenly spaced, but B's steps are 20 and A's are 1, so their spreads differ.",
+      why: "Mean is about size; standard deviation is about spread. Set A's mean is 103 and set B's is 60, so A's mean is larger. But A's values sit within 2 of their mean, while B's sit as far as 40 from theirs, so B is far more spread out. Giving A the larger standard deviation is the **Spread is not size** trap. Both sets are evenly spaced, but B's steps are 20 and A's are 1, so their spreads differ.",
       subject: "math",
     },
     {

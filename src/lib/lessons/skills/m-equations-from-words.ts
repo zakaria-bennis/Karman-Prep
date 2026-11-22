@@ -108,7 +108,7 @@ const lesson: Lesson = {
       text: "A gift card starts with 80 dollars. Each coffee costs 4 dollars. After how many coffees will 32 dollars be left on the card?",
       choices: ["$8$", "$12$", "$20$", "$28$"],
       right: 1,
-      why: "Start plus rate: the money left is $80 - 4n$. Set $80 - 4n = 32$, so $4n = 48$ and $n = 12$. The tempting 28 is Lost the minus: it adds 80 and 32 to get 112, then divides by 4. 20 is how many coffees empty the card, 80 divided by 4. 8 divides the 32 that is left by 4, which does not count the coffees bought.",
+      why: "Start plus rate: the money left is $80 - 4n$. Set $80 - 4n = 32$, so $4n = 48$ and $n = 12$. The tempting 28 is the **Lost the minus** trap: it adds 80 and 32 to get 112, then divides by 4. 20 is how many coffees empty the card, 80 divided by 4. 8 divides the 32 that is left by 4, which does not count the coffees bought.",
       subject: "math",
     },
     {
@@ -120,7 +120,7 @@ const lesson: Lesson = {
         "Multiply 25 by 40 to get the total cost.",
       ],
       right: 0,
-      why: "Start with the amount paid before any sessions: the 25 dollar fee. Then $T = 25 + 40s$. Treating 40 as the start is Start and rate swapped: 40 is paid for each session, so it multiplies $s$. Adding to get 65 for each session charges the fee every time. Multiplying 25 by 40 gives a number with no meaning in this story.",
+      why: "Start with the amount paid before any sessions: the 25 dollar fee. Then $T = 25 + 40s$. Treating 40 as the start is the **Start and rate swapped** trap: 40 is paid for each session, so it multiplies $s$. Adding to get 65 for each session charges the fee every time. Multiplying 25 by 40 gives a number with no meaning in this story.",
       subject: "math",
     },
     {
@@ -132,7 +132,7 @@ const lesson: Lesson = {
         "The water goes down, so the rate needs a minus sign: $G = 9{,}000 - 150m$.",
       ],
       right: 3,
-      why: "This is Lost the minus. The pool drains, so the amount drops by 150 gallons each minute: $G = 9{,}000 - 150m$. With a plus sign the pool would fill up. Making 9,000 the rate is Start and rate swapped. A rate in gallons per minute is meant to link gallons and minutes. The start is the amount at $m = 0$, which is 9,000, not 0.",
+      why: "This is the **Lost the minus** trap. The pool drains, so the amount drops by 150 gallons each minute: $G = 9{,}000 - 150m$. With a plus sign the pool would fill up. Making 9,000 the rate is the **Start and rate swapped** trap. A rate in gallons per minute is meant to link gallons and minutes. The start is the amount at $m = 0$, which is 9,000, not 0.",
       subject: "math",
     },
     {
@@ -144,7 +144,7 @@ const lesson: Lesson = {
         "A bike rental costs 40 dollars, minus 15 dollars for each hour.",
       ],
       right: 2,
-      why: "The number that multiplies $x$ is the rate, and the number alone is the start. So the rental starts at 40 dollars and each hour adds 15. The first choice is Start and rate swapped. 55 dollars for each hour folds the start into the rate. The minus version would be $y = 40 - 15x$, which is Lost the minus.",
+      why: "The number that multiplies $x$ is the rate, and the number alone is the start. So the rental starts at 40 dollars and each hour adds 15. The first choice is the **Start and rate swapped** trap. 55 dollars for each hour folds the start into the rate. The minus version would be $y = 40 - 15x$, which is the **Lost the minus** trap.",
       subject: "math",
     },
     {
@@ -156,7 +156,7 @@ const lesson: Lesson = {
         "$g = 30 - \\frac{m}{14}$",
       ],
       right: 1,
-      why: "The start is 14 gallons. The car uses $\\frac{1}{30}$ gallon per mile, so after $m$ miles it has used $\\frac{m}{30}$ gallons, and $g = 14 - \\frac{m}{30}$. Test 60 miles: 2 gallons used, 12 left. The tempting $14 - 30m$ is Mixed units: it takes away 30 gallons for every mile. $14 + \\frac{m}{30}$ is Lost the minus. $30 - \\frac{m}{14}$ is Start and rate swapped.",
+      why: "The start is 14 gallons. The car uses $\\frac{1}{30}$ gallon per mile, so after $m$ miles it has used $\\frac{m}{30}$ gallons, and $g = 14 - \\frac{m}{30}$. Test 60 miles: 2 gallons used, 12 left. The tempting $14 - 30m$ is the **Mixed units** trap: it takes away 30 gallons for every mile. $14 + \\frac{m}{30}$ is the **Lost the minus** trap. $30 - \\frac{m}{14}$ is the **Start and rate swapped** trap.",
       subject: "math",
     },
   ],

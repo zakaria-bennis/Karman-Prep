@@ -101,7 +101,7 @@ const lesson: Lesson = {
       text: "In the equation $4(2x - 1) + 3 = kx + 9$, $k$ is a constant. The equation has no solution. What is the value of $k$?",
       choices: ["$-1$", "$2$", "$4$", "$8$"],
       right: 3,
-      why: "No solution needs the same $x$ coefficient and different constants. Simplify the left: $8x - 4 + 3 = 8x - 1$. So $k = 8$, and the constants $-1$ and 9 differ. The tempting 2 is Comparing too early: it reads the 2 inside the parentheses before distributing. 4 takes the number outside the parentheses. $-1$ picks the constant, not the $x$ coefficient.",
+      why: "No solution needs the same $x$ coefficient and different constants. Simplify the left: $8x - 4 + 3 = 8x - 1$. So $k = 8$, and the constants $-1$ and 9 differ. The tempting 2 is the **Comparing too early** trap: it reads the 2 inside the parentheses before distributing. 4 takes the number outside the parentheses. $-1$ picks the constant, not the $x$ coefficient.",
       subject: "math",
     },
     {
@@ -113,7 +113,7 @@ const lesson: Lesson = {
         "Count the $x$ terms: one on each side means one solution.",
       ],
       right: 1,
-      why: "Simplify first. The left side becomes $6x - 10 + 4 = 6x - 6$, the same as the right, so there are infinitely many solutions. Comparing the 2 and the 6 is Comparing too early: the 2 is not the $x$ coefficient yet. Plugging in one value shows only that it works, not how many do. Counting $x$ terms says nothing about the coefficients.",
+      why: "Simplify first. The left side becomes $6x - 10 + 4 = 6x - 6$, the same as the right, so there are infinitely many solutions. Comparing the 2 and the 6 is the **Comparing too early** trap: the 2 is not the $x$ coefficient yet. Plugging in one value shows only that it works, not how many do. Counting $x$ terms says nothing about the coefficients.",
       subject: "math",
     },
     {
@@ -144,7 +144,7 @@ const lesson: Lesson = {
       text: "In the equation $a(3x - 2) + 5x = 11x + b$, $a$ and $b$ are constants. The equation has infinitely many solutions. What is the value of $b$?",
       choices: ["$-4$", "$-2$", "$2$", "$4$"],
       right: 0,
-      why: "Simplify the left: $(3a + 5)x - 2a$. Infinitely many solutions means both parts match. The $x$ parts give $3a + 5 = 11$, so $a = 2$. The constants give $b = -2a = -4$. The tempting 2 is the value of $a$, not $b$. $-2$ is Comparing too early: it reads the $-2$ inside the parentheses without multiplying by $a$. 4 drops the minus sign.",
+      why: "Simplify the left: $(3a + 5)x - 2a$. Infinitely many solutions means both parts match. The $x$ parts give $3a + 5 = 11$, so $a = 2$. The constants give $b = -2a = -4$. The tempting 2 is the value of $a$, not $b$. $-2$ is the **Comparing too early** trap: it reads the $-2$ inside the parentheses without multiplying by $a$. 4 drops the minus sign.",
       subject: "math",
     },
   ],

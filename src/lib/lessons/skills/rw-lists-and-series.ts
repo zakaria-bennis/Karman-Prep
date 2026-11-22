@@ -124,7 +124,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["raccoons,", "raccoons", "raccoons;", "raccoons:"],
       right: 1,
-      why: "Find the items: owls, bats, and raccoons. No item has a comma inside, and the verb hunt comes right after the last item. The whole list is the subject, so raccoons takes no mark. The comma is the Comma before the verb trap. A semicolon mixes marks with the commas before it, and a colon never splits a subject from its verb.",
+      why: "Find the items: owls, bats, and raccoons. No item has a comma inside, and the verb hunt comes right after the last item. The whole list is the subject, so raccoons takes no mark. The comma is the **Comma before the verb** trap. A semicolon mixes marks with the commas before it, and a colon never splits a subject from its verb.",
       subject: "reading",
     },
     {
@@ -152,7 +152,7 @@ const lesson: Lesson = {
         "A colon belongs after through, since a list follows it.",
       ],
       right: 2,
-      why: "Each item is a city and a country, with a comma inside. So semicolons must split the items, and the comma after Italy is the Mixed marks trap. Changing the semicolon after France to a comma would leave six names split by commas, and no one could tell where items end. A semicolon after Lyon would split a city from its country. A colon after through comes before the sentence is finished.",
+      why: "Each item is a city and a country, with a comma inside. So semicolons must split the items, and the comma after Italy is the **Mixed marks** trap. Changing the semicolon after France to a comma would leave six names split by commas, and no one could tell where items end. A semicolon after Lyon would split a city from its country. A colon after through comes before the sentence is finished.",
       subject: "reading",
     },
     {
@@ -173,7 +173,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["engines, and", "engines and", "engines; and,", "engines; and"],
       right: 3,
-      why: "Each item is a name plus a description, with a comma inside. The first two items are split by a semicolon, so a semicolon must come before the last item too, followed by and with no mark after it. A comma there is the Mixed marks trap. No mark at all runs Okafor's description into Ferro's name. A comma after and splits the word and from the item it joins.",
+      why: "Each item is a name plus a description, with a comma inside. The first two items are split by a semicolon, so a semicolon must come before the last item too, followed by and with no mark after it. A comma there is the **Mixed marks** trap. No mark at all runs Okafor's description into Ferro's name. A comma after and splits the word and from the item it joins.",
       subject: "reading",
     },
   ],

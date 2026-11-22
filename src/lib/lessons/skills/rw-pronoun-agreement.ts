@@ -111,7 +111,7 @@ const lesson: Lesson = {
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     choices: ["it", "them", "him", "one"],
     right: 1,
-    why: "The ones who might drift away are the sea otters, named in the sentence before, so the pronoun must be plural: them. It is the Nearest noun trap, matching kelp, but the kelp cannot keep itself from drifting. Him and one are both singular, and the otters are many.",
+    why: "The ones who might drift away are the sea otters, named in the sentence before, so the pronoun must be plural: them. It is the **Nearest noun** trap, matching kelp, but the kelp cannot keep itself from drifting. Him and one are both singular, and the otters are many.",
   },
   quiz: [
     {
@@ -120,7 +120,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["their", "its", "it's", "there"],
       right: 1,
-      why: "Skip the phrase <i>of engineers</i> to find the real noun: the team. A team is one group, so the design is its new design. The tempting their is the Nearest noun trap: it matches engineers, which only describes the team. It's means it is, which makes no sense before new design. There points to a place, not an owner.",
+      why: "Skip the phrase <i>of engineers</i> to find the real noun: the team. A team is one group, so the design is its new design. The tempting their is the **Nearest noun** trap: it matches engineers, which only describes the team. It's means it is, which makes no sense before new design. There points to a place, not an owner.",
       subject: "reading",
     },
     {
@@ -134,7 +134,7 @@ const lesson: Lesson = {
         "Look only at the sentence that holds the blank.",
       ],
       right: 2,
-      why: "Start by finding the antecedent. The things that sent back pictures are the two rovers, named in the first sentence, so the answer is they. Matching months is the Nearest noun trap: months is just part of a time phrase. Looking only at the second sentence is the Missed antecedent trap. Sounding it out can work, but it is not a reliable first move when two choices both sound fine.",
+      why: "Start by finding the antecedent. The things that sent back pictures are the two rovers, named in the first sentence, so the answer is they. Matching months is the **Nearest noun** trap: months is just part of a time phrase. Looking only at the second sentence is the **Missed antecedent** trap. Sounding it out can work, but it is not a reliable first move when two choices both sound fine.",
       subject: "reading",
     },
     {
@@ -148,7 +148,7 @@ const lesson: Lesson = {
         "The Pine Hollow Bird Club is one group, so the pronoun must be it.",
       ],
       right: 3,
-      why: "The noun is the Pine Hollow Bird Club, and a club is one group, so it recorded the species. The student fell for Group as plural. Matching river also gives it, but for the wrong reason: that is the Nearest noun trap. They can stand for things, such as rocks or ideas. Its shows ownership, and nothing is owned here; the blank is the one doing the recording.",
+      why: "The noun is the Pine Hollow Bird Club, and a club is one group, so it recorded the species. The student fell for Group as plural. Matching river also gives it, but for the wrong reason: that is the **Nearest noun** trap. They can stand for things, such as rocks or ideas. Its shows ownership, and nothing is owned here; the blank is the one doing the recording.",
       subject: "reading",
     },
     {
@@ -160,7 +160,7 @@ const lesson: Lesson = {
         "The company that makes the bikes moved ______ factory.",
       ],
       right: 0,
-      why: "Find each sentence's real noun. In the geese sentence, the noun is geese, which is plural, so the wings are their wings. In the flock sentence, the noun is flock, one group, so it needs its; choosing their there is Group as plural. In the town sentence, islands is the Nearest noun trap; the town raised its fares. The company is one company, so it moved its factory.",
+      why: "Find each sentence's real noun. In the geese sentence, the noun is geese, which is plural, so the wings are their wings. In the flock sentence, the noun is flock, one group, so it needs its; choosing their there is the **Group as plural** trap. In the town sentence, islands is the **Nearest noun** trap; the town raised its fares. The company is one company, so it moved its factory.",
       subject: "reading",
     },
     {
@@ -169,7 +169,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["their", "they're", "its", "it's"],
       right: 2,
-      why: "Find who owns the soft body: each polyp, and each means one at a time. One polyp makes a cup around its own body, so the answer is its. The tempting their is the Nearest noun trap: it matches thousands of tiny animals, which comes earlier, instead of each polyp. It's means it is, and they're means they are, so neither can show ownership.",
+      why: "Find who owns the soft body: each polyp, and each means one at a time. One polyp makes a cup around its own body, so the answer is its. The tempting their is the **Nearest noun** trap: it matches thousands of tiny animals, which comes earlier, instead of each polyp. It's means it is, and they're means they are, so neither can show ownership.",
       subject: "reading",
     },
   ],

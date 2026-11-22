@@ -146,7 +146,7 @@ const lesson: Lesson = {
         "The comma after however should be removed, since however never takes a comma.",
       ],
       right: 2,
-      why: "Both sides are full sentences: ticket sales were slow in the first week, and word spread about the funny second act. However adds meaning but cannot join them, so a comma before it is the Adverb splice trap. The fix is week; however, with a semicolon. However can start a clause, so that rule is false. The right side has a subject and verb, word spread, so it is full. And however does take a comma after it.",
+      why: "Both sides are full sentences: ticket sales were slow in the first week, and word spread about the funny second act. However adds meaning but cannot join them, so a comma before it is the **Adverb splice** trap. The fix is week; however, with a semicolon. However can start a clause, so that rule is false. The right side has a subject and verb, word spread, so it is full. And however does take a comma after it.",
       subject: "reading",
     },
     {

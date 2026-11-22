@@ -137,7 +137,7 @@ const lesson: Lesson = {
         "By pointing out that other changes made the same year may explain the drop in accidents",
       ],
       right: 3,
-      why: "Find the but: Text 2 does not deny the drop, but it names other changes made the same year, so it would say the lights alone may not deserve the credit. Agreeing that the lights alone did it ignores those changes. More dangerous is Too extreme, since Text 2 accepts that accidents fell. Busy streets are Off target: Text 1 never makes that claim.",
+      why: "Find the but: Text 2 does not deny the drop, but it names other changes made the same year, so it would say the lights alone may not deserve the credit. Agreeing that the lights alone did it ignores those changes. More dangerous is the **Too extreme** trap, since Text 2 accepts that accidents fell. Busy streets are the **Off target** trap: Text 1 never makes that claim.",
       subject: "reading",
     },
     {
@@ -151,7 +151,7 @@ const lesson: Lesson = {
         "Find the choice that repeats the most words from Text 2",
       ],
       right: 2,
-      why: "Start with the exact claim: free transit would end traffic jams. Only then can you see that Text 2 says yes to more riders, but not fewer cars. Deciding how Text 1 would answer is Reversed roles. Looking for a complete rejection leads to Too extreme. Matching words from Text 2 skips the claim and can land Off target.",
+      why: "Start with the exact claim: free transit would end traffic jams. Only then can you see that Text 2 says yes to more riders, but not fewer cars. Deciding how Text 1 would answer is the **Reversed roles** trap. Looking for a complete rejection leads to Too extreme. Matching words from Text 2 skips the claim and can land Off target.",
       subject: "reading",
     },
     {
@@ -165,7 +165,7 @@ const lesson: Lesson = {
         "It is half right, since Text 2 agrees about study habits but not about grades.",
       ],
       right: 0,
-      why: "The student's answer is Text 1's own view, so it is Reversed roles: Text 1 would say that back to Text 2. Text 2 doubts homework helps young children, so it would answer with that doubt. Text 2 never accepts that homework builds study habits. The student's answer is not about reading for fun. Text 2 never agrees about study habits.",
+      why: "The student's answer is Text 1's own view, so it is the **Reversed roles** trap: Text 1 would say that back to Text 2. Text 2 doubts homework helps young children, so it would answer with that doubt. Text 2 never accepts that homework builds study habits. The student's answer is not about reading for fun. Text 2 never agrees about study habits.",
       subject: "reading",
     },
     {
@@ -179,7 +179,7 @@ const lesson: Lesson = {
         "By arguing that libraries should stop lending books of any kind",
       ],
       right: 1,
-      why: "Read the question closely: this time Text 1 responds to Text 2. In Text 1's logic, paper helps readers remember, so it would warn that e-books mean remembering less. Easy access mattering more is Text 2's view, so that choice is Reversed roles. Agreeing ignores Text 1's whole point. Stopping all lending is Too extreme and Off target.",
+      why: "Read the question closely: this time Text 1 responds to Text 2. In Text 1's logic, paper helps readers remember, so it would warn that e-books mean remembering less. Easy access mattering more is Text 2's view, so that choice is the **Reversed roles** trap. Agreeing ignores Text 1's whole point. Stopping all lending is the **Too extreme** trap and Off target.",
       subject: "reading",
     },
     {
@@ -193,7 +193,7 @@ const lesson: Lesson = {
         "By agreeing that failing eyesight fully explains why Venn stopped using color",
       ],
       right: 2,
-      why: "Find the but: Text 2 grants the eye trouble, then at Yet adds her excitement about photography. That is yes, but: eyesight may matter, and a new interest matters too. Rejecting any eye trouble is Too extreme, since the letters mention it. Photos mattering more than paintings is Off target. Agreeing that eyesight fully explains it ignores everything after Yet.",
+      why: "Find the but: Text 2 grants the eye trouble, then at Yet adds her excitement about photography. That is yes, but: eyesight may matter, and a new interest matters too. Rejecting any eye trouble is the **Too extreme** trap, since the letters mention it. Photos mattering more than paintings is the **Off target** trap. Agreeing that eyesight fully explains it ignores everything after Yet.",
       subject: "reading",
     },
   ],

@@ -102,7 +102,7 @@ const lesson: Lesson = {
     text: "The system $y = x^2 - 5$ and $y = 4x$ has two solutions. What is the sum of the x-coordinates of the solutions?",
     choices: ["$-4$", "$4$", "$5$", "$16$"],
     right: 1,
-    why: "Set them equal: $x^2 - 5 = 4x$, so $x^2 - 4x - 5 = (x - 5)(x + 1) = 0$, and $x = 5$ or $x = -1$. The sum is 4. 5 is Missing a solution, and 16 adds the y-coordinates, 20 and $-4$, which is Wrong coordinate. $-4$ comes from factoring with the signs flipped.",
+    why: "Set them equal: $x^2 - 5 = 4x$, so $x^2 - 4x - 5 = (x - 5)(x + 1) = 0$, and $x = 5$ or $x = -1$. The sum is 4. 5 is the **Missing a solution** trap, and 16 adds the y-coordinates, 20 and $-4$, which is the **Wrong coordinate** trap. $-4$ comes from factoring with the signs flipped.",
   },
   quiz: [
     {
@@ -147,7 +147,7 @@ const lesson: Lesson = {
       text: "The graphs of $y = x^2 + 2x - 3$ and $y = 4x + 5$ meet at the points $(a, b)$ and $(c, d)$. What is the value of $b + d$?",
       choices: ["$-3$", "$2$", "$18$", "$21$"],
       right: 2,
-      why: "Set them equal: $x^2 - 2x - 8 = (x - 4)(x + 2) = 0$, so $x = 4$ or $x = -2$. Plug each into the line: $y = 21$ and $y = -3$, so $b + d = 18$. The tempting 2 adds the x-values, which is Wrong coordinate. 21 and $-3$ are each only one of the y-values, which is Missing a solution.",
+      why: "Set them equal: $x^2 - 2x - 8 = (x - 4)(x + 2) = 0$, so $x = 4$ or $x = -2$. Plug each into the line: $y = 21$ and $y = -3$, so $b + d = 18$. The tempting 2 adds the x-values, which is the **Wrong coordinate** trap. 21 and $-3$ are each only one of the y-values, which is the **Missing a solution** trap.",
       subject: "math",
     },
   ],

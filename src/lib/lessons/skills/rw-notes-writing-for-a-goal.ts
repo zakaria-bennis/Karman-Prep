@@ -139,7 +139,7 @@ const lesson: Lesson = {
         "Some plants, such as the dandelion, maple and milkweed, have seeds shaped to ride the wind.",
       ],
       right: 3,
-      why: "The goal is a generalization, so the sentence must make a broad claim about a group. Only the choice saying some plants have seeds shaped to ride the wind does that, with three plants named as members of the group. The tempting choice pairs the dandelion and the milkweed, but two cases side by side are still specific: the Wrong level trap. The maple choice and the milkweed choice each give just one example.",
+      why: "The goal is a generalization, so the sentence must make a broad claim about a group. Only the choice saying some plants have seeds shaped to ride the wind does that, with three plants named as members of the group. The tempting choice pairs the dandelion and the milkweed, but two cases side by side are still specific: the **Wrong level** trap. The maple choice and the milkweed choice each give just one example.",
       subject: "reading",
     },
     {
@@ -165,7 +165,7 @@ const lesson: Lesson = {
         "It gives one example when the goal asks for a generalization.",
       ],
       right: 2,
-      why: "The goal says emphasize speed, so speed must be the main point. In Maya's sentence the 9 months sits in a which clause, and the main clause says the bridge is 400 meters long: the Buried point trap. A better sentence says workers finished it in 9 months, far faster than the usual 2 years. Every fact she used is in the notes. Naming the river would not help the goal, and the goal asks for emphasis, not a generalization.",
+      why: "The goal says emphasize speed, so speed must be the main point. In Maya's sentence the 9 months sits in a which clause, and the main clause says the bridge is 400 meters long: the **Buried point** trap. A better sentence says workers finished it in 9 months, far faster than the usual 2 years. Every fact she used is in the notes. Naming the river would not help the goal, and the goal asks for emphasis, not a generalization.",
       subject: "reading",
     },
     {
@@ -178,7 +178,7 @@ const lesson: Lesson = {
         "Some deep-sea shrimp spit out glowing clouds to confuse attackers.",
       ],
       right: 0,
-      why: "The goal asks for one example, and the example must be about hunting. The anglerfish uses its glowing lure to draw in prey, so that choice fits. The tempting broad sentence about sea animals that hunt, hide or escape is a generalization, not one case: the Wrong level trap. The squid uses light to hide, and the shrimp uses it to escape. Both are single examples, but they are True but off goal.",
+      why: "The goal asks for one example, and the example must be about hunting. The anglerfish uses its glowing lure to draw in prey, so that choice fits. The tempting broad sentence about sea animals that hunt, hide or escape is a generalization, not one case: the **Wrong level** trap. The squid uses light to hide, and the shrimp uses it to escape. Both are single examples, but they are the **True but off goal** trap.",
       subject: "reading",
     },
     {
@@ -191,7 +191,7 @@ const lesson: Lesson = {
         "Seed copies stored in the Svalbard vault can help farmers replace crops lost to war or disaster.",
       ],
       right: 1,
-      why: "The goal asks why the vault sits inside a frozen mountain, so the sentence must give a reason for that choice. Only the sentence starting with because frozen rock keeps seeds cold links the reason to the mountain. The tempting choice about replacing lost crops is True but off goal: it explains why the vault exists, not why it is in a mountain. The choice joining the mountain and the seeds gives no reason. The location choice never mentions the mountain.",
+      why: "The goal asks why the vault sits inside a frozen mountain, so the sentence must give a reason for that choice. Only the sentence starting with because frozen rock keeps seeds cold links the reason to the mountain. The tempting choice about replacing lost crops is the **True but off goal** trap: it explains why the vault exists, not why it is in a mountain. The choice joining the mountain and the seeds gives no reason. The location choice never mentions the mountain.",
       subject: "reading",
     },
   ],

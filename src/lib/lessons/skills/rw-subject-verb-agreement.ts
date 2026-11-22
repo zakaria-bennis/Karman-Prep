@@ -103,7 +103,7 @@ const lesson: Lesson = {
     text: STEM,
     choices: ["stands", "stand", "has stood", "is standing"],
     right: 1,
-    why: "This is a flipped sentence. Ask what stands in the forest: two old stone cabins. The subject comes after the verb, and it is plural, so stand is right. Stands, has stood and is standing are all singular. They match stream or forest, the nouns before the blank, which is the Nearest noun trap.",
+    why: "This is a flipped sentence. Ask what stands in the forest: two old stone cabins. The subject comes after the verb, and it is plural, so stand is right. Stands, has stood and is standing are all singular. They match stream or forest, the nouns before the blank, which is the **Nearest noun** trap.",
   },
   quiz: [
     {
@@ -112,7 +112,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["are", "were", "is", "have been"],
       right: 2,
-      why: "Cross out the middle: of the bridges over the river. What is left is One ______ closed every winter. One is singular, so is fits, and the present tense matches builds. Are and have been match bridges, which is the Nearest noun trap. Were is plural and past, while the passage says this happens every winter.",
+      why: "Cross out the middle: of the bridges over the river. What is left is One ______ closed every winter. One is singular, so is fits, and the present tense matches builds. Are and have been match bridges, which is the **Nearest noun** trap. Were is plural and past, while the passage says this happens every winter.",
       subject: "reading",
     },
     {
@@ -126,7 +126,7 @@ const lesson: Lesson = {
         "Count the nouns in the sentence and use a plural verb if there are several",
       ],
       right: 0,
-      why: "Start by finding the real subject. Cross out of rules posted near the pool doors, and you get The list tell, which should be The list tells. Matching doors is the Nearest noun trap. The tense is fine here, so checking it first does not find the problem. Counting nouns does not work: only the subject decides the verb.",
+      why: "Start by finding the real subject. Cross out of rules posted near the pool doors, and you get The list tell, which should be The list tells. Matching doors is the **Nearest noun** trap. The tense is fine here, so checking it first does not find the problem. Counting nouns does not work: only the subject decides the verb.",
       subject: "reading",
     },
     {
@@ -140,7 +140,7 @@ const lesson: Lesson = {
         "No, the subject is coach, so the verb should be plans.",
       ],
       right: 3,
-      why: "Cross out the middle: along with her two assistants is a Long interrupter, and it never changes the subject. What is left is The coach plan, which should be The coach plans. Along with does not work like and, so the subject stays singular. Assistants is the Nearest noun trap. Planned changes the tense, but the passage is in the present: is posted.",
+      why: "Cross out the middle: along with her two assistants is a Long interrupter, and it never changes the subject. What is left is The coach plan, which should be The coach plans. Along with does not work like and, so the subject stays singular. Assistants is the **Nearest noun** trap. Planned changes the tense, but the passage is in the present: is posted.",
       subject: "reading",
     },
     {
@@ -152,7 +152,7 @@ const lesson: Lesson = {
         "Every one of the windows have a crack.",
       ],
       right: 1,
-      why: "With nor, match the subject nearer the verb. That is players, which is plural, so were is right. The box sentence matches letters instead of box, which is the Nearest noun trap. The shelf sentence is a Flipped sentence: clocks is the subject, so it should be sit. Every one is singular, so the windows sentence should say has.",
+      why: "With nor, match the subject nearer the verb. That is players, which is plural, so were is right. The box sentence matches letters instead of box, which is the **Nearest noun** trap. The shelf sentence is a Flipped sentence: clocks is the subject, so it should be sit. Every one is singular, so the windows sentence should say has.",
       subject: "reading",
     },
     {
@@ -161,7 +161,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["has shown", "have shown", "are showing", "were showing"],
       right: 0,
-      why: "Cross out the middle: of coral reefs off the island's northern coast, and the long which part in commas. What is left is The stretch ______ signs of recovery. Stretch is singular, so has shown is right. Have shown and are showing match reefs, the Nearest noun trap, helped along by the Long interrupter. Were showing is plural too.",
+      why: "Cross out the middle: of coral reefs off the island's northern coast, and the long which part in commas. What is left is The stretch ______ signs of recovery. Stretch is singular, so has shown is right. Have shown and are showing match reefs, the **Nearest noun** trap, helped along by the Long interrupter. Were showing is plural too.",
       subject: "reading",
     },
   ],

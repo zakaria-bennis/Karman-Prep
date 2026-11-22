@@ -14,6 +14,19 @@ export interface VideoTiming {
   audio: string | null;
   /** Each scene's length in seconds, narration and the pause after it, in order. */
   durations: number[];
+  /** A fingerprint of the words recorded (narrationKey), so a test can tell when the lesson has
+   *  changed since and the video needs recording again. */
+  narration: string;
+}
+
+/** A short fingerprint of what the narrator says across the scenes (FNV-1a, 32 bits, in hex). */
+export function narrationKey(scenes: Pick<DraftScene, "spoken">[]): string {
+  let h = 0x811c9dc5;
+  for (const ch of scenes.map((s) => s.spoken).join("\n")) {
+    h ^= ch.codePointAt(0) ?? 0;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
 }
 
 const ORDINAL = ["one", "two", "three"];

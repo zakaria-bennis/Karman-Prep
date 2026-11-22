@@ -89,14 +89,14 @@ const lesson: Lesson = {
     text: "For $h(x) = 5x + 3$, what is $h(-2)$?",
     choices: ["$-7$", "$-1$", "$6$", "$13$"],
     right: 0,
-    why: "$-2$ is an input, so put it in for $x$ with parentheses: $5(-2) + 3 = -10 + 3 = -7$. $-1$ is Input for output: it solves $5x + 3 = -2$. 13 drops the negative and works out $5(2) + 3$. 6 is Missing parentheses: it writes $5 - 2 + 3$.",
+    why: "$-2$ is an input, so put it in for $x$ with parentheses: $5(-2) + 3 = -10 + 3 = -7$. $-1$ is the **Input for output** trap: it solves $5x + 3 = -2$. 13 drops the negative and works out $5(2) + 3$. 6 is the **Missing parentheses** trap: it writes $5 - 2 + 3$.",
   },
   quiz: [
     {
       text: "A gym charges $C(v) = 8v + 20$ dollars for $v$ visits in a month. If $C(n) = 100$, what is the value of $n$?",
       choices: ["$10$", "$12.5$", "$15$", "$820$"],
       right: 0,
-      why: "100 is what $C$ equals, so it is an output. Set $8n + 20 = 100$: then $8n = 80$ and $n = 10$. The tempting 820 is Input for output: it works out $C(100)$. 15 adds the 20 instead of subtracting it, then divides 120 by 8. 12.5 divides 100 by 8 and forgets the 20 dollar start.",
+      why: "100 is what $C$ equals, so it is an output. Set $8n + 20 = 100$: then $8n = 80$ and $n = 10$. The tempting 820 is the **Input for output** trap: it works out $C(100)$. 15 adds the 20 instead of subtracting it, then divides 120 by 8. 12.5 divides 100 by 8 and forgets the 20 dollar start.",
       subject: "math",
     },
     {
@@ -108,7 +108,7 @@ const lesson: Lesson = {
         "Divide 31 by 7.",
       ],
       right: 1,
-      why: "31 is what $f$ equals, so it is an output. Set $7a - 4 = 31$; then $7a = 35$ and $a = 5$. Putting 31 in for $x$ is Input for output: it finds $f(31) = 213$. Subtracting 4 from 31 undoes the $-4$ the wrong way, since you need to add 4. Dividing 31 by 7 skips the $-4$ entirely.",
+      why: "31 is what $f$ equals, so it is an output. Set $7a - 4 = 31$; then $7a = 35$ and $a = 5$. Putting 31 in for $x$ is the **Input for output** trap: it finds $f(31) = 213$. Subtracting 4 from 31 undoes the $-4$ the wrong way, since you need to add 4. Dividing 31 by 7 skips the $-4$ entirely.",
       subject: "math",
     },
     {
@@ -120,7 +120,7 @@ const lesson: Lesson = {
         "She should subtract the 1, so the answer is $-8$.",
       ],
       right: 2,
-      why: "This is Missing parentheses. The input replaces $x$, so $-2x$ becomes $-2(-5)$, which is $+10$. Then $10 + 1 = 11$. Rosa wrote $-2 - 5$, which subtracts instead of multiplying. Solving $-2x + 1 = -5$ is Input for output: $-5$ sits inside the parentheses, so it is an input. The rule adds 1, so there is no reason to subtract it.",
+      why: "This is the **Missing parentheses** trap. The input replaces $x$, so $-2x$ becomes $-2(-5)$, which is $+10$. Then $10 + 1 = 11$. Rosa wrote $-2 - 5$, which subtracts instead of multiplying. Solving $-2x + 1 = -5$ is the **Input for output** trap: $-5$ sits inside the parentheses, so it is an input. The rule adds 1, so there is no reason to subtract it.",
       subject: "math",
     },
     {
@@ -132,7 +132,7 @@ const lesson: Lesson = {
         "What is $f(-4)$?",
       ],
       right: 2,
-      why: "In $f(x) = 4$, the 4 is what $f$ equals, an output. So you set $3x + 5 = 4$ and solve: $x = -\\frac{1}{3}$. In $f(4)$, $f(0)$ and $f(-4)$, the number sits inside the parentheses, so it is an input: plug it in. Treating $f(4)$ as $3x + 5 = 4$ is the Input for output trap.",
+      why: "In $f(x) = 4$, the 4 is what $f$ equals, an output. So you set $3x + 5 = 4$ and solve: $x = -\\frac{1}{3}$. In $f(4)$, $f(0)$ and $f(-4)$, the number sits inside the parentheses, so it is an input: plug it in. Treating $f(4)$ as $3x + 5 = 4$ is the **Input for output** trap.",
       subject: "math",
     },
     {
@@ -144,7 +144,7 @@ const lesson: Lesson = {
         "The drop in water level, in centimeters, each minute",
       ],
       right: 3,
-      why: "The number that multiplies $t$ is the rate: the change in output for each one unit of input. Each minute takes 4 centimeters off the level, so 4 is the drop per minute. The tempting level at the start is Rate or start: that is 120. The tank is empty when $120 - 4t = 0$, at 30 minutes. After 1 minute the level is $L(1) = 116$.",
+      why: "The number that multiplies $t$ is the rate: the change in output for each one unit of input. Each minute takes 4 centimeters off the level, so 4 is the drop per minute. The tempting level at the start is the **Rate or start** trap: that is 120. The tank is empty when $120 - 4t = 0$, at 30 minutes. After 1 minute the level is $L(1) = 116$.",
       subject: "math",
     },
   ],

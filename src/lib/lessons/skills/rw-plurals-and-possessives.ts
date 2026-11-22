@@ -123,7 +123,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["it's only door's", "its only door's", "its only doors", "it's only doors"],
       right: 2,
-      why: "Check each word on its own. Say it's in full: because it is only doors are hidden. That makes no sense, so use its. Next, the doors own nothing, since the word after them is are, so they take the plain plural doors. Only the choice its only doors gets both words right. The tempting it's only doors falls for Its or it's. The two choices with door's fall for the Plural apostrophe trap.",
+      why: "Check each word on its own. Say it's in full: because it is only doors are hidden. That makes no sense, so use its. Next, the doors own nothing, since the word after them is are, so they take the plain plural doors. Only the choice its only doors gets both words right. The tempting it's only doors falls for Its or it's. The two choices with door's fall for the **Plural apostrophe** trap.",
       subject: "reading",
     },
     {
@@ -137,7 +137,7 @@ const lesson: Lesson = {
         "Pick the choice with no apostrophe, since apostrophes are for contractions.",
       ],
       right: 0,
-      why: "Start by looking for the owned thing. The season belongs to the league, and there is one league, so the answer is league's. Picking leagues' because of the eight teams is the Wrong number of owners trap: the owner is the one league, not the teams. Picking leagues ignores the ownership and makes the league plural. Apostrophes show ownership in nouns, not only contractions.",
+      why: "Start by looking for the owned thing. The season belongs to the league, and there is one league, so the answer is league's. Picking leagues' because of the eight teams is the **Wrong number of owners** trap: the owner is the one league, not the teams. Picking leagues ignores the ownership and makes the league plural. Apostrophes show ownership in nouns, not only contractions.",
       subject: "reading",
     },
     {
@@ -151,7 +151,7 @@ const lesson: Lesson = {
         "Nothing belongs to the volunteers, so the word is the plain plural volunteers.",
       ],
       right: 3,
-      why: "Look for the owned thing. The word after the blank is in, so the volunteers own nothing here, and the word is the plain plural volunteers. The student fell for the Plural apostrophe trap. Volunteers' fixes the count but still shows ownership that is not there, the Wrong number of owners mix-up. Volunteer is singular, and the passage says volunteers. Volunteers's is not a correct form.",
+      why: "Look for the owned thing. The word after the blank is in, so the volunteers own nothing here, and the word is the plain plural volunteers. The student fell for the **Plural apostrophe** trap. Volunteers' fixes the count but still shows ownership that is not there, the Wrong number of owners mix-up. Volunteer is singular, and the passage says volunteers. Volunteers's is not a correct form.",
       subject: "reading",
     },
     {
@@ -163,7 +163,7 @@ const lesson: Lesson = {
         "The three ______ agreed to close early on the day of the street fair.",
       ],
       right: 1,
-      why: "Look for an owned thing, then count the owners. In the sentence about all three shops, the shops belong to three owners, so it needs owners'. In the sentence about one shop, there is a single owner, so it needs owner's; owners' there is the Wrong number of owners trap. In the other two sentences, the word after the blank is of or agreed, so nothing is owned and the plain plural owners fits.",
+      why: "Look for an owned thing, then count the owners. In the sentence about all three shops, the shops belong to three owners, so it needs owners'. In the sentence about one shop, there is a single owner, so it needs owner's; owners' there is the **Wrong number of owners** trap. In the other two sentences, the word after the blank is of or agreed, so nothing is owned and the plain plural owners fits.",
       subject: "reading",
     },
     {
@@ -172,7 +172,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["bakery's", "bakeries", "bakeries'", "bakerie's"],
       right: 2,
-      why: "Look for the owned thing: the recipes belong to the bakeries. Both says there are two owners, and the plural of bakery is bakeries, so the apostrophe goes after the s: bakeries'. The tempting bakery's is the Wrong number of owners trap, since it gives the recipes to one bakery. Bakeries is a plain plural that shows no ownership. Bakerie's is not a correct spelling.",
+      why: "Look for the owned thing: the recipes belong to the bakeries. Both says there are two owners, and the plural of bakery is bakeries, so the apostrophe goes after the s: bakeries'. The tempting bakery's is the **Wrong number of owners** trap, since it gives the recipes to one bakery. Bakeries is a plain plural that shows no ownership. Bakerie's is not a correct spelling.",
       subject: "reading",
     },
   ],

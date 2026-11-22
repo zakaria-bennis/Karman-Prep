@@ -113,7 +113,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["showed, that", "showed: that", "showed; that", "showed that"],
       right: 3,
-      why: "Read it with no mark: the engineers showed that the new battery could power a small car. The blank sits between the verb, showed, and what they showed, so no mark belongs. The colon is the Colon after a verb trap. The comma is the Pause trap, and a semicolon would need a full sentence on both sides, but the engineers showed is not one.",
+      why: "Read it with no mark: the engineers showed that the new battery could power a small car. The blank sits between the verb, showed, and what they showed, so no mark belongs. The colon is the **Colon after a verb** trap. The comma is the Pause trap, and a semicolon would need a full sentence on both sides, but the engineers showed is not one.",
       subject: "reading",
     },
     {
@@ -127,7 +127,7 @@ const lesson: Lesson = {
         "Look for another comma in the sentence to pair it with",
       ],
       right: 1,
-      why: "Start by reading it with no mark and asking what the spot sits between. Village ends the long subject, and is is its verb, so no mark belongs. Deciding by a pause is the Pause trap. Counting words leads to the Long subject trap: a long subject still takes no comma. A comma does not need a partner unless it opens an extra part, and nothing here is extra.",
+      why: "Start by reading it with no mark and asking what the spot sits between. Village ends the long subject, and is is its verb, so no mark belongs. Deciding by a pause is the Pause trap. Counting words leads to the **Long subject** trap: a long subject still takes no comma. A comma does not need a partner unless it opens an extra part, and nothing here is extra.",
       subject: "reading",
     },
     {
@@ -141,7 +141,7 @@ const lesson: Lesson = {
         "A comma belongs after hours, before the verb scored.",
       ],
       right: 0,
-      why: "The student fell for the Colon after a verb trap. The study showed is not a full sentence, so no colon. Nothing goes between showed and what the study showed. A comma there is the Pause trap. A semicolon needs a full sentence on both sides. A comma after hours would split the long subject, students who slept at least eight hours, from its verb, scored.",
+      why: "The student fell for the **Colon after a verb** trap. The study showed is not a full sentence, so no colon. Nothing goes between showed and what the study showed. A comma there is the Pause trap. A semicolon needs a full sentence on both sides. A comma after hours would split the long subject, students who slept at least eight hours, from its verb, scored.",
       subject: "reading",
     },
     {
@@ -153,7 +153,7 @@ const lesson: Lesson = {
         "The new rules for the summer league, begin in early May.",
       ],
       right: 2,
-      why: "Ask whether a rule asks for each comma. An opening clause that starts with because ends with a comma, so the flooded field sentence is right. The chess club and summer league sentences put a comma between a long subject and its verb: the Long subject trap. The coach sentence splits the verb, told, from what the coach said, which is the Pause trap.",
+      why: "Ask whether a rule asks for each comma. An opening clause that starts with because ends with a comma, so the flooded field sentence is right. The chess club and summer league sentences put a comma between a long subject and its verb: the **Long subject** trap. The coach sentence splits the verb, told, from what the coach said, which is the Pause trap.",
       subject: "reading",
     },
     {
@@ -162,7 +162,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["good boots, help", "good boots help", "good boots: help", "good boots; help"],
       right: 1,
-      why: "Read it with no mark. The subject is The guide's tips on packing light, staying dry, and choosing good boots, and its verb is help. The commas inside the list are right, but nothing goes after the last item, boots, before the verb. The comma there is the Long subject trap. The colon and the semicolon cut the subject off from its verb.",
+      why: "Read it with no mark. The subject is The guide's tips on packing light, staying dry, and choosing good boots, and its verb is help. The commas inside the list are right, but nothing goes after the last item, boots, before the verb. The comma there is the **Long subject** trap. The colon and the semicolon cut the subject off from its verb.",
       subject: "reading",
     },
   ],

@@ -106,7 +106,7 @@ const lesson: Lesson = {
     text: ASK,
     choices: ["playground,", "playground;", "playground.", "playground, and"],
     right: 0,
-    why: "The main clause is the children ran outside to catch the flakes. The dependent clause, When the first snow of the year fell on the playground, comes first, so a comma ends it. The semicolon is the Semicolon with dependent trap, since the When part is not a full sentence. The period leaves that part as a Cut-off fragment. Adding and is the Extra and trap: it leaves no main clause.",
+    why: "The main clause is the children ran outside to catch the flakes. The dependent clause, When the first snow of the year fell on the playground, comes first, so a comma ends it. The semicolon is the **Semicolon with dependent** trap, since the When part is not a full sentence. The period leaves that part as a Cut-off fragment. Adding and is the **Extra and** trap: it leaves no main clause.",
   },
   quiz: [
     {
@@ -115,7 +115,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["week; because", "week. Because", "week, and because", "week because"],
       right: 3,
-      why: "The main clause, The town's public library will stay open until 10:00 every night this week, comes first, and the because clause comes last, so no mark is needed. The semicolon is the Semicolon with dependent trap. The period leaves Because many students need a quiet place as a Cut-off fragment. Adding and is the Extra and trap: it hangs the because part on nothing.",
+      why: "The main clause, The town's public library will stay open until 10:00 every night this week, comes first, and the because clause comes last, so no mark is needed. The semicolon is the **Semicolon with dependent** trap. The period leaves Because many students need a quiet place as a Cut-off fragment. Adding and is the **Extra and** trap: it hangs the because part on nothing.",
       subject: "reading",
     },
     {
@@ -129,7 +129,7 @@ const lesson: Lesson = {
         "Start reading at the blank and skip the opening word While.",
       ],
       right: 0,
-      why: "Start by finding the main clause: hundreds of residents waited outside the meeting hall. Then you can see that the While part comes first and needs a comma after it. A pause is not a rule, so commas by sound often land in the wrong place. A semicolon needs two full sentences, the Semicolon with dependent trap. Skipping While hides the very word that makes the first part dependent.",
+      why: "Start by finding the main clause: hundreds of residents waited outside the meeting hall. Then you can see that the While part comes first and needs a comma after it. A pause is not a rule, so commas by sound often land in the wrong place. A semicolon needs two full sentences, the **Semicolon with dependent** trap. Skipping While hides the very word that makes the first part dependent.",
       subject: "reading",
     },
     {
@@ -143,7 +143,7 @@ const lesson: Lesson = {
         "A semicolon is needed before and to join the two parts.",
       ],
       right: 1,
-      why: "Because heavy rains had washed out part of the main road is a dependent clause, so it needs a main clause. Ben's and turns the buses took a longer route into a second piece joined to the because part, leaving no main clause at all: the Extra and trap. The fix is road with a comma. And can join clauses, so that rule is false. Moving the comma does not fix it, and a semicolon needs two full sentences.",
+      why: "Because heavy rains had washed out part of the main road is a dependent clause, so it needs a main clause. Ben's and turns the buses took a longer route into a second piece joined to the because part, leaving no main clause at all: the **Extra and** trap. The fix is road with a comma. And can join clauses, so that rule is false. Moving the comma does not fix it, and a semicolon needs two full sentences.",
       subject: "reading",
     },
     {
@@ -152,7 +152,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["city, however", "city. Although", "city, although", "city; although"],
       right: 2,
-      why: "Although and however look alike, but only although starts a dependent clause. With although, the second part depends on the main clause before it, and a comma before a contrast word like although is standard. However cannot join two full sentences after a comma, so that choice is a splice. The period leaves the Although part as a Cut-off fragment. The semicolon is the Semicolon with dependent trap.",
+      why: "Although and however look alike, but only although starts a dependent clause. With although, the second part depends on the main clause before it, and a comma before a contrast word like although is standard. However cannot join two full sentences after a comma, so that choice is a splice. The period leaves the Although part as a Cut-off fragment. The semicolon is the **Semicolon with dependent** trap.",
       subject: "reading",
     },
     {
@@ -161,7 +161,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["size,", "size;", "size.", "size, and"],
       right: 0,
-      why: "The main clause is they found that strong gusts made the deck twist. Everything before it, from When engineers to its real size, is one long dependent part, even with the comma before using. It comes first, so a comma ends it. The semicolon is the Semicolon with dependent trap, and the period leaves a Cut-off fragment. Adding and is the Extra and trap: it leaves the When part with no main clause.",
+      why: "The main clause is they found that strong gusts made the deck twist. Everything before it, from When engineers to its real size, is one long dependent part, even with the comma before using. It comes first, so a comma ends it. The semicolon is the **Semicolon with dependent** trap, and the period leaves a Cut-off fragment. Adding and is the **Extra and** trap: it leaves the When part with no main clause.",
       subject: "reading",
     },
   ],

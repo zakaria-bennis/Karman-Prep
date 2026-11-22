@@ -135,7 +135,7 @@ const lesson: Lesson = {
         "Text 1 says every zoo should grow, while Text 2 says every zoo should close.",
       ],
       right: 2,
-      why: "Sum up each text: Text 1 says zoos protect endangered animals; Text 2 says conservation is a small part of what zoos do. That is the split. The entertain choice is Swapped authors. Text 1 never says breeding failed, and Text 2 says it saved only a few species. Every zoo growing or closing is Too extreme and in neither text.",
+      why: "Sum up each text: Text 1 says zoos protect endangered animals; Text 2 says conservation is a small part of what zoos do. That is the split. The entertain choice is the **Swapped authors** trap. Text 1 never says breeding failed, and Text 2 says it saved only a few species. Every zoo growing or closing is the **Too extreme** trap and in neither text.",
       subject: "reading",
     },
     {
@@ -163,7 +163,7 @@ const lesson: Lesson = {
         "It is too extreme: Text 1 praises standing for part of the day, and Text 2 warns against standing all day.",
       ],
       right: 3,
-      why: "The answer is Too extreme. Text 1 speaks of standing for part of the day, and Text 2 says standing all day causes problems, so neither author would accept it. It is not Swapped authors, since neither text holds this view. Sore feet and tired legs do appear in Text 2. Text 1 does mention back pain.",
+      why: "The answer is the **Too extreme** trap. Text 1 speaks of standing for part of the day, and Text 2 says standing all day causes problems, so neither author would accept it. It is not Swapped authors, since neither text holds this view. Sore feet and tired legs do appear in Text 2. Text 1 does mention back pain.",
       subject: "reading",
     },
     {
@@ -177,7 +177,7 @@ const lesson: Lesson = {
         "Text 1 says lighter evenings matter, while Text 2 says the time of sunrise does not matter at all.",
       ],
       right: 1,
-      why: "This is a differ question, so name the exact split: both want one time all year, but Text 1 picks daylight saving time and Text 2 picks standard time. Stopping the clock changes is the look-alike: it is their shared ground, not a difference. The reversed choice is Swapped authors. Text 2 cares a great deal about sunrise, so does not matter at all is Too extreme.",
+      why: "This is a differ question, so name the exact split: both want one time all year, but Text 1 picks daylight saving time and Text 2 picks standard time. Stopping the clock changes is the look-alike: it is their shared ground, not a difference. The reversed choice is the **Swapped authors** trap. Text 2 cares a great deal about sunrise, so does not matter at all is the **Too extreme** trap.",
       subject: "reading",
     },
     {
@@ -191,7 +191,7 @@ const lesson: Lesson = {
         "Warming seas will destroy every coral reef within a few years.",
       ],
       right: 2,
-      why: "Text 1 says a quarter of ocean species depend on reefs, and Text 2 opens by granting that reefs are rich in life; its but adds a threat, not a disagreement. So both accept that reefs support many kinds of life. Most never recover is Half right: Text 2 says many, and Text 1 is silent. Every reef within a few years is Too extreme. Text 1 says reefs cover a tiny share.",
+      why: "Text 1 says a quarter of ocean species depend on reefs, and Text 2 opens by granting that reefs are rich in life; its but adds a threat, not a disagreement. So both accept that reefs support many kinds of life. Most never recover is the **Half right** trap: Text 2 says many, and Text 1 is silent. Every reef within a few years is the **Too extreme** trap. Text 1 says reefs cover a tiny share.",
       subject: "reading",
     },
   ],

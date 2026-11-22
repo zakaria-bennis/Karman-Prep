@@ -133,7 +133,7 @@ const lesson: Lesson = {
       text: "At a school fair, 120 people played a ring toss game. Of the 50 children who played, 20 won a prize. Of the 70 adults who played, 21 won a prize. One person who won a prize is chosen at random. What is the probability that the person is a child?",
       choices: ["$\\frac{1}{6}$", "$\\frac{41}{120}$", "$\\frac{2}{5}$", "$\\frac{20}{41}$"],
       right: 3,
-      why: "Shrink the total to prize winners: $20 + 21 = 41$. Of those, 20 are children, so the answer is $\\frac{20}{41}$. The tempting $\\frac{2}{5}$ is $\\frac{20}{50}$, the Flipped condition trap: it is the chance a child wins. $\\frac{1}{6}$ is $\\frac{20}{120}$, the Grand total trap. $\\frac{41}{120}$ is the chance that anyone wins.",
+      why: "Shrink the total to prize winners: $20 + 21 = 41$. Of those, 20 are children, so the answer is $\\frac{20}{41}$. The tempting $\\frac{2}{5}$ is $\\frac{20}{50}$, the **Flipped condition** trap: it is the chance a child wins. $\\frac{1}{6}$ is $\\frac{20}{120}$, the **Grand total** trap. $\\frac{41}{120}$ is the chance that anyone wins.",
       subject: "math",
     },
     {
@@ -145,7 +145,7 @@ const lesson: Lesson = {
         "Divide the number of early voters under 40 by 300.",
       ],
       right: 0,
-      why: "The words if a voter under 40 limit you to that group, so its total is the bottom. Find it first, then divide the early voters under 40 by it. Finding all early voters is the Flipped condition trap: that total would answer which age an early voter is. Dividing by 300 is the Grand total trap, whichever top you use.",
+      why: "The words if a voter under 40 limit you to that group, so its total is the bottom. Find it first, then divide the early voters under 40 by it. Finding all early voters is the **Flipped condition** trap: that total would answer which age an early voter is. Dividing by 300 is the **Grand total** trap, whichever top you use.",
       subject: "math",
     },
     {
@@ -157,7 +157,7 @@ const lesson: Lesson = {
         "Sam should use every cracked screen; the answer is $\\frac{90}{250} = \\frac{9}{25}$.",
       ],
       right: 1,
-      why: "Given that an owner uses a case, the bottom is the 150 case users. Of them, 36 have a cracked screen: $\\frac{36}{150} = \\frac{6}{25}$. Sam divided by the cracked screens, the Flipped condition trap; his answer is the chance a cracked phone has a case. $\\frac{18}{125}$ is the Grand total trap. $\\frac{9}{25}$ ignores the case completely.",
+      why: "Given that an owner uses a case, the bottom is the 150 case users. Of them, 36 have a cracked screen: $\\frac{36}{150} = \\frac{6}{25}$. Sam divided by the cracked screens, the **Flipped condition** trap; his answer is the chance a cracked phone has a case. $\\frac{18}{125}$ is the **Grand total** trap. $\\frac{9}{25}$ ignores the case completely.",
       subject: "math",
     },
     {

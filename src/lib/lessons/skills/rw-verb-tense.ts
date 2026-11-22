@@ -108,7 +108,7 @@ const lesson: Lesson = {
     text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
     choices: ["expanded", "has expanded", "will expand", "had expanded"],
     right: 2,
-    why: "Follow the timeline. The test is happening now, and next spring points to the future, so will expand fits. Expanded and had expanded put the growth in the past, which is the Wrong timeline trap, since the program is still being tested. Has expanded says the growth has already happened up to now.",
+    why: "Follow the timeline. The test is happening now, and next spring points to the future, so will expand fits. Expanded and had expanded put the growth in the past, which is the **Wrong timeline** trap, since the program is still being tested. Has expanded says the growth has already happened up to now.",
   },
   quiz: [
     {
@@ -117,7 +117,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["move", "have moved", "will move", "had moved"],
       right: 3,
-      why: "Find the time words: by the time, with arrived in the past. The neighbors moved the horses before the firefighters arrived, so the moving is the earlier of two past events and takes had: had moved. The tempting have moved is the Missed time word trap, since has and have reach up to now, not to a past moment. Move is present, and will move is future.",
+      why: "Find the time words: by the time, with arrived in the past. The neighbors moved the horses before the firefighters arrived, so the moving is the earlier of two past events and takes had: had moved. The tempting have moved is the **Missed time word** trap, since has and have reach up to now, not to a past moment. Move is present, and will move is future.",
       subject: "reading",
     },
     {
@@ -131,7 +131,7 @@ const lesson: Lesson = {
         "Read only the words after the blank, people across the bay.",
       ],
       right: 0,
-      why: "Start with the time words. Before the bridge opened in 1937 puts the ferry trips in the past, earlier than the opening, so the answer is had carried. Picking carry because ferries still run today is the Wrong timeline trap. Picking the longest form is the Fancy tense trap; it only works here because of the time words. Reading only the words after the blank skips the time words completely.",
+      why: "Start with the time words. Before the bridge opened in 1937 puts the ferry trips in the past, earlier than the opening, so the answer is had carried. Picking carry because ferries still run today is the **Wrong timeline** trap. Picking the longest form is the **Fancy tense** trap; it only works here because of the time words. Reading only the words after the blank skips the time words completely.",
       subject: "reading",
     },
     {
@@ -145,7 +145,7 @@ const lesson: Lesson = {
         "The blank needs will tour, because the hall has just opened.",
       ],
       right: 2,
-      why: "Follow the main timeline: on opening day last Saturday is past, so the visitors toured the hall. Stands is in a side clause about the skeleton, which still stands today, so it keeps its own time. The student fell for the Wrong timeline trap. Changing stands to stood would wrongly suggest the skeleton is gone. Had toured is a Fancy tense with no second past event. Will tour points to the future.",
+      why: "Follow the main timeline: on opening day last Saturday is past, so the visitors toured the hall. Stands is in a side clause about the skeleton, which still stands today, so it keeps its own time. The student fell for the **Wrong timeline** trap. Changing stands to stood would wrongly suggest the skeleton is gone. Had toured is a Fancy tense with no second past event. Will tour points to the future.",
       subject: "reading",
     },
     {
@@ -166,7 +166,7 @@ const lesson: Lesson = {
       text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
       choices: ["rests", "will rest", "had rested", "has rested"],
       right: 2,
-      why: "Follow the timeline. The discovery came in 2019, in the past, and the resting came before it: for nearly 300 years before the team's discovery. The earlier of two past events takes had, so had rested fits. The tempting has rested is the Missed time word trap: has reaches up to now, but before the team's discovery stops the clock in 2019. Rests is present, and will rest is future.",
+      why: "Follow the timeline. The discovery came in 2019, in the past, and the resting came before it: for nearly 300 years before the team's discovery. The earlier of two past events takes had, so had rested fits. The tempting has rested is the **Missed time word** trap: has reaches up to now, but before the team's discovery stops the clock in 2019. Rests is present, and will rest is future.",
       subject: "reading",
     },
   ],

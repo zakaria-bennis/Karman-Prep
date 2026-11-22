@@ -99,7 +99,7 @@ const lesson: Lesson = {
       "Zoom out if no line appears, then put $x$ back in to find the angle.",
     ],
     type: ["3x + 10 + 5x - 30 = 180"],
-    note: "The line lands at $x = 25$. The calculator solves whatever you type, so it cannot catch the Equal or supplementary trap. An equation like $8x - 20 = 180$ is faster by hand.",
+    note: "The line lands at $x = 25$. The calculator solves whatever you type, so it cannot catch the **Equal or supplementary** trap. An equation like $8x - 20 = 180$ is faster by hand.",
   },
   check: {
     text: "Two parallel lines are cut by a transversal. One of the angles formed measures $48^\\circ$. What is the measure of each obtuse angle formed?",
@@ -112,7 +112,7 @@ const lesson: Lesson = {
       text: "Two parallel lines are cut by a transversal. One acute angle measures $(2x + 6)^\\circ$ and one obtuse angle measures $(4x + 18)^\\circ$. What is the measure of the obtuse angle?",
       choices: ["$26^\\circ$", "$58^\\circ$", "$104^\\circ$", "$122^\\circ$"],
       right: 3,
-      why: "One acute and one obtuse angle add to 180°: $6x + 24 = 180$, so $x = 26$. The obtuse angle is $4(26) + 18 = 122$. The tempting 26° is Answering with x. 58° is the acute angle, not the one asked for. 104° forgets to add the 18 after multiplying.",
+      why: "One acute and one obtuse angle add to 180°: $6x + 24 = 180$, so $x = 26$. The obtuse angle is $4(26) + 18 = 122$. The tempting 26° is the **Answering with x** trap. 58° is the acute angle, not the one asked for. 104° forgets to add the 18 after multiplying.",
       subject: "math",
     },
     {
@@ -124,7 +124,7 @@ const lesson: Lesson = {
         "Set each expression equal to 90.",
       ],
       right: 0,
-      why: "Both angles are obtuse, and two of the same kind are equal: $7x - 4 = 5x + 30$, so $x = 17$ and each angle is 115°. Adding to 180 is the Equal or supplementary trap: that sum is for one acute and one obtuse angle. 360 is the sum around a whole point. 90 is a right angle, and these angles are obtuse.",
+      why: "Both angles are obtuse, and two of the same kind are equal: $7x - 4 = 5x + 30$, so $x = 17$ and each angle is 115°. Adding to 180 is the **Equal or supplementary** trap: that sum is for one acute and one obtuse angle. 360 is the sum around a whole point. 90 is a right angle, and these angles are obtuse.",
       subject: "math",
     },
     {
@@ -148,14 +148,14 @@ const lesson: Lesson = {
         "They are across from each other where two lines cross.",
       ],
       right: 3,
-      why: "Angles across from each other where two lines cross are vertical angles, and vertical angles are always equal, for any lines. The tempting acute pair is the Only when parallel trap: without parallel lines, acute angles need not match. Side-by-side angles on a line add to 180°. An acute and an obtuse angle add to 180° too.",
+      why: "Angles across from each other where two lines cross are vertical angles, and vertical angles are always equal, for any lines. The tempting acute pair is the **Only when parallel** trap: without parallel lines, acute angles need not match. Side-by-side angles on a line add to 180°. An acute and an obtuse angle add to 180° too.",
       subject: "math",
     },
     {
       text: "Lines $\\ell$ and $m$ are parallel and are cut by a transversal. At line $\\ell$, one angle measures $(5k - 12)^\\circ$. At line $m$, an angle that is not equal to it measures $(3k + 32)^\\circ$. What is the measure of the smaller of these two angles?",
       choices: ["$20^\\circ$", "$88^\\circ$", "$92^\\circ$", "$98^\\circ$"],
       right: 1,
-      why: "The angles are not equal, so one is acute and one is obtuse, and they add to 180°: $8k + 20 = 180$, so $k = 20$. The angles are $5(20) - 12 = 88$ and $3(20) + 32 = 92$, and the smaller is 88°. 20° is Answering with x. 92° is the larger angle. 98° comes from setting them equal, the Equal or supplementary trap.",
+      why: "The angles are not equal, so one is acute and one is obtuse, and they add to 180°: $8k + 20 = 180$, so $k = 20$. The angles are $5(20) - 12 = 88$ and $3(20) + 32 = 92$, and the smaller is 88°. 20° is the **Answering with x** trap. 92° is the larger angle. 98° comes from setting them equal, the **Equal or supplementary** trap.",
       subject: "math",
     },
   ],

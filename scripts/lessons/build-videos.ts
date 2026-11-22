@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { SKILLS72 } from "../../src/lib/skills/ids72";
 import type { Lesson } from "../../src/lib/lessons/types";
-import { draftScenes, type VideoTiming } from "../../src/lib/lessons/videoScript";
+import { draftScenes, narrationKey, type VideoTiming } from "../../src/lib/lessons/videoScript";
 
 const API = "http://127.0.0.1:3900/v1/audio/speech";
 const VOICES = [
@@ -167,6 +167,7 @@ async function build(id: string, upload: boolean) {
     },
     audio,
     durations,
+    narration: narrationKey(scenes),
   };
   const total = durations.reduce((a, b) => a + b, 0);
   writeFileSync(
@@ -180,6 +181,9 @@ const timing: VideoTiming = ${JSON.stringify(timing, null, 2)};
 export default timing;
 `
   );
+  execFileSync("npx", ["prettier", "--write", join(ROOT, "src/lib/lessons/videos", `${id}.ts`)], {
+    stdio: "ignore",
+  });
   console.log(
     `${id}: ${scenes.length} scenes, ${Math.round(total)} s, ${Math.round(bytes.length / 1024)} KB, ${voice.name}${audio ? ", uploaded" : ""}`
   );

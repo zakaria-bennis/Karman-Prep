@@ -10,6 +10,7 @@ import type { Figure } from "./figures";
 import type { LessonChecks } from "./checks/types";
 import { meets } from "./checks/value";
 import type { Lesson, Rich } from "./types";
+import { draftScenes, narrationKey, type VideoTiming } from "./videoScript";
 
 // Every file in skills/ is tested, whether or not the registry lists it yet, and one broken file fails
 // only its own tests.
@@ -300,6 +301,28 @@ describe("lessons", () => {
       });
     });
   }
+});
+
+// A video is recorded from its lesson's words; when the lesson changes, the video must be recorded again
+// (npx tsx scripts/lessons/build-videos.ts <id> --upload), or its voice and captions drift apart.
+const VIDEOS = readdirSync(new URL("./videos/", import.meta.url))
+  .filter((f) => f.endsWith(".ts"))
+  .map((f) => f.slice(0, -3))
+  .sort();
+
+describe("videos", () => {
+  for (const id of VIDEOS)
+    it(`${id} was recorded from the lesson as it is now`, async () => {
+      const timing = ((await import(`./videos/${id}.ts`)) as { default: VideoTiming }).default;
+      const lesson = LESSONS.find((x) => x.file === id)?.lesson;
+      const skill = skill72(id);
+      expect(lesson && skill, `${id} has no lesson`).toBeTruthy();
+      if (!lesson || !skill) return;
+      const scenes = draftScenes(lesson, skill.name);
+      expect(timing.durations).toHaveLength(scenes.length);
+      expect(timing.narration).toBe(narrationKey(scenes));
+      expect(timing.audio).toMatch(/^https:\/\/.+\/lessons\/audio\/.+\.m4a$/);
+    });
 });
 
 describe("lesson coverage", () => {

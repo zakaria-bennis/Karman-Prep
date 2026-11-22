@@ -133,7 +133,7 @@ const lesson: Lesson = {
         "It sets up a contrast between the bakery's usual noise and one quiet hour.",
       ],
       right: 3,
-      why: "Job, not content: the sentence before lists the noise, and though signals a turn to silence, so the sentence sets up a contrast. Saying how Rosa kneads dough is Content, not job. Praising early mornings is a Whole-text answer, and it overstates the story. The customers' orders belong to the first sentence, and the text never says why they call out.",
+      why: "Job, not content: the sentence before lists the noise, and though signals a turn to silence, so the sentence sets up a contrast. Saying how Rosa kneads dough is the **Content, not job** trap. Praising early mornings is a Whole-text answer, and it overstates the story. The customers' orders belong to the first sentence, and the text never says why they call out.",
       subject: "reading",
     },
     {
@@ -161,7 +161,7 @@ const lesson: Lesson = {
         "It gives the job of the last sentence instead of this one.",
       ],
       right: 0,
-      why: "The student's answer is Content, not job: it restates the sentence. The real job is to give a specific example of the claim before it, that some deserts get almost no rain. The Atacama is named in the text. The text never says rain is common there. The student's answer is about the underlined sentence, not the last one.",
+      why: "The student's answer is the **Content, not job** trap: it restates the sentence. The real job is to give a specific example of the claim before it, that some deserts get almost no rain. The Atacama is named in the text. The text never says rain is common there. The student's answer is about the underlined sentence, not the last one.",
       subject: "reading",
     },
     {
@@ -189,7 +189,7 @@ const lesson: Lesson = {
         "It states the text's main claim, that Ito was not a skilled painter.",
       ],
       right: 2,
-      why: "Yet turns against the critics' label, and the last sentence explains the odd shadows, so the sentence complicates the view that Ito is simply a realist. Calling it an example of careful detail is a Wrong target: the shadows are what is not realistic. Where the shadows fall is Content, not job. The main-claim choice is a Whole-text answer the text never makes.",
+      why: "Yet turns against the critics' label, and the last sentence explains the odd shadows, so the sentence complicates the view that Ito is simply a realist. Calling it an example of careful detail is a Wrong target: the shadows are what is not realistic. Where the shadows fall is the **Content, not job** trap. The main-claim choice is a Whole-text answer the text never makes.",
       subject: "reading",
     },
   ],

@@ -112,7 +112,7 @@ const lesson: Lesson = {
       text: "A phone's battery is at 92% at 1 p.m. and at 64% at 5 p.m. The charge drops at a constant rate. What is the rate of change of the charge, in percent per hour?",
       choices: ["$-28$", "$-7$", "$-\\frac{1}{7}$", "$7$"],
       right: 1,
-      why: "Change over change: $\\frac{64 - 92}{5 - 1} = \\frac{-28}{4} = -7$. The battery loses 7 percent each hour, so the rate is $-7$. The tempting 7 is Lost the sign: the charge goes down. $-\\frac{1}{7}$ is the Upside-down slope, hours over percent. $-28$ is the change in charge, not yet divided by the 4 hours.",
+      why: "Change over change: $\\frac{64 - 92}{5 - 1} = \\frac{-28}{4} = -7$. The battery loses 7 percent each hour, so the rate is $-7$. The tempting 7 is the **Lost the sign** trap: the charge goes down. $-\\frac{1}{7}$ is the Upside-down slope, hours over percent. $-28$ is the change in charge, not yet divided by the 4 hours.",
       subject: "math",
     },
     {
@@ -136,7 +136,7 @@ const lesson: Lesson = {
         "He subtracted the $x$-values in the opposite order from the $y$-values.",
       ],
       right: 3,
-      why: "This is Mixed order. On top he did second minus first, $-2 - 6 = -8$. On the bottom he did first minus second, $1 - 5 = -4$. In the same order, the slope is $\\frac{-8}{4} = -2$, a line that falls. His change in $y$ is on top, so it is not the Upside-down slope. Slope uses differences, never sums, and 2 is not right.",
+      why: "This is the **Mixed order** trap. On top he did second minus first, $-2 - 6 = -8$. On the bottom he did first minus second, $1 - 5 = -4$. In the same order, the slope is $\\frac{-8}{4} = -2$, a line that falls. His change in $y$ is on top, so it is not the Upside-down slope. Slope uses differences, never sums, and 2 is not right.",
       subject: "math",
     },
     {
@@ -155,7 +155,7 @@ const lesson: Lesson = {
       text: "An oven cools at a constant rate. At 4 minutes it is 380 degrees, at 10 minutes it is 314 degrees, and at 18 minutes it is 226 degrees. What was the oven's temperature at 0 minutes?",
       choices: ["$336$", "$380$", "$424$", "$446$"],
       right: 2,
-      why: "Find the rate first: $\\frac{314 - 380}{10 - 4} = \\frac{-66}{6} = -11$ degrees per minute. Going back 4 minutes from 380 adds $4 \\cdot 11 = 44$ degrees, so the answer is 424. The tempting 336 is Lost the sign: it subtracts 44, as if the oven were warming up. 380 is the reading at 4 minutes, not 0. 446 adds the whole 66-degree drop instead of 4 minutes of it.",
+      why: "Find the rate first: $\\frac{314 - 380}{10 - 4} = \\frac{-66}{6} = -11$ degrees per minute. Going back 4 minutes from 380 adds $4 \\cdot 11 = 44$ degrees, so the answer is 424. The tempting 336 is the **Lost the sign** trap: it subtracts 44, as if the oven were warming up. 380 is the reading at 4 minutes, not 0. 446 adds the whole 66-degree drop instead of 4 minutes of it.",
       subject: "math",
     },
   ],

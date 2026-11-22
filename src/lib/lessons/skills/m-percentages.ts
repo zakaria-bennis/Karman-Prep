@@ -116,7 +116,7 @@ const lesson: Lesson = {
     text: "A savings account holds 500 dollars and earns 10% each year. How many dollars are in the account after 2 years?",
     choices: ["$105$", "$550$", "$600$", "$605$"],
     right: 3,
-    why: "Each year multiplies by 1.1, so two years multiply by $1.1^2 = 1.21$: $500 \\cdot 1.21 = 605$. $600$ is Adding the percents: it adds 10% of 500 twice. $550$ stops after one year, and $105$ is Change, not total: it is only the interest earned.",
+    why: "Each year multiplies by 1.1, so two years multiply by $1.1^2 = 1.21$: $500 \\cdot 1.21 = 605$. $600$ is the **Adding the percents** trap: it adds 10% of 500 twice. $550$ stops after one year, and $105$ is the **Change, not total** trap: it is only the interest earned.",
   },
   quiz: [
     {
@@ -135,7 +135,7 @@ const lesson: Lesson = {
         "Find 20% of 20%, which is 4%.",
       ],
       right: 0,
-      why: "Use multipliers. Up 20% is $1.2$ and down 20% is $0.8$, so the price ends at $1.2 \\cdot 0.8 = 0.96$, or 96% of the original. Adding and subtracting 20 is the Adding the percents trap: the drop is 20% of a bigger price, so the changes do not cancel. A multiplier of $0.2$ keeps only the part taken off, not the 80% left. 20% of 20% is not a step toward the price.",
+      why: "Use multipliers. Up 20% is $1.2$ and down 20% is $0.8$, so the price ends at $1.2 \\cdot 0.8 = 0.96$, or 96% of the original. Adding and subtracting 20 is the **Adding the percents** trap: the drop is 20% of a bigger price, so the changes do not cancel. A multiplier of $0.2$ keeps only the part taken off, not the 80% left. 20% of 20% is not a step toward the price.",
       subject: "math",
     },
     {
@@ -154,14 +154,14 @@ const lesson: Lesson = {
         "A price rose from 48 to 60. By what percent did it rise?",
       ],
       right: 3,
-      why: "Percent change divides by the original, the starting amount. Here 48 is on the bottom, so 48 is the start: a rise from 48 to 60, which is 25%. A fall from 60 to 48 starts at 60, so it divides by 60 and is a 20% drop; picking it is the Wrong whole trap. What percent of 60 is 48 is $\\frac{48}{60}$, and 48% of 60 is $0.48 \\cdot 60$.",
+      why: "Percent change divides by the original, the starting amount. Here 48 is on the bottom, so 48 is the start: a rise from 48 to 60, which is 25%. A fall from 60 to 48 starts at 60, so it divides by 60 and is a 20% drop; picking it is the **Wrong whole** trap. What percent of 60 is 48 is $\\frac{48}{60}$, and 48% of 60 is $0.48 \\cdot 60$.",
       subject: "math",
     },
     {
       text: "A store raises the price of a lamp by 25%. Later, it puts the lamp on sale for 40% off the raised price. The sale price is 45 dollars. What was the price, in dollars, before the raise?",
       choices: ["$33.75$", "$52.94$", "$60$", "$75$"],
       right: 2,
-      why: "Use multipliers and work backward. Up 25% is $1.25$ and 40% off is $0.6$, so together they multiply by $1.25 \\cdot 0.6 = 0.75$. Then $p = \\frac{45}{0.75} = 60$. The tempting $52.94$ is Adding the percents: it uses $25 - 40 = -15\\%$, then $\\frac{45}{0.85}$. $75$ undoes the sale but forgets the raise, and $33.75$ multiplies by 0.75 instead of dividing.",
+      why: "Use multipliers and work backward. Up 25% is $1.25$ and 40% off is $0.6$, so together they multiply by $1.25 \\cdot 0.6 = 0.75$. Then $p = \\frac{45}{0.75} = 60$. The tempting $52.94$ is the **Adding the percents** trap: it uses $25 - 40 = -15\\%$, then $\\frac{45}{0.85}$. $75$ undoes the sale but forgets the raise, and $33.75$ multiplies by 0.75 instead of dividing.",
       subject: "math",
     },
   ],

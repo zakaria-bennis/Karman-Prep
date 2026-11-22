@@ -140,7 +140,7 @@ const lesson: Lesson = {
       text: "What is the smaller solution of $x^2 + 2x - 4 = 0$?",
       choices: ["$-2 - \\sqrt{5}$", "$-1 - \\sqrt{5}$", "$1 - \\sqrt{5}$", "$-1 + \\sqrt{5}$"],
       right: 1,
-      why: "It does not factor, so use the formula. The discriminant is $4 + 16 = 20$, so $x = \\frac{-2 \\pm 2\\sqrt{5}}{2} = -1 \\pm \\sqrt{5}$, and the smaller one is $-1 - \\sqrt{5}$. The tempting $-2 - \\sqrt{5}$ is Dividing only part: the 2 must divide the $-2$ too. $1 - \\sqrt{5}$ is a Sign slip that starts the top with $b$ instead of $-b$. $-1 + \\sqrt{5}$ is the larger solution.",
+      why: "It does not factor, so use the formula. The discriminant is $4 + 16 = 20$, so $x = \\frac{-2 \\pm 2\\sqrt{5}}{2} = -1 \\pm \\sqrt{5}$, and the smaller one is $-1 - \\sqrt{5}$. The tempting $-2 - \\sqrt{5}$ is the **Dividing only part** trap: the 2 must divide the $-2$ too. $1 - \\sqrt{5}$ is a Sign slip that starts the top with $b$ instead of $-b$. $-1 + \\sqrt{5}$ is the larger solution.",
       subject: "math",
     },
     {
@@ -152,7 +152,7 @@ const lesson: Lesson = {
         "Take the square root of both sides.",
       ],
       right: 2,
-      why: "Factors only help when the other side is 0, so expand and move 14 over: $x^2 - 5x - 14 = 0$, which factors as $(x - 7)(x + 2) = 0$, giving 7 and $-2$. Setting each factor equal to 14 is Not set to zero: $x = 14$ gives $14 \\cdot 9 = 126$. Dividing by $x$ throws away a solution and leaves a fraction. The left side is not a perfect square, so a square root does not help.",
+      why: "Factors only help when the other side is 0, so expand and move 14 over: $x^2 - 5x - 14 = 0$, which factors as $(x - 7)(x + 2) = 0$, giving 7 and $-2$. Setting each factor equal to 14 is the **Not set to zero** trap: $x = 14$ gives $14 \\cdot 9 = 126$. Dividing by $x$ throws away a solution and leaves a fraction. The left side is not a perfect square, so a square root does not help.",
       subject: "math",
     },
     {

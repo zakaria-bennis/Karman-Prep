@@ -116,7 +116,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["are: Denver,", "are; Denver,", "are Denver,", "are, Denver,"],
       right: 2,
-      why: "Cover what follows and read: The three cities on the band's summer tour are. That stops at the verb, so it is not a full sentence and cannot take a colon. The colon is the Colon too soon trap. The semicolon needs a full sentence on both sides, and the comma splits the verb, are, from the cities it names.",
+      why: "Cover what follows and read: The three cities on the band's summer tour are. That stops at the verb, so it is not a full sentence and cannot take a colon. The colon is the **Colon too soon** trap. The semicolon needs a full sentence on both sides, and the comma splits the verb, are, from the cities it names.",
       subject: "reading",
     },
     {
@@ -144,7 +144,7 @@ const lesson: Lesson = {
         "A colon cannot come right after such as, so it should be removed.",
       ],
       right: 3,
-      why: "Cover what follows the colon: Many desert animals stay underground during the hottest hours, such as. That leaves you waiting, so this is the Colon too soon trap. Take the colon out. A colon before such as would also leave such as dangling. A semicolon is the Semicolon before a list trap. The comma after tortoises is correct: it comes before the last item.",
+      why: "Cover what follows the colon: Many desert animals stay underground during the hottest hours, such as. That leaves you waiting, so this is the **Colon too soon** trap. Take the colon out. A colon before such as would also leave such as dangling. A semicolon is the **Semicolon before a list** trap. The comma after tortoises is correct: it comes before the last item.",
       subject: "reading",
     },
     {
@@ -158,7 +158,7 @@ const lesson: Lesson = {
         "The word because followed by a colon",
       ],
       right: 1,
-      why: "The words before the colon are a full sentence, and the words after explain the reason. A single dash can do a colon's job here. A comma would join two full sentences on its own, which is a comma splice. No mark runs them together. Because followed by a colon is the Colon too soon trap: the words before the colon would end in because.",
+      why: "The words before the colon are a full sentence, and the words after explain the reason. A single dash can do a colon's job here. A comma would join two full sentences on its own, which is a comma splice. No mark runs them together. Because followed by a colon is the **Colon too soon** trap: the words before the colon would end in because.",
       subject: "reading",
     },
     {
@@ -167,7 +167,7 @@ const lesson: Lesson = {
       text: STEM,
       choices: ["following: a", "following; a", "following, a", "following a"],
       right: 0,
-      why: "Cover the list and read: Every first-year student in the nursing program must complete the following. That is a full sentence, so a colon can introduce the list. The words the following feel unfinished, but they finish the sentence. The semicolon is the Semicolon before a list trap. A comma cannot introduce a list after a full sentence, and no mark runs the list straight into the sentence.",
+      why: "Cover the list and read: Every first-year student in the nursing program must complete the following. That is a full sentence, so a colon can introduce the list. The words the following feel unfinished, but they finish the sentence. The semicolon is the **Semicolon before a list** trap. A comma cannot introduce a list after a full sentence, and no mark runs the list straight into the sentence.",
       subject: "reading",
     },
   ],

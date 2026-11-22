@@ -108,14 +108,14 @@ const lesson: Lesson = {
     text: "Line $p$ is perpendicular to the line $y = \\frac{2}{3}x - 1$. What is the slope of line $p$?",
     choices: ["$-\\frac{3}{2}$", "$-\\frac{2}{3}$", "$\\frac{2}{3}$", "$\\frac{3}{2}$"],
     right: 0,
-    why: "Flip $\\frac{2}{3}$ to $\\frac{3}{2}$, then change the sign: $-\\frac{3}{2}$. The two slopes multiply to $-1$. $\\frac{3}{2}$ is Half the flip: flipped, but the sign kept. $-\\frac{2}{3}$ changes the sign without flipping. $\\frac{2}{3}$ is the same slope, which would make the lines parallel.",
+    why: "Flip $\\frac{2}{3}$ to $\\frac{3}{2}$, then change the sign: $-\\frac{3}{2}$. The two slopes multiply to $-1$. $\\frac{3}{2}$ is the **Half the flip** trap: flipped, but the sign kept. $-\\frac{2}{3}$ changes the sign without flipping. $\\frac{2}{3}$ is the same slope, which would make the lines parallel.",
   },
   quiz: [
     {
       text: "Which line is parallel to $y = 4x - 7$ and passes through $(-1, 3)$?",
       choices: ["$y = 4x - 7$", "$y = 4x - 1$", "$y = 4x + 3$", "$y = 4x + 7$"],
       right: 3,
-      why: "Parallel keeps the slope, 4. Point-slope form: $y - 3 = 4(x + 1)$, so $y = 4x + 7$. Check: $4(-1) + 7 = 3$. The tempting $y = 4x - 1$ writes $x - 1$ for a point whose $x$ is $-1$. $y = 4x + 3$ uses the point's $y$ as the intercept. $y = 4x - 7$ is the given line itself, the Same line, not parallel trap, and it misses the point.",
+      why: "Parallel keeps the slope, 4. Point-slope form: $y - 3 = 4(x + 1)$, so $y = 4x + 7$. Check: $4(-1) + 7 = 3$. The tempting $y = 4x - 1$ writes $x - 1$ for a point whose $x$ is $-1$. $y = 4x + 3$ uses the point's $y$ as the intercept. $y = 4x - 7$ is the given line itself, the **Same line, not parallel** trap, and it misses the point.",
       subject: "math",
     },
     {
@@ -127,7 +127,7 @@ const lesson: Lesson = {
         "Use 6 as the new line's $y$-intercept.",
       ],
       right: 1,
-      why: "The slope is hidden in standard form, so get $y$ alone: $y = \\frac{5}{2}x - 3$. Then flip and change the sign to get $-\\frac{2}{5}$. Taking 5 as the slope is Slope still hidden, and it leads to $-\\frac{1}{5}$. The $x$-intercept tells where a line crosses, not how steep it is. The 6 belongs to the given line and says nothing about line $m$.",
+      why: "The slope is hidden in standard form, so get $y$ alone: $y = \\frac{5}{2}x - 3$. Then flip and change the sign to get $-\\frac{2}{5}$. Taking 5 as the slope is the **Slope still hidden** trap, and it leads to $-\\frac{1}{5}$. The $x$-intercept tells where a line crosses, not how steep it is. The 6 belongs to the given line and says nothing about line $m$.",
       subject: "math",
     },
     {
@@ -139,7 +139,7 @@ const lesson: Lesson = {
         "Perpendicular lines share a slope; it is $-\\frac{3}{5}$.",
       ],
       right: 2,
-      why: "This is Half the flip. A perpendicular slope flips the fraction and changes the sign, so $-\\frac{3}{5}$ becomes $\\frac{5}{3}$. Check: $-\\frac{3}{5} \\cdot \\frac{5}{3} = -1$. Kai's slope times $-\\frac{3}{5}$ is $+1$, so his line is not perpendicular. $\\frac{3}{5}$ changes the sign without flipping. $-\\frac{3}{5}$ is the same slope, which makes a parallel line.",
+      why: "This is the **Half the flip** trap. A perpendicular slope flips the fraction and changes the sign, so $-\\frac{3}{5}$ becomes $\\frac{5}{3}$. Check: $-\\frac{3}{5} \\cdot \\frac{5}{3} = -1$. Kai's slope times $-\\frac{3}{5}$ is $+1$, so his line is not perpendicular. $\\frac{3}{5}$ changes the sign without flipping. $-\\frac{3}{5}$ is the same slope, which makes a parallel line.",
       subject: "math",
     },
     {
@@ -151,14 +151,14 @@ const lesson: Lesson = {
         "$y = 2x + 1$ and $y = \\frac{1}{2}x + 3$",
       ],
       right: 0,
-      why: "Perpendicular slopes multiply to $-1$, and $2 \\cdot \\left(-\\frac{1}{2}\\right) = -1$, so the pair with $-\\frac{1}{2}$ is perpendicular. Slopes 2 and 2 make a parallel pair. Slopes 2 and $-2$ change only the sign, and slopes 2 and $\\frac{1}{2}$ only flip. Both are Half the flip, with products $-4$ and 1.",
+      why: "Perpendicular slopes multiply to $-1$, and $2 \\cdot \\left(-\\frac{1}{2}\\right) = -1$, so the pair with $-\\frac{1}{2}$ is perpendicular. Slopes 2 and 2 make a parallel pair. Slopes 2 and $-2$ change only the sign, and slopes 2 and $\\frac{1}{2}$ only flip. Both are the **Half the flip** trap, with products $-4$ and 1.",
       subject: "math",
     },
     {
       text: "In the $xy$-plane, line $j$ passes through $(1, 5)$ and $(4, -1)$. Line $k$ is perpendicular to line $j$ and passes through $(2, 0)$. What is the $y$-coordinate of the $y$-intercept of line $k$?",
       choices: ["$-4$", "$-1$", "$1$", "$4$"],
       right: 1,
-      why: "Slope of $j$: $\\frac{-1 - 5}{4 - 1} = -2$. Flip and change the sign: $k$ has slope $\\frac{1}{2}$. Then $y = \\frac{1}{2}(x - 2) = \\frac{1}{2}x - 1$, so the $y$-intercept is at $-1$. The tempting 1 is Half the flip: slope $-\\frac{1}{2}$ gives $y = -\\frac{1}{2}x + 1$. $-4$ uses slope 2, changing only the sign. 4 keeps slope $-2$, which makes $k$ parallel to $j$.",
+      why: "Slope of $j$: $\\frac{-1 - 5}{4 - 1} = -2$. Flip and change the sign: $k$ has slope $\\frac{1}{2}$. Then $y = \\frac{1}{2}(x - 2) = \\frac{1}{2}x - 1$, so the $y$-intercept is at $-1$. The tempting 1 is the **Half the flip** trap: slope $-\\frac{1}{2}$ gives $y = -\\frac{1}{2}x + 1$. $-4$ uses slope 2, changing only the sign. 4 keeps slope $-2$, which makes $k$ parallel to $j$.",
       subject: "math",
     },
   ],

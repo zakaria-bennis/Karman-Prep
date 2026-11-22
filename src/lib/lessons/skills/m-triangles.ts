@@ -106,7 +106,7 @@ const lesson: Lesson = {
       text: "In triangle $ABC$, point $D$ is on $AB$ and point $E$ is on $AC$, with $DE$ parallel to $BC$. $AD = 5$, $DB = 10$ and $DE = 4$. What is $BC$?",
       choices: ["$2$", "$8$", "$12$", "$14$"],
       right: 2,
-      why: "The small and big triangles are similar. $AD$ matches the whole side $AB = 5 + 10 = 15$, so the scale factor is $\\frac{15}{5} = 3$, and $BC = 3 \\cdot 4 = 12$. The tempting 8 is Part for whole: it uses $\\frac{10}{5}$. 14 is Adding, not multiplying: it adds 10 to $DE$. 2 divides by the piece instead of multiplying.",
+      why: "The small and big triangles are similar. $AD$ matches the whole side $AB = 5 + 10 = 15$, so the scale factor is $\\frac{15}{5} = 3$, and $BC = 3 \\cdot 4 = 12$. The tempting 8 is the **Part for whole** trap: it uses $\\frac{10}{5}$. 14 is the **Adding, not multiplying** trap: it adds 10 to $DE$. 2 divides by the piece instead of multiplying.",
       subject: "math",
     },
     {
@@ -118,7 +118,7 @@ const lesson: Lesson = {
         "Find the third angle of triangle $RST$.",
       ],
       right: 1,
-      why: "By letter order, $UV$ matches $RS$, so the scale factor is $\\frac{6}{9}$, and then $VW = \\frac{6}{9} \\cdot 15 = 10$. The factor $\\frac{6}{15}$ is Mismatched sides: $UV$ does not match $ST$. Subtracting 3 is Adding, not multiplying. The third angle is true but does not help find a side.",
+      why: "By letter order, $UV$ matches $RS$, so the scale factor is $\\frac{6}{9}$, and then $VW = \\frac{6}{9} \\cdot 15 = 10$. The factor $\\frac{6}{15}$ is the **Mismatched sides** trap: $UV$ does not match $ST$. Subtracting 3 is the **Adding, not multiplying** trap. The third angle is true but does not help find a side.",
       subject: "math",
     },
     {
@@ -149,7 +149,7 @@ const lesson: Lesson = {
       text: "Segments $AE$ and $BD$ intersect at point $C$, and segment $AB$ is parallel to segment $DE$. If $AB = 6$, $AC = 4$ and $CE = 10$, what is the length of $DE$?",
       choices: ["$2.4$", "$12$", "$15$", "$25$"],
       right: 2,
-      why: "Angles $ACB$ and $ECD$ are vertical, and the parallel sides make angle $A$ equal angle $E$, so triangle $ABC$ is similar to triangle $EDC$. $AC$ matches $EC$, so $k = \\frac{10}{4} = 2.5$ and $DE = 2.5 \\cdot 6 = 15$. 12 is Adding, not multiplying. 2.4 flips the factor. 25 multiplies $CE$ instead of $AB$, a case of Mismatched sides.",
+      why: "Angles $ACB$ and $ECD$ are vertical, and the parallel sides make angle $A$ equal angle $E$, so triangle $ABC$ is similar to triangle $EDC$. $AC$ matches $EC$, so $k = \\frac{10}{4} = 2.5$ and $DE = 2.5 \\cdot 6 = 15$. 12 is the **Adding, not multiplying** trap. 2.4 flips the factor. 25 multiplies $CE$ instead of $AB$, a case of Mismatched sides.",
       subject: "math",
     },
   ],

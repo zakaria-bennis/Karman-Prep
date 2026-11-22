@@ -99,7 +99,7 @@ const lesson: Lesson = {
       text: "A paper cup shaped like a cone holds $12\\pi$ cubic inches of water. The cup is 4 inches tall. What is the radius of the cup's opening, in inches?",
       choices: ["$\\sqrt{3}$", "$3$", "$6$", "$9$"],
       right: 1,
-      why: "Formula, then solve: $12\\pi = \\frac{1}{3}\\pi r^2 (4)$. Divide by $\\pi$ and multiply by 3 to get $36 = 4r^2$, so $r^2 = 9$ and $r = 3$. The tempting $\\sqrt{3}$ is the Missing one third trap: $12 = 4r^2$. 9 stops at $r^2$. 6 is the opening's diameter, not its radius.",
+      why: "Formula, then solve: $12\\pi = \\frac{1}{3}\\pi r^2 (4)$. Divide by $\\pi$ and multiply by 3 to get $36 = 4r^2$, so $r^2 = 9$ and $r = 3$. The tempting $\\sqrt{3}$ is the **Missing one third** trap: $12 = 4r^2$. 9 stops at $r^2$. 6 is the opening's diameter, not its radius.",
       subject: "math",
     },
     {
@@ -111,7 +111,7 @@ const lesson: Lesson = {
         "Find the radius: half of 12 is 6.",
       ],
       right: 3,
-      why: "Across means the diameter, so halve it first: $r = 6$. Then $V = \\pi (6)^2 (5) = 180\\pi$ cubic feet. Using $12^2$ is the Diameter for radius trap, and it makes the answer four times too big. The outside surface is the Inside or outside trap. Dividing by 3 belongs to cones and pyramids, not cylinders.",
+      why: "Across means the diameter, so halve it first: $r = 6$. Then $V = \\pi (6)^2 (5) = 180\\pi$ cubic feet. Using $12^2$ is the **Diameter for radius** trap, and it makes the answer four times too big. The outside surface is the **Inside or outside** trap. Dividing by 3 belongs to cones and pyramids, not cylinders.",
       subject: "math",
     },
     {
@@ -123,7 +123,7 @@ const lesson: Lesson = {
         "Theo is right; the volume is 360 cubic inches.",
       ],
       right: 0,
-      why: "A pyramid holds one third of the prism with the same base and height. Theo found the prism, so this is the Missing one third trap: $\\frac{1}{3}(36)(10) = 120$. Halving the side treats it like a diameter, but a square has no radius. Squaring the height has no place in any volume formula here.",
+      why: "A pyramid holds one third of the prism with the same base and height. Theo found the prism, so this is the **Missing one third** trap: $\\frac{1}{3}(36)(10) = 120$. Halving the side treats it like a diameter, but a square has no radius. Squaring the height has no place in any volume formula here.",
       subject: "math",
     },
     {
@@ -135,14 +135,14 @@ const lesson: Lesson = {
         "How much air is inside a beach ball?",
       ],
       right: 2,
-      why: "Wrapping paper covers the outside of the box, so it is a surface area, in square units. Water in a tank, sand in a pile and air in a ball all fill the inside, so they are volumes, in cubic units. Mixing these up is the Inside or outside trap.",
+      why: "Wrapping paper covers the outside of the box, so it is a surface area, in square units. Water in a tank, sand in a pile and air in a ball all fill the inside, so they are volumes, in cubic units. Mixing these up is the **Inside or outside** trap.",
       subject: "math",
     },
     {
       text: "A cylinder and a cone both have a radius of 4 centimeters. The cylinder is 6 centimeters tall. The cone has the same volume as the cylinder. What is the height of the cone, in centimeters?",
       choices: ["$2$", "$4.5$", "$6$", "$18$"],
       right: 3,
-      why: "Formula, then solve. The cylinder holds $\\pi (4)^2 (6) = 96\\pi$. Set the cone equal: $\\frac{1}{3}\\pi (4)^2 h = 96\\pi$, so $\\frac{16}{3}h = 96$ and $h = 18$. A cone holds one third as much, so it must be 3 times as tall. 6 is the Missing one third trap. 2 divides by 3 instead of multiplying. 4.5 uses the diameter, 8, as the radius.",
+      why: "Formula, then solve. The cylinder holds $\\pi (4)^2 (6) = 96\\pi$. Set the cone equal: $\\frac{1}{3}\\pi (4)^2 h = 96\\pi$, so $\\frac{16}{3}h = 96$ and $h = 18$. A cone holds one third as much, so it must be 3 times as tall. 6 is the **Missing one third** trap. 2 divides by 3 instead of multiplying. 4.5 uses the diameter, 8, as the radius.",
       subject: "math",
     },
   ],

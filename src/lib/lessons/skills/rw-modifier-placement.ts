@@ -119,7 +119,7 @@ const lesson: Lesson = {
       "three whales were spotted by Leo before noon.",
     ],
     right: 1,
-    why: "Leo is the one peering through binoculars, so Leo must come right after the comma, as in Leo spotted three whales. The whales were easy is the Wrong noun first trap, since the whales were not peering. Leo's eyes is the Possessive dangler: it puts eyes first. Three whales were spotted by Leo is the Passive dodge, naming Leo too late.",
+    why: "Leo is the one peering through binoculars, so Leo must come right after the comma, as in Leo spotted three whales. The whales were easy is the **Wrong noun first** trap, since the whales were not peering. Leo's eyes is the Possessive dangler: it puts eyes first. Three whales were spotted by Leo is the Passive dodge, naming Leo too late.",
   },
   quiz: [
     {
@@ -133,7 +133,7 @@ const lesson: Lesson = {
         "three weeks passed before the package arrived.",
       ],
       right: 0,
-      why: "Ask what was wrapped and tied: the package. So the package must come right after the comma, as in the package arrived at Ana's door. Ana opened the package is the Wrong noun first trap, since Ana was not wrapped in newspaper. Ana's hands is the Possessive dangler, which puts hands first. Three weeks passed puts weeks first, and weeks cannot be tied with string.",
+      why: "Ask what was wrapped and tied: the package. So the package must come right after the comma, as in the package arrived at Ana's door. Ana opened the package is the **Wrong noun first** trap, since Ana was not wrapped in newspaper. Ana's hands is the Possessive dangler, which puts hands first. Three weeks passed puts weeks first, and weeks cannot be tied with string.",
       subject: "reading",
     },
     {
@@ -147,7 +147,7 @@ const lesson: Lesson = {
         "Ask who is hoping, then find the choice that names them first.",
       ],
       right: 3,
-      why: "Start with the opening phrase: someone is hoping to see the show, and only a person can hope. Then find the choice that names that person right after the comma. Picking the planetarium is the Wrong noun first trap, since a planetarium cannot hope. Naming the person anywhere is the Passive dodge, because the doer must come first. Length says nothing about where the modifier points.",
+      why: "Start with the opening phrase: someone is hoping to see the show, and only a person can hope. Then find the choice that names that person right after the comma. Picking the planetarium is the **Wrong noun first** trap, since a planetarium cannot hope. Naming the person anywhere is the Passive dodge, because the doer must come first. Length says nothing about where the modifier points.",
       subject: "reading",
     },
     {
@@ -173,7 +173,7 @@ const lesson: Lesson = {
         "Barking at the mail carrier, the neighbors heard the dog.",
       ],
       right: 2,
-      why: "Ask who is barking: the dog. Only the dog woke the neighbors puts the dog right after the comma. The dog's noise is the tempting one, but it is the Possessive dangler: noise comes first, and noise does not bark. The neighbors heard the dog is the Wrong noun first trap. The neighbors were woken by the dog is the Passive dodge, which names the dog too late.",
+      why: "Ask who is barking: the dog. Only the dog woke the neighbors puts the dog right after the comma. The dog's noise is the tempting one, but it is the Possessive dangler: noise comes first, and noise does not bark. The neighbors heard the dog is the **Wrong noun first** trap. The neighbors were woken by the dog is the Passive dodge, which names the dog too late.",
       subject: "reading",
     },
     {
@@ -187,7 +187,7 @@ const lesson: Lesson = {
         "the jumping spider hunts by leaping onto prey from several body lengths away.",
       ],
       right: 3,
-      why: "The opening phrase compares something to most spiders, so another spider must come right after the comma: the jumping spider hunts. The tempting jumping spider's hunting method is the Possessive dangler, which compares spiders to a method. Insects are caught by the jumping spider is the Passive dodge, and it compares spiders to insects. Leaping is how puts an action first, the Wrong noun first trap.",
+      why: "The opening phrase compares something to most spiders, so another spider must come right after the comma: the jumping spider hunts. The tempting jumping spider's hunting method is the Possessive dangler, which compares spiders to a method. Insects are caught by the jumping spider is the Passive dodge, and it compares spiders to insects. Leaping is how puts an action first, the **Wrong noun first** trap.",
       subject: "reading",
     },
   ],

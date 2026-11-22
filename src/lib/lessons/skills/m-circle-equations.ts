@@ -125,7 +125,7 @@ const lesson: Lesson = {
       "$(x + 2)^2 + (y - 5)^2 = 4$",
     ],
     right: 1,
-    why: "Standard form subtracts the center: $(x - 2)^2 + (y - (-5))^2$, which is $(x - 2)^2 + (y + 5)^2$. The right side is $r^2 = 16$. A right side of 4 is the Radius squared trap in reverse: it would make the radius 2. The two equations with $(x + 2)$ have Unflipped signs: their center is $(-2, 5)$.",
+    why: "Standard form subtracts the center: $(x - 2)^2 + (y - (-5))^2$, which is $(x - 2)^2 + (y + 5)^2$. The right side is $r^2 = 16$. A right side of 4 is the **Radius squared** trap in reverse: it would make the radius 2. The two equations with $(x + 2)$ have Unflipped signs: their center is $(-2, 5)$.",
   },
   quiz: [
     {
@@ -168,14 +168,14 @@ const lesson: Lesson = {
         "$(x - 6)^2 + (y - 6)^2 = 6$",
       ],
       right: 2,
-      why: "Complete the square: $(x^2 - 4x + 4) + y^2 = 32 + 4$, so $(x - 2)^2 + y^2 = 36$ and $r = 6$. The tempting $(x - 6)^2 + (y - 6)^2 = 6$ has 6 in the center, but its radius is $\\sqrt{6}$, the Radius squared trap. $x^2 + y^2 = 6$ also has radius $\\sqrt{6}$, and a right side of 12 gives $\\sqrt{12}$.",
+      why: "Complete the square: $(x^2 - 4x + 4) + y^2 = 32 + 4$, so $(x - 2)^2 + y^2 = 36$ and $r = 6$. The tempting $(x - 6)^2 + (y - 6)^2 = 6$ has 6 in the center, but its radius is $\\sqrt{6}$, the **Radius squared** trap. $x^2 + y^2 = 6$ also has radius $\\sqrt{6}$, and a right side of 12 gives $\\sqrt{12}$.",
       subject: "math",
     },
     {
       text: "In the $xy$-plane, the graph of $x^2 + y^2 - 6x + 10y = k$ is a circle with radius 7. What is the value of $k$?",
       choices: ["$-27$", "$15$", "$49$", "$83$"],
       right: 1,
-      why: "Complete the square: add 9 and 25 to both sides, so $(x - 3)^2 + (y + 5)^2 = k + 34$. The right side must be $r^2 = 49$, so $k = 15$. The tempting 49 is Adding to one side: it forgets the 34 on the right. $-27$ sets $k + 34$ equal to 7, the Radius squared trap. 83 subtracts the 34 instead of adding it.",
+      why: "Complete the square: add 9 and 25 to both sides, so $(x - 3)^2 + (y + 5)^2 = k + 34$. The right side must be $r^2 = 49$, so $k = 15$. The tempting 49 is the **Adding to one side** trap: it forgets the 34 on the right. $-27$ sets $k + 34$ equal to 7, the **Radius squared** trap. 83 subtracts the 34 instead of adding it.",
       subject: "math",
     },
   ],

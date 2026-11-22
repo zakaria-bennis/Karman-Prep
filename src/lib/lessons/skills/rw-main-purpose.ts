@@ -135,7 +135,7 @@ const lesson: Lesson = {
         "To show a character's fear giving way to joy once he starts swimming",
       ],
       right: 3,
-      why: "Verb plus target: Dev dreads the test, jumps, and ends up grinning, so the text shows his fear turning to joy. The tiles and cold water are a Detail as purpose. The text gives no steps for passing a test, so explaining how is the wrong verb and target. Arguing against swim tests is Too strong: the story never takes a side.",
+      why: "Verb plus target: Dev dreads the test, jumps, and ends up grinning, so the text shows his fear turning to joy. The tiles and cold water are a Detail as purpose. The text gives no steps for passing a test, so explaining how is the wrong verb and target. Arguing against swim tests is the **Too strong** trap: the story never takes a side.",
       subject: "reading",
     },
     {
@@ -177,7 +177,7 @@ const lesson: Lesson = {
         "To argue that catfish have better senses than any other fish",
       ],
       right: 1,
-      why: "The question asks about the whole text, so predict a verb and a target for all three sentences: to explain how tasting with its body helps a catfish find food. Supporting the opening claim is the job of the second sentence alone, a Detail as purpose. Listing body parts misreads that same sentence. Better than any other fish is Too strong and never compared.",
+      why: "The question asks about the whole text, so predict a verb and a target for all three sentences: to explain how tasting with its body helps a catfish find food. Supporting the opening claim is the job of the second sentence alone, a Detail as purpose. Listing body parts misreads that same sentence. Better than any other fish is the **Too strong** trap and never compared.",
       subject: "reading",
     },
     {
@@ -191,7 +191,7 @@ const lesson: Lesson = {
         "To explain how towns paid for their first free schools",
       ],
       right: 2,
-      why: "The text grants the usual view, turns at Yet, and ends by saying cheap books mattered only once people could read. Its purpose is to add schooling to the common account. No effect at all is Too strong, since the text says printing mattered. Cheaper books is a Detail as purpose. Paying for schools is Right verb, wrong target: the text never says how schools were paid for.",
+      why: "The text grants the usual view, turns at Yet, and ends by saying cheap books mattered only once people could read. Its purpose is to add schooling to the common account. No effect at all is the **Too strong** trap, since the text says printing mattered. Cheaper books is a Detail as purpose. Paying for schools is the **Right verb, wrong target** trap: the text never says how schools were paid for.",
       subject: "reading",
     },
   ],

@@ -103,7 +103,7 @@ const lesson: Lesson = {
       text: "Solve $\\frac{x}{2} + \\frac{x + 4}{3} = 8$.",
       choices: ["$x = 0$", "$x = 8$", "$x = 8.8$", "$x = 11.2$"],
       right: 1,
-      why: "Clear the fractions: multiply every term by 6 to get $3x + 2(x + 4) = 48$. Distribute: $5x + 8 = 48$, so $5x = 40$ and $x = 8$. The tempting 0 is the Skipped term trap: leaving the 8 on the right as 8 instead of 48. 8.8 multiplies only the $x$ by 2, not the 4. 11.2 adds 8 to 48 instead of subtracting.",
+      why: "Clear the fractions: multiply every term by 6 to get $3x + 2(x + 4) = 48$. Distribute: $5x + 8 = 48$, so $5x = 40$ and $x = 8$. The tempting 0 is the **Skipped term** trap: leaving the 8 on the right as 8 instead of 48. 8.8 multiplies only the $x$ by 2, not the 4. 11.2 adds 8 to 48 instead of subtracting.",
       subject: "math",
     },
     {
@@ -122,7 +122,7 @@ const lesson: Lesson = {
       text: "Maya solved $7 - 2(x - 3) = 5$. Line 1: $7 - 2x - 6 = 5$. Line 2: $1 - 2x = 5$. Line 3: $-2x = 4$. Line 4: $x = -2$. Where is her first mistake?",
       choices: ["Line 1", "Line 2", "Line 3", "Line 4"],
       right: 0,
-      why: "This is the Dropped negative trap. The $-2$ multiplies both terms inside, and $-2$ times $-3$ is $+6$, so Line 1 should read $7 - 2x + 6 = 5$. Then $13 - 2x = 5$, $-2x = -8$ and $x = 4$. Lines 2, 3 and 4 each follow correctly from the line before, so the error starts in Line 1.",
+      why: "This is the **Dropped negative** trap. The $-2$ multiplies both terms inside, and $-2$ times $-3$ is $+6$, so Line 1 should read $7 - 2x + 6 = 5$. Then $13 - 2x = 5$, $-2x = -8$ and $x = 4$. Lines 2, 3 and 4 each follow correctly from the line before, so the error starts in Line 1.",
       subject: "math",
     },
     {
@@ -141,7 +141,7 @@ const lesson: Lesson = {
       text: "If $\\frac{3(x - 4)}{2} = x + 1$, what is the value of $x - 4$?",
       choices: ["$2$", "$9$", "$10$", "$14$"],
       right: 2,
-      why: "Multiply both sides by 2: $3(x - 4) = 2x + 2$. Distribute: $3x - 12 = 2x + 2$, so $x = 14$ and $x - 4 = 10$. The tempting 14 is the Stopped at x trap: it is $x$, not $x - 4$. 9 is the Skipped term trap: it doubles the $x$ but not the 1. 2 forgets to distribute the 3 to the 4.",
+      why: "Multiply both sides by 2: $3(x - 4) = 2x + 2$. Distribute: $3x - 12 = 2x + 2$, so $x = 14$ and $x - 4 = 10$. The tempting 14 is the **Stopped at x** trap: it is $x$, not $x - 4$. 9 is the **Skipped term** trap: it doubles the $x$ but not the 1. 2 forgets to distribute the 3 to the 4.",
       subject: "math",
     },
   ],

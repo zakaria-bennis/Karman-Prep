@@ -138,7 +138,7 @@ const lesson: Lesson = {
         "Take the score that the most students got, 8.",
       ],
       right: 0,
-      why: "Weight each value by its count. The products are 18, 40 and 20, which add to 78, and the 10 students give a mean of $\\frac{78}{10} = 7.8$. Adding the three scores and dividing by 3 is the Averaging the labels trap: it gives 8 and ignores how many students got each score. Averaging the counts gives about 3.3, which is not even a score. 8 is the most common score, not the mean.",
+      why: "Weight each value by its count. The products are 18, 40 and 20, which add to 78, and the 10 students give a mean of $\\frac{78}{10} = 7.8$. Adding the three scores and dividing by 3 is the **Averaging the labels** trap: it gives 8 and ignores how many students got each score. Averaging the counts gives about 3.3, which is not even a score. 8 is the most common score, not the mean.",
       subject: "math",
     },
     {
@@ -150,7 +150,7 @@ const lesson: Lesson = {
         "70 is the median, and a box plot does not show the mean.",
       ],
       right: 3,
-      why: "A box plot shows five summary numbers, and its middle line is the median, 70. The mean cannot be read from it, so Kai's claim is the Mean in the box trap. Averaging the five numbers gives 72.4, but they are summary points, not the data. Halfway between the ends, 74.5, is the middle of the range, and 71.5 is halfway between the quartiles. Neither is the mean.",
+      why: "A box plot shows five summary numbers, and its middle line is the median, 70. The mean cannot be read from it, so Kai's claim is the **Mean in the box** trap. Averaging the five numbers gives 72.4, but they are summary points, not the data. Halfway between the ends, 74.5, is the middle of the range, and 71.5 is halfway between the quartiles. Neither is the mean.",
       subject: "math",
     },
     {
@@ -162,7 +162,7 @@ const lesson: Lesson = {
         "Class A has more students than Class B.",
       ],
       right: 1,
-      why: "Read each box plot's five numbers. Both middle lines sit at 78, so the medians are equal. Saying the means are equal is the Mean in the box trap: a box plot shows the median, not the mean. Class A's range is $95 - 60 = 35$ and Class B's is $88 - 65 = 23$, so A's range is larger. A wider box shows more spread, not more students.",
+      why: "Read each box plot's five numbers. Both middle lines sit at 78, so the medians are equal. Saying the means are equal is the **Mean in the box** trap: a box plot shows the median, not the mean. Class A's range is $95 - 60 = 35$ and Class B's is $88 - 65 = 23$, so A's range is larger. A wider box shows more spread, not more students.",
       subject: "math",
     },
     {

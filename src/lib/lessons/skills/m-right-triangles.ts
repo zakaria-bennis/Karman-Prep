@@ -108,14 +108,14 @@ const lesson: Lesson = {
     text: "A right triangle has legs of 9 and 12. What is the length of its hypotenuse?",
     choices: ["$3\\sqrt{7}$", "$15$", "$21$", "$225$"],
     right: 1,
-    why: "Both sides given are legs, so add the squares: $81 + 144 = 225$, and $\\sqrt{225} = 15$. 225 is Forgetting the root. 21 adds the legs without squaring. $3\\sqrt{7}$ subtracts the squares, which is only for finding a leg.",
+    why: "Both sides given are legs, so add the squares: $81 + 144 = 225$, and $\\sqrt{225} = 15$. 225 is the **Forgetting the root** trap. 21 adds the legs without squaring. $3\\sqrt{7}$ subtracts the squares, which is only for finding a leg.",
   },
   quiz: [
     {
       text: "A right triangle has a $60^\\circ$ angle and a hypotenuse of 10. What is the length of the side across from the $60^\\circ$ angle?",
       choices: ["$5$", "$5\\sqrt{2}$", "$5\\sqrt{3}$", "$10\\sqrt{3}$"],
       right: 2,
-      why: "Use the 30-60-90 pattern $x$, $x\\sqrt{3}$, $2x$. The hypotenuse is $2x = 10$, so $x = 5$, and the long leg across from 60° is $5\\sqrt{3}$. The tempting 5 is Swapped special sides: it is the short leg, across from 30°. $5\\sqrt{2}$ uses the 45-45-90 pattern. $10\\sqrt{3}$ treats the hypotenuse as $x$.",
+      why: "Use the 30-60-90 pattern $x$, $x\\sqrt{3}$, $2x$. The hypotenuse is $2x = 10$, so $x = 5$, and the long leg across from 60° is $5\\sqrt{3}$. The tempting 5 is the **Swapped special sides** trap: it is the short leg, across from 30°. $5\\sqrt{2}$ uses the 45-45-90 pattern. $10\\sqrt{3}$ treats the hypotenuse as $x$.",
       subject: "math",
     },
     {
@@ -127,7 +127,7 @@ const lesson: Lesson = {
         "Subtract the squares: $17^2 - 8^2$.",
       ],
       right: 3,
-      why: "The missing side is a leg, so subtract the squares: $289 - 64 = 225$, and the leg is 15. Adding the squares is Adding for a leg; that only finds a hypotenuse. Subtracting the sides skips the squaring. Nothing says the angles are 45°, so the 45-45-90 pattern does not apply.",
+      why: "The missing side is a leg, so subtract the squares: $289 - 64 = 225$, and the leg is 15. Adding the squares is the **Adding for a leg** trap; that only finds a hypotenuse. Subtracting the sides skips the squaring. Nothing says the angles are 45°, so the 45-45-90 pattern does not apply.",
       subject: "math",
     },
     {
@@ -158,7 +158,7 @@ const lesson: Lesson = {
       text: "A rectangle has a diagonal of 26 and a width of 10. What is the area of the rectangle?",
       choices: ["$160$", "$240$", "$260$", "$5760$"],
       right: 1,
-      why: "The diagonal splits the rectangle into right triangles with the diagonal as $c$. The length is a leg: $26^2 - 10^2 = 676 - 100 = 576$, so the length is 24 and the area is $10 \\cdot 24 = 240$. 5760 is Forgetting the root. 260 uses the diagonal as the length. 160 subtracts the sides, $26 - 10 = 16$, without squaring.",
+      why: "The diagonal splits the rectangle into right triangles with the diagonal as $c$. The length is a leg: $26^2 - 10^2 = 676 - 100 = 576$, so the length is 24 and the area is $10 \\cdot 24 = 240$. 5760 is the **Forgetting the root** trap. 260 uses the diagonal as the length. 160 subtracts the sides, $26 - 10 = 16$, without squaring.",
       subject: "math",
     },
   ],

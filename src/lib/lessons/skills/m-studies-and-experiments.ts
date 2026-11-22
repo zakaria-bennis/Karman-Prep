@@ -119,7 +119,7 @@ const lesson: Lesson = {
       "Working out more causes better sleep for the 90 members who replied.",
     ],
     right: 2,
-    why: "The members chose to reply, so there was no random selection, and the result reaches only those 90. No one was assigned how often to work out, so only a link is fair. All the gym's members reaches too far, and both cause claims are the Cause from a survey trap.",
+    why: "The members chose to reply, so there was no random selection, and the result reaches only those 90. No one was assigned how often to work out, so only a link is fair. All the gym's members reaches too far, and both cause claims are the **Cause from a survey** trap.",
   },
   quiz: [
     {
@@ -131,7 +131,7 @@ const lesson: Lesson = {
         "Among shoppers at every store, more app use is linked to more spending.",
       ],
       right: 2,
-      why: "Two random checks: the shoppers were chosen at random from the chain, so the result reaches the chain's shoppers. No one was assigned to use the app, so only a link is fair. Both cause claims are the Cause from a survey trap; shoppers who already spend a lot may simply use the app more. Every store is Reaching too far.",
+      why: "Two random checks: the shoppers were chosen at random from the chain, so the result reaches the chain's shoppers. No one was assigned to use the app, so only a link is fair. Both cause claims are the **Cause from a survey** trap; shoppers who already spend a lot may simply use the app more. Every store is the **Reaching too far** trap.",
       subject: "math",
     },
     {
@@ -155,7 +155,7 @@ const lesson: Lesson = {
         "No one was randomly assigned to eat breakfast, so the survey shows only a link.",
       ],
       right: 3,
-      why: "Prevents is a cause, and a cause needs random assignment. Adults chose whether to eat breakfast, so the report falls into the Cause from a survey trap; people with healthy habits may both eat breakfast and get sick less. The adults were chosen at random, so the state is fine. 1,000 is plenty. The whole country would be Reaching too far.",
+      why: "Prevents is a cause, and a cause needs random assignment. Adults chose whether to eat breakfast, so the report falls into the **Cause from a survey** trap; people with healthy habits may both eat breakfast and get sick less. The adults were chosen at random, so the state is fine. 1,000 is plenty. The whole country would be Reaching too far.",
       subject: "math",
     },
     {
@@ -167,7 +167,7 @@ const lesson: Lesson = {
         "Give the program to every student at one school, then compare with a school that does not use it.",
       ],
       right: 0,
-      why: "The district needs both random checks: random selection to reach every student in the district, and random assignment to show a cause. Only the first plan has both. Letting students choose has no random assignment, the Cause from a survey trap. Volunteers cannot reach the whole district, the Reaching too far trap. Two whole schools have neither.",
+      why: "The district needs both random checks: random selection to reach every student in the district, and random assignment to show a cause. Only the first plan has both. Letting students choose has no random assignment, the **Cause from a survey** trap. Volunteers cannot reach the whole district, the **Reaching too far** trap. Two whole schools have neither.",
       subject: "math",
     },
     {
@@ -179,7 +179,7 @@ const lesson: Lesson = {
         "Standing desks likely reduce back pain, but only for the 200 employees in the study.",
       ],
       right: 2,
-      why: "Both random checks pass: the employees were randomly chosen from the company, and the desks were randomly assigned. So a cause is fair, and it reaches the company's 5,000 employees. Every company is Reaching too far. No cause, and only the 200, are both Too timid: they throw away what the random steps earned.",
+      why: "Both random checks pass: the employees were randomly chosen from the company, and the desks were randomly assigned. So a cause is fair, and it reaches the company's 5,000 employees. Every company is the **Reaching too far** trap. No cause, and only the 200, are both Too timid: they throw away what the random steps earned.",
       subject: "math",
     },
   ],

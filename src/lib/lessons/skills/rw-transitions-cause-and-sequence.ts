@@ -104,7 +104,7 @@ const lesson: Lesson = {
     text: ASK,
     choices: ["Previously,", "As a result,", "For instance,", "Similarly,"],
     right: 1,
-    why: "Say so between the sentences: she sprained her ankle, so she sat on the bench. It fits, so the link is a result, and As a result is right. Previously would put the bench time before the injury: the Timeline flip trap. For instance would make the bench time an example of the sprain. Similarly needs a second matching case, and there is none.",
+    why: "Say so between the sentences: she sprained her ankle, so she sat on the bench. It fits, so the link is a result, and As a result is right. Previously would put the bench time before the injury: the **Timeline flip** trap. For instance would make the bench time an example of the sprain. Similarly needs a second matching case, and there is none.",
   },
   quiz: [
     {
@@ -141,7 +141,7 @@ const lesson: Lesson = {
         "The heat came before the trees and helps explain them, so Previously fits.",
       ],
       right: 3,
-      why: "The verb had been shows the heat came first, before the trees. The heat is the reason for planting, not a result of it, so As a result is the Backward cause trap. Previously fits, since it points to an earlier time. Likewise needs a similar second point. For example needs a case of the trees. Meanwhile would put the hot summers at the same time as the planting.",
+      why: "The verb had been shows the heat came first, before the trees. The heat is the reason for planting, not a result of it, so As a result is the **Backward cause** trap. Previously fits, since it points to an earlier time. Likewise needs a similar second point. For example needs a case of the trees. Meanwhile would put the hot summers at the same time as the planting.",
       subject: "reading",
     },
     {
@@ -150,7 +150,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["Therefore,", "In contrast,", "Afterward,", "Similarly,"],
       right: 2,
-      why: "Say so: she finished math, so she started reading. That does not sound right, since math did not cause the reading. The link is time, and the reading came later, so Afterward fits. The tempting Therefore is the Time is not cause trap. In contrast would set the two tasks against each other, and Similarly would need a matching case.",
+      why: "Say so: she finished math, so she started reading. That does not sound right, since math did not cause the reading. The link is time, and the reading came later, so Afterward fits. The tempting Therefore is the **Time is not cause** trap. In contrast would set the two tasks against each other, and Similarly would need a matching case.",
       subject: "reading",
     },
     {
@@ -159,7 +159,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["Previously,", "Meanwhile,", "Nevertheless,", "Subsequently,"],
       right: 3,
-      why: "Put the events in order: months of travel before 1869, the railroad in 1869, then a trip of about a week. The fast trip comes after the railroad, so Subsequently fits. The tempting Previously is the Timeline flip trap: the passage opens with the past, but the blank points to the time after the railroad. Meanwhile would make the week-long trip happen while the line was still being built. Nevertheless would signal a surprise.",
+      why: "Put the events in order: months of travel before 1869, the railroad in 1869, then a trip of about a week. The fast trip comes after the railroad, so Subsequently fits. The tempting Previously is the **Timeline flip** trap: the passage opens with the past, but the blank points to the time after the railroad. Meanwhile would make the week-long trip happen while the line was still being built. Nevertheless would signal a surprise.",
       subject: "reading",
     },
   ],

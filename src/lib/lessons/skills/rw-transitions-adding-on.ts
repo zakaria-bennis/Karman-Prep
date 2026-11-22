@@ -103,7 +103,7 @@ const lesson: Lesson = {
     text: ASK,
     choices: ["Moreover,", "For instance,", "In other words,", "Likewise,"],
     right: 0,
-    why: "Both sentences praise bamboo, so the idea goes the same way, and the second adds a new point: strength on top of speed. Moreover fits. For instance would make the strength one case of fast growth, which it is not. In other words would mean strength is the same idea as speed. Likewise needs a second, separate thing that matches bamboo: the Similar without a match trap.",
+    why: "Both sentences praise bamboo, so the idea goes the same way, and the second adds a new point: strength on top of speed. Moreover fits. For instance would make the strength one case of fast growth, which it is not. In other words would mean strength is the same idea as speed. Likewise needs a second, separate thing that matches bamboo: the **Similar without a match** trap.",
   },
   quiz: [
     {
@@ -112,7 +112,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["Similarly,", "For example,", "In addition,", "That is,"],
       right: 3,
-      why: "Two days on one charge and plugging in every other day are the same fact in new words, so the link is the same idea again. That is fits. For example would make the second sentence one case of the first, the Example or restatement trap. In addition treats it as a new point, but it adds nothing new. Similarly needs a second, separate thing that matches the battery.",
+      why: "Two days on one charge and plugging in every other day are the same fact in new words, so the link is the same idea again. That is fits. For example would make the second sentence one case of the first, the **Example or restatement** trap. In addition treats it as a new point, but it adds nothing new. Similarly needs a second, separate thing that matches the battery.",
       subject: "reading",
     },
     {
@@ -149,7 +149,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["In other words,", "Likewise,", "For example,", "Moreover,"],
       right: 2,
-      why: "The first sentence makes a claim about many desert animals, and the fennec fox is one of them, so the link is an example: For example fits. The tempting In other words would mean the second sentence repeats the whole idea, but it names just one animal: the Example or restatement trap. Likewise needs a separate matching case, not a member of the same group. Moreover would add a new point instead of showing one case.",
+      why: "The first sentence makes a claim about many desert animals, and the fennec fox is one of them, so the link is an example: For example fits. The tempting In other words would mean the second sentence repeats the whole idea, but it names just one animal: the **Example or restatement** trap. Likewise needs a separate matching case, not a member of the same group. Moreover would add a new point instead of showing one case.",
       subject: "reading",
     },
     {
@@ -158,7 +158,7 @@ const lesson: Lesson = {
       text: ASK,
       choices: ["For instance,", "Similarly,", "In other words,", "As a result,"],
       right: 1,
-      why: "Bees and ants are two separate insects that each guide nestmates to food, so the second sentence gives a matching case: Similarly fits. The tempting For instance would make the ants one case of the honeybee dance, but the first sentence is only about honeybees: the Example or restatement trap. In other words would mean scent trails are the same thing as the dance. As a result claims the dance caused the ant trails.",
+      why: "Bees and ants are two separate insects that each guide nestmates to food, so the second sentence gives a matching case: Similarly fits. The tempting For instance would make the ants one case of the honeybee dance, but the first sentence is only about honeybees: the **Example or restatement** trap. In other words would mean scent trails are the same thing as the dance. As a result claims the dance caused the ant trails.",
       subject: "reading",
     },
   ],

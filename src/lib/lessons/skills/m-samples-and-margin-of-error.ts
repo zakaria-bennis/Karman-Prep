@@ -115,7 +115,7 @@ const lesson: Lesson = {
       text: "A random sample of 200 of the 4,500 trees in a forest found that 16% have a leaf disease. Based on the sample, about how many trees in the forest have the disease?",
       choices: ["$32$", "$72$", "$720$", "$3{,}780$"],
       right: 2,
-      why: "Multiply the sample's rate by the population: $0.16 \\times 4500 = 720$. The tempting 32 is $0.16 \\times 200$, the Wrong population trap: it counts only the sample. 72 slips a decimal place, using 0.016. 3,780 is the number of trees without the disease.",
+      why: "Multiply the sample's rate by the population: $0.16 \\times 4500 = 720$. The tempting 32 is $0.16 \\times 200$, the **Wrong population** trap: it counts only the sample. 72 slips a decimal place, using 0.016. 3,780 is the number of trees without the disease.",
       subject: "math",
     },
     {
@@ -127,7 +127,7 @@ const lesson: Lesson = {
         "Add the margin to the estimate to get 43%.",
       ],
       right: 3,
-      why: "The largest plausible rate is the top of the range, $38 + 5 = 43$ percent, so build that first. Then $0.43 \\times 20000 = 8600$ adults. Multiplying 0.38 by 20,000 gives the estimate, not the largest plausible value. Subtracting gives the smallest. Multiplying by 500 is the Wrong population trap: it counts riders in the sample only.",
+      why: "The largest plausible rate is the top of the range, $38 + 5 = 43$ percent, so build that first. Then $0.43 \\times 20000 = 8600$ adults. Multiplying 0.38 by 20,000 gives the estimate, not the largest plausible value. Subtracting gives the smallest. Multiplying by 500 is the **Wrong population** trap: it counts riders in the sample only.",
       subject: "math",
     },
     {
@@ -139,7 +139,7 @@ const lesson: Lesson = {
         "He left out the margin of error, and adding one would make the conclusion sound.",
       ],
       right: 1,
-      why: "Check the sample first: readers who chose to vote are volunteers, the Not random trap. People who care about a pool are more likely to vote, so 81% may be far from the town's view. 2,000 is not small. 19% answers a different question. A margin of error only means something for a random sample, so it cannot fix a biased one.",
+      why: "Check the sample first: readers who chose to vote are volunteers, the **Not random** trap. People who care about a pool are more likely to vote, so 81% may be far from the town's view. 2,000 is not small. 19% answers a different question. A margin of error only means something for a random sample, so it cannot fix a biased one.",
       subject: "math",
     },
     {
@@ -151,7 +151,7 @@ const lesson: Lesson = {
         "Survey 400 adults chosen at random from one neighborhood.",
       ],
       right: 0,
-      why: "A larger random sample gives a smaller margin of error, so 1,200 adults chosen at random wins. 1,200 volunteers is the Not random trap: size does not fix bias, and a margin of error assumes a random sample. 400 at random is a smaller sample with a bigger margin. One neighborhood is the Wrong population for a question about the whole city.",
+      why: "A larger random sample gives a smaller margin of error, so 1,200 adults chosen at random wins. 1,200 volunteers is the **Not random** trap: size does not fix bias, and a margin of error assumes a random sample. 400 at random is a smaller sample with a bigger margin. One neighborhood is the Wrong population for a question about the whole city.",
       subject: "math",
     },
     {
@@ -163,7 +163,7 @@ const lesson: Lesson = {
         "Every student at Lakeside High sleeps between 6.8 and 7.4 hours.",
       ],
       right: 2,
-      why: "Range and reach: $7.1 - 0.3 = 6.8$ and $7.1 + 0.3 = 7.4$, and the sample came from Lakeside High, so the range is for that school's mean. The whole country is the Wrong population. Exactly 7.1 is Too sure. Every student is also Too sure: the range is for the mean, and single students vary far more.",
+      why: "Range and reach: $7.1 - 0.3 = 6.8$ and $7.1 + 0.3 = 7.4$, and the sample came from Lakeside High, so the range is for that school's mean. The whole country is the Wrong population. Exactly 7.1 is the **Too sure** trap. Every student is also Too sure: the range is for the mean, and single students vary far more.",
       subject: "math",
     },
   ],

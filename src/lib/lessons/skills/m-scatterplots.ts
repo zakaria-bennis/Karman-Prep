@@ -131,7 +131,7 @@ const lesson: Lesson = {
       text: "The line of best fit for a café's daily sales is $y = 3x - 20$, where x is the outside temperature in degrees and y is the number of cold drinks sold. On a 30-degree day, the café sold 64 cold drinks. What is the residual for that day?",
       choices: ["$-26$", "$-6$", "$6$", "$70$"],
       right: 1,
-      why: "Plug into the line, then subtract. The predicted sales are $3(30) - 20 = 70$, and the residual is $64 - 70 = -6$. The tempting 6 is the Residual backward trap: predicted minus actual. 70 is the prediction, not the residual. $-26$ forgets the $-20$ in the line and subtracts 90.",
+      why: "Plug into the line, then subtract. The predicted sales are $3(30) - 20 = 70$, and the residual is $64 - 70 = -6$. The tempting 6 is the **Residual backward** trap: predicted minus actual. 70 is the prediction, not the residual. $-26$ forgets the $-20$ in the line and subtracts 90.",
       subject: "math",
     },
     {
@@ -143,7 +143,7 @@ const lesson: Lesson = {
         "Put 6 in for x to find the predicted price.",
       ],
       right: 3,
-      why: "A residual compares the actual price with the predicted one, so first plug the age into the line: $-1.5(6) + 24 = 15$. Then $17 - 15 = 2$ thousand dollars. Reading the closest dot is the Nearest dot trap: the line makes the prediction. Subtracting 17 from 24 skips the age. Solving for x finds the age the line gives 17 for, a different question.",
+      why: "A residual compares the actual price with the predicted one, so first plug the age into the line: $-1.5(6) + 24 = 15$. Then $17 - 15 = 2$ thousand dollars. Reading the closest dot is the **Nearest dot** trap: the line makes the prediction. Subtracting 17 from 24 skips the age. Solving for x finds the age the line gives 17 for, a different question.",
       subject: "math",
     },
     {
@@ -155,7 +155,7 @@ const lesson: Lesson = {
         "Maya is right, because a dot above the line has a negative residual.",
       ],
       right: 0,
-      why: "The prediction is $2.5(8) + 10 = 30$, and actual minus predicted is $34 - 30 = 4$. Maya did $30 - 34$, the Residual backward trap. The student beat the prediction, so the dot sits above the line and the residual is positive. 14 subtracts only $2.5(8) = 20$, leaving out the 10. The dot nearest 8 is the student's own dot, which says nothing about the line.",
+      why: "The prediction is $2.5(8) + 10 = 30$, and actual minus predicted is $34 - 30 = 4$. Maya did $30 - 34$, the **Residual backward** trap. The student beat the prediction, so the dot sits above the line and the residual is positive. 14 subtracts only $2.5(8) = 20$, leaving out the 10. The dot nearest 8 is the student's own dot, which says nothing about the line.",
       subject: "math",
     },
     {
@@ -167,7 +167,7 @@ const lesson: Lesson = {
         "How tall was a tree when it was planted, at age 0?",
       ],
       right: 2,
-      why: "A line predicts well inside the data, and 25 years is between 5 and 40: about $0.4(25) + 2 = 12$ meters. 150 years and age 0 are both outside the data, the Too far out trap. The exact height of one tree in the data is that tree's dot, which can sit above or below the line, so the line gives only an estimate.",
+      why: "A line predicts well inside the data, and 25 years is between 5 and 40: about $0.4(25) + 2 = 12$ meters. 150 years and age 0 are both outside the data, the **Too far out** trap. The exact height of one tree in the data is that tree's dot, which can sit above or below the line, so the line gives only an estimate.",
       subject: "math",
     },
     {

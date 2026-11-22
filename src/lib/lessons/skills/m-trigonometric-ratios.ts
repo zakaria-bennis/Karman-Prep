@@ -114,7 +114,7 @@ const lesson: Lesson = {
       text: "In right triangle $JKL$, angle $L$ is the right angle and $\\cos J = \\frac{7}{25}$. What is $\\sin K$?",
       choices: ["$\\frac{7}{25}$", "$\\frac{7}{24}$", "$\\frac{24}{25}$", "$\\frac{25}{7}$"],
       right: 0,
-      why: "The side adjacent to $J$ is 7 and the hypotenuse is 25. That same side, $JL$, is across from $K$, so $\\sin K = \\frac{7}{25}$. The tempting $\\frac{24}{25}$ is Wrong corner: it is $\\sin J$. $\\frac{7}{24}$ is $\\tan K$, which puts the other leg, 24, where the hypotenuse belongs. $\\frac{25}{7}$ is a Flipped ratio.",
+      why: "The side adjacent to $J$ is 7 and the hypotenuse is 25. That same side, $JL$, is across from $K$, so $\\sin K = \\frac{7}{25}$. The tempting $\\frac{24}{25}$ is the **Wrong corner** trap: it is $\\sin J$. $\\frac{7}{24}$ is $\\tan K$, which puts the other leg, 24, where the hypotenuse belongs. $\\frac{25}{7}$ is a Flipped ratio.",
       subject: "math",
     },
     {
@@ -138,7 +138,7 @@ const lesson: Lesson = {
         "Her calculator is in radians; in degrees the same line gives about 11.47.",
       ],
       right: 3,
-      why: "Her setup is right: $BC$ is opposite $A$ and $AB$ is the hypotenuse, so $BC = 20\\sin 35^\\circ$. A negative length is the sign of Radian mode; in degrees it is about 11.47. $BC$ does not touch $A$, so cosine is Wrong corner. Dividing gives about 34.9, longer than the hypotenuse. 20sin(55) finds $AC$, not $BC$.",
+      why: "Her setup is right: $BC$ is opposite $A$ and $AB$ is the hypotenuse, so $BC = 20\\sin 35^\\circ$. A negative length is the sign of Radian mode; in degrees it is about 11.47. $BC$ does not touch $A$, so cosine is the **Wrong corner** trap. Dividing gives about 34.9, longer than the hypotenuse. 20sin(55) finds $AC$, not $BC$.",
       subject: "math",
     },
     {
@@ -157,7 +157,7 @@ const lesson: Lesson = {
       text: "In right triangle $RST$, the right angle is at $T$. If $\\sin R = \\frac{12}{13}$ and $RT = 10$, what is the length of $ST$?",
       choices: ["$\\frac{25}{6}$", "$\\frac{120}{13}$", "$24$", "$26$"],
       right: 2,
-      why: "$\\sin R = \\frac{ST}{RS} = \\frac{12}{13}$, so the sides are $12k$, $5k$ and $13k$. $RT$ touches $R$, so it is adjacent: $5k = 10$, $k = 2$, and $ST = 12k = 24$. $\\frac{120}{13}$ treats $RT$ as the hypotenuse. $\\frac{25}{6}$ is Wrong corner: it treats $RT$ as the side opposite $R$. 26 is the hypotenuse, $RS$.",
+      why: "$\\sin R = \\frac{ST}{RS} = \\frac{12}{13}$, so the sides are $12k$, $5k$ and $13k$. $RT$ touches $R$, so it is adjacent: $5k = 10$, $k = 2$, and $ST = 12k = 24$. $\\frac{120}{13}$ treats $RT$ as the hypotenuse. $\\frac{25}{6}$ is the **Wrong corner** trap: it treats $RT$ as the side opposite $R$. 26 is the hypotenuse, $RS$.",
       subject: "math",
     },
   ],
