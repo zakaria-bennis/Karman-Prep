@@ -17,6 +17,10 @@ const checks: LessonChecks = {
     100 / 2,
     (30 / 360) * PI * ((24 * PI) / (2 * PI)) ** 2,
   ],
+  checkIns: [
+    [(60 / 360) * PI * 6 ** 2, (90 / 360) * PI * 4 ** 2],
+    [((5 * PI) / (2 * PI * 10)) * 360, ((2 * PI) / (2 * PI * 6)) * 360],
+  ],
 };
 
 export default checks;

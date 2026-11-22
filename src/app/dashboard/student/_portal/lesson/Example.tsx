@@ -6,6 +6,7 @@
 // question: the student may pick an answer before the steps, and the steps then explain it.
 import { useState } from "react";
 import type { WorkedExample } from "@/lib/lessons/types";
+import { CheckIn } from "./CheckIn";
 import { Choices } from "./Choices";
 import { Figure } from "./figures/Figure";
 import { LessonText } from "./LessonText";
@@ -82,10 +83,13 @@ export function Example({ ex, n }: { ex: WorkedExample; n: number }) {
       )}
 
       {all ? (
-        <p className={`${styles.answer} ${styles.rise}`}>
-          <small>Answer</small>
-          <LessonText text={ex.answer} />
-        </p>
+        <>
+          <p className={`${styles.answer} ${styles.rise}`}>
+            <small>Answer</small>
+            <LessonText text={ex.answer} />
+          </p>
+          {ex.checkIn && <CheckIn q={ex.checkIn} n={n} />}
+        </>
       ) : (
         <div className={styles.actions}>
           <button
