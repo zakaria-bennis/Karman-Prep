@@ -41,12 +41,20 @@ const IN = { type: "spring", stiffness: 460, damping: 36, mass: 1 } as const;
 
 export default function Settings({
   rail,
+  folder,
   onTrail,
   ...props
-}: PaneProps & { rail: boolean; onTrail: (trail: Trail | null) => void }) {
+}: PaneProps & {
+  rail: boolean;
+  /** A folder to open first (?folder= on the page: the billing, tutor code and class links). */
+  folder?: string | null;
+  onTrail: (trail: Trail | null) => void;
+}) {
   const s = useSettings();
   const still = (useReducedMotion() ?? false) || stillChosen();
-  const [open, setOpen] = useState<FolderKey | null>(null);
+  const [open, setOpen] = useState<FolderKey | null>(() =>
+    folder && folder in NAMES ? (folder as FolderKey) : null
+  );
   /* with room, a folder is always open beside the list */
   const shown = rail ? (open ?? "profile") : open;
 

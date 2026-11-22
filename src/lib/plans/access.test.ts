@@ -10,6 +10,8 @@ import {
 import {
   canAccess,
   canSeeQuestion,
+  challengeQuestionsPerDay,
+  challengeSubjectsOpen,
   difficultyRangeFor,
   difficultyRangeForSkill,
   isCoreFallback,
@@ -251,5 +253,26 @@ describe("explanations, ranges and counts", () => {
     expect(questionsLeft(plan("free"), usage(37))).toBe(63);
     expect(questionsLeft(plan("free"), usage(120))).toBe(0);
     expect(questionsLeft(plan("practice"), usage(120))).toBeNull();
+  });
+});
+
+describe("the daily challenge", () => {
+  it("lets Free answer one of the two a day, every other plan both", () => {
+    expect(challengeQuestionsPerDay(plan("free"))).toBe(1);
+    expect(challengeQuestionsPerDay(plan("practice"))).toBe(2);
+    expect(challengeQuestionsPerDay(plan("pro"))).toBe(2);
+    expect(challengeQuestionsPerDay(plan("school"))).toBe(2);
+  });
+
+  it("opens both subjects until the day's allowance is used", () => {
+    expect(challengeSubjectsOpen(plan("free"), [])).toEqual(["math", "reading"]);
+    expect(challengeSubjectsOpen(plan("free"), ["math"])).toEqual([]);
+    expect(challengeSubjectsOpen(plan("free"), ["reading"])).toEqual([]);
+    expect(challengeSubjectsOpen(plan("pro"), ["math"])).toEqual(["reading"]);
+    expect(challengeSubjectsOpen(plan("pro"), ["math", "reading"])).toEqual([]);
+  });
+
+  it("ignores subjects it does not know", () => {
+    expect(challengeSubjectsOpen(plan("free"), ["history"])).toEqual(["math", "reading"]);
   });
 });
