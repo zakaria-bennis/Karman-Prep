@@ -100,8 +100,7 @@ export interface CalculatorLoaderProps {
   reloadPage?: () => void; // default () => window.location.reload(); tests inject a spy
   defaultTheme?: ThemeChoice; // until the student picks a theme; the quiz leaves it out ("auto")
   fixedSideBySide?: boolean; // the /calculator page; the quiz follows the layout choice
-  memoryKey?: string; // the question, for a bookmarked question's kept calculator
-  remember?: boolean; // the question is bookmarked: its calculator is kept (founder, 2026-11-17)
+  memory?: string | false; // the question's key while it is bookmarked: its calculator is kept
 }
 
 type Phase = "loading" | "ready" | "load-failed" | "mount-failed";
@@ -173,14 +172,7 @@ export function CalculatorLoader(props: CalculatorLoaderProps) {
       // In the quiz (no host default), the theme closest to the quiz's colours (founder, 2026-11-08).
       themeHint: latest.current.defaultTheme ? null : readThemeHint(frame),
       fixedSideBySide: latest.current.fixedSideBySide,
-      memory:
-        latest.current.memoryKey === undefined
-          ? undefined
-          : {
-              key: latest.current.memoryKey,
-              remember: latest.current.remember === true,
-              keep: () => latest.current.remember === true,
-            },
+      live: latest, // read again on destroy: a question bookmarked meanwhile keeps its calculator
     };
     let handle: QuizCalculatorHandle;
     try {

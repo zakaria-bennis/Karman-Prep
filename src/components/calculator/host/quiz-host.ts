@@ -36,16 +36,10 @@ export interface QuizMountOptions {
   // True on the /calculator page: side by side, as desmos.com/calculator, with no layout setting.
   fixedSideBySide?: boolean;
   // Founder, 2026-11-17: a bookmarked question keeps its own calculator for the rest of the quiz.
-  // `key` names the question (makeQuestionKey); `remember` says whether this question's kept
-  // calculator comes back now; `keep()` is asked on destroy whether to keep this one for the next
-  // visit. Absent, every calculator starts clean (AR-58).
-  memory?: CalculatorMemory;
-}
-
-export interface CalculatorMemory {
-  key: string;
-  remember: boolean;
-  keep(): boolean;
+  // The loader's live props: `memory` is the question's key (makeQuestionKey) while it is
+  // bookmarked. Read at mount, a kept calculator for it comes back; read again on destroy, this
+  // one is kept for the next visit. Absent, every calculator starts clean (AR-58).
+  live?: { readonly current: { readonly memory?: string | false } };
 }
 
 /** The most kept calculators a page holds; the oldest goes first. */
@@ -81,8 +75,8 @@ export interface QuizCalculatorHandle {
 }
 
 export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHandle {
-  const memory = options.memory;
-  const back = memory?.remember ? kept.get(memory.key) : undefined;
+  const memory = options.live?.current.memory;
+  const back = memory ? kept.get(memory) : undefined;
   const calculator = new KarmanCalculator(
     options.element,
     {
@@ -155,12 +149,11 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
       } catch (error) {
         reportCalculatorError(error, CALCULATOR_BUILD);
       }
-      // A bookmarked question keeps this calculator for its next visit; any other question lets
-      // go of what it kept, so it starts clean next time (founder, 2026-11-17).
-      if (memory) {
+      // A question bookmarked now keeps this calculator for its next visit (founder, 2026-11-17).
+      const key = options.live?.current.memory;
+      if (key) {
         try {
-          if (memory.keep()) keepCalculator(memory.key, calculator.getState());
-          else kept.delete(memory.key);
+          keepCalculator(key, calculator.getState());
         } catch (error) {
           reportCalculatorError(error, CALCULATOR_BUILD);
         }

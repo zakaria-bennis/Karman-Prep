@@ -194,46 +194,44 @@ it("a first calculator (no carried settings) keeps the defaults, and a malformed
   expect(reportCalculatorError).toHaveBeenCalledTimes(1);
 });
 
-it("a bookmarked question keeps its calculator: kept on destroy, back on the next visit, after the carried settings' state (founder, 2026-11-17)", () => {
-  let bookmarked = true;
-  const memory = { key: "run:q3", remember: false, keep: () => bookmarked };
+it("a bookmarked question keeps its calculator: kept on destroy, back on the next visit, before the carried settings (founder, 2026-11-17)", () => {
+  // the loader's live props: `memory` is the question's key while it is bookmarked
+  const live = { current: { memory: undefined as string | undefined } };
   h.state = { expressions: [{ id: "1", latex: "y=2x" }] };
-  mountQuizCalculator(opts({ memory })).destroy();
+  const first = mountQuizCalculator(opts({ live }));
+  live.current.memory = "run:q3"; // bookmarked while the calculator was in use
+  first.destroy();
   expect(keptCalculator("run:q3")).toBe(h.state);
   const carried = preferencesOf({ ...DEFAULT_SETTINGS, angleMode: "degrees" });
-  mountQuizCalculator(opts({ memory: { ...memory, remember: true }, preferences: carried }));
+  mountQuizCalculator(opts({ live, preferences: carried }));
   expect(h.instance.setState).toHaveBeenCalledWith(h.state);
   // the student's latest settings are applied after the kept state, so they win
   expect(h.instance.setState.mock.invocationCallOrder[0]).toBeLessThan(
     h.instance.updateSettings.mock.invocationCallOrder[0]
   );
-  bookmarked = false;
-  h.instance.destroy.mockClear();
-  mountQuizCalculator(opts({ memory: { ...memory, remember: true } })).destroy();
-  expect(keptCalculator("run:q3")).toBeUndefined();
 });
 
-it("a question that is not bookmarked starts clean on every visit, and a kept calculator is not announced as cleared (AR-58, OI-3)", () => {
-  const memory = { key: "run:q4", remember: false, keep: () => false };
-  mountQuizCalculator(opts({ memory })).destroy();
-  mountQuizCalculator(opts({ memory, announceReset: true }));
+it("a question that is not bookmarked starts clean and keeps nothing, and a kept calculator is not announced as cleared (AR-58, OI-3)", () => {
+  const live = { current: { memory: undefined as string | undefined } };
+  mountQuizCalculator(opts({ live })).destroy();
+  mountQuizCalculator(opts({ live, announceReset: true }));
   expect(h.instance.setState).not.toHaveBeenCalled();
   expect(h.ctor.mock.lastCall?.[2]).toMatchObject({ announceResetOnMount: true });
-  const keep = { key: "run:q5", remember: true, keep: () => true };
-  mountQuizCalculator(opts({ memory: keep })).destroy();
-  mountQuizCalculator(opts({ memory: keep, announceReset: true }));
+  const kept = { current: { memory: "run:q5" } };
+  mountQuizCalculator(opts({ live: kept })).destroy();
+  mountQuizCalculator(opts({ live: kept, announceReset: true }));
   expect(h.ctor.mock.lastCall?.[2]).toMatchObject({ announceResetOnMount: false });
 });
 
 it("a kept state that no longer loads is reported and the calculator starts clean; the page keeps at most KEPT_LIMIT", () => {
-  const keep = (key: string) => ({ key, remember: true, keep: () => true });
-  mountQuizCalculator(opts({ memory: keep("run:bad") })).destroy();
+  const live = (memory: string) => ({ current: { memory } });
+  mountQuizCalculator(opts({ live: live("run:bad") })).destroy();
   h.throwState = true;
-  expect(() => mountQuizCalculator(opts({ memory: keep("run:bad") }))).not.toThrow();
+  expect(() => mountQuizCalculator(opts({ live: live("run:bad") }))).not.toThrow();
   expect(reportCalculatorError).toHaveBeenCalledTimes(1);
   h.throwState = false;
   for (let i = 0; i <= KEPT_LIMIT; i++)
-    mountQuizCalculator(opts({ memory: keep(`run:${i}`) })).destroy();
+    mountQuizCalculator(opts({ live: live(`run:${i}`) })).destroy();
   expect(keptCalculator("run:bad")).toBeUndefined();
   expect(keptCalculator("run:0")).toBeUndefined();
   expect(keptCalculator(`run:${KEPT_LIMIT}`)).toBeDefined();

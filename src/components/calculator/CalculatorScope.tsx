@@ -236,7 +236,7 @@ export function CalculatorScope({
   questionKey,
   dockTop = 12,
   sideToggle = true,
-  remember = false,
+  remember,
   children,
 }: CalculatorScopeProps): JSX.Element {
   const hostId = `karman-calculator-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
@@ -536,8 +536,7 @@ export function CalculatorScope({
                   chromeSlot={chromeSlot}
                   reducedMotion={reducedMotion}
                   announceReset={announceReset}
-                  memoryKey={questionKey}
-                  remember={remember}
+                  memory={remember && questionKey}
                   onStatus={(nextStatus, nextFailure) => {
                     setStatus(nextStatus);
                     setFailure(nextFailure);
