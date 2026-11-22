@@ -40,6 +40,8 @@ export const meet = (id: string, name: string, role?: Person["role"]) => {
 };
 
 export type Shared = {
+  /** The bank's question, for a signed-in student's own; the made-up ones have none. */
+  id?: string;
   skill: string;
   section: "Reading and Writing" | "Math";
   /** Where the student met it: "Daily 10, Nov 14". */

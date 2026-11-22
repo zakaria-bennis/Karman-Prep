@@ -197,11 +197,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     challengeAnsweredCount(ctx.clerkId, utcDayKey(new Date(nowMs))).catch(() => 0),
     db
       .from("users")
-      .select("first_name, last_name")
+      .select("first_name, last_name, placement_failure_at")
       .eq("id", ctx.userId)
       .maybeSingle()
       .then(
-        (r) => r.data as { first_name: string | null; last_name: string | null } | null,
+        (r) =>
+          r.data as {
+            first_name: string | null;
+            last_name: string | null;
+            placement_failure_at: string | null;
+          } | null,
         () => null
       ),
     // only a plan with limits (Free) needs its usage counted
@@ -232,13 +237,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   };
   const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
-    plan === "practice" ? null : loadHomework(db, ctx, calendar, done, student.days, nowMs),
+    // a Practice-menu student with a teacher or tutor (school seat, tutor code) has homework too
+    plan === "practice" && !ctx.hasTutor
+      ? null
+      : loadHomework(db, ctx, calendar, done, student.days, nowMs),
     plan === "private" ? loadSchedule(db, ctx, calendar, nowMs) : null,
     loadRewards(db, ctx.clerkId, nowMs),
   ]);
   const working = NAMES.filter((n) => skills[n].level === 1 || skills[n].level === 2);
   const workshops = (calendar?.events ?? [])
-    .filter((e) => e.kind === "workshop")
+    // workshops, and the office hours every paid plan may drop in on
     .map((e) => workshopOf(e, working, calendar?.timeZone ?? "America/Chicago"));
 
   return {
@@ -249,6 +257,8 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     satDates: [...new Set(satDates.map((d) => d.test_date.slice(0, 10)))],
     prefs: settings?.prefs ?? {},
     welcomed: Boolean(settings?.welcomed_at),
+    // onboarding found no tutor or cohort for them yet (the admin is told); it clears once placed
+    placementPending: Boolean(names?.placement_failure_at) && !ctx.hasTutor,
     firstName: ctx.firstName,
     name: [names?.first_name, names?.last_name].filter(Boolean).join(" ") || ctx.firstName || "",
     today: done,

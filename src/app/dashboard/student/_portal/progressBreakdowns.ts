@@ -108,9 +108,6 @@ export const slowest = (pace: number, only?: Section) =>
     .slice(0, 10)
     .map((f, i) => ({ ...f, pace: pace + 34 - i * 3 }));
 
-/** Every skill of a section, for its ring. */
-export const skillsOf = (section: Section) => SKILLS[section].flatMap((d) => d.skills);
-
 /** The exams taken: when, the pace a question took in it (seconds), and the score. */
 export const examRows = (student: Student) =>
   student.exams.map((exam, i) => ({

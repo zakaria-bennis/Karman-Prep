@@ -1,26 +1,31 @@
 "use client";
 
 // Settings, inside the Account page (founder, 2026-11-18). Organized for a phone first: the student,
-// then nine folders, each a row that says what it is set to; a folder opens as a page of its own
-// (the title names it and the back pill leaves it). With room (the desktop rail) the folders stay at
-// the left and the open one is beside them. What is inside each folder is in SettingsPanes.tsx.
+// then the folders in three sets; a folder opens as a page of its own (the title names it and the
+// back pill leaves it). With room (the desktop rail) the folders stay at the left and the open one
+// is beside them. What is inside each folder: SettingsPanes.tsx and the files it lists. Scholarship
+// shows for Cohort students only; Calendar sync for the taught plans, whose sessions the feed carries.
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { stillChosen } from "@/lib/painting/motion";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
-import { PLANS } from "./plans";
+import { PLAN_NAMES } from "@/lib/student/plan-gate";
+import { PLANS, type Plan } from "./plans";
+import { usePortalData } from "./portalData";
 import { PANES, type FolderKey, type PaneProps } from "./SettingsPanes";
 import { Icon } from "./settingsControls";
 import { useSettings } from "./settingsStore";
 import { Me } from "./shellBits";
 import { tick } from "./sound";
+import { useSignOut } from "./useSignOut";
 import styles from "./settings.module.css";
 
 const NAMES: Record<FolderKey, string> = {
   profile: "Profile",
-  people: "Parent and tutor",
+  people: "Parent, tutor and class",
   sat: "My SAT",
+  scholarship: "Scholarship",
   sound: "Sounds and music",
   look: "Display",
   quiz: "Quizzes and calculator",
@@ -31,11 +36,19 @@ const NAMES: Record<FolderKey, string> = {
 };
 /* The folders in three sets, so a student looks in the right place first: who they are, how the
    portal looks and sounds, and the account itself. */
-const SETS: { name: string; keys: FolderKey[] }[] = [
-  { name: "You", keys: ["profile", "people", "sat"] },
-  { name: "Preferences", keys: ["look", "sound", "quiz", "notify"] },
-  { name: "Account", keys: ["plan", "calendars", "help"] },
-];
+function setsFor(plan: Plan, cohort: boolean): { name: string; keys: FolderKey[] }[] {
+  return [
+    {
+      name: "You",
+      keys: ["profile", "people", "sat", ...(cohort ? ["scholarship" as const] : [])],
+    },
+    { name: "Preferences", keys: ["look", "sound", "quiz", "notify"] },
+    {
+      name: "Account",
+      keys: ["plan", ...(plan === "practice" ? [] : ["calendars" as const]), "help"],
+    },
+  ];
+}
 
 const IN = { type: "spring", stiffness: 460, damping: 36, mass: 1 } as const;
 
@@ -51,9 +64,13 @@ export default function Settings({
   onTrail: (trail: Trail | null) => void;
 }) {
   const s = useSettings();
+  const real = usePortalData();
+  const { signOut, leaving } = useSignOut();
   const still = (useReducedMotion() ?? false) || stillChosen();
+  const sets = setsFor(props.plan, real ? real.planId === "cohort" : props.plan === "cohort");
+  const shownKeys: string[] = sets.flatMap((set) => set.keys);
   const [open, setOpen] = useState<FolderKey | null>(() =>
-    folder && folder in NAMES ? (folder as FolderKey) : null
+    folder && shownKeys.includes(folder) ? (folder as FolderKey) : null
   );
   /* with room, a folder is always open beside the list */
   const shown = rail ? (open ?? "profile") : open;
@@ -78,10 +95,10 @@ export default function Settings({
           <Me />
         </span>
         <b>{s.name || "Your name"}</b>
-        <small>{PLANS[props.plan].name}</small>
+        <small>{real ? PLAN_NAMES[real.planId] : PLANS[props.plan].name}</small>
       </section>
       <nav className={styles.sets} aria-label="Settings">
-        {SETS.map((set) => (
+        {sets.map((set) => (
           <div key={set.name} className={`${lib.glass} ${styles.folders}`}>
             <h3>{set.name}</h3>
             {set.keys.map((key) => (
@@ -102,8 +119,13 @@ export default function Settings({
           </div>
         ))}
       </nav>
-      <button type="button" className={`${lib.glass} ${styles.out}`} onClick={() => tick()}>
-        Sign out
+      <button
+        type="button"
+        className={`${lib.glass} ${styles.out}`}
+        disabled={leaving}
+        onClick={() => (tick(), signOut())}
+      >
+        {leaving ? "Signing out" : "Sign out"}
       </button>
     </div>
   );

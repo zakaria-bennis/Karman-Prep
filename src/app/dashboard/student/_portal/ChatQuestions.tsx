@@ -8,13 +8,44 @@
 //   QuestionView     a question sent in a chat, opened to the whole screen with its choices, so
 //                    the people in the chat can work on it together. Anywhere outside, or Escape,
 //                    closes it.
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { BROUGHT, type Shared } from "./chatStore";
+import { fromReal } from "./mistakeLogData";
+import { usePortalData } from "./portalData";
+import { dateOf, type Student } from "./progressData";
 import styles from "./chatQuestions.module.css";
 import { tick } from "./sound";
 
 const SORTS = ["All", "Flagged", "Reading and Writing", "Math"] as const;
+
+/** A signed-in student's own bookmarked and flagged questions, newest first, once each. */
+export function savedOf(student: Student): Shared[] {
+  const seen = new Set<string>();
+  const out: Shared[] = [];
+  for (const session of fromReal(student.sittings ?? [])) {
+    for (const q of session.asked) {
+      if (!q.bookmarked && !q.flagged) continue;
+      const id = q.questionId ?? q.id;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const day = dateOf(student, q.day).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      out.push({
+        id,
+        skill: q.found.skill.name,
+        section: q.found.section,
+        from: `${q.sessionName}, ${day}`,
+        prompt: q.sample.prompt,
+        choices: q.sample.choices,
+        flagged: q.flagged,
+      });
+    }
+  }
+  return out;
+}
 
 /** Escape leaves. */
 const useEscape = (leave: () => void) =>
@@ -55,7 +86,10 @@ export function QuestionPicker({
 }) {
   const [sort, setSort] = useState<(typeof SORTS)[number]>("All");
   useEscape(onLeave);
-  const shown = BROUGHT.filter(
+  // the design page brings made-up questions; a signed-in student only their own
+  const real = usePortalData();
+  const mine = useMemo(() => (real ? savedOf(real.student) : BROUGHT), [real]);
+  const shown = mine.filter(
     (q) => sort === "All" || (sort === "Flagged" ? q.flagged : q.section === sort)
   );
   return (
@@ -86,9 +120,14 @@ export function QuestionPicker({
               ))}
             </div>
           </header>
+          {shown.length === 0 && (
+            <p className={styles.none}>
+              {sort === "All" ? "No bookmarked questions yet" : "None here yet"}
+            </p>
+          )}
           <ul className={styles.grid}>
             {shown.map((q) => (
-              <li key={q.skill}>
+              <li key={q.id ?? q.skill}>
                 <button
                   type="button"
                   onClick={() => onPick(q)}

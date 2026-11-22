@@ -1,13 +1,40 @@
 // What the student's settings do outside the Settings page: the portal's sounds and their volume,
-// and night music (on, off, the piece, its volume, and starting by itself at the hour chosen).
+// night music (on, off, the piece, its volume, and starting by itself at the hour chosen), Reduce
+// motion, and, for a signed-in student, saving each change with their account.
 import { useEffect } from "react";
+import { setStillChosen, stillChosen } from "@/lib/painting/motion";
+import { actionSavePrefs } from "@/lib/portal/settings-actions";
 import { playMusic, setMusicVolume, stopMusic } from "./music";
-import { setSetting, type Settings } from "./settingsStore";
+import { usePortalData } from "./portalData";
+import { flushSettings, saveSettingsWith, setSetting, type Settings } from "./settingsStore";
 import { setSound, setSoundKinds, setSoundVolume } from "./sound";
 
 const STARTED = "kp-music-night";
 
 export function useSettingsEffects(s: Settings) {
+  const real = usePortalData() !== null;
+
+  // a signed-in student's changes go to their account, and whatever is waiting is sent when the page
+  // is hidden or left
+  useEffect(() => {
+    if (!real) return;
+    saveSettingsWith((patch) => actionSavePrefs({ patch }));
+    const hidden = () => document.visibilityState === "hidden" && flushSettings();
+    document.addEventListener("visibilitychange", hidden);
+    window.addEventListener("pagehide", flushSettings);
+    return () => {
+      document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("pagehide", flushSettings);
+      saveSettingsWith(null);
+    };
+  }, [real]);
+
+  // Reduce motion is the site's own switch, kept on this device: the account's choice is put on it
+  // when the portal opens here
+  useEffect(() => {
+    if (stillChosen() !== s.still) setStillChosen(s.still);
+  }, [s.still]);
+
   useEffect(() => setSound(s.sounds), [s.sounds]);
   useEffect(
     () => setSoundKinds({ keys: s.soundKeys, rewards: s.soundRewards }),
