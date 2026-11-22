@@ -26,12 +26,6 @@
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
-import { createClient } from "@supabase/supabase-js";
-import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
-import { admitCatalogPool } from "@/lib/catalog-practice/session";
-import { loadCatalogQuestionEvidence } from "@/lib/catalog-practice/supabase-store";
-import { fetchCatalogQuestionPool } from "@/lib/supabase/queries/catalog-question-pool";
-import { questionFamily } from "@/lib/assembler/bank";
 import { stableHash } from "@/lib/catalog-practice/picker";
 import { assembleSection, type SectionPanel } from "@/lib/sat-engine/assemble";
 import {
@@ -43,6 +37,7 @@ import {
   type ModuleKind,
 } from "@/lib/sat-engine/blueprint";
 import type { EngineItem, Section } from "@/lib/sat-engine/params";
+import { db, loadPool, poolWithMeta, readMeta, type PoolItem } from "./bank-pool";
 
 const FORMS = 20;
 const SEED = "karman-exams-2026-11-22";
@@ -51,99 +46,6 @@ const OUT = path.join(process.cwd(), "scripts/exams/out");
 const args = process.argv.slice(2);
 const write = args.includes("--write");
 const poolFile = args.includes("--pool") ? args[args.indexOf("--pool") + 1] : null;
-
-type Meta = {
-  id: string;
-  answer_key_status: string | null;
-  answer_verification_status: string | null;
-  pool: string | null;
-  origin?: string | null;
-};
-type PoolItem = EngineItem & { confirmed: boolean; original: boolean };
-
-const db = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: { persistSession: false },
-  }
-);
-
-/** A printed key used as printed, a corrected key that was verified, or a key verified by review. */
-function confirmedKey(meta: Meta | undefined): boolean {
-  if (!meta) return false;
-  const verification = meta.answer_verification_status ?? "";
-  if (verification === "model_consensus_disagrees_with_key" || verification === "verifier_error")
-    return false;
-  if (
-    meta.answer_key_status === "printed_key_used_no_correction" ||
-    meta.answer_key_status === "corrected_key_verified"
-  )
-    return true;
-  return verification.startsWith("verified");
-}
-
-async function readMeta(ids: string[]): Promise<Map<string, Meta>> {
-  const out = new Map<string, Meta>();
-  // origin exists once the Generator stream's migration is live; fall back without it.
-  let columns = "id, answer_key_status, answer_verification_status, pool, origin";
-  for (let offset = 0; offset < ids.length; offset += 200) {
-    let result = await db
-      .from("quiz_questions")
-      .select(columns)
-      .in("id", ids.slice(offset, offset + 200));
-    if (result.error && columns.includes("origin")) {
-      columns = "id, answer_key_status, answer_verification_status, pool";
-      result = await db
-        .from("quiz_questions")
-        .select(columns)
-        .in("id", ids.slice(offset, offset + 200));
-    }
-    if (result.error)
-      throw new Error(`question details could not be read: ${result.error.message}`);
-    for (const row of (result.data ?? []) as unknown as Meta[]) out.set(row.id, row);
-  }
-  return out;
-}
-
-/** Every question that passes the practice checks, from the whole bank (held questions included). */
-async function loadPool(): Promise<Omit<PoolItem, "confirmed" | "original">[]> {
-  const items: Omit<PoolItem, "confirmed" | "original">[] = [];
-  for (const skill of CATALOG_SKILLS) {
-    for (let attempt = 1; ; attempt++) {
-      try {
-        const rows = await fetchCatalogQuestionPool(
-          { skillId: skill.id, minimumDifficulty: 1, maximumDifficulty: 7 },
-          "whole-bank"
-        );
-        const admitted = admitCatalogPool(
-          skill.id,
-          rows,
-          await loadCatalogQuestionEvidence(rows.map((row) => row.id))
-        );
-        const byId = new Map(rows.map((row) => [row.id, row]));
-        for (const snapshot of admitted) {
-          const row = byId.get(snapshot.binding.questionId)!;
-          items.push({
-            id: row.id,
-            section: skill.subject === "math" ? "math" : "reading",
-            domainId: skill.domainId,
-            skillId: skill.id,
-            difficulty: snapshot.student.difficulty_level,
-            format: row.answer_format === "numeric_entry" ? "student-produced" : "multiple-choice",
-            family: questionFamily(row),
-          });
-        }
-        console.log(`  ${skill.id}: ${admitted.length}`);
-        break;
-      } catch (error) {
-        if (attempt >= 5) throw error;
-        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
-      }
-    }
-  }
-  return items;
-}
 
 /**
  * Deals the pool into `count` equal shares. Inside each stratum (section, skill, difficulty, format) the
@@ -449,18 +351,11 @@ async function main() {
     ? (JSON.parse(readFileSync(poolFile, "utf8")) as Omit<PoolItem, "confirmed" | "original">[])
     : await loadPool();
   if (!poolFile) writeFileSync(path.join(OUT, "pool-cache.json"), JSON.stringify(raw));
-  const meta = await readMeta(raw.map((item) => item.id));
   const hiddenFile = path.join(process.cwd(), "scripts/exams/hidden.json");
   const hidden = new Set<string>(
     existsSync(hiddenFile) ? (JSON.parse(readFileSync(hiddenFile, "utf8")) as string[]) : []
   );
-  const pool: PoolItem[] = raw
-    .filter((item) => !hidden.has(item.id))
-    .map((item) => ({
-      ...item,
-      confirmed: confirmedKey(meta.get(item.id)),
-      original: (meta.get(item.id)?.origin ?? "original") === "original",
-    }));
+  const { pool } = await poolWithMeta(raw.filter((item) => !hidden.has(item.id)));
   const eligible = pool.filter((item) => item.confirmed && item.original);
   console.log(
     `pool: ${raw.length} pass the checks, ${hidden.size} hidden by hand, ${eligible.length} original with a confirmed key`
