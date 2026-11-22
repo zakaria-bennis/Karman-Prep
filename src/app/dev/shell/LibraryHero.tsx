@@ -9,11 +9,15 @@ import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { Hero, Side, Stage } from "./heroes/stage";
 import styles from "./hero.module.css";
-import { DOMAINS, SECTIONS, tally, type Section } from "./Library";
+import { SECTIONS, tally, type Section } from "./Library";
+import { useSkills } from "./portalData";
 import { buzz, chosen, ping, rustle, whoosh } from "./sound";
 
 export default function LibraryHero({ onPick }: { onPick: (section: Section) => void }) {
   const still = useReducedMotion() ?? false;
+  const DOMAINS = useSkills();
+  /* the scene is built once; it reads the levels as they were when it was made */
+  const mathAtStart = useRef(DOMAINS.Math);
   const host = useRef<HTMLDivElement>(null);
   const live = useRef<{ hero: Hero; stage: Stage; run: (fn: () => void) => void } | null>(null);
   const leaving = useRef(false);
@@ -38,7 +42,7 @@ export default function LibraryHero({ onPick }: { onPick: (section: Section) => 
       let hero!: Hero;
       const ctx = gsap.context(() => {
         // how much of Math is Proficient decides how many constellations are joined up
-        const math = tally(DOMAINS.Math.flatMap((d) => d.skills));
+        const math = tally(mathAtStart.current.flatMap((d) => d.skills));
         hero = scene.build(stage, { mathShare: math[3] / math.reduce((a, b) => a + b, 0) });
       });
       stage.start();

@@ -9,18 +9,18 @@
 // scrolls a long way: Skills, Today, Practice.
 // Progress is one green, dark for Proficient and light for Learning in both modes, and every mark has a
 // thin edge so it stands clear of the glass. Bands are cut clean where two levels meet: no blending.
-// The levels and the question counts are stand-ins: no student data is read yet.
+// The levels and question counts are the student's own (useSkills); signed out, the stand-ins.
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
 import { EndlessButton, Modes, Today } from "./practice";
 import { WorkshopBanner } from "./Workshops";
 import type { OpenSkill } from "./SkillPage";
-import { LEVELS, SECTIONS, SKILLS, type Domain, type Section, type Skill } from "./skills72";
+import { LEVELS, SECTIONS, type Domain, type Section, type Skill } from "./skills72";
+import { useSkills } from "./portalData";
 import { buzz, tick } from "./sound";
 
 export { SECTIONS, type Section };
-export const DOMAINS = SKILLS;
 const TOP = LEVELS.length - 1;
 
 /** How many skills sit at each level, from Not started to Proficient. */
@@ -140,7 +140,7 @@ export default function Library({
   const still = useReducedMotion() ?? false;
   const root = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState<(typeof PAGES)[number]>("Skills");
-  const domains = DOMAINS[section];
+  const domains = useSkills()[section];
   const all = domains.flatMap((d) => d.skills);
   const bank = all.reduce((n, s) => n + s.questions, 0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
@@ -395,7 +395,8 @@ export function LevelPage({
   level: number;
   onOpen: (skill: OpenSkill) => void;
 }) {
-  const groups = DOMAINS[section]
+  const skills = useSkills();
+  const groups = skills[section]
     .map((domain) => ({ domain, skills: domain.skills.filter((sk) => sk.level === level) }))
     .filter((g) => g.skills.length > 0);
   const count = groups.reduce((n, g) => n + g.skills.length, 0);

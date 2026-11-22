@@ -142,21 +142,32 @@ const RAW: Raw = {
   ],
 };
 
-/** A stand-in level for each skill, the same on every load. No student data is read. */
+/** A stand-in level for each skill, the same on every load, for the design page with no student. */
 const standIn = (d: number, s: number) =>
   [3, 2, 3, 1, 0, 2, 3, 1, 2, 0, 3, 1][(d * 5 + s * 3) % 12];
 
-export const SKILLS = Object.fromEntries(
-  SECTIONS.map((section, k) => [
-    section,
-    RAW[section].map(([name, skills], d) => ({
-      name,
-      skills: skills.map(([skill, tests], s) => ({
-        name: skill,
-        tests,
-        level: standIn(d + k * 4, s),
-        questions: 96 + ((d * 37 + s * 53 + k * 11) % 58),
+/** A student's own level and question count for each of the 72, by name. */
+export type SkillFacts = Readonly<Record<string, { level: number; questions: number }>>;
+
+/** The 72 in their domains, with the student's levels when given, otherwise the stand-ins. */
+export function buildSkills(facts?: SkillFacts): Record<Section, Domain[]> {
+  return Object.fromEntries(
+    SECTIONS.map((section, k) => [
+      section,
+      RAW[section].map(([name, skills], d) => ({
+        name,
+        skills: skills.map(([skill, tests], s) => ({
+          name: skill,
+          tests,
+          level: facts ? (facts[skill]?.level ?? 0) : standIn(d + k * 4, s),
+          questions: facts
+            ? (facts[skill]?.questions ?? 0)
+            : 96 + ((d * 37 + s * 53 + k * 11) % 58),
+        })),
       })),
-    })),
-  ])
-) as Record<Section, Domain[]>;
+    ])
+  ) as Record<Section, Domain[]>;
+}
+
+/** The stand-ins: the design page's made-up student. A signed-in student's come from useSkills. */
+export const SKILLS = buildSkills();
