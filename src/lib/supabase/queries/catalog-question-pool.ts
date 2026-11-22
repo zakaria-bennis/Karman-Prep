@@ -11,6 +11,7 @@ import {
   reviewedNumericAnswers,
 } from "@/lib/question-bank/numeric-answer-set";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { practiceOnly } from "@/lib/assembler/pools";
 
 /** One bad row is left out with a log line; it never breaks the whole skill. */
 function skipQuestion(questionId: string | null, reason: string) {
@@ -19,8 +20,15 @@ function skipQuestion(questionId: string | null, reason: string) {
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-/** Canonical catalog read lane; existing node/slug pools and histories are never rewritten. */
-export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQuestionWithChoices[]> {
+/**
+ * Canonical catalog read lane; existing node/slug pools and histories are never rewritten. Practice
+ * questions only, unless a server script (the exam form builder) passes `lane: "whole-bank"` as the
+ * second argument; nothing a student sends can reach it.
+ */
+export async function fetchCatalogQuestionPool(
+  input: unknown,
+  lane: "practice" | "whole-bank" = "practice"
+): Promise<QuizQuestionWithChoices[]> {
   const scope = catalogPoolInputSchema.parse(input);
   const skill = CATALOG_SKILLS.find((candidate) => candidate.id === scope.skillId)!;
   const db = createAdminClient();
@@ -73,7 +81,7 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
   const ids = [...evidence.keys()];
   const questions: QuizQuestionWithChoices[] = [];
   for (let offset = 0; offset < ids.length; offset += 200) {
-    const { data, error } = await db
+    const query = db
       .from("quiz_questions")
       .select("*, answer_choices(*)")
       .in("id", ids.slice(offset, offset + 200))
@@ -83,8 +91,11 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
       .eq("domain", skill.domainId)
       .in("topic_cluster", clusterLabelsForDomain(skill.domainId as SATDomain))
       .gte("difficulty_level", scope.minimumDifficulty)
-      .lte("difficulty_level", scope.maximumDifficulty)
-      .order("id", { ascending: true });
+      .lte("difficulty_level", scope.maximumDifficulty);
+    // Practice only: questions held for the full-length exams never reach a practice pool.
+    const { data, error } = await (lane === "practice" ? practiceOnly(query) : query).order("id", {
+      ascending: true,
+    });
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const row of data ?? []) {
       const raw = evidence.get(row.id);
