@@ -67,6 +67,18 @@ const lesson: Lesson = {
         { say: "Multiply the starting price.", show: "$80 \\cdot 0.9 = 72$" },
       ],
       answer: "$72$ dollars",
+      checkIn: {
+        text: "A lamp costs 50 dollars. The price rises 40%, and then the new price falls 20%. What is the final price?",
+        choices: ["$56$ dollars", "$60$ dollars", "$70$ dollars", "$6$ dollars"],
+        right: 0,
+        why: "The second change works on the new price, so multiply: $1.4 \\cdot 0.8 = 1.12$, and $50 \\cdot 1.12 = 56$ dollars. 60 dollars is the **Adding the percents** trap: up 40% then down 20% is not up 20%.",
+        twin: {
+          text: "A game costs 60 dollars. The price falls 25%, and then the new price rises 20%. What is the final price?",
+          choices: ["$57$ dollars", "$45$ dollars", "$54$ dollars", "$6$ dollars"],
+          right: 2,
+          why: "The second change works on the new price, so multiply: $0.75 \\cdot 1.2 = 0.9$, and $60 \\cdot 0.9 = 54$ dollars. 57 dollars is the **Adding the percents** trap: down 25% then up 20% is not down 5%.",
+        },
+      },
     },
     {
       title: "Working backward",
@@ -85,6 +97,18 @@ const lesson: Lesson = {
       ],
       answer: "$400$ dollars",
       tryFrom: 1,
+      checkIn: {
+        text: "After a 20% discount, a coat costs 96 dollars. What was the price before the discount?",
+        choices: ["$115.20$ dollars", "$120$ dollars", "$76.80$ dollars", "$116$ dollars"],
+        right: 1,
+        why: "20% off leaves 80%, so $0.8p = 96$ and $p = \\frac{96}{0.8} = 120$ dollars. 115.20 dollars is the **Wrong whole** trap: it takes 20% of the sale price, but the discount came off the original.",
+        twin: {
+          text: "After a 25% discount, a tent costs 150 dollars. What was the price before the discount?",
+          choices: ["$187.50$ dollars", "$112.50$ dollars", "$175$ dollars", "$200$ dollars"],
+          right: 3,
+          why: "25% off leaves 75%, so $0.75p = 150$ and $p = \\frac{150}{0.75} = 200$ dollars. 187.50 dollars is the **Wrong whole** trap: it takes 25% of the sale price, but the discount came off the original.",
+        },
+      },
     },
   ],
   traps: [

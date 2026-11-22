@@ -19,6 +19,18 @@ const checks: LessonChecks = {
     { text: "(x - 1)^2 - 4" },
     q4((-3 + 5) / 2),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // the vertex sits at x = -b / (2a), or midway between the zeros
+    [
+      ((x: number) => -2 * x ** 2 + 12 * x - 5)(-12 / (2 * -2)),
+      ((x: number) => -(x ** 2) + 10 * x - 9)(-10 / (2 * -1)),
+    ],
+    [
+      ((x: number) => 3 * (x + 2) * (x - 4))((-2 + 4) / 2),
+      ((x: number) => 2 * (x + 5) * (x - 1))((-5 + 1) / 2),
+    ],
+  ],
 };
 
 export default checks;

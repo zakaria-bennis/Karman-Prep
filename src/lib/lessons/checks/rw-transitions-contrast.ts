@@ -11,6 +11,11 @@ const checks: LessonChecks = {
     { text: "Even so" },
     { text: "However" },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

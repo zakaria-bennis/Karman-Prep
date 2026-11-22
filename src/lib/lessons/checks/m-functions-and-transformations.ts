@@ -21,6 +21,15 @@ const checks: LessonChecks = {
     { text: "Left 5" },
     fq(5 - 2) + 3,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [((x: number) => x ** 2 + 1)(3 * 2 - 2), ((x: number) => x ** 2 - 5)(1 + 4)],
+    // f(x + h) + k moves the vertex h left and k up
+    [
+      [2 - 4, -1 + 3],
+      [-3 + 2, 5 - 4],
+    ],
+  ],
 };
 
 export default checks;

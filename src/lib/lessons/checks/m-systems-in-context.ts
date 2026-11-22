@@ -24,6 +24,13 @@ const checks: LessonChecks = {
     { text: "3x + 6y = 18" },
     q4m - q4p,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // c + a = total and pc + qa = money, so c = (q * total - money) / (q - p)
+    [(8 * 120 - 840) / (8 - 5), (15 * 50 - 620) / (15 - 10)],
+    // no solution: the x and y coefficients are in the same ratio (and the constants are not)
+    [(6 * 2) / 4, (9 * 5) / 15],
+  ],
 };
 
 export default checks;

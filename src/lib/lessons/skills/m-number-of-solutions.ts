@@ -50,6 +50,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "Infinitely many",
+      checkIn: {
+        text: "How many solutions does $2(3x - 1) + 4 = 6x + 5$ have?",
+        choices: ["Zero", "Exactly one", "Exactly two", "Infinitely many"],
+        right: 0,
+        why: "Distribute and combine: the left side is $6x - 2 + 4 = 6x + 2$. The $x$ terms match, but 2 and 5 do not, so no $x$ works. Infinitely many is the **True versus false** trap: $2 = 5$ is false, so there are none.",
+        twin: {
+          text: "How many solutions does $5x - 2(x - 4) = 3x + 8$ have?",
+          choices: ["Zero", "Exactly one", "Exactly two", "Infinitely many"],
+          right: 3,
+          why: "Distribute and combine: the left side is $5x - 2x + 8 = 3x + 8$, the same as the right. Every $x$ works. Zero is the **True versus false** trap: $8 = 8$ is true, so there are infinitely many.",
+        },
+      },
     },
     {
       title: "Find the constant",
@@ -63,6 +75,18 @@ const lesson: Lesson = {
       ],
       answer: "$a = 2$",
       tryFrom: 2,
+      checkIn: {
+        text: "In the equation $4(x - 1) + 2x = ax + 7$, $a$ is a constant. The equation has no solution. What is the value of $a$?",
+        choices: ["$4$", "$6$", "$11$", "$-6$"],
+        right: 1,
+        why: "Distribute and combine: $6x - 4 = ax + 7$. No solution needs the same $x$ coefficient on both sides, so $a = 6$, and the constants $-4$ and 7 differ. 4 is the **Comparing too early** trap: it skips distributing and combining.",
+        twin: {
+          text: "In the equation $3(2x + 1) - x = ax - 5$, $a$ is a constant. The equation has no solution. What is the value of $a$?",
+          choices: ["$6$", "$2$", "$5$", "$-8$"],
+          right: 2,
+          why: "Distribute and combine: $6x + 3 - x = 5x + 3$, so $5x + 3 = ax - 5$. No solution needs the same $x$ coefficient on both sides, so $a = 5$. 6 is the **Comparing too early** trap: it forgets the $-x$.",
+        },
+      },
     },
   ],
   traps: [

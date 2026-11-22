@@ -16,6 +16,12 @@ const checks: LessonChecks = {
     // triangle ABC ~ triangle EDC (vertical angles at C, alternate angles from AB || DE)
     6 * (10 / 4),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [9 * (10 / 6), 15 * (6 / 9)],
+    // the small triangle ADE is similar to ABC with scale AB / AD
+    [6 * ((5 + 10) / 5), 5 * ((2 + 6) / 2)],
+  ],
 };
 
 export default checks;

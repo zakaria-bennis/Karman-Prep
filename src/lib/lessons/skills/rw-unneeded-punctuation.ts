@@ -53,6 +53,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "park meet",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The players who scored the most points in last week's ______ a trophy at Friday's school assembly.",
+        choices: [
+          "tournament receive",
+          "tournament, receive",
+          "tournament; receive",
+          "tournament: receive",
+        ],
+        right: 0,
+        why: 'The long subject, "the players who scored the most points in last week\'s tournament," goes straight into its verb, receive, with nothing between them. A comma there splits the subject from its verb, the **Long subject** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The box of old letters found in the attic of the old ______ to the town's history museum.",
+          choices: [
+            "farmhouse, was given",
+            "farmhouse; was given",
+            "farmhouse was given",
+            "farmhouse: was given",
+          ],
+          right: 2,
+          why: 'The whole subject, "the box of old letters found in the attic of the old farmhouse," runs straight into its verb, was given. Any mark between them splits the subject from its verb, the **Long subject** trap.',
+        },
+      },
     },
     {
       title: "Verb and what",
@@ -73,6 +99,22 @@ const lesson: Lesson = {
       ],
       answer: "found that",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "In the article, the scientist ______ the lake's water had grown warmer over the last ten years.",
+        choices: ["explained, that", "explained that", "explained: that", "explained; that"],
+        right: 1,
+        why: "Nothing should come between a verb and the that-clause that tells what was explained. A colon after a verb is the **Colon after a verb** trap, and a comma there is the **Pause trap**.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "During the meeting, the coach ______ the team would practice twice a day before the final game.",
+          choices: ["announced; that", "announced: that", "announced, that", "announced that"],
+          right: 3,
+          why: "The that-clause tells what the coach announced, so it follows the verb with no mark between them. A colon there is the **Colon after a verb** trap, and a comma is the **Pause trap**.",
+        },
+      },
     },
   ],
   traps: [

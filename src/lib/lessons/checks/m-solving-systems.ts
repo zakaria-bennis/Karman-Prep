@@ -14,6 +14,16 @@ const q0x = (26 + 4) / 5;
 const q4x = (2 * 24 + 5 * 17) / (2 * 2 + 5 * 3);
 const q4y = (24 - 2 * q4x) / 5;
 
+/** The solution (x, y) of ax + by = c and dx + ey = f. */
+function solve(a: number, b: number, c: number, d: number, e: number, f: number): [number, number] {
+  const det = a * e - b * d;
+  return [(c * e - b * f) / det, (a * f - c * d) / det];
+}
+const sum = (...k: [number, number, number, number, number, number]) => {
+  const [x, y] = solve(...k);
+  return x + y;
+};
+
 const checks: LessonChecks = {
   examples: [ex0x + ex0y, [ex1x, 2 * ex1x - 1]],
   check: checkY,
@@ -25,6 +35,15 @@ const checks: LessonChecks = {
     // -3y and +3y cancel when added.
     { text: "4x - 3y = 5" },
     q4x - q4y,
+  ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // Cramer's rule for ax + by = c, dx + ey = f
+    [sum(2, 3, 11, 5, -6, 14), sum(3, 1, 20, 2, -3, 6)],
+    [
+      [solve(-2, 1, -7, 3, 2, 21)[0], solve(-2, 1, -7, 3, 2, 21)[1]],
+      [solve(-2, 1, 4, 2, 3, 36)[0], solve(-2, 1, 4, 2, 3, 36)[1]],
+    ],
   ],
 };
 

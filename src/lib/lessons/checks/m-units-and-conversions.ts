@@ -12,6 +12,11 @@ const checks: LessonChecks = {
     { text: "3 feet by 2 feet" },
     (54 * 1000) / 18 / 60,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(44 * 3600) / 5280, (66 * 3600) / 5280],
+    [750 / (0.3 * 1000), 960 / (0.4 * 1000)],
+  ],
 };
 
 export default checks;

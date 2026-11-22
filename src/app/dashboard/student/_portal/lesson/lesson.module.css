@@ -206,6 +206,21 @@
   width: min(100%, 240px);
 }
 
+/* ---- the check-in under an example, and its twin after a miss ---- */
+.checkIn,
+.twin {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--lens-edge);
+}
+
+.checkIn > .pieceHead small,
+.twin > .pieceHead small {
+  color: var(--gold);
+  opacity: 1;
+}
+
 /* ---- steps: shown one at a time ---- */
 .steps {
   display: grid;

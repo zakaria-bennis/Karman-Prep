@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // matches the earlier "Arctic;": semicolon, then "and" with no comma
     { index: 3 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 2 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

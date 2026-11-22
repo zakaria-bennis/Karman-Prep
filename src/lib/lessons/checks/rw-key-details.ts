@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 3 }, // "what did the farmers find" is answered by one line ("a layer of fine mud")
     { index: 0 }, // "a single strip of living bark keeps the rest of the tree alive"
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 3 }, { index: 1 }],
+  ],
 };
 
 export default checks;

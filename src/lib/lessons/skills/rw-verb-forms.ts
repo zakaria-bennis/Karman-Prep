@@ -61,6 +61,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "casts",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The old clock tower in the center of town, built more than a century ago by the town's first mayor, ______ every hour from morning until night.",
+        choices: ["ringing", "to ring", "rings", "having rung"],
+        right: 2,
+        why: "The subject, the old clock tower, still needs its main verb after the long description between the commas. Only rings can do that job. Ringing or to ring leaves the sentence without a main verb, the **Lost subject** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The new bridge over the river, designed by engineers to stand up to strong winds and floods, ______ two parts of the city that were once an hour apart.",
+          choices: ["linking", "links", "to link", "having linked"],
+          right: 1,
+          why: "The subject, the new bridge, needs a main verb after the description between the commas, and links is the only choice that works. Linking or to link leaves the sentence without one, the **Lost subject** trap.",
+        },
+      },
     },
     {
       title: "Verb already there",
@@ -82,6 +98,21 @@ const lesson: Lesson = {
       ],
       answer: "Discovered",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage: "______ in 1872, Yellowstone was the first national park in the United States.",
+        choices: ["Established", "It was established", "Establishing", "Was established"],
+        right: 0,
+        why: "The sentence already has its subject and verb: Yellowstone was. The opening only needs a describing phrase, Established in 1872. It was established adds a second sentence with no joining word, and Establishing would mean the park did the establishing.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "______ by a storm last spring, the old barn is now being rebuilt by volunteers.",
+          choices: ["It was damaged", "Damaging", "Was damaged", "Damaged"],
+          right: 3,
+          why: "The sentence already has its subject and verb: the old barn is being rebuilt. The opening only needs a describing phrase, Damaged by a storm. It was damaged adds a second sentence with no joining word, and Damaging would mean the barn did the damage.",
+        },
+      },
     },
   ],
   traps: [

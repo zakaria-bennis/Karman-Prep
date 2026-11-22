@@ -18,6 +18,16 @@ const checks: LessonChecks = {
     // (70 - 34) / 9 = 4; 34 stays above the median 28
     { text: "The mean decreases by 4, and the median is unchanged" },
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [
+      ((a: number[]) => a.reduce((s, v) => s + v, 0) / a.length)([8, 10, 11, 13, 14, 16, 33]) -
+        ((a: number[]) => a.reduce((s, v) => s + v, 0) / a.length)([8, 10, 11, 13, 14, 16]),
+      ((a: number[]) => a.reduce((s, v) => s + v, 0) / a.length)([6, 7, 9, 10, 13, 33]) -
+        ((a: number[]) => a.reduce((s, v) => s + v, 0) / a.length)([6, 7, 9, 10, 13]),
+    ],
+    [4 * 80 - (72 + 90 + 81), 5 * 30 - (24 + 35 + 28 + 37)],
+  ],
 };
 
 export default checks;

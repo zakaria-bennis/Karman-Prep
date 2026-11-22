@@ -54,6 +54,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "donations:",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "For the camping trip, each scout had to pack three ______ a flashlight, a sleeping bag, and a water bottle. The leaders checked every pack before the bus left.",
+        choices: ["items;", "items", "items, such as:", "items:"],
+        right: 3,
+        why: '"Each scout had to pack three items" is a full sentence, and the list that follows spells out the items, so a colon fits. A semicolon must join two full sentences, the **Semicolon before a list** trap, and "such as:" puts the colon in the middle of a phrase, the **Colon too soon** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The bakery's new menu features two seasonal ______ pumpkin bread and apple pie. Both sell out by noon most days.",
+          choices: ["treats:", "treats;", "treats, like:", "treats"],
+          right: 0,
+          why: '"The bakery\'s new menu features two seasonal treats" is a full sentence, and the two treats follow, so a colon fits. A semicolon needs a full sentence after it, the **Semicolon before a list** trap, and "like:" puts the colon too soon, the **Colon too soon** trap.',
+        },
+      },
     },
     {
       title: "After a verb",
@@ -76,6 +92,22 @@ const lesson: Lesson = {
       ],
       answer: "was that",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The main reason the game was delayed ______ lightning had been seen near the stadium. Fans waited in the parking lot for over an hour.",
+        choices: ["was: that", "was, that", "was that", "was; that"],
+        right: 2,
+        why: "The verb was leads straight into what it names, so nothing goes between was and that. A colon right after a verb is the **Colon too soon** trap, and a comma or semicolon there breaks the sentence for no reason.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The best part of the class trip, most students agreed, ______ they got to watch a real rocket launch.",
+          choices: ["was that", "was: that", "was; that", "was, that"],
+          right: 0,
+          why: "The verb was leads straight into what the best part was, so no mark goes between was and that. A colon after a verb is the **Colon too soon** trap.",
+        },
+      },
     },
   ],
   traps: [

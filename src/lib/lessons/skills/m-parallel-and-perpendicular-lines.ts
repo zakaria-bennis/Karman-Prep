@@ -58,6 +58,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$(0, -6)$",
+      checkIn: {
+        text: "Line $k$ is perpendicular to the line $x + 2y = 6$ and passes through $(3, 5)$. What is the $y$-intercept of line $k$?",
+        choices: ["$(0, 11)$", "$(0, 8)$", "$(0, -1)$", "$(0, 3)$"],
+        right: 2,
+        why: "Get $y$ alone: $y = -\\frac{1}{2}x + 3$. Flip and change the sign, so the new slope is 2. Then $y - 5 = 2(x - 3)$ gives $y = 2x - 1$, and the $y$-intercept is $(0, -1)$. $(0, 11)$ is the **Half the flip** trap: it uses $-2$ and forgets to change the sign.",
+        twin: {
+          text: "Line $k$ is perpendicular to the line $2x + 5y = 10$ and passes through $(2, 3)$. What is the $y$-intercept of line $k$?",
+          choices: ["$(0, -2)$", "$(0, 8)$", "$(0, 4)$", "$(0, 2)$"],
+          right: 0,
+          why: "Get $y$ alone: $y = -\\frac{2}{5}x + 2$. Flip and change the sign, so the new slope is $\\frac{5}{2}$. Then $y - 3 = \\frac{5}{2}(x - 2)$ gives $y = \\frac{5}{2}x - 2$, and the $y$-intercept is $(0, -2)$. $(0, 8)$ is the **Half the flip** trap: it uses $-\\frac{5}{2}$.",
+        },
+      },
     },
     {
       title: "Parallel line",
@@ -77,6 +89,28 @@ const lesson: Lesson = {
       ],
       answer: "$y = -3x + 10$",
       tryFrom: 2,
+      checkIn: {
+        text: "Which line is parallel to $y = 2x - 3$ and passes through $(3, 1)$?",
+        choices: [
+          "$y = 2x - 3$",
+          "$y = 2x + 1$",
+          "$y = -\\frac{1}{2}x + \\frac{5}{2}$",
+          "$y = 2x - 5$",
+        ],
+        right: 3,
+        why: "Parallel lines keep the same slope, 2. Then $y - 1 = 2(x - 3)$ gives $y = 2x - 5$. Check: $2(3) - 5 = 1$. $y = 2x - 3$ is the **Same line, not parallel** trap: it is the given line itself.",
+        twin: {
+          text: "Which line is parallel to $y = -4x + 1$ and passes through $(1, 6)$?",
+          choices: [
+            "$y = -4x + 1$",
+            "$y = -4x + 10$",
+            "$y = -4x + 6$",
+            "$y = \\frac{1}{4}x + \\frac{23}{4}$",
+          ],
+          right: 1,
+          why: "Parallel lines keep the same slope, $-4$. Then $y - 6 = -4(x - 1)$ gives $y = -4x + 10$. Check: $-4(1) + 10 = 6$. $y = -4x + 1$ is the **Same line, not parallel** trap: it is the given line itself.",
+        },
+      },
     },
   ],
   traps: [

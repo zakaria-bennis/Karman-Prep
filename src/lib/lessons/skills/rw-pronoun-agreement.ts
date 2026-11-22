@@ -58,6 +58,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "it",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The school's robotics club won its first contest in 2019. Since then, ______ has entered every regional competition.",
+        choices: ["they", "them", "those", "it"],
+        right: 3,
+        why: "The robotics club is one group, so it takes the singular pronoun it. They treats the club as many people, the **Group as plural** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "Our city's soccer league started with four teams in 1998. Now ______ includes more than forty teams and runs games every weekend.",
+          choices: ["it", "they", "we", "these"],
+          right: 0,
+          why: "The league is one group, so the singular it fits. They counts the teams instead of the league, the **Group as plural** trap.",
+        },
+      },
     },
     {
       title: "Skip the phrase",
@@ -79,6 +95,22 @@ const lesson: Lesson = {
       ],
       answer: "its",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The box of old photographs had lost ______ lid, so the pictures inside were covered in dust.",
+        choices: ["their", "its", "it's", "they're"],
+        right: 1,
+        why: 'The pronoun refers to the box, not the photographs, so use the singular possessive its. Their matches photographs, the noun closest to the blank, the **Nearest noun** trap, and it\'s means "it is."',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "As the storm moved in over the lake, the flock of geese changed ______ direction and flew south.",
+          choices: ["their", "it's", "its", "they're"],
+          right: 2,
+          why: "The pronoun refers to the flock, one group, so use its. Their matches geese, the noun closest to the blank, the **Nearest noun** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -15,6 +15,13 @@ const checks: LessonChecks = {
     // cos R = 5/13 = RT / RS, so RS = 10 / (5/13); ST = RS * sin R
     (10 / (5 / 13)) * (12 / 13),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // cos A = adjacent / hypotenuse = AC / AB
+    [8 / 17, 24 / 25],
+    // the two acute angles are complementary, so cos of one is sin of the other
+    [5 / 13, 3 / 5],
+  ],
 };
 
 export default checks;

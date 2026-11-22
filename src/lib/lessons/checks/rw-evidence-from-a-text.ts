@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 3 }, // "Which quotation... most effectively illustrates the claim" is this question type
     { index: 2 }, // "In June the days stretched empty and slow" (dull) + "by August... could not bear to lose" (treasure)
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 1 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

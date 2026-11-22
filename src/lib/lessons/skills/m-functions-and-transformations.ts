@@ -55,6 +55,18 @@ const lesson: Lesson = {
         { say: "Replace $x$ with 5 in the rule for $f$.", show: "$f(5) = 5^2 - 3 = 22$" },
       ],
       answer: "$22$",
+      checkIn: {
+        text: "Let $f(x) = x^2 + 1$ and $g(x) = 3x - 2$. What is the value of $f(g(2))$?",
+        choices: ["$17$", "$13$", "$20$", "$4$"],
+        right: 0,
+        why: "Start inside: $g(2) = 3(2) - 2 = 4$. Then carry the 4 out: $f(4) = 4^2 + 1 = 17$. 13 is the **Outside first** trap: it works out $g(f(2))$ instead.",
+        twin: {
+          text: "Let $f(x) = x^2 - 5$ and $g(x) = x + 4$. What is the value of $f(g(1))$?",
+          choices: ["$0$", "$-20$", "$20$", "$5$"],
+          right: 2,
+          why: "Start inside: $g(1) = 1 + 4 = 5$. Then carry the 5 out: $f(5) = 5^2 - 5 = 20$. 0 is the **Outside first** trap: it works out $g(f(1)) = g(-4)$ instead.",
+        },
+      },
     },
     {
       title: "Shifting a graph",
@@ -87,6 +99,18 @@ const lesson: Lesson = {
       ],
       answer: "$(4, 2)$",
       tryFrom: 1,
+      checkIn: {
+        text: "The graph of $y = f(x)$ has its vertex at $(2, -1)$. Where is the vertex of the graph of $y = f(x + 4) + 3$?",
+        choices: ["$(6, 2)$", "$(-2, 2)$", "$(-2, -4)$", "$(6, -4)$"],
+        right: 1,
+        why: "Inside, $x + 4$ moves the graph left 4, opposite the sign: $2 - 4 = -2$. Outside, $+3$ moves it up 3: $-1 + 3 = 2$. $(6, 2)$ is the **Backward shift** trap: it moves right instead of left.",
+        twin: {
+          text: "The graph of $y = f(x)$ has its vertex at $(-3, 5)$. Where is the vertex of the graph of $y = f(x - 2) - 4$?",
+          choices: ["$(-5, 1)$", "$(-1, 9)$", "$(-5, 9)$", "$(-1, 1)$"],
+          right: 3,
+          why: "Inside, $x - 2$ moves the graph right 2, opposite the sign: $-3 + 2 = -1$. Outside, $-4$ moves it down 4: $5 - 4 = 1$. $(-5, 1)$ is the **Backward shift** trap: it moves left instead of right.",
+        },
+      },
     },
   ],
   traps: [

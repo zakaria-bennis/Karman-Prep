@@ -37,6 +37,18 @@ const lesson: Lesson = {
         { say: "Take that fraction of the whole.", show: "$\\frac{1}{5} \\cdot 100\\pi = 20\\pi$" },
       ],
       answer: "$20\\pi$",
+      checkIn: {
+        text: "A circle has a radius of 6. A sector has a central angle of 60°. What is the area of the sector?",
+        choices: ["$2\\pi$", "$36\\pi$", "$6\\pi$", "$12\\pi$"],
+        right: 2,
+        why: "60° is $\\frac{1}{6}$ of the circle, and the whole area is $\\pi (6)^2 = 36\\pi$, so the sector is $6\\pi$. $2\\pi$ is the arc length, not the area, and $36\\pi$ is the whole circle.",
+        twin: {
+          text: "A circle has a radius of 4. A sector has a central angle of 90°. What is the area of the sector?",
+          choices: ["$4\\pi$", "$2\\pi$", "$16\\pi$", "$8\\pi$"],
+          right: 0,
+          why: "90° is $\\frac{1}{4}$ of the circle, and the whole area is $\\pi (4)^2 = 16\\pi$, so the sector is $4\\pi$. $2\\pi$ is the arc length, and $16\\pi$ is the whole circle.",
+        },
+      },
     },
     {
       title: "Working backward",
@@ -53,6 +65,18 @@ const lesson: Lesson = {
       ],
       answer: "$60^\\circ$",
       tryFrom: 1,
+      checkIn: {
+        text: "In a circle with a radius of 10, an arc has a length of $5\\pi$. What is the arc's central angle?",
+        choices: ["$18^\\circ$", "$90^\\circ$", "$45^\\circ$", "$36^\\circ$"],
+        right: 1,
+        why: "The whole circumference is $2\\pi (10) = 20\\pi$, and $\\frac{5\\pi}{20\\pi} = \\frac{1}{4}$, so the angle is $\\frac{1}{4}$ of 360°, which is 90°. 18° compares the arc with the area, $100\\pi$, instead of the circumference.",
+        twin: {
+          text: "In a circle with a radius of 6, an arc has a length of $2\\pi$. What is the arc's central angle?",
+          choices: ["$20^\\circ$", "$120^\\circ$", "$60^\\circ$", "$30^\\circ$"],
+          right: 2,
+          why: "The whole circumference is $2\\pi (6) = 12\\pi$, and $\\frac{2\\pi}{12\\pi} = \\frac{1}{6}$, so the angle is $\\frac{1}{6}$ of 360°, which is 60°. 20° compares the arc with the area, $36\\pi$, instead of the circumference.",
+        },
+      },
     },
   ],
   traps: [

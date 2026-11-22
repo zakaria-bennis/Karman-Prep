@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 1 }, // rose each year 30k -> 46k from 2020 but 46k stays below 2019's 50k
     { index: 0 }, // 2020: wind 24% vs coal 25%, 1 point apart ("nearly matched")
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

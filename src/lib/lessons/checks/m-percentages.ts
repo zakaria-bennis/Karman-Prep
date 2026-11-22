@@ -10,6 +10,11 @@ const checks: LessonChecks = {
     { text: "rose from 48 to 60" },
     45 / 0.6 / 1.25,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [50 * 1.4 * 0.8, 60 * 0.75 * 1.2],
+    [96 / (1 - 0.2), 150 / (1 - 0.25)],
+  ],
 };
 
 export default checks;

@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // the railroad was finished, and later the trip took a week
     { index: 3 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 0 }],
+    [{ index: 3 }, { index: 0 }],
+  ],
 };
 
 export default checks;

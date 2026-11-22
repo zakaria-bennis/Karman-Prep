@@ -49,6 +49,18 @@ const lesson: Lesson = {
         { say: "Divide both sides by 3.", show: "$x = 7$" },
       ],
       answer: "$x = 7$",
+      checkIn: {
+        text: "Solve $6(x - 1) - 2(x + 3) = 8$.",
+        choices: ["$x = 5$", "$x = 2$", "$x = 3$", "$x = -1$"],
+        right: 0,
+        why: "Distribute both: $6x - 6 - 2x - 6 = 8$. Combine to get $4x - 12 = 8$, so $4x = 20$ and $x = 5$. $x = 2$ is the **Dropped negative** trap: $-2(x + 3)$ is $-2x - 6$, not $-2x + 6$.",
+        twin: {
+          text: "Solve $3(x + 4) - 5(x - 2) = 6$.",
+          choices: ["$x = -2$", "$x = -8$", "$x = 8$", "$x = 14$"],
+          right: 2,
+          why: "Distribute both: $3x + 12 - 5x + 10 = 6$. Combine to get $-2x + 22 = 6$, so $-2x = -16$ and $x = 8$. $x = -2$ is the **Dropped negative** trap: $-5(x - 2)$ is $-5x + 10$, not $-5x - 10$.",
+        },
+      },
     },
     {
       title: "Fractions",
@@ -64,6 +76,18 @@ const lesson: Lesson = {
       ],
       answer: "$x = 9$",
       tryFrom: 2,
+      checkIn: {
+        text: "Solve $\\frac{x}{2} + \\frac{x + 3}{4} = 6$.",
+        choices: ["$x = 1$", "$x = 7$", "$x = 9$", "$x = 21$"],
+        right: 1,
+        why: "Multiply every term by 4, including the 6: $2x + (x + 3) = 24$. Then $3x + 3 = 24$, so $3x = 21$ and $x = 7$. Check: $3.5 + 2.5 = 6$. $x = 1$ is the **Skipped term** trap: it leaves the 6 alone.",
+        twin: {
+          text: "Solve $\\frac{x}{3} + \\frac{x + 3}{6} = 5$.",
+          choices: ["$x = \\frac{2}{3}$", "$x = 11$", "$x = 27$", "$x = 9$"],
+          right: 3,
+          why: "Multiply every term by 6, including the 5: $2x + (x + 3) = 30$. Then $3x + 3 = 30$, so $3x = 27$ and $x = 9$. Check: $3 + 2 = 5$. $x = \\frac{2}{3}$ is the **Skipped term** trap: it leaves the 5 alone.",
+        },
+      },
     },
   ],
   traps: [

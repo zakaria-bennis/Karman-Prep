@@ -21,6 +21,15 @@ const checks: LessonChecks = {
     // x/5 + y/(-3) = 1, times 15
     { text: "3x - 5y = 15" },
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [
+      [24 / 3, 0],
+      [30 / 2, 0],
+    ],
+    // point-slope: y = m(x - x1) + y1
+    [(x: number) => 3 * (x - 2) - 1, (x: number) => -4 * (x + 1) + 6],
+  ],
 };
 
 export default checks;

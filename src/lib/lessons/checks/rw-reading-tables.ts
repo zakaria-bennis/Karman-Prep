@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 3 }, // Beach 2 ahead in 2020 (50 vs 30), behind in 2024 (40 vs 45): Beach 1 overtook
     { index: 2 }, // "largest weekend gain" needs gains compared: Portside 600 vs 350, 200, 200
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 0 }],
+  ],
 };
 
 export default checks;

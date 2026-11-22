@@ -50,6 +50,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$9$",
+      checkIn: {
+        text: "Triangle $ABC$ is similar to triangle $DEF$, with $A$, $B$ and $C$ matching $D$, $E$ and $F$. $AB = 6$, $BC = 9$ and $DE = 10$. What is $EF$?",
+        choices: ["$13$", "$5.4$", "$10$", "$15$"],
+        right: 3,
+        why: "Match by letter order: $AB$ goes with $DE$, and $BC$ goes with $EF$. The scale factor is $\\frac{DE}{AB} = \\frac{10}{6} = \\frac{5}{3}$, so $EF = \\frac{5}{3} \\cdot 9 = 15$. 13 is the **Adding, not multiplying** trap: it adds 4 to 9.",
+        twin: {
+          text: "Triangle $PQR$ is similar to triangle $STU$, with $P$, $Q$ and $R$ matching $S$, $T$ and $U$. $PQ = 9$, $QR = 15$ and $ST = 6$. What is $TU$?",
+          choices: ["$12$", "$10$", "$22.5$", "$6$"],
+          right: 1,
+          why: "Match by letter order: $PQ$ goes with $ST$, and $QR$ goes with $TU$. The scale factor is $\\frac{ST}{PQ} = \\frac{6}{9} = \\frac{2}{3}$, so $TU = \\frac{2}{3} \\cdot 15 = 10$. 12 is the **Adding, not multiplying** trap: it takes 3 off 15.",
+        },
+      },
     },
     {
       title: "Triangle inside",
@@ -68,6 +80,18 @@ const lesson: Lesson = {
       ],
       answer: "$15$",
       tryFrom: 2,
+      checkIn: {
+        text: "In triangle $ABC$, point $D$ is on $AB$ and point $E$ is on $AC$, with $DE$ parallel to $BC$. $AD = 5$, $DB = 10$ and $DE = 6$. What is $BC$?",
+        choices: ["$18$", "$12$", "$16$", "$9$"],
+        right: 0,
+        why: "The triangles share angle $A$ and $DE$ is parallel to $BC$, so they are similar. The big side is the whole $AB = 5 + 10 = 15$, so the scale factor is $\\frac{15}{5} = 3$ and $BC = 3 \\cdot 6 = 18$. 12 is the **Part for whole** trap: it uses $\\frac{10}{5}$.",
+        twin: {
+          text: "In triangle $ABC$, point $D$ is on $AB$ and point $E$ is on $AC$, with $DE$ parallel to $BC$. $AD = 2$, $DB = 6$ and $DE = 5$. What is $BC$?",
+          choices: ["$15$", "$11$", "$20$", "$10$"],
+          right: 2,
+          why: "The triangles share angle $A$ and $DE$ is parallel to $BC$, so they are similar. The big side is the whole $AB = 2 + 6 = 8$, so the scale factor is $\\frac{8}{2} = 4$ and $BC = 4 \\cdot 5 = 20$. 15 is the **Part for whole** trap: it uses $\\frac{6}{2}$.",
+        },
+      },
     },
   ],
   traps: [

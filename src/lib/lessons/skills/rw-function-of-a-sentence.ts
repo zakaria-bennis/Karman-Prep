@@ -57,6 +57,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "It presents a drawback of solar panels that the next sentence addresses.",
+      checkIn: {
+        text: "Which choice best describes the function of the underlined sentence in the text as a whole?",
+        passage:
+          "Electric scooters let city riders skip traffic and travel cheaply. <u>Many riders, however, leave them blocking sidewalks when they finish a trip.</u> To fix this, some cities now require scooters to be parked in marked spots.",
+        choices: [
+          "It explains why electric scooters are cheap to ride.",
+          "It states that riders leave scooters on sidewalks.",
+          "It states the main claim of the text, that cities should ban electric scooters.",
+          "It presents a problem with electric scooters that the next sentence addresses.",
+        ],
+        right: 3,
+        why: "The underlined sentence turns from the scooters' benefits to a problem, and the next sentence gives the cities' fix. The choice that only repeats what the sentence says gives its content, not its job, the **Content, not job** trap.",
+        twin: {
+          text: "Which choice best describes the function of the underlined sentence in the text as a whole?",
+          passage:
+            "Paper straws break down much faster than plastic ones. <u>They can turn soggy, however, before a drink is finished.</u> To solve this, some makers now coat their paper straws with a thin layer of plant wax.",
+          choices: [
+            "It presents a drawback of paper straws that the next sentence addresses.",
+            "It states that paper straws can turn soggy.",
+            "It explains why paper straws break down quickly.",
+            "It states the main claim of the text, that plastic straws are better than paper ones.",
+          ],
+          right: 0,
+          why: "The underlined sentence names a weakness of paper straws, and the next sentence tells how makers solve it. Saying only that straws turn soggy gives the content, not the job, the **Content, not job** trap.",
+        },
+      },
     },
     {
       title: "An exception",
@@ -83,6 +109,32 @@ const lesson: Lesson = {
       ],
       answer: "It shows an exception to Grandpa Luis's usual silence about his past.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice best describes the function of the underlined sentence in the text as a whole?",
+        passage:
+          "Aunt Mira was the quietest person at every family dinner. <u>But when someone mentioned birds, she would suddenly describe the songs of a dozen kinds of sparrow.</u> Those were the only times the children heard her laugh.",
+        choices: [
+          "It shows an exception to Aunt Mira's usual quietness.",
+          "It describes the songs of different kinds of sparrows.",
+          "It explains why Aunt Mira was quiet at dinners.",
+          "It states the main idea that the children were afraid of Aunt Mira.",
+        ],
+        right: 0,
+        why: 'The first sentence says Aunt Mira was always quiet, and "But" brings in the one time she was not: when birds came up. The sparrow choice describes the sentence\'s content, not its job, the **Content, not job** trap.',
+        twin: {
+          text: "Which choice best describes the function of the underlined sentence in the text as a whole?",
+          passage:
+            "Coach Reyes almost never raised his voice at practice. <u>But when a player made fun of a teammate, he stopped the drill and spoke so loudly that the whole field went still.</u> The players learned to treat each other with respect.",
+          choices: [
+            "It describes how loudly Coach Reyes could speak.",
+            "It explains why Coach Reyes became a coach.",
+            "It shows an exception to Coach Reyes's usual calm manner.",
+            "It states the main idea that the players disliked their coach.",
+          ],
+          right: 2,
+          why: 'The first sentence says the coach almost never raised his voice, and "But" brings in the one time he did. Describing how loudly he spoke gives the content, not the job, the **Content, not job** trap.',
+        },
+      },
     },
   ],
   traps: [

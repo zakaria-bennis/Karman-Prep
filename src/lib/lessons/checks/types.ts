@@ -23,4 +23,6 @@ export interface LessonChecks {
   check: Expect;
   /** One per strategy-quiz question, in order. */
   quiz: Expect[];
+  /** One per worked example, in order: the check-in, then its twin. */
+  checkIns?: (readonly [Expect, Expect])[];
 }

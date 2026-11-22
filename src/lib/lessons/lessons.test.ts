@@ -65,6 +65,7 @@ function textsOf(l: Lesson): Rich[] {
       ...(e.choices ?? []),
       ...e.steps.flatMap((s) => [s.say, s.show ?? ""]),
       e.answer,
+      ...(e.checkIn ? [...q(e.checkIn), ...q(e.checkIn.twin)] : []),
     ]),
     ...l.traps.flatMap((t) => [t.name, t.text]),
     l.tip.title,
@@ -236,11 +237,18 @@ describe("lessons", () => {
             expect(e.right, e.title).toBeLessThan(4);
           }
           if (!math) expect(e.choices, `${e.title}: Reading examples are questions`).toBeDefined();
+          // a check-in after every example, and a twin that is a different question
+          expect(e.checkIn, `${e.title}: check-in`).toBeDefined();
+          if (e.checkIn)
+            expect(`${e.checkIn.twin.passage ?? ""} ${e.checkIn.twin.text}`, e.title).not.toBe(
+              `${e.checkIn.passage ?? ""} ${e.checkIn.text}`
+            );
         }
       });
 
       it("asks fair questions", () => {
-        for (const q of [l.check, ...l.quiz]) {
+        const checkIns = l.examples.flatMap((e) => (e.checkIn ? [e.checkIn, e.checkIn.twin] : []));
+        for (const q of [l.check, ...l.quiz, ...checkIns]) {
           expect(q.choices, q.text).toHaveLength(4);
           expect(new Set(q.choices).size, q.text).toBe(4);
           expect(q.right, q.text).toBeGreaterThanOrEqual(0);
@@ -253,6 +261,7 @@ describe("lessons", () => {
           l.check.passage,
           ...l.quiz.map((q) => q.passage),
           ...l.examples.map((e) => e.passage),
+          ...checkIns.map((q) => q.passage),
         ])
           if (p) expect(words(p), p).toBeLessThanOrEqual(160);
         // the answers are not all in the same place
@@ -278,7 +287,10 @@ describe("lessons", () => {
       });
 
       it("draws pictures from sound numbers", () => {
-        const figures = [l.figure, ...l.examples.flatMap((e) => (e.figure ? [e.figure] : []))];
+        const figures = [
+          l.figure,
+          ...l.examples.flatMap((e) => [e.figure, e.checkIn?.figure, e.checkIn?.twin.figure]),
+        ].filter((f): f is Figure => Boolean(f));
         expect(figures.flatMap(figureErrors)).toEqual([]);
       });
 
@@ -297,6 +309,17 @@ describe("lessons", () => {
         expect(hits(c.check, l.check.choices), l.check.text).toEqual([l.check.right]);
         l.quiz.forEach((q, i) => {
           expect(hits(c.quiz[i], q.choices), q.text).toEqual([q.right]);
+        });
+        expect(c.checkIns ?? [], "one check-in answer pair per example").toHaveLength(
+          l.examples.length
+        );
+        l.examples.forEach((e, i) => {
+          const pair = c.checkIns?.[i];
+          if (!e.checkIn || !pair) return;
+          expect(hits(pair[0], e.checkIn.choices), e.checkIn.text).toEqual([e.checkIn.right]);
+          expect(hits(pair[1], e.checkIn.twin.choices), e.checkIn.twin.text).toEqual([
+            e.checkIn.twin.right,
+          ]);
         });
       });
     });

@@ -63,6 +63,18 @@ const lesson: Lesson = {
         { say: "Divide by 2.", show: "$x = 10.5$" },
       ],
       answer: "$10.5$ cups",
+      checkIn: {
+        text: "A paint mix uses 5 cans of blue for every 2 cans of white. How many cans of blue go with 6 cans of white?",
+        choices: ["$15$", "$2.4$", "$9$", "$12$"],
+        right: 0,
+        why: "Keep blue on top on both sides: $\\frac{5}{2} = \\frac{x}{6}$. Cross multiply: $2x = 30$, so $x = 15$. 2.4 is the **Upside-down ratio** trap. 9 adds 4 cans instead of scaling.",
+        twin: {
+          text: "A punch recipe uses 4 cups of juice for every 3 cups of soda. How many cups of juice go with 9 cups of soda?",
+          choices: ["$6.75$", "$10$", "$12$", "$36$"],
+          right: 2,
+          why: "Keep juice on top on both sides: $\\frac{4}{3} = \\frac{x}{9}$. Cross multiply: $3x = 36$, so $x = 12$. 6.75 is the **Upside-down ratio** trap. 10 adds 6 cups instead of scaling.",
+        },
+      },
     },
     {
       title: "Splitting a total",
@@ -98,6 +110,18 @@ const lesson: Lesson = {
       ],
       answer: "$20$ juniors",
       tryFrom: 1,
+      checkIn: {
+        text: "A club of 48 members has 5 girls for every 3 boys. How many girls are in the club?",
+        choices: ["$18$", "$30$", "$80$", "$24$"],
+        right: 1,
+        why: "There are $5 + 3 = 8$ parts, so one part is $48 \\div 8 = 6$. Girls are 5 parts: $5 \\cdot 6 = 30$. 80 is the **Part or whole** trap: girls are $\\frac{5}{8}$ of the club, not $\\frac{5}{3}$.",
+        twin: {
+          text: "A bag of 56 marbles has 3 red marbles for every 4 blue marbles. How many red marbles are in the bag?",
+          choices: ["$32$", "$42$", "$28$", "$24$"],
+          right: 3,
+          why: "There are $3 + 4 = 7$ parts, so one part is $56 \\div 7 = 8$. Red is 3 parts: $3 \\cdot 8 = 24$. 42 is the **Part or whole** trap: red is $\\frac{3}{7}$ of the bag, not $\\frac{3}{4}$.",
+        },
+      },
     },
   ],
   traps: [

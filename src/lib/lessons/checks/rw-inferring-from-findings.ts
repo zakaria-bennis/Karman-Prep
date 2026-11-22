@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // logged patches were also near roads, so logging and noise cannot be separated
     { index: 3 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 1 }, { index: 3 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

@@ -50,6 +50,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "In contrast,",
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "Most birds build nests out of twigs and grass. ______ the emperor penguin builds no nest at all and holds its egg on its feet.",
+        choices: ["Likewise,", "For instance,", "By contrast,", "Therefore,"],
+        right: 2,
+        why: "The second sentence shows a bird that does the opposite of most birds, so it calls for a contrast: By contrast. Likewise would say the penguin builds a nest too, **The wrong turn** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "Most cats avoid water whenever they can. ______ the Turkish Van cat often swims in lakes and streams.",
+          choices: ["However,", "Similarly,", "As a result,", "In other words,"],
+          right: 0,
+          why: "Most cats avoid water, but this cat swims, so the second sentence turns the other way: However. Similarly would say the Turkish Van avoids water too, **The wrong turn** trap.",
+        },
+      },
     },
     {
       title: "Grant, then push",
@@ -70,6 +86,22 @@ const lesson: Lesson = {
       ],
       answer: "Nevertheless,",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text with the most logical transition?",
+        passage:
+          "The new playground took a full year longer to build than the town had planned. ______ children filled it from the very first day it opened.",
+        choices: ["As a result,", "Nevertheless,", "Similarly,", "For example,"],
+        right: 1,
+        why: "A late playground might be expected to disappoint, yet children filled it at once. Nevertheless grants the delay and pushes past it. As a result would make the delay the reason the children came, **The wrong turn** trap.",
+        twin: {
+          text: "Which choice completes the text with the most logical transition?",
+          passage:
+            "The movie got poor reviews from most critics. ______ it sold more tickets than any other film that summer.",
+          choices: ["Therefore,", "In other words,", "Likewise,", "Even so,"],
+          right: 3,
+          why: "Poor reviews would lead you to expect few tickets, but the movie sold the most. Even so grants the first point and pushes past it. Therefore would make the poor reviews the reason for the big sales, **The wrong turn** trap.",
+        },
+      },
     },
   ],
   traps: [

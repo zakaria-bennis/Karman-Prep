@@ -54,6 +54,28 @@ const lesson: Lesson = {
         { say: "Write the single fraction.", show: "$\\frac{x + 14}{x^2 - 4}$" },
       ],
       answer: "$\\frac{x + 14}{x^2 - 4}$",
+      checkIn: {
+        text: "For $x > 3$, which expression is equivalent to $\\frac{5}{x - 3} - \\frac{2}{x + 3}$?",
+        choices: [
+          "$\\frac{3x + 9}{x^2 - 9}$",
+          "$\\frac{3}{x^2 - 9}$",
+          "$\\frac{3x + 21}{x^2 - 9}$",
+          "$\\frac{7x + 9}{x^2 - 9}$",
+        ],
+        right: 2,
+        why: "The common bottom is $(x - 3)(x + 3) = x^2 - 9$. The top is $5(x + 3) - 2(x - 3) = 5x + 15 - 2x + 6 = 3x + 21$. $\\frac{3x + 9}{x^2 - 9}$ is the **Minus on one term** trap: the minus must reach the $-3$ too.",
+        twin: {
+          text: "For $x > 1$, which expression is equivalent to $\\frac{6}{x - 1} - \\frac{4}{x + 1}$?",
+          choices: [
+            "$\\frac{2x + 10}{x^2 - 1}$",
+            "$\\frac{2x + 2}{x^2 - 1}$",
+            "$\\frac{2}{x^2 - 1}$",
+            "$\\frac{10x + 2}{x^2 - 1}$",
+          ],
+          right: 0,
+          why: "The common bottom is $(x - 1)(x + 1) = x^2 - 1$. The top is $6(x + 1) - 4(x - 1) = 6x + 6 - 4x + 4 = 2x + 10$. $\\frac{2x + 2}{x^2 - 1}$ is the **Minus on one term** trap: the minus must reach the $-1$ too.",
+        },
+      },
     },
     {
       title: "Flip and cancel",
@@ -74,6 +96,18 @@ const lesson: Lesson = {
       ],
       answer: "$2x(x - 3)$",
       tryFrom: 1,
+      checkIn: {
+        text: "For $x > 0$, simplify $\\frac{x^2 - 16}{3x} \\div \\frac{x - 4}{6x^2}$.",
+        choices: ["$2x(x - 4)$", "$\\frac{x + 4}{2x}$", "$2x^2(x + 4)$", "$2x(x + 4)$"],
+        right: 3,
+        why: "Flip the second fraction and multiply: $\\frac{(x - 4)(x + 4)}{3x} \\cdot \\frac{6x^2}{x - 4}$. Cancel $x - 4$, and $\\frac{6x^2}{3x} = 2x$, which leaves $2x(x + 4)$. $2x(x - 4)$ cancels the wrong factor.",
+        twin: {
+          text: "For $x > 0$, simplify $\\frac{x^2 - 25}{4x} \\div \\frac{x + 5}{8x^2}$.",
+          choices: ["$2x(x + 5)$", "$2x(x - 5)$", "$\\frac{x - 5}{2x}$", "$2x^2(x - 5)$"],
+          right: 1,
+          why: "Flip the second fraction and multiply: $\\frac{(x - 5)(x + 5)}{4x} \\cdot \\frac{8x^2}{x + 5}$. Cancel $x + 5$, and $\\frac{8x^2}{4x} = 2x$, which leaves $2x(x - 5)$. $2x(x + 5)$ cancels the wrong factor.",
+        },
+      },
     },
   ],
   traps: [

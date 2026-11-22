@@ -60,6 +60,32 @@ const lesson: Lesson = {
       ],
       answer:
         "Minnows of the species raised in warm tanks grew faster than those raised in cool tanks.",
+      checkIn: {
+        text: "Which finding, if true, would most directly support the botanist's hypothesis?",
+        passage:
+          "A botanist proposed that a certain kind of sunflower grows taller when it gets more hours of light each day. To test the idea, she plans to grow young sunflowers of that kind under lamps left on for different numbers of hours.",
+        choices: [
+          "Sunflowers of that kind grew to the same height no matter how many hours of light they got.",
+          "A different kind of sunflower grew taller with more hours of light.",
+          "Sunflowers of that kind that got more hours of light grew taller than those that got fewer.",
+          "Sunflowers are grown on farms in many parts of the world.",
+        ],
+        right: 2,
+        why: "The hypothesis links more light to more height for this kind of sunflower, so support is this kind growing taller with more light. A different kind is the **Wrong subject** trap, and equal heights would weaken the idea, the **Wrong direction** trap.",
+        twin: {
+          text: "Which finding, if true, would most directly support the biologist's hypothesis?",
+          passage:
+            "A marine biologist proposed that a certain species of coral grows faster in water with more sunlight. To test the idea, she plans to grow pieces of that coral in tanks that get different amounts of light.",
+          choices: [
+            "Pieces of that coral grew faster in tanks with more light than in tanks with less.",
+            "Pieces of that coral grew at the same rate in every tank.",
+            "Another species of coral grew faster in brighter tanks.",
+            "Coral reefs are home to many kinds of fish.",
+          ],
+          right: 0,
+          why: "The hypothesis says this coral grows faster with more light, and only the first finding shows exactly that. Another species is the **Wrong subject** trap, and equal growth would weaken the idea, the **Wrong direction** trap.",
+        },
+      },
     },
     {
       title: "Weaken it",
@@ -83,6 +109,32 @@ const lesson: Lesson = {
       ],
       answer: "Students who sat remembered about as many words as students who walked.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which finding, if true, would most directly weaken the researcher's hypothesis?",
+        passage:
+          "A researcher proposed that people solve puzzles faster when they listen to calm music than when they work in silence. In an experiment, one group solved puzzles with calm music playing, and another group solved the same puzzles in silence.",
+        choices: [
+          "People who listened to calm music solved the puzzles faster than people who worked in silence.",
+          "People said the calm music helped them relax.",
+          "Children who listened to calm music finished their homework faster.",
+          "People who worked in silence solved the puzzles just as fast as people who listened to calm music.",
+        ],
+        right: 3,
+        why: "To weaken the idea, the finding must show music giving no speed advantage, and equal times do that. Music listeners solving faster would support it, the **Wrong direction** trap, and children doing homework is the **Wrong subject** trap.",
+        twin: {
+          text: "Which finding, if true, would most directly weaken the scientist's hypothesis?",
+          passage:
+            "A sleep scientist proposed that people fall asleep faster after reading a paper book than after reading on a phone. In a study, one group read a paper book before bed, and another group read on a phone.",
+          choices: [
+            "People who read on a phone fell asleep about as quickly as people who read a paper book.",
+            "People who read a paper book fell asleep faster than people who read on a phone.",
+            "People said they enjoyed paper books more than phones.",
+            "Children who read paper books slept longer on weekends.",
+          ],
+          right: 0,
+          why: "The idea predicts paper-book readers fall asleep faster, so finding no difference weakens it. The second choice would support it, the **Wrong direction** trap, and children sleeping longer is the **Wrong subject** trap.",
+        },
+      },
     },
   ],
   traps: [

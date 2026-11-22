@@ -55,6 +55,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$y = 5$",
+      checkIn: {
+        text: "The system $y = x^2 - 4x + 1$ and $y = x - 3$ has a solution $(x, y)$ with $x > 1$. What is the value of $y$?",
+        choices: ["$4$", "$-2$", "$1$", "$5$"],
+        right: 2,
+        why: "Set them equal: $x^2 - 4x + 1 = x - 3$, so $x^2 - 5x + 4 = 0$ and $(x - 1)(x - 4) = 0$. Use $x = 4$, then $y = 4 - 3 = 1$. 4 is the **Wrong coordinate** trap: it is $x$, not $y$.",
+        twin: {
+          text: "The system $y = x^2 + 2x - 5$ and $y = 3x + 1$ has a solution $(x, y)$ with $x > 0$. What is the value of $y$?",
+          choices: ["$10$", "$3$", "$-5$", "$13$"],
+          right: 0,
+          why: "Set them equal: $x^2 + 2x - 5 = 3x + 1$, so $x^2 - x - 6 = 0$ and $(x - 3)(x + 2) = 0$. Use $x = 3$, then $y = 3(3) + 1 = 10$. 3 is the **Wrong coordinate** trap: it is $x$, not $y$.",
+        },
+      },
     },
     {
       title: "Line and circle",
@@ -71,6 +83,18 @@ const lesson: Lesson = {
       ],
       answer: "$(3, 4)$",
       tryFrom: 2,
+      checkIn: {
+        text: "The system $x^2 + y^2 = 25$ and $y = x - 1$ has a solution with $x > 0$. What is that solution $(x, y)$?",
+        choices: ["$(-3, -4)$", "$(3, 4)$", "$(4, 5)$", "$(4, 3)$"],
+        right: 3,
+        why: "Put $x - 1$ in for $y$: $x^2 + (x - 1)^2 = 25$. That gives $2x^2 - 2x - 24 = 0$, or $x^2 - x - 12 = 0$, so $x = 4$ or $x = -3$. With $x = 4$, $y = 4 - 1 = 3$. $(-3, -4)$ is the other crossing, but its $x$ is not positive.",
+        twin: {
+          text: "The system $x^2 + y^2 = 100$ and $y = x + 2$ has a solution with $x > 0$. What is that solution $(x, y)$?",
+          choices: ["$(-8, -6)$", "$(6, 8)$", "$(8, 6)$", "$(6, 4)$"],
+          right: 1,
+          why: "Put $x + 2$ in for $y$: $x^2 + (x + 2)^2 = 100$. That gives $2x^2 + 4x - 96 = 0$, or $x^2 + 2x - 48 = 0$, so $x = 6$ or $x = -8$. With $x = 6$, $y = 6 + 2 = 8$. $(-8, -6)$ is the other crossing, but its $x$ is not positive.",
+        },
+      },
     },
   ],
   traps: [

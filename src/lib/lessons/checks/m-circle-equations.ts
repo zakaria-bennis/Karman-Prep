@@ -15,6 +15,15 @@ const checks: LessonChecks = {
     // (x - 3)^2 + (y + 5)^2 = k + 9 + 25 = 49
     7 ** 2 - 3 ** 2 - 5 ** 2,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // complete the square: r^2 = (b/2)^2 + (d/2)^2 - f, center (-b/2, -d/2)
+    [Math.sqrt(2 ** 2 + 3 ** 2 + 3), Math.sqrt(1 ** 2 + 4 ** 2 + 19)],
+    [
+      [-8 / 2, 6 / 2],
+      [6 / 2, -12 / 2],
+    ],
+  ],
 };
 
 export default checks;

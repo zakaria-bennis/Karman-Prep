@@ -62,6 +62,32 @@ const lesson: Lesson = {
       ],
       answer:
         "To correct a common belief about bats' eyesight and explain when bats rely on sound instead",
+      checkIn: {
+        text: "Which choice best states the main purpose of the text?",
+        passage:
+          "Many people think goldfish can remember things for only a few seconds. In fact, studies have shown that goldfish can remember a feeding time or a color for months. Some have even been trained to push a lever to get food.",
+        choices: [
+          "To describe how goldfish are fed in home tanks",
+          "To argue that goldfish are smarter than every other pet",
+          "To correct a common belief about goldfish memory and give evidence against it",
+          "To criticize pet stores for selling goldfish",
+        ],
+        right: 2,
+        why: "The text names a belief (goldfish forget in seconds), then shows it is wrong with evidence of months-long memory. Smarter than every other pet is the **Too strong** trap, and feeding is only a detail, the **Detail as purpose** trap.",
+        twin: {
+          text: "Which choice best states the main purpose of the text?",
+          passage:
+            "Many people believe that lightning never strikes the same place twice. In fact, tall buildings are struck again and again: the Empire State Building is hit about twenty times a year.",
+          choices: [
+            "To correct a common belief about lightning and give an example that disproves it",
+            "To explain how the Empire State Building was built",
+            "To argue that tall buildings are too dangerous to live in",
+            "To criticize scientists for studying lightning",
+          ],
+          right: 0,
+          why: "The text states a belief, then disproves it with a building that is struck again and again. Too dangerous to live in is the **Too strong** trap, and how the building was built is never discussed.",
+        },
+      },
     },
     {
       title: "A story moment",
@@ -85,6 +111,32 @@ const lesson: Lesson = {
       ],
       answer: "To show a character's nerves giving way to calm once she begins to play",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice best states the main purpose of the text?",
+        passage:
+          "Daniel stood at the edge of the high dive, his toes curled over the board. Below, the water looked very far away. He counted to three, then counted again. Finally, he stepped off, and when he came up laughing, he swam straight back to the ladder to climb up again.",
+        choices: [
+          "To explain why diving is safer than it looks",
+          "To describe the pool where Daniel swims",
+          "To criticize parents who push children to take risks",
+          "To show a character's fear turning to joy once he takes the leap",
+        ],
+        right: 3,
+        why: "Daniel moves from curled toes and counting to laughing and climbing back up, so the text shows fear turning to joy. The pool is only a detail, the **Detail as purpose** trap, and nothing criticizes parents.",
+        twin: {
+          text: "Which choice best states the main purpose of the text?",
+          passage:
+            "On her first day at the new school, Lena ate lunch alone at the end of a long table. Then a girl from her math class sat down across from her and asked to borrow a pencil. By the end of lunch, the two were laughing about their teacher's striped socks.",
+          choices: [
+            "To show a character's loneliness easing as she makes a new friend",
+            "To describe the lunchroom at Lena's new school",
+            "To argue that every school should assign lunch partners",
+            "To explain why math teachers wear striped socks",
+          ],
+          right: 0,
+          why: "Lena goes from eating alone to laughing with a new friend, so the text shows her loneliness easing. The lunchroom is only the setting, the **Detail as purpose** trap, and the text argues nothing about schools.",
+        },
+      },
     },
   ],
   traps: [

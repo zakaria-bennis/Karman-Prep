@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // the subject "tips on ... good boots" runs straight into "help"
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 2 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

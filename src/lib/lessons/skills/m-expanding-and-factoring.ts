@@ -59,6 +59,18 @@ const lesson: Lesson = {
         { say: "Combine like terms.", show: "$x^2 - 8x - 8$" },
       ],
       answer: "$x^2 - 8x - 8$",
+      checkIn: {
+        text: "Which expression is equivalent to $(2x + 3)(x - 5) - x(x - 2)$?",
+        choices: ["$x^2 - 9x - 15$", "$x^2 + 2x - 15$", "$x^2 - 5x - 15$", "$3x^2 - 9x - 15$"],
+        right: 2,
+        why: "The first product is $2x^2 - 7x - 15$. Subtracting $x(x - 2)$ subtracts both terms, which adds $-x^2 + 2x$. That leaves $x^2 - 5x - 15$. $x^2 - 9x - 15$ is the **Dropping the minus** trap.",
+        twin: {
+          text: "Which expression is equivalent to $(x + 4)(3x - 1) - 2x(x + 3)$?",
+          choices: ["$x^2 + 5x - 4$", "$x^2 + 17x - 4$", "$x^2 - 6x - 4$", "$5x^2 + 17x - 4$"],
+          right: 0,
+          why: "The first product is $3x^2 + 11x - 4$. Subtracting $2x(x + 3)$ subtracts both terms, which adds $-2x^2 - 6x$. That leaves $x^2 + 5x - 4$. $x^2 + 17x - 4$ is the **Dropping the minus** trap.",
+        },
+      },
     },
     {
       title: "Factor fully",
@@ -86,6 +98,28 @@ const lesson: Lesson = {
       ],
       answer: "$3(x + 4)(x - 6)$",
       tryFrom: 2,
+      checkIn: {
+        text: "Factor $2x^2 + 4x - 30$ completely.",
+        choices: [
+          "$(x + 5)(x - 3)$",
+          "$2(x - 5)(x + 3)$",
+          "$2(x + 5)(x + 3)$",
+          "$2(x + 5)(x - 3)$",
+        ],
+        right: 3,
+        why: "Pull out the 2 first: $2(x^2 + 2x - 15)$. Then 5 and $-3$ multiply to $-15$ and add to 2, so it is $2(x + 5)(x - 3)$. $(x + 5)(x - 3)$ is the **Skipping the common factor** trap: without the 2, it is a different expression.",
+        twin: {
+          text: "Factor $4x^2 - 4x - 48$ completely.",
+          choices: [
+            "$(x - 4)(x + 3)$",
+            "$4(x - 4)(x + 3)$",
+            "$4(x + 4)(x - 3)$",
+            "$4(x - 4)(x - 3)$",
+          ],
+          right: 1,
+          why: "Pull out the 4 first: $4(x^2 - x - 12)$. Then $-4$ and 3 multiply to $-12$ and add to $-1$, so it is $4(x - 4)(x + 3)$. $(x - 4)(x + 3)$ is the **Skipping the common factor** trap.",
+        },
+      },
     },
   ],
   traps: [

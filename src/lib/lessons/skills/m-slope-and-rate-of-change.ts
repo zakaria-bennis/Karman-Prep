@@ -46,6 +46,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$-\\frac{3}{2}$",
+      checkIn: {
+        text: "A line passes through $(-1, 8)$ and $(3, -2)$. What is its slope?",
+        choices: ["$-\\frac{2}{5}$", "$\\frac{5}{2}$", "$-\\frac{5}{2}$", "$\\frac{2}{5}$"],
+        right: 2,
+        why: "Change in $y$: $-2 - 8 = -10$. Change in $x$, in the same order: $3 - (-1) = 4$. So the slope is $\\frac{-10}{4} = -\\frac{5}{2}$. $-\\frac{2}{5}$ is the **Upside-down slope** trap.",
+        twin: {
+          text: "A line passes through $(-4, -1)$ and $(2, 3)$. What is its slope?",
+          choices: ["$\\frac{2}{3}$", "$\\frac{3}{2}$", "$-\\frac{2}{3}$", "$-\\frac{3}{2}$"],
+          right: 0,
+          why: "Change in $y$: $3 - (-1) = 4$. Change in $x$, in the same order: $2 - (-4) = 6$. So the slope is $\\frac{4}{6} = \\frac{2}{3}$. $\\frac{3}{2}$ is the **Upside-down slope** trap.",
+        },
+      },
     },
     {
       title: "Melting snow",
@@ -74,6 +86,18 @@ const lesson: Lesson = {
       ],
       answer: "The depth drops by 3 centimeters each hour.",
       tryFrom: 2,
+      checkIn: {
+        text: "After 1 hour, the water in a tank is 50 centimeters deep. After 5 hours, it is 34 centimeters deep. The depth changes at a constant rate. What is the rate of change of the depth, in centimeters per hour?",
+        choices: ["$4$", "$-\\frac{1}{4}$", "$-16$", "$-4$"],
+        right: 3,
+        why: "The readings are the points $(1, 50)$ and $(5, 34)$. The changes are $34 - 50 = -16$ and $5 - 1 = 4$, so the rate is $\\frac{-16}{4} = -4$: the depth drops 4 centimeters each hour. 4 is the **Lost the sign** trap.",
+        twin: {
+          text: "After 3 days, a plant is 14 centimeters tall. After 8 days, it is 24 centimeters tall. The height changes at a constant rate. What is the rate of change of the height, in centimeters per day?",
+          choices: ["$-2$", "$2$", "$\\frac{1}{2}$", "$10$"],
+          right: 1,
+          why: "The readings are the points $(3, 14)$ and $(8, 24)$. The changes are $24 - 14 = 10$ and $8 - 3 = 5$, so the rate is $\\frac{10}{5} = 2$: the plant grows 2 centimeters each day. $\\frac{1}{2}$ is the **Upside-down slope** trap.",
+        },
+      },
     },
   ],
   traps: [

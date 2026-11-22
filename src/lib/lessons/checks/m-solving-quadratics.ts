@@ -7,6 +7,12 @@ const roots = (a: number, b: number, c: number): [number, number] => {
   return [(-b - d) / (2 * a), (-b + d) / (2 * a)];
 };
 
+/** How many real solutions ax^2 + bx + c = 0 has, in the choices' words. */
+function count(a: number, b: number, c: number): string {
+  const d = b * b - 4 * a * c;
+  return d < 0 ? "no real" : d === 0 ? "exactly one" : "exactly two";
+}
+
 const checks: LessonChecks = {
   examples: [
     // x^2 + 3x - 28 = 0, the positive root
@@ -25,6 +31,12 @@ const checks: LessonChecks = {
     { text: "x^2 + 6x + 9 = 0" },
     // k^2 - 64 = 0, k positive
     sqrt(4 * 16),
+  ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(-2 + Math.sqrt(2 ** 2 + 4 * 35)) / 2, (1 + Math.sqrt(1 + 4 * 30)) / 2],
+    [{ text: count(3, 2, 4) }, { text: count(9, -6, 1) }],
+    [(6 + Math.sqrt(36 - 8)) / 2, (-2 + Math.sqrt(4 + 8)) / 2],
   ],
 };
 

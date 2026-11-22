@@ -54,6 +54,24 @@ const lesson: Lesson = {
         { say: "Divide by the number of students.", show: "$\\frac{41}{20} = 2.05$" },
       ],
       answer: "$2.05$",
+      checkIn: {
+        text: "The dot plot shows how many goals each player on a team scored this season. What is the mean number of goals scored?",
+        figure: {
+          kind: "data",
+          chart: "dot",
+          values: [0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4],
+        },
+        choices: ["$2$", "$4$", "$2.5$", "$3$"],
+        right: 2,
+        why: "There are $1 + 3 + 5 + 7 + 4 = 20$ players. Weight each value by its count: $0(1) + 1(3) + 2(5) + 3(7) + 4(4) = 50$, and $\\frac{50}{20} = 2.5$. 2 is the **Averaging the labels** trap: it averages 0 to 4 and ignores the counts.",
+        twin: {
+          text: "The dot plot shows how many times each student in a group visited the library last week. What is the mean number of visits?",
+          figure: { kind: "data", chart: "dot", values: [1, 1, 2, 3, 3, 4, 4, 4, 4, 5] },
+          choices: ["$3.1$", "$3$", "$2$", "$4$"],
+          right: 0,
+          why: "There are $2 + 1 + 2 + 4 + 1 = 10$ students. Weight each value by its count: $1(2) + 2(1) + 3(2) + 4(4) + 5(1) = 31$, and $\\frac{31}{10} = 3.1$. 3 is the **Averaging the labels** trap: it averages 1 to 5 and ignores the counts.",
+        },
+      },
     },
     {
       title: "Median by count",
@@ -88,6 +106,42 @@ const lesson: Lesson = {
       ],
       answer: "$1$",
       tryFrom: 1,
+      checkIn: {
+        text: "The table shows how many siblings each student in a class has. What is the median number of siblings?",
+        figure: {
+          kind: "data",
+          chart: "table",
+          head: ["Siblings", "Students"],
+          rows: [
+            ["0", "1"],
+            ["1", "2"],
+            ["2", "3"],
+            ["3", "4"],
+            ["4", "6"],
+          ],
+        },
+        choices: ["$4$", "$2$", "$8$", "$3$"],
+        right: 3,
+        why: "There are $1 + 2 + 3 + 4 + 6 = 16$ students, so the median is the average of the 8th and 9th. Counting up, spots 1 to 6 hold 0, 1 or 2 siblings, and spots 7 to 10 hold 3. Both middle spots are 3. 4 is the **Tallest stack** trap: it is the mode.",
+        twin: {
+          text: "The table shows how many cars each of several families owns. What is the median number of cars?",
+          figure: {
+            kind: "data",
+            chart: "table",
+            head: ["Cars", "Families"],
+            rows: [
+              ["0", "6"],
+              ["1", "3"],
+              ["2", "4"],
+              ["3", "5"],
+              ["4", "1"],
+            ],
+          },
+          choices: ["$0$", "$2$", "$10$", "$4$"],
+          right: 1,
+          why: "There are $6 + 3 + 4 + 5 + 1 = 19$ families, so the median is the 10th. The 6 zeros fill spots 1 to 6, the 3 ones fill spots 7 to 9, and the 2s start at spot 10. 0 is the **Tallest stack** trap: it is the mode.",
+        },
+      },
     },
   ],
   traps: [

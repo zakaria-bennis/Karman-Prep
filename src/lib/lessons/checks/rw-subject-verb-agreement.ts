@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "The stretch" is singular: has shown
     { index: 0 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 2 }],
+    [{ index: 3 }, { index: 0 }],
+  ],
 };
 
 export default checks;

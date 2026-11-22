@@ -19,6 +19,11 @@ const checks: LessonChecks = {
     // 1 gallon per 30 miles, going down from 14
     (m) => 14 - m / 30,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(m: number) => 50 + 30 * m, (d: number) => 4 + 2 * d],
+    [(900 - 300) / 20, (30 - 12) / 2],
+  ],
 };
 
 export default checks;

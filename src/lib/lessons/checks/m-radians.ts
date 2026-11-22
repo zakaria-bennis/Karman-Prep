@@ -13,6 +13,11 @@ const checks: LessonChecks = {
     { text: "sin(30)" },
     (4 * PI) / ((2 * PI) / 9),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [((7 * PI) / 4) * (180 / PI), ((2 * PI) / 3) * (180 / PI)],
+    [(120 / 360) * 2 * PI * 6, (54 / 360) * 2 * PI * 10],
+  ],
 };
 
 export default checks;

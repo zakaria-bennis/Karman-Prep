@@ -14,6 +14,11 @@ const checks: LessonChecks = {
     { index: 1 }, // "All three owners' shops": many owners own the shops
     { index: 2 }, // "both bakeries' best recipes": two bakeries own the recipes
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 0 }, { index: 1 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

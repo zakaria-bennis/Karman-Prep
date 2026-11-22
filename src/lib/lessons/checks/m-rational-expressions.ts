@@ -22,6 +22,14 @@ const checks: LessonChecks = {
     // (2(x + 3) - (x + 1)) / (x^2 - 9) = (x + 5) / (x^2 - 9)
     (x) => (2 * (x + 3) - (x + 1)) / (x ** 2 - 9),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(x: number) => 5 / (x - 3) - 2 / (x + 3), (x: number) => 6 / (x - 1) - 4 / (x + 1)],
+    [
+      (x: number) => (x ** 2 - 16) / (3 * x) / ((x - 4) / (6 * x ** 2)),
+      (x: number) => (x ** 2 - 25) / (4 * x) / ((x + 5) / (8 * x ** 2)),
+    ],
+  ],
 };
 
 export default checks;

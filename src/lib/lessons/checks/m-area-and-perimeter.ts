@@ -19,6 +19,12 @@ const checks: LessonChecks = {
     // a corner square cut keeps the outline's length: 2 * (18 + 10)
     18 + 10 + (18 - 4) + 4 + 4 + (10 - 4),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // rectangle plus half a circle on its top side; an L's fence equals its bounding rectangle's
+    [12 * 7 + (PI * 6 ** 2) / 2, 4 * 9 + (PI * 2 ** 2) / 2],
+    [2 * (10 + 8), 2 * (14 + 10)],
+  ],
 };
 
 export default checks;

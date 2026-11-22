@@ -15,6 +15,11 @@ const checks: LessonChecks = {
     { index: 1 }, // "Which finding, if true, would most directly weaken" is the hypothesis type
     { index: 0 }, // same city sites: higher notes on noisy weekdays than quiet Sundays ties pitch to traffic
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 3 }, { index: 0 }],
+  ],
 };
 
 export default checks;

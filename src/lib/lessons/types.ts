@@ -56,6 +56,22 @@ export interface WorkedExample {
   answer: Rich;
   /** The faded example: from this step on, the student is asked to try it before it shows. */
   tryFrom?: number;
+  /** One quick question right after the example (founder, round 2, 2026-11-22). */
+  checkIn?: CheckIn;
+}
+
+/** A check-in after a worked example: the same kind of problem with new numbers or words. It counts for
+ *  nothing (no coins, no level). A miss shows why, then the twin; the lesson goes on either way. */
+export interface CheckIn {
+  text: Rich;
+  passage?: Rich;
+  choices: Rich[];
+  right: number;
+  why: Rich;
+  /** A graph, table or other picture the question needs, drawn in code. */
+  figure?: Figure;
+  /** A near-identical question (the same steps, other numbers or words), shown after a miss. */
+  twin: Omit<CheckIn, "twin">;
 }
 
 /** A common trap: a wrong move students make, and how to dodge it. */

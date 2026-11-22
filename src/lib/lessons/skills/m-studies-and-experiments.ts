@@ -59,6 +59,28 @@ const lesson: Lesson = {
         },
       ],
       answer: "Stretching likely caused fewer injuries among runners like those in the study.",
+      checkIn: {
+        text: "A teacher asked for volunteers and got 80 students. Half were randomly assigned to study with flashcards each night, and half were not. After a month, the flashcard group scored higher on a vocabulary test. Which conclusion is best supported?",
+        choices: [
+          "No conclusion can be drawn, because the students were volunteers.",
+          "Using flashcards is linked to higher scores, but it cannot be said to cause them.",
+          "Using flashcards likely causes higher scores for all students.",
+          "Using flashcards likely caused higher scores among students like those in the study.",
+        ],
+        right: 3,
+        why: "The students volunteered, so the result reaches only students like them. But the flashcards were given out at random, so a cause is fair to claim. Saying they are only linked is the **Too timid** trap.",
+        twin: {
+          text: "A gym asked for volunteers and got 60 members. Half were randomly assigned to a new workout plan, and half kept their usual plan. After 8 weeks, the new plan group lifted more weight, on average. Which conclusion is best supported?",
+          choices: [
+            "No conclusion can be drawn, because the members were volunteers.",
+            "The new plan likely caused heavier lifts among members like those in the study.",
+            "The new plan is linked to heavier lifts, but it cannot be said to cause them.",
+            "The new plan likely causes heavier lifts for all gym members.",
+          ],
+          right: 1,
+          why: "The plan was given out at random, so a cause is fair to claim. But the members volunteered, so the result reaches only members like them. All gym members is the **Reaching too far** trap.",
+        },
+      },
     },
     {
       title: "Random survey",
@@ -84,6 +106,28 @@ const lesson: Lesson = {
       ],
       answer: "Among the city's adults, more park use is linked to higher health ratings.",
       tryFrom: 1,
+      checkIn: {
+        text: "A school district chose 400 of its students at random and asked how many hours they sleep and what their average grade is. Students who slept more had higher grades, on average. Which conclusion is best supported?",
+        choices: [
+          "Among the district's students, more sleep is linked to higher grades.",
+          "Sleeping more causes higher grades for the district's students.",
+          "Among students in every district, more sleep is linked to higher grades.",
+          "Sleeping more causes higher grades, but only for the 400 students surveyed.",
+        ],
+        right: 0,
+        why: "The students were chosen at random from the district, so the result reaches the whole district. No one was assigned to sleep more, so only a link is fair. The two cause claims fall for the **Cause from a survey** trap.",
+        twin: {
+          text: "A library chose 300 of its members at random and asked how many books they read each month and how they rate their stress. Members who read more rated their stress lower, on average. Which conclusion is best supported?",
+          choices: [
+            "Reading more causes lower stress for the library's members.",
+            "Among people in every town, reading more is linked to lower stress ratings.",
+            "Among the library's members, reading more is linked to lower stress ratings.",
+            "Reading more causes lower stress, but only for the 300 members surveyed.",
+          ],
+          right: 2,
+          why: "The members were chosen at random from the library, so the result reaches all its members, and no farther. No one was assigned to read more, so only a link is fair. Every town is the **Reaching too far** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // "must complete the following" is complete, then the list: a colon
     { index: 0 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 2 }, { index: 0 }],
+  ],
 };
 
 export default checks;

@@ -56,6 +56,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "mechanic,",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "Dr. Amir Patel, the school's newest science ______ runs the robotics club on Tuesday afternoons.",
+        choices: ["teacher,", "teacher", "teacher;", "teacher:"],
+        right: 0,
+        why: '"The school\'s newest science teacher" is extra information about Dr. Patel. A comma opens it, so a matching comma must close it. Leaving the second comma out is the **Lost second comma** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The Willow Creek Bridge, the oldest covered bridge in the ______ draws visitors from all over the region each fall.",
+          choices: ["county", "county;", "county:", "county,"],
+          right: 3,
+          why: '"The oldest covered bridge in the county" is extra information, opened by a comma after the bridge\'s name, so it needs a matching comma to close it. Without it, the sentence runs on, the **Lost second comma** trap.',
+        },
+      },
     },
     {
       title: "Label before name",
@@ -83,6 +99,30 @@ const lesson: Lesson = {
       ],
       answer: "geologist Ines Marsh began",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage: "Last spring, ______ won the state science fair with a project on clean water.",
+        choices: [
+          "student, Maya Chen,",
+          "student Maya Chen",
+          "student, Maya Chen",
+          "student Maya Chen,",
+        ],
+        right: 1,
+        why: "Student is a label that comes right before the name and works like a title, so no commas go around the name. Putting commas around it is the **Commas around a label** trap.",
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage: "In 1969, ______ became the first person to walk on the Moon.",
+          choices: [
+            "astronaut, Neil Armstrong,",
+            "astronaut, Neil Armstrong",
+            "astronaut Neil Armstrong,",
+            "astronaut Neil Armstrong",
+          ],
+          right: 3,
+          why: "Astronaut is a label that comes right before the name, like a title, so no commas go around the name and none goes before the verb. Commas around the name are the **Commas around a label** trap.",
+        },
+      },
     },
   ],
   traps: [

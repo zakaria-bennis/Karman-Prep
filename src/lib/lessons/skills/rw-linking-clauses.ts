@@ -55,6 +55,22 @@ const lesson: Lesson = {
         },
       ],
       answer: "games,",
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "Although the trail to the waterfall is steep and ______ hundreds of hikers make the climb every weekend in the summer.",
+        choices: ["rocky;", "rocky.", "rocky, and", "rocky,"],
+        right: 3,
+        why: '"Although the trail to the waterfall is steep and rocky" cannot stand alone, so a comma joins it to the main sentence. A semicolon or period would cut it off as a fragment, the **Cut-off fragment** trap, and adding and is the **Extra and** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "When the power went out during the ______ the students finished the test by the light of the windows.",
+          choices: ["storm,", "storm;", "storm.", "storm, and"],
+          right: 0,
+          why: '"When the power went out during the storm" depends on the rest of the sentence, so a comma joins it. A semicolon or period would leave it as a fragment, the **Cut-off fragment** trap, and and is the **Extra and** trap.',
+        },
+      },
     },
     {
       title: "Dependent last",
@@ -75,6 +91,27 @@ const lesson: Lesson = {
       ],
       answer: "May because",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        passage:
+          "The hikers turned back before reaching the ______ a storm was moving in from the west.",
+        choices: ["summit, and because", "summit because", "summit. Because", "summit; because"],
+        right: 1,
+        why: '"Because a storm was moving in" depends on the first part and comes last, so it joins with no mark at all. A semicolon there is the **Semicolon with dependent** trap, and a period cuts it off as a fragment, the **Cut-off fragment** trap.',
+        twin: {
+          text: "Which choice completes the text so that it conforms to the conventions of Standard English?",
+          passage:
+            "The library stays open late on ______ many students study there for Friday tests.",
+          choices: [
+            "Thursdays. Since",
+            "Thursdays; since",
+            "Thursdays, and since",
+            "Thursdays since",
+          ],
+          right: 3,
+          why: '"Since many students study there for Friday tests" depends on the first part and comes last, so no mark goes before it. A semicolon there is the **Semicolon with dependent** trap, and a period leaves a fragment, the **Cut-off fragment** trap.',
+        },
+      },
     },
   ],
   traps: [

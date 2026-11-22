@@ -76,6 +76,52 @@ const lesson: Lesson = {
       ],
       answer:
         "Eastside rose from 12,000 to 19,000 visits and Riverside from 9,000 to 15,000, while Central fell from 41,000 to 38,000.",
+      checkIn: {
+        text: "Which choice most effectively uses data from the table to support the ranger's claim?",
+        passage:
+          "A state counted yearly visitors to three of its parks. A park ranger claims that from 2021 to 2023, both smaller parks drew more visitors, even though Lakeside, the largest, drew fewer.",
+        choices: [
+          "Hilltop rose from 8,000 to 12,000 visitors.",
+          "Lakeside had 30,000 visitors in 2021, more than Hilltop and Pinewood combined.",
+          "Pinewood had 9,000 visitors in 2021 and 5,000 in 2023.",
+          "Hilltop rose from 8,000 to 12,000 visitors and Pinewood from 5,000 to 9,000, while Lakeside fell from 30,000 to 26,000.",
+        ],
+        right: 3,
+        why: "The claim has three parts: both small parks rose and Lakeside fell. Only the last choice covers all three. The Hilltop choice covers one part, the **Half the claim** trap, and the Lakeside total is true but shows no change.",
+        figure: {
+          kind: "data",
+          chart: "table",
+          head: ["Park", "Visitors in 2021", "Visitors in 2023"],
+          rows: [
+            ["Lakeside", "30,000", "26,000"],
+            ["Hilltop", "8,000", "12,000"],
+            ["Pinewood", "5,000", "9,000"],
+          ],
+        },
+        twin: {
+          text: "Which choice most effectively uses data from the table to support the manager's claim?",
+          passage:
+            "A store counted how many of three items it sold in two months. The manager claims that from March to May, sales of both fans and sunscreen went up, even though sales of jackets went down.",
+          choices: [
+            "Fans rose from 20 to 90 and sunscreen from 35 to 110, while jackets fell from 120 to 45.",
+            "Fans rose from 20 sold in March to 90 sold in May.",
+            "Jackets sold 120 in March, more than fans and sunscreen combined.",
+            "Sunscreen sold 110 in March and 35 in May.",
+          ],
+          right: 0,
+          why: "The claim needs all three items: fans up, sunscreen up, jackets down. Only the first choice gives all three. The fans choice is the **Half the claim** trap, and the last choice swaps the columns, the **Wrong row or column** trap.",
+          figure: {
+            kind: "data",
+            chart: "table",
+            head: ["Item", "Sold in March", "Sold in May"],
+            rows: [
+              ["Jackets", "120", "45"],
+              ["Fans", "20", "90"],
+              ["Sunscreen", "35", "110"],
+            ],
+          },
+        },
+      },
     },
     {
       title: "Rise, then dip",
@@ -120,6 +166,54 @@ const lesson: Lesson = {
       answer:
         "Loaf height grew from 8 cm to 13 cm as rise time went from 30 to 90 minutes, then dipped to 12 cm at 120 minutes.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice most effectively uses data from the table to support the student's conclusion?",
+        passage:
+          "A student gave four pots of beans different amounts of water each day. The student concluded that more water made the plants grow taller, but only up to a point.",
+        choices: [
+          "Plant height grew from 12 cm to 22 cm as daily water went from 50 to 150 mL.",
+          "Plant height grew from 12 cm to 22 cm as daily water went from 50 to 150 mL, then fell to 16 cm at 200 mL.",
+          "Pot D got the most water, 200 mL a day, and grew the tallest plant.",
+          "Pot C got 150 mL a day and grew to 22 cm.",
+        ],
+        right: 1,
+        why: '"Only up to a point" means the height rises and then drops. Only the second choice shows both: up to 22 cm at 150 mL, then down to 16 cm at 200 mL. The first choice shows only the rise, the **Half the claim** trap.',
+        figure: {
+          kind: "data",
+          chart: "table",
+          head: ["Pot", "Water each day (mL)", "Height after 3 weeks (cm)"],
+          rows: [
+            ["A", "50", "12"],
+            ["B", "100", "18"],
+            ["C", "150", "22"],
+            ["D", "200", "16"],
+          ],
+        },
+        twin: {
+          text: "Which choice most effectively uses data from the table to support the student's conclusion?",
+          passage:
+            "A science class tested paper airplanes with wings of different widths. One student concluded that wider wings made the planes fly farther, but only up to a point.",
+          choices: [
+            "Distance grew from 5 m to 10 m as wing width went from 4 cm to 8 cm, then fell to 7 m at 10 cm.",
+            "Plane D had the widest wings, 10 cm, and flew the farthest.",
+            "Distance grew from 5 m to 10 m as wing width went from 4 cm to 8 cm.",
+            "Plane B had 6 cm wings and flew 8 m.",
+          ],
+          right: 0,
+          why: "The conclusion says farther, but only up to a point, so the answer must show a rise and then a drop. Only the first choice does: 5 m up to 10 m, then down to 7 m. The third choice shows only the rise, the **Half the claim** trap.",
+          figure: {
+            kind: "data",
+            chart: "table",
+            head: ["Plane", "Wing width (cm)", "Distance flown (m)"],
+            rows: [
+              ["A", "4", "5"],
+              ["B", "6", "8"],
+              ["C", "8", "10"],
+              ["D", "10", "7"],
+            ],
+          },
+        },
+      },
     },
   ],
   traps: [

@@ -16,6 +16,15 @@ const checks: LessonChecks = {
     { text: "Survey 1,200 adults chosen at random from the city." },
     { text: "The mean for all students at Lakeside High is plausibly between" },
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // the sample percent plus or minus the margin, about the population sampled
+    [
+      { text: `between ${40 - 3}% and ${40 + 3}% of all Elm Town adults` },
+      { text: `between ${65 - 5}% and ${65 + 5}% of all Lake High School students` },
+    ],
+    [0.12 * 2500, 0.35 * 6000],
+  ],
 };
 
 export default checks;

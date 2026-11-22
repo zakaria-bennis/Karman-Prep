@@ -68,6 +68,52 @@ const lesson: Lesson = {
         },
       ],
       answer: "Print loans led e-book loans by 50,000 in 2016 but by only 2,000 in 2024.",
+      checkIn: {
+        text: "Which choice most effectively uses data from the graph to support the farmer's claim?",
+        passage:
+          "A farm tracked how many pounds of tomatoes and peppers it sold each month. A farmer claims that the gap between tomato sales and pepper sales grew from May to August.",
+        choices: [
+          "Pepper sales grew from 180 pounds in May to 210 pounds in August.",
+          "Tomato sales fell from 420 pounds in May to 200 pounds in August.",
+          "Tomatoes outsold peppers by 20 pounds in May but by 210 pounds in August.",
+          "Tomato sales rose because the summer was unusually warm.",
+        ],
+        right: 2,
+        why: "The claim is about the gap, so the answer must compare both lines at the start and the end: 20 pounds apart in May, 210 in August. Pepper sales alone say nothing about the gap, and the falling-tomatoes choice reads the graph backward, the **Reversed comparison** trap.",
+        figure: {
+          kind: "data",
+          chart: "line",
+          labels: ["May", "June", "July", "Aug."],
+          series: [
+            { name: "Tomatoes", values: [200, 260, 340, 420] },
+            { name: "Peppers", values: [180, 190, 200, 210] },
+          ],
+          yLabel: "Sales (pounds)",
+        },
+        twin: {
+          text: "Which choice most effectively uses data from the graph to support the owner's claim?",
+          passage:
+            "A shop tracked how many bikes and scooters it sold each week. The owner claims that the gap between bike sales and scooter sales shrank from week 1 to week 4.",
+          choices: [
+            "Bikes outsold scooters by 24 in week 1 but by only 2 in week 4.",
+            "Scooter sales fell from 20 in week 1 to 6 in week 4.",
+            "Bike sales fell from 30 in week 1 to 22 in week 4.",
+            "Scooters sold better because they cost less than bikes.",
+          ],
+          right: 0,
+          why: "Only the first choice compares both lines at the start and the end, showing the gap went from 24 to 2. The bike choice tells about one line only, and the scooter choice reads the graph backward, the **Reversed comparison** trap.",
+          figure: {
+            kind: "data",
+            chart: "line",
+            labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+            series: [
+              { name: "Bikes", values: [30, 28, 25, 22] },
+              { name: "Scooters", values: [6, 10, 15, 20] },
+            ],
+            yLabel: "Sold",
+          },
+        },
+      },
     },
     {
       title: "Taking the lead",
@@ -109,6 +155,52 @@ const lesson: Lesson = {
       answer:
         "Feeder A had 12 birds in week 1 and 24 in week 4, while Feeder B went from 20 to 14.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice most effectively uses data from the graph to support the teacher's claim?",
+        passage:
+          "Two classes recorded how many books their students read each month. A teacher claims that Class A started behind Class B but finished ahead of it.",
+        choices: [
+          "Class B read 31 books in December.",
+          "Class A read 15 books in September and 38 in December, while Class B went from 25 to 31.",
+          "Class A went from 38 books in September to 15 in December.",
+          "Class A read more because its teacher gave prizes.",
+        ],
+        right: 1,
+        why: "The claim has two parts: Class A starts behind and ends ahead. Only the second choice gives both classes at both ends: 15 against 25 at the start, 38 against 31 at the end. The third choice reads Class A's line backward, the **Reversed comparison** trap.",
+        figure: {
+          kind: "data",
+          chart: "line",
+          labels: ["Sept.", "Oct.", "Nov.", "Dec."],
+          series: [
+            { name: "Class A", values: [15, 22, 30, 38] },
+            { name: "Class B", values: [25, 27, 29, 31] },
+          ],
+          yLabel: "Books read",
+        },
+        twin: {
+          text: "Which choice most effectively uses data from the graph to support the student's claim?",
+          passage:
+            "A student measured two bean plants each week, one in a sunny window and one in the shade. The student claims that the shaded plant started out taller but ended up shorter.",
+          choices: [
+            "The sunny plant grew from 4 cm to 15 cm.",
+            "The shaded plant shrank from 10 cm in week 1 to 6 cm in week 4.",
+            "The shaded plant grew more slowly because it got less light.",
+            "The shaded plant was 6 cm and the sunny plant 4 cm in week 1, but by week 4 the shaded plant was 10 cm and the sunny plant 15 cm.",
+          ],
+          right: 3,
+          why: "The claim compares the two plants at the start and the end, and only the last choice does both: the shaded plant taller in week 1 (6 against 4), shorter in week 4 (10 against 15). The sunny-plant choice gives half the picture, and the shrinking choice reads the line backward, the **Reversed comparison** trap.",
+          figure: {
+            kind: "data",
+            chart: "line",
+            labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+            series: [
+              { name: "Sunny", values: [4, 7, 11, 15] },
+              { name: "Shade", values: [6, 8, 9, 10] },
+            ],
+            yLabel: "Height (cm)",
+          },
+        },
+      },
     },
   ],
   traps: [

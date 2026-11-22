@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "When ..., using ... size" opens the sentence, so a comma before "they found"
     { index: 0 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

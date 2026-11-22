@@ -57,6 +57,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$x = 3$",
+      checkIn: {
+        text: "What is the solution to $\\sqrt{x + 2} + 4 = x$?",
+        choices: ["$x = 7$", "$x = 2$", "$x = 2$ or $x = 7$", "No solution"],
+        right: 0,
+        why: "Get the root alone: $\\sqrt{x + 2} = x - 4$. Squaring gives $x^2 - 9x + 14 = 0$, so $x = 2$ or $x = 7$. Only 7 checks: $\\sqrt{9} + 4 = 7$. $x = 2$ gives $\\sqrt{4} + 4 = 6$, not 2: the **Skipping the check** trap.",
+        twin: {
+          text: "What is the solution to $\\sqrt{x + 3} + 3 = x$?",
+          choices: ["$x = 1$", "$x = 1$ or $x = 6$", "$x = 6$", "No solution"],
+          right: 2,
+          why: "Get the root alone: $\\sqrt{x + 3} = x - 3$. Squaring gives $x^2 - 7x + 6 = 0$, so $x = 1$ or $x = 6$. Only 6 checks: $\\sqrt{9} + 3 = 6$. $x = 1$ gives $\\sqrt{4} + 3 = 5$, not 1: the **Skipping the check** trap.",
+        },
+      },
     },
     {
       title: "A rational",
@@ -76,6 +88,18 @@ const lesson: Lesson = {
       ],
       answer: "$x = 1$",
       tryFrom: 1,
+      checkIn: {
+        text: "What is the solution to $\\frac{x}{x - 3} = \\frac{3}{x - 3} + x$?",
+        choices: ["$x = 3$", "$x = 1$", "$x = 1$ or $x = 3$", "No solution"],
+        right: 1,
+        why: "Multiply every term by $x - 3$: $x = 3 + x(x - 3)$, so $x^2 - 4x + 3 = 0$ and $x = 1$ or $x = 3$. $x = 3$ makes the bottom 0, so only $x = 1$ works. Keeping 3 is the **A zero bottom** trap.",
+        twin: {
+          text: "What is the solution to $\\frac{2x}{x - 5} = \\frac{10}{x - 5} + x$?",
+          choices: ["$x = 5$", "$x = 2$ or $x = 5$", "No solution", "$x = 2$"],
+          right: 3,
+          why: "Multiply every term by $x - 5$: $2x = 10 + x(x - 5)$, so $x^2 - 7x + 10 = 0$ and $x = 2$ or $x = 5$. $x = 5$ makes the bottom 0, so only $x = 2$ works. Keeping 5 is the **A zero bottom** trap.",
+        },
+      },
     },
   ],
   traps: [

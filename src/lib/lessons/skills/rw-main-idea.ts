@@ -62,6 +62,32 @@ const lesson: Lesson = {
         },
       ],
       answer: "Deserts, often seen as lifeless, can burst into life after a rare heavy rain.",
+      checkIn: {
+        text: "Which choice best states the main idea of the text?",
+        passage:
+          "Many people think of bats as dirty pests. In fact, many bats help farmers: a single bat can eat hundreds of insects in an hour, including beetles and moths that damage crops. Some farmers now put up bat houses to invite bats onto their land.",
+        choices: [
+          "Bats are dirty pests that farmers should keep away.",
+          "Bats, often seen as pests, help farmers by eating insects that damage crops.",
+          "Some farmers put up bat houses on their land.",
+          "Many animals help people in surprising ways.",
+        ],
+        right: 1,
+        why: "The text starts with the old view of bats, then turns to its real point: bats help farmers by eating crop-damaging insects. The first choice is the view the text argues against, **The old view** trap, and bat houses are only one detail, the **Too narrow** trap.",
+        twin: {
+          text: "Which choice best states the main idea of the text?",
+          passage:
+            "Spiders are often seen as something to sweep away. Yet the spiders in a typical house catch flies, mosquitoes and other pests that can spread germs. Some scientists suggest leaving the harmless ones alone.",
+          choices: [
+            "Some scientists suggest leaving spiders alone.",
+            "Insects of many kinds live inside homes.",
+            "Spiders are pests that should be swept out of homes.",
+            "House spiders, often swept away, help by catching pests that can spread germs.",
+          ],
+          right: 3,
+          why: "The text opens with the usual view, then turns: house spiders catch pests that spread germs. Sweeping spiders out is the view the text pushes back on, **The old view** trap, and the scientists' advice is one detail, the **Too narrow** trap.",
+        },
+      },
     },
     {
       title: "A story's point",
@@ -89,6 +115,32 @@ const lesson: Lesson = {
       ],
       answer: "Hearing her grandmother's familiar humming helps Mara overcome her nerves on stage.",
       tryFrom: 2,
+      checkIn: {
+        text: "Which choice best states the main idea of the text?",
+        passage:
+          "Leo had never ridden a bike without training wheels. On his first try, he wobbled and fell twice. Then his older sister ran beside him, one hand on the back of his seat, and told him to look ahead instead of down. By the end of the street, he was riding on his own, and she had already let go.",
+        choices: [
+          "Leo fell off his bike twice on his first try.",
+          "Learning to ride a bike is hard for most children.",
+          "With his sister's help and advice, Leo learns to ride on his own.",
+          "Leo's sister is a faster rider than Leo is.",
+        ],
+        right: 2,
+        why: "The story moves from Leo falling to Leo riding alone, and his sister's help is what changes things. The falls are one detail, the **Too narrow** trap, and most children goes beyond this one story, the **Too broad** trap.",
+        twin: {
+          text: "Which choice best states the main idea of the text?",
+          passage:
+            "Priya dreaded giving her speech in front of the class. Her voice cracked on the first line, and she lost her place. Then she spotted her best friend in the back row giving a thumbs-up, took a breath, and finished the speech clearly.",
+          choices: [
+            "A friend's quiet encouragement helps Priya get through her speech.",
+            "Priya's voice cracked on the first line of her speech.",
+            "Most students are afraid of speaking in front of a class.",
+            "Priya's best friend is a better speaker than Priya is.",
+          ],
+          right: 0,
+          why: "The story turns when Priya sees her friend's thumbs-up and finishes clearly, so the point is the friend's encouragement. The cracked voice is one detail, the **Too narrow** trap, and most students goes beyond the story, the **Too broad** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -23,6 +23,11 @@ const checks: LessonChecks = {
     // Text 1 "a quarter of all ocean species"; Text 2 "Reefs are rich in life"
     { index: 2 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 2 }, { index: 0 }],
+    [{ index: 1 }, { index: 3 }],
+  ],
 };
 
 export default checks;

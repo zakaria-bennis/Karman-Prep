@@ -52,6 +52,18 @@ const lesson: Lesson = {
         },
       ],
       answer: "$600(1.05)^t$",
+      checkIn: {
+        text: "A town has 2,000 people. Its population grows by 3% each year. Which function gives the population $t$ years from now?",
+        choices: ["$2000(1.03)^t$", "$2000(0.03)^t$", "$2000(0.97)^t$", "$2000(1.3)^t$"],
+        right: 0,
+        why: "It grows, so add the percent to 1: $1 + 0.03 = 1.03$. Each year multiplies by 1.03 again, so $t$ goes in the exponent. $2000(1.3)^t$ is the **Percent as factor** trap: 1.3 means 30% growth, not 3%.",
+        twin: {
+          text: "A colony has 500 bacteria. It grows by 8% each hour. Which function gives the number of bacteria $t$ hours from now?",
+          choices: ["$500(0.08)^t$", "$500(0.92)^t$", "$500(1.08)^t$", "$500(1.8)^t$"],
+          right: 2,
+          why: "It grows, so add the percent to 1: $1 + 0.08 = 1.08$. Each hour multiplies by 1.08 again, so $t$ goes in the exponent. $500(1.8)^t$ is the **Percent as factor** trap: 1.8 means 80% growth.",
+        },
+      },
     },
     {
       title: "Read the model",
@@ -64,6 +76,18 @@ const lesson: Lesson = {
       ],
       answer: "$15\\%$",
       tryFrom: 1,
+      checkIn: {
+        text: "The value of a boat, in dollars, $t$ years after it is bought is $V(t) = 24000(0.92)^t$. By what percent does the boat's value drop each year?",
+        choices: ["$92\\%$", "$8\\%$", "$0.08\\%$", "$0.92\\%$"],
+        right: 1,
+        why: "The factor 0.92 means the boat keeps 92% of its value each year. Keep and lose add to 100%, so it loses $1 - 0.92 = 0.08$, which is 8%. 92% is the **Keep, not lose** trap.",
+        twin: {
+          text: "The amount of a medicine in the blood, in milligrams, $t$ hours after a dose is $M(t) = 400(0.75)^t$. By what percent does the amount drop each hour?",
+          choices: ["$75\\%$", "$0.25\\%$", "$0.75\\%$", "$25\\%$"],
+          right: 3,
+          why: "The factor 0.75 means 75% of the medicine stays each hour. Keep and lose add to 100%, so it loses $1 - 0.75 = 0.25$, which is 25%. 75% is the **Keep, not lose** trap.",
+        },
+      },
     },
   ],
   traps: [

@@ -37,6 +37,18 @@ const lesson: Lesson = {
         { say: "Simplify.", show: "$\\frac{900}{6} = 150$" },
       ],
       answer: "$150^\\circ$",
+      checkIn: {
+        text: "What is the measure of an angle of $\\frac{7\\pi}{4}$ radians, in degrees?",
+        choices: ["$45^\\circ$", "$630^\\circ$", "$315^\\circ$", "$1.75^\\circ$"],
+        right: 2,
+        why: "$\\pi$ radians is 180°, so replace $\\pi$ with 180: $\\frac{7 \\cdot 180}{4} = \\frac{1260}{4} = 315$. 630° uses 360 for $\\pi$, but $\\pi$ radians is only half a turn.",
+        twin: {
+          text: "What is the measure of an angle of $\\frac{2\\pi}{3}$ radians, in degrees?",
+          choices: ["$120^\\circ$", "$60^\\circ$", "$240^\\circ$", "$270^\\circ$"],
+          right: 0,
+          why: "$\\pi$ radians is 180°, so replace $\\pi$ with 180: $\\frac{2 \\cdot 180}{3} = \\frac{360}{3} = 120$. 240° uses 360 for $\\pi$, but $\\pi$ radians is only half a turn.",
+        },
+      },
     },
     {
       title: "Arc length",
@@ -53,6 +65,18 @@ const lesson: Lesson = {
       ],
       answer: "$6\\pi$",
       tryFrom: 1,
+      checkIn: {
+        text: "A circle has a radius of 6. What is the length of the arc cut off by a central angle of $120^\\circ$?",
+        choices: ["$720$", "$12\\pi$", "$\\frac{2\\pi}{3}$", "$4\\pi$"],
+        right: 3,
+        why: "Change 120° to radians first: $\\frac{120}{180}\\pi = \\frac{2\\pi}{3}$. Then $s = r\\theta = 6 \\cdot \\frac{2\\pi}{3} = 4\\pi$. 720 is the **Degrees in the formula** trap: it uses 120 for $\\theta$.",
+        twin: {
+          text: "A circle has a radius of 10. What is the length of the arc cut off by a central angle of $54^\\circ$?",
+          choices: ["$540$", "$3\\pi$", "$15\\pi$", "$\\frac{3\\pi}{10}$"],
+          right: 1,
+          why: "Change 54° to radians first: $\\frac{54}{180}\\pi = \\frac{3\\pi}{10}$. Then $s = r\\theta = 10 \\cdot \\frac{3\\pi}{10} = 3\\pi$. 540 is the **Degrees in the formula** trap: it uses 54 for $\\theta$.",
+        },
+      },
     },
   ],
   traps: [

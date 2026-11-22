@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // ants, like bees, guide nestmates to food: a parallel case
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 1 }, { index: 0 }],
+  ],
 };
 
 export default checks;

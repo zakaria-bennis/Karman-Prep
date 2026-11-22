@@ -22,6 +22,11 @@ const checks: LessonChecks = {
     // "explain why ... frozen mountain": B gives the reason (frozen rock keeps seeds cold)
     { index: 1 },
   ],
+  // check-ins, solved blind: [check-in, twin] per example
+  checkIns: [
+    [{ index: 3 }, { index: 0 }],
+    [{ index: 2 }, { index: 3 }],
+  ],
 };
 
 export default checks;

@@ -66,6 +66,38 @@ const lesson: Lesson = {
         { say: "Divide and simplify.", show: "$\\frac{42}{72} = \\frac{7}{12}$" },
       ],
       answer: "$\\frac{7}{12}$",
+      checkIn: {
+        text: "The table shows 180 students by grade and by whether they are in the band. One student who is in the band is chosen at random. What is the probability that the student is in grade 11?",
+        figure: {
+          kind: "data",
+          chart: "table",
+          head: ["", "Band", "No band", "Total"],
+          rows: [
+            ["Grade 11", "24", "66", "90"],
+            ["Grade 12", "36", "54", "90"],
+            ["Total", "60", "120", "180"],
+          ],
+        },
+        choices: ["$\\frac{2}{5}$", "$\\frac{2}{15}$", "$\\frac{4}{15}$", "$\\frac{3}{5}$"],
+        right: 0,
+        why: "Who is in the band limits you to the Band column, so the bottom is its total, 60. Of those, 24 are in grade 11: $\\frac{24}{60} = \\frac{2}{5}$. $\\frac{2}{15}$ uses all 180 students, the **Grand total** trap.",
+        twin: {
+          text: "The table shows 100 students by grade and by whether they walk or bike to school. One student who walks is chosen at random. What is the probability that the student is in grade 10?",
+          figure: {
+            kind: "data",
+            chart: "table",
+            head: ["", "Walk", "Bike", "Total"],
+            rows: [
+              ["Grade 9", "18", "32", "50"],
+              ["Grade 10", "30", "20", "50"],
+              ["Total", "48", "52", "100"],
+            ],
+          },
+          choices: ["$\\frac{3}{10}$", "$\\frac{3}{5}$", "$\\frac{5}{8}$", "$\\frac{3}{8}$"],
+          right: 2,
+          why: "Who walks limits you to the Walk column, so the bottom is its total, 48. Of those, 30 are in grade 10: $\\frac{30}{48} = \\frac{5}{8}$. $\\frac{3}{10}$ uses all 100 students, the **Grand total** trap.",
+        },
+      },
     },
     {
       title: "Given tea",
@@ -95,6 +127,18 @@ const lesson: Lesson = {
       ],
       answer: "$\\frac{14}{41}$",
       tryFrom: 1,
+      checkIn: {
+        text: "A survey asked 120 teens whether they prefer cats or dogs. Of the 50 teens under 15, 20 prefer cats. Of the 70 teens 15 or older, 28 prefer cats. One teen who prefers cats is chosen at random. What is the probability that the teen is under 15?",
+        choices: ["$\\frac{2}{5}$", "$\\frac{5}{12}$", "$\\frac{1}{6}$", "$\\frac{7}{12}$"],
+        right: 1,
+        why: "Who prefers cats limits you to cat lovers: $20 + 28 = 48$ for the bottom. Of those, 20 are under 15: $\\frac{20}{48} = \\frac{5}{12}$. $\\frac{2}{5}$ is $\\frac{20}{50}$, the **Flipped condition** trap: it finds cats given under 15.",
+        twin: {
+          text: "A survey asked 200 voters whether they support a new park. Of the 80 voters under 40, 48 support it. Of the 120 voters 40 or older, 60 support it. One voter who supports the park is chosen at random. What is the probability that the voter is under 40?",
+          choices: ["$\\frac{3}{5}$", "$\\frac{6}{25}$", "$\\frac{5}{9}$", "$\\frac{4}{9}$"],
+          right: 3,
+          why: "Who supports the park limits you to supporters: $48 + 60 = 108$ for the bottom. Of those, 48 are under 40: $\\frac{48}{108} = \\frac{4}{9}$. $\\frac{3}{5}$ is $\\frac{48}{80}$, the **Flipped condition** trap: it finds support given under 40.",
+        },
+      },
     },
   ],
   traps: [
