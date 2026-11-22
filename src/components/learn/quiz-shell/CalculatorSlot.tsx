@@ -27,6 +27,7 @@ export function CalculatorFrame({
   open,
   onOpenChange,
   dockTop,
+  remember = false,
   children,
 }: {
   enabled: boolean;
@@ -35,6 +36,9 @@ export function CalculatorFrame({
   open: boolean;
   onOpenChange(open: boolean): void;
   dockTop: number;
+  /** The question is bookmarked: it keeps its own calculator for the rest of the quiz (founder,
+   *  2026-11-17); any other question's calculator starts clean on each visit. */
+  remember?: boolean;
   children: ReactNode;
 }) {
   const questionKey = makeQuestionKey(attemptKey, questionId);
@@ -61,6 +65,7 @@ export function CalculatorFrame({
       open={on && open && !carried}
       onOpenChange={onOpenChange}
       dockTop={dockTop}
+      remember={remember}
       // the quiz has its own Calculator button in the top bar, on a phone too
       sideToggle={false}
     >

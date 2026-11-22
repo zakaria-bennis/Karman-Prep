@@ -134,3 +134,19 @@ migration. Only the Bank, Generator and Exams streams write to the live question
 - **Research notes** go in `docs/research/2026-11-22-<topic>.md`, written in plain language.
 - **Report back** when your stream is done or blocked: what works, what does not, your branch and last
   commit, the checks you ran and their results.
+
+## What happened during the night (coordinator's log)
+
+- 10:33 UTC: PR 311 (migration only) put the Bank stream's `question_skills72` and `question_bank_checks`
+  tables in production, so tagging could start before the rest was merged.
+- 10:35 UTC: PR 312 (migration only) put `quiz_questions.origin` and `generator` in production, with a check
+  that a generated question can only sit in the `practice` pool.
+- The site lock (`src/lib/site-lock/lock.ts`) is on the integration branch; it switches on when the Worker
+  has a `SITE_PASSWORD` secret.
+
+## Open for the founder in the morning
+
+- **Database size.** Supabase is on the free tier: a 500 MB cap, and going over makes the database
+  read-only. It held about 152 MB before tonight. Generated questions are loaded in stages and stop near
+  400 MB, so tonight's count is below the 200,000 goal. Reaching 200,000 stored questions needs a paid
+  Supabase plan (a spending decision), or Math questions built on demand from their seed.

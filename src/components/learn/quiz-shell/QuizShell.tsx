@@ -1,32 +1,31 @@
 "use client";
 // The one question screen every quiz uses (spec: docs/superpowers/specs/2026-10-27-quiz-engine-design.md).
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { figureLeadsText } from "@/lib/figures/figure-order";
 import { sectionStart } from "@/lib/quiz/workspace";
-import type { QuizMode } from "@/lib/quiz/mode";
-import type { TimingAccommodation } from "@/lib/quiz/timer";
-import type { ConfidenceBand, StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import { showsDots, type DotState } from "@/lib/quiz/rewards";
 import { track } from "@/lib/analytics/client";
 import styles from "./quiz-shell.module.css";
-import nav from "./nav.module.css";
 import { AnnotationContext } from "./annotation-context";
 import { BottomBar } from "./BottomBar";
-import { CALC_SLOT_ID, CalculatorFrame } from "./CalculatorSlot";
+import { CalculatorFrame } from "./CalculatorSlot";
 import { FigureSlot } from "./FigureSlot";
-import { ChevronIcon, ExitIcon, HighlightIcon, PenIcon, ReferenceIcon } from "./icons";
-import { MoreMenu, ShortcutsList, TEXT_SIZES } from "./MoreMenu";
-import { NavigatorDialog, NavigatorGrid, squaresFor } from "./Navigator";
+import { ExitIcon } from "./icons";
+import { TEXT_SIZES } from "./MoreMenu";
+import { squaresFor } from "./Navigator";
 import { PassageBlock, hasPassage } from "./PassageBlock";
 import { PencilContext } from "./pencil-context";
 import { PencilStrip } from "./PencilStrip";
+import { PrimaryAction } from "./PrimaryAction";
 import { QuestionArea } from "./QuestionArea";
 import { QuestionContent } from "./QuestionContent";
-import { ReferenceSheet } from "./ReferenceSheet";
+import type { QuizShellProps } from "./quiz-shell-props";
+import { CheckPage, ShellDialogs, type ShellDialog } from "./ShellDialogs";
+import { ShellSkeleton } from "./ShellSkeleton";
+import { ShellTools, useShellTools } from "./ShellTools";
 import { Timer } from "./Timer";
 import { BarButton, TopBar } from "./TopBar";
 import { QuizWorld } from "./QuizWorld";
-import { rangesFromSelection } from "@/lib/quiz/annotations/ranges";
 import { Explanation } from "./Explanation";
 import { ProgressDots } from "./Rewards";
 import { LevelUpCard } from "./LevelUpCard";
@@ -36,7 +35,6 @@ import { useShortcuts } from "./use-shortcuts";
 import { KEYS_SLOT_ID } from "./NumericEntry";
 import { useAnswerRecord } from "./use-answer-record";
 import { traceMark, useGuard, type GuardEvent } from "./use-guard";
-import type { NoteSignals } from "@/lib/quiz/signals";
 import {
   useBarHeight,
   useCalculatorSounds,
@@ -46,49 +44,7 @@ import {
   useNotice,
 } from "./use-shell-effects";
 
-export type QuizShellProps = {
-  mode: QuizMode;
-  questions: StudentQuizQuestion[];
-  /** Total questions in the section; adaptive sets may know only the first few questions. */
-  total?: number;
-  attemptKey: string;
-  index: number;
-  section: string;
-  topic?: string;
-  onNavigate(index: number): void;
-  onSelectAnswer?(questionId: string, answer: string | null): void;
-  /** How a question was answered (time worked, time away, changes of mind and so on), each time
-   *  there is more to keep. The host saves it; nothing waits on it. */
-  onSignals?(signals: NoteSignals): void;
-  onSubmit?(questionId: string, answer: string): void | Promise<void>;
-  /** "time" when a countdown ran out and the section submitted itself. */
-  onFinish?(reason?: "time"): void;
-  onExit?(): void;
-  reviews: Record<string, StudentQuizReview>;
-  startedAtMs?: number;
-  accommodation?: TimingAccommodation;
-  hasCalculator?: boolean;
-  loading?: boolean;
-  /** Saved markers by question id (server state the host loaded). */
-  saved?: Record<string, "bookmark" | "tutor_flag">;
-  /** Each may return a promise; a rejected one puts the marker back and tells the student. */
-  onToggleBookmark?(questionId: string, on: boolean): void | Promise<unknown>;
-  onFlagForTutor?(questionId: string, note: string): void | Promise<unknown>;
-  onRemoveTutorFlag?(questionId: string): void | Promise<unknown>;
-  onReportProblem?(questionId: string, note: string): void | Promise<unknown>;
-  /** Extra content under the question (instant-mode rewards plug in here). */
-  feedback?: ReactNode;
-  /** The host keeps its own picture behind the glass (the challenge's city), so the shell draws no
-   *  landscape of its own. */
-  noWorld?: boolean;
-  /** The host draws its own clock (Time Trial); the shell shows none and never expires. */
-  hideClock?: boolean;
-  /** Replaces the counter in the bottom bar. */
-  progress?: ReactNode;
-  /** A completed skill set moved the skill's band (skill practice only). */
-  levelUp?: { skill: string; before: ConfidenceBand | null; after: ConfidenceBand } | null;
-  onLevelUpDone?(): void;
-};
+export type { QuizShellProps } from "./quiz-shell-props";
 
 export function QuizShell(props: QuizShellProps) {
   const { mode, questions, index, attemptKey } = props;
@@ -99,7 +55,7 @@ export function QuizShell(props: QuizShellProps) {
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
   const [eliminatorOn, setEliminatorOn] = useState(false);
-  const [dialog, setDialog] = useState<"nav" | "reference" | "shortcuts" | "exit" | null>(null);
+  const [dialog, setDialog] = useState<ShellDialog>(null);
   const [checking, setChecking] = useState(false);
   const [calcOpen, setCalcOpen] = useState(false);
   // The record of how each question is answered (use-answer-record.ts), for the host to save.
@@ -175,51 +131,17 @@ export function QuizShell(props: QuizShellProps) {
   };
   const [saveNotice, setSaveNotice] = useNotice(5000);
   const [hint, setHint] = useNotice(3200);
-  // Highlight: a tool like the pencil (founder, 2026-11-08). Words already selected are
-  // highlighted straight away; after that, every selection is highlighted until it's turned off.
-  // One tool at a time (founder, 2026-11-17): picking one up puts the others away. The
-  // highlighter, the pencil, the reference and the calculator never share the screen.
-  const toggleHighlighter = () => {
-    if (s.highlighterOn) return s.setHighlighterOn(false);
-    setCalcOpen(false);
-    s.setHighlighterOn(true);
-    const sel = window.getSelection();
-    const color = s.annotations.nextColor();
-    let added = 0;
-    document.querySelectorAll<HTMLElement>("[data-quiz-shell] [data-quiz-pane]").forEach((pane) => {
-      for (const r of rangesFromSelection(pane, sel)) {
-        s.annotations.add(r, color);
-        added++;
-      }
-    });
-    if (added) sel?.removeAllRanges();
-    else setHint("Select words to highlight them. Esc puts the highlighter away.");
-  };
-  const toggleBookmark = () => {
-    if (!q || !mode.canBookmark) return;
-    const id = q.id;
-    // A question flagged for the tutor stays saved; the bookmark cannot remove the flag.
-    if (s.saved[id] === "tutor_flag") return;
-    const on = !s.saved[id];
-    const put = (value: boolean) =>
-      s.setSaved(({ [id]: _gone, ...rest }) => (value ? { ...rest, [id]: "bookmark" } : rest));
-    put(on);
-    Promise.resolve(props.onToggleBookmark?.(id, on)).catch(() => {
-      put(!on);
-      setSaveNotice("That did not save. Try again.");
-    });
-  };
-  const togglePencil = () => {
-    if (!s.pencilOn) setCalcOpen(false);
-    s.setPencilOn(!s.pencilOn);
-    s.setTool("pen");
-  };
-  const openReference = () => {
-    setCalcOpen(false);
-    s.setPencilOn(false);
-    s.setHighlighterOn(false);
-    setDialog((d) => (d === "reference" ? null : "reference"));
-  };
+  const tools = useShellTools({
+    s,
+    q,
+    mode,
+    setCalcOpen,
+    setDialog,
+    setHint,
+    setSaveNotice,
+    onToggleBookmark: props.onToggleBookmark,
+  });
+  const { toggleHighlighter, toggleBookmark, togglePencil, openReference } = tools;
   const [moreOpen, setMoreOpen] = useState(false);
   useEscape({
     active: s.pencilOn || s.highlighterOn || calcOpen,
@@ -324,48 +246,28 @@ export function QuizShell(props: QuizShellProps) {
     />
   );
 
-  const primary = checking ? (
-    <button type="button" className={styles.primary} onClick={() => props.onFinish?.()}>
-      Submit section
-      <ChevronIcon />
-    </button>
-  ) : mode.grading === "instant" && !review ? (
-    <button
-      type="button"
-      className={styles.primary}
-      disabled={!answer}
-      onClick={() => answer && props.onSubmit?.(q.id, answer)}
-    >
-      Submit
-      <ChevronIcon />
-    </button>
-  ) : (
-    <button
-      type="button"
-      className={styles.primary}
-      data-holding={holding || undefined}
-      disabled={holding}
-      onClick={goNext}
-    >
-      {last ? (mode.grading === "end" ? "Review" : "Finish") : "Next"}
-      <ChevronIcon />
-    </button>
+  const primary = (
+    <PrimaryAction
+      checking={checking}
+      grading={mode.grading}
+      graded={!!review}
+      answer={answer}
+      holding={holding}
+      last={last}
+      onSubmitSection={() => props.onFinish?.()}
+      onSubmit={(picked) => props.onSubmit?.(q.id, picked)}
+      onNext={goNext}
+    />
   );
 
   const content = checking ? (
-    <div className={nav.check}>
-      <h2 className={nav.checkTitle}>Check your work</h2>
-      <p>Go back to any question before you submit this section.</p>
-      <NavigatorGrid
-        squares={squares}
-        current={-1}
-        checkPage
-        onJump={(i) => {
-          setChecking(false);
-          props.onNavigate(i);
-        }}
-      />
-    </div>
+    <CheckPage
+      squares={squares}
+      onJump={(i) => {
+        setChecking(false);
+        props.onNavigate(i);
+      }}
+    />
   ) : null;
 
   return (
@@ -422,72 +324,20 @@ export function QuizShell(props: QuizShellProps) {
                   )
                 }
                 tools={
-                  <>
-                    <span id={CALC_SLOT_ID} className={styles.slot} />
-                    <BarButton
-                      icon={<HighlightIcon />}
-                      word="Highlight"
-                      aria-pressed={s.highlighterOn}
-                      active={s.highlighterOn}
-                      // Keeps the selection: pressing a button would otherwise clear it first.
-                      onPointerDown={(e) => e.preventDefault()}
-                      onClick={toggleHighlighter}
-                    />
-                    <BarButton
-                      icon={
-                        <PenIcon
-                          state={s.pencilOn ? "on" : "off"}
-                          tip={`var(--quiz-pen-${s.pen})`}
-                        />
-                      }
-                      word="Pencil"
-                      aria-pressed={s.pencilOn}
-                      active={s.pencilOn}
-                      onClick={togglePencil}
-                    />
-                    {math && (
-                      <BarButton
-                        icon={<ReferenceIcon />}
-                        word="Reference"
-                        aria-haspopup="dialog"
-                        active={dialog === "reference"}
-                        onClick={openReference}
-                      />
-                    )}
-                    <MoreMenu
-                      textSize={s.textSize}
-                      onTextSize={s.setTextSize}
-                      onShortcuts={() => setDialog("shortcuts")}
-                      onOpenChange={(open) => {
-                        setMoreOpen(open);
-                        if (!open) return;
-                        s.setPencilOn(false);
-                        s.setHighlighterOn(false);
-                      }}
-                      active={moreOpen}
-                      showSounds={mode.grading === "instant"}
-                      tutor={
-                        mode.showTutorFlag && props.onFlagForTutor
-                          ? {
-                              asked: s.saved[q.id] === "tutor_flag",
-                              onAsk: (note) => {
-                                s.setSaved((all) => ({ ...all, [q.id]: "tutor_flag" }));
-                                props.onFlagForTutor?.(q.id, note);
-                              },
-                              onRemove: () => {
-                                // the flag comes down; the question stays bookmarked
-                                s.setSaved((all) => ({ ...all, [q.id]: "bookmark" }));
-                                props.onRemoveTutorFlag?.(q.id);
-                              },
-                            }
-                          : undefined
-                      }
-                      onReport={
-                        props.onReportProblem &&
-                        ((note) => Promise.resolve(props.onReportProblem!(q.id, note)))
-                      }
-                    />
-                  </>
+                  <ShellTools
+                    s={s}
+                    q={q}
+                    mode={mode}
+                    math={math}
+                    dialog={dialog}
+                    moreOpen={moreOpen}
+                    setMoreOpen={setMoreOpen}
+                    onShortcuts={() => setDialog("shortcuts")}
+                    tools={tools}
+                    onFlagForTutor={props.onFlagForTutor}
+                    onRemoveTutorFlag={props.onRemoveTutorFlag}
+                    onReportProblem={props.onReportProblem}
+                  />
                 }
               />
               {s.pencilOn && layout !== "compact" && strip}
@@ -599,97 +449,24 @@ export function QuizShell(props: QuizShellProps) {
               </div>
             </div>
           </div>
-          {dialog === "nav" && (
-            <NavigatorDialog
-              compact={layout === "compact"}
-              title={props.section}
-              onClose={() => setDialog(null)}
-            >
-              <NavigatorGrid
-                squares={squares}
-                current={index}
-                onJump={(i) => {
-                  setDialog(null);
-                  props.onNavigate(i);
-                }}
-              />
-              {mode.markForReview && (
-                <div className={nav.legend}>
-                  <span>Tag: marked for review</span>
-                </div>
-              )}
-            </NavigatorDialog>
-          )}
-          {dialog === "reference" && (
-            <NavigatorDialog
-              compact={layout === "compact"}
-              title="Reference"
-              onClose={() => setDialog(null)}
-            >
-              <ReferenceSheet />
-            </NavigatorDialog>
-          )}
-          {dialog === "shortcuts" && (
-            <NavigatorDialog
-              compact={layout === "compact"}
-              title="Keyboard shortcuts"
-              onClose={() => setDialog(null)}
-            >
-              <ShortcutsList math={math} />
-            </NavigatorDialog>
-          )}
-          {dialog === "exit" && (
-            <NavigatorDialog
-              compact={layout === "compact"}
-              title="Leave this section?"
-              onClose={() => setDialog(null)}
-            >
-              <p>The timer keeps running while you are away.</p>
-              <div className={nav.checkActions}>
-                <button type="button" className={styles.tool} onClick={() => setDialog(null)}>
-                  Stay
-                </button>
-                <button type="button" className={styles.tool} onClick={() => props.onExit?.()}>
-                  Leave
-                </button>
-              </div>
-            </NavigatorDialog>
-          )}
+
+          <ShellDialogs
+            dialog={dialog}
+            compact={layout === "compact"}
+            section={props.section}
+            squares={squares}
+            index={index}
+            markForReview={mode.markForReview}
+            math={math}
+            onClose={() => setDialog(null)}
+            onJump={(i) => {
+              setDialog(null);
+              props.onNavigate(i);
+            }}
+            onLeave={() => props.onExit?.()}
+          />
         </div>
       </AnnotationContext.Provider>
     </PencilContext.Provider>
-  );
-}
-
-function ShellSkeleton({ layout }: { layout: string }) {
-  return (
-    <div
-      data-quiz-shell
-      data-layout={layout}
-      aria-busy="true"
-      className={`${styles.shell} ${styles[layout] ?? ""}`}
-    >
-      <header data-quiz-bar="top" className={`${styles.topBar} ${styles.glass}`}>
-        <div className={styles.skeleton} style={{ width: 160, height: 28 }} />
-      </header>
-      <div className={styles.body}>
-        <div className={styles.area}>
-          <div className={styles.pane} style={{ position: "absolute", inset: 0 }}>
-            <div className={styles.column}>
-              {[90, 75, 60, 100, 100, 100, 100].map((w, i) => (
-                <div
-                  key={i}
-                  className={styles.skeleton}
-                  style={{ width: `${w}%`, height: i < 3 ? 18 : 52, marginBottom: 14 }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-        <footer data-quiz-bar="bottom" className={`${styles.bottomBar} ${styles.glass}`}>
-          <div className={styles.skeleton} style={{ width: 96, height: 44 }} />
-        </footer>
-      </div>
-    </div>
   );
 }

@@ -109,6 +109,16 @@
   /* How much of a stacked calculator's height the graph takes. A host may tie it to the width
      instead, so the default window comes out at round numbers. */
   --kc-graph-share: 42%;
+  /* Hooks added on 2026-11-22 for the screens moved onto the quiz's glass. Each default is
+     today's classic value, so only a host that sets one sees a change. */
+  /* Error tips */
+
+  /* Statistics */
+
+  /* Regressions */
+
+  /* Sliders, tables and menus */
+
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
