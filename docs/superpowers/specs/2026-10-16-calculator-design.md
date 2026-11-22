@@ -382,7 +382,8 @@ force and tested (TR-10).
    S-9). This is lead resolution R10 as amended, and every R10 reference in the appendices means
    this wording: hosts key `CalculatorScope` per question, the calculator remounts and calls
    `setBlank()`, and only the open state, the window geometry (kept across reloads, AR-25) and
-   those settings outlive a question.
+   those settings outlive a question. Founder, 2026-11-17: a bookmarked question keeps its own
+   calculator for the rest of the quiz, one kept calculator per bookmarked question (AR-58).
 7. Owner-confirmed. Desktop docking and the floating window apply when the viewport is at least
    1024 px wide and more than 500 px tall; otherwise the calculator opens full screen, so phones in
    landscape and desktop windows 500 px tall or less (for example 1280×480) open full screen
@@ -436,7 +437,8 @@ when it stays at or under 400 ms with no overshoot.
 - R10 Each new question gets a fresh calculator: hosts key `CalculatorScope` per question and the
   constructor calls `setBlank()`; as amended by the owner on 2026-10-21 (section 10.3 item 6),
   the student's settings carry for the page session, while all math, rows, sliders, tables, the
-  viewport and the per-question view settings reset (AR-58, RC-21, S-9).
+  viewport and the per-question view settings reset (AR-58, RC-21, S-9), except on a bookmarked
+  question, which keeps its own calculator (founder, 2026-11-17).
 
 ## 11. Appendices
 

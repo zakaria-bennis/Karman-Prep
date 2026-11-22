@@ -5,7 +5,13 @@ import { reportCalculatorError } from "@/components/calculator/report-error";
 import { DEFAULT_SETTINGS } from "@/lib/calculator/core/api/types";
 import { PREFERENCE_KEYS, preferencesOf } from "../calculator-window-store";
 import { CALCULATOR_BUILD } from "../styles/generated";
-import { mountQuizCalculator, type QuizMountOptions } from "./quiz-host";
+import {
+  KEPT_LIMIT,
+  forgetKeptCalculatorsForTests,
+  keptCalculator,
+  mountQuizCalculator,
+  type QuizMountOptions,
+} from "./quiz-host";
 
 type Fn = Mock<(...args: unknown[]) => unknown>;
 const h = vi.hoisted(() => ({
@@ -22,6 +28,8 @@ const h = vi.hoisted(() => ({
   unobserve: null as unknown as Fn,
   settings: {} as Record<string, unknown>,
   throwSettings: false,
+  throwState: false,
+  state: { expressions: [] } as Record<string, unknown>,
 }));
 
 vi.mock("../KarmanCalculator", async () => {
@@ -38,6 +46,10 @@ vi.mock("../KarmanCalculator", async () => {
     reflow = v.fn();
     destroy = v.fn();
     getExpressions = v.fn(() => [{ id: "1" }, { id: "2" }]);
+    getState = v.fn(() => h.state);
+    setState = v.fn(() => {
+      if (h.throwState) throw new Error("invalid state");
+    });
     observe = v.fn(() => h.unobserve);
     get settings() {
       return h.settings;
@@ -65,7 +77,10 @@ beforeEach(() => {
   h.lastRow = null;
   h.unobserve = vi.fn();
   h.throwSettings = false;
+  h.throwState = false;
   h.settings = { ...DEFAULT_SETTINGS, angleMode: "degrees", reducedMotion: true };
+  h.state = { expressions: [] };
+  forgetKeptCalculatorsForTests();
 });
 
 function opts(o: Partial<QuizMountOptions> = {}): QuizMountOptions {
@@ -104,6 +119,8 @@ it("AR-35 the quiz host uses only the public API, focusBoundary and the recorded
     "focusExpression",
     "activateExpression",
     "getExpressions",
+    "getState",
+    "setState",
     "updateSettings",
     "observe",
     "settings",
@@ -175,4 +192,47 @@ it("a first calculator (no carried settings) keeps the defaults, and a malformed
   const bad = { angleMode: "gradians" } as unknown as ReturnType<typeof preferencesOf>;
   expect(() => mountQuizCalculator(opts({ preferences: bad }))).not.toThrow();
   expect(reportCalculatorError).toHaveBeenCalledTimes(1);
+});
+
+it("a bookmarked question keeps its calculator: kept on destroy, back on the next visit, before the carried settings (founder, 2026-11-17)", () => {
+  // the loader's live props: `memory` is the question's key while it is bookmarked
+  const live = { current: { memory: undefined as string | undefined } };
+  h.state = { expressions: [{ id: "1", latex: "y=2x" }] };
+  const first = mountQuizCalculator(opts({ live }));
+  live.current.memory = "run:q3"; // bookmarked while the calculator was in use
+  first.destroy();
+  expect(keptCalculator("run:q3")).toBe(h.state);
+  const carried = preferencesOf({ ...DEFAULT_SETTINGS, angleMode: "degrees" });
+  mountQuizCalculator(opts({ live, preferences: carried }));
+  expect(h.instance.setState).toHaveBeenCalledWith(h.state);
+  // the student's latest settings are applied after the kept state, so they win
+  expect(h.instance.setState.mock.invocationCallOrder[0]).toBeLessThan(
+    h.instance.updateSettings.mock.invocationCallOrder[0]
+  );
+});
+
+it("a question that is not bookmarked starts clean and keeps nothing, and a kept calculator is not announced as cleared (AR-58, OI-3)", () => {
+  const live = { current: { memory: undefined as string | undefined } };
+  mountQuizCalculator(opts({ live })).destroy();
+  mountQuizCalculator(opts({ live, announceReset: true }));
+  expect(h.instance.setState).not.toHaveBeenCalled();
+  expect(h.ctor.mock.lastCall?.[2]).toMatchObject({ announceResetOnMount: true });
+  const kept = { current: { memory: "run:q5" } };
+  mountQuizCalculator(opts({ live: kept })).destroy();
+  mountQuizCalculator(opts({ live: kept, announceReset: true }));
+  expect(h.ctor.mock.lastCall?.[2]).toMatchObject({ announceResetOnMount: false });
+});
+
+it("a kept state that no longer loads is reported and the calculator starts clean; the page keeps at most KEPT_LIMIT", () => {
+  const live = (memory: string) => ({ current: { memory } });
+  mountQuizCalculator(opts({ live: live("run:bad") })).destroy();
+  h.throwState = true;
+  expect(() => mountQuizCalculator(opts({ live: live("run:bad") }))).not.toThrow();
+  expect(reportCalculatorError).toHaveBeenCalledTimes(1);
+  h.throwState = false;
+  for (let i = 0; i <= KEPT_LIMIT; i++)
+    mountQuizCalculator(opts({ live: live(`run:${i}`) })).destroy();
+  expect(keptCalculator("run:bad")).toBeUndefined();
+  expect(keptCalculator("run:0")).toBeUndefined();
+  expect(keptCalculator(`run:${KEPT_LIMIT}`)).toBeDefined();
 });
