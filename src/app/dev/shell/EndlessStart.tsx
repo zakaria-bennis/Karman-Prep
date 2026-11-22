@@ -3,22 +3,20 @@
 // Endless mode's start page (founder, 2026-11-21), in the Daily 10's layout (dailyStart.module.css).
 // It draws from wherever it was started (endless.ts): one skill, one domain (leaning on the
 // student's weakest skills there) or a whole section. The feeling is flow:
-//   Left    the endless sign, drawn large, with light flowing round it without end, over a live river
-//           seen from just above the water (founder's pick, 2026-11-21: "A, on the water"), and the
-//           student's own character, dressed as they have it, at its crossing; under it the name of
-//           what the run draws from; and their best run in a card of its own.
+//   Left    a live river seen from just above the water (founder's pick, 2026-11-21: "A, on the
+//           water"), the real landscape alone, with no sign or character over it; under it the name
+//           of what the run draws from; and their best run in a card of its own.
 //   Right   how it goes: questions keep coming, three misses end the run, and where they come from;
 //           then one green Start.
 // Never skipped; nothing starts until Start. Stand-ins: no student data is read.
 import gsap from "gsap";
-import { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { RIVER_LANDS } from "@/lib/flight/world";
 import { prefersStill } from "@/lib/painting/motion";
 import go from "../end-options/parts.module.css";
 import { closeEndless, type EndlessRun } from "./endless";
 
 export { useEndlessTrail } from "./endless";
-import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import styles from "./dailyStart.module.css";
@@ -35,10 +33,6 @@ const FROM = {
   domain: () => ["Leans on your weakest skills", "More of the skills you know least here."],
   section: (name: string) => ["From every domain", `Questions from all of ${name}.`],
 } as const;
-
-/** The endless sign: a figure eight on its side, as one path, centered at 0, 0. */
-const LOOP =
-  "M0 0 C40 -64 150 -64 150 0 C150 64 40 64 0 0 C-40 -64 -150 -64 -150 0 C-150 64 -40 64 0 0Z";
 
 /** Where down the river this run's picture starts: each skill, domain or section has its own stretch. */
 function riverFrom(name: string) {
@@ -61,8 +55,6 @@ function Lives() {
 
 export function EndlessStart({ run }: { run: EndlessRun }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [small, setSmall] = useState(false);
-  useEffect(() => setSmall(window.innerWidth < 600), []);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || prefersStill()) return;
@@ -76,12 +68,6 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
         "[data-how]",
         { x: 18, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.45, ease: "power3.out", stagger: 0.08, delay: 0.35 }
-      );
-      // the sign draws itself once, then the light keeps flowing round it
-      gsap.fromTo(
-        "[data-sign]",
-        { strokeDashoffset: 1 },
-        { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", delay: 0.2 }
       );
     }, el);
     return () => ctx.revert();
@@ -100,33 +86,8 @@ export function EndlessStart({ run }: { run: EndlessRun }) {
     <div ref={ref} className={`${lib.library} ${styles.page}`}>
       <div className={styles.left}>
         <section className={`${lib.glass} ${styles.today}`} data-rise>
-          <div className={`${styles.window} ${own.window}`}>
+          <div className={styles.window}>
             <WorldWindow from={riverFrom(run.name)} lands={RIVER_LANDS} river />
-            <svg className={own.sign} viewBox="-190 -100 380 200" aria-hidden="true">
-              <defs>
-                <linearGradient id="endless-flow" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stopColor="#ffb84d" />
-                  <stop offset="0.5" stopColor="#ff7a9a" />
-                  <stop offset="1" stopColor="#7ab8ff" />
-                </linearGradient>
-              </defs>
-              {/* the sign's path, faint, and the same path drawn in bright light over it */}
-              <path d={LOOP} className={own.track} />
-              <path d={LOOP} className={own.drawn} pathLength={1} data-sign />
-              {/* light flowing round it, three pulses a step apart */}
-              {[0, 1, 2].map((i) => (
-                <path
-                  key={i}
-                  d={LOOP}
-                  className={own.pulse}
-                  pathLength={1}
-                  style={{ animationDelay: `${-i * 1.6}s` }}
-                />
-              ))}
-            </svg>
-            <span className={own.buddy}>
-              <Buddy size={small ? 80 : 112} cheer={0} />
-            </span>
           </div>
           <div className={styles.hello}>
             <h2>{run.name}</h2>
