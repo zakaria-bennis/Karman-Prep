@@ -89,7 +89,7 @@ function Row({
           </small>
         </span>
         <i>{session.minutes === 60 ? "1h" : session.minutes === 90 ? "1.5h" : "2h"}</i>
-        {gone ? (
+        {gone && (session.recording || session.state === "missed") ? (
           <span className={rows.play} data-missed={session.state === "missed" || undefined}>
             <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
               {session.state === "missed" ? (
@@ -142,7 +142,10 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
     });
   }, [pack, soon, empty, full, real]);
 
-  const { account, sync, fresh } = useSchedule();
+  const { account, sync, fresh, real: loaded } = useSchedule();
+  /* a real student's own schedule is put in place after the first paint; until then the made-up
+     one is never drawn */
+  const waiting = real !== null && !loaded;
   const { upcoming, past } = split(account, now);
   const h = hours(account);
   const [pane, setPane] = useState<Pane>({ kind: "book" });
@@ -156,7 +159,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (root.current) arrive(root.current);
-  }, []);
+  }, [waiting]);
   // the pane is brought into view when it changes to something asked for (on a phone it is below)
   const paneEl = useRef<HTMLElement>(null);
   const show = (next: Pane) => {
@@ -182,6 +185,7 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
   const items = useRef<HTMLUListElement>(null);
   useEffect(() => wave(items.current), [tab]);
 
+  if (waiting) return <div className={`${lib.library} ${styles.schedule}`} aria-busy="true" />;
   return (
     <div className={`${lib.library} ${styles.schedule}`} ref={root}>
       <SyncOffer sync={sync} />

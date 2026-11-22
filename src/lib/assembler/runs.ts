@@ -32,15 +32,12 @@ import {
 } from "./bank";
 import {
   DIAGNOSTIC_BLUEPRINT,
-  FULL_LENGTH_FORMS,
-  SECTION_SHAPE,
   assembleDiagnostic,
   assembleDomainQuiz,
-  assembleFullLengthForms,
   routeHarder,
   type Section,
 } from "./forms";
-import { PlanLimitError, assertQuestionsLeft, loadQuizAccess } from "./plan-gate";
+import { assertQuestionsLeft } from "./plan-gate";
 import { COUNTED_RUN_KINDS } from "@/lib/plans";
 import { practiceSetPool } from "./set-pool";
 import { finishTimeTrial } from "./time-trial-run";
@@ -51,9 +48,7 @@ import {
   dailyTenDays,
   findOpenRun,
   findRunByKey,
-  fullTestQuestionIds,
   getOwnedRun,
-  openFullTest,
   insertResponses,
   insertRun,
   latestRunOfKind,
@@ -352,61 +347,6 @@ function timedSections(
       },
     ];
   });
-}
-
-/** Full-length test `form` (1 to 4). Free gets one. A started form resumes; a finished one shows its report. */
-export async function startFullTest(clerkId: string, formNumber: number): Promise<RunView> {
-  const form = z.number().int().min(1).max(FULL_LENGTH_FORMS).parse(formNumber);
-  const saved = await findRunByKey(clerkId, `full-test:${form}`);
-  if (saved) return view(saved);
-  const access = await loadQuizAccess(clerkId);
-  if (!access.canStartFullTest)
-    throw new PlanLimitError("The Free plan includes one full-length test.");
-  // A limited plan finishes the test it started before opening another form.
-  if (access.limited && (await openFullTest(clerkId)))
-    throw new PlanLimitError("Finish the full-length test you started first.");
-  const bank = await loadAdmittedBank(
-    [...skillsInSection("reading"), ...skillsInSection("math")],
-    access.maxDifficulty
-  );
-  const taken = new Set(await fullTestQuestionIds(clerkId));
-  const exclude = bank.items.filter((i) => taken.has(i.id)).map((i) => i.family);
-  const forms = assembleFullLengthForms(bank.items, {
-    upTo: form,
-    maxDifficulty: access.maxDifficulty,
-    exclude,
-  });
-  const built = forms[form - 1];
-  const parts = built.sections.map((s) => ({
-    section: s.section,
-    first: s.module1.map((i) => i.id),
-    easier: s.easier.map((i) => i.id),
-    harder: s.harder.map((i) => i.id),
-    minutes: SECTION_SHAPE[s.section].minutes,
-  }));
-  const short = parts.some(
-    (p) =>
-      p.first.length < SECTION_SHAPE[p.section].perModule ||
-      p.easier.length < SECTION_SHAPE[p.section].perModule ||
-      p.harder.length < SECTION_SHAPE[p.section].perModule
-  );
-  if (short) throw new Error("No distinct approved questions are available");
-  const ids = parts.flatMap((p) => [...p.first, ...p.easier, ...p.harder]);
-  return view(
-    await insertRun({
-      studentId: clerkId,
-      kind: "full-test",
-      runKey: `full-test:${form}`,
-      scope: String(form),
-      form: {
-        title: `Practice test ${form}`,
-        grading: "end",
-        sections: timedSections(parts, true),
-      },
-      snapshots: ids.map((id) => bank.snapshots.get(id)!),
-      sequence: [],
-    })
-  );
 }
 
 /** The diagnostic, drawn from the bank: one timed module per section. Resumes or shows its report. */

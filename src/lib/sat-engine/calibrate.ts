@@ -227,13 +227,25 @@ function solve(H: number[][], g: number[]): number[] | null {
 export function calibrate(
   items: readonly CalibrationItem[],
   answers: readonly Answer[],
-  options: { iterations?: number; priors?: Priors; tolerance?: number } = {}
+  options: {
+    iterations?: number;
+    priors?: Priors;
+    tolerance?: number;
+    /** Hold the population at this mean and SD (estimated beforehand), so the scale cannot drift. */
+    population?: { mean: number; sd: number };
+  } = {}
 ): CalibrationResult {
   const priors = options.priors ?? DEFAULT_PRIORS;
   const params = new Map(items.map((i) => [i.id, { ...i.start }]));
   const anchored = items.some((i) => i.fixed);
-  let population = { mean: 0, sd: 1 };
-  let grid = normalGrid(0, 1, -4.5, 4.5, 61);
+  let population = options.population ?? { mean: 0, sd: 1 };
+  let grid = normalGrid(
+    population.mean,
+    population.sd,
+    population.mean - 4.5 * population.sd,
+    population.mean + 4.5 * population.sd,
+    61
+  );
   const responses = new Map<string, number>();
   for (const a of answers) responses.set(a.item, (responses.get(a.item) ?? 0) + 1);
   let iterations = 0;
@@ -262,7 +274,7 @@ export function calibrate(
       params.set(item.id, next);
       bSe.set(item.id, Math.sqrt(1 / Math.max(1e-6, -hd[1])));
     }
-    if (anchored) {
+    if (anchored && !options.population) {
       population = { mean, sd };
       grid = normalGrid(mean, sd, mean - 4.5 * sd, mean + 4.5 * sd, 61);
     }
@@ -286,4 +298,30 @@ export function calibrate(
     population,
     iterations,
   };
+}
+
+/**
+ * The population's mean and SD from answers to items whose parameters are taken as known (a few EM rounds
+ * with every item fixed). Calibrating with this population held fixed keeps new estimates on the scale
+ * those items define, instead of re-centring on whoever happened to answer.
+ */
+export function estimatePopulation(
+  params: ReadonlyMap<string, ItemParams>,
+  answers: readonly Answer[],
+  rounds = 8
+): { mean: number; sd: number } {
+  let population = { mean: 0, sd: 1 };
+  const known = new Map(params);
+  for (let i = 0; i < rounds; i++) {
+    const grid = normalGrid(
+      population.mean,
+      population.sd,
+      population.mean - 4.5 * population.sd,
+      population.mean + 4.5 * population.sd,
+      61
+    );
+    const { mean, sd } = eStep(answers, known, grid);
+    population = { mean, sd };
+  }
+  return population;
 }

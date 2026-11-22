@@ -6,7 +6,6 @@ import {
   actionOpenDailyTen,
   actionStartDiagnostic,
   actionStartDomainQuiz,
-  actionStartFullTest,
   actionStartPracticeSet,
   actionStartTimeTrial,
 } from "@/app/learn/quiz-run-actions";
@@ -109,41 +108,6 @@ export function DomainQuizFlow({
           back={{ href: exitHref, label: "Back" }}
         />
       )}
-    />
-  );
-}
-
-export function FullTestFlow({
-  user,
-  form,
-  resumable,
-}: {
-  user: ShellUser;
-  form: number;
-  resumable: boolean;
-}) {
-  const open = useCallback(() => actionStartFullTest({ form }), [form]);
-  return (
-    <RunPlayer
-      user={user}
-      title={`Practice test ${form}`}
-      open={open}
-      exitHref="/learn/tests"
-      intro={
-        resumable
-          ? undefined
-          : (start, pending) => (
-              <Message
-                title={`Full-length practice test ${form}`}
-                text="Reading and Writing: two modules of 27 questions, 32 minutes each. Then a break. Then Math: two modules of 22 questions, 35 minutes each. The second module of each section is easier or harder depending on the first. You can leave and come back; your answers are saved when each module is submitted."
-                action={{
-                  onClick: start,
-                  label: pending ? "Loading" : "Start Reading and Writing",
-                }}
-                back={{ href: "/learn/tests", label: "Back to tests" }}
-              />
-            )
-      }
     />
   );
 }

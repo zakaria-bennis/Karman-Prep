@@ -15,6 +15,7 @@ import { tidyMathText as tidyMath } from "@/lib/quiz/tidy-math";
 import type { Mode, RealSitting, Sample } from "@/app/dashboard/student/_portal/mistakeLogData";
 import { MODES } from "@/app/dashboard/student/_portal/mistakeLogData";
 import { skillOfSubSkill } from "./skill-bridge";
+import { loadSkill72OfQuestions } from "@/lib/bank/skills72-read";
 
 export const MAX_QUESTIONS = 600;
 
@@ -187,6 +188,12 @@ export async function loadSittings(
     for (const q of found) bank.set(q.id, fromBank(q));
   }
 
+  // which of the 72 each answered question is tagged with (the bank's real tags); the old
+  // sub-skill bridge only for a question with no tag yet
+  const tagOf = await loadSkill72OfQuestions(
+    db,
+    all.flatMap((s) => s.answers.map((a) => a.question_id))
+  );
   const out: RealSitting[] = [];
   let sent = 0;
   for (const s of all) {
@@ -197,7 +204,9 @@ export async function loadSittings(
       const snap = snaps.get(a.question_id) ?? bank.get(a.question_id);
       if (!snap) continue;
       const catalogSkill = snap.binding?.catalogSkillId ?? s.catalogSkill ?? "";
-      const skill = skillOfSubSkill(subSkillOfQuestion(a.question_id, catalogSkill));
+      const skill =
+        tagOf.get(a.question_id) ??
+        skillOfSubSkill(subSkillOfQuestion(a.question_id, catalogSkill));
       if (!skill) continue;
       const sample = sampleOf(snap, a.student_answer);
       const mark = marks.get(a.question_id);

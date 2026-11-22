@@ -183,7 +183,9 @@ export default function Homework({
 }) {
   const now = useClock();
   /* a signed-in student's own work; the design page's is made up */
-  const real = usePortalData()?.homework ?? null;
+  const data = usePortalData();
+  const real = data?.homework ?? null;
+  const matching = data?.placementPending ?? false;
   const weekFor = (w: number) => (real ? realWeek(w, real) : weekOf(w));
   const weekNow = real?.weekNow ?? WEEK_NOW;
   const weeks = real ? real.weeks : WEEKS;
@@ -258,7 +260,9 @@ export default function Homework({
   const lines =
     all === 0
       ? // nothing was ever set for this day: say so, without praise for work that never existed
-        ["Nothing assigned yet", "Your tutor's work shows up here"]
+        matching
+        ? ["We're matching you with a tutor", "Their work shows up here once you're paired"]
+        : ["Nothing assigned yet", "Your tutor's work shows up here"]
       : left === 0
         ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
         : [

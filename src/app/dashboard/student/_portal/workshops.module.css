@@ -147,6 +147,23 @@
   color: #06281a;
 }
 
+/* a link to join, once it opens: the same green as a saved spot */
+a.join {
+  background: #22c36b;
+  color: #06281a;
+  text-decoration: none;
+}
+
+/* office hours: nothing to save, so a quiet word until they open */
+.row .drop {
+  flex: none;
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
 .join svg,
 .upcoming svg {
   stroke-width: 2.2;

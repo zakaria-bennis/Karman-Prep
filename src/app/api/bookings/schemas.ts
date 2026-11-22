@@ -2,9 +2,9 @@
 // Zod schemas for the bookings API route bodies.
 //
 // Same gate-at-the-boundary pattern as the admin server-action
-// schemas. The bookings routes mutate the tokens + bookings
-// tables on student traffic, so the validation matters more
-// here than on a pure-read endpoint.
+// schemas. The bookings routes mutate the bookings table on
+// student traffic, so the validation matters more here than on a
+// pure-read endpoint.
 // ============================================================
 
 import { z } from "zod";
@@ -22,11 +22,12 @@ export const createBookingBodySchema = z.object({
   // (date-only) and "May 1 2026" (free-form), which is what we
   // want; the booking system stores precise instants.
   start: z.string().datetime({ message: "start must be ISO 8601 datetime" }),
-  // IANA TZ identifier (e.g. "America/New_York"). Format validation
-  // is best-effort — Zod can't enumerate every valid tz without a
-  // 600-line constant; we accept any non-empty string and let the
-  // downstream timezone library reject unknown names.
+  // IANA TZ identifier (e.g. "America/New_York"). An unknown name
+  // falls back to Central in the rules (src/lib/bookings/rules.ts).
   timeZone: nonEmptyString,
+  // The session's length. Which lengths a plan may book is the rules'
+  // call; absent means the plain 60 minutes (older pages send none).
+  minutes: z.union([z.literal(60), z.literal(90), z.literal(120)]).optional(),
 });
 
 // ── bookings/cancel ─────────────────────────────────────────
@@ -42,4 +43,6 @@ export const rescheduleBookingBodySchema = z.object({
   bookingId: nonEmptyString,
   newStart: z.string().datetime({ message: "newStart must be ISO 8601 datetime" }),
   reason: z.string().optional(),
+  // The student's own time zone, for the month the move counts in.
+  timeZone: z.string().optional(),
 });

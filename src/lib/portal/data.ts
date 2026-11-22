@@ -37,6 +37,8 @@ export interface PortalData {
   prefs: Record<string, unknown>;
   /** Whether the student has seen the portal's welcome (student_settings.welcomed_at). */
   welcomed: boolean;
+  /** Onboarding could not place them with a tutor or cohort yet: "We're matching you with a tutor". */
+  placementPending: boolean;
   /** Whether today's Daily 10 and challenge are done. */
   today: { dailyDone: boolean; challengeDone: boolean };
   /** Workshops coming up, for the Library. */

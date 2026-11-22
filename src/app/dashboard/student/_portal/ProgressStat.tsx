@@ -143,7 +143,7 @@ export default function ProgressStat({
                   </>
                 ))}
             </p>
-            {pacing && (
+            {pacing && !signedIn && (
               <div className={styles.sections} role="group" aria-label="Pacing shown on the graph">
                 {(Object.keys(PACE_PARTS) as PacePart[]).map((k) => (
                   <button

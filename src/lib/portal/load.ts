@@ -11,6 +11,7 @@ import { challengeAnsweredCount } from "@/lib/daily-ten/challenge";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
 import { dailyTenDays, doneToday } from "@/lib/student/daily-ten";
 import { predictedFromRange } from "@/lib/student/progress";
+import type { ExamResult } from "@/lib/exams/result";
 import {
   levelsBySubSkill,
   loadRunAnswers,
@@ -33,6 +34,7 @@ import { loadRewards } from "./rewards";
 import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
+import { loadSkill72Counts } from "@/lib/bank/skills72-read";
 
 const NAMES = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));
 
@@ -62,42 +64,64 @@ async function rows<T>(q: PromiseLike<{ data: unknown; error: unknown }>): Promi
 export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const db = createAdminClient() as unknown as SupabaseClient;
   const nowMs = Date.now();
-  const [answers, runAnswers, stored, daily, runs, diagnostics, challenges, sessions, trials] =
-    await Promise.all([
-      loadSkillAnswers(ctx.clerkId),
-      loadRunAnswers(ctx.clerkId),
-      loadStoredLevels(ctx.clerkId, nowMs),
-      dailyTenDays(ctx.clerkId),
-      rows<RunRow>(
-        db
-          .from("quiz_runs")
-          .select("kind, completed_at, result")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
-        db
-          .from("diagnostic_results")
-          .select("taken_at, score_range_low, score_range_high")
-          .eq("user_id", ctx.userId)
-          .limit(100)
-      ),
-      rows<{ day: string }>(
-        db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-      rows<{ completed_at: string | null }>(
-        db
-          .from("catalog_practice_sessions")
-          .select("completed_at")
-          .eq("student_id", ctx.clerkId)
-          .not("completed_at", "is", null)
-          .limit(2000)
-      ),
-      rows<{ started_at: string }>(
-        db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
-      ),
-    ]);
+  const [
+    answers,
+    runAnswers,
+    stored,
+    daily,
+    runs,
+    diagnostics,
+    challenges,
+    sessions,
+    trials,
+    examSittings,
+    tagged,
+  ] = await Promise.all([
+    loadSkillAnswers(ctx.clerkId),
+    loadRunAnswers(ctx.clerkId),
+    loadStoredLevels(ctx.clerkId, nowMs),
+    dailyTenDays(ctx.clerkId),
+    rows<RunRow>(
+      db
+        .from("quiz_runs")
+        .select("kind, completed_at, result")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ taken_at: string; score_range_low: number; score_range_high: number }>(
+      db
+        .from("diagnostic_results")
+        .select("taken_at, score_range_low, score_range_high")
+        .eq("user_id", ctx.userId)
+        .limit(100)
+    ),
+    rows<{ day: string }>(
+      db.from("daily_challenge_answers").select("day").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    rows<{ completed_at: string | null }>(
+      db
+        .from("catalog_practice_sessions")
+        .select("completed_at")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(2000)
+    ),
+    rows<{ started_at: string }>(
+      db.from("time_trial_runs").select("started_at").eq("student_id", ctx.clerkId).limit(2000)
+    ),
+    // The full-length exams (src/lib/exams): each finished one is a scored exam for the prediction.
+    rows<{ completed_at: string; result: ExamResult | null }>(
+      db
+        .from("exam_sittings")
+        .select("completed_at, result")
+        .eq("student_id", ctx.clerkId)
+        .not("completed_at", "is", null)
+        .limit(200)
+    ),
+    // live questions behind each of the 72, from the bank's real tags (Bank stream, 2026-11-22)
+    loadSkill72Counts(db),
+  ]);
 
   const every: SkillAnswer[] = [...answers, ...runAnswers];
   const levels = withStored(levelsBySubSkill(every, nowMs), stored);
@@ -106,11 +130,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
       name,
       {
         level: bridgedLevel(name, levels),
-        questions: bridgedQuestions(name, subSkillQuestionCount),
+        questions: tagged.get(name) ?? bridgedQuestions(name, subSkillQuestionCount),
       },
     ])
   );
 
+  // A diagnostic taken as a quiz run also writes a diagnostic_results row at the same moment; keep only
+  // the run, which has the real section scores (the old row has only a score range).
+  const diagnosticRuns = new Set(
+    runs.filter((r) => r.kind === "diagnostic").map((r) => Date.parse(r.completed_at))
+  );
   const exams: ProgressInput["exams"][number][] = [
     ...runs
       .filter((r) => (r.kind === "full-test" || r.kind === "diagnostic") && r.result?.predicted)
@@ -122,10 +151,22 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         right: r.result!.right,
         asked: r.result!.total,
       })),
-    ...diagnostics.map((d) => ({
-      at: d.taken_at,
-      total: predictedFromRange(d.score_range_low, d.score_range_high),
-    })),
+    ...examSittings
+      .filter((x) => x.result)
+      .map((x) => ({
+        at: x.completed_at,
+        total: x.result!.total,
+        rw: x.result!.reading.score,
+        math: x.result!.math.score,
+        right: x.result!.reading.right + x.result!.math.right,
+        asked: x.result!.reading.scored + x.result!.math.scored,
+      })),
+    ...diagnostics
+      .filter((d) => !diagnosticRuns.has(Date.parse(d.taken_at)))
+      .map((d) => ({
+        at: d.taken_at,
+        total: predictedFromRange(d.score_range_low, d.score_range_high),
+      })),
   ];
   const student = buildStudent({
     nowMs,
@@ -156,11 +197,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     challengeAnsweredCount(ctx.clerkId, utcDayKey(new Date(nowMs))).catch(() => 0),
     db
       .from("users")
-      .select("first_name, last_name")
+      .select("first_name, last_name, placement_failure_at")
       .eq("id", ctx.userId)
       .maybeSingle()
       .then(
-        (r) => r.data as { first_name: string | null; last_name: string | null } | null,
+        (r) =>
+          r.data as {
+            first_name: string | null;
+            last_name: string | null;
+            placement_failure_at: string | null;
+          } | null,
         () => null
       ),
     // only a plan with limits (Free) needs its usage counted
@@ -191,13 +237,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   };
   const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
-    plan === "practice" ? null : loadHomework(db, ctx, calendar, done, student.days, nowMs),
+    // a Practice-menu student with a teacher or tutor (school seat, tutor code) has homework too
+    plan === "practice" && !ctx.hasTutor
+      ? null
+      : loadHomework(db, ctx, calendar, done, student.days, nowMs),
     plan === "private" ? loadSchedule(db, ctx, calendar, nowMs) : null,
     loadRewards(db, ctx.clerkId, nowMs),
   ]);
   const working = NAMES.filter((n) => skills[n].level === 1 || skills[n].level === 2);
   const workshops = (calendar?.events ?? [])
-    .filter((e) => e.kind === "workshop")
+    // workshops, and the office hours every paid plan may drop in on
     .map((e) => workshopOf(e, working, calendar?.timeZone ?? "America/Chicago"));
 
   return {
@@ -208,6 +257,8 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     satDates: [...new Set(satDates.map((d) => d.test_date.slice(0, 10)))],
     prefs: settings?.prefs ?? {},
     welcomed: Boolean(settings?.welcomed_at),
+    // onboarding found no tutor or cohort for them yet (the admin is told); it clears once placed
+    placementPending: Boolean(names?.placement_failure_at) && !ctx.hasTutor,
     firstName: ctx.firstName,
     name: [names?.first_name, names?.last_name].filter(Boolean).join(" ") || ctx.firstName || "",
     today: done,
