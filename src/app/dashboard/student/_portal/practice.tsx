@@ -520,7 +520,7 @@ export function Today() {
               {task.streak && (
                 <span className={styles.streak}>
                   <Icon name="flame" size={18} />
-                  {streak} day streak
+                  {streak > 0 ? `${streak} day streak` : "Start your streak today"}
                 </span>
               )}
             </span>

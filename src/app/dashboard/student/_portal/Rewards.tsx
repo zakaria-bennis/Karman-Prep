@@ -22,7 +22,7 @@
 // Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
@@ -44,7 +44,8 @@ import {
   multiplierFor,
   type Pass,
 } from "./rewardsData";
-import { useBestStreak, usePortalData, useStreak } from "./portalData";
+import { useBestStreak, usePortalData, useSkills, useStreak } from "./portalData";
+import { withProgress } from "./characterProgress";
 import {
   actionBuyPass,
   actionOpenBox,
@@ -68,7 +69,24 @@ export default function Rewards({
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
   /* a signed-in student's own coins, things and passes, saved as they change */
-  const real = usePortalData()?.rewards ?? null;
+  const data = usePortalData();
+  const real = data?.rewards ?? null;
+  const skills = useSkills();
+  // a signed-in student's own progress toward each character; the design page keeps its stand-ins
+  const cast = useMemo(
+    () =>
+      data
+        ? CHARACTERS.map((c) =>
+            withProgress(c, {
+              skills,
+              exams: data.student.exams,
+              bestStreak: data.bestStreak,
+              lifetimeCoins: data.rewards.lifetime,
+            })
+          )
+        : CHARACTERS,
+    [data, skills]
+  );
   const [coins, setCoins] = useState(real?.coins ?? COINS);
   /** The things to wear that have been won from boxes, by id, newest last. */
   const [owned, setOwned] = useState<string[]>(real?.owned ?? []);
@@ -150,8 +168,8 @@ export default function Rewards({
   /** Puts a thing on, or takes it off if it is already on. */
   const wear = (item: Accessory) =>
     setOutfit({ ...outfit, [item.slot]: outfit[item.slot] === item.id ? undefined : item.id });
-  const unlocked = CHARACTERS.filter((c) => c.done >= c.of).length;
-  const chosen = CHARACTERS[picked];
+  const unlocked = cast.filter((c) => c.done >= c.of).length;
+  const chosen = cast[picked];
   const has = chosen.done >= chosen.of;
   const hidden = chosen.mystery && !has;
 
@@ -244,6 +262,9 @@ export default function Rewards({
 
             <div className={styles.part}>
               <h3>This week</h3>
+              {real && real.week.length === 0 && (
+                <p className={styles.ends}>No coins yet this week. Finish a Daily 10 to earn your first.</p>
+              )}
               <ul className={styles.earned}>
                 {(real?.week ?? EARNED).map((row) => (
                   <li key={row.name}>
@@ -388,7 +409,7 @@ export default function Rewards({
             <p className={cast.how}>{chosen.challenge}</p>
           </div>
           <div className={cast.grid} role="group" aria-label="Characters">
-            {CHARACTERS.map((c, i) => {
+            {cast.map((c, i) => {
               const mine = c.done >= c.of;
               const secret = c.mystery && !mine;
               return (

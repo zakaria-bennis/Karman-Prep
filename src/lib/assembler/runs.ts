@@ -110,7 +110,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   });
   const seed = `${clerkId}:${day}`;
   const first = skillsToLoad(skills, now, seed);
-  let bank = await loadAdmittedBank(first, access.maxDifficulty);
+  let bank = await loadAdmittedBank(first, access.maxDifficulty, access.practiceSet);
   // Too few questions in the first skills (small pools, a failed read): widen to every skill.
   const perSection = (section: Section) =>
     bank.items.filter((item) => item.section === section).length;
@@ -198,7 +198,7 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
   const [levels, history, bank] = await Promise.all([
     loadStoredLevels(clerkId),
     answeredInRuns(clerkId),
-    loadAdmittedBank([skill.id], access.maxDifficulty),
+    loadAdmittedBank([skill.id], access.maxDifficulty, access.practiceSet),
   ]);
   const items =
     sub && split

@@ -179,11 +179,11 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         () => null
       ),
   ]);
-  // a Free student whose usage could not be read is treated as having none left to give away
+  // a Free student whose usage could not be read is shown nothing locked; the server still counts
   const access = quizAccessFor(
     ctx.plan,
     limited
-      ? (usage ?? { questionsAnswered: Number.MAX_SAFE_INTEGER, fullLengthTestsCompleted: 1 })
+      ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 })
       : undefined
   );
   // Free answers one of the two challenge questions a day; every other plan both

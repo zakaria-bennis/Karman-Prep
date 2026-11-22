@@ -59,6 +59,7 @@ import SkillPage, { type OpenSkill } from "./SkillPage";
 import { LABEL, ON_BAR, PLANS, type Page, type Plan } from "./plans";
 import { DemoSwitches } from "./DemoSwitches";
 import { ShellOverlays } from "./ShellOverlays";
+import { PLAN_NAMES } from "@/lib/student/plan-gate";
 import Rewards from "./Rewards";
 import { Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
@@ -76,7 +77,7 @@ function Shell() {
   const still = useReducedMotion() ?? false;
   /* a signed-in student: their own plan, and no demo switches */
   const real = usePortalData();
-  const who = real?.name || "Maya Okafor";
+  const who = real ? real.name || real.email || "You" : "Maya Okafor";
   // a real student's character wears what they last chose, on every page
   useState(() => {
     if (!real) return;
@@ -135,7 +136,7 @@ function Shell() {
   const extraTime = kept.extraTime;
   /* demo only: the exam's banner as it is once open, and the challenge's banner asked for again */
   const [examOpen, setExamOpen] = useState(false);
-  useChatPlan(plan);
+  useChatPlan(plan, real !== null);
   const [intro, setIntro] = useState(0);
   /* counts each time the offer of music is asked for again (demo only) */
   const [offer, setOffer] = useState(0);
@@ -448,7 +449,7 @@ function Shell() {
           </span>
           <span className={styles.word}>
             {who}
-            <small>{PLANS[plan].name}</small>
+            <small>{real ? PLAN_NAMES[real.planId] : PLANS[plan].name}</small>
           </span>
         </button>
       </motion.nav>

@@ -11,7 +11,7 @@ import {
   reviewedNumericAnswers,
 } from "@/lib/question-bank/numeric-answer-set";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
-import { practiceOnly } from "@/lib/assembler/pools";
+import { practiceOnly, practicePlanOnly } from "@/lib/assembler/pools";
 
 /** One bad row is left out with a log line; it never breaks the whole skill. */
 function skipQuestion(questionId: string | null, reason: string) {
@@ -27,7 +27,10 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
  */
 export async function fetchCatalogQuestionPool(
   input: unknown,
-  lane: "practice" | "whole-bank" = "practice"
+  lane: "practice" | "whole-bank" = "practice",
+  /** Server only, from the student's plan: core plans (Free, Practice, school seats) read only the
+   *  Practice plan's fixed set (quiz_questions.practice_plan; founder, 2026-11-13). */
+  options: { practiceSet?: boolean } = {}
 ): Promise<QuizQuestionWithChoices[]> {
   const scope = catalogPoolInputSchema.parse(input);
   const skill = CATALOG_SKILLS.find((candidate) => candidate.id === scope.skillId)!;
@@ -93,7 +96,10 @@ export async function fetchCatalogQuestionPool(
       .gte("difficulty_level", scope.minimumDifficulty)
       .lte("difficulty_level", scope.maximumDifficulty);
     // Practice only: questions held for the full-length exams never reach a practice pool.
-    const { data, error } = await (lane === "practice" ? practiceOnly(query) : query).order("id", {
+    const practice = lane === "practice" ? practiceOnly(query) : query;
+    const { data, error } = await (
+      options.practiceSet ? practicePlanOnly(practice) : practice
+    ).order("id", {
       ascending: true,
     });
     if (error) throw new Error("Reviewed skill questions could not be loaded");

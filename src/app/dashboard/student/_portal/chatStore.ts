@@ -271,6 +271,11 @@ export const chat = {
     if (state.live) return;
     set({ ...state, threads: plan === "cohort" ? cohort() : alone() });
   },
+  /** A signed-in student: no made-up chats; the live ones (chatLive.ts) fill the list. */
+  empty: () => {
+    if (state.live) return;
+    set({ ...state, threads: [], peers: [] });
+  },
   presence: (presence: Presence) => set({ ...state, presence }),
   quiz: (inQuiz: boolean) => set({ ...state, inQuiz }),
   /** The warning has been read. */

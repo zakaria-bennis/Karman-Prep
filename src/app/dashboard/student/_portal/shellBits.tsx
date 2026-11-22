@@ -43,11 +43,13 @@ export function Unread() {
 
 /** Chat begins as the plan has it (a Cohort student has every kind of chat, a Private student their
  *  tutor only), and knows whether the tutor's hours are over. */
-export function useChatPlan(plan: Plan) {
+export function useChatPlan(plan: Plan, real = false) {
   useEffect(() => {
-    if (plan !== "practice") chat.start(plan);
+    // a signed-in student sees only their real chats, never the design page's
+    if (real) chat.empty();
+    else if (plan !== "practice") chat.start(plan);
     chat.presence(presenceNow());
-  }, [plan]);
+  }, [plan, real]);
 }
 
 /** Demo switches for Chat: someone writes, the tutor announces, or it is after the tutor's hours. */
