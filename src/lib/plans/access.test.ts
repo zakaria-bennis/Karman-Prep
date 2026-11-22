@@ -112,18 +112,19 @@ describe("plan catalog", () => {
 });
 
 describe("poolFor", () => {
-  it.each([1, 2, 3, 4, 5])("difficulty %i is core", (level) => {
+  it.each([1, 2, 3, 4, 5, 6])("difficulty %i is core", (level) => {
     expect(poolFor(level)).toBe("core");
   });
 
-  it.each([6, 7])("difficulty %i is mastery", (level) => {
+  it.each([7])("difficulty %i is mastery", (level) => {
     expect(poolFor(level)).toBe("mastery");
   });
 
   it("reads numeric strings and legacy labels", () => {
-    expect(poolFor("6")).toBe("mastery");
+    expect(poolFor("7")).toBe("mastery");
     expect(poolFor(" 3 ")).toBe("core");
-    expect(poolFor("mastery")).toBe("mastery");
+    // the old "mastery" label reads as level 6, which the Practice set now reaches
+    expect(poolFor("mastery")).toBe("core");
     expect(poolFor("advanced")).toBe("core");
     expect(poolFor("foundational")).toBe("core");
   });
@@ -184,10 +185,10 @@ describe("canSeeQuestion", () => {
   });
 
   it("keeps the mastery pool closed below pro level", () => {
-    expect(canSeeQuestion(plan("free"), 6, usage(0))).toBe(false);
-    expect(canSeeQuestion(plan("practice"), 6)).toBe(false);
+    expect(canSeeQuestion(plan("free"), 7, usage(0))).toBe(false);
+    expect(canSeeQuestion(plan("practice"), 7)).toBe(false);
     expect(canSeeQuestion(plan("school"), 7, undefined, { alreadyAnswered: true })).toBe(false);
-    expect(canSeeQuestion(plan("practice"), 5)).toBe(true);
+    expect(canSeeQuestion(plan("practice"), 6)).toBe(true);
   });
 
   it("opens every question at pro level", () => {
@@ -200,28 +201,27 @@ describe("canSeeQuestion", () => {
 
 describe("core covers every skill", () => {
   it("serves a skill's easiest rows to core plans when the skill has no core questions", () => {
-    // A skill whose easiest question is difficulty 6: core plans get its 6s, never its 7s.
-    expect(canSeeQuestion(plan("practice"), 6, undefined, { skillMinDifficulty: 6 })).toBe(true);
-    expect(canSeeQuestion(plan("practice"), 7, undefined, { skillMinDifficulty: 6 })).toBe(false);
-    expect(canSeeQuestion(plan("free"), 6, usage(10), { skillMinDifficulty: 6 })).toBe(true);
-    expect(canSeeQuestion(plan("free"), 6, usage(100), { skillMinDifficulty: 6 })).toBe(false);
+    // A skill whose easiest question is difficulty 7: core plans get its easiest rows.
+    expect(canSeeQuestion(plan("practice"), 7, undefined, { skillMinDifficulty: 7 })).toBe(true);
+    expect(canSeeQuestion(plan("free"), 7, usage(10), { skillMinDifficulty: 7 })).toBe(true);
+    expect(canSeeQuestion(plan("free"), 7, usage(100), { skillMinDifficulty: 7 })).toBe(false);
   });
 
   it("keeps mastery closed when the skill has core questions", () => {
-    expect(canSeeQuestion(plan("practice"), 6, undefined, { skillMinDifficulty: 2 })).toBe(false);
-    expect(isCoreFallback(6, 5)).toBe(false);
-    expect(isCoreFallback(6, null)).toBe(false);
+    expect(canSeeQuestion(plan("practice"), 7, undefined, { skillMinDifficulty: 2 })).toBe(false);
+    expect(isCoreFallback(7, 6)).toBe(false);
+    expect(isCoreFallback(7, null)).toBe(false);
     expect(isCoreFallback(7, 7)).toBe(true);
   });
 
   it("narrows the query range to the skill's lowest difficulty only when needed", () => {
     expect(difficultyRangeForSkill(plan("practice"), 2)).toEqual({
       minimumDifficulty: 1,
-      maximumDifficulty: 5,
-    });
-    expect(difficultyRangeForSkill(plan("practice"), 6)).toEqual({
-      minimumDifficulty: 6,
       maximumDifficulty: 6,
+    });
+    expect(difficultyRangeForSkill(plan("practice"), 7)).toEqual({
+      minimumDifficulty: 7,
+      maximumDifficulty: 7,
     });
     expect(difficultyRangeForSkill(plan("pro"), 6)).toEqual({
       minimumDifficulty: 1,
@@ -244,7 +244,7 @@ describe("explanations, ranges and counts", () => {
   it("gives the difficulty range to query", () => {
     expect(difficultyRangeFor(plan("free"))).toEqual({
       minimumDifficulty: 1,
-      maximumDifficulty: 5,
+      maximumDifficulty: 6,
     });
     expect(difficultyRangeFor(plan("pro"))).toEqual({ minimumDifficulty: 1, maximumDifficulty: 7 });
   });

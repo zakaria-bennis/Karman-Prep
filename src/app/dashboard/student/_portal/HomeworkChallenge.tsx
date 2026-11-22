@@ -198,7 +198,13 @@ export function ChallengeBanner({
         <p data-rise>One Reading question and one Math question, every day.</p>
         <span className={styles.room} />
         <p className={styles.streak} data-rise>
-          <b>{streak}</b> days in a row
+          {streak > 0 ? (
+            <>
+              <b>{streak}</b> {streak === 1 ? "day" : "days"} in a row
+            </>
+          ) : (
+            "Answer today's to start your streak"
+          )}
         </p>
         <div className={styles.pair} data-rise>
           <button
@@ -251,7 +257,11 @@ export function ChallengeCard({ onStart }: { onStart: () => void }) {
       <Mark size={40} />
       <p>
         <b>Challenge</b>
-        <small>{streak} days in a row</small>
+        <small>
+          {streak > 0
+            ? `${streak} ${streak === 1 ? "day" : "days"} in a row`
+            : "Start your streak today"}
+        </small>
       </p>
       <button
         type="button"

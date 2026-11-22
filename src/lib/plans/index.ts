@@ -45,6 +45,7 @@ export {
   difficultyRangeFor,
   explanationTypes,
   questionsLeft,
+  usesPracticeSet,
   challengeQuestionsPerDay,
   challengeSubjectsOpen,
   CHALLENGE_SUBJECTS,

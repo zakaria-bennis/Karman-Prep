@@ -168,6 +168,15 @@ export function difficultyRangeFor(plan: PlanAccess): {
   };
 }
 
+/**
+ * Whether the plan reads only the Practice plan's fixed set of 5,000 (quiz_questions.practice_plan,
+ * levels 1 to 6, never an exam question; founder, 2026-11-13): every core plan (Free, Practice, a
+ * school seat). Pro and up read every practice question.
+ */
+export function usesPracticeSet(plan: PlanAccess): boolean {
+  return plan.entitlements.pool === "core";
+}
+
 /** Questions left under the plan's limit; null when there is no limit. */
 export function questionsLeft(plan: PlanAccess, usage: PlanUsage): number | null {
   const limit = plan.entitlements.questionLimit;

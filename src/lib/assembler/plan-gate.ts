@@ -15,6 +15,7 @@ import {
   getUsage,
   PLAN_ENTITLEMENTS,
   questionsLeft,
+  usesPracticeSet,
   type PlanAccess,
   type PlanUsage,
 } from "@/lib/plans";
@@ -29,6 +30,8 @@ export type QuizAccess = {
   questionsLeft: number | null;
   /** Whether the plan may start a full-length test it has not started before. */
   canStartFullTest: boolean;
+  /** Core plans read only the Practice plan's fixed set of 5,000. */
+  practiceSet: boolean;
 };
 
 /** Pure: the quiz-flow view of a resolved plan and its usage (usage only matters with limits). */
@@ -40,6 +43,7 @@ export function quizAccessFor(plan: PlanAccess, usage?: PlanUsage): QuizAccess {
     maxDifficulty: difficultyRangeFor(plan).maximumDifficulty,
     questionsLeft: questionsLeft(plan, used),
     canStartFullTest: canAccess(plan, "full-length-test:new", limited ? usage : undefined),
+    practiceSet: usesPracticeSet(plan),
   };
 }
 

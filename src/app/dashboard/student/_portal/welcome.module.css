@@ -1,0 +1,237 @@
+/*
+ * The first welcome (Welcome.tsx): the world dims a little, and one piece of glass holds the
+ * student's character, their name, what their plan opens and the month of their SAT.
+ */
+.veil {
+  position: fixed;
+  z-index: 65;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: hidden;
+  background: rgb(10 12 28 / 0.46);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
+:global([data-kp-mode="light"]) .veil {
+  background: rgb(36 30 56 / 0.26);
+}
+
+.card {
+  --tray: color-mix(in srgb, var(--ink) 8%, transparent);
+  --soft: color-mix(in srgb, var(--ink) 76%, transparent);
+  --go: #0a5a43;
+  --on-go: #fffdf8;
+  --p2: #38a47b;
+  position: relative;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(460px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 26px 24px 24px;
+  border-radius: 24px;
+  color: var(--ink);
+  text-align: center;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(calc(30px * var(--frost-k, 0.7))) saturate(1.6);
+  backdrop-filter: blur(calc(30px * var(--frost-k, 0.7))) saturate(1.6);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+}
+
+:global([data-kp-mode="dark"]) .card {
+  --go: #8fe6c3;
+  --on-go: #0d241c;
+  --p2: #45b48a;
+}
+
+.buddy {
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  margin-bottom: 2px;
+}
+
+.card h2 {
+  margin: 0;
+  font:
+    700 clamp(26px, 6vw, 34px) / 1.1 var(--font-hanken),
+    var(--font-sans);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.line {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--soft);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.when {
+  width: 100%;
+  min-width: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.when legend {
+  float: none;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.months {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.card .months button {
+  display: grid;
+  min-height: 56px;
+  place-content: center;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 14px;
+  color: inherit;
+  background: var(--tray);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  touch-action: manipulation;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    background-color 0.2s var(--out),
+    box-shadow 0.2s var(--out);
+}
+
+.card .months button b {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.card .months button small {
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.card .months button[data-wide] {
+  grid-column: 1 / -1;
+  min-height: 48px;
+}
+
+.card .months button[aria-checked="true"] {
+  background: color-mix(in srgb, var(--go) 22%, transparent);
+  box-shadow: inset 0 0 0 2px var(--go);
+}
+
+.card .months button:active {
+  transform: scale(0.96);
+}
+
+.card .months button:focus-visible,
+.card .go:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+.problem {
+  margin: 0;
+  color: #a3203a;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+:global([data-kp-mode="dark"]) .problem {
+  color: #ff9aa9;
+}
+
+.card .go {
+  display: flex;
+  width: 100%;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  border-radius: 14px;
+  color: var(--on-go);
+  background: var(--go);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--go) 80%, transparent);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.card .go:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.card .go:disabled {
+  cursor: progress;
+}
+
+.orbs {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.orbs i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: orb 0.9s ease-in-out infinite;
+}
+
+.orbs i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.orbs i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes orb {
+  50% {
+    transform: translateY(-4px);
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 22px 16px 18px;
+  }
+
+  .buddy {
+    width: 112px;
+    height: 112px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbs i {
+    animation: none;
+  }
+
+  .months button,
+  .go {
+    transition: none;
+  }
+}

@@ -22,7 +22,7 @@ import {
 import { subSkillQuestionCount } from "@/lib/subskills/map";
 import { createAdminClient } from "@/lib/supabase/server";
 import { quizAccessFor } from "@/lib/assembler/plan-gate";
-import { getUsage } from "@/lib/plans";
+import { challengeQuestionsPerDay, getUsage } from "@/lib/plans";
 import { SECTIONS, SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
@@ -179,14 +179,16 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
         () => null
       ),
   ]);
-  // a Free student whose usage could not be read is treated as having none left to give away
+  // a Free student whose usage could not be read is shown nothing locked; the server still counts
   const access = quizAccessFor(
     ctx.plan,
-    limited
-      ? (usage ?? { questionsAnswered: Number.MAX_SAFE_INTEGER, fullLengthTestsCompleted: 1 })
-      : undefined
+    limited ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 }) : undefined
   );
-  const done = { dailyDone: doneToday(daily, nowMs), challengeDone: challengeToday >= 2 };
+  // Free answers one of the two challenge questions a day; every other plan both
+  const done = {
+    dailyDone: doneToday(daily, nowMs),
+    challengeDone: challengeToday >= challengeQuestionsPerDay(ctx.plan),
+  };
   const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
     plan === "practice" ? null : loadHomework(db, ctx, calendar, done, student.days, nowMs),

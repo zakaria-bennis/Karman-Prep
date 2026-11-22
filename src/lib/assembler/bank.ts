@@ -39,18 +39,20 @@ const sectionOf = (skill: CatalogSkill): Section => (skill.subject === "math" ? 
 /** Admitted questions for each skill, at most `maxDifficulty`. One bad skill never breaks the rest. */
 export async function loadAdmittedBank(
   skillIds: readonly string[],
-  maxDifficulty: number
+  maxDifficulty: number,
+  /** Core plans read only the Practice plan's fixed set (QuizAccess.practiceSet). */
+  practiceSet = false
 ): Promise<AdmittedBank> {
   const items: BankItem[] = [];
   const snapshots = new Map<string, CatalogDeliverySnapshot>();
   const skills = CATALOG_SKILLS.filter((skill) => skillIds.includes(skill.id));
   const loadSkill = async (skill: CatalogSkill) => {
     const pool = (
-      await fetchCatalogQuestionPool({
-        skillId: skill.id,
-        minimumDifficulty: 1,
-        maximumDifficulty: maxDifficulty,
-      })
+      await fetchCatalogQuestionPool(
+        { skillId: skill.id, minimumDifficulty: 1, maximumDifficulty: maxDifficulty },
+        "practice",
+        { practiceSet }
+      )
     ).filter((row) => !HELD_BACK_PREFIXES.some((prefix) => row.id.startsWith(prefix)));
     const admitted = admitCatalogPool(
       skill.id,

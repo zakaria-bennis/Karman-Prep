@@ -253,7 +253,7 @@ export default function MistakeLog({
                     : lens === "Bookmarks"
                       ? "No bookmarks yet"
                       : lens === "Missed"
-                        ? "Nothing missed"
+                        ? "No mistakes yet"
                         : "Nothing yet"}
                 </h2>
                 {sifted(sift) ? (

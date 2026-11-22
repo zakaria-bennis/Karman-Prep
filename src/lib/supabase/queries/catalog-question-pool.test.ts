@@ -37,6 +37,10 @@ vi.mock("@/lib/supabase/server", () => ({
           fixture.calls.push(["gte", column, value]);
           return query;
         },
+        filter(column: string, operator: string, value: unknown) {
+          fixture.calls.push(["filter", column, operator, value]);
+          return query;
+        },
         lte(column: string, value: unknown) {
           fixture.calls.push(["lte", column, value]);
           return query;
@@ -107,6 +111,7 @@ describe("canonical skill pool query", () => {
       ["publish_ready", "publish_ready_with_verified_repair"],
     ]);
     expect(fixture.calls).toContainEqual(["eq", "domain", "algebra"]);
+    expect(fixture.calls).toContainEqual(["filter", "pool", "eq", "practice"]);
     expect(fixture.calls).toContainEqual(["gte", "difficulty_level", 2]);
     expect(fixture.calls).toContainEqual(["lte", "difficulty_level", 5]);
     expect(fixture.calls.some((call) => call[1] === "node_id" || call[1] === "concept_slug")).toBe(

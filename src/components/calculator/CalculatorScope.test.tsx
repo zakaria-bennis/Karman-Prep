@@ -14,9 +14,11 @@ const h = vi.hoisted(() => ({
   throwWindow: false,
   bridge: null as unknown,
   handles: [] as { focusOnOpen: ReturnType<typeof vi.fn> }[],
+  options: [] as { live?: { current: { memory?: string | false } } }[],
 }));
 vi.mock("@/components/calculator/host/quiz-host", () => ({
-  mountQuizCalculator: () => {
+  mountQuizCalculator: (options: (typeof h.options)[number]) => {
+    h.options.push(options);
     const handle = {
       calculator: {},
       focusOnOpen: vi.fn(),
@@ -77,6 +79,7 @@ beforeEach(() => {
   calculatorWindowStore.resetForTests();
   h.throwWindow = false;
   h.handles = [];
+  h.options = [];
 });
 afterEach(() => restore());
 
@@ -221,4 +224,28 @@ it("a stored rect larger than a shrunken browser window is drawn clamped on-scre
     "500px",
   ]);
   expect(calculatorWindowStore.get().floatingRect).toEqual(rect);
+});
+
+it("a bookmarked question's scope gives the host its key, read live, so its calculator is kept (founder, 2026-11-17)", async () => {
+  function Kept({ remember }: { remember: boolean }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <CalculatorScope
+        enabled
+        open={open}
+        onOpenChange={setOpen}
+        questionKey="attempt:q7"
+        remember={remember}
+      >
+        <CalculatorTrigger />
+      </CalculatorScope>
+    );
+  }
+  const view = render(<Kept remember={false} />);
+  fireEvent.click(trigger());
+  await waitFor(() => expect(h.options).toHaveLength(1));
+  const live = h.options[0].live!;
+  expect(live.current.memory).toBeFalsy();
+  view.rerender(<Kept remember />);
+  expect(live.current.memory).toBe("attempt:q7");
 });
