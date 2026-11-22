@@ -48,6 +48,7 @@ import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
 import Settings from "./Settings";
 import { TEXT_SIZES, frostOf, setSetting, useSettings } from "./settingsStore";
+import { startsDark } from "@/lib/portal/prefs";
 import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
@@ -83,12 +84,18 @@ function Shell() {
     if (!real) return;
     setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
     setSetting("testDate", real.testDate);
-    if (real.name) setSetting("name", real.name);
+    setSetting("name", real.name);
   });
   const [plan, setPlan] = useState<Plan>(
-    planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
+    /* ?plan= switches the design page only; a signed-in student always sees their own */
+    real ? real.plan : planQ !== null && planQ in PLANS ? (planQ as Plan) : "practice"
   );
-  const [dark, setDark] = useState(q.get("night") !== "0");
+  const [dark, setDark] = useState(() => startsDark(q.get("night"), real?.prefs));
+  /* light or dark is kept with a signed-in student's account, like every other choice */
+  const chooseDark = (next: boolean) => (
+    setDark(next),
+    setSetting("theme", next ? "dark" : "light")
+  );
   /* a new student's first visit (or the first after paying): the welcome, once */
   const [welcome, setWelcome] = useState(
     () => real !== null && (!real.welcomed || q.get("welcome") === "1")
@@ -458,7 +465,7 @@ function Shell() {
         open={menu && rail}
         still={still}
         dark={dark}
-        onDark={setDark}
+        onDark={chooseDark}
         onSettings={() => (go("account"), setMenu(false))}
         onClose={() => setMenu(false)}
       />
@@ -627,7 +634,7 @@ function Shell() {
             folder={q.get("folder")}
             plan={plan}
             dark={dark}
-            onDark={setDark}
+            onDark={chooseDark}
             onGo={go}
             onTrail={setTrail}
           />
