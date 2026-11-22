@@ -84,7 +84,8 @@ export async function startTrial(clerkId: string, scope: PlayScope): Promise<Run
     answeredInRuns(clerkId),
     pool72(
       skills.map((s) => s.id),
-      access.maxDifficulty
+      access.maxDifficulty,
+      access.practiceSet
     ),
     loadBaselineAnswers(clerkId).catch(() => []),
   ]);

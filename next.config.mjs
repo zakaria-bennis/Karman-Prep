@@ -29,10 +29,10 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/plans", destination: "/pricing", permanent: true },
-      // The student's Account page became Settings (2026-11-08). Old links still land.
+      // The student's old Account and Settings pages are the portal's Account view now.
       {
         source: "/dashboard/student/account",
-        destination: "/dashboard/student/settings",
+        destination: "/dashboard/student?page=account",
         permanent: false,
       },
       { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },

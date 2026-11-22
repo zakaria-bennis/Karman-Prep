@@ -7,9 +7,9 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
-import { earnedOf, loadAwards, loadRewardRow } from "@/lib/portal/rewards";
+import { earnedOf, loadAwards, loadOldBoxes, loadRewardRow } from "@/lib/portal/rewards";
 import type { CoinActivity, Earned } from "@/lib/coins/earn";
-import { multiplierOn, type ChallengeDay } from "@/lib/coins/multiplier";
+import { challengeDaysOf, multiplierOn, type ChallengeDay } from "@/lib/coins/multiplier";
 
 const db = () => createAdminClient() as unknown as SupabaseClient;
 
@@ -47,11 +47,12 @@ export async function bankCoins(
 export async function coinBalance(clerkId: string): Promise<number> {
   try {
     const client = db();
-    const [awards, row] = await Promise.all([
+    const [awards, row, boxes] = await Promise.all([
       loadAwards(client, clerkId),
       loadRewardRow(client, clerkId),
+      loadOldBoxes(client, clerkId),
     ]);
-    return Math.max(0, earnedOf(awards, Date.now()) - row.spent);
+    return Math.max(0, earnedOf(awards, Date.now()) - boxes - row.spent);
   } catch {
     return 0;
   }
@@ -70,10 +71,7 @@ export async function challengeDays(clerkId: string): Promise<ChallengeDay[]> {
       () => ({ data: null, error: true })
     );
   if (error || !data) return [];
-  const byDay = new Map<string, { ok: boolean }[]>();
-  for (const r of data as { day: string; is_correct: boolean }[])
-    byDay.set(r.day, [...(byDay.get(r.day) ?? []), { ok: !!r.is_correct }]);
-  return [...byDay].map(([day, answers]) => ({ day, answers }));
+  return challengeDaysOf(data as { day: string; is_correct: boolean }[]);
 }
 
 /** The challenge multiplier now (x1 to x3). */

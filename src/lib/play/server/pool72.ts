@@ -84,13 +84,18 @@ async function catalogSkillsOf(questionIds: readonly string[]): Promise<Set<stri
 }
 
 /** Every admitted question behind `skillIds` (72-skill ids), filed under one of them. */
-export async function pool72(skillIds: readonly string[], maxDifficulty: number): Promise<Pool72> {
+export async function pool72(
+  skillIds: readonly string[],
+  maxDifficulty: number,
+  /** From the student's plan: core plans read only the Practice plan's fixed set. */
+  practiceSet = false
+): Promise<Pool72> {
   const skills = skillIds.map((id) => skill72(id)).filter((s): s is Skill72 => !!s);
   if (!skills.length) return { items: [], snapshots: new Map() };
   const tags = await tagged(skills.map((s) => s.id));
   const catalog = new Set(skills.flatMap((s) => (BRIDGE[s.name] ?? []).map(catalogOf)));
   if (tags) for (const id of await catalogSkillsOf([...tags.keys()])) catalog.add(id);
-  const bank = await loadAdmittedBank([...catalog], maxDifficulty);
+  const bank = await loadAdmittedBank([...catalog], maxDifficulty, practiceSet);
   const byId = new Map(skills.map((s) => [s.id, s]));
   const items: Item72[] = [];
   for (const item of bank.items) {

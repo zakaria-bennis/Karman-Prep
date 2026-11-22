@@ -93,7 +93,7 @@ export async function startSkillSet(
   const [{ levels }, history, pool] = await Promise.all([
     loadLevels72(clerkId),
     answeredInRuns(clerkId),
-    pool72([skill.id], access.maxDifficulty),
+    pool72([skill.id], access.maxDifficulty, access.practiceSet),
   ]);
   if (!pool.items.length) throw new Error("No distinct approved questions are available");
   const frozen = practiceSetPool(pool.items, history);
@@ -151,7 +151,8 @@ export async function startEndless(
     answeredInRuns(clerkId),
     pool72(
       skills.map((s) => s.id),
-      access.maxDifficulty
+      access.maxDifficulty,
+      access.practiceSet
     ),
   ]);
   if (!pool.items.length) throw new Error("No distinct approved questions are available");
@@ -566,25 +567,12 @@ export async function spendSecondChance(
   const responses = await loadResponses(run.id);
   const miss = responses.find((r) => r.questionId === questionId && !r.isCorrect);
   if (!miss) throw new Error("No second chance here");
-  // spend the pass first: read, check, write (a student does this by hand, one at a time)
-  const { data: row } = await db()
-    .from("portal_rewards")
-    .select("passes")
-    .eq("student_id", clerkId)
-    .maybeSingle();
-  const passes = ((row as { passes?: Record<string, number> } | null)?.passes ?? {}) as Record<
-    string,
-    number
-  >;
-  if ((passes[SECOND_CHANCE] ?? 0) < 1) throw new Error("No second chances left");
-  const { error } = await db()
-    .from("portal_rewards")
-    .update({
-      passes: { ...passes, [SECOND_CHANCE]: passes[SECOND_CHANCE] - 1 },
-      updated_at: new Date().toISOString(),
-    })
-    .eq("student_id", clerkId);
-  if (error) throw new Error("No second chances left");
+  // spend the pass first, in one step in the database (portal_use_pass, migration 20261122040100)
+  const { data: used, error } = await db().rpc("portal_use_pass", {
+    p_student: clerkId,
+    p_pass: SECOND_CHANCE,
+  });
+  if (error || used !== true) throw new Error("No second chances left");
   const form: RunForm = { ...run.form, play: { ...play, rescued: questionId } };
   let next: RunRecord = { ...run, form };
   await updateRun(run.id, clerkId, { form });

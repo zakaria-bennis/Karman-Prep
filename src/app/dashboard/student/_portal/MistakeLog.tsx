@@ -53,6 +53,7 @@ import type { Found } from "./progressBreakdowns";
 import { activity, type Student } from "./progressData";
 import { minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
+import { useSkills } from "./portalData";
 
 const LENSES = ["Sessions", "Missed", "Bookmarks"] as const;
 type Lens = (typeof LENSES)[number];
@@ -88,9 +89,13 @@ export default function MistakeLog({
   onTrail: (trail: Trail | null) => void;
 }) {
   const still = useReducedMotion() ?? false;
+  const skills = useSkills();
   const sessions = useMemo(
-    () => (student.sittings ? fromReal(student.sittings) : sittingsOf(student, activity(student))),
-    [student]
+    () =>
+      student.sittings
+        ? fromReal(student.sittings, skills)
+        : sittingsOf(student, activity(student)),
+    [student, skills]
   );
   const [lens, setLens] = useState<Lens>("Sessions");
   const [sift, setSift] = useState<Sift>(NO_SIFT);

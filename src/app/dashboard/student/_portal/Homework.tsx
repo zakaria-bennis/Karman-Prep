@@ -449,6 +449,9 @@ export default function Homework({
               onFinish={(id) => {
                 const href = day.work.find((w) => w.id === id)?.href;
                 if (href) return window.location.assign(href);
+                // a signed-in student's work is done only when it really is (the design page
+                // marks it done on the spot)
+                if (real) return;
                 setFinished([...finished, id]);
                 setCheer(cheer + 1);
               }}

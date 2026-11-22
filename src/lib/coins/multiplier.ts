@@ -21,9 +21,18 @@ function gap(from: string, to: string): number {
  *  day missed between two answered days resets it; so does missing all of yesterday. Today, not yet
  *  answered, is not missed. */
 export function multiplierOn(days: readonly ChallengeDay[], today: string): number {
+  return multiplierPath(days, today).now;
+}
+
+/** The multiplier now, and the highest it has ever been (Rewards' record). */
+export function multiplierPath(
+  days: readonly ChallengeDay[],
+  today: string
+): { now: number; top: number } {
   const sorted = [...days].filter((d) => d.answers.length > 0 && d.day <= today);
   sorted.sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
   let value = 1;
+  let top = 1;
   let last: string | null = null;
   for (const d of sorted) {
     if (last && gap(last, d.day) > 1) value = 1;
@@ -32,8 +41,16 @@ export function multiplierOn(days: readonly ChallengeDay[], today: string): numb
         MULTIPLIER_CAP,
         value + (a.ok ? MULTIPLIER_STEP.right : MULTIPLIER_STEP.wrong)
       );
+    top = Math.max(top, value);
     last = d.day;
   }
-  if (last && gap(last, today) > 1) return 1;
-  return two(value);
+  if (last && gap(last, today) > 1) value = 1;
+  return { now: two(value), top: two(top) };
+}
+
+/** The challenge's answers as days (rows from daily_challenge_answers). */
+export function challengeDaysOf(rows: readonly { day: string; is_correct: boolean }[]) {
+  const byDay = new Map<string, { ok: boolean }[]>();
+  for (const r of rows) byDay.set(r.day, [...(byDay.get(r.day) ?? []), { ok: !!r.is_correct }]);
+  return [...byDay].map(([day, answers]): ChallengeDay => ({ day, answers }));
 }

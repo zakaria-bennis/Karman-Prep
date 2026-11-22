@@ -57,6 +57,8 @@ const MIX: { section: string; key: "rw" | "math"; picks: Pick[] }[] = [
 export function Streak() {
   const streak = useStreak();
   const best = useBestStreak();
+  // the streak counts challenge days: once today's is answered, today is already in it
+  const kept = usePortalData()?.today.challengeDone ?? false;
   return (
     <section className={`${lib.glass} ${styles.streak}`} data-rise>
       <span className={styles.flame} data-flame aria-hidden="true">
@@ -64,7 +66,7 @@ export function Streak() {
       </span>
       <p>
         <b>{streak} days in a row</b>
-        <small>Today makes {streak + 1}</small>
+        <small>{kept ? "Today is in" : `Today makes ${streak + 1}`}</small>
       </p>
       <p className={styles.best}>
         <small>Best</small>

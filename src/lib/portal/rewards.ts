@@ -8,6 +8,9 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { summarisePoints, type PointAward } from "@/lib/student/skill-points";
 import { dayKey } from "@/lib/student/streak";
+import { challengeDaysOf, multiplierPath } from "@/lib/coins/multiplier";
+import { utcDayKey } from "@/lib/daily-challenge/selection";
+import { runOf, sourceOf } from "./coin-sources";
 
 export interface RealRewards {
   coins: number;
@@ -21,6 +24,8 @@ export interface RealRewards {
   passes: Record<string, number>;
   face: string;
   outfit: Record<string, string>;
+  /** The challenge multiplier coins are paid with now, and its highest (src/lib/coins). */
+  multiplier: { now: number; top: number };
 }
 
 export type RewardRow = {
@@ -30,26 +35,6 @@ export type RewardRow = {
   face: string;
   outfit: Record<string, string>;
 };
-
-/** Where an award came from, by the start of its key ("daily-ten:...", "time-trial:..."). */
-const SOURCE: [prefix: string, name: string][] = [
-  ["daily-ten", "Daily 10"],
-  ["full-test", "Exams"],
-  ["diagnostic", "Exams"],
-  ["time-trial", "Time trials"],
-  ["endless", "Endless mode"],
-  // the coin ledger of the portal's activities (src/lib/play) and the exams' sittings
-  ["play:skill-set", "Skill sets"],
-  ["play:daily-ten", "Daily 10"],
-  ["play:endless", "Endless mode"],
-  ["play:time-trial", "Time trials"],
-  ["play:challenge", "Challenge"],
-  ["play:strategy", "Strategy quizzes"],
-  ["play:review", "Reviews"],
-  ["exam", "Exams"],
-];
-export const sourceOf = (key: string) =>
-  SOURCE.find(([p]) => key.startsWith(`${p}:`))?.[1] ?? "Skill levels";
 
 type AwardRow = { award_key: string; skill_id: string | null; points: number; created_at: string };
 
@@ -129,16 +114,15 @@ async function loadExamAwards(db: SupabaseClient, clerkId: string): Promise<Poin
   }));
 }
 
+/** The student's row. Throws when it cannot be read: only no row, with no error, is a new student.
+ *  (Reading a failure as "nothing yet" once let the next write erase everything they had.) */
 export async function loadRewardRow(db: SupabaseClient, clerkId: string): Promise<RewardRow> {
-  const { data } = await db
+  const { data, error } = await db
     .from("portal_rewards")
     .select("spent, owned, passes, face, outfit")
     .eq("student_id", clerkId)
-    .maybeSingle()
-    .then(
-      (r) => r,
-      () => ({ data: null })
-    );
+    .maybeSingle();
+  if (error) throw error;
   const row = (data ?? null) as Partial<RewardRow> | null;
   return {
     spent: row?.spent ?? 0,
@@ -149,31 +133,84 @@ export async function loadRewardRow(db: SupabaseClient, clerkId: string): Promis
   };
 }
 
+/** What the old Daily 10 boxes cost (cost less bonus), retired 2026-11-22: boxes opened before the
+ *  swap stay paid for. */
+export async function loadOldBoxes(db: SupabaseClient, clerkId: string): Promise<number> {
+  const { data, error } = await db
+    .from("student_reward_boxes")
+    .select("cost, bonus")
+    .eq("student_id", clerkId)
+    .limit(5000);
+  if (error) throw error;
+  return ((data ?? []) as { cost: number; bonus: number }[]).reduce(
+    (n, b) => n + Number(b.cost) - Number(b.bonus),
+    0
+  );
+}
+
 export const earnedOf = (awards: readonly PointAward[], nowMs: number) =>
   summarisePoints(awards, nowMs).total;
+
+/** The kinds of the runs this week's coins came from, a batch at a time. */
+async function runKinds(db: SupabaseClient, ids: (string | null)[]): Promise<Map<string, string>> {
+  const unique = [...new Set(ids.filter((id): id is string => !!id && /^[0-9a-f-]{36}$/.test(id)))];
+  const out = new Map<string, string>();
+  for (let i = 0; i < unique.length; i += 200) {
+    const { data } = await db
+      .from("quiz_runs")
+      .select("id, kind")
+      .in("id", unique.slice(i, i + 200))
+      .then(
+        (r) => r,
+        () => ({ data: null })
+      );
+    for (const r of (data ?? []) as { id: string; kind: string }[]) out.set(r.id, r.kind);
+  }
+  return out;
+}
 
 export async function loadRewards(
   db: SupabaseClient,
   clerkId: string,
   nowMs: number
 ): Promise<RealRewards> {
-  const [awards, row] = await Promise.all([loadAwards(db, clerkId), loadRewardRow(db, clerkId)]);
+  // the page still draws when the student's things cannot be read, with no coins to spend (and
+  // nothing is written from it)
+  const [awards, read, boxes, answers] = await Promise.all([
+    loadAwards(db, clerkId),
+    loadRewardRow(db, clerkId).catch(() => null),
+    loadOldBoxes(db, clerkId).catch(() => null),
+    db
+      .from("daily_challenge_answers")
+      .select("day, is_correct")
+      .eq("student_id", clerkId)
+      .limit(5000)
+      .then(
+        (r) => (r.data ?? []) as { day: string; is_correct: boolean }[],
+        () => []
+      ),
+  ]);
+  const row = read ?? { spent: 0, owned: [], passes: {}, face: "fox", outfit: {} };
   const weekAgo = nowMs - 7 * 86_400_000;
   const week = new Map<string, number>();
   const byDay = new Map<string, number>();
   const seen = new Set<string>();
+  const kinds = await runKinds(
+    db,
+    awards.filter((a) => Date.parse(a.createdAt) >= weekAgo).map((a) => runOf(a.awardKey))
+  );
   for (const a of awards) {
     if (seen.has(a.awardKey)) continue;
     seen.add(a.awardKey);
     const day = dayKey(a.createdAt);
     byDay.set(day, (byDay.get(day) ?? 0) + a.points);
     if (Date.parse(a.createdAt) < weekAgo) continue;
-    const name = sourceOf(a.awardKey);
+    const name = sourceOf(a.awardKey, (id) => kinds.get(id));
     week.set(name, (week.get(name) ?? 0) + a.points);
   }
   const lifetime = earnedOf(awards, nowMs);
   return {
-    coins: Math.max(0, lifetime - row.spent),
+    coins: read && boxes !== null ? Math.max(0, lifetime - boxes - row.spent) : 0,
     lifetime,
     today: byDay.get(dayKey(nowMs)) ?? 0,
     bestDay: Math.max(0, ...byDay.values()),
@@ -182,5 +219,6 @@ export async function loadRewards(
     passes: row.passes,
     face: row.face,
     outfit: row.outfit,
+    multiplier: multiplierPath(challengeDaysOf(answers), utcDayKey(new Date(nowMs))),
   };
 }

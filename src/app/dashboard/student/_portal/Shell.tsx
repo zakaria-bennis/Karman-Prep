@@ -175,7 +175,11 @@ function Shell() {
     setPage("library");
     setSection(found.section);
     setDomain(found.domain);
-    setSkill({ ...found.skill, domain: found.domain });
+    // the student's own level, not the stand-in the found skill may carry
+    const mine = skills[found.section]
+      .flatMap((d) => d.skills)
+      .find((k) => k.name === found.skill.name);
+    setSkill({ ...(mine ?? found.skill), domain: found.domain });
     setStat(null);
     window.scrollTo({ top: 0 });
   };
