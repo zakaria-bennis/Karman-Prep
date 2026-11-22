@@ -1,6 +1,6 @@
 "use client";
 
-// /dev/shell: step 2 of the portal rebuild, the menu, on the endless world (step 1, /dev/world).
+// The student portal (/dashboard/student, and /dev/shell with made-up students): step 2 of the portal rebuild, the menu, on the endless world (step 1, /dev/world).
 // Second version (founder, 2026-11-15): frosted glass, not paper; Karman's own stickers; spring physics;
 // a slim rail on desktop that opens when the pointer is on it. No screen is laid out yet.
 //   ?plan=practice|cohort|private   whose menu to show
@@ -47,7 +47,7 @@ import { Where } from "./Where";
 import MistakeLog, { type Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
 import Settings from "./Settings";
-import { TEXT_SIZES, frostOf, useSettings } from "./settingsStore";
+import { TEXT_SIZES, frostOf, setSetting, useSettings } from "./settingsStore";
 import { useSettingsEffects } from "./useSettingsEffects";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
@@ -65,29 +65,7 @@ import { setEquipped } from "./equipped";
 import type { FaceKind } from "./characters";
 import { Sticker, type StickerName } from "./stickers";
 
-/* Springs, in Apple's terms (Designing Fluid Interfaces): a quick response with a little bounce where a
-   press or a flick carried the motion, none where a surface simply opens. */
-const SLIDE = { type: "spring", stiffness: 520, damping: 34, mass: 1 } as const;
-const POP = { type: "spring", stiffness: 600, damping: 18, mass: 0.8 } as const;
-const OPEN = { type: "spring", stiffness: 380, damping: 36, mass: 1 } as const;
-const STILL = { duration: 0 } as const;
-/* the phone's bar turning to its second set and back: one strip pushed along, settling softly */
-const TURN = { type: "spring", stiffness: 300, damping: 30, mass: 1 } as const;
-/* a page that slides over: it comes in from the side it is headed (1 forward, -1 back) on a spring, and
-   the page it replaces leaves quickly the other way */
-const SLIDE_OVER = {
-  from: (dir: number) => ({ x: dir * 56, opacity: 0 }),
-  here: {
-    x: 0,
-    opacity: 1,
-    transition: { type: "spring" as const, stiffness: 560, damping: 40, mass: 1 },
-  },
-  gone: (dir: number) => ({
-    x: dir * -56,
-    opacity: 0,
-    transition: { duration: 0.09, ease: "easeIn" as const },
-  }),
-};
+import { OPEN, POP, SLIDE, SLIDE_OVER, STILL, TURN } from "./shellMotion";
 const RAIL = "(min-width: 960px) and (hover: hover)";
 /** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
 
@@ -100,7 +78,10 @@ function Shell() {
   const who = real?.name || "Maya Okafor";
   // a real student's character wears what they last chose, on every page
   useState(() => {
-    if (real) setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
+    if (!real) return;
+    setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
+    setSetting("testDate", real.testDate);
+    if (real.name) setSetting("name", real.name);
   });
   const [plan, setPlan] = useState<Plan>(
     planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
@@ -119,7 +100,12 @@ function Shell() {
     away.length > 0 ? PLANS[plan].bar : PLANS[plan].bar.map((p) => (p === "more" ? "account" : p));
   const items: readonly Page[] = rail ? PLANS[plan].rail : away.length > 0 ? strip(bar, away) : bar;
   const seen: readonly Page[] = rail ? items : away.length > 0 ? inView(bar, away, turned) : bar;
-  const [page, setPage] = useState<Page>(PLANS[plan].home);
+  /* ?page= opens a tab this plan has (the quiz screens send a student back with it) */
+  const [page, setPage] = useState<Page>(() => {
+    const asked = q.get("page") as Page | null;
+    const has: readonly Page[] = [...PLANS[plan].rail, "settings", "account"];
+    return asked && has.includes(asked) ? asked : PLANS[plan].home;
+  });
   const [skill, setSkill] = useState<OpenSkill | null>(null);
   const [section, setSection] = useState<Section | null>(null);
   /* the student's settings: sound, music, text size and the glass all follow them */

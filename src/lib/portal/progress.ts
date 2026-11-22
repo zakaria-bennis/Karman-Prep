@@ -1,12 +1,12 @@
 /*
  * The record behind Progress and the Mistake Log for a real student: the days since they began,
  * their full-length exams, their test date and a log of every day. The shape is the design page's
- * own (src/app/dev/shell/progressData.ts), so the screens draw a real student exactly as they draw
+ * own (src/app/dashboard/student/_portal/progressData.ts), so the screens draw a real student exactly as they draw
  * the made-up ones. Pure: the loader (load.ts) reads the rows and passes them in.
  *
  * Days are counted in Central time, as everywhere else in the portal (src/lib/student/streak.ts).
  */
-import type { DayLog, Exam, Student } from "@/app/dev/shell/progressData";
+import type { DayLog, Exam, Student } from "@/app/dashboard/student/_portal/progressData";
 import { activeSeconds } from "@/lib/student/progress";
 import { dayKey } from "@/lib/student/streak";
 

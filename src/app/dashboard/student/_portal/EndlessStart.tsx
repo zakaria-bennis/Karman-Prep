@@ -13,7 +13,7 @@ import gsap from "gsap";
 import { useLayoutEffect, useRef } from "react";
 import { RIVER_LANDS } from "@/lib/flight/world";
 import { prefersStill } from "@/lib/painting/motion";
-import go from "../end-options/parts.module.css";
+import go from "@/app/dev/end-options/parts.module.css";
 import { closeEndless, type EndlessRun } from "./endless";
 
 export { useEndlessTrail } from "./endless";

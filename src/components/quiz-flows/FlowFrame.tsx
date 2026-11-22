@@ -28,7 +28,7 @@ export function FlowFrame({
       settingsHref={STUDENT_ROUTES.settings}
       home="/dashboard/student"
       title={title ?? " "}
-      streak={{ days: user.streak, href: "/dashboard/student/progress#streak" }}
+      streak={{ days: user.streak, href: "/dashboard/student?page=progress#streak" }}
     >
       <Panel side={side}>{children}</Panel>
     </PortalShell>

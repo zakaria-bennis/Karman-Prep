@@ -5,6 +5,8 @@
  * can look but not change anything.
  */
 import { revalidatePath } from "next/cache";
+import { appUrl } from "@/lib/billing-portal/stripe";
+import { createInvite } from "@/lib/parent/invites";
 import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
@@ -95,4 +97,20 @@ export async function actionSaveTest(
   }
   revalidatePath("/dashboard/student", "layout");
   return { ok: true, testType, testDate, summary: describeTest(testType, testDate) };
+}
+
+// ---------------------------------------------------------------- a parent's invite
+
+/** Makes a fresh link that invites a parent (any older open link stops working), for the student
+ *  to send from their own email. */
+export async function actionParentInviteLink(): Promise<{ ok: true; link: string } | Failure> {
+  const who = await ownStudent();
+  if (!who.ok) return who;
+  try {
+    const invite = await createInvite(who.student.id);
+    return { ok: true, link: `${appUrl()}/join/parent/${invite.token}` };
+  } catch (e) {
+    console.error("[account] parent invite failed:", e instanceof Error ? e.message : e);
+    return { ok: false, error: "The invite didn't save. Try again in a moment." };
+  }
 }

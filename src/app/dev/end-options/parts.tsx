@@ -17,9 +17,9 @@ import { portalFontVars } from "@/components/portal/fonts";
 import { QuizWorld } from "@/components/learn/quiz-shell/QuizWorld";
 import { CoinBurst } from "@/components/quiz-flows/CoinBurst";
 import { prefersStill } from "@/lib/painting/motion";
-import lib from "../shell/library.module.css";
-import shell from "../shell/shell.module.css";
-import { LEVELS } from "../shell/skills72";
+import lib from "@/app/dashboard/student/_portal/library.module.css";
+import shell from "@/app/dashboard/student/_portal/shell.module.css";
+import { LEVELS } from "@/app/dashboard/student/_portal/skills72";
 import p from "./parts.module.css";
 
 export type Tone = "perfect" | "strong" | "middle" | "tough";

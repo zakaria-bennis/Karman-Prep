@@ -8,11 +8,11 @@
 import gsap from "gsap";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { prefersStill } from "@/lib/painting/motion";
-import { Buddy } from "../shell/HomeworkBuddy";
-import book from "../shell/scheduleBook.module.css";
-import hrs from "../shell/scheduleHours.module.css";
-import sch from "../shell/schedule.module.css";
-import lib from "../shell/library.module.css";
+import { Buddy } from "@/app/dashboard/student/_portal/HomeworkBuddy";
+import book from "@/app/dashboard/student/_portal/scheduleBook.module.css";
+import hrs from "@/app/dashboard/student/_portal/scheduleHours.module.css";
+import sch from "@/app/dashboard/student/_portal/schedule.module.css";
+import lib from "@/app/dashboard/student/_portal/library.module.css";
 import {
   Frame,
   Go,

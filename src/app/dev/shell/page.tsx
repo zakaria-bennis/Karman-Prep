@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { loadPortalData } from "@/lib/portal/load";
 import { loadStudentContext } from "@/lib/student/context";
-import Portal from "./Shell";
+import Portal from "@/app/dashboard/student/_portal/Shell";
 
 export const dynamic = "force-dynamic";
 

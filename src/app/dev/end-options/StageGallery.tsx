@@ -2,7 +2,7 @@
 // /dev/end-options?v=stages: Karman's tails growing at every step, side by side (founder,
 // 2026-11-20). Each plays on its own, and again on a press.
 import { useEffect, useState } from "react";
-import { LEVELS } from "../shell/skills72";
+import { LEVELS } from "@/app/dashboard/student/_portal/skills72";
 import { TailsStage } from "./TailsStage";
 import g from "./stageGallery.module.css";
 

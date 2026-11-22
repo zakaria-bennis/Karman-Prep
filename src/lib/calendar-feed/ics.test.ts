@@ -92,7 +92,7 @@ describe("buildIcsCalendar", () => {
           summary: "Karman 1:1 session with Sam",
           description: "Join on Zoom: https://zoom.us/j/1?pwd=a,b\n\nDetails in Karman",
           location: "https://zoom.us/j/1",
-          url: "https://karmanprep.com/dashboard/student/schedule",
+          url: "https://karmanprep.com/dashboard/student?page=schedule",
           start: new Date("2026-11-03T22:00:00.000Z"),
           end: new Date("2026-11-03T23:00:00.000Z"),
         },
@@ -108,7 +108,7 @@ describe("buildIcsCalendar", () => {
         "SUMMARY:Karman 1:1 session with Sam",
         "DESCRIPTION:Join on Zoom: https://zoom.us/j/1?pwd=a\\,b\\n\\nDetails in Karman",
         "LOCATION:https://zoom.us/j/1",
-        "URL:https://karmanprep.com/dashboard/student/schedule",
+        "URL:https://karmanprep.com/dashboard/student?page=schedule",
         "END:VEVENT",
       ])
     );

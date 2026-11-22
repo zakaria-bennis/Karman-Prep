@@ -1,6 +1,6 @@
 /*
  * Schedule for a real Private student, in the shape the Schedule screen draws
- * (src/app/dev/shell/scheduleData.ts): their sessions from `bookings`, the hours of their package
+ * (src/app/dashboard/student/_portal/scheduleData.ts): their sessions from `bookings`, the hours of their package
  * plus any hours bought on the tab (`private_hour_purchases`), their tutor, and the tutor's booking
  * calendar so times can be booked through the existing endpoints (/api/availability and
  * /api/bookings/*, which go through Cal.com).
@@ -9,7 +9,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CalendarData } from "@/components/student-portal/calendar/load";
 import type { StudentContext } from "@/lib/student/context";
-import type { Account, Length, Pack, Session } from "@/app/dev/shell/scheduleData";
+import type { Account, Length, Pack, Session } from "@/app/dashboard/student/_portal/scheduleData";
 import { PRIVATE_PACKAGES } from "@/lib/marketing/offer";
 
 export interface RealSchedule {

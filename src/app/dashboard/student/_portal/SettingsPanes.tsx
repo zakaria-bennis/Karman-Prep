@@ -9,7 +9,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { setStillChosen, stillChosen } from "@/lib/painting/motion";
 import { CONTACT } from "@/lib/marketing/offer";
 import { TRACK_NAMES } from "./music";
-import { PLANS, type Page, type Plan } from "./plans";
+import type { Page, Plan } from "./plans";
 import { AppleCalendarLogo, GoogleCalendarLogo } from "./ScheduleLogos";
 import { Chevron, Icon, Row, Seg, Slider, Toggle } from "./settingsControls";
 import {
@@ -23,6 +23,10 @@ import {
 } from "./settingsStore";
 import { Me } from "./shellBits";
 import { tick } from "./sound";
+import { PlanPane } from "./SettingsPlan";
+import { usePortalData } from "./portalData";
+import { actionParentInviteLink, actionSaveTest } from "@/lib/portal/settings-actions";
+import { redeemCodeAction } from "@/app/join/actions";
 import styles from "./settings.module.css";
 
 export type FolderKey =
@@ -44,7 +48,7 @@ export type PaneProps = {
   onGo: (page: Page) => void;
 };
 
-function Group({ title, children }: { title?: string; children: ReactNode }) {
+export function Group({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section className={styles.group}>
       <div className={styles.rows}>
@@ -144,8 +148,28 @@ function Profile() {
 /** The people a student works with: a parent who follows along, and a tutor joined by a code. */
 function People() {
   const s = useSettings();
+  const real = usePortalData() !== null;
   const [parent, setParent] = useState("");
   const [sent, setSent] = useState(false);
+  /* a real student's invite is a fresh link, sent from their own email */
+  const invite = async () => {
+    const made = await actionParentInviteLink();
+    if (!made.ok) return window.alert(made.error);
+    const body = `Follow my SAT practice on Karman: ${made.link}`;
+    window.location.href = `mailto:${encodeURIComponent(parent)}?subject=${encodeURIComponent(
+      "Join me on Karman"
+    )}&body=${encodeURIComponent(body)}`;
+    setSent(true);
+  };
+  /* a real tutor code joins that tutor's group */
+  const redeem = async (code: string) => {
+    if (!real || code.trim().length < 4) return;
+    const r = await redeemCodeAction({ code });
+    if (r.ok) return window.alert(`You're in ${r.tutorName}'s group.`);
+    window.alert(
+      "message" in r ? r.message : "That code didn't work. Check it with your tutor and try again."
+    );
+  };
   return (
     <>
       <Group title="Invite a parent">
@@ -153,7 +177,9 @@ function People() {
           className={styles.inline}
           onSubmit={(e) => {
             e.preventDefault();
-            if (parent.includes("@")) setSent(true);
+            if (!parent.includes("@")) return;
+            if (real) void invite();
+            else setSent(true);
           }}
         >
           <label className={styles.field}>
@@ -179,6 +205,7 @@ function People() {
             autoCapitalize="characters"
             autoComplete="off"
             onChange={(e) => setSetting("tutorCode", e.target.value.toUpperCase())}
+            onBlur={(e) => void redeem(e.target.value)}
           />
         </label>
       </Group>
@@ -188,6 +215,7 @@ function People() {
 
 function Sat() {
   const s = useSettings();
+  const real = usePortalData() !== null;
   return (
     <>
       <Group title="Test date">
@@ -198,7 +226,16 @@ function Sat() {
             ...SAT_DATES.map((day) => ({ value: day as string, label: dayName(day) })),
             { value: null, label: "Not sure yet" },
           ]}
-          onChange={(day) => setSetting("testDate", day)}
+          onChange={(day) => {
+            const was = s.testDate;
+            setSetting("testDate", day);
+            if (real)
+              void actionSaveTest({ testType: "sat", testDate: day }).then((r) => {
+                if (r.ok) return;
+                setSetting("testDate", was);
+                window.alert(r.error);
+              });
+          }}
         />
       </Group>
       <Group title="Extra time on the SAT">
@@ -518,45 +555,6 @@ function Notify({ plan }: PaneProps) {
             }
           />
         )}
-      </Group>
-    </>
-  );
-}
-
-function PlanPane({ plan, onGo }: PaneProps) {
-  return (
-    <>
-      <Group title="Plan">
-        <Row name={PLANS[plan].name} note={plan === "private" ? "20 hours" : undefined}>
-          {plan !== "private" && (
-            <button type="button" className={styles.go}>
-              Upgrade
-            </button>
-          )}
-        </Row>
-        {plan === "private" && (
-          <Row name="12 hours left">
-            <button type="button" className={styles.go} onClick={() => onGo("schedule")}>
-              Add hours
-            </button>
-          </Row>
-        )}
-      </Group>
-      <Group title="Payment method">
-        <Row name="Visa ending 4242">
-          <button type="button" className={styles.soft}>
-            Change
-          </button>
-        </Row>
-      </Group>
-      <Group title="Receipts">
-        {["November 3, 2026", "October 3, 2026"].map((day) => (
-          <Row key={day} name={day}>
-            <button type="button" className={styles.soft}>
-              View
-            </button>
-          </Row>
-        ))}
       </Group>
     </>
   );

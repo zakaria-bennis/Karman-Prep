@@ -26,7 +26,7 @@ const PORTAL: Array<[string, number]> = [
   ["/learn/daily", 2],
   ["/learn/diagnostic", 2],
   ["/learn/time-trial", 1],
-  ["/dashboard/student/progress", 1],
+  ["/dashboard/student?page=progress", 1],
   ["/learn/math", 2],
 ];
 

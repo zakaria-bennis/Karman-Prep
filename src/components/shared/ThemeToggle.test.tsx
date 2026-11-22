@@ -59,7 +59,7 @@ describe("floating theme control", () => {
   it("stays clear of student and parent portals, whose layouts supply theme controls", () => {
     for (const route of [
       "/dashboard/student",
-      "/dashboard/student/schedule",
+      "/dashboard/student/scholarship",
       "/dashboard/parent",
       "/dashboard/parent/child-id",
       "/tutor/schedule",

@@ -19,7 +19,7 @@ vi.mock("@/lib/quiz/reward-sound", () => ({
 }));
 const state = vi.fn<() => Promise<{ ok: true; value: RewardState }>>();
 const seen = vi.fn(async (_input: unknown) => ({ ok: true, value: null }));
-vi.mock("@/app/dashboard/student/rewards/actions", () => ({
+vi.mock("@/lib/rewards/actions", () => ({
   actionRewardState: () => state(),
   actionCompanionsSeen: (input: unknown) => seen(input),
   actionOpenBox: vi.fn(),
@@ -89,7 +89,7 @@ describe("the Daily 10 ending", () => {
     expect(screen.getByText("tokens to spend", { exact: false })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Rewards" })).toHaveAttribute(
       "href",
-      "/dashboard/student/rewards"
+      "/dashboard/student?page=rewards"
     );
   });
 

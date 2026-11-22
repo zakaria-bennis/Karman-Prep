@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CATALOG_SKILLS } from "@/data/curriculum/skill-catalog";
 import { SUB_SKILLS } from "@/lib/subskills/taxonomy";
 import { buildCourse, scoreGain, subjectFromSlug } from "./course";
-import { mistakeLog, nextEndlessSkill } from "./endless";
 import type { SkillLevel } from "./levels";
 import { canUse, questionsLeft, showsCalendar, studentPlan } from "./plan-gate";
 
@@ -37,22 +35,6 @@ describe("Library courses", () => {
     expect(subjectFromSlug("math")).toBe("math");
     expect(subjectFromSlug("reading-writing")).toBe("reading");
     expect(subjectFromSlug("units")).toBeNull();
-  });
-});
-
-describe("endless mode", () => {
-  it("brings back a fresh miss first, then the course that is behind", () => {
-    const now = Date.parse("2026-11-08T12:00:00Z");
-    const skill = CATALOG_SKILLS.find((s) => s.subject === "reading")!.id;
-    const log = mistakeLog([
-      { skillId: skill, sessionId: "s1", correct: false, at: now - 86_400_000 },
-      { skillId: skill, sessionId: "s1", correct: true, at: now - 86_000_000 },
-    ]);
-    expect(log).toHaveLength(1);
-    expect(log[0].misses).toBe(1);
-    const courses = [buildCourse("math", new Map()), buildCourse("reading", new Map())];
-    expect(nextEndlessSkill(log, new Map(), courses, now)).toBe(skill);
-    expect(nextEndlessSkill([], new Map(), courses, now)).toBe(courses[0].upNext!.id);
   });
 });
 

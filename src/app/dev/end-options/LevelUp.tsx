@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { confetti } from "@/components/quiz-flows/stage-motion";
 import { prefersStill } from "@/lib/painting/motion";
 import { playRewardSound } from "@/lib/quiz/reward-sound";
-import { LEVELS } from "../shell/skills72";
+import { LEVELS } from "@/app/dashboard/student/_portal/skills72";
 import { TailsStage } from "./TailsStage";
 import type { SetView } from "./parts";
 import l from "./levelUp.module.css";

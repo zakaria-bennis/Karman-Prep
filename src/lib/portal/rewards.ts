@@ -1,5 +1,5 @@
 /*
- * Rewards for a real student (src/app/dev/shell/Rewards.tsx): coins earned by practice (the point
+ * Rewards for a real student (src/app/dashboard/student/_portal/Rewards.tsx): coins earned by practice (the point
  * awards the quiz flows already save), less what was spent on boxes and passes; the things to wear
  * won; the passes held; and what the character has on. Spending is saved by reward-actions.ts in
  * `portal_rewards` (migration 20261121200000).

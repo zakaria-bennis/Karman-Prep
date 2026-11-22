@@ -6,8 +6,8 @@ import AccountMenu from "./AccountMenu";
 afterEach(cleanup);
 
 const items = [
-  { label: "Settings", icon: "settings" as const, href: "/dashboard/student/settings" },
-  { label: "Invite a parent", icon: "invite" as const, href: "/dashboard/student/invite-parent" },
+  { label: "Settings", icon: "settings" as const, href: "/dashboard/student?page=settings" },
+  { label: "Invite a parent", icon: "invite" as const, href: "/dashboard/student?page=settings" },
   { label: "Sign out", icon: "signout" as const, quiet: true, onSelect: vi.fn() },
 ];
 

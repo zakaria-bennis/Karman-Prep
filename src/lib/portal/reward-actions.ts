@@ -11,7 +11,7 @@ import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { fetchUserRole, resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { BOX_PRICE, PASSES } from "@/app/dev/shell/rewardsData";
+import { BOX_PRICE, PASSES } from "@/app/dashboard/student/_portal/rewardsData";
 import { earnedOf, loadAwards, loadRewardRow, type RewardRow } from "./rewards";
 
 export type SpendResult = { ok: true; coins: number } | { ok: false; error: string };

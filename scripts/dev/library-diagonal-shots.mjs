@@ -47,7 +47,9 @@ async function open({
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.goto(`${BASE}/dashboard/student/library?paint-time=${time}`, { waitUntil: "load" });
+  await page.goto(`${BASE}/dashboard/student?page=library?paint-time=${time}`, {
+    waitUntil: "load",
+  });
   if (!challenge) await page.waitForSelector("[data-shown]", { timeout: 60000 });
   return { ctx, page, errors };
 }

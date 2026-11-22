@@ -13,8 +13,8 @@
 import gsap from "gsap";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { prefersStill } from "@/lib/painting/motion";
-import { TailsMark } from "../end-options/TailsStage";
-import go from "../end-options/parts.module.css";
+import { TailsMark } from "@/app/dev/end-options/TailsStage";
+import go from "@/app/dev/end-options/parts.module.css";
 import { DailyWorld } from "./DailyWorld";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";

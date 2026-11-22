@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SUB_SKILLS } from "@/lib/subskills/taxonomy";
-import { SECTIONS, SKILLS } from "@/app/dev/shell/skills72";
+import { SECTIONS, SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import { BRIDGE, bridgedLevel, bridgedQuestions, toPortalLevel } from "./skill-bridge";
 
 const names = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));

@@ -23,7 +23,7 @@ import {
 export type RewardResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
 const PREVIEW = "You're previewing this student, so rewards can't be opened or changed.";
-const REWARDS_PATH = "/dashboard/student/rewards";
+const REWARDS_PATH = "/dashboard/student";
 
 async function who(): Promise<{ clerkId: string; preview: boolean } | null> {
   const { userId } = await safeAuth();

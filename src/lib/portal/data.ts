@@ -1,18 +1,18 @@
 /*
  * What the student portal is given about the signed-in student, read on the server by
  * `loadPortalData` (load.ts) and handed to the page. Each screen reads its part through
- * `usePortalData` (src/app/dev/shell/portalData.tsx). Plain data, safe on the client.
+ * `usePortalData` (src/app/dashboard/student/_portal/portalData.tsx). Plain data, safe on the client.
  *
  * Screens are wired one at a time (founder, 2026-11-21); a screen with no part here yet still
  * shows its stand-ins.
  */
-import type { SkillFacts } from "@/app/dev/shell/skills72";
-import type { Student } from "@/app/dev/shell/progressData";
+import type { SkillFacts } from "@/app/dashboard/student/_portal/skills72";
+import type { Student } from "@/app/dashboard/student/_portal/progressData";
 import type { RealHomework, RealWorkshop } from "./homework";
 import type { RealRewards } from "./rewards";
 import type { RealSchedule } from "./schedule";
 
-/** The portal's three menus (src/app/dev/shell/plans.ts). */
+/** The portal's three menus (src/app/dashboard/student/_portal/plans.ts). */
 export type PortalPlan = "practice" | "cohort" | "private";
 
 export interface PortalData {
@@ -20,6 +20,8 @@ export interface PortalData {
   firstName: string | null;
   /** First and last name, as the menu shows it. */
   name: string;
+  /** The SAT date the student entered (YYYY-MM-DD), if any. */
+  testDate: string | null;
   /** Whether today's Daily 10 and challenge are done. */
   today: { dailyDone: boolean; challengeDone: boolean };
   /** Workshops coming up, for the Library. */

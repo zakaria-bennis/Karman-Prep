@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Cta } from "@/components/portal";
-import { actionOpenBox, actionWear } from "@/app/dashboard/student/rewards/actions";
+import { actionOpenBox, actionWear } from "@/lib/rewards/actions";
 import { ACCESSORIES, ANIMALS, type AccessoryId, type AnimalId } from "@/lib/rewards/catalog";
 import type { Prize } from "@/lib/rewards/economy";
 import { ACCESSORY_ART, ACCESSORY_VIEWBOX } from "./accessories";

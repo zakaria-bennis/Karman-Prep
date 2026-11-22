@@ -8,12 +8,12 @@
 import gsap from "gsap";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { prefersStill } from "@/lib/painting/motion";
-import { Buddy } from "../shell/HomeworkBuddy";
-import { Spark } from "../shell/ProgressActivity";
-import { Icon } from "../shell/practice";
-import lib from "../shell/library.module.css";
-import pa from "../shell/progressActivity.module.css";
-import pr from "../shell/progress.module.css";
+import { Buddy } from "@/app/dashboard/student/_portal/HomeworkBuddy";
+import { Spark } from "@/app/dashboard/student/_portal/ProgressActivity";
+import { Icon } from "@/app/dashboard/student/_portal/practice";
+import lib from "@/app/dashboard/student/_portal/library.module.css";
+import pa from "@/app/dashboard/student/_portal/progressActivity.module.css";
+import pr from "@/app/dashboard/student/_portal/progress.module.css";
 import {
   Frame,
   Go,

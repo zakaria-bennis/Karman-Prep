@@ -4,8 +4,8 @@
 // anything that sits badly on a face can be seen at a glance. One block for each character.
 // Open /dev/shell/sheet.
 import { notFound } from "next/navigation";
-import { ACCESSORIES, Dressed } from "../accessories";
-import { CHARACTERS } from "../rewardsData";
+import { ACCESSORIES, Dressed } from "@/app/dashboard/student/_portal/accessories";
+import { CHARACTERS } from "@/app/dashboard/student/_portal/rewardsData";
 
 export default function AccessorySheet() {
   if (process.env.NODE_ENV === "production") notFound();

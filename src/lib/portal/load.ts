@@ -21,7 +21,7 @@ import {
 } from "@/lib/student/skill-levels-server";
 import { subSkillQuestionCount } from "@/lib/subskills/map";
 import { createAdminClient } from "@/lib/supabase/server";
-import { SECTIONS, SKILLS } from "@/app/dev/shell/skills72";
+import { SECTIONS, SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
 import { dayKey, streaks } from "@/lib/student/streak";
@@ -176,6 +176,7 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     firstName: ctx.firstName,
     name: [names?.first_name, names?.last_name].filter(Boolean).join(" ") || ctx.firstName || "",
     today: done,
+    testDate: ctx.testDate ? ctx.testDate.slice(0, 10) : null,
     workshops,
     skills,
     student: { ...student, sittings },

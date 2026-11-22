@@ -45,6 +45,3 @@ export const fullLengthTest = (form: number): QuizRoute => ({
   path: `/learn/test/${form}`,
   ready: true,
 });
-
-/** Endless mode lives in the Library: untimed, adaptive, with the mistake log inside. */
-export const ENDLESS = { path: "/dashboard/student/library/endless", ready: true } as const;

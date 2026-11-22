@@ -1,7 +1,7 @@
 // What is the same on the server and in the browser for Chat's extras.
 import { z } from "zod";
 
-/** Every reaction a message can be given (drawn in src/app/dev/shell/ChatEmoji.tsx). */
+/** Every reaction a message can be given (drawn in src/app/dashboard/student/_portal/ChatEmoji.tsx). */
 export const REACTIONS = [
   "up",
   "down",

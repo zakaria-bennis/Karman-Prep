@@ -8,7 +8,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, Cta, Num } from "@/components/portal";
-import { actionCompanionsSeen, actionRewardState } from "@/app/dashboard/student/rewards/actions";
+import { actionCompanionsSeen, actionRewardState } from "@/lib/rewards/actions";
 import { CompanionMoment } from "@/components/rewards/CompanionMoment";
 import { PeekStage } from "@/components/rewards/PeekStage";
 import { STUDENT_ROUTES } from "@/components/student-portal/StudentPortal";

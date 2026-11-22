@@ -1,6 +1,6 @@
 /*
  * Homework for a real Cohort or Private student, in the shape the Homework screen draws
- * (src/app/dev/shell/homeworkData.ts): the work tutors assigned, today's Daily 10 and challenge,
+ * (src/app/dashboard/student/_portal/homeworkData.ts): the work tutors assigned, today's Daily 10 and challenge,
  * the live classes on the calendar, and which week of the cohort it is. Read from the same places
  * the old Homework and Today pages read.
  */
@@ -10,8 +10,8 @@ import type { CalendarData } from "@/components/student-portal/calendar/load";
 import type { StudentContext } from "@/lib/student/context";
 import { loadStudentHomework, type StudentHomeworkItem } from "@/lib/student/homework";
 import { dayKey } from "@/lib/student/streak";
-import { SKILLS } from "@/app/dev/shell/skills72";
-import type { Kind, Sort, Work } from "@/app/dev/shell/homeworkData";
+import { SKILLS } from "@/app/dashboard/student/_portal/skills72";
+import type { Kind, Sort, Work } from "@/app/dashboard/student/_portal/homeworkData";
 import { between } from "./progress";
 
 /** A piece of work on its day: days from today (0 today, less than 0 past), and where it opens. */

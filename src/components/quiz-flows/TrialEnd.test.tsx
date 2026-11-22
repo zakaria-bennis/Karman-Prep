@@ -51,7 +51,7 @@ describe("TrialEnd", () => {
       <TrialEnd
         user={user}
         run={view(trial(24))}
-        exitHref="/dashboard/student/library"
+        exitHref="/dashboard/student?page=library"
         nextHref="/learn/time-trial?section=reading&again=1"
       />
     );
@@ -68,7 +68,7 @@ describe("TrialEnd", () => {
     );
     expect(screen.getByRole("link", { name: "Done" })).toHaveAttribute(
       "href",
-      "/dashboard/student/library"
+      "/dashboard/student?page=library"
     );
   });
 

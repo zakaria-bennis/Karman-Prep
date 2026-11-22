@@ -8,7 +8,7 @@
 // Coins are not spoken of here: they appear only on Rewards.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
-import { PlayQuiz, type Made } from "../end-options/PlayQuiz";
+import { PlayQuiz, type Made } from "@/app/dev/end-options/PlayQuiz";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";
 import styles from "./homeworkChallenge.module.css";

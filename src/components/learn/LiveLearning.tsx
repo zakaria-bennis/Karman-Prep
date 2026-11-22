@@ -99,7 +99,7 @@ export default function LiveLearning({
               </ul>
             )}
             <Link
-              href="/dashboard/student/schedule"
+              href="/dashboard/student?page=schedule"
               className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-gold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-bright"
             >
               View your schedule

@@ -10,12 +10,21 @@
 // onboarding or subscription checks run. Admin previews remain available.
 // ============================================================
 
+import type { Viewport } from "next";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { getPlan } from "@/lib/plans/resolve";
 import { ensureUserRow } from "@/lib/auth/ensure-user";
+
+// The portal fills the whole screen of a phone, under the status bar and round the home line, so
+// that its bottom bar can keep clear of them itself (env(safe-area-inset-bottom)).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 const TAUGHT_PLANS = ["cohort", "private-10", "private-20"] as const;
 

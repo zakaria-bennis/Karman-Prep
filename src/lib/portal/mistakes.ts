@@ -12,8 +12,8 @@ import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-co
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import { subSkillOfQuestion } from "@/lib/subskills/map";
 import { tidyMathText as tidyMath } from "@/lib/quiz/tidy-math";
-import type { Mode, RealSitting, Sample } from "@/app/dev/shell/mistakeLogData";
-import { MODES } from "@/app/dev/shell/mistakeLogData";
+import type { Mode, RealSitting, Sample } from "@/app/dashboard/student/_portal/mistakeLogData";
+import { MODES } from "@/app/dashboard/student/_portal/mistakeLogData";
 import { skillOfSubSkill } from "./skill-bridge";
 
 export const MAX_QUESTIONS = 600;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activity, predict } from "@/app/dev/shell/progressData";
+import { activity, predict } from "@/app/dashboard/student/_portal/progressData";
 import { buildStudent, type ProgressInput } from "./progress";
 
 // noon in Central time, so the day keys are stable

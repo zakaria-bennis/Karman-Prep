@@ -84,7 +84,7 @@ function bookingTitle(tier: string): string {
 
 export function studentFeedEvents(rows: StudentFeedRows, siteUrl: string): FeedEvent[] {
   const prefix = rows.studentLabel ? `${rows.studentLabel}: ` : "";
-  const scheduleUrl = absolute(siteUrl, "/dashboard/student/schedule");
+  const scheduleUrl = absolute(siteUrl, "/dashboard/student?page=schedule");
   const events: FeedEvent[] = [];
 
   for (const booking of rows.bookings) {

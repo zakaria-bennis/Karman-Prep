@@ -1,6 +1,6 @@
 /*
  * The bridge from the question bank's skills to the portal's 72 (founder, 2026-11-15, in
- * src/app/dev/shell/skills72.ts). The bank is still tagged with the 39 catalog skills, split into
+ * src/app/dashboard/student/_portal/skills72.ts). The bank is still tagged with the 39 catalog skills, split into
  * 92 sub-skills (src/lib/subskills/taxonomy.ts), and every level a student earns is stored against
  * a sub-skill. Until the bank is retagged into the 72 (decided 2026-11-18, not done), each of the 72
  * reads the sub-skills that cover what it tests. When the retag lands, this file is deleted and

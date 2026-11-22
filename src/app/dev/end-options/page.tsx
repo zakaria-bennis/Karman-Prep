@@ -18,9 +18,9 @@
 // Production builds return 404.
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import type { FaceKind } from "../shell/characters";
-import { setEquipped } from "../shell/equipped";
-import { wearing } from "../shell/HomeworkBits";
+import type { FaceKind } from "@/app/dashboard/student/_portal/characters";
+import { setEquipped } from "@/app/dashboard/student/_portal/equipped";
+import { wearing } from "@/app/dashboard/student/_portal/HomeworkBits";
 import { HomeworkEnd } from "./HomeworkEnd";
 import { ProgressEnd } from "./ProgressEnd";
 import { ScheduleEnd } from "./ScheduleEnd";
