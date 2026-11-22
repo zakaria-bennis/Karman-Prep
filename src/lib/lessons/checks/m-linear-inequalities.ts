@@ -19,6 +19,30 @@ const checks: LessonChecks = {
     { text: "y \\ge 2x - 1" },
     Math.floor((1500 - 170) / 40),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // dividing by a negative flips the sign: x < (15 - 7) / -2 and x >= (19 - 4) / -5
+    [{ text: `x<${(15 - 7) / -2}` }, { text: `x\\ge${(19 - 4) / -5}` }],
+    // the one listed point that satisfies both inequalities
+    [
+      {
+        index: [
+          [1, 1],
+          [3, 2],
+          [1, 4],
+          [2, 6],
+        ].findIndex(([x, y]) => y < x + 3 && x + y >= 4),
+      },
+      {
+        index: [
+          [2, 4],
+          [3, 1],
+          [0, 7],
+          [1, 3],
+        ].findIndex(([x, y]) => y >= 2 * x - 1 && x + y < 6),
+      },
+    ],
+  ],
 };
 
 export default checks;

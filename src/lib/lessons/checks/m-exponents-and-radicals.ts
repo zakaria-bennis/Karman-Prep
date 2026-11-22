@@ -18,6 +18,14 @@ const checks: LessonChecks = {
     // x^(5/3) / x^(-1/3) = x^2
     (x) => x ** (5 / 3 + 1 / 3),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [(x: number) => x ** (1 / 3 + 3 / 4), (x: number) => x ** (1 / 2 + 2 / 5)],
+    [
+      (x: number) => (3 * x ** 2) ** 3 / (9 * x ** 4),
+      (x: number) => (2 * x ** 4) ** 3 / (4 * x ** 7),
+    ],
+  ],
 };
 
 export default checks;

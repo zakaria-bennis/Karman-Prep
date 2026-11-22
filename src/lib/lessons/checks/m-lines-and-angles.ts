@@ -17,6 +17,12 @@ const checks: LessonChecks = {
     { text: "They are across from each other where two lines cross." },
     Math.min(5 * q4k - 12, 3 * q4k + 32),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // the two acute angles are equal; an obtuse and an acute angle add to 180
+    [4 * ((35 + 5) / (4 - 2)) - 5, 5 * ((24 + 12) / (5 - 2)) - 12],
+    [6 * ((180 + 10 - 30) / (6 + 2)) - 10, 5 * ((180 - 5 - 25) / (5 + 1)) + 5],
+  ],
 };
 
 export default checks;

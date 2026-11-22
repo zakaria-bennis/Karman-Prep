@@ -25,6 +25,19 @@ const checks: LessonChecks = {
     { text: "Exactly one" },
     line4(big(1, -2, -8)) + line4(small(1, -2, -8)),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // set equal, solve the quadratic, keep the root the question asks for, then use the line
+    [
+      ((x: number) => x - 3)((5 + Math.sqrt(25 - 16)) / 2),
+      ((x: number) => 3 * x + 1)((1 + Math.sqrt(1 + 24)) / 2),
+    ],
+    [
+      // x^2 + (x - 1)^2 = 25 gives x^2 - x - 12 = 0; x^2 + (x + 2)^2 = 100 gives x^2 + 2x - 48 = 0
+      [(1 + Math.sqrt(1 + 48)) / 2, (1 + Math.sqrt(1 + 48)) / 2 - 1],
+      [(-2 + Math.sqrt(4 + 192)) / 2, (-2 + Math.sqrt(4 + 192)) / 2 + 2],
+    ],
+  ],
 };
 
 export default checks;

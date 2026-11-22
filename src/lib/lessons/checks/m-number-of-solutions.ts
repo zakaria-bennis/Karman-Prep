@@ -20,6 +20,14 @@ const checks: LessonChecks = {
     // 3a + 5 = 11 gives a = 2, then b = -2a
     -2 * ((11 - 5) / 3),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // 6x + 2 = 6x + 5: same slope, different constants, so no solution;
+    // 3x + 8 = 3x + 8: the same line, so every x works
+    [{ text: "zero" }, { text: "infinitely" }],
+    // no solution: the x terms match and the constants differ
+    [4 + 2, 3 * 2 - 1],
+  ],
 };
 
 export default checks;

@@ -20,6 +20,14 @@ const checks: LessonChecks = {
     { text: "4x^2 - 25" },
     a + b,
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    [
+      (x: number) => (2 * x + 3) * (x - 5) - x * (x - 2),
+      (x: number) => (x + 4) * (3 * x - 1) - 2 * x * (x + 3),
+    ],
+    [(x: number) => 2 * x ** 2 + 4 * x - 30, (x: number) => 4 * x ** 2 - 4 * x - 48],
+  ],
 };
 
 export default checks;

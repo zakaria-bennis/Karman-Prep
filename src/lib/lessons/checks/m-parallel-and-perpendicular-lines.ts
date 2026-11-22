@@ -23,6 +23,15 @@ const checks: LessonChecks = {
     // k: slope -1/slopeJ through (2, 0), at x = 0
     0 + (-1 / slopeJ) * (0 - 2),
   ],
+  // check-ins, worked out blind from the questions alone: [check-in, twin] per example
+  checkIns: [
+    // perpendicular slope is the negative reciprocal; the y-intercept is y1 - m * x1
+    [
+      [0, 5 - (-1 / (-1 / 2)) * 3],
+      [0, 3 - (-1 / (-2 / 5)) * 2],
+    ],
+    [(x: number) => 2 * (x - 3) + 1, (x: number) => -4 * (x - 1) + 6],
+  ],
 };
 
 export default checks;
