@@ -36,8 +36,16 @@ const jsonl = <T>(file: string): T[] =>
         .map((l) => JSON.parse(l) as T)
     : [];
 
+// keys corrected on the founder's word (round two, 2026-11-22): check against the new key
+const overridesFile = join(work, "results", "key-overrides.json");
+const overrides: Record<string, string> = existsSync(overridesFile)
+  ? JSON.parse(readFileSync(overridesFile, "utf8"))
+  : {};
 const rows = new Map(
-  jsonl<QuizQuestionWithChoices>(join(backup, "quiz_questions.jsonl")).map((q) => [q.id, q])
+  jsonl<QuizQuestionWithChoices>(join(backup, "quiz_questions.jsonl")).map((q) => [
+    q.id,
+    overrides[q.id] ? { ...q, correct_answer: overrides[q.id] } : q,
+  ])
 );
 const choicesOf = new Map<string, AnswerChoice[]>();
 for (const c of jsonl<AnswerChoice>(join(backup, "answer_choices.jsonl"))) {
@@ -87,7 +95,7 @@ function mentions(text: string, choice: string): boolean {
   if (!c) return true;
   if (t.includes(c)) return true;
   // a long choice may be quoted by its opening words
-  if (c.length > 40 && t.includes(c.slice(0, 24))) return true;
+  if (c.length > 40 && t.includes(c.slice(0, 18))) return true;
   // a math choice may be retypeset (√ as \sqrt, · as \cdot): one line holds all its numbers
   const want = numbers(choice);
   return (
