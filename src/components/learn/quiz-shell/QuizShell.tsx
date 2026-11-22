@@ -403,6 +403,7 @@ export function QuizShell(props: QuizShellProps) {
                       enabled={!!props.hasCalculator && math && mode.grading !== "locked"}
                       attemptKey={attemptKey}
                       questionId={q.id}
+                      remember={!!s.saved[q.id]}
                       open={calcOpen}
                       onOpenChange={(open) => {
                         setCalcOpen(open);
