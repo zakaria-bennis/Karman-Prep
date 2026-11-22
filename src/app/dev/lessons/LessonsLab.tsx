@@ -8,8 +8,17 @@ import lib from "@/app/dashboard/student/_portal/library.module.css";
 import shell from "@/app/dashboard/student/_portal/shell.module.css";
 import skillStyles from "@/app/dashboard/student/_portal/skill.module.css";
 import { SkillLesson } from "@/app/dashboard/student/_portal/SkillLesson";
+import { FigureGallery } from "./FigureGallery";
 
-export default function LessonsLab({ skill, night }: { skill: string; night: boolean }) {
+export default function LessonsLab({
+  skill,
+  night,
+  gallery,
+}: {
+  skill: string;
+  night: boolean;
+  gallery: string | null;
+}) {
   const [id, setId] = useState(skill);
   const [dark, setDark] = useState(night);
   const found = SKILLS72.find((s) => s.id === id) ?? SKILLS72[0];
@@ -57,11 +66,15 @@ export default function LessonsLab({ skill, night }: { skill: string; night: boo
           {dark ? "Light" : "Dark"}
         </button>
       </div>
-      <div className={`${lib.library} ${skillStyles.page}`} style={{ maxWidth: 820 }}>
-        <section className={`${lib.glass} ${skillStyles.lesson}`}>
-          <SkillLesson key={found.id} name={found.name} />
-        </section>
-      </div>
+      {gallery ? (
+        <FigureGallery section={gallery} />
+      ) : (
+        <div className={`${lib.library} ${skillStyles.page}`} style={{ maxWidth: 820 }}>
+          <section className={`${lib.glass} ${skillStyles.lesson}`}>
+            <SkillLesson key={found.id} name={found.name} />
+          </section>
+        </div>
+      )}
     </div>
   );
 }

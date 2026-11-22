@@ -3,7 +3,7 @@
 // The coordinate plane (PlaneFigure): lines, parabolas, exponential curves, polynomials from their
 // zeros, circles, points, segments and shaded half-planes, drawn to scale in the window the lesson
 // gives, one after another.
-import { useId } from "react";
+import { useId, type ReactElement } from "react";
 import type { PlaneFigure, PlaneItem, Tone } from "@/lib/lessons/figures";
 import s from "./figure.module.css";
 
@@ -63,20 +63,28 @@ export function PlaneFig({ fig }: { fig: PlaneFigure }) {
   const ax = x0 <= 0 && x1 >= 0 ? X(0) : X(x0);
   const ay = y0 <= 0 && y1 >= 0 ? Y(0) : Y(y0);
 
+  const notes: ReactElement[] = [];
   const items = fig.draw.map((item: PlaneItem, k) => {
     const at = k + 1;
-    const label = (pos: [number, number] | null, text: string | undefined, t: string) =>
-      pos && text ? (
+    // labels sit outside the clipped plot, turned inward near the right edge, so none is cut off
+    const label = (pos: [number, number] | null, text: string | undefined, t: string) => {
+      if (!pos || !text) return null;
+      const right = pos[0] > W * 0.55;
+      notes.push(
         <text
-          x={f2(pos[0] + 6)}
-          y={f2(pos[1] - 8)}
+          key={`n${k}`}
+          x={f2(Math.min(W - 2, Math.max(2, pos[0] + (right ? -6 : 6))))}
+          y={f2(Math.min(H - PAD - 4, Math.max(PAD + 10, pos[1] - 8)))}
+          textAnchor={right ? "end" : "start"}
           className={`${s.toneText} ${t}`}
           data-pop
           data-at={at}
         >
           {text}
         </text>
-      ) : null;
+      );
+      return null;
+    };
 
     if ("shade" in item) {
       const [m, b] = item.shade;
@@ -261,6 +269,7 @@ export function PlaneFig({ fig }: { fig: PlaneFigure }) {
         </text>
       )}
       <g clipPath={`url(#${clip})`}>{items}</g>
+      {notes}
     </svg>
   );
 }

@@ -203,7 +203,7 @@ interface Geo {
   d: string;
   ends: Pt[];
   label: Pt;
-  anchor: "middle" | "start";
+  anchor: "middle" | "start" | "end";
   /** The items on the row the link is drawn over (they get `space` above them). */
   inLane: string;
   space: number;
@@ -275,17 +275,17 @@ function linkGeometry(root: HTMLElement, from: number, to: number, labeled: bool
     const x2 = f(l.x + l.w / 2);
     const y2 = l.y - GAP;
     const k = f((y2 - y1) * 0.6);
-    const steep = Math.abs(x2 - x1) < 40;
+    // the label sits in the room kept above the lower row, beside the end of the curve, so it never
+    // lands on a row the curve passes over; turned to the left near the right edge
+    const left = x2 > root.offsetWidth * 0.55;
     geo = {
       d: `M${x1} ${y1}C${x1} ${y1 + k} ${x2} ${y2 - k} ${x2} ${y2}`,
       ends: [
         [x1, y1],
         [x2, y2],
       ],
-      label: steep
-        ? [f(Math.max(x1, x2) + 8), f((y1 + y2) / 2 + 4)]
-        : [f((x1 + x2) / 2), f((y1 + y2) / 2 - 7)],
-      anchor: steep ? "start" : "middle",
+      label: [f(x2 + (left ? -8 : 8)), f(y2 - 10)],
+      anchor: left ? "end" : "start",
     };
     lane = rows.get(`p${low}`) ?? 0;
   }
