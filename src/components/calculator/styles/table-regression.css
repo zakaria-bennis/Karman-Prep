@@ -74,8 +74,8 @@
   height: 36px;
   padding: 1.6px 8px 0;
   border: 2px solid var(--kc-rule);
-  border-radius: 5px;
-  background: var(--kc-list);
+  border-radius: var(--kc-tr-control-radius);
+  background: var(--kc-tr-control-fill);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
   font-size: 14px;
@@ -89,7 +89,7 @@
 }
 
 .kc-tr-select[data-open="true"] .kc-tr-select-button {
-  border-radius: 5px 5px 0 0;
+  border-radius: var(--kc-tr-control-radius) var(--kc-tr-control-radius) 0 0;
 }
 
 .kc-tr-select-button:focus-visible {
@@ -127,7 +127,8 @@
   box-sizing: border-box;
   border: 1px solid var(--kc-rule);
   border-top: none;
-  border-radius: 0 0 5px 5px;
+  border-radius: 0 0 var(--kc-tr-control-radius) var(--kc-tr-control-radius);
+  box-shadow: var(--kc-tr-list-shadow);
   overflow-y: auto;
   background: var(--kc-list);
 }
@@ -135,7 +136,7 @@
 .kc-tr-select-list[data-side="above"] {
   border-top: 1px solid var(--kc-rule);
   border-bottom: none;
-  border-radius: 5px 5px 0 0;
+  border-radius: var(--kc-tr-control-radius) var(--kc-tr-control-radius) 0 0;
 }
 
 .kc-tr-option {
@@ -231,14 +232,15 @@
   z-index: 7;
   box-sizing: border-box;
   width: 245px;
-  border: 1px solid var(--kc-boundary);
-  border-radius: 6px;
+  border: 1px solid var(--kc-tr-menu-edge);
+  border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);
 }
 
 .kc-tr-options::before,
 .kc-tr-options::after {
+  display: var(--kc-show-arrow);
   content: "";
   position: absolute;
   right: 13px;
@@ -294,7 +296,7 @@
   width: 100%;
   height: 34px;
   border: 1px solid var(--kc-rule);
-  border-radius: 3px;
+  border-radius: var(--kc-tr-button-radius);
   background: var(--kc-tab);
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
@@ -304,7 +306,7 @@
 
 .kc-tr-options-button[data-danger="true"] {
   border-color: var(--kc-curve-1);
-  background: var(--kc-curve-1);
+  background: var(--kc-tr-danger);
   color: var(--kc-list);
 }
 
@@ -438,12 +440,54 @@
   justify-content: center;
   width: 14px;
   height: 14px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
   background: var(--kc-text-muted);
   color: var(--kc-list);
   font-size: 10px;
   font-weight: bold;
   text-decoration: none;
+  cursor: pointer;
+}
+
+/* The answer a "?" shows under its line, in plain words (2026-11-22). */
+.kc-tr-note {
+  flex-basis: 100%;
+  margin: 2px 0 4px;
+  color: var(--kc-text-muted);
+  font-size: 12.8px;
+  font-weight: normal;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.kc-tr-title:has(.kc-tr-note),
+.kc-tr-log:has(.kc-tr-note),
+.kc-tr-param-warning:has(.kc-tr-note) {
+  flex-wrap: wrap;
+  height: auto;
+}
+
+/* Phones: every small control here gets a finger-sized target without growing on screen. */
+@media (pointer: coarse) {
+  .kc-tr-help,
+  .kc-tr-more,
+  .kc-tr-insert,
+  .kc-tr-zoom,
+  .kc-tr-plot {
+    position: relative;
+  }
+  .kc-tr-help::after,
+  .kc-tr-more::after,
+  .kc-tr-insert::after,
+  .kc-tr-zoom::after,
+  .kc-tr-plot::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+  }
 }
 
 /* STATISTICS and RESIDUALS side by side, 16 px apart, each at least 108 px wide; their titles
@@ -503,8 +547,8 @@
   height: 24px;
   padding: 0 10px;
   margin: 0;
-  border: 1px solid var(--kc-row-rule);
-  border-radius: 6px;
+  border: 1px solid var(--kc-tr-plot-edge);
+  border-radius: var(--kc-tr-plot-radius);
   background: linear-gradient(var(--kc-letter-top), var(--kc-letter-bottom));
   color: var(--kc-text);
   font-family: var(--kc-font-ui);

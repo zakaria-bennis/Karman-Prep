@@ -8,6 +8,7 @@
 import { SKILLS72, skill72, type Skill72 } from "@/lib/skills/ids72";
 import { LESSON_LOADERS, VIDEO_LOADERS } from "./registry";
 import type { Lesson, LessonVideo, StrategyQuestion } from "./types";
+import { videoOf } from "./videoScript";
 
 export type * from "./types";
 export type * from "./figures";
@@ -52,8 +53,9 @@ export async function strategyNameFor(skillId: string): Promise<string | null> {
  *  recorded). Null when the skill has no video yet. */
 export async function videoFor(skillId: string): Promise<LessonVideo | null> {
   const load = VIDEO_LOADERS[skillId];
-  if (!skill72(skillId) || !load) return null;
-  return (await load()).default;
+  const lesson = await lessonFor(skillId);
+  if (!lesson || !load) return null;
+  return videoOf(skillId, lesson, lesson.skill.name, (await load()).default);
 }
 
 /** The ID of the skill with this name in the Library ("Circles" to "m-circles"). */

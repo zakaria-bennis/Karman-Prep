@@ -20,6 +20,7 @@ import {
   setTableRegressionLogMode,
   setTableRegressionType,
 } from "@/lib/calculator/core/api/table-regression-commands";
+import { formatParameterValue } from "@/lib/calculator/regression/display";
 import { tableStatisticsLines } from "@/lib/calculator/regression/table-fit";
 import { TABLE_MODELS, TABLE_MODEL_SPECS } from "@/lib/calculator/regression/table-models";
 import { rowIconHex } from "@/lib/calculator/theme/roles";
@@ -32,24 +33,18 @@ import { useSkin } from "../hooks/skin";
 import { useEngine, useEngineSnapshot } from "../hooks/use-engine";
 import { RegressionOptionsMenu } from "./RegressionOptionsMenu";
 import { RegressionSelect } from "./RegressionSelect";
+import { REGRESSION_NOTES, RegressionHelp } from "./RegressionHelp";
 import { StaticMath } from "./StaticMath";
 
-const CUSTOM_HELP = "https://help.desmos.com/hc/en-us/articles/4406972958733-Regressions";
-const LOG_HELP = "https://help.desmos.com/hc/en-us/articles/204349605";
-const WARNING_HELP = "https://help.desmos.com/hc/en-us/articles/360042942771";
-
 /** "R squared equals 0.9415", "r is undefined", in the list's own speech style. */
-const statSpeech = (label: "R2" | "r", value: string | null) =>
-  `${label === "R2" ? "R squared" : "r"} ${value === null ? "is undefined" : `equals ${latexToSpeech(value)}`}`;
+const statSpeech = (label: "R2" | "r", value: string | null, straight: boolean) =>
+  `${label === "R2" ? (straight ? "r squared" : "R squared") : "r"} ${value === null ? "is undefined" : `equals ${latexToSpeech(value)}`}`;
 
 function ModelFooter(): JSX.Element {
   return (
     <p>
-      Make a custom regression model in a new line using <span className="kc-tr-tilde">~</span>.{" "}
-      <a href={CUSTOM_HELP} target="_blank" rel="noreferrer">
-        Learn how
-      </a>
-      .
+      Make a custom regression model in a new line using <span className="kc-tr-tilde">~</span>,
+      like y₁ ~ a x₁² + b x₁ + c.
     </p>
   );
 }
@@ -98,6 +93,9 @@ export function TableRegression(props: {
       return Math.abs(residualFit[key] - viewport[key]) > span / 100;
     });
   const failed = fit !== null && !fit.ok ? fit.message : null;
+  // r² (lowercase) for a straight-line fit, where r shows too; R² for every other model
+  const statLines = fit !== null && fit.ok ? tableStatisticsLines(r.type, fit.statistics) : [];
+  const straight = statLines.some((line) => line.label === "r");
   const iconHex = rowIconHex(r.color, skin);
   return (
     <div className="kc-tr" data-table-regression="" ref={rootRef}>
@@ -189,12 +187,26 @@ export function TableRegression(props: {
             className="kc-tr-equation"
             focusable
           />
+          <section className="kc-regression-params" aria-label="Regression Parameters">
+            <div className="kc-tr-title">Parameters</div>
+            <div className="kc-regression-grid">
+              {TABLE_MODEL_SPECS[r.type].params.map((name, i) => {
+                const value = formatParameterValue(fit.params[i], Math.max(fit.precision, 4));
+                return (
+                  <StaticMath
+                    key={name}
+                    latex={`${name}=${value}`}
+                    label={`${latexToSpeech(name)} equals ${latexToSpeech(value)}`}
+                    focusable
+                  />
+                );
+              })}
+            </div>
+          </section>
           {fit.parameterWarning && (
             <p className="kc-tr-param-warning">
               Some parameters may be too large or small to represent accurately.{" "}
-              <a href={WARNING_HELP} target="_blank" rel="noreferrer">
-                Learn more.
-              </a>
+              <RegressionHelp label="Why?" note={REGRESSION_NOTES.scale} />
             </p>
           )}
           {fit.logMode.available && (
@@ -207,29 +219,20 @@ export function TableRegression(props: {
                 />
                 <span>Log Mode</span>
               </label>
-              <a
-                className="kc-tr-help"
-                href={LOG_HELP}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Log mode help"
-                title="Log mode help"
-              >
-                ?
-              </a>
+              <RegressionHelp label="What is log mode?" note={REGRESSION_NOTES.log} />
             </div>
           )}
           <div className="kc-tr-footer">
             <section className="kc-tr-group" aria-label="Statistics">
               <div className="kc-tr-title">Statistics</div>
-              {tableStatisticsLines(r.type, fit.statistics).map((line) => (
+              {statLines.map((line) => (
                 <div key={line.label} className="kc-tr-stat" data-label={line.label}>
                   <StaticMath
                     latex={
-                      (line.label === "R2" ? "R^{2}" : "r") +
+                      (line.label === "R2" ? (straight ? "r^{2}" : "R^{2}") : "r") +
                       (line.value === null ? "" : `=${line.value}`)
                     }
-                    label={statSpeech(line.label, line.value)}
+                    label={statSpeech(line.label, line.value, straight)}
                     focusable
                   />
                   {line.value === null && <span className="kc-tr-undefined"> is undefined</span>}

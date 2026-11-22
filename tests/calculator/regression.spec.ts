@@ -35,7 +35,7 @@ const values = (page: Page) =>
     )
     .evaluateAll((els) => els.map((el) => el.getAttribute("data-latex")));
 
-const EXPECTED = ["m=600", "b=-1164000", "R^{2}=1", "r=1"];
+const EXPECTED = ["m=600", "b=-1164000", "r^{2}=1", "r=1"];
 
 test("D-2, D-40 typing y_1~mx_1+b fits m = 600, b = −1164000, R² = 1 and r = 1", async ({
   page,

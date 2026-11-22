@@ -22,11 +22,13 @@ afterEach(() => vi.useRealTimers());
 const panelButton = (name: string) =>
   within(screen.getByRole("group", { name: "Functions" })).getByRole("button", { name });
 
-it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order under CATEGORY_HEADINGS, category 8 holding exp, ln, log, logₐ and d/dx", async () => {
-  expect(panelCategories().map((c) => c.id)).toEqual([1, 2, 8]);
-  expect([CATEGORY_HEADINGS[0], CATEGORY_HEADINGS[1], CATEGORY_HEADINGS[7]]).toEqual([
+it("K-4 Functions panel shows the shipped categories 1, 2, 3, 4 and 8 in K-4 order under CATEGORY_HEADINGS, category 8 holding exp, ln, log, logₐ and d/dx", async () => {
+  expect(panelCategories().map((c) => c.id)).toEqual([1, 2, 3, 4, 8]);
+  expect([0, 1, 2, 3, 7].map((i) => CATEGORY_HEADINGS[i])).toEqual([
     "Trig",
     "Inverse trig",
+    "Statistics",
+    "List operations",
     "Calculus",
   ]);
   renderEditor(editor(), { rows: [""] });
@@ -36,13 +38,25 @@ it("K-4 Functions panel shows the shipped categories 1, 2 and 8 in K-4 order und
     within(panel)
       .getAllByRole("heading")
       .map((h) => h.textContent)
-  ).toEqual(["Trig Functions", "Inverse Trig Functions", "Calculus"]); // shown upper case
+  ).toEqual([
+    "Trig Functions",
+    "Inverse Trig Functions",
+    "Statistics",
+    "List Operations",
+    "Calculus",
+  ]); // shown upper case
   const labels = (heading: string) =>
     within(within(panel).getByRole("group", { name: heading }))
       .getAllByRole("button")
       .map((b) => b.textContent);
   expect(labels("Trig")).toEqual(["sin", "cos", "tan", "csc", "sec", "cot"]);
   expect(labels("Inverse trig")).toEqual(["sin−1", "cos−1", "tan−1", "csc−1", "sec−1", "cot−1"]);
+  expect(labels("Statistics")).toEqual(
+    "mean median min max quartile quantile stdev stdevp var varp cov mad corr count total".split(
+      " "
+    )
+  );
+  expect(labels("List operations")).toEqual(["repeat", "join", "sort", "unique", "length"]);
   expect(labels("Calculus")).toEqual(["exp", "ln", "log", "loga", "ddx"]); // −1, a and d/dx are typeset
 });
 
@@ -87,7 +101,7 @@ it("K-5 a panel button inserts its template in one run call, closes the panel an
   const field = kit.fields.forRow("1");
   const user = userEvent.setup();
   act(() => kit.focus.focusRow("1", "end"));
-  const [trig, , calculus] = panelCategories();
+  const [trig, , , , calculus] = panelCategories();
   await user.click(key("Functions"));
   field.calls = [];
   await user.click(key(trig.entries[0].spoken));
@@ -123,13 +137,13 @@ it("K-5 a panel button inserts its template in one run call, closes the panel an
   expect(screen.getByRole("region", { name: "Keypad" })).toBeInTheDocument();
 });
 
-it("K-5 every shipped entry of categories 1, 2 and 8 inserts its own template in one run call and closes the panel", async () => {
+it("K-5 every shipped entry of categories 1, 2, 3, 4 and 8 inserts its own template in one run call and closes the panel", async () => {
   const kit = renderEditor(editor(), { rows: [""] });
   const field = kit.fields.forRow("1");
   const user = userEvent.setup();
   act(() => kit.focus.focusRow("1", "end"));
   const entries = panelCategories().flatMap((c) => c.entries);
-  expect(entries).toHaveLength(17); // d/dx included (FN-61)
+  expect(entries).toHaveLength(37); // d/dx included (FN-61)
   for (const entry of entries) {
     await user.click(key("Functions"));
     field.calls = [];

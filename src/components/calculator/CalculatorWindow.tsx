@@ -47,8 +47,6 @@ export interface CalculatorWindowProps {
 
 const WINDOW_LABEL = "Karman calculator";
 const ISOLATED_KEY_EVENTS = ["keydown", "keyup", "keypress"] as const;
-const FOCUSABLE =
-  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Arrow keys as a 16 px step on each axis (KB-10, AR-22). */
 const ARROW_STEPS: Record<string, { dx: number; dy: number }> = {
@@ -137,7 +135,6 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
   const handleRef = useRef<HTMLSpanElement>(null);
   const gripRef = useRef<HTMLDivElement>(null);
   const splitterRef = useRef<HTMLDivElement>(null);
-  const titlebarRef = useRef<HTMLDivElement>(null);
   const drag = useRef<PointerDrag | null>(null);
 
   // AR-22, L-6: a primary-button press on the title bar (outside its buttons) or the grip starts a
@@ -238,13 +235,7 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
   }, [frameRef]);
 
   // AR-28: Shift+Tab past the start reaches the calculator's last element; Tab past the end wraps
-  // to the title bar, or to the calculator's first element when the title bar has nothing to focus.
-  const focusEndBoundary = () => {
-    const first = titlebarRef.current?.querySelector<HTMLElement>(FOCUSABLE);
-    if (first) first.focus();
-    else latest.current.onFocusBoundary("first");
-  };
-
+  // to the first edge, which the quiz host resolves (the title bar while it shows, quiz-host.ts).
   const runControl = (control: WindowControl) => {
     if (control === "undock") props.onModeChange("floating");
     else if (control === "maximize") props.onModeChange("maximized");
@@ -260,7 +251,7 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
         className={styles.sentinel}
         data-focus-sentinel={edge}
         tabIndex={0}
-        onFocus={edge === "start" ? () => props.onFocusBoundary("last") : focusEndBoundary}
+        onFocus={() => props.onFocusBoundary(edge === "start" ? "last" : "first")}
       />
     ) : null;
 
@@ -278,7 +269,6 @@ export function CalculatorWindow(props: CalculatorWindowProps) {
     >
       {sentinel("start")}
       <div
-        ref={titlebarRef}
         className={styles.titlebar}
         data-calculator-titlebar=""
         {...(floating ? dragHandlers("move") : {})}

@@ -26,7 +26,8 @@ const videos = present("videos");
 const entry = (dir) => (id) => `  "${id}": () => import("./${dir}/${id}"),`;
 
 const raw = `// Made by scripts/lessons/build-registry.mjs from the files in skills/ and videos/. Do not edit by hand.
-import type { Lesson, LessonVideo } from "./types";
+import type { Lesson } from "./types";
+import type { VideoTiming } from "./videoScript";
 
 export const LESSON_LOADERS: Record<string, () => Promise<{ default: Lesson }>> = {
 ${ids
@@ -35,7 +36,7 @@ ${ids
   .join("\n")}
 };
 
-export const VIDEO_LOADERS: Record<string, () => Promise<{ default: LessonVideo }>> = {
+export const VIDEO_LOADERS: Record<string, () => Promise<{ default: VideoTiming }>> = {
 ${ids
   .filter((id) => videos.has(id))
   .map(entry("videos"))

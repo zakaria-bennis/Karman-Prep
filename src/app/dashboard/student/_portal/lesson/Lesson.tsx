@@ -6,16 +6,13 @@
 // actually lives at the end of the lesson"). Headings are one or two words (founder, 2026-11-16).
 import Link from "next/link";
 import type { SkillLessonData } from "@/lib/lessons";
+import { strategyQuiz } from "@/lib/student/quiz-routes";
 import { Icon, Tile } from "../practice";
 import { Choices } from "./Choices";
 import { Example } from "./Example";
 import { Figure } from "./figures/Figure";
 import { LessonText } from "./LessonText";
 import styles from "./lesson.module.css";
-
-/** Where the strategy quiz is played (the Quiz modes stream's page). */
-export const strategyQuizPath = (skillId: string) =>
-  `/learn/strategy/${encodeURIComponent(skillId)}`;
 
 function Eye() {
   return (
@@ -156,7 +153,7 @@ export function Lesson({ lesson }: { lesson: SkillLessonData }) {
       </section>
 
       {lesson.quiz.length > 0 && (
-        <Link className={styles.go} href={strategyQuizPath(lesson.id)}>
+        <Link className={styles.go} href={strategyQuiz(lesson.id).path}>
           <Tile name="strategy" />
           <span>
             <b>Strategy quiz</b>

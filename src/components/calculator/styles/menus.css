@@ -39,6 +39,7 @@
 
 .kc-tooltip::before {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   top: -5px;
   left: calc(50% - var(--kc-tip-shift));
@@ -92,7 +93,7 @@
   box-sizing: border-box;
   width: 126px;
   padding: 14px 12px 12px;
-  border: 1px solid var(--kc-boundary);
+  border: 1px solid var(--kc-menu-edge);
   border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);
@@ -154,9 +155,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100px;
-  padding: 0;
+  width: var(--kc-add-item-width);
+  padding: var(--kc-add-item-pad);
   border: none;
+  border-radius: var(--kc-add-item-radius);
   background: transparent;
   color: var(--kc-text);
   font-family: var(--kc-font-ui);
@@ -169,6 +171,7 @@
 .kc-add-menu-item:hover,
 .kc-add-menu-item:focus-visible {
   opacity: var(--kc-menu-item-hover);
+  background: var(--kc-add-item-hover);
 }
 
 /* Karman addition (D4 kept until the founder decides): on a coarse pointer each item takes
@@ -245,7 +248,7 @@
   min-height: 0;
   margin: -1px;
   overflow: auto;
-  border: 1px solid var(--kc-boundary);
+  border: 1px solid var(--kc-menu-edge);
   border-radius: var(--kc-radius-panel);
   background: var(--kc-list);
   box-shadow: var(--kc-popover-shadow);

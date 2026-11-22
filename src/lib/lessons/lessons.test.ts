@@ -2,25 +2,37 @@
 // numbers, and its answers, which a second writer worked out blind in checks/ (computed in code for
 // Math, solved and recorded for Reading and Writing).
 import { execFileSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import katex from "katex";
 import { describe, expect, it } from "vitest";
 import { SKILLS72, skill72 } from "@/lib/skills/ids72";
 import type { Figure } from "./figures";
 import type { LessonChecks } from "./checks/types";
 import { meets } from "./checks/value";
-import { LESSON_LOADERS } from "./registry";
 import type { Lesson, Rich } from "./types";
+import { draftScenes, narrationKey, type VideoTiming } from "./videoScript";
 
-const LESSONS = await Promise.all(
-  Object.entries(LESSON_LOADERS).map(async ([file, load]) => ({
-    file,
-    lesson: (await load()).default,
-  }))
+// Every file in skills/ is tested, whether or not the registry lists it yet, and one broken file fails
+// only its own tests.
+const FILES = readdirSync(new URL("./skills/", import.meta.url))
+  .filter((f) => f.endsWith(".ts"))
+  .map((f) => f.slice(0, -3))
+  .sort();
+const LOADED = await Promise.all(
+  FILES.map(async (file) => {
+    try {
+      const mod = (await import(`./skills/${file}.ts`)) as { default: Lesson };
+      return { file, lesson: mod.default, error: null as unknown };
+    } catch (error) {
+      return { file, lesson: null, error };
+    }
+  })
 );
+const LESSONS = LOADED.flatMap((x) => (x.lesson ? [{ file: x.file, lesson: x.lesson }] : []));
 const CHECKS = new Map(
   await Promise.all(
-    LESSONS.map(
-      async ({ file }) =>
+    FILES.map(
+      async (file) =>
         [
           file,
           await import(`./checks/${file}.ts`)
@@ -184,6 +196,11 @@ describe("lessons", () => {
     ).not.toThrow();
   });
 
+  for (const { file, error } of LOADED)
+    it(`${file} loads`, () => {
+      expect(error).toBeNull();
+    });
+
   it("are named by their skill", () => {
     for (const { file, lesson } of LESSONS) {
       expect(lesson.id, file).toBe(file);
@@ -231,6 +248,13 @@ describe("lessons", () => {
           expect(q.why.length, q.text).toBeGreaterThan(30);
         }
         for (const q of l.quiz) expect(q.subject).toBe(math ? "math" : "reading");
+        // a passage is short, as on the test
+        for (const p of [
+          l.check.passage,
+          ...l.quiz.map((q) => q.passage),
+          ...l.examples.map((e) => e.passage),
+        ])
+          if (p) expect(words(p), p).toBeLessThanOrEqual(160);
         // the answers are not all in the same place
         expect(new Set(l.quiz.map((q) => q.right)).size).toBeGreaterThan(1);
       });
@@ -248,6 +272,7 @@ describe("lessons", () => {
           ...markErrors(t),
           ...(BRITISH.test(t) ? [`British spelling in: ${t}`] : []),
           ...(/\bofficial\b|bluebook/i.test(t) ? [`forbidden word in: ${t}`] : []),
+          ...(/[—–]/.test(t) ? [`a long dash in: ${t}`] : []),
         ]);
         expect(errors).toEqual([]);
       });
@@ -276,6 +301,28 @@ describe("lessons", () => {
       });
     });
   }
+});
+
+// A video is recorded from its lesson's words; when the lesson changes, the video must be recorded again
+// (npx tsx scripts/lessons/build-videos.ts <id> --upload), or its voice and captions drift apart.
+const VIDEOS = readdirSync(new URL("./videos/", import.meta.url))
+  .filter((f) => f.endsWith(".ts"))
+  .map((f) => f.slice(0, -3))
+  .sort();
+
+describe("videos", () => {
+  for (const id of VIDEOS)
+    it(`${id} was recorded from the lesson as it is now`, async () => {
+      const timing = ((await import(`./videos/${id}.ts`)) as { default: VideoTiming }).default;
+      const lesson = LESSONS.find((x) => x.file === id)?.lesson;
+      const skill = skill72(id);
+      expect(lesson && skill, `${id} has no lesson`).toBeTruthy();
+      if (!lesson || !skill) return;
+      const scenes = draftScenes(lesson, skill.name);
+      expect(timing.durations).toHaveLength(scenes.length);
+      expect(timing.narration).toBe(narrationKey(scenes));
+      expect(timing.audio).toMatch(/^https:\/\/.+\/lessons\/audio\/.+\.m4a$/);
+    });
 });
 
 describe("lesson coverage", () => {

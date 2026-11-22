@@ -49,7 +49,7 @@ test("RT-31 a typed regression shows REGRESSION PARAMETERS in a grid, then STATI
   const panel = page.locator("#calc [data-regression]");
   await expect(panel.getByRole("img", { name: "m equals 1.99" })).toBeVisible();
   await expect(panel.getByRole("img", { name: "b equals 0.05" })).toBeVisible();
-  await expect(panel.getByRole("img", { name: "R squared equals 0.9973" })).toBeVisible();
+  await expect(panel.getByRole("img", { name: "r squared equals 0.9973" })).toBeVisible();
   await expect(panel.getByRole("img", { name: "r equals 0.9987" })).toBeVisible();
   await expect(panel.getByRole("region", { name: "Regression Parameters" })).toContainText(
     "Regression Parameters"

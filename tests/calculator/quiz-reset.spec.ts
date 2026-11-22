@@ -2,7 +2,7 @@
 
 import { expect, test, type Page } from "@playwright/test";
 import { DEFAULT_SETTINGS } from "../../src/lib/calculator/core/api/types";
-import { press, row, rowItem, RUNAWAY, trigger } from "./quiz-helpers";
+import { frame, press, row, rowItem, RUNAWAY, trigger } from "./quiz-helpers";
 
 const setRows = (page: Page, rows: { id: string; latex: string }[]) =>
   page.evaluate((list) => globalThis.__calculatorHarness!.engine.setExpressions(list), rows);
@@ -22,6 +22,13 @@ const snapshot = (page: Page) =>
 const status = (page: Page) => page.locator("[data-calculator-host]").getByRole("status");
 
 const counters = (page: Page) => page.evaluate(() => globalThis.__karmanCalculatorCounters);
+
+/** The quiz closes the calculator on every question change (founder, 2026-11-08); reopen it. */
+async function nextAndReopen(page: Page, button: "Next" | "Back") {
+  await press(page, button);
+  await trigger(page).click();
+  await expect(rowItem(page)).toBeVisible();
+}
 
 async function open(page: Page) {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -43,8 +50,7 @@ test("RC-21 after setBlank nothing from the previous question resolves", async (
   await page.evaluate(() =>
     globalThis.__calculatorHarness!.engine.updateSettings({ angleMode: "degrees" })
   );
-  await press(page, "Next");
-  await expect(rowItem(page)).toBeVisible();
+  await nextAndReopen(page, "Next");
   await setRows(page, [
     { id: "1", latex: "a" },
     { id: "2", latex: "f(2)" },
@@ -76,8 +82,7 @@ test("NM-24 degrees chosen on one question stay on for the next (owner decision,
     e.setExpression({ id: "1", latex: "\\sin(90)" });
   });
   expect(await value()).toBeCloseTo(1, 12);
-  await press(page, "Next");
-  await expect(rowItem(page)).toBeVisible();
+  await nextAndReopen(page, "Next");
   await setRows(page, [{ id: "1", latex: "\\sin(90)" }]);
   expect(await value()).toBeCloseTo(1, 12);
   expect((await snapshot(page)).state.settings.angleMode).toBe("degrees");
@@ -96,7 +101,7 @@ test("AR-59 closing and reopening within a question keeps rows, history, setting
   });
   const before = await snapshot(page);
   expect(before.canUndo).toBe(true);
-  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click(); // the Calculator button closes it (no title bar when docked)
   await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
   const after = await snapshot(page);
@@ -110,7 +115,7 @@ test("AR-59 closing and reopening within a question keeps rows, history, setting
   expect(after.canUndo).toBe(true);
 });
 
-test("AR-58 a new question's calculator starts blank with the student's settings kept (owner decision, 2026-10-21) and announces the reset once, only while open", async ({
+test("AR-58 a new question's calculator starts blank with the student's settings kept (owner decision, 2026-10-21); it was closed by the question change, so no reset is announced", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -149,8 +154,7 @@ test("AR-58 a new question's calculator starts blank with the student's settings
     });
     e.setMathBounds({ left: -1, right: 1, bottom: -1, top: 1 });
   });
-  await press(page, "Next");
-  await expect(status(page)).toHaveText("Calculator cleared for this question.");
+  await nextAndReopen(page, "Next");
   const s = await snapshot(page);
   expect(s.state.expressions.map((e) => e.latex ?? "")).toEqual([""]);
   expect(s.canUndo).toBe(false);
@@ -168,7 +172,7 @@ test("AR-58 a new question's calculator starts blank with the student's settings
   });
   expect(s.state.mode).toBe("graphing");
   expect([s.state.viewport.left, s.state.viewport.right]).toEqual([-10, 10]);
-  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click(); // the Calculator button closes it (no title bar when docked)
   await press(page, "Back");
   await trigger(page).click();
   await expect(rowItem(page)).toBeVisible();
@@ -176,7 +180,7 @@ test("AR-58 a new question's calculator starts blank with the student's settings
   await expect(status(page)).toHaveText("");
   expect(
     await page.evaluate(() => (globalThis as { resetAnnouncements?: number }).resetAnnouncements)
-  ).toBe(1);
+  ).toBe(0);
 });
 
 test("AR-61 twenty question changes with the calculator opened each time leave one live calculator and one live worker", async ({
@@ -185,7 +189,8 @@ test("AR-61 twenty question changes with the calculator opened each time leave o
   await open(page);
   for (let i = 0; i < 20; i++) {
     await press(page, i % 2 ? "Back" : "Next");
-    if (!(await page.locator("[data-calculator-window]").isVisible())) await trigger(page).click();
+    await page.waitForTimeout(500); // the question slides; its Calculator button is the new one
+    await trigger(page).click(); // the quiz closed it with the question (founder, 2026-11-08)
     await expect(rowItem(page)).toBeVisible();
   }
   const c = await counters(page);
@@ -210,10 +215,15 @@ test("AR-61 five question changes in one second leave one calculator and no stal
   await page.goto("/?flow=diagnostic");
   await trigger(page).click();
   await burst("Next");
+  await page.waitForTimeout(500); // the last question has slid in
+  await trigger(page).click(); // the quiz closed it with the question (founder, 2026-11-08)
   await expect(rowItem(page)).toBeVisible();
+  await expect(frame(page)).not.toHaveAttribute("data-entering");
   await setRows(page, [{ id: "1", latex: RUNAWAY }]);
   await burst("Back");
   await page.waitForTimeout(2500);
+  await trigger(page).click(); // closed with the question again; it reopens clean
+  await expect(rowItem(page)).toBeVisible();
   const c = await counters(page);
   const s = await snapshot(page);
   expect(c?.calculators).toBe(1);

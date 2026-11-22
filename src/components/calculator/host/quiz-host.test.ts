@@ -138,6 +138,25 @@ it("AR-35 the quiz host uses only the public API, focusBoundary and the recorded
   );
 });
 
+it("AR-28 Tab past the end wraps to the title bar while it shows, else to the calculator's first element", () => {
+  const o = opts();
+  o.frame.innerHTML =
+    '<div data-calculator-titlebar><button aria-label="Close calculator"></button></div>';
+  document.body.append(o.frame);
+  const close = o.frame.querySelector("button")!;
+  const handle = mountQuizCalculator(o);
+  handle.focusBoundary("first"); // hidden (jsdom lays nothing out): the calculator's first element
+  expect(h.instance.focusBoundary).toHaveBeenLastCalledWith("first");
+  close.getClientRects = () => [{}] as unknown as DOMRectList;
+  h.instance.focusBoundary.mockClear();
+  handle.focusBoundary("first");
+  expect(close).toHaveFocus();
+  expect(h.instance.focusBoundary).not.toHaveBeenCalled();
+  handle.focusBoundary("last");
+  expect(h.instance.focusBoundary).toHaveBeenLastCalledWith("last");
+  o.frame.remove();
+});
+
 it("AR-60 the quiz handle's destroy is idempotent and clears the test global", () => {
   const handle = mountQuizCalculator(opts());
   handle.destroy();
