@@ -74,11 +74,15 @@ describe.each(templates.map((t) => [t.id, t] as const))("template %s", (_id, tem
     let built = 0;
     const stems = new Set<string>();
     const problems: string[] = [];
+    const failed: string[] = [];
     const difficulties = new Set<number>();
     for (let seed = 1; seed <= SEEDS; seed++) {
       const result = buildItem(template, seed);
       if (!isItem(result)) {
-        problems.push(`seed ${seed}: ${result.reasons.slice(-1)[0] ?? "no reason"}`);
+        // A seed the builder skips is allowed (up to 3%); it never reaches a student.
+        failed.push(
+          `seed ${seed}: ${result.reasons.slice(-1)[0] ?? "every draw asked to draw again"}`
+        );
         continue;
       }
       built++;
@@ -89,11 +93,9 @@ describe.each(templates.map((t) => [t.id, t] as const))("template %s", (_id, tem
       for (const p of recheck(result)) problems.push(`seed ${seed}: ${p}`);
     }
     // Almost every seed must give a question on its first few attempts.
-    expect(built / SEEDS, problems.slice(0, 5).join("\n")).toBeGreaterThanOrEqual(0.97);
-    expect(
-      problems.filter((p) => !/^seed \d+: attempt/.test(p) && !p.includes(": attempt ")),
-      problems.slice(0, 8).join("\n")
-    ).toEqual([]);
+    expect(built / SEEDS, failed.slice(0, 5).join("\n")).toBeGreaterThanOrEqual(0.97);
+    // Every built question passes the outside re-check.
+    expect(problems, problems.slice(0, 8).join("\n")).toEqual([]);
     // Enough variety that students do not meet the same question twice.
     expect(stems.size / built).toBeGreaterThanOrEqual(SEEDS >= 100 ? 0.9 : 0.5);
     for (const d of difficulties) {
