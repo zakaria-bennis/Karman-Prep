@@ -69,15 +69,8 @@ export function Figure({ fig, className }: { fig: FigureData; className?: string
   const ref = useRef<HTMLDivElement>(null);
   const again = useDrawIn(ref, JSON.stringify(fig));
   return (
-    <div
-      ref={ref}
-      className={className}
-      onClick={again}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && again()}
-      role="button"
-      tabIndex={0}
-      aria-label="Draw the picture again"
-    >
+    // pressing the picture draws it again; it is not a control, so screen readers read what it shows
+    <div ref={ref} className={className} onClick={again}>
       <Inner fig={fig} />
     </div>
   );
