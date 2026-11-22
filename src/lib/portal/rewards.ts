@@ -38,6 +38,15 @@ const SOURCE: [prefix: string, name: string][] = [
   ["diagnostic", "Exams"],
   ["time-trial", "Time trials"],
   ["endless", "Endless mode"],
+  // the coin ledger of the portal's activities (src/lib/play) and the exams' sittings
+  ["play:skill-set", "Skill sets"],
+  ["play:daily-ten", "Daily 10"],
+  ["play:endless", "Endless mode"],
+  ["play:time-trial", "Time trials"],
+  ["play:challenge", "Challenge"],
+  ["play:strategy", "Strategy quizzes"],
+  ["play:review", "Reviews"],
+  ["exam", "Exams"],
 ];
 export const sourceOf = (key: string) =>
   SOURCE.find(([p]) => key.startsWith(`${p}:`))?.[1] ?? "Skill levels";
@@ -64,7 +73,60 @@ export async function loadAwards(db: SupabaseClient, clerkId: string): Promise<P
       });
     if (data.length < 1000) break;
   }
+  out.push(...(await loadPlayAwards(db, clerkId)), ...(await loadExamAwards(db, clerkId)));
   return out;
+}
+
+/** The coins each finished activity banked (student_coin_awards, migration 20261122040000), keyed
+ *  by where they came from ("play:<source>:<run>"). A table not there yet reads as none. */
+async function loadPlayAwards(db: SupabaseClient, clerkId: string): Promise<PointAward[]> {
+  const out: PointAward[] = [];
+  for (let page = 0; page < 20; page++) {
+    const { data, error } = await db
+      .from("student_coin_awards")
+      .select("award_key, source, coins, created_at")
+      .eq("student_id", clerkId)
+      .order("award_key", { ascending: true })
+      .range(page * 1000, page * 1000 + 999)
+      .then(
+        (r) => r,
+        () => ({ data: null, error: true })
+      );
+    if (error || !data) break;
+    const rows = data as { award_key: string; source: string; coins: number; created_at: string }[];
+    for (const r of rows)
+      out.push({
+        awardKey: `play:${r.source}:${r.award_key}`,
+        skillId: null,
+        points: r.coins,
+        createdAt: r.created_at,
+      });
+    if (rows.length < 1000) break;
+  }
+  return out;
+}
+
+/** The exams' coins, paid by improvement over the last exam (Exams stream, exam_sittings.coins). */
+async function loadExamAwards(db: SupabaseClient, clerkId: string): Promise<PointAward[]> {
+  const { data, error } = await db
+    .from("exam_sittings")
+    .select("id, coins, started_at, completed_at")
+    .eq("student_id", clerkId)
+    .gt("coins", 0)
+    .limit(1000)
+    .then(
+      (r) => r,
+      () => ({ data: null, error: true })
+    );
+  if (error || !data) return [];
+  return (
+    data as { id: string; coins: number; started_at: string; completed_at: string | null }[]
+  ).map((r) => ({
+    awardKey: `exam:${r.id}`,
+    skillId: null,
+    points: r.coins,
+    createdAt: r.completed_at ?? r.started_at,
+  }));
 }
 
 export async function loadRewardRow(db: SupabaseClient, clerkId: string): Promise<RewardRow> {

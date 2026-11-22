@@ -62,6 +62,7 @@ import {
   updateRun,
 } from "./run-store";
 import type { RunForm, RunRecord, RunResponse, RunSectionForm, RunView } from "./run-types";
+import { finishPlay, nextEndless, playOver } from "@/lib/play/server/play-runs";
 import { diagnosticSectionScore, predictedTotal, sectionScore } from "./score";
 import {
   buildView,
@@ -158,6 +159,7 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   const form: RunForm = {
     title: "Daily 10",
     grading: "instant",
+    play: { mode: "daily" },
     sections: [
       {
         key: "main",
@@ -245,11 +247,18 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
 }
 
 /** Appends the next adaptive question to the set when the last one is answered. */
-async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunView> {
+export async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunView> {
   const answered = new Set(responses.map((r) => r.questionId));
   if (run.form.adaptive && run.sequence.every((id) => answered.has(id))) {
     const families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
-    const next = nextAdaptive(run, responses, await answeredInRuns(run.studentId), families);
+    const history = await answeredInRuns(run.studentId);
+    // endless mode picks its own way (src/lib/play); a run that is over gets nothing more
+    const next =
+      run.form.play?.mode === "endless"
+        ? playOver(run, responses)
+          ? null
+          : nextEndless(run, responses, families, history)
+        : nextAdaptive(run, responses, history, families);
     if (next) {
       run = { ...run, sequence: [...run.sequence, next] };
       await updateRun(run.id, run.studentId, { sequence: run.sequence });
@@ -476,8 +485,9 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
   const before = levels.get(levelKey) ?? NOT_STARTED;
   const now = new Date();
   // Domain quizzes move levels by the quiz rule when they finish; sets and the Daily 10 by runs.
+  // A portal run moves the 72 skills' levels when it finishes (src/lib/play), not answer by answer.
   const moved =
-    run.kind === "domain-quiz"
+    run.kind === "domain-quiz" || run.form.play
       ? null
       : applyAnswer(before, { correct, usedHint: input.usedHint, at: now });
   const response: RunResponse = {
@@ -501,16 +511,20 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
     return { review: reviewOf(snap, saved), change: null, view: await resumeRun(clerkId, run.id) };
   }
   if (moved) await saveLevels(clerkId, new Map([[levelKey, moved.state]]));
-  const points = await awardForAnswer({
-    key: `run:${run.id}:${input.questionId}`,
-    clerkId,
-    correct,
-    difficulty: snap.student.difficulty_level,
-    skillId,
-  });
+  // A portal run banks its coins when it finishes (src/lib/coins/earn.ts), not answer by answer.
+  const points = run.form.play
+    ? 0
+    : await awardForAnswer({
+        key: `run:${run.id}:${input.questionId}`,
+        clerkId,
+        correct,
+        difficulty: snap.student.difficulty_level,
+        skillId,
+      });
   const all = [...responses, saved];
   let current = run;
-  if (all.length >= (run.form.adaptive?.size ?? ids.length)) current = await finishRun(run, all);
+  if (all.length >= (run.form.adaptive?.size ?? ids.length) || playOver(run, all))
+    current = await finishRun(run, all);
   return {
     review: reviewOf(snap, saved, points),
     change:
@@ -653,6 +667,8 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
     const day = run.scope ?? run.runKey.replace("daily-ten:", "");
     result.streak = streakDays([...days, day], day);
   }
+  // a portal run (or a Daily 10): the 72 skills' levels, the coins, the endless run's best
+  if (run.form.play) result.play = await finishPlay(run, responses, result);
   const completedAt = now.toISOString();
   await updateRun(run.id, run.studentId, { completed_at: completedAt, result });
   if (run.kind === "diagnostic" && result.predicted)
