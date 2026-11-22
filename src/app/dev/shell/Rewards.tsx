@@ -22,7 +22,7 @@
 // Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
 import styles from "./rewards.module.css";
@@ -44,7 +44,13 @@ import {
   multiplierFor,
   type Pass,
 } from "./rewardsData";
-import { useStreak } from "./portalData";
+import { useBestStreak, usePortalData, useStreak } from "./portalData";
+import {
+  actionBuyPass,
+  actionOpenBox,
+  actionWear,
+  type SpendResult,
+} from "@/lib/portal/reward-actions";
 import { ping, tick } from "./sound";
 
 const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
@@ -61,13 +67,40 @@ export default function Rewards({
 }) {
   const still = useReducedMotion() ?? false;
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
-  const [coins, setCoins] = useState(COINS);
+  /* a signed-in student's own coins, things and passes, saved as they change */
+  const real = usePortalData()?.rewards ?? null;
+  const [coins, setCoins] = useState(real?.coins ?? COINS);
   /** The things to wear that have been won from boxes, by id, newest last. */
-  const [owned, setOwned] = useState<string[]>([]);
+  const [owned, setOwned] = useState<string[]>(real?.owned ?? []);
   /** What the fox has on: one thing, or none, in each place. */
   const [outfit, setOutfit] = useState<Outfit>(() => getEquipped().outfit);
-  // other pages show the character in the same things
-  useEffect(() => setEquipped({ outfit }), [outfit]);
+  // other pages show the character in the same things, and a real student's is kept
+  const dressed = useRef(false);
+  useEffect(() => {
+    setEquipped({ outfit });
+    if (!real) return;
+    if (!dressed.current) {
+      dressed.current = true;
+      return;
+    }
+    const wait = window.setTimeout(
+      () => void actionWear({ face: getEquipped().face, outfit: outfit as Record<string, string> }),
+      600
+    );
+    return () => window.clearTimeout(wait);
+  }, [outfit, real]);
+  /** A real spend: shown at once, put back if the server refuses it. */
+  const spendReal = (go: () => Promise<SpendResult>, undo: () => void) =>
+    void go()
+      .then((r) => {
+        if (r.ok) return setCoins(r.coins);
+        undo();
+        window.alert(r.error);
+      })
+      .catch(() => {
+        undo();
+        window.alert("That did not go through. No coins were spent; please try again.");
+      });
   const [wardrobe, setWardrobe] = useState(false);
   // the wardrobe is a screen of its own: the page's title names it and its back pill leaves it
   useEffect(() => {
@@ -84,16 +117,25 @@ export default function Rewards({
   }, [wardrobe]);
   /** How many of each pass are held. One may be bought in each pass's own stretch of time and up to
    *  three kept; on this page, where no time passes, that is one of each (nothing is saved yet). */
-  const [held, setHeld] = useState<Record<string, number>>({});
+  const [held, setHeld] = useState<Record<string, number>>(real?.passes ?? {});
   const [picked, setPicked] = useState(0);
   const show = (name: (typeof PAGES)[number]) => rail || page === name;
 
   const streak = useStreak();
+  const best = useBestStreak();
   const multiplier = multiplierFor(streak);
   const buy = (pass: Pass) => {
     setCoins(coins - pass.price);
     setHeld({ ...held, [pass.name]: (held[pass.name] ?? 0) + 1 });
     ping();
+    if (real)
+      spendReal(
+        () => actionBuyPass({ name: pass.name }),
+        () => {
+          setCoins(coins);
+          setHeld(held);
+        }
+      );
   };
   /** The next thing a box gives: one not yet won, taken in an order that looks like chance and
    *  reaches all 100 before it repeats. */
@@ -119,10 +161,14 @@ export default function Rewards({
         owned={owned}
         outfit={outfit}
         onWear={wear}
-        onUnlockAll={() => {
-          setOwned(ACCESSORIES.map((a) => a.id));
-          tick();
-        }}
+        onUnlockAll={
+          real
+            ? undefined
+            : () => {
+                setOwned(ACCESSORIES.map((a) => a.id));
+                tick();
+              }
+        }
       />
     );
   return (
@@ -199,7 +245,7 @@ export default function Rewards({
             <div className={styles.part}>
               <h3>This week</h3>
               <ul className={styles.earned}>
-                {EARNED.map((row) => (
+                {(real?.week ?? EARNED).map((row) => (
                   <li key={row.name}>
                     <span>{row.name}</span>
                     <b>+{count(row.coins)}</b>
@@ -212,7 +258,17 @@ export default function Rewards({
           <section className={`${lib.glass} ${styles.records}`} aria-label="Records">
             <h2>Records</h2>
             <dl>
-              {RECORDS.map((record) => (
+              {(real
+                ? [
+                    { name: "Lifetime coins", value: real.lifetime.toLocaleString("en-US") },
+                    { name: "Earned today", value: real.today.toLocaleString("en-US") },
+                    { name: "Best day", value: real.bestDay.toLocaleString("en-US") },
+                    { name: "Boxes opened", value: String(owned.length) },
+                    { name: "Longest streak", value: `${best} days` },
+                    { name: "Top multiplier", value: `${multiplierFor(best)}x` },
+                  ]
+                : RECORDS
+              ).map((record) => (
                 <div key={record.name}>
                   <dd>{record.value}</dd>
                   <dt>{record.name}</dt>
@@ -236,6 +292,14 @@ export default function Rewards({
                 const prize = next();
                 setCoins(coins - BOX_PRICE);
                 setOwned([...owned, prize.id]);
+                if (real)
+                  spendReal(
+                    () => actionOpenBox({ prizeId: prize.id }),
+                    () => {
+                      setCoins(coins);
+                      setOwned(owned);
+                    }
+                  );
                 return prize;
               }}
               onWear={(prize) => setOutfit({ ...outfit, [prize.slot]: prize.id })}

@@ -61,6 +61,8 @@ import MusicOffer, { forgetMusic } from "./MusicOffer";
 import Rewards from "./Rewards";
 import { ChatDemo, Me, Unread, useChatPlan } from "./shellBits";
 import { useMenuIntent } from "./useMenuIntent";
+import { setEquipped } from "./equipped";
+import type { FaceKind } from "./characters";
 import { Sticker, type StickerName } from "./stickers";
 
 /* Springs, in Apple's terms (Designing Fluid Interfaces): a quick response with a little bounce where a
@@ -95,6 +97,10 @@ function Shell() {
   const still = useReducedMotion() ?? false;
   /* a signed-in student: their own plan, and no demo switches */
   const real = usePortalData();
+  // a real student's character wears what they last chose, on every page
+  useState(() => {
+    if (real) setEquipped({ face: real.rewards.face as FaceKind, outfit: real.rewards.outfit });
+  });
   const [plan, setPlan] = useState<Plan>(
     planQ !== null && planQ in PLANS ? (planQ as Plan) : (real?.plan ?? "practice")
   );

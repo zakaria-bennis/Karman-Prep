@@ -26,7 +26,8 @@ export default function Wardrobe({
   outfit: Outfit;
   onWear: (item: Accessory) => void;
   /** For trying everything on while the page is being designed; not for students. */
-  onUnlockAll: () => void;
+  /** Design page only: wins all 100 at once, to look at them. */
+  onUnlockAll?: () => void;
 }) {
   const still = useReducedMotion() ?? false;
   const [slot, setSlot] = useState<Slot | null>(null);
@@ -94,7 +95,7 @@ export default function Wardrobe({
             </p>
           </div>
         )}
-        {owned.length < ACCESSORIES.length && (
+        {onUnlockAll && owned.length < ACCESSORIES.length && (
           <button type="button" className={styles.test} onClick={onUnlockAll}>
             Unlock all {ACCESSORIES.length} for testing
           </button>

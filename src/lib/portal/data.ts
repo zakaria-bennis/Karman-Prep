@@ -9,6 +9,7 @@
 import type { SkillFacts } from "@/app/dev/shell/skills72";
 import type { Student } from "@/app/dev/shell/progressData";
 import type { RealHomework } from "./homework";
+import type { RealRewards } from "./rewards";
 import type { RealSchedule } from "./schedule";
 
 /** The portal's three menus (src/app/dev/shell/plans.ts). */
@@ -28,4 +29,5 @@ export interface PortalData {
   bestStreak: number;
   /** Schedule, for Private students. */
   schedule: RealSchedule | null;
+  rewards: RealRewards;
 }

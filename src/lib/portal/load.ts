@@ -24,6 +24,7 @@ import { portalPlanOf } from "./plan";
 import { dayKey, streaks } from "@/lib/student/streak";
 import { loadHomework } from "./homework";
 import { loadSittings } from "./mistakes";
+import { loadRewards } from "./rewards";
 import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
@@ -142,10 +143,11 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
   const today = dayKey(nowMs);
   const plan = portalPlanOf(ctx.plan.id);
   const run = streaks([...new Set(challenges.map((c) => c.day))].sort(), today);
-  const [sittings, homework, schedule] = await Promise.all([
+  const [sittings, homework, schedule, rewards] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),
     plan === "practice" ? null : loadHomework(db, ctx, daily, student.days, nowMs),
     plan === "private" ? loadSchedule(db, ctx, nowMs) : null,
+    loadRewards(db, ctx.clerkId, nowMs),
   ]);
 
   return {
@@ -157,5 +159,6 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     streak: run.current,
     bestStreak: run.longest,
     schedule,
+    rewards,
   };
 }
