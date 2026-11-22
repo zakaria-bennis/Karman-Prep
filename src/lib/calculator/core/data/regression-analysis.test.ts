@@ -45,13 +45,13 @@ it("D-22 no parameter is allowed, and x or y on either side is an error, the lef
   );
   expect(a.byId.get("r")).toMatchObject({ kind: "regression", error: null });
   expect(a.byId.get("r")!.regression!.params).toEqual([]);
-  expect(a.byId.get("p")!.error?.message).toBe("x can't be a regression parameter.");
+  expect(a.byId.get("p")!.error?.message).toBe("Use the data's name here, like x_1, not x.");
   // the first of x and y the model reads is named, as on the reference
   expect(analyse(row("s", "y_{1}\\sim ny+mx")).byId.get("s")!.error?.message).toBe(
-    "y can't be a regression parameter."
+    "Use the data's name here, like y_1, not y."
   );
   // the left side is read first: `y\sim m` names y (live 2026-10-22, `[x,1]\sim[a,2]` names x)
-  expect(a.byId.get("q")!.error?.message).toBe("y can't be a regression parameter.");
+  expect(a.byId.get("q")!.error?.message).toBe("Use the data's name here, like y_1, not y.");
 });
 
 it("D-33 each regression takes the lowest free e_k in row order and a computed column may read it", () => {

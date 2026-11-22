@@ -116,6 +116,14 @@
   /* Statistics */
 
   /* Regressions */
+  --kc-tr-control-radius: 5px; /* the model picker and its list */
+  --kc-tr-control-fill: var(--kc-list);
+  --kc-tr-list-shadow: none;
+  --kc-tr-menu-edge: var(--kc-boundary); /* the ⋮ menu's edge */
+  --kc-tr-button-radius: 3px;
+  --kc-tr-danger: var(--kc-curve-1); /* Delete regression */
+  --kc-tr-plot-edge: var(--kc-row-rule);
+  --kc-tr-plot-radius: 6px;
 
   /* Sliders, tables and menus */
 

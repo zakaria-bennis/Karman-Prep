@@ -945,6 +945,14 @@
   /* Statistics */
 
   /* Regressions */
+  --kc-tr-control-radius: 11px;
+  --kc-tr-control-fill: var(--kc-pill);
+  --kc-tr-list-shadow: var(--kc-popover-shadow);
+  --kc-tr-menu-edge: var(--quiz-line);
+  --kc-tr-button-radius: 9px;
+  --kc-tr-danger: var(--kc-error);
+  --kc-tr-plot-edge: var(--quiz-line);
+  --kc-tr-plot-radius: 9px;
 
   /* Sliders, tables and menus */
 

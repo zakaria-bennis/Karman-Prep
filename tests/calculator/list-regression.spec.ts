@@ -67,5 +67,5 @@ test("D-27 y_1 ~ a(1+r)^{x_1} offers Log Mode, and it fits as live Desmos does",
   // live Desmos, 2026-10-22: a = 1.51585, r = 0.996887, R² = 0.9992, r = 0.9996
   await expect
     .poll(() => shown(page))
-    .toEqual(["a=1.51585", "r=0.996887", "R^{2}=0.9992", "r=0.9996"]);
+    .toEqual(["a=1.51585", "r=0.996887", "r^{2}=0.9992", "r=0.9996"]);
 });

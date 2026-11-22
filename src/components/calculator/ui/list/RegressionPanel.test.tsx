@@ -37,11 +37,13 @@ it("RT-31 the panel shows Log Mode, REGRESSION PARAMETERS, then STATISTICS and R
   );
   expect(parts).toEqual(["Log Mode?", "Regression Parameters", "Statistics", "Residuals"]);
   expect(within(p).getByRole("checkbox", { name: "Log Mode" })).not.toBeChecked();
-  expect(within(p).getByRole("link", { name: "Log mode help" })).toBeTruthy();
+  // in-app notes, never links to another site (2026-11-22)
+  const help = within(p).getByRole("button", { name: "What is log mode?" });
+  expect(within(p).queryByRole("link")).toBeNull();
+  fireEvent.click(help);
+  expect(within(p).getByRole("note").textContent).toMatch(/^Log mode fits the data's logarithms/);
   // an iterative fit: "Parameters might not be exact"
-  expect(
-    within(p).getByRole("link", { name: "Parameters might not be exact. Click to learn more." })
-  ).toBeTruthy();
+  expect(within(p).getByRole("button", { name: "Parameters might not be exact." })).toBeTruthy();
   expect(p.querySelector(".kc-tr-footer")!.children).toHaveLength(2);
 });
 
@@ -52,14 +54,14 @@ it("RT-23, RT-31 each value is focusable typeset math named name equals value, i
   expect(fields.map((f) => f.getAttribute("aria-label"))).toEqual([
     "m equals 2",
     "b equals 1",
-    "R squared equals 1",
+    "r squared equals 1",
     "r equals 1",
     "e sub 1",
   ]);
   expect(fields.map((f) => f.querySelector("[data-latex]")!.getAttribute("data-latex"))).toEqual([
     "m=2",
     "b=1",
-    "R^{2}=1",
+    "r^{2}=1",
     "r=1",
     "e_{1}",
   ]);
@@ -83,7 +85,7 @@ it("A11Y-10 the summary is announced 750 ms after a change", async () => {
   await waitFor(
     () =>
       expect(kit.announcer.texts).toContain(
-        "Regression: m equals 2, b equals 1, R squared equals 1, r equals 1"
+        "Regression: m equals 2, b equals 1, r squared equals 1, r equals 1"
       ),
     { timeout: 3000 }
   );

@@ -14,6 +14,7 @@ import {
   type RowError,
 } from "../analysis";
 import type { RowKind } from "../corpus/types";
+import { studentHint } from "../analysis/hints";
 import type { Node } from "../latex/ast";
 import { formatValue } from "../eval/format";
 import { displayFraction, type DisplayFraction } from "../eval/fraction";
@@ -256,13 +257,16 @@ function buildRowView(
     hidden: row.hidden,
     color: row.color,
     kind: analysis.kind,
-    error: overrun
-      ? timeoutError()
-      : (analysis.error ??
-        limitError ??
-        chipsError(analysis) ??
-        valueError(value) ??
-        fitError(result.regression)),
+    error: hinted(
+      row.latex,
+      overrun
+        ? timeoutError()
+        : (analysis.error ??
+            limitError ??
+            chipsError(analysis) ??
+            valueError(value) ??
+            fitError(result.regression))
+    ),
     chips: slider === null ? [...analysis.chips] : [...slider.limitNames],
     value,
     // SLIDERS-12: a slider row has no value readout
@@ -398,4 +402,11 @@ export function snapshotAnalysis(
     snapshotAnalyses.set(snapshot, record);
   }
   return record;
+}
+
+/** A row's error with a friendly hint for a common student slip in place of its message. */
+function hinted(latex: string, error: ViewError | null): ViewError | null {
+  if (error === null || error.code === "slider-limits") return error;
+  const hint = studentHint(latex, error.code, error.names);
+  return hint === null ? error : { ...error, message: hint };
 }
