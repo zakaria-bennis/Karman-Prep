@@ -19,34 +19,45 @@
 //   After     The recording, the tutor's notes, what was covered and the homework set, for 6 months.
 // A real Private student's sessions come from the server (src/lib/portal/schedule.ts); while they are
 // shown, the tutor's open times are the ones their booking calendar gives (`setCalendarTimes`).
-import { GUARANTEE, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
+// The rules the booking endpoints enforce live in src/lib/bookings/rules.ts and are used here too,
+// so the page and the server agree.
+import { GUARANTEE } from "@/lib/marketing/offer";
+import {
+  BOOKING,
+  LENGTHS,
+  hoursLedger,
+  lengthsFor,
+  movesLeftIn,
+  packHours,
+  weeklyCap,
+  type Length,
+  type Pack,
+} from "@/lib/bookings/rules";
 import { DAY, STUDENTS, TODAY, activity } from "./progressData";
 import { ledger, minSec } from "./progressStats";
 import { guessPlace, skyAt, type Place, type Sky } from "@/lib/schedule/sun";
-import { SECTIONS, SKILLS } from "./skills72";
+import { SECTIONS, SKILLS, type Domain, type Section } from "./skills72";
 
 export { DAY };
 export const MIN = 60_000;
 export const HOUR = 3_600_000;
 
 export const RULES = {
-  noticeHours: GUARANTEE.private.cancelHours,
-  aheadDays: 28,
+  noticeHours: BOOKING.noticeHours,
+  aheadDays: BOOKING.aheadDays,
   joinMinutes: 5,
   graceMinutes: 10,
-  movesAMonth: 3,
+  movesAMonth: BOOKING.movesAMonth,
   expiryMonths: 12,
   recordingMonths: 6,
   tutorMissMinutes: 30,
   hourPrice: GUARANTEE.private.extraSessionPrice,
 } as const;
 
-export type Pack = "private-10" | "private-20";
-export type Length = 60 | 90 | 120;
-export const LENGTHS: Length[] = [60, 90, 120];
+export type { Length, Pack };
 /** Private 10 has 60 minutes a week; Private 20 chooses. */
-export const lengthsFor = (pack: Pack): Length[] => (pack === "private-10" ? [60] : LENGTHS);
-export const hoursIn = (pack: Pack) => PRIVATE_PACKAGES.find((p) => p.id === pack)!.hours;
+export { LENGTHS, lengthsFor };
+export const hoursIn = packHours;
 
 export interface Recap {
   notes: string;
@@ -66,12 +77,16 @@ export interface Session {
   /** The meeting's address (a Zoom link). The tutor's and the admin's portals will set it; when
    *  it is there, Join opens it. */
   joinUrl?: string;
+  /** Moved once already: a session can be moved once (the tutor can move it again). */
+  moved?: boolean;
+  /** It has a recording to watch. Real sessions have none yet. */
+  recording?: boolean;
 }
 export interface Account {
   pack: Pack;
-  /** Hours bought in all, and when the package began. */
+  /** Hours bought in all, and when the package began (null until a real purchase date is known). */
   bought: number;
-  boughtAt: number;
+  boughtAt: number | null;
   /** Minutes given back on top (the tutor missed a session). */
   bonusMinutes: number;
   /** The one free change inside 24 hours. */
@@ -95,18 +110,11 @@ export const weekStart = (t: number) => {
 
 // ---- hours ----
 
-export function hours(account: Account) {
-  const sum = (states: Session["state"][]) =>
-    account.sessions
-      .filter((s) => states.includes(s.state))
-      .reduce((n, s) => n + s.minutes / 60, 0);
-  const total = account.bought + account.bonusMinutes / 60;
-  const used = sum(["done", "missed"]);
-  const booked = sum(["booked"]);
-  return { total, used, booked, left: Math.max(0, total - used - booked) };
-}
+/** The same count the booking endpoints make (src/lib/bookings/rules.ts). */
+export const hours = (account: Account) => hoursLedger(account);
 
-export const expiresAt = (account: Account) => {
+export const expiresAt = (account: Account): number | null => {
+  if (account.boughtAt === null) return null;
   const d = new Date(account.boughtAt);
   d.setMonth(d.getMonth() + RULES.expiryMonths);
   return d.getTime();
@@ -128,16 +136,16 @@ const STEP = 30;
 export const TUTOR_ZONE = "America/Chicago";
 export const TUTOR_HOURS = { from: 8, to: 24 } as const;
 
-/** The same "taken by someone else" answer for the same slot on every load. */
-/** The tutor's open start times from their booking calendar, for a real student; null for the
- *  design page, whose tutor is made up. */
-let calendarOpen: ReadonlySet<number> | null = null;
-export const setCalendarTimes = (open: ReadonlySet<number> | null) => {
+/** The tutor's open start times from their booking calendar, for a real student, one set for each
+ *  length (a start is open when the whole session fits); null for the design page, whose tutor is
+ *  made up. */
+let calendarOpen: ReadonlyMap<number, ReadonlySet<number>> | null = null;
+export const setCalendarTimes = (open: ReadonlyMap<number, ReadonlySet<number>> | null) => {
   calendarOpen = open;
 };
 
+/** The same "taken by someone else" answer for the same slot on every load (the design page). */
 const taken = (t: number) => {
-  if (calendarOpen) return !calendarOpen.has(t);
   // by the hour, as a tutor's other students would hold it
   let x = Math.floor(t / HOUR) + Math.floor(t / DAY) * 7919;
   x = Math.imul(x ^ (x >>> 3), 0x45d9f3b);
@@ -207,6 +215,9 @@ export function choices(
   const first = now + RULES.noticeHours * HOUR;
   const last = now + RULES.aheadDays * DAY;
   const mine = account.sessions.filter((s) => s.state === "booked" && s.id !== moving?.id);
+  // sessions already held that week count toward Private 10's one a week too
+  const held = account.sessions.filter((s) => s.state !== "canceled" && s.id !== moving?.id);
+  const cap = weeklyCap(account.pack);
   const left = hours(account).left + (moving ? moving.minutes / 60 : 0);
   const days: DayChoice[] = [];
   // the student's own day, from its midnight to the next
@@ -219,7 +230,7 @@ export function choices(
       days.push({ day, times: [], slots: shut(day), why: "hours" });
       continue;
     }
-    if (account.pack === "private-10" && mine.some((s) => weekStart(s.start) === weekStart(day))) {
+    if (cap !== null && held.filter((s) => weekStart(s.start) === weekStart(day)).length >= cap) {
       days.push({ day, times: [], slots: shut(day), why: "week" });
       continue;
     }
@@ -230,7 +241,17 @@ export function choices(
       !taken(t) &&
       !mine.some((s) => t < endOf(s) && t + STEP * MIN > s.start);
     const fits = startsOn(day);
+    const calendar = calendarOpen?.get(minutes);
     const free = (t: number) => {
+      // a real tutor's calendar says which starts have room for the whole session
+      if (calendarOpen)
+        return (
+          !full &&
+          t >= first &&
+          t <= last &&
+          !!calendar?.has(t) &&
+          !mine.some((s) => t < endOf(s) && t + minutes * MIN > s.start)
+        );
       for (let part = t; part < t + minutes * MIN; part += STEP * MIN)
         if (!open(part)) return false;
       return true;
@@ -245,14 +266,9 @@ export function choices(
 
 // ---- changing a session ----
 
-export const movesLeft = (account: Account, now: number) => {
-  const month = new Date(now).getMonth();
-  const year = new Date(now).getFullYear();
-  const made = account.moves.filter(
-    (t) => new Date(t).getMonth() === month && new Date(t).getFullYear() === year
-  ).length;
-  return Math.max(0, RULES.movesAMonth - made);
-};
+/** Three a month, in the student's own month (this device's clock), as the server counts them. */
+export const movesLeft = (account: Account, now: number) =>
+  movesLeftIn(account.moves, now, Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
 /** The first of next month, when the moves come back. */
 export const movesBack = (now: number) => {
   const d = new Date(now);
@@ -264,12 +280,13 @@ export interface Change {
   late: boolean;
   move: boolean;
   cancel: boolean;
-  why?: "started" | "pass" | "moves";
+  why?: "started" | "pass" | "moved" | "moves";
 }
 export function changeOf(account: Account, session: Session, now: number): Change {
   if (now >= session.start) return { late: true, move: false, cancel: false, why: "started" };
   const late = session.start - now < RULES.noticeHours * HOUR;
   if (late && !account.latePass) return { late, move: false, cancel: false, why: "pass" };
+  if (session.moved) return { late, move: false, cancel: true, why: "moved" };
   const moves = movesLeft(account, now) > 0;
   return { late, move: moves, cancel: true, why: moves ? undefined : "moves" };
 }
@@ -347,21 +364,27 @@ export function recommend(skills: Pick[], count = 3): Pick[] {
   }
   return chosen;
 }
-/** The five things offered: three skills, then pacing and a full-length exam's review. */
-export const RECOMMENDED: Pick[] = [
-  ...recommend(
-    SECTIONS.flatMap((section) =>
-      SKILLS[section].flatMap((domain) =>
-        domain.skills.map((skill) => ({
-          skill: skill.name,
-          subject: section === "Math" ? ("math" as const) : ("rw" as const),
-          level: skill.level,
-        }))
+/** The five things offered from a student's own skills and pace: three skills, then pacing and a
+ *  full-length exam's review. With no pace yet, pacing shows no number. */
+export function recommendFor(skills: Record<Section, Domain[]>, pace: number): Pick[] {
+  return [
+    ...recommend(
+      SECTIONS.flatMap((section) =>
+        skills[section].flatMap((domain) =>
+          domain.skills.map((skill) => ({
+            skill: skill.name,
+            subject: section === "Math" ? ("math" as const) : ("rw" as const),
+            level: skill.level,
+          }))
+        )
       )
-    )
-  ),
-  ...EXTRAS,
-];
+    ),
+    { skill: PACING, subject: "test", value: pace ? `${minSec(pace)} a question` : undefined },
+    { skill: EXAM_REVIEW, subject: "exam" },
+  ];
+}
+/** The design page's five, from its made-up student. */
+export const RECOMMENDED: Pick[] = recommendFor(SKILLS, PACE_NOW);
 const WEAKEST = RECOMMENDED.filter((pick) => pick.level !== undefined).map((pick) => pick.skill);
 
 /** What a thing to work on belongs to, for its color: fuchsia for Reading and Writing, blue for
@@ -414,6 +437,7 @@ const past = (
   focus,
   state: "done",
   joined: true,
+  recording: true,
   recap,
 });
 

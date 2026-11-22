@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
   const dateFrom = sp.get("dateFrom");
   const dateTo = sp.get("dateTo");
   const timeZone = sp.get("timeZone") ?? undefined;
+  // a longer Private session (90 or 120 minutes) asks for times with room for its length
+  const asked = Number(sp.get("duration"));
+  const duration = asked === 90 || asked === 120 ? asked : undefined;
 
   if (!eventTypeId || !dateFrom || !dateTo) {
     return NextResponse.json(
@@ -39,7 +42,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const slots = await getAvailability({ eventTypeId, dateFrom, dateTo, timeZone });
+    const slots = await getAvailability({ eventTypeId, dateFrom, dateTo, timeZone, duration });
     return NextResponse.json({ slots });
   } catch (err) {
     const isAdapter = err instanceof CalAdapterError;
