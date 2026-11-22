@@ -53,8 +53,8 @@ export interface FlightOptions {
    *  itself, slowly, and picks up where this tab left off. `from` starts it at that distance, `land`
    *  holds one land everywhere, and `settled` (0 to 1) holds the sky that far through its opening
    *  twenty minutes, and `speed` multiplies the drift; these are for looking at the world while it is built.
-   *  `lands` keeps the route to those lands alone. `river` flies down the river instead of the valley's
-   *  middle, `height` above the water, looking `tilt` up or down (Endless mode's picture). */
+   *  `lands` keeps the route to those lands alone. `river` rides down the river just above the water
+   *  instead of along the valley's middle (Endless mode's picture; founder's pick, 2026-11-21). */
   world?:
     | boolean
     | {
@@ -63,7 +63,7 @@ export interface FlightOptions {
         lands?: readonly string[];
         settled?: number;
         speed?: number;
-        river?: { height: number; tilt: number };
+        river?: boolean;
       };
   /** The first picture is on the canvas. */
   onReady?: () => void;
@@ -76,6 +76,9 @@ const IDLE_MS = 60_000;
 const TURN_MS = 1500;
 const STOPS = 6;
 const STILL_TIME = 40;
+/** The river view: how high above the water, and the tilt (low on the water, looking a little down). */
+const RIVER_HEIGHT = 0.016;
+const RIVER_TILT = -0.012;
 /** Where a tab keeps how far it has flown through the endless world. */
 const FLOWN_KEY = "kp-flown";
 /** Where a tab keeps when its sky began to settle, and in which mode. */
@@ -516,9 +519,9 @@ export class Flight {
     }
     this.sun = sun;
     gl.uniform2f(this.uniforms.uSun, this.sun[0], this.sun[1]);
-    /* down the river, or along the valley's middle */
-    const r = opt.river;
-    gl.uniform3f(this.uniforms.uView, r ? 1 : 0, r?.height ?? 0, r?.tilt ?? 0);
+    /* down the river just above the water (how high, and the tilt), or along the valley's middle */
+    const r = opt.river ? 1 : 0;
+    gl.uniform3f(this.uniforms.uView, r, r * RIVER_HEIGHT, r * RIVER_TILT);
   }
 
   /** Every so often, time one picture and draw softer or sharper to suit the device. */
