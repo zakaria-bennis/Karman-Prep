@@ -17,6 +17,7 @@
 // ?place=lake and so on (that place, whatever the session) and ?photo=real (the plain photograph
 // instead of its painting).
 import { useSearchParams } from "next/navigation";
+import { usePortalData } from "./portalData";
 import { useEffect, useRef, useState } from "react";
 import { useClock } from "./homeworkMotion";
 import lib from "./library.module.css";
@@ -130,13 +131,16 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
       : undefined;
   const now = useClock();
   const first = useRef(now);
+  /* a real Private student's own sessions, hours and tutor */
+  const real = usePortalData()?.schedule ?? null;
   useEffect(() => {
+    if (real) return schedule.load(real);
     schedule.start(pack, first.current, {
       soon: soon === null ? undefined : Number(soon),
       empty,
       full,
     });
-  }, [pack, soon, empty, full]);
+  }, [pack, soon, empty, full, real]);
 
   const { account, sync, fresh } = useSchedule();
   const { upcoming, past } = split(account, now);

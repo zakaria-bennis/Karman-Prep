@@ -23,7 +23,6 @@ import {
   RECOMMENDED,
   RULES,
   SAT_DAY,
-  TUTOR,
   choices,
   clock,
   dateLong,
@@ -37,13 +36,12 @@ import {
   type Length,
   type Session,
 } from "./scheduleData";
-import { schedule } from "./scheduleStore";
+import { isLive, satDayOf, schedule, tutorFirst } from "./scheduleStore";
 import { LEVELS } from "./skills72";
 import { chosen, tick } from "./sound";
 import page from "./schedule.module.css";
 import styles from "./scheduleBook.module.css";
 
-const tutor = TUTOR.split(" ")[0];
 const sameDay = (a: number, b: number) => new Date(a).toDateString() === new Date(b).toDateString();
 
 export default function Book({
@@ -67,7 +65,7 @@ export default function Book({
   onBuy: () => void;
   onChat: () => void;
 }) {
-  const lengths = lengthsFor(account.pack);
+  const lengths = isLive() ? lengthsFor("private-10") : lengthsFor(account.pack);
   const [minutes, setMinutes] = useState<Length>(moving?.minutes ?? lengths[0]);
   // the page's clock ticks every second; the open times only need the minute
   const minute = Math.floor(now / 60_000) * 60_000;
@@ -214,9 +212,9 @@ export default function Book({
         ) : (
           <div className={styles.none}>
             <b>Nothing open</b>
-            <p>{tutor} has no open times in the next four weeks.</p>
+            <p>{tutorFirst()} has no open times in the next four weeks.</p>
             <button type="button" className={page.go} onClick={onChat}>
-              Message {tutor}
+              Message {tutorFirst()}
             </button>
           </div>
         )
@@ -235,7 +233,7 @@ export default function Book({
                   const info = days.find((d) => d.day === cell);
                   const date = new Date(cell);
                   const open = info?.times.length ?? 0;
-                  const sat = sameDay(SAT_DAY, cell);
+                  const sat = sameDay(satDayOf(SAT_DAY), cell);
                   const own = mine.find((s) => sameDay(s.start, cell));
                   const can = !!info && (open > 0 || !!info.why);
                   return (
@@ -367,8 +365,8 @@ export default function Book({
                 value={note}
                 maxLength={120}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder={`Note for ${tutor}`}
-                aria-label={`A note for ${tutor}`}
+                placeholder={`Note for ${tutorFirst()}`}
+                aria-label={`A note for ${tutorFirst()}`}
               />
             </div>
           )}

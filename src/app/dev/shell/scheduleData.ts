@@ -17,7 +17,8 @@
 //             session, which still ends on time. If the tutor misses it, the hours go back with 30
 //             minutes more.
 //   After     The recording, the tutor's notes, what was covered and the homework set, for 6 months.
-// Nothing here reads or writes a real booking yet.
+// A real Private student's sessions come from the server (src/lib/portal/schedule.ts); while they are
+// shown, the tutor's open times are the ones their booking calendar gives (`setCalendarTimes`).
 import { GUARANTEE, PRIVATE_PACKAGES } from "@/lib/marketing/offer";
 import { DAY, STUDENTS, TODAY, activity } from "./progressData";
 import { ledger, minSec } from "./progressStats";
@@ -128,7 +129,15 @@ export const TUTOR_ZONE = "America/Chicago";
 export const TUTOR_HOURS = { from: 8, to: 24 } as const;
 
 /** The same "taken by someone else" answer for the same slot on every load. */
+/** The tutor's open start times from their booking calendar, for a real student; null for the
+ *  design page, whose tutor is made up. */
+let calendarOpen: ReadonlySet<number> | null = null;
+export const setCalendarTimes = (open: ReadonlySet<number> | null) => {
+  calendarOpen = open;
+};
+
 const taken = (t: number) => {
+  if (calendarOpen) return !calendarOpen.has(t);
   // by the hour, as a tutor's other students would hold it
   let x = Math.floor(t / HOUR) + Math.floor(t / DAY) * 7919;
   x = Math.imul(x ^ (x >>> 3), 0x45d9f3b);

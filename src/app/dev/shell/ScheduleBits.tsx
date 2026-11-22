@@ -16,7 +16,6 @@ import { breathe, press, useCount } from "./scheduleMotion";
 import {
   MIN,
   RULES,
-  TUTOR,
   changeOf,
   clock,
   dateLong,
@@ -36,13 +35,11 @@ import {
   type Session,
   type Sky,
 } from "./scheduleData";
-import { schedule, type Sync } from "./scheduleStore";
+import { schedule, tutorFirst, type Sync } from "./scheduleStore";
 import { chosen, tick } from "./sound";
 import styles from "./schedule.module.css";
 import hrs from "./scheduleHours.module.css";
 import past from "./schedulePast.module.css";
-
-const first = TUTOR.split(" ")[0];
 
 /** Move and Cancel for one session, with the rule that applies said beside them. */
 export function Changes({
@@ -61,7 +58,7 @@ export function Changes({
   const left = movesLeft(account, now);
   if (change.why === "started") return null;
   if (change.why === "pass")
-    return <p className={styles.rule}>Inside 24 hours. Message {first} to change it.</p>;
+    return <p className={styles.rule}>Inside 24 hours. Message {tutorFirst()} to change it.</p>;
   if (asking)
     return (
       <div className={styles.ask}>
@@ -420,7 +417,7 @@ export function Past({
       ) : kept ? (
         <div className={past.player} data-playing={playing || undefined}>
           <div className={past.screen}>
-            <span>{first[0]}</span>
+            <span>{tutorFirst()[0]}</span>
             <span>You</span>
             <button
               type="button"

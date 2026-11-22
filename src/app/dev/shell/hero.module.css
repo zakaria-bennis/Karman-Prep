@@ -256,7 +256,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .band i {
     animation: none;
   }
