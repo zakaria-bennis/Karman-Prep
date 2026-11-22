@@ -26,6 +26,9 @@ for (const scheme of ["light", "dark"] as const) {
       await openCalculator(page, "diagnostic", undefined, { docked: true });
       await row(page).focus();
       await page.keyboard.type("y=2x");
+      // a phone's full-screen calculator covers the question: close it to reach Bookmark
+      if ((await frame(page).getAttribute("data-mode")) === "fullscreen")
+        await trigger(page).click();
       await page.getByRole("button", { name: "Bookmark", exact: true }).first().click();
       await move(page, "Next");
       expect(await latex(page)).toEqual([""]); // the next question is clean
@@ -83,6 +86,7 @@ for (const scheme of ["light", "dark"] as const) {
       const view = page.viewportSize()!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(view.width);
+      await page.waitForTimeout(400); // the tip's fade-in has ended
       await page.screenshot({
         path: `tmp/calculator/glass-${info.project.name}-${scheme}-tip.png`,
       });
