@@ -37,12 +37,6 @@ import {
   watchPercentageSchema,
 } from "./quiz-action-schemas";
 
-export async function actionFetchNodeBundle(nodeId: string) {
-  const { userId } = await safeAuth();
-  if (!userId) throw new Error("Not authenticated");
-  return fetchNodeStatusBundle(userId, quizNodeIdSchema.parse(nodeId));
-}
-
 export async function actionStartQuiz(
   nodeId: string,
   resumeAttemptId?: string
