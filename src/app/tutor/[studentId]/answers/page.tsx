@@ -7,6 +7,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Card, MoreLink, Num, SectionHeader } from "@/components/portal";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
+import MathText from "@/components/learn/MathText";
+import { excerpt } from "@/lib/portal/excerpt";
 import { loadSittings } from "@/lib/portal/mistakes";
 import { byClerkId } from "@/lib/portal/tutor-route";
 import { between } from "@/lib/portal/progress";
@@ -20,8 +22,15 @@ export const metadata: Metadata = { title: "Every answer" };
 export const dynamic = "force-dynamic";
 
 const LETTERS = "ABCDEFGH";
-const shown = (choices: string[], i: number) =>
-  i >= 0 && i < choices.length ? `${LETTERS[i]}. ${choices[i]}` : "No answer";
+/** A choice as the question showed it, its letter first and its math drawn. */
+function Choice({ choices, i }: { choices: string[]; i: number }) {
+  if (i < 0 || i >= choices.length) return <>No answer</>;
+  return (
+    <>
+      {LETTERS[i]}. <MathText text={choices[i]} />
+    </>
+  );
+}
 
 export default async function AnswersPage({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId: raw } = await params;
@@ -78,7 +87,9 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
                     <b>{q.skill}</b> <span className="kp-meta">{q.right ? "Right" : "Missed"}</span>
                     {q.flagged && <span className="kp-meta"> · flagged for you</span>}
                   </p>
-                  <p className="kp-meta">{q.sample.prompt.slice(0, 280)}</p>
+                  <div className="kp-meta kp-answer-stem">
+                    <MathText text={excerpt(q.sample.prompt)} />
+                  </div>
                   {q.sample.typed ? (
                     <p>
                       Answered {q.sample.typed.given || "nothing"}; right answer{" "}
@@ -86,8 +97,12 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
                     </p>
                   ) : (
                     <p>
-                      Answered {shown(q.sample.choices, q.picked)}
-                      {!q.right && <>; right answer {shown(q.sample.choices, q.sample.answer)}</>}
+                      Answered <Choice choices={q.sample.choices} i={q.picked} />
+                      {!q.right && (
+                        <>
+                          ; right answer <Choice choices={q.sample.choices} i={q.sample.answer} />
+                        </>
+                      )}
                     </p>
                   )}
                 </li>

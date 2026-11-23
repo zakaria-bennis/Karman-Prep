@@ -21,6 +21,7 @@ import styles from "./mistakeLog.module.css";
 import { clock, minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 import GeneratedMark from "@/components/admin/GeneratedMark";
+import MathText from "@/components/learn/MathText";
 import { useGenerated } from "./play/useGenerated";
 
 export const dayName = (student: Student, day: number) =>
@@ -484,7 +485,9 @@ export function QuestionView({
         {q.found.skill.name}
         <Chevron />
       </button>
-      <p className={styles.prompt}>{sample.prompt}</p>
+      <div className={styles.prompt}>
+        <MathText text={sample.prompt} />
+      </div>
       {sample.typed && (
         <ol className={styles.choices}>
           <li data-is={q.right ? "right" : "missed"}>
@@ -508,7 +511,9 @@ export function QuestionView({
           return (
             <li key={choice} data-is={answer ? "right" : mine ? "missed" : undefined}>
               <i>{"ABCD"[i]}</i>
-              <span>{choice}</span>
+              <span>
+                <MathText text={choice} />
+              </span>
               {(mine || answer) && <b>{mine ? "Your answer" : "Right answer"}</b>}
             </li>
           );
@@ -516,7 +521,9 @@ export function QuestionView({
       </ol>
       <div className={styles.why}>
         <h3>Explanation</h3>
-        <p>{sample.why}</p>
+        <div>
+          <MathText text={sample.why} />
+        </div>
       </div>
     </>
   );

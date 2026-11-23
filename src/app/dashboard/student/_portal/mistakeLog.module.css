@@ -735,6 +735,7 @@
 
 .prompt {
   max-width: 68ch;
+  white-space: pre-line;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.55;
@@ -809,7 +810,9 @@
   max-width: 68ch;
 }
 
-.why p {
+.why p,
+.why > div {
+  white-space: pre-line;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.55;

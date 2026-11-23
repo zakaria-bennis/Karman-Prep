@@ -31,6 +31,7 @@ import { weekSet } from "@/lib/portal/review-sets";
 import { loadStudentSummary } from "@/lib/portal/student-summary";
 import { dayKey } from "@/lib/student/streak";
 import { byClerkId } from "@/lib/portal/tutor-route";
+import { SKILLS, type Section } from "@/app/dashboard/student/_portal/skills72";
 import "@/components/portal-extras/forms.css";
 
 export const metadata: Metadata = { title: "Student" };
@@ -95,8 +96,16 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
   // Summary stats
   const statusMap = new Map(statuses.map((s) => [s.node_id, s]));
-  const readingMastered = RW_NODES.filter((n) => statusMap.get(n.id)?.status === "mastered").length;
-  const mathMastered = MATH_NODES.filter((n) => statusMap.get(n.id)?.status === "mastered").length;
+  // the 72 skills, Proficient as the student portal's Library counts them (34 RW, 38 Math)
+  const proficient = (section: Section) => {
+    const names = SKILLS[section].flatMap((d) => d.skills.map((k) => k.name));
+    return {
+      done: names.filter((n) => summary?.data.skills[n]?.level === 3).length,
+      total: names.length,
+    };
+  };
+  const reading = proficient("Reading and Writing");
+  const math = proficient("Math");
   const tiersDone =
     (RW_NODES.filter((n) => n.tier === 1).every(
       (n) => statusMap.get(n.id)?.status === "mastered"
@@ -141,8 +150,8 @@ export default async function StudentDetailPage({ params, searchParams }: Params
         <SectionHeader title={name} note={atmo} />
         {name !== student.email && <p className="kp-meta">{student.email}</p>}
         <div className="kp-staff-rings">
-          <CourseRing label="Reading and Writing" mastered={readingMastered} total={50} />
-          <CourseRing label="Math" mastered={mathMastered} total={50} />
+          <CourseRing label="Reading and Writing" proficient={reading.done} total={reading.total} />
+          <CourseRing label="Math" proficient={math.done} total={math.total} />
           {avgScore !== null && (
             <div className="kp-staff-ringcell">
               <Ring value={avgScore / 100} label={`Average quiz score ${avgScore}%`}>
@@ -226,24 +235,24 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
 function CourseRing({
   label,
-  mastered,
+  proficient,
   total,
 }: {
   label: string;
-  mastered: number;
+  proficient: number;
   total: number;
 }) {
-  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+  const pct = total > 0 ? Math.round((proficient / total) * 100) : 0;
   return (
     <div className="kp-staff-ringcell">
-      <Ring value={pct / 100} label={`${label}: ${mastered} of ${total} skills mastered`}>
+      <Ring value={pct / 100} label={`${label}: ${proficient} of ${total} skills Proficient`}>
         <Num>{pct}%</Num>
       </Ring>
       <span>
         {label}
         <br />
         <small className="kp-meta">
-          <Num>{mastered}</Num> of <Num>{total}</Num> mastered
+          <Num>{proficient}</Num> of <Num>{total}</Num> Proficient
         </small>
       </span>
     </div>

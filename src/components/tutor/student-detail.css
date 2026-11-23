@@ -584,6 +584,11 @@
   margin: 4px 0 12px;
   padding-left: 22px;
 }
+.kp-answers .kp-answer-stem {
+  margin: 2px 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
 .kp-answers li p {
   margin: 2px 0;
   overflow-wrap: anywhere;
