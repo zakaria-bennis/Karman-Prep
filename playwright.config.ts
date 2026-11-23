@@ -13,10 +13,18 @@ import { defineConfig, devices } from "@playwright/test";
 // `tests/e2e/global-setup.ts` runs it once before the suite.
 //
 // Run locally:
-//   npm run test:e2e
-// CI is not wired up yet — that needs a Supabase fixture project
-// reachable from GitHub Actions; tracked as future work.
+//   npm run test:e2e        (PW_CHANNEL=chrome to use the installed Chrome)
+// CI: .github/workflows/e2e.yml, against a fresh local Supabase stack.
 // ============================================================
+
+// Every portal and admin page draws the live WebGL landscape behind it (src/lib/flight), and it
+// redraws on every pointer move, key press and scroll. A CI machine has no graphics card, so Chromium
+// drew it in software, under frosted glass, after every click: the suite went from one minute
+// (2026-11-10) to past its 20-minute limit. With WebGL off the landscape keeps its plain sky, as it
+// does in any browser that cannot draw it, and reduced motion holds the rest of the page still.
+// No test here checks the landscape or the motion; scripts/dev/motion-sheet.mjs watches those.
+const STILL = { reducedMotion: "reduce" } as const;
+const NO_WEBGL = { launchOptions: { args: ["--disable-webgl", "--disable-webgl2"] } };
 
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
@@ -27,14 +35,18 @@ export default defineConfig({
   // stays fast.
   testDir: "./tests",
   globalSetup: "./tests/e2e/global-setup.ts",
-  fullyParallel: false, // impersonation tests share the same dev server cookie jar
+  // One worker, one test at a time: every test shares one `next dev` server.
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: 1, // see fullyParallel comment
+  // One retry: a second try runs on pages that are already compiled. More only multiplied the time a
+  // truly broken test burned.
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
   reporter: "list",
-  // Every route compiles on its first visit under `next dev`, and a slow CI runner can spend most
-  // of a minute on one portal page, so a test that opens several first-time routes needs room.
-  timeout: 180_000,
+  // Every route compiles on its first visit under `next dev`: up to about 20 seconds for the student
+  // portal on a CI runner (2026-11-23), and the slowest test took 14 seconds. 90 seconds leaves room
+  // for a few first compiles in one test without letting a broken test burn minutes.
+  timeout: 90_000,
   // The portals now load the flown landscape and more styles, so a route's first compile under
   // `next dev` in CI can pass five seconds. Give each expectation room for that first compile.
   expect: { timeout: 15_000 },
@@ -48,7 +60,14 @@ export default defineConfig({
     {
       name: "e2e",
       testDir: "./tests/e2e",
-      use: { ...devices["Desktop Chrome"] },
+      // PW_CHANNEL=chrome runs the suite in the installed Google Chrome when Playwright's own
+      // Chromium is not downloaded (a laptop); CI installs Playwright's Chromium and leaves it unset.
+      use: {
+        ...devices["Desktop Chrome"],
+        ...STILL,
+        ...NO_WEBGL,
+        ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+      },
     },
     {
       name: "visual",
@@ -65,13 +84,13 @@ export default defineConfig({
       name: "e2e-firefox",
       testDir: "./tests/e2e",
       testIgnore: /calculator-smoke/,
-      use: { ...devices["Desktop Firefox"] },
+      use: { ...devices["Desktop Firefox"], ...STILL },
     },
     {
       name: "e2e-webkit",
       testDir: "./tests/e2e",
       testIgnore: /calculator-smoke/,
-      use: { ...devices["Desktop Safari"] },
+      use: { ...devices["Desktop Safari"], ...STILL },
     },
     {
       name: "visual-firefox",
@@ -115,6 +134,9 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // CI prints the server's request lines ("GET /admin/crm 200 in 41s (compile: 38s ...)"), so a slow
+    // run shows which page was slow and why.
+    stdout: process.env.CI ? "pipe" : "ignore",
     env: {
       DEV_IMPERSONATE_CLERK_ID: "dev_seed_admin",
     },

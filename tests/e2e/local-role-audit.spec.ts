@@ -16,7 +16,7 @@ test("direct parent or tutor sees own scope but cannot enter admin", async ({ pa
       expect(response?.status()).toBe(404);
     }
   } else {
-    await expect(page.locator("body")).toContainText("Tutor Portal");
+    await expect(page).toHaveTitle(/Your students/);
     await expect(page.locator("body")).toContainText("Mid Student");
   }
 

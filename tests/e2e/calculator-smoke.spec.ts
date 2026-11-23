@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
-// Turbopack smoke (AR-65, API-15, AR-31) against `next dev` as dev_seed_admin, the default
-// webServer persona. Runs under `npm run test:e2e` (Chromium only).
+// Turbopack smoke (AR-65, API-15, AR-31) against `next dev`, as the seeded Pro student
+// dev_seed_student_mid. Runs under `npm run test:e2e` (Chromium only).
 
 const trigger = (page: Page) =>
   page.getByRole("button", { name: "Toggle Karman calculator", exact: true });
@@ -12,19 +12,24 @@ const rowItem = (page: Page) => page.getByRole("listitem").filter({ has: row(pag
 
 async function openPractice(page: Page) {
   // A Math Endless run in the student portal, where students meet the calculator (the old node map
-  // that this test used to open was deleted). Signed in as a Pro test student by the development
-  // header, sent to this server only.
-  await page.route("**/*", (route) => {
-    const url = new URL(route.request().url());
-    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") return route.continue();
-    return route.continue({
-      headers: { ...route.request().headers(), "x-dev-as": "dev_seed_student_pro" },
-    });
-  });
+  // that this test used to open was deleted). Signed in as the seeded Pro student (scripts/seed-dev.mjs,
+  // the only accounts a CI database has) by the development header, sent to this server only.
+  await page.route(/^http:\/\/(localhost|127\.0\.0\.1)[:/]/, (route) =>
+    route.continue({
+      headers: { ...route.request().headers(), "x-dev-as": "dev_seed_student_mid" },
+    })
+  );
+  // Whatever opens over the portal first is answered the way a student would: the session-replay
+  // question is declined, and the day's challenge question waits for Later.
+  await page.addLocatorHandler(page.getByRole("dialog", { name: /Help us debug/i }), (d) =>
+    d.getByRole("button", { name: "Decline" }).click()
+  );
+  await page.addLocatorHandler(
+    page.getByRole("dialog", { name: "Today's challenge question" }),
+    (d) => d.getByRole("button", { name: "Later" }).click()
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/dashboard/student?page=library");
-  const consent = page.getByRole("dialog", { name: /Help us debug/i });
-  if (await consent.isVisible()) await consent.getByRole("button", { name: "Decline" }).click();
   await page.getByRole("button", { name: /^Math/ }).first().click();
   await page.getByRole("button", { name: "Practice", exact: true }).click();
   await page

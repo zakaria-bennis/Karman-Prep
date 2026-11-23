@@ -97,14 +97,16 @@ test.describe("cookie page", () => {
 });
 
 test.describe("student portal", () => {
-  test("the portal's Progress, Library, Rewards and Account views open", async ({ page }) => {
+  test("the portal's Progress, Library, Mistake Log, Rewards and Account views open", async ({
+    page,
+  }) => {
     const errors = watchErrors(page);
     await impersonate(page, "dev-seed-mid@karman.local");
     await expect(page).toHaveURL(/\/dashboard\/student/);
     await expect(page).toHaveTitle(/Your portal/);
 
     // the portal is one page; each view opens with ?page=
-    for (const view of ["progress", "library", "rewards", "account"]) {
+    for (const view of ["progress", "library", "mistakes", "rewards", "account"]) {
       const response = await page.goto(`/dashboard/student?page=${view}`);
       expect(response?.status(), view).toBe(200);
       await expect(page).toHaveTitle(/Your portal/);
