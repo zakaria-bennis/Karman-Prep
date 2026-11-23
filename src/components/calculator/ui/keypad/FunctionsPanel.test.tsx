@@ -152,7 +152,7 @@ it("K-5 every shipped entry of categories 1, 2, 3, 4 and 8 inserts its own templ
     expect(screen.queryByRole("group", { name: "Functions" })).toBeNull();
     expect(fieldTextbox(field)).toHaveFocus();
   }
-});
+}, 20_000); // 37 entries clicked one by one: about 2 s here, over 5 s on a busy CI runner
 
 //  T-9 browser test runs these actions in a real MathField, types x and gets \sin\left(x\right).
 it("T-9 the functions panel's sin button inserts \\sin\\left(\\right) with the caret inside, so typing x gives \\sin\\left(x\\right)", async () => {
