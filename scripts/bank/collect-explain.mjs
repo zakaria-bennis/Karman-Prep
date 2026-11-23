@@ -2,7 +2,7 @@
 // workflow journals. A question passes when the independent checker passed the first version, or
 // passed the version the writer fixed after the checker's notes. Everything else is "failed" and
 // keeps its old explanation. Output: <work>/results/explain-final.jsonl (latest run wins).
-// Usage: node scripts/bank/collect-explain.mjs <work-dir> <journal.jsonl>...
+// Usage: node scripts/bank/collect-explain.mjs <work-dir> <journal.jsonl>...  (oldest run first)
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
@@ -48,6 +48,9 @@ for (const j of journals) {
           status: "failed",
           problems: c2?.problems ?? c1?.problems ?? [],
         };
+      // a write whose check never ran (a run cut short) never replaces a checked record
+      const prev = merged.get(id);
+      if (rec.status === "unchecked" && prev && prev.status !== "unchecked") continue;
       merged.set(id, {
         id,
         explanation: rec.explanation,
