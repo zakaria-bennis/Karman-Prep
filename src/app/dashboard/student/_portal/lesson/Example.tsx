@@ -78,7 +78,7 @@ export function Example({ ex, n }: { ex: WorkedExample; n: number }) {
       {atTurn && (
         <p className={`${styles.turn} ${styles.rise}`}>
           <Pencil />
-          Your turn: work out the next step, then check it.
+          Your turn: try the next step.
         </p>
       )}
 

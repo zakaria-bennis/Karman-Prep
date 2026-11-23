@@ -39,7 +39,7 @@ export function LessonVideoPlayer({ video, name }: { video: LessonVideo | null; 
       <div className={styles.soon}>
         <p>
           <b>Video lesson</b>
-          <span>The walk-through for {name} is on its way.</span>
+          <span>No video for {name} yet</span>
         </p>
       </div>
     );

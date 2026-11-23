@@ -85,8 +85,8 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
   const plan = real?.planId ?? "free";
   const line =
     plan === "free"
-      ? `You're on the Free plan: ${FREE_PLAN.questionLimit} questions, one full-length exam and a challenge question every day.`
-      : `You're on ${PLAN_NAMES[plan]}. Everything is ready for you.`;
+      ? `Free plan: ${FREE_PLAN.questionLimit} questions, 1 full-length exam and 1 challenge question a day.`
+      : `You're on ${PLAN_NAMES[plan]}.`;
   return (
     <div className={styles.veil} ref={root}>
       <section

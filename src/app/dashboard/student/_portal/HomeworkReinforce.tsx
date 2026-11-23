@@ -10,8 +10,8 @@ export function HomeworkReinforce() {
   if (!skills.length) return null;
   return (
     <div className={styles.box}>
-      <h3>Suggested: Reinforce</h3>
-      <p>From your last full-length exam. Not assigned.</p>
+      <h3>Reinforce</h3>
+      <p>Suggested from your last exam</p>
       <ul>
         {skills.map((s) => (
           <li key={s.skillId}>

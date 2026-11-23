@@ -174,9 +174,7 @@ export default function Chat({
   if (signedIn && tried && threads.length === 0)
     return (
       <div className={`${lib.library} ${styles.chat}`}>
-        <p className={`${lib.glass} ${styles.shut}`}>
-          No chats yet. Your class and your tutor show up here once you are placed.
-        </p>
+        <p className={`${lib.glass} ${styles.shut}`}>No chats yet</p>
       </div>
     );
 
@@ -184,7 +182,7 @@ export default function Chat({
   if (inQuiz)
     return (
       <div className={`${lib.library} ${styles.chat}`}>
-        <p className={`${lib.glass} ${styles.shut}`}>Chat is closed while you are in a quiz.</p>
+        <p className={`${lib.glass} ${styles.shut}`}>Chat is closed during a quiz</p>
       </div>
     );
   return (
@@ -260,8 +258,8 @@ export default function Chat({
             <Scold />
             <h2>That was flagged</h2>
             <p>
-              It looked like passing answers, not working the question out. Your tutor has been
-              told. If it happens again, your chats pause until your tutor has reviewed them.
+              It looked like passing answers. Your tutor has been told. Next time, your chats pause
+              until your tutor reviews them.
             </p>
             <button type="button" autoFocus onClick={() => chat.heard()}>
               I understand

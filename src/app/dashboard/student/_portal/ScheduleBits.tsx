@@ -416,8 +416,7 @@ export function Past({
       </header>
       {session.state === "missed" ? (
         <p className={past.gone}>
-          You had not joined {RULES.graceMinutes} minutes in, so this session closed and its time
-          was used.
+          Not joined {RULES.graceMinutes} minutes in, so the session closed and its time was used.
         </p>
       ) : kept ? (
         <div className={past.player} data-playing={playing || undefined}>
@@ -465,7 +464,7 @@ export function Past({
         </div>
       ) : !session.recording ? null : (
         <p className={past.gone}>
-          Recordings are kept for {RULES.recordingMonths} months. This one is no longer here.
+          Recordings are kept for {RULES.recordingMonths} months. This one is gone.
         </p>
       )}
       {recap && (

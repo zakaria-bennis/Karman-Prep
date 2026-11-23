@@ -352,7 +352,7 @@ export function ActivityEnd({
                   data-bar
                   data-ok={a.ok || undefined}
                   style={{ height: `${Math.max(6, ((a.seconds ?? 0) / longest) * 100)}%` }}
-                  title={`Question ${i + 1}: ${a.seconds ?? 0}s, ${a.ok ? "correct" : "incorrect"}`}
+                  title={`Question ${i + 1}: ${a.seconds ?? 0}s, ${a.ok ? "correct" : "missed"}`}
                 />
               ))}
               <i
@@ -380,7 +380,7 @@ export function ActivityEnd({
                   <span className={o.answer} data-ok={a.ok || a.rescued || undefined}>
                     <i className={o.num}>{i + 1}</i>
                     <b>
-                      {a.rescued ? "Put right" : a.ok ? "Correct" : "Incorrect"}
+                      {a.rescued ? "Put right" : a.ok ? "Correct" : "Missed"}
                       {a.skill && view.activity !== "set" && (
                         <small> {a.review ? `Review · ${a.skill}` : a.skill}</small>
                       )}

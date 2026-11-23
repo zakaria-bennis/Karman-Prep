@@ -18,7 +18,7 @@ export function Sound() {
   return (
     <>
       <Group title="Sound effects">
-        <Row name="Sound effects" note="Everything below, on or off">
+        <Row name="All sound effects">
           <Toggle label="Sound effects" on={s.sounds} onChange={(on) => setSetting("sounds", on)} />
         </Row>
         {s.sounds && (
@@ -169,7 +169,7 @@ export function Look({ dark, onDark }: PaneProps) {
             />
           }
         />
-        <Row name="Reduce motion" note="Stills the background and the animations">
+        <Row name="Reduce motion">
           <Toggle
             label="Reduce motion"
             on={s.still}

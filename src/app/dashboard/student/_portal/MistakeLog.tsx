@@ -274,9 +274,7 @@ export default function MistakeLog({
                     Show everything
                   </button>
                 ) : (
-                  lens === "Bookmarks" && (
-                    <p>Bookmark a question while you practice and it is kept here.</p>
-                  )
+                  lens === "Bookmarks" && <p>Bookmark a question to keep it here.</p>
                 )}
               </div>
             ) : (

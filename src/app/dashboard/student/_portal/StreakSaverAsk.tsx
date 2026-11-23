@@ -101,7 +101,7 @@ export function StreakSaverAsk() {
         <h2 id="saver-title">{state === "kept" ? "Streak kept" : "Keep your streak?"}</h2>
         {state !== "kept" && (
           <p>
-            You missed {missed}. A Streak saver keeps your streak going.
+            You missed {missed}.
             <small>
               You have {offer.held} {offer.held === 1 ? "saver" : "savers"}.
             </small>

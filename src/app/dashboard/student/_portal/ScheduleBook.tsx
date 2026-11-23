@@ -233,10 +233,10 @@ export default function Book({
             <b>Nothing open</b>
             <p>
               {!hasTutor()
-                ? "We're matching you with a tutor. Booking opens here once you're paired."
+                ? "Matching you with a tutor"
                 : isReal() && !isLive()
                   ? `${tutorFirst()} is setting up their calendar.`
-                  : `${tutorFirst()} has no open times in the next four weeks.`}
+                  : `${tutorFirst()} has no open times in the next 4 weeks.`}
             </p>
             {hasTutor() && (
               <button type="button" className={page.go} onClick={onChat}>
