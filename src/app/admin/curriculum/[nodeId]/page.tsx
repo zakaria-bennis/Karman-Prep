@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { WbPage } from "@/components/admin/workbench";
-import { getNodes, nodeAtmosphere } from "@/data/curriculum";
+import { TIER_LABELS, getNodes } from "@/data/curriculum";
 import { fetchQuestionsForNode } from "@/lib/supabase/queries/quiz";
 import { fetchNodeContent } from "@/lib/supabase/queries/content";
 import NodeTabs from "@/components/admin/NodeTabs";
@@ -35,7 +35,7 @@ export default async function NodeEditorPage({ params, searchParams }: Params) {
     fetchNodeContent(nodeId),
   ]);
 
-  const atmo = nodeAtmosphere(node.tier);
+  const atmo = TIER_LABELS[node.tier];
 
   return (
     <WbPage

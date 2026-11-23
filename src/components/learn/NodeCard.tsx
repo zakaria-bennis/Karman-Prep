@@ -16,7 +16,7 @@
 import { motion } from "framer-motion";
 import { Play, Zap, X, Lock } from "lucide-react";
 import type { MappedNode } from "./ConstellationMap";
-import { TIER_LABELS, nodeAtmosphere, SUBJECT_COLORS } from "@/data/curriculum";
+import { TIER_LABELS, SUBJECT_COLORS } from "@/data/curriculum";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -32,7 +32,6 @@ const CARD_HEIGHT = 230;
 
 export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onClose }: Props) {
   const subjectColor = SUBJECT_COLORS[node.subject].hex;
-  const atmosphere = nodeAtmosphere(node.tier);
   const isLocked = node.status === "locked";
 
   // Clamp card position so it stays inside the viewport
@@ -83,7 +82,7 @@ export default function NodeCard({ node, origin, onWatchLesson, onStartQuiz, onC
               border: `1px solid ${subjectColor}30`,
             }}
           >
-            {atmosphere} · {TIER_LABELS[node.tier]}
+            {TIER_LABELS[node.tier]}
           </span>
         </div>
 

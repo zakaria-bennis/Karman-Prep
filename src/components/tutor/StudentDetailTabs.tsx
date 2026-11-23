@@ -10,23 +10,19 @@
 import { useState } from "react";
 import "./student-detail.css";
 import "@/components/portal-extras/forms.css";
-import type { NodeStatusSnapshot } from "@/lib/supabase/queries/tutor";
 import type {
   QuizAttempt,
   FlaggedQuestion,
   QuizQuestionWithChoices,
   QuestionResponse,
 } from "@/types/quiz";
-import SkillsOverviewTab from "./SkillsOverviewTab";
-import TutorControlsTab from "./TutorControlsTab";
 import FlaggedTab from "./FlaggedTab";
 import QuizHistoryTab from "./QuizHistoryTab";
 
-type Tab = "skills" | "controls" | "flagged" | "quiz";
+type Tab = "flagged" | "quiz";
 
 interface Props {
   studentId: string;
-  statuses: NodeStatusSnapshot[];
   attempts: QuizAttempt[];
   flagged: Array<FlaggedQuestion & { question: QuizQuestionWithChoices | null }>;
   responsesByAttempt: Record<string, QuestionResponse[]>;
@@ -34,15 +30,12 @@ interface Props {
 }
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: "skills", label: "Skills" },
-  { key: "controls", label: "Tutor controls" },
   { key: "flagged", label: "Flagged questions" },
   { key: "quiz", label: "Quiz history" },
 ];
 
 export default function StudentDetailTabs({
   studentId,
-  statuses,
   attempts,
   flagged,
   responsesByAttempt,
@@ -73,8 +66,6 @@ export default function StudentDetailTabs({
         })}
       </div>
 
-      {activeTab === "skills" && <SkillsOverviewTab statuses={statuses} />}
-      {activeTab === "controls" && <TutorControlsTab studentId={studentId} statuses={statuses} />}
       {activeTab === "flagged" && <FlaggedTab studentId={studentId} flagged={flagged} />}
       {activeTab === "quiz" && (
         <QuizHistoryTab attempts={attempts} responsesByAttempt={responsesByAttempt} />

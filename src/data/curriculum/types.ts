@@ -58,5 +58,3 @@ export interface RawNode {
   video_url?: string | null;
   estimated_video_length_seconds?: number;
 }
-
-export type AtmosphereTier = "Troposphere" | "Mesosphere" | "Stratosphere" | "Kármán Line";

@@ -111,14 +111,6 @@ export function summarizeAttempts(attempts: ReadonlyArray<{ score: number | null
   return { count: attempts.length, averageScore };
 }
 
-export function countMastered(
-  statuses: ReadonlyArray<{ node_id: string; status: string }>,
-  nodeIds: readonly string[]
-): number {
-  const mastered = new Set(statuses.filter((s) => s.status === "mastered").map((s) => s.node_id));
-  return nodeIds.filter((id) => mastered.has(id)).length;
-}
-
 const TIMING_LABEL: Record<string, string> = {
   standard: "Standard time",
   time_and_half: "Time and a half",
