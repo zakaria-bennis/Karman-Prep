@@ -26,6 +26,7 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
 import {
   catalogSkill,
   loadAdmittedBank,
+  loadAdmittedSample,
   questionFamily,
   skillsInDomain,
   skillsInSection,
@@ -109,15 +110,17 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   });
   const seed = `${clerkId}:${day}`;
   const first = skillsToLoad(skills, now, seed);
-  let bank = await loadAdmittedBank(first, access.maxDifficulty, access.practiceSet);
+  // a sample of each ranked skill: the Daily 10 takes about one question a skill
+  let bank = await loadAdmittedSample(first, access.maxDifficulty, access.practiceSet, 60);
   // Too few questions in the first skills (small pools, a failed read): widen to every skill.
   const perSection = (section: Section) =>
     bank.items.filter((item) => item.section === section).length;
   if (perSection("reading") < 10 || perSection("math") < 10) {
-    const more = await loadAdmittedBank(
+    const more = await loadAdmittedSample(
       CATALOG_SKILLS.map((skill) => skill.id).filter((id) => !first.includes(id)),
       access.maxDifficulty,
-      access.practiceSet
+      access.practiceSet,
+      20
     );
     bank = {
       items: [...bank.items, ...more.items],

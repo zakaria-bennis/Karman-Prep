@@ -96,7 +96,8 @@ export async function startSkillSet(
   const [{ levels }, history, pool] = await Promise.all([
     loadLevels72(clerkId),
     answeredInRuns(clerkId),
-    pool72([skill.id], access.maxDifficulty, access.practiceSet),
+    // a set of eight steps through difficulties: a few dozen to choose from is plenty
+    pool72([skill.id], access.maxDifficulty, access.practiceSet, 80),
   ]);
   const level = levels.get(skill.id) ?? 0;
   const startDifficulty = targetDifficulty(OLD_LEVEL[level], access.maxDifficulty);
@@ -165,10 +166,12 @@ export async function startEndless(
   const [{ levels }, history, pool] = await Promise.all([
     loadLevels72(clerkId),
     answeredInRuns(clerkId),
+    // a run takes about ENDLESS_POOL questions spread over its skills: read a few times that
     pool72(
       skills.map((s) => s.id),
       access.maxDifficulty,
-      access.practiceSet
+      access.practiceSet,
+      Math.max(24, Math.ceil(ENDLESS_POOL / skills.length) * 3)
     ),
   ]);
   const average = skills.reduce((n, s) => n + (levels.get(s.id) ?? 0), 0) / skills.length;

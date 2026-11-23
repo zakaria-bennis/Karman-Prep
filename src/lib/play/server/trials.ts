@@ -85,7 +85,11 @@ export async function startTrial(clerkId: string, scope: PlayScope): Promise<Run
     pool72(
       skills.map((s) => s.id),
       access.maxDifficulty,
-      access.practiceSet
+      access.practiceSet,
+      Math.max(
+        12,
+        Math.ceil((TRIAL_SIZE[scope.kind === "skill" ? "skill" : "domain"] * 3) / skills.length)
+      )
     ),
     loadBaselineAnswers(clerkId).catch(() => []),
   ]);

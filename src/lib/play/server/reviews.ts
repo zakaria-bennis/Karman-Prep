@@ -80,7 +80,8 @@ export async function pickReviews(
 ): Promise<ReviewPick[]> {
   const due = dueSkills(await loadReviews(clerkId), today, opts.max ?? REVIEWS_MAX);
   if (!due.length) return [];
-  const pool = (await pool72(due, opts.maxDifficulty, opts.practiceSet).catch(() => null)) ?? {
+  // one fresh question a due skill: a dozen of each to choose from
+  const pool = (await pool72(due, opts.maxDifficulty, opts.practiceSet, 12).catch(() => null)) ?? {
     items: [],
     snapshots: new Map(),
   };
