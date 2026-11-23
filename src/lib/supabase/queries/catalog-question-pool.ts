@@ -30,8 +30,10 @@ export async function fetchCatalogQuestionPool(
   input: unknown,
   lane: "practice" | "whole-bank" = "practice",
   /** Server only, from the student's plan: core plans (Free, Practice, school seats) read only the
-   *  Practice plan's fixed set (quiz_questions.practice_plan; founder, 2026-11-13). */
-  options: { practiceSet?: boolean } = {}
+   *  Practice plan's fixed set (quiz_questions.practice_plan; founder, 2026-11-13). `onlyIds`
+   *  limits the read to these questions (a pool that samples first, src/lib/play/server/pool72.ts):
+   *  the same checks, on a few dozen rows instead of the whole skill. */
+  options: { practiceSet?: boolean; onlyIds?: readonly string[] } = {}
 ): Promise<QuizQuestionWithChoices[]> {
   const scope = catalogPoolInputSchema.parse(input);
   const skill = CATALOG_SKILLS.find((candidate) => candidate.id === scope.skillId)!;
@@ -45,13 +47,16 @@ export async function fetchCatalogQuestionPool(
     `raw_model_response->evidence->approved_tags->>catalog_skill_id.eq.${skill.id}`,
   ].join(",");
   const pageSize = 500;
-  for (let offset = 0; ; offset += pageSize) {
-    const { data, error } = await db
+  const only = options.onlyIds ? [...new Set(options.onlyIds)] : null;
+  if (only && !only.length) return [];
+  for (let offset = 0; ; offset += only ? 200 : pageSize) {
+    const read = db
       .from("answer_key_entries")
       .select("id, question_id, raw_model_response")
-      .or(filter)
-      .order("id", { ascending: true })
-      .range(offset, offset + pageSize - 1);
+      .or(filter);
+    const { data, error } = await (only
+      ? read.in("question_id", only.slice(offset, offset + 200))
+      : read.order("id", { ascending: true }).range(offset, offset + pageSize - 1));
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const key of data ?? []) {
       if (!key.question_id) {
@@ -76,7 +81,7 @@ export async function fetchCatalogQuestionPool(
       }
       if (tag.publicationAllowed) evidence.set(key.question_id, key.raw_model_response);
     }
-    if ((data ?? []).length < pageSize) break;
+    if (only ? offset + 200 >= only.length : (data ?? []).length < pageSize) break;
   }
   for (const id of ambiguous) {
     skipQuestion(id, "reviewed skill evidence is ambiguous");
