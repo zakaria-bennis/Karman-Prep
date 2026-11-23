@@ -6,6 +6,8 @@
 // /billing sends a student here, carrying a plan picked on the pricing page (?plan=&term=), which
 // is then offered with one "Continue to payment". Stripe is untouched: checkout is /checkout/start
 // and the billing page is /api/stripe/portal, as before. The design page shows made-up ones.
+// While the site password is on, the testing switch (SettingsTester.tsx) comes first and the
+// Upgrade offers step aside.
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -24,6 +26,7 @@ import type { Plan } from "./plans";
 import { usePortalData } from "./portalData";
 import { hours, hoursText } from "./scheduleData";
 import { Group, Row, Say, Seg } from "./settingsControls";
+import { TesterSwitch } from "./SettingsTester";
 import type { PaneProps } from "./SettingsPanes";
 import styles from "./settings.module.css";
 
@@ -38,6 +41,7 @@ const STAND_IN: Record<Plan, PlanState> = {
     status: "active",
     hasBilling: true,
     renewing: true,
+    testing: false,
   },
   cohort: {
     planId: "cohort",
@@ -46,6 +50,7 @@ const STAND_IN: Record<Plan, PlanState> = {
     status: null,
     hasBilling: false,
     renewing: false,
+    testing: false,
   },
   private: {
     planId: "private-20",
@@ -54,6 +59,7 @@ const STAND_IN: Record<Plan, PlanState> = {
     status: null,
     hasBilling: false,
     renewing: false,
+    testing: false,
   },
 };
 
@@ -126,6 +132,7 @@ export function PlanPane({ plan, onGo }: PaneProps) {
 
   return (
     <>
+      {real && state?.testing && <TesterSwitch planId={planId} />}
       <Group title="Plan">
         <Row name={PLAN_NAMES[planId]} note={line ?? undefined} />
         {left !== null && (
@@ -156,7 +163,8 @@ export function PlanPane({ plan, onGo }: PaneProps) {
         </Group>
       )}
 
-      {!offer && upgrades.length > 0 && (
+      {/* while testing, plans are tried with the switch above, never bought by mistake */}
+      {!offer && !state?.testing && upgrades.length > 0 && (
         <Group title="Upgrade">
           <Seg
             label="How often to pay"

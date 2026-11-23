@@ -54,10 +54,23 @@ export {
   type PlanUsage,
 } from "./access";
 
+/** The testing switch: any of five plans, only while the site lock is on. */
+export {
+  TESTER_PLAN_IDS,
+  isTesterPlan,
+  isTesterPlanId,
+  testerPlanInputSchema,
+  testerSwitchOn,
+  type TesterPlanId,
+  type TesterPlanInput,
+} from "./tester";
+
 /** Database side: resolve a user's plan, count usage, create and revoke grants. */
 export {
   getPlan,
   getUsage,
+  setTesterPlan,
+  TesterSwitchOffError,
   grantPlan,
   recordPurchaseGrant,
   revokeGrant,

@@ -4,6 +4,7 @@
 import type { PlanId } from "@/lib/marketing/offer";
 import type { PlanAccess } from "./access";
 import type { GrantPlanId, PlanEntitlements } from "./catalog";
+import type { TesterPlanId } from "./tester";
 
 export const GRANT_SOURCES = ["purchase", "school", "tutor-affiliate", "admin"] as const;
 export type GrantSource = (typeof GRANT_SOURCES)[number];
@@ -58,12 +59,16 @@ export interface PlanDataSource {
   completedFullLengthTests(userId: string): Promise<number>;
   /** The user's `users.sat_test_date` (YYYY-MM-DD), or null when none is set. */
   satTestDate(userId: string): Promise<string | null>;
+  /** The plan the user picked with the testing switch (`tester_plans`), or null. */
+  testerPlan(userId: string): Promise<TesterPlanId | null>;
+  /** Save the user's testing-switch plan. */
+  saveTesterPlan(userId: string, planId: TesterPlanId): Promise<void>;
 }
 
 /** One active source of access. */
 export interface PlanSource {
-  /** "subscription" for a Stripe plan, otherwise the grant's source. */
-  kind: "subscription" | GrantSource;
+  /** "subscription" for a Stripe plan, "tester" for the testing switch, otherwise the grant's source. */
+  kind: "subscription" | "tester" | GrantSource;
   planId: PlanId;
   /** `stripe_subscription_id`, or `plan_grants.id`. */
   id: string;

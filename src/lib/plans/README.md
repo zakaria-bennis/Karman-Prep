@@ -60,6 +60,13 @@ rules (`./access`, `./catalog`) are safe anywhere.
 - A user can hold several. Access is the union, and `plan.planId` is the most
   generous: free < practice (= school and affiliate students) < pro (= cohort,
   private, tutor-affiliate).
+- The testing switch (`tester.ts`, table `public.tester_plans`; founder,
+  2026-11-23): while the site lock is on (`SITE_PASSWORD` set), a student may
+  pick Free, Practice, Pro, Cohort or Private (Private 10) in Settings, Plan, and
+  `getPlan` returns exactly that plan, replacing everything above. With the lock
+  off the table is ignored. `getActiveSubscription` (bookings, tutor times,
+  class placement) leaves it out, so a picked plan never books a real tutor or
+  joins a real class. Nothing here calls Stripe.
 
 ## Creating and revoking grants
 

@@ -62,7 +62,7 @@ export function redeemMessage(result: RedeemAnswer): string {
 export interface PlanState {
   planId: PlanId;
   /** How the plan is held: a Stripe plan, a purchase, a school seat, a tutor's code, or Karman. */
-  source: "subscription" | GrantSource | null;
+  source: "subscription" | "tester" | GrantSource | null;
   /** When it stops counting (period end, expiry, the day after the SAT). */
   endsAt: string | null;
   /** The Stripe plan's state ("active", "past_due"...), for a Stripe plan. */
@@ -71,6 +71,8 @@ export interface PlanState {
   hasBilling: boolean;
   /** A renewing plan is live, so a new plan is changed in the billing portal, never bought twice. */
   renewing: boolean;
+  /** The testing switch is on (the site lock is on): any plan can be picked for free. */
+  testing: boolean;
 }
 
 /** "December 3, 2026", as the student's own calendar has it. */
@@ -95,6 +97,8 @@ export function planStateLine(state: PlanState, timeZone?: string): string | nul
       return day ? `From your school until ${day}` : "From your school";
     case "tutor-affiliate":
       return "From your tutor";
+    case "tester":
+      return "Picked with the testing switch";
     case "purchase":
     case "admin":
       return day ? `Ends ${day}` : null;

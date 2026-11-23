@@ -25,7 +25,7 @@ beforeEach(() => {
   mock.auth.mockResolvedValue({ userId: "synthetic" });
   mock.effective.mockResolvedValue({ clerkId: "synthetic", isImpersonating: false });
   mock.user.mockResolvedValue({ data: { role: "student", onboarding_completed_at: "2026-10-06" } });
-  mock.plan.mockResolvedValue({ planId: "cohort" });
+  mock.plan.mockResolvedValue({ planId: "cohort", sources: [{ kind: "purchase" }] });
 });
 describe("student portal boundary", () => {
   it.each([
@@ -45,7 +45,7 @@ describe("student portal boundary", () => {
   });
   it("lets a free account straight in, with no questionnaire", async () => {
     mock.user.mockResolvedValue({ data: { role: "student", onboarding_completed_at: null } });
-    mock.plan.mockResolvedValue({ planId: "free" });
+    mock.plan.mockResolvedValue({ planId: "free", sources: [] });
     await expect(StudentDashboardLayout({ children: "student" })).resolves.toMatchObject({
       props: { children: "student" },
     });
@@ -56,6 +56,13 @@ describe("student portal boundary", () => {
       "redirect:/onboarding/questionnaire"
     );
     mock.effective.mockResolvedValue({ clerkId: "synthetic", isImpersonating: true });
+    await expect(StudentDashboardLayout({ children: "student" })).resolves.toMatchObject({
+      props: { children: "student" },
+    });
+  });
+  it("lets a taught plan picked with the testing switch straight in, with no questionnaire", async () => {
+    mock.user.mockResolvedValue({ data: { role: "student", onboarding_completed_at: null } });
+    mock.plan.mockResolvedValue({ planId: "cohort", sources: [{ kind: "tester" }] });
     await expect(StudentDashboardLayout({ children: "student" })).resolves.toMatchObject({
       props: { children: "student" },
     });
