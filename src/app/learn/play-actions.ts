@@ -9,7 +9,7 @@ import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { createAdminClient } from "@/lib/supabase/server";
-import { PlanLimitError, challengeSubjectsLeft, maxDifficultyFor } from "@/lib/assembler/plan-gate";
+import { PlanLimitError, challengeSubjectsLeft } from "@/lib/assembler/plan-gate";
 import { PaceError, assertStartPace } from "@/lib/assembler/pace-guard";
 import { openDailyTen, serveNext } from "@/lib/assembler/runs";
 import { getOwnedRun } from "@/lib/assembler/run-store";
@@ -64,6 +64,7 @@ const SAY: Record<string, string> = {
   "There is no missed day to save.": "No missed day to save.",
   "Your streak saver was not used. Try again.": "Your streak saver was not used. Try again.",
   "You have no streak savers left.": "No Streak savers left.",
+  "You already answered this one today.": "You already answered this one today.",
   "Question is not next in this session":
     "This question was already answered in another tab. Reload to continue.",
 };
@@ -244,10 +245,9 @@ export async function actionChallengeToday() {
     const id = await studentId();
     const now = new Date();
     const day = utcDayKey(now);
-    const top = await maxDifficultyFor(id);
     const [reading, math, open, days, saved] = await Promise.all([
-      loadDailySlot("reading", top, now),
-      loadDailySlot("math", top, now),
+      loadDailySlot("reading", now),
+      loadDailySlot("math", now),
       challengeSubjectsLeft(id, day),
       challengeDays(id),
       savedDays(id),
@@ -290,16 +290,14 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
     const id = await studentId();
     const parsed = challengeAnswer.parse(input);
     const open = await challengeSubjectsLeft(id, parsed.day);
-    if (!open.includes(parsed.subject))
-      throw new PlanLimitError("Upgrade to answer both challenge questions every day.");
+    if (!open.includes(parsed.subject)) throw new Error("You already answered this one today.");
     const saved = await savedDays(id);
     const before = multiplierOn(await challengeDays(id), parsed.day, saved);
     const review = await reviewDailyAnswer(
       parsed.subject,
       parsed.day,
       parsed.questionId,
-      parsed.answer,
-      await maxDifficultyFor(id)
+      parsed.answer
     );
     await recordChallengeAnswer({
       day: parsed.day,

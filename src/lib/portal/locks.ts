@@ -22,8 +22,6 @@ export type Locked =
   | "exam"
   /** Free has no predicted score. */
   | "score"
-  /** Free answers one of the two daily challenge questions. */
-  | "challenge"
   /** Workshops are for Pro, Cohort and Private. */
   | "workshops"
   /** Opened from Settings, with nothing locked. */
@@ -53,7 +51,6 @@ export function isLocked(what: Locked, planId: PlanId, access: Access): boolean 
     case "exam":
       return !access.canStartFullTest;
     case "score":
-    case "challenge":
       return planId === "free";
     case "workshops":
       return planId === "free" || planId === "practice" || planId === "school";
@@ -84,11 +81,6 @@ export function upgradeWords(
       return {
         title: `Your predicted score comes with ${with_}`,
         say: "Two full-length exams, and it shows on Progress.",
-      };
-    case "challenge":
-      return {
-        title: "One challenge question a day on Free",
-        say: `${with_} answers both, every day.`,
       };
     case "workshops":
       return {

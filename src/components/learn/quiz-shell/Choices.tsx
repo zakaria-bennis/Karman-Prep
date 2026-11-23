@@ -144,6 +144,19 @@ export function Choices({
                   onClick={pick}
                 >
                   <span data-choice-badge className={styles.badge}>
+                    {/* the picked letter fills, as a worded answer's does: without the fill its
+                        letter (drawn in the page's tone) disappears */}
+                    <AnimatePresence>
+                      {selected && (
+                        <motion.span
+                          className={styles.badgeFill}
+                          initial={reduced ? { opacity: 0 } : { scale: 0 }}
+                          animate={reduced ? { opacity: 1 } : { scale: 1 }}
+                          exit={reduced ? { opacity: 0 } : { scale: 0 }}
+                          transition={BOUNCE}
+                        />
+                      )}
+                    </AnimatePresence>
                     <span className={styles.badgeLetter}>{letter}</span>
                   </span>
                   <span className={styles.srOnly}>
