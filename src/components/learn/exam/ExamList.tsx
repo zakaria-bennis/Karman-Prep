@@ -9,6 +9,7 @@ import { actionExamList, actionExamReset, actionExamTestSwitch } from "@/app/lea
 import type { ExamList as ExamListData } from "@/lib/exams/service";
 import { browserZone, dayTime, until, zoneName } from "./format";
 import s from "./exam.module.css";
+import { FREE_PLAN, QUESTION_BANK } from "@/lib/marketing/offer";
 
 export function ExamList({ canTest }: { canTest: boolean }) {
   const [data, setData] = useState<ExamListData | null>(null);
@@ -92,7 +93,8 @@ export function ExamList({ canTest }: { canTest: boolean }) {
       )}
       {limitReached && data.running === null && (
         <p className={s.lead}>
-          Your plan includes one full-length exam. Practice or Pro opens all twenty.
+          Free includes {FREE_PLAN.fullLengthTests} exam. Practice has {QUESTION_BANK.practiceTests}
+          , Pro has {QUESTION_BANK.proTests}.
         </p>
       )}
 
