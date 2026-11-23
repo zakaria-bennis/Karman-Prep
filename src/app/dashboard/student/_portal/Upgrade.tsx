@@ -6,7 +6,7 @@
 // student choose monthly or three months, and each plan's button goes straight to checkout. Every
 // price and number is from offer.ts (src/lib/portal/locks.ts). Escape, the close button or a press
 // outside closes it; focus stays inside while it is open and goes back where it was after.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import {
   checkoutHref,
@@ -16,12 +16,12 @@ import {
   type Term,
   type UpgradeTo,
 } from "@/lib/portal/locks";
-import { stillChosen } from "@/lib/painting/motion";
 import { usePortalData } from "./portalData";
 import { Seg } from "./settingsControls";
 import { tick } from "./sound";
 import { closeUpgrade, useUpgrade } from "./upgradeStore";
 import styles from "./upgrade.module.css";
+import { useStill } from "@/lib/painting/useStill";
 
 const UP = { type: "spring", stiffness: 420, damping: 38, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
@@ -78,7 +78,7 @@ function Plan({ to, term, lead }: { to: UpgradeTo; term: Term; lead: boolean }) 
 export default function Upgrade() {
   const why = useUpgrade();
   const real = usePortalData();
-  const still = (useReducedMotion() ?? false) || stillChosen();
+  const still = useStill();
   const [term, setTerm] = useState<Term>("month");
   const [phone, setPhone] = useState(false);
   const sheet = useRef<HTMLElement>(null);

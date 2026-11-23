@@ -4,7 +4,7 @@
 // src/lib/lessons, one file per skill, loaded when the page opens. The written lesson ends with the
 // skill's strategy quiz (founder, 2026-11-20: "the strategy quiz actually lives at the end of the
 // lesson"). The video is drawn in code and narrated (LessonVideo.tsx).
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
   lessonFor,
@@ -18,6 +18,7 @@ import { LessonVideoPlayer } from "./lesson/LessonVideo";
 import lessonStyles from "./lesson/lesson.module.css";
 import { Icon } from "./practice";
 import styles from "./skill.module.css";
+import { useStill } from "@/lib/painting/useStill";
 
 const LESSONS = { written: "Written", video: "Video" } as const;
 type Kind = keyof typeof LESSONS;
@@ -36,7 +37,7 @@ function Waiting() {
 }
 
 export function SkillLesson({ name }: { name: string }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [kind, setKind] = useState<Kind>("written");
   const id = skillIdForName(name) ?? "";
   const [lesson, setLesson] = useState<Loaded<SkillLessonData> | null>(null);

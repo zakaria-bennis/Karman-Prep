@@ -10,7 +10,7 @@
 // Progress is one green, dark for Proficient and light for Learning in both modes, and every mark has a
 // thin edge so it stands clear of the glass. Bands are cut clean where two levels meet: no blending.
 // The levels and question counts are the student's own (useSkills); signed out, the stand-ins.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import styles from "./library.module.css";
 import { EndlessButton, Modes, Today, TrialButton } from "./practice";
@@ -19,6 +19,7 @@ import type { OpenSkill } from "./SkillPage";
 import { LEVELS, SECTIONS, type Domain, type Section, type Skill } from "./skills72";
 import { useOriginCount, useSkills } from "./portalData";
 import { buzz, tick } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 export { SECTIONS, type Section };
 const TOP = LEVELS.length - 1;
@@ -149,7 +150,7 @@ export default function Library({
   pro: boolean;
   onDomain: (domain: string) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const root = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState<(typeof PAGES)[number]>("Skills");
   const domains = useSkills()[section];
@@ -317,7 +318,7 @@ export function DomainPage({
   domain: Domain;
   onOpen: (skill: OpenSkill) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [filter, setFilter] = useState<Filter>("all");
   const shown = domain.skills.filter(FILTERS[filter].keep);
   const questions = domain.skills.reduce((n, s) => n + s.questions, 0);

@@ -6,7 +6,7 @@
 // characters: pressing one tries the same things on it (a mystery character is left out until it
 // is unlocked). On a phone the character is on top and the things are under it, in a pane that
 // scrolls inside itself.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { ACCESSORIES, Dressed, SLOTS, type Accessory, type Outfit, type Slot } from "./accessories";
 import type { FaceKind } from "./characters";
@@ -14,6 +14,7 @@ import lib from "./library.module.css";
 import styles from "./rewardsWardrobe.module.css";
 import { CHARACTERS } from "./rewardsData";
 import { tick } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 export default function Wardrobe({
   owned,
@@ -29,7 +30,7 @@ export default function Wardrobe({
   /** Design page only: wins all 100 at once, to look at them. */
   onUnlockAll?: () => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [slot, setSlot] = useState<Slot | null>(null);
   const [face, setFace] = useState<FaceKind>("fox");
   const mine = ACCESSORIES.filter((a) => owned.includes(a.id) && (!slot || a.slot === slot));

@@ -6,15 +6,15 @@
 // keyboard and a screen reader. A wide stage (desktop) sets the halves side by side; a tall one (phone)
 // stacks them. Reduced motion holds the scene still and skips the exit.
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
 import type { Hero, Side, Stage } from "./heroes/stage";
 import styles from "./hero.module.css";
 import { SECTIONS, tally, type Section } from "./Library";
 import { useSkills } from "./portalData";
 import { buzz, chosen, ping, rustle, whoosh } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 export default function LibraryHero({ onPick }: { onPick: (section: Section) => void }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const DOMAINS = useSkills();
   /* the scene is built once; it reads the levels as they were when it was made */
   const mathAtStart = useRef(DOMAINS.Math);

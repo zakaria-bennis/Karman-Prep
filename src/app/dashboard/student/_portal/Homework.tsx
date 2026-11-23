@@ -17,7 +17,7 @@
 // screen is still to come.
 // On a phone the same pieces stack: banner, ring and bars side by side, then the day's work.
 // Pressing a piece of work leads nowhere yet: each activity's beginning screen is still to come.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Dressed } from "./accessories";
 import type { FaceKind } from "./characters";
@@ -44,6 +44,7 @@ import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
 import { DAY, TODAY } from "./progressData";
 import { tick } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 const DONE = { kind: "mixed", sort: "skill", state: "done" } as const;
 const LAST = 13 - TODAY.getDay();
@@ -97,7 +98,7 @@ function Work({
   onFinish: (id: string) => void;
 }) {
   const { face } = useEquipped();
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [open, setOpen] = useState(false);
   const left = day.work.filter((w) => w.state !== "done");
   const done = [...extra, ...day.work.filter((w) => w.state === "done")];
@@ -230,7 +231,7 @@ export default function Homework({
   /** Which way the last step went, so what arrives comes in from that side. */
   const body = useRef<HTMLDivElement>(null);
   const from = useRef(0);
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   /** The day shown, in days from today. */
   const [at, setAt] = useState(0);
   const [whole, setWhole] = useState(false);

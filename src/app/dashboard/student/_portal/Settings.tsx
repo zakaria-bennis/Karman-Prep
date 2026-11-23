@@ -5,9 +5,8 @@
 // back pill leaves it). With room (the desktop rail) the folders stay at the left and the open one
 // is beside them. What is inside each folder: SettingsPanes.tsx and the files it lists. Scholarship
 // shows for Cohort students only; Calendar sync for the taught plans, whose sessions the feed carries.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { stillChosen } from "@/lib/painting/motion";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";
 import { PLAN_NAMES } from "@/lib/student/plan-gate";
@@ -20,6 +19,7 @@ import { Me } from "./shellBits";
 import { tick } from "./sound";
 import { useSignOut } from "./useSignOut";
 import styles from "./settings.module.css";
+import { useStill } from "@/lib/painting/useStill";
 
 const NAMES: Record<FolderKey, string> = {
   profile: "Profile",
@@ -66,7 +66,7 @@ export default function Settings({
   const s = useSettings();
   const real = usePortalData();
   const { signOut, leaving } = useSignOut();
-  const still = (useReducedMotion() ?? false) || stillChosen();
+  const still = useStill();
   const sets = setsFor(props.plan, real ? real.planId === "cohort" : props.plan === "cohort");
   const shownKeys: string[] = sets.flatMap((set) => set.keys);
   const [open, setOpen] = useState<FolderKey | null>(() =>

@@ -11,7 +11,7 @@
 //                      explanation. There is no retry here (founder, 2026-11-15). He likes this
 //                      layout and means to build the quiz engine on it (2026-11-16).
 // The words are "correct" and "missed", never "incorrect" (founder, 2026-11-15).
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Pips } from "./Library";
 import lib from "./library.module.css";
 import type { Found } from "./progressBreakdowns";
@@ -23,6 +23,7 @@ import { tick } from "./sound";
 import GeneratedMark from "@/components/admin/GeneratedMark";
 import MathText from "@/components/learn/MathText";
 import { useGenerated } from "./play/useGenerated";
+import { useStill } from "@/lib/painting/useStill";
 
 export const dayName = (student: Student, day: number) =>
   day === student.days
@@ -327,7 +328,7 @@ export function SessionQuestions({
   ways: Ways;
   onOpen: (q: Asked) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   return (
     <>
       {(ways.back || ways.close) && (

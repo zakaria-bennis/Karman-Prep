@@ -20,7 +20,7 @@
 // With room, both panes scroll inside their own glass. On a phone each step is a page of its own and
 // the page's own way back steps out of it (told through `onTrail`); this page may scroll there.
 // Escape steps back one level everywhere. Everything here is a stand-in (mistakeLogData.ts).
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import lib from "./library.module.css";
 import {
@@ -54,6 +54,7 @@ import { activity, type Student } from "./progressData";
 import { minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 import { useSkills } from "./portalData";
+import { useStill } from "@/lib/painting/useStill";
 
 const LENSES = ["Sessions", "Missed", "Bookmarks"] as const;
 type Lens = (typeof LENSES)[number];
@@ -88,7 +89,7 @@ export default function MistakeLog({
   onSkill: (found: Found) => void;
   onTrail: (trail: Trail | null) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const skills = useSkills();
   const sessions = useMemo(
     () =>

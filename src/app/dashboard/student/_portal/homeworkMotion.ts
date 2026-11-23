@@ -2,10 +2,11 @@
 // picture has a movement of its own, played when its piece of work is pointed at or pressed.
 import gsap from "gsap";
 import { useEffect, useState } from "react";
+import { prefersStill } from "@/lib/painting/motion";
 import { DAY, TODAY } from "./progressData";
 
-export const calm = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/** Still when the device asks for less motion or the student chose Still in Settings. */
+export const calm = () => typeof window !== "undefined" && prefersStill();
 
 const MOVES: Record<string, (svg: SVGElement) => void> = {
   // the four squares light one after another

@@ -12,7 +12,7 @@
 // The right-hand panes end level with the trend: the last one takes any height left over and stays
 // empty there. Exams taken has no trend at all, only its list.
 // On a phone nothing scrolls: the trend and each pane are pages of their own, with buttons.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import styles from "./progress.module.css";
@@ -24,6 +24,7 @@ import { Graph, Spans, niceMarks, spanFor, type SpanKey } from "./ProgressGraph"
 import { STATS, ledger, minSec, wayOf, type StatKey } from "./progressStats";
 import { tick } from "./sound";
 import { usePortalData } from "./portalData";
+import { useStill } from "@/lib/painting/useStill";
 
 export default function ProgressStat({
   rail,
@@ -41,7 +42,7 @@ export default function ProgressStat({
   extraTime: number;
   onSkill: (found: Found) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const signedIn = usePortalData() !== null;
   const book = useMemo(() => ledger(student, logs), [student, logs]);
   const [wanted, setWanted] = useState<SpanKey | null>(null);

@@ -12,7 +12,6 @@
 //   Endless      a marigold light that never stops going round the sideways 8.
 //   Strategy     a compass: red to north, blue to south. It spins wildly, then settles north.
 // Everything is a stand-in: nothing starts yet, and the streak is a made-up number.
-import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { usePortalData, useStreak } from "./portalData";
 import { FREE_PLAN } from "@/lib/marketing/offer";
@@ -24,6 +23,7 @@ import { UpcomingWorkshops } from "./Workshops";
 import { openEndless, openTrial } from "./endless";
 import { DailyStart } from "./DailyStart";
 import { usePlay } from "./play/PlayLayer";
+import { useStill } from "@/lib/painting/useStill";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -315,7 +315,7 @@ const ROUNDS = [
   [6, 0],
 ];
 function WordLine({ size }: { size: number }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [stage, setStage] = useState(0);
   const [pick, setPick] = useState<number[]>([0, 1, 2, 3, 4, 5]);
   useEffect(() => {

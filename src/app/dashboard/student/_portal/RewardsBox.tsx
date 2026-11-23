@@ -15,13 +15,14 @@
 // opened. It is shown on the fox and is never put on for the student: they choose "Keep for later" or
 // "Wear it". One sound for each real moment.
 import { Coin } from "@/components/portal/Coin";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type CSSProperties } from "react";
 import { Dressed, type Accessory, type Outfit } from "./accessories";
 import styles from "./rewards.module.css";
 import box from "./rewardsBox.module.css";
 import { BOX_PRICE } from "./rewardsData";
 import { chosen, tick, whoosh } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 /** The gradients the box's faces and ribbons are filled with. */
 function BoxPaints() {
@@ -225,7 +226,7 @@ export default function MysteryBox({
   /** How many things to wear there are in all. */
   all: number;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [stage, setStage] = useState<"closed" | "shaking" | "open">("closed");
   const [prize, setPrize] = useState<Accessory | null>(null);
   const short = coins < BOX_PRICE;

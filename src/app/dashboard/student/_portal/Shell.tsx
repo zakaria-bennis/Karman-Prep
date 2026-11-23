@@ -10,14 +10,7 @@
 //   ?open=1                         hold the desktop rail open (for pictures)
 //   ?face=owl&wear=Top hat,Scarf    dress the student's character (Homework.tsx)
 // Signed in as a student, it shows their own data (page.tsx); signed out, the stand-ins.
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useMotionValue,
-  useReducedMotion,
-  useTransform,
-} from "framer-motion";
+import { AnimatePresence, animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
   Suspense,
@@ -72,12 +65,13 @@ import type { FaceKind } from "./characters";
 import { Sticker, type StickerName } from "./stickers";
 
 import { OPEN, POP, SLIDE, SLIDE_OVER, STILL, TURN } from "./shellMotion";
+import { useStill } from "@/lib/painting/useStill";
 /** Where a flick would come to rest (Apple's projection, deceleration 0.99). */
 
 function Shell() {
   const q = useSearchParams();
   const planQ = q.get("plan");
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   /* a signed-in student: their own plan, and no demo switches */
   const real = usePortalData();
   const who = real ? real.name || real.email || "You" : "Maya Okafor";

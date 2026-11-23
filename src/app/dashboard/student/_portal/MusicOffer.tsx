@@ -9,11 +9,12 @@
 //   Music can be turned off in Settings; the banner says so.
 // What is remembered is kept in this browser for now (it will move to the student's settings).
 // No recordings have been chosen yet, so turning it on does not play anything: it only remembers.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import styles from "./musicOffer.module.css";
 import { ping, tick } from "./sound";
 import { setSetting } from "./settingsStore";
+import { useStill } from "@/lib/painting/useStill";
 
 const KEY = "kp-music";
 /** After this many refusals in a row the offer is not made again. */
@@ -49,7 +50,7 @@ const keep = (memory: Memory) => {
 export const forgetMusic = () => keep({ on: false, refused: 0 });
 
 export default function MusicOffer({ force = false }: { force?: boolean }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [stage, setStage] = useState<"away" | "asking" | "on">("away");
   const [held, setHeld] = useState(false);
 

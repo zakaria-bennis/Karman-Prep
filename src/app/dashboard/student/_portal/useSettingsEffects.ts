@@ -2,7 +2,7 @@
 // night music (on, off, the piece, its volume, and starting by itself at the hour chosen), Reduce
 // motion, and, for a signed-in student, saving each change with their account.
 import { useEffect } from "react";
-import { setStillChosen, stillChosen } from "@/lib/painting/motion";
+import { STILL_ATTR, setStillChosen, stillChosen } from "@/lib/painting/motion";
 import { actionSavePrefs } from "@/lib/portal/settings-actions";
 import { playMusic, setMusicVolume, stopMusic } from "./music";
 import { usePortalData } from "./portalData";
@@ -30,9 +30,11 @@ export function useSettingsEffects(s: Settings) {
   }, [real]);
 
   // Reduce motion is the site's own switch, kept on this device: the account's choice is put on it
-  // when the portal opens here
+  // when the portal opens here. The root's mark is set every time, since nothing else puts it back
+  // after a reload, and without it the page's CSS loops would run again.
   useEffect(() => {
     if (stillChosen() !== s.still) setStillChosen(s.still);
+    else document.documentElement.toggleAttribute(STILL_ATTR, s.still);
   }, [s.still]);
 
   useEffect(() => setSound(s.sounds), [s.sounds]);

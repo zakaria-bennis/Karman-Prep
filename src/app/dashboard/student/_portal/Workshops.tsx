@@ -11,7 +11,7 @@
 //                      opens the workshops coming up, each with its own sign-up.
 // A signed-in student sees the workshops on the calendar (live_events) and signs up through the
 // calendar's own action; the design page shows stand-ins.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import type { Section } from "./skills72";
 import { chosen, tick } from "./sound";
@@ -19,6 +19,7 @@ import styles from "./workshops.module.css";
 import { usePortalData } from "./portalData";
 import { actionSetEventSpot } from "@/components/student-portal/calendar/actions";
 import { joinOpen } from "@/lib/student/calendar";
+import { useStill } from "@/lib/painting/useStill";
 
 type Workshop = {
   id: string;
@@ -170,7 +171,7 @@ export function WorkshopBanner({ section }: { section: Section }) {
 
 export function UpcomingWorkshops() {
   const all = useWorkshops();
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [open, setOpen] = useState(false);
   return (
     <>

@@ -6,7 +6,7 @@
 //   Toggle   a switch: the knob stretches toward where it is going while it is held.
 //   Slider   follows the finger exactly, then springs onto the nearest step when let go.
 //   Seg      a few choices in one tray, with one lit pill that slides between them.
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import {
   useEffect,
   useId,
@@ -18,6 +18,7 @@ import {
 } from "react";
 import { tick } from "./sound";
 import styles from "./settings.module.css";
+import { useStill } from "@/lib/painting/useStill";
 
 const KNOB = { type: "spring", stiffness: 700, damping: 28, mass: 0.8 } as const;
 const SNAP = { type: "spring", stiffness: 520, damping: 26, mass: 0.9 } as const;
@@ -33,7 +34,7 @@ export function Toggle({
   onChange: (on: boolean) => void;
   label: string;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [held, setHeld] = useState(false);
   /* held, the knob is wider and leans toward the other side, as a real switch gives under a thumb */
   const wide = held ? 6 : 0;
@@ -87,7 +88,7 @@ export function Slider({
   low?: ReactNode;
   high?: ReactNode;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const rail = useRef<HTMLDivElement>(null);
   const share = (v: number) => ((v - min) / (max - min)) * 100;
   const at = useMotionValue(share(value));
@@ -183,7 +184,7 @@ export function Seg<T extends string | number>({
   onChange: (value: T) => void;
   label: string;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const id = useId();
   return (
     <div

@@ -13,7 +13,7 @@
 //      start, the Daily 10, instead of three panes of zeros.
 // With room, the score stands in the middle with the numbers at its left and the calendar at its
 // right, all on one screen. On a phone nothing scrolls: each piece is its own page, with buttons.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import lib from "./library.module.css";
 import styles from "./progress.module.css";
@@ -27,6 +27,7 @@ import type { SpanKey } from "./ProgressGraph";
 import ProgressScore from "./ProgressScore";
 import { tick } from "./sound";
 import { useStudent } from "./portalData";
+import { useStill } from "@/lib/painting/useStill";
 
 export { STUDENTS, type StudentKey };
 
@@ -53,7 +54,7 @@ export default function Progress({
   /** Whether the student is on the Free plan, which has no predicted score. */
   free: boolean;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const student: Student = useStudent(key);
   const logs = useMemo(() => activity(student), [student]);
   const [page, setPage] = useState<(typeof PAGES)[number]>("Score");

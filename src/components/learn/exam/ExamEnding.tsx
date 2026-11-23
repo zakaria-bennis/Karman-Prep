@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Go } from "@/components/quiz-flows/FlowStage";
+import { prefersStill } from "@/lib/painting/motion";
 import type { ExamResult, SectionSummary } from "@/lib/exams/result";
 import { MODULE_INFO, SECTION_TITLE } from "@/lib/exams/plan";
 import { clock } from "./format";
@@ -17,7 +18,7 @@ const REVEAL_MS = 2200;
 function useRise(target: number) {
   const [value, setValue] = useState(400);
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersStill()) {
       setValue(target);
       return;
     }

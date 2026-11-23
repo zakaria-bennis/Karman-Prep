@@ -10,7 +10,7 @@
 //           reports the day to the caller, which shows that day's value above the graph: nothing
 //           floats over it, and there is no key. Marked days (full-length exams) are small points
 //           with a ring breathing out; the day being looked at is a gray dot.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   useEffect,
   useMemo,
@@ -24,6 +24,7 @@ import lib from "./library.module.css";
 import styles from "./progress.module.css";
 import { DAY, TODAY, dateOf, long, short, type Student } from "./progressData";
 import { tick } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 /** The spans of time a graph can show. `said` follows the number on a ticker: "+150 all time",
  *  "−30 past 7 days". It is not a sentence (founder, 2026-11-15). */
@@ -70,7 +71,7 @@ export function Spans({
   span: Span;
   onPick: (key: SpanKey) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   return (
     <div className={`${lib.filter} ${styles.spans}`} role="group" aria-label="Span of time">
       {spansFor(history, all).map((s) => (

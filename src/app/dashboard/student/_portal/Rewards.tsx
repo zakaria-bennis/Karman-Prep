@@ -21,7 +21,7 @@
 // under a slim line that always shows the coins held.
 // Coins are spent only here: they appear nowhere else in the portal (founder, 2026-11-07).
 // Themes and skins were here in the first version and are off the page while he rethinks them.
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Face } from "./characters";
 import lib from "./library.module.css";
@@ -56,6 +56,7 @@ import {
 import { nextPrize } from "@/lib/portal/box-order";
 import { MULTIPLIER_CAP, MULTIPLIER_STEP } from "@/lib/coins/multiplier";
 import { ping, tick } from "./sound";
+import { useStill } from "@/lib/painting/useStill";
 
 const PAGES = ["Box", "Coins", "Passes", "Characters"] as const;
 const count = (n: number) => n.toLocaleString("en-US");
@@ -69,7 +70,7 @@ export default function Rewards({
   /** Tells the page what its title and way back should say while the wardrobe is open. */
   onTrail: (trail: Trail | null) => void;
 }) {
-  const still = useReducedMotion() ?? false;
+  const still = useStill();
   const [page, setPage] = useState<(typeof PAGES)[number]>("Box");
   /* a signed-in student's own coins, things and passes, saved as they change */
   const data = usePortalData();
