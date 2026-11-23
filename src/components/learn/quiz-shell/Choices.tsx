@@ -6,7 +6,7 @@ import {
   CalculatorTableAction,
 } from "@/components/calculator/CalculatorSourceAction";
 import { useCalculator } from "@/components/calculator/CalculatorScope";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { describeChoiceTable } from "@/lib/question-bank/choice-table";
 import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
 import type { StudentQuizQuestion } from "@/types/quiz";
@@ -17,6 +17,7 @@ import { useSpecParser } from "../figures/engine-loader";
 import styles from "./pane.module.css";
 import ink from "./ink.module.css";
 import { BOUNCE, useShellMotion } from "./motion";
+import { useFigureDraw } from "./use-figure-draw";
 import { usePencil } from "./pencil-context";
 
 export type ChoiceState = {
@@ -78,26 +79,32 @@ export function Choices({
   const figureChoices = useMemo(() => hasFigureChoices(choices, parse), [choices, parse]);
   const tables = choices.length > 0 && choices.every((c) => c.choice_table_data);
   const stem = { text: q.question_text, serializedFunctionLines: q.subject === "math" };
+  // graph and table answers draw themselves in, as the question's figure does
+  const drawRef = useRef<HTMLDivElement>(null);
+  useFigureDraw(drawRef, `${q.id}:choices`, reduced || gradedAtMount || !(figureChoices || tables));
 
   if (figureChoices) {
     return (
-      <FigureChoices
-        radio
-        choices={choices}
-        selected={state.answer}
-        onSelect={(letter) => !state.locked && onPick(letter)}
-        disabled={state.locked}
-        submitted={!!state.correct}
-        correctLetter={state.correct ?? undefined}
-        crossed={(letter) => state.crossedOut.includes(letter)}
-        onToggleCrossed={eliminatorOn && !state.locked ? onCross : undefined}
-        serializedFunctionLines={q.subject === "math"}
-      />
+      <div ref={drawRef} className="contents">
+        <FigureChoices
+          radio
+          choices={choices}
+          selected={state.answer}
+          onSelect={(letter) => !state.locked && onPick(letter)}
+          disabled={state.locked}
+          submitted={!!state.correct}
+          correctLetter={state.correct ?? undefined}
+          crossed={(letter) => state.crossedOut.includes(letter)}
+          onToggleCrossed={eliminatorOn && !state.locked ? onCross : undefined}
+          serializedFunctionLines={q.subject === "math"}
+        />
+      </div>
     );
   }
 
   return (
     <div
+      ref={drawRef}
       role="radiogroup"
       aria-label="Answer choices"
       className={tables ? styles.tableChoices : styles.choices}

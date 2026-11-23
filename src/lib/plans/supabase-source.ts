@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { GRANT_PLAN_IDS } from "./catalog";
 import { GRANT_SOURCES, type PlanDataSource, type PlanGrant } from "./plan-data";
 import { SAT_DATE_PATTERN } from "./purchase-access";
+import { TESTER_PLAN_IDS } from "./tester";
 
 const PAGE = 1000;
 const GRANT_COLUMNS =
@@ -43,6 +44,7 @@ const subscriptionRowSchema = z.object({
 });
 const idRow = z.object({ id: z.string() });
 const answerRow = z.object({ question_id: z.string() });
+const testerPlanRow = z.object({ plan_id: z.enum(TESTER_PLAN_IDS) });
 const satDateRow = z.object({ sat_test_date: z.string().regex(SAT_DATE_PATTERN).nullable() });
 
 /**
@@ -243,6 +245,24 @@ export function supabasePlanDataSource(
         .maybeSingle();
       if (error) throw new Error("SAT date could not be loaded");
       return data ? satDateRow.parse(data).sat_test_date : null;
+    },
+    async testerPlan(userId) {
+      const { data, error } = await db
+        .from("tester_plans")
+        .select("plan_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw new Error("Tester plan could not be loaded");
+      return data ? testerPlanRow.parse(data).plan_id : null;
+    },
+    async saveTesterPlan(userId, planId) {
+      const { error } = await db
+        .from("tester_plans")
+        .upsert(
+          { user_id: userId, plan_id: planId, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" }
+        );
+      if (error) throw new Error("Tester plan could not be saved");
     },
   };
 }

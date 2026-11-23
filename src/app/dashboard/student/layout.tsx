@@ -16,6 +16,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 import { getPlan } from "@/lib/plans/resolve";
+import { isTesterPlan } from "@/lib/plans/tester";
 import { ensureUserRow } from "@/lib/auth/ensure-user";
 
 // The portal fills the whole screen of a phone, under the status bar and round the home line, so
@@ -59,7 +60,9 @@ export default async function StudentDashboardLayout({ children }: { children: R
   // (the cohort or private tutoring) is asked for the questionnaire first.
   if (user && user.onboarding_completed_at === null) {
     const plan = await getPlan(userId);
-    if ((TAUGHT_PLANS as readonly string[]).includes(plan.planId))
+    // A plan picked with the testing switch has no payment behind it, so no questionnaire either
+    // (it would place the tester in a real class or with a real tutor).
+    if (!isTesterPlan(plan) && (TAUGHT_PLANS as readonly string[]).includes(plan.planId))
       redirect("/onboarding/questionnaire");
   }
 

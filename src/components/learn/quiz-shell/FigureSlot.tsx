@@ -1,12 +1,14 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { drawnFigure, type QuestionFigure } from "@/lib/figures/question-figure";
 import ChartFigure from "../ChartFigure";
 import FigureFrame from "../FigureFrame";
 import GeometryFigure from "../GeometryFigure";
 import QuestionTable from "../QuestionTable";
 import { useSpecParser } from "../figures/engine-loader";
+import { useShellMotion } from "./motion";
 import styles from "./pane.module.css";
+import { useFigureDraw } from "./use-figure-draw";
 
 /** Where the figure engine draws: a figure_spec goes through FigureFrame's engine path (loaded
  * lazily), and the older figure fields keep their own components (spec: Figure contract). The quiz
@@ -14,10 +16,14 @@ import styles from "./pane.module.css";
 export function FigureSlot({ q, calculator }: { q: QuestionFigure; calculator: boolean }) {
   const parse = useSpecParser(q);
   const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
+  // the figure draws itself in the first time the question is shown
+  const box = useRef<HTMLDivElement>(null);
+  const { reduced } = useShellMotion();
+  useFigureDraw(box, `${q.id}:figure`, reduced || !drawn);
   if (!drawn) return null;
   const figureId = `${q.id}:figure`;
   return (
-    <div className={styles.figure} data-ink-figure={figureId}>
+    <div ref={box} className={styles.figure} data-ink-figure={figureId}>
       {drawn === "table" ? (
         <QuestionTable data={q.figure_table_data!} calculator={calculator} />
       ) : drawn === "chart" ? (

@@ -41,13 +41,20 @@
   --figure-math: var(--fg-ink);
   --figure-series-1: var(--fg-ink);
 }
+/* No frame either (founder, 2026-11-23: "remove that background and have the figure itself live
+   in the frosted background behind it"): the figure is drawn straight on the page's glass. */
+.figure-glass .themed-question-figure:not(.themed-question-table) {
+  border-color: transparent;
+}
 .figure-glass .themed-question-figure {
-  border: 1px solid var(--fg-line);
-  background: var(--fg-lens);
-  -webkit-backdrop-filter: var(--fg-frost);
-  backdrop-filter: var(--fg-frost);
+  background: transparent;
   box-shadow: none;
   color: var(--fg-ink);
+}
+/* A table keeps its rules; its headings (the top row, or the first column when the rows are
+   named) are shaded a little darker than the cells, so one side reads as the labels. */
+.figure-glass .themed-question-table th {
+  background: color-mix(in srgb, var(--fg-ink) 7%, transparent);
 }
 /* the older charts draw their own plaque inside the figure */
 .figure-glass .themed-question-figure .bg-night {

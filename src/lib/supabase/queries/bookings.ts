@@ -69,9 +69,14 @@ export async function getUserUuidByClerkId(clerkId: string): Promise<string | nu
 }
 
 /** The student's paid plan, from `getPlan` (subscriptions and one-time
- *  purchase grants alike). Null on the Free plan. */
+ *  purchase grants alike). Null on the Free plan. A plan picked with the
+ *  testing switch is not paid, so it is left out here: real tutor times,
+ *  bookings and class placement stay with plans someone paid for. */
+/** An environment without SITE_PASSWORD: `getPlan` then reads only what was paid or granted. */
+const NO_TESTER_SWITCH = {} as const;
+
 export async function getActiveSubscription(clerkId: string): Promise<ActiveSubscription | null> {
-  const plan = await getPlan(clerkId);
+  const plan = await getPlan(clerkId, undefined, undefined, NO_TESTER_SWITCH);
   if (plan.planId === "free") return null;
   const tier: BookingPlanTier | null = plan.planIds.some((id) => PRIVATE_PLAN_IDS.includes(id))
     ? "private"
