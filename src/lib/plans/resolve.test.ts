@@ -13,12 +13,15 @@ import {
   recordPurchaseGrant,
   resolvePlan,
   revokeGrant,
+  setTesterPlan,
   sponsoredStudentIds,
+  TesterSwitchOffError,
   type GrantSource,
   type PlanDataSource,
   type PlanGrant,
   type SubscriptionRecord,
 } from "./resolve";
+import { TESTER_PLAN_IDS, isTesterPlan, testerSwitchOn, type TesterPlanId } from "./tester";
 
 vi.mock("@/lib/supabase/server", () => ({
   createAdminClient: () => {
@@ -78,12 +81,16 @@ function fakeSource(
     answered?: number;
     fullLength?: number;
     satTestDate?: string | null;
+    testerPlan?: TesterPlanId | null;
   } = {}
 ) {
   const subscriptions = [...(init.subscriptions ?? [])];
   const grants = [...(init.grants ?? [])];
   /** The student's `users` row; set `satTestDate` to mimic a later edit. */
-  const user = { satTestDate: init.satTestDate ?? null };
+  const user: { satTestDate: string | null; testerPlan: TesterPlanId | null } = {
+    satTestDate: init.satTestDate ?? null,
+    testerPlan: init.testerPlan ?? null,
+  };
   let n = 0;
   const matches = (g: PlanGrant, match: Parameters<PlanDataSource["revokeGrants"]>[0]) =>
     "grantId" in match
@@ -118,6 +125,10 @@ function fakeSource(
     answeredQuestionCount: async () => init.answered ?? 0,
     completedFullLengthTests: async () => init.fullLength ?? 0,
     satTestDate: async () => user.satTestDate,
+    testerPlan: async () => user.testerPlan,
+    async saveTesterPlan(_userId, planId) {
+      user.testerPlan = planId;
+    },
   };
   return { source, grants, subscriptions, user };
 }
@@ -505,5 +516,85 @@ describe("tutor-affiliate seats", () => {
     });
     expect(await canManageStudent(TUTOR, "user_s1", source, NOW)).toBe(true);
     expect(await canManageStudent(TUTOR, "user_other", source, NOW)).toBe(false);
+  });
+});
+
+describe("the testing switch", () => {
+  const LOCKED = { SITE_PASSWORD: "letmein" };
+  const OPEN = {};
+
+  it("is on only while the site lock has a password", () => {
+    expect(testerSwitchOn(LOCKED)).toBe(true);
+    expect(testerSwitchOn(OPEN)).toBe(false);
+    expect(testerSwitchOn({ SITE_PASSWORD: "" })).toBe(false);
+  });
+
+  it("offers the five plans, Private as Private 10", () => {
+    expect(TESTER_PLAN_IDS).toEqual(["free", "practice", "pro", "cohort", "private-10"]);
+  });
+
+  it("gives a tester exactly the plan they picked while the lock is on, up or down", async () => {
+    const { source } = fakeSource({
+      subscriptions: [sub(STUDENT, "pro")],
+      testerPlan: "free",
+    });
+    const plan = await getPlan(STUDENT, source, NOW, LOCKED);
+    expect(plan.planId).toBe("free");
+    expect(plan.planIds).toEqual(["free"]);
+    expect(plan.entitlements).toEqual(PLAN_ENTITLEMENTS.free);
+    expect(isTesterPlan(plan)).toBe(true);
+
+    for (const id of TESTER_PLAN_IDS) {
+      await setTesterPlan(STUDENT, { planId: id }, source, LOCKED);
+      const now = await getPlan(STUDENT, source, NOW, LOCKED);
+      expect(now.planId).toBe(id);
+      expect(now.entitlements).toEqual(PLAN_ENTITLEMENTS[id]);
+    }
+  });
+
+  it("ignores a saved pick once the lock is off, so launch needs no code change", async () => {
+    const { source } = fakeSource({ subscriptions: [sub(STUDENT, "practice")], testerPlan: "pro" });
+    const plan = await getPlan(STUDENT, source, NOW, OPEN);
+    expect(plan.planId).toBe("practice");
+    expect(isTesterPlan(plan)).toBe(false);
+  });
+
+  it("keeps the plan the student holds when the pick cannot be read", async () => {
+    const { source } = fakeSource({ subscriptions: [sub(STUDENT, "pro")] });
+    source.testerPlan = async () => {
+      throw new Error("no table");
+    };
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect((await getPlan(STUDENT, source, NOW, LOCKED)).planId).toBe("pro");
+    error.mockRestore();
+  });
+
+  it("refuses to save while the lock is off", async () => {
+    const { source, user } = fakeSource();
+    await expect(setTesterPlan(STUDENT, { planId: "pro" }, source, OPEN)).rejects.toBeInstanceOf(
+      TesterSwitchOffError
+    );
+    expect(user.testerPlan).toBeNull();
+  });
+
+  it("saves only the five plans", async () => {
+    const { source, user } = fakeSource();
+    for (const planId of ["private-20", "school", "tutor-affiliate", "gold", ""]) {
+      await expect(
+        setTesterPlan(STUDENT, { planId } as unknown as { planId: TesterPlanId }, source, LOCKED)
+      ).rejects.toBeInstanceOf(ZodError);
+    }
+    await expect(
+      setTesterPlan(
+        STUDENT,
+        { planId: "pro", extra: 1 } as unknown as { planId: TesterPlanId },
+        source,
+        LOCKED
+      )
+    ).rejects.toBeInstanceOf(ZodError);
+    expect(user.testerPlan).toBeNull();
+    const saved = await setTesterPlan(STUDENT, { planId: "cohort" }, source, LOCKED);
+    expect(saved.planId).toBe("cohort");
+    expect(user.testerPlan).toBe("cohort");
   });
 });

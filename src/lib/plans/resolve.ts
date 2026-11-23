@@ -17,6 +17,13 @@ import {
   type SubscriptionPlanId,
 } from "./catalog";
 import { isPurchaseAccessOpen, purchaseAccessEndsAt } from "./purchase-access";
+import {
+  testerPlanInputSchema,
+  testerResolvedPlan,
+  testerSwitchOn,
+  type TesterPlanId,
+  type TesterPlanInput,
+} from "./tester";
 
 import { GRANT_SOURCES, PlanGrantError } from "./plan-data";
 import type {
@@ -194,14 +201,40 @@ export type RevokeGrantInput = z.input<typeof revokeGrantInputSchema>;
 
 // ---------- Public API ----------
 
-/** The user's access: the most generous of every active subscription and grant. */
+/** A tester's saved plan while the site lock is on; null otherwise, or when it cannot be read (the
+ *  student then keeps the plan they hold, rather than dropping to Free). */
+async function testerChoice(
+  id: string,
+  source: PlanDataSource,
+  env: Readonly<Record<string, string | undefined>>
+): Promise<TesterPlanId | null> {
+  if (!testerSwitchOn(env)) return null;
+  return source.testerPlan(id).catch((error: unknown) => {
+    console.error(
+      "[plans] tester plan read failed:",
+      error instanceof Error ? error.message : error
+    );
+    return null;
+  });
+}
+
+/**
+ * The user's access: the most generous of every active subscription and grant. While the site lock
+ * is on, a plan picked with the testing switch replaces all of them (tester.ts).
+ */
 export async function getPlan(
   userId: string,
   source: PlanDataSource = supabasePlanDataSource(),
-  now: Date = new Date()
+  now: Date = new Date(),
+  env: Readonly<Record<string, string | undefined>> = process.env
 ): Promise<ResolvedPlan> {
   const id = clerkIdSchema.parse(userId);
-  const [own, grants] = await Promise.all([source.subscriptions([id]), source.grants(id)]);
+  const [tester, own, grants] = await Promise.all([
+    testerChoice(id, source, env),
+    source.subscriptions([id]),
+    source.grants(id),
+  ]);
+  if (tester) return testerResolvedPlan(id, tester);
   const current = grants.filter((grant) => isGrantCurrent(grant, now));
   const sponsorIds = new Set<string>();
   for (const grant of current) {
@@ -220,6 +253,26 @@ export async function getPlan(
     satTestDate,
     now,
   });
+}
+
+/** The testing switch is off: the site lock is off, so every plan is the one actually held. */
+export class TesterSwitchOffError extends Error {}
+
+/**
+ * The testing switch: save the plan a tester picked and return their access with it. Refused unless
+ * the site lock is on, and only for the five plans in TESTER_PLAN_IDS. Never touches Stripe.
+ */
+export async function setTesterPlan(
+  userId: string,
+  input: TesterPlanInput,
+  source: PlanDataSource = supabasePlanDataSource(),
+  env: Readonly<Record<string, string | undefined>> = process.env
+): Promise<ResolvedPlan> {
+  if (!testerSwitchOn(env)) throw new TesterSwitchOffError("The testing switch is off.");
+  const id = clerkIdSchema.parse(userId);
+  const { planId } = testerPlanInputSchema.parse(input);
+  await source.saveTesterPlan(id, planId);
+  return testerResolvedPlan(id, planId);
 }
 
 /** Free-plan usage. Only needed when the plan has a limit (`questionLimit` or `fullLengthTestLimit`). */
