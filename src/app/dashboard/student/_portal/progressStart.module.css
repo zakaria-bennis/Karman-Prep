@@ -33,15 +33,6 @@
   font-variant-numeric: lining-nums;
 }
 
-.say {
-  max-width: 34ch;
-  margin-bottom: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.4;
-  text-wrap: balance;
-}
-
 .path {
   gap: 14px;
   justify-content: center;
@@ -149,11 +140,6 @@
 
   .big {
     font-size: 56px;
-  }
-
-  .say {
-    margin-bottom: 4px;
-    font-size: 13px;
   }
 
   .path li {

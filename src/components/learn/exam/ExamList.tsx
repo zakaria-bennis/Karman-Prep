@@ -52,28 +52,24 @@ export function ExamList({ canTest }: { canTest: boolean }) {
     <section className={s.pane}>
       <div className={s.head}>
         <h1 className={s.title}>Full-length exams</h1>
-        <p className={s.lead}>
-          Twenty adaptive exams built like the digital SAT: Reading and Writing, a 10-minute break,
-          then Math. Each is scored from 400 to 1600. They open on Saturdays, 6 am to midnight.
-        </p>
       </div>
 
       <div className={`${s.window} ${open ? s.windowOpen : ""}`} role="status">
         <span className={s.dot} aria-hidden="true" />
         {open ? (
-          <span>Open now, until midnight ({until(closes - now)} left to start)</span>
+          <span>Open until midnight, {until(closes - now)} left to start</span>
         ) : (
           <span>
             Opens {dayTime(data.window.opensAt, zone)}, in {until(opens - now)}
           </span>
         )}
-        <span className={s.windowNote}>Times are in {zoneName(zone)}.</span>
+        <span className={s.windowNote}>{zoneName(zone)} time</span>
       </div>
 
       {data.running !== null && (
         <div className={s.actions}>
           <Go href={`/learn/exam/${data.running}`}>Back to Exam {data.running}</Go>
-          <span className={s.windowNote}>Its clock keeps running while you are away.</span>
+          <span className={s.windowNote}>Its clock is still running.</span>
         </div>
       )}
 
@@ -86,8 +82,7 @@ export function ExamList({ canTest }: { canTest: boolean }) {
           </Go>
           {data.opensWith === "pass" && (
             <span className={s.windowNote}>
-              You hold {data.passes} Exam pass{data.passes === 1 ? "" : "es"}. One opens an exam
-              early or late.
+              You have {data.passes} Exam pass{data.passes === 1 ? "" : "es"}.
             </span>
           )}
           {data.opensWith === "test-switch" && (

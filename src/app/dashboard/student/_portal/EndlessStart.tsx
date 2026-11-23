@@ -6,7 +6,7 @@
 //   Left    a live river seen from just above the water (founder's pick, 2026-11-21: "A, on the
 //           water"), the real landscape alone, with no sign or character over it; under it the name
 //           of what the run draws from; and their best run in a card of its own.
-//   Right   how it goes: questions keep coming, three misses end the run, and where they come from;
+//   Right   the rules, a fact each: three misses end the run, and where the questions come from;
 //           then one green Start.
 // Never skipped; nothing starts until Start. A signed-in student's best run is their own, and Start
 // plays the run over the page (play/PlayLayer.tsx); the design page shows stand-ins and plays
@@ -36,9 +36,9 @@ const BEST_WHEN = "Nov 18";
 
 const KIND = { skill: "Skill", domain: "Domain", section: "Section" } as const;
 const FROM = {
-  skill: (name: string) => [`Only ${name}`, "Every question is from this skill."],
-  domain: () => ["Leans on your weakest skills", "More of the skills you know least here."],
-  section: (name: string) => ["From every domain", `Questions from all of ${name}.`],
+  skill: (name: string) => `Only ${name}`,
+  domain: () => "Your weakest skills most",
+  section: (name: string) => `All of ${name}`,
 } as const;
 
 /** Where down the river this run's picture starts: each skill, domain or section has its own stretch. */
@@ -112,15 +112,9 @@ function EndlessPage({ run }: { run: EndlessRun }) {
     }, el);
     return () => ctx.revert();
   }, [run.kind, run.name]);
-  const [from, fromWhy] = FROM[run.kind](run.name);
   const how = [
-    {
-      icon: <Icon name="endless" size={40} />,
-      words: "Questions keep coming",
-      why: "No set length. See how far you can go.",
-    },
-    { icon: <Lives />, words: "Three misses end the run", why: "Each miss takes a heart." },
-    { icon: <Icon name="go" size={28} />, words: from, why: fromWhy },
+    { icon: <Lives />, words: "3 misses end the run" },
+    { icon: <Icon name="go" size={28} />, words: FROM[run.kind](run.name) },
   ];
   return (
     <div ref={ref} className={`${lib.library} ${styles.page}`}>
@@ -154,15 +148,12 @@ function EndlessPage({ run }: { run: EndlessRun }) {
       </div>
 
       <section className={`${lib.glass} ${styles.mix}`} data-rise>
-        <h2>How it goes</h2>
+        <h2>Rules</h2>
         <ul className={own.how}>
           {how.map((h) => (
             <li key={h.words} data-how>
               <span className={own.mark}>{h.icon}</span>
-              <span>
-                <b>{h.words}</b>
-                <small>{h.why}</small>
-              </span>
+              <b>{h.words}</b>
             </li>
           ))}
         </ul>

@@ -134,10 +134,7 @@ export default function MusicOffer({ force = false }: { force?: boolean }) {
             <>
               <div className={styles.words}>
                 <b>Studying late?</b>
-                <p>
-                  Studies show classical music can help you stay focused on late nights. You can
-                  turn it off in Settings.
-                </p>
+                <p>Classical music can help you focus late at night. Turn it off in Settings.</p>
                 <button type="button" className={styles.on} onClick={accept}>
                   Turn it on
                 </button>

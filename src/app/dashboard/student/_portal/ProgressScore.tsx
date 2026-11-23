@@ -110,7 +110,7 @@ function Waiting({
     <div className={styles.waiting}>
       {daily.layer}
       <Tile name={ready ? "exam" : "daily"} />
-      <h2>Take two full-length exams to see your predicted score</h2>
+      <h2>Take 2 full-length exams to see your predicted score</h2>
       {ready ? (
         <>
           <div className={styles.slots} role="img" aria-label={`${taken} of 2 taken`}>
@@ -138,7 +138,7 @@ function Waiting({
           <p>
             <b>{answered}</b> of {BEFORE_EXAM} questions before your first exam
           </p>
-          <GoButton onDone={daily.start}>Start the Daily 10</GoButton>
+          <GoButton onDone={daily.start}>Start Daily 10</GoButton>
           <button
             type="button"
             className={styles.sooner}

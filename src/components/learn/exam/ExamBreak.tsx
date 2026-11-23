@@ -42,8 +42,7 @@ export function ExamBreak({
           Break
         </h1>
         <p className={s.lead}>
-          Reading and Writing is done. Stand up, stretch, drink some water. Math starts when you
-          come back, or when the break is over.
+          Stand up, stretch, drink some water. Math starts when the break ends.
         </p>
       </div>
       <p className={s.clock} role="timer" aria-live="off">

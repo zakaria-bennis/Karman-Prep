@@ -271,9 +271,9 @@ export default function Schedule({ onGo }: { onGo: (page: "homework" | "chat") =
           <p className={rows.blank}>
             {tab === "upcoming"
               ? next
-                ? "Nothing else is booked."
-                : "No sessions booked yet."
-              : "Sessions you have had will be listed here, with their recordings."}
+                ? "Nothing else booked"
+                : "No sessions booked"
+              : "No past sessions yet"}
           </p>
         ) : (
           <ul className={rows.items} ref={items}>

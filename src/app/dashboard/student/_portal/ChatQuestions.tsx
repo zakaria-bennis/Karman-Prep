@@ -171,9 +171,7 @@ export function QuestionView({ q, onLeave }: { q: Shared; onLeave: () => void })
               </li>
             ))}
           </ol>
-          <p className={styles.hint}>
-            Work it out together in the chat. The answer is not shown here.
-          </p>
+          <p className={styles.hint}>The answer isn&rsquo;t shown here.</p>
         </div>
       </div>
     </Whole>

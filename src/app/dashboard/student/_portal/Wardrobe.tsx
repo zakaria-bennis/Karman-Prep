@@ -90,9 +90,7 @@ export default function Wardrobe({
           </ul>
         ) : (
           <div className={styles.bare}>
-            <p>
-              {owned.length ? "Nothing for that place yet." : "Open a box to win your first one."}
-            </p>
+            <p>{owned.length ? "Nothing here yet" : "Open a box to win your first one"}</p>
           </div>
         )}
         {onUnlockAll && owned.length < ACCESSORIES.length && (

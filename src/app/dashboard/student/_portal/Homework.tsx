@@ -269,8 +269,8 @@ export default function Homework({
     all === 0
       ? // nothing was ever set for this day: say so, without praise for work that never existed
         matching
-        ? ["We're matching you with a tutor", "Their work shows up here once you're paired"]
-        : ["Nothing assigned yet", "Your tutor's work shows up here"]
+        ? ["Matching you with a tutor"]
+        : ["Nothing assigned yet"]
       : left === 0
         ? [day.from < 0 ? "Nothing missed" : "All done", "Nice work"]
         : [

@@ -62,7 +62,7 @@ export function isLocked(what: Locked, planId: PlanId, access: Access): boolean 
   }
 }
 
-/** The sheet's heading and one line under it, for each reason. */
+/** The sheet's heading and, where it adds something, one line under it, for each reason. */
 export function upgradeWords(
   what: Locked,
   offers: readonly UpgradeTo[]
@@ -96,7 +96,7 @@ export function upgradeWords(
         say: "Live sessions on the skills students miss most.",
       };
     case "plan":
-      return { title: "Upgrade", say: both ? "Pick the plan that fits." : "Everything, with Pro." };
+      return { title: "Upgrade", say: "" };
   }
 }
 

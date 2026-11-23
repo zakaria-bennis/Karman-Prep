@@ -100,7 +100,7 @@ function Row({ workshop, big = false }: { workshop: Workshop; big?: boolean }) {
         <span>
           {workshop.day}, {workshop.time}
         </span>
-        {workshop.fits && <em>On a skill you are working on</em>}
+        {workshop.fits && <em>A skill you&rsquo;re working on</em>}
       </p>
       {join ? (
         <a className={styles.join} href={join} target="_blank" rel="noopener noreferrer">

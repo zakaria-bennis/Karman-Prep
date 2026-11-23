@@ -5,9 +5,8 @@
 //   Left    the racing stopwatch, flames off its back, in its window; the name of what the trial is
 //           on and its round; and the pace, a track of notches from 1.25 times the SAT's time down to
 //           0.75, with this round lit.
-//   Right   how it goes: the questions and the clock, the accuracy to hold for the next round to be
-//           faster, and what the results show; then one green Start, and a count of three before
-//           the first question.
+//   Right   the rules: the questions and the clock, and the accuracy that makes the next round
+//           faster; then one green Start, and a count of three before the first question.
 // Never skipped; nothing starts until Start. A signed-in student's round is read from the server;
 // the design page shows round 1.
 import gsap from "gsap";
@@ -127,18 +126,11 @@ export function TrialStart({ run }: { run: EndlessRun }) {
   const how = [
     {
       icon: <Icon name="trial" size={58} />,
-      words: `${standing.questions} questions, ${formatClock(standing.seconds)} on the clock`,
-      why: `${standing.multiplier.toFixed(2)}× the SAT's own time.`,
+      words: `${standing.questions} questions in ${formatClock(standing.seconds)}`,
     },
     {
       icon: <span className={t.bar}>{Math.round(standing.bar * 100)}%</span>,
-      words: "Hold your accuracy",
-      why: `Get ${Math.round(standing.bar * 100)}% or more and the next round is 5% faster.`,
-    },
-    {
-      icon: <Icon name="go" size={28} />,
-      words: "Speed, accuracy and pacing",
-      why: "Then review what you missed.",
+      words: `Get ${Math.round(standing.bar * 100)}% and the next round is 5% faster`,
     },
   ];
   return (
@@ -161,7 +153,6 @@ export function TrialStart({ run }: { run: EndlessRun }) {
         <section className={`${lib.glass} ${styles.streak} ${t.pace}`} data-rise>
           <p>
             <b>{standing.multiplier.toFixed(2)}× time</b>
-            <small>Down to 0.75× as you get faster</small>
           </p>
           <ol className={t.track} aria-label={`Pace ${here + 1} of ${NOTCHES}`}>
             {Array.from({ length: NOTCHES }, (_, i) => (
@@ -177,15 +168,12 @@ export function TrialStart({ run }: { run: EndlessRun }) {
       </div>
 
       <section className={`${lib.glass} ${styles.mix}`} data-rise>
-        <h2>How it goes</h2>
+        <h2>Rules</h2>
         <ul className={own.how}>
           {how.map((h) => (
             <li key={h.words} data-how>
               <span className={own.mark}>{h.icon}</span>
-              <span>
-                <b>{h.words}</b>
-                <small>{h.why}</small>
-              </span>
+              <b>{h.words}</b>
             </li>
           ))}
         </ul>

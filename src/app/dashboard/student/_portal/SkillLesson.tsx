@@ -81,7 +81,7 @@ export function SkillLesson({ name }: { name: string }) {
         ) : written.data ? (
           <Lesson lesson={written.data} />
         ) : (
-          <p className={lessonStyles.missing}>The lesson for {name} is on its way.</p>
+          <p className={lessonStyles.missing}>No lesson for {name} yet</p>
         )
       ) : !film ? (
         <Waiting />

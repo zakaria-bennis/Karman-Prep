@@ -5,7 +5,7 @@
 // suggested after their 100 questions. It is a recommendation, not a gate").
 // Three panes of zeros would say nothing, so the page is one thing to do and what it leads to:
 //   left    where to start: the Daily 10, set out the way the predicted score will be once there is
-//           one (a small name, one large line in the serif, a button).
+//           one (a small name, one large line in the serif, a button), with no line under it.
 //   right   what comes of it, in order: the first answers fill Progress in; 100 questions is a good
 //           time for a first full-length exam; two exams give a predicted score (on the Free plan,
 //           the score comes with Practice or Pro).
@@ -23,17 +23,17 @@ export default function ProgressStart({ free }: { free: boolean }) {
   const daily = useDailyTen(gate);
   const steps = [
     {
-      name: "Your first answers",
-      gives: "Your time, pacing and calendar start to fill in",
+      name: "First answers",
+      gives: "Your stats fill in",
     },
     {
       name: `${BEFORE_EXAM} questions`,
-      gives: "A good time for your first full-length exam",
+      gives: "Time for a full-length exam",
       far: `0 of ${BEFORE_EXAM}`,
     },
     {
-      name: "Two full-length exams",
-      gives: free ? "Your predicted score, with Practice or Pro" : "Your predicted score",
+      name: "2 full-length exams",
+      gives: free ? "Predicted score, with Practice or Pro" : "Predicted score",
       far: "0 of 2",
     },
   ];
@@ -44,10 +44,7 @@ export default function ProgressStart({ free }: { free: boolean }) {
         <Tile name="daily" />
         <h2>Start here</h2>
         <p className={styles.big}>Daily 10</p>
-        <p className={styles.say}>
-          Ten questions. Your progress shows here as soon as you answer them.
-        </p>
-        <GoButton onDone={daily.start}>Start the Daily 10</GoButton>
+        <GoButton onDone={daily.start}>Start Daily 10</GoButton>
       </section>
       <section className={`${lib.glass} ${styles.path}`} aria-label="Coming up">
         <h2>Coming up</h2>

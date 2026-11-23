@@ -57,13 +57,13 @@ async function studentId(): Promise<string> {
 const SAY: Record<string, string> = {
   "Student access required": "Sign in with a student account to practice.",
   "No distinct approved questions are available":
-    "There are not enough reviewed questions for this yet. Try another skill.",
-  "Nothing to review": "There are no mistakes to review here yet.",
-  "No second chances left": "You have no Second chances left. You can buy one on Rewards.",
+    "Not enough questions here yet. Try another skill.",
+  "Nothing to review": "No mistakes to review here yet.",
+  "No second chances left": "No Second chances left. Buy one on Rewards.",
   "No second chance here": "A Second chance can't be used here.",
-  "There is no missed day to save.": "There is no missed day to save.",
+  "There is no missed day to save.": "No missed day to save.",
   "Your streak saver was not used. Try again.": "Your streak saver was not used. Try again.",
-  "You have no streak savers left.": "You have no Streak savers left.",
+  "You have no streak savers left.": "No Streak savers left.",
   "Question is not next in this session":
     "This question was already answered in another tab. Reload to continue.",
 };

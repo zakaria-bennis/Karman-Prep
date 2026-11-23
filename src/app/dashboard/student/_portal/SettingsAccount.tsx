@@ -108,7 +108,7 @@ export function Calendars() {
       <Group>
         {sure ? (
           <>
-            <Say>A new link stops the old one: calendars added with it stop updating.</Say>
+            <Say>The old link stops updating your calendars.</Say>
             <div className={styles.pair}>
               <button type="button" className={styles.soft} onClick={() => setSure(false)}>
                 Keep this link
@@ -164,8 +164,8 @@ export function Help() {
         {sure ? (
           <div className={styles.sure}>
             <p>
-              This emails us from your email app. We confirm by email before we delete your account
-              and all your work, and that can&rsquo;t be undone.
+              Opens your email app. We confirm by email before deleting your account and all your
+              work. This can&rsquo;t be undone.
             </p>
             <button type="button" className={styles.soft} onClick={() => setSure(false)}>
               Keep my account

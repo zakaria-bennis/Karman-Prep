@@ -150,8 +150,8 @@ function Tutor({ state, onChange }: { state: PeopleState | null; onChange: () =>
           name={tutor.state === "active" ? `You're in ${name}'s group` : `${name}'s plan has ended`}
           note={
             tutor.state === "active"
-              ? "Practice comes from your tutor. They see your progress and set homework."
-              : "You're on Free for now. Your work is saved, and Practice comes back if they restart."
+              ? "Your Practice plan comes from your tutor."
+              : "You're on Free. Your work is saved. Practice returns if they restart."
           }
         >
           {!sure && (

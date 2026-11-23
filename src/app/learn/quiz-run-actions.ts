@@ -50,10 +50,7 @@ function failure(error: unknown): { ok: false; error: string; limit?: boolean } 
   if (message === "Student access required")
     return { ok: false, error: "Sign in with a student account to practice." };
   if (message === "No distinct approved questions are available")
-    return {
-      ok: false,
-      error: "There are not enough reviewed questions for this yet. Try another skill.",
-    };
+    return { ok: false, error: "Not enough questions here yet. Try another skill." };
   if (message === "Question is not next in this session")
     return {
       ok: false,

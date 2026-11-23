@@ -12,19 +12,19 @@ import { dayTime, zoneName } from "./format";
 import s from "./exam.module.css";
 
 const CHECKLIST = [
-  "A quiet place where nobody will interrupt you for about two and a half hours",
-  "Your device charged or plugged in, with a steady connection",
+  "A quiet place for about 2½ hours",
+  "Device charged, steady connection",
   "Scratch paper and a pencil",
-  "Your phone away. The calculator and reference sheet are built in",
+  "Phone away. Calculator and reference sheet are built in",
 ];
 
 const RULES = [
-  "Each module has its own timer. When it runs out, the module ends and your answers are kept.",
-  "Module 2 is easier or harder depending on how Module 1 went. Do your best on both.",
-  "Inside a module you can move between questions and mark any for review. Once you submit a module, you cannot go back to it.",
-  "A 10-minute break comes after Reading and Writing. The clock keeps running if you leave the page.",
-  "A few questions are being tried out and do not count toward your score. You will not know which, so answer every one.",
-  "No outside help. Your score is only useful if it is really yours.",
+  "Each module has its own timer. When it ends, your answers are kept.",
+  "Module 2 gets easier or harder based on Module 1.",
+  "Move between questions and mark any for review. A submitted module is closed.",
+  "A 10-minute break follows Reading and Writing. The clock runs if you leave the page.",
+  "A few questions are tryouts and don't count. You won't know which, so answer every one.",
+  "No outside help.",
 ];
 
 export function ExamStart({
@@ -53,8 +53,8 @@ export function ExamStart({
             Get ready
           </h1>
           <p className={s.lead}>
-            Take a slow breath. When you press Start, Reading and Writing Module 1 begins and its{" "}
-            {info.modules[0].minutes}-minute clock starts.
+            Take a breath. Start begins Reading and Writing Module 1 and its{" "}
+            {info.modules[0].minutes}-minute clock.
           </p>
         </div>
         {error && <p className={s.error}>{error}</p>}
@@ -77,11 +77,11 @@ export function ExamStart({
         </h1>
         <p className={s.lead}>
           {info.opensWith === "pass"
-            ? "You are opening this exam with an Exam pass. "
+            ? "Opened with an Exam pass. "
             : info.opensWith === "test-switch"
               ? "Open today by the test switch. "
               : `Open until ${dayTime(info.window.closesAt, info.window.zone)} (${zoneName(info.window.zone)}). `}
-          Once you start, the exam runs its full time, even past midnight.
+          Once started, it runs its full time, even past midnight.
         </p>
       </div>
 
@@ -114,12 +114,12 @@ export function ExamStart({
             </span>
           </p>
           <button type="button" className={s.quiet} onClick={() => sheet.current?.showModal()}>
-            Look at the math reference sheet
+            Reference sheet
           </button>
         </div>
 
         <div className={s.block}>
-          <h2 className={s.label}>Before you begin</h2>
+          <h2 className={s.label}>Checklist</h2>
           <ul className={s.checks}>
             {CHECKLIST.map((line) => (
               <li key={line}>
@@ -130,7 +130,7 @@ export function ExamStart({
               </li>
             ))}
           </ul>
-          <h2 className={s.label}>How it works</h2>
+          <h2 className={s.label}>Rules</h2>
           <ul className={s.rules}>
             {RULES.map((line) => (
               <li key={line}>{line}</li>

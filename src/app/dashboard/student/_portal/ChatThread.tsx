@@ -146,10 +146,10 @@ export default function ChatThread({
           <span>
             {thread.kind === "news"
               ? thread.canPost
-                ? "You post here. Your class reads it."
-                : "Only your tutor posts here"
+                ? "You post, your class reads"
+                : "Only your tutor posts"
               : thread.kind === "class"
-                ? "You, your classmates and your tutor"
+                ? "Class and tutor"
                 : thread.kind === "tutor"
                   ? "Your tutor"
                   : "Classmate"}
@@ -328,15 +328,14 @@ export default function ChatThread({
       </div>
 
       {thread.kind === "news" && !thread.canPost ? (
-        <p className={styles.closed}>Only your tutor can post here.</p>
+        <p className={styles.closed}>Only your tutor can post here</p>
       ) : paused ? (
-        <p className={styles.closed}>Your chats are paused until your tutor has reviewed them.</p>
+        <p className={styles.closed}>Paused until your tutor reviews your chats</p>
       ) : (
         <footer>
           {thread.kind === "tutor" && afterHours && (
             <p className={styles.hours}>
-              Your tutor is back at 9 AM. Until then the assistant answers, and your tutor follows
-              up.
+              Your tutor is back at 9 AM. The assistant answers until then.
             </p>
           )}
           {quoted && (

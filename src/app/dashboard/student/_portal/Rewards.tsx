@@ -125,7 +125,7 @@ export default function Rewards({
       })
       .catch(() => {
         undo();
-        window.alert("That did not go through. No coins were spent; please try again.");
+        window.alert("That didn't go through. No coins were spent. Try again.");
       });
   const [wardrobe, setWardrobe] = useState(false);
   // the wardrobe is a screen of its own: the page's title names it and its back pill leaves it
@@ -278,9 +278,7 @@ export default function Rewards({
             <div className={styles.part}>
               <h3>This week</h3>
               {real && real.week.length === 0 && (
-                <p className={styles.ends}>
-                  No coins yet this week. Finish a Daily 10 to earn your first.
-                </p>
+                <p className={styles.ends}>None yet. Finish a Daily 10 to earn coins.</p>
               )}
               <ul className={styles.earned}>
                 {(real?.week ?? EARNED).map((row) => (
