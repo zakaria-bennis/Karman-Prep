@@ -11,9 +11,7 @@ export function TestDayCard({ day, childName }: { day: TestDay; childName: strin
     return (
       <Card label="Test day">
         <SectionHeader title="Test day" />
-        <p className="kp-meta">
-          No SAT date yet. {childName} can pick one in their settings, and the countdown shows here.
-        </p>
+        <p className="kp-meta">No SAT date yet. {childName} can pick one in their settings.</p>
       </Card>
     );
   }

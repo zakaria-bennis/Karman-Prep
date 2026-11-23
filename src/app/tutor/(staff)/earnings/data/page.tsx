@@ -22,7 +22,7 @@ import {
 } from "@/lib/supabase/queries/earnings";
 import EarningsDataClient from "./EarningsDataClient";
 
-export const metadata: Metadata = { title: "Earning Data — Karman" };
+export const metadata: Metadata = { title: "Earnings data" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {

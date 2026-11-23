@@ -16,7 +16,7 @@ export function SendReviewSet({
 }) {
   const [said, setSaid] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, start] = useTransition();
-  if (said?.ok) return <p className="kp-meta">Sent. It is on {firstName}&rsquo;s Homework.</p>;
+  if (said?.ok) return <p className="kp-meta">Sent to {firstName}&rsquo;s Homework.</p>;
   return (
     <div className="kp-actions-row">
       <Cta

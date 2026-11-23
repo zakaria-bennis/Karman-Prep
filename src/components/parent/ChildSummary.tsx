@@ -74,7 +74,7 @@ export function ChildSummary({
       {lastExam?.reinforce.length ? (
         lastExam.reinforce.slice(0, 3).map((s) => <Row key={s.skillId} title={s.name} />)
       ) : (
-        <p className="kp-meta">The skills to reinforce show after a full-length exam.</p>
+        <p className="kp-meta">Shows after a full-length exam.</p>
       )}
     </Card>
   );

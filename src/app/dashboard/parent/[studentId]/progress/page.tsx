@@ -110,7 +110,7 @@ export default async function ParentProgressPage({
                     Best so far <Num>{best}</Num>, from {score.history.length} measures.
                   </>
                 ) : (
-                  "One measure so far. The next full practice test adds a point here."
+                  "1 measure so far."
                 )}
               </p>
             </>
@@ -149,8 +149,7 @@ export default async function ParentProgressPage({
             </ul>
           ) : (
             <p className="kp-meta">
-              When {child.firstName} gets a score back from the College Board, add it here. It sits
-              next to the predicted score, and the test-day countdown measures from the best one.
+              No real SAT scores yet. Add one when it comes back from the College Board.
             </p>
           )}
           {canWrite && (

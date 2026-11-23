@@ -25,8 +25,7 @@ export function timeSince(iso: string): string {
 }
 export function humanizeError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
-  if (msg === "already_sent")
-    return "This recap has already been sent. Refresh the page to see the locked state.";
+  if (msg === "already_sent") return "This recap was already sent. Refresh the page.";
   if (msg === "group_session_deferred")
     return "Cohort and weekly live session recaps come later. Only private tutoring recaps send for now.";
   if (msg === "no_resolved_emails")
@@ -39,7 +38,7 @@ export function humanizeError(err: unknown): string {
   if (msg.startsWith("resend_failed:"))
     return `Email delivery failed: ${msg.slice("resend_failed: ".length)}`;
   if (msg.startsWith("booking_update_failed_after_send:")) {
-    return "The email was sent BUT the booking record didn't update. Contact admin — manual fix needed.";
+    return "The email was sent, but the booking didn't update. Contact an admin to fix it.";
   }
   return msg;
 }

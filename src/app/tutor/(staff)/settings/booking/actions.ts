@@ -41,7 +41,7 @@ export async function pickCalEventTypeAction(input: { eventTypeId: number }): Pr
   if (!tutorUuid) throw new Error("Profile not found");
 
   const accessToken = await getValidCalAccessToken(tutorUuid);
-  if (!accessToken) throw new Error("Cal connection has expired — please reconnect.");
+  if (!accessToken) throw new Error("Your Cal connection expired. Connect again.");
 
   const eventTypes = await listEventTypes(accessToken);
   const target = eventTypes.find((ev) => ev.id === parsed.eventTypeId);

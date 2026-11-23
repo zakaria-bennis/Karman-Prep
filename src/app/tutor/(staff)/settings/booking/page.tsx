@@ -60,14 +60,13 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
   if (status.connected) {
     const accessToken = await getValidCalAccessToken(tutorUuid);
     if (!accessToken) {
-      eventTypesError =
-        "Your Cal connection seems to have expired. Disconnect and reconnect to refresh.";
+      eventTypesError = "Your Cal connection expired. Disconnect and connect again.";
     } else {
       try {
         eventTypes = await listEventTypes(accessToken);
       } catch (err) {
         console.error("[settings/booking] listEventTypes failed:", err);
-        eventTypesError = "Couldn't load your Cal event-types right now. Try refreshing the page.";
+        eventTypesError = "Your Cal event types didn't load. Refresh the page.";
       }
     }
   }
@@ -77,10 +76,6 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
 
   return (
     <div className="wb" style={{ paddingBlock: 0 }}>
-      <p className="wb-note">
-        Connect your Cal.com account so your students book sessions on your real calendar.
-      </p>
-
       {errorMessage ? (
         <p className="wb-alert" role="alert">
           {errorMessage}
@@ -105,15 +100,13 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
           <a className="kp-link" href="https://cal.com" target="_blank" rel="noreferrer">
             cal.com
           </a>{" "}
-          (the free plan is fine). Make one event type for Karman sessions with &ldquo;Karman&rdquo;
-          or &ldquo;SAT&rdquo; in the title and we&rsquo;ll find it. Otherwise you pick it from a
-          list after connecting.
+          (the free plan is fine). Put &ldquo;Karman&rdquo; or &ldquo;SAT&rdquo; in an event
+          type&rsquo;s title and we&rsquo;ll find it.
         </p>
       </Card>
 
       <Card>
         <SectionHeader title="Payment settings" />
-        <p className="kp-meta">Set up how Karman pays you through Stripe.</p>
         <MoreLink href="/tutor/settings/payment">Payment settings</MoreLink>
       </Card>
     </div>
@@ -123,13 +116,13 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
 function decodeCalError(code: string | undefined): string | null {
   switch (code) {
     case "bad_state":
-      return "Connection attempt didn't complete — please try again.";
+      return "Cal didn't connect. Try again.";
     case "no_profile":
       return "Your Karman profile wasn't found. Contact support.";
     case "exchange_failed":
       return "Cal.com rejected the connection. If this keeps happening, contact support.";
     case "store_failed":
-      return "We connected to Cal but couldn't save the result. Please try again.";
+      return "We connected to Cal but couldn't save it. Try again.";
     case "forbidden":
       return "Only tutors and admins can connect a Cal account.";
     default:
@@ -143,13 +136,13 @@ function buildSuccessMessage(
 ): string | null {
   if (params.cal_connected !== "1") return null;
   if (params.auto_picked) {
-    return `Connected — we auto-matched your event-type "${params.auto_picked}" as the Karman session.`;
+    return `Connected. Students book "${params.auto_picked}".`;
   }
   if (params.needs_pick) {
-    return "Connected. Now pick which of your event-types is the Karman session below.";
+    return "Connected. Pick the Karman event type below.";
   }
   if (currentTitle) {
-    return `Connected. Karman students will book against "${currentTitle}".`;
+    return `Connected. Students book "${currentTitle}".`;
   }
   return "Connected.";
 }

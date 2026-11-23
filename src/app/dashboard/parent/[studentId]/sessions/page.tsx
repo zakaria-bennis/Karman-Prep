@@ -78,7 +78,7 @@ export default async function ParentSessionsPage({
               />
             ))
           ) : (
-            <p className="kp-meta">Nothing booked right now.</p>
+            <p className="kp-meta">Nothing booked.</p>
           )}
           {!ctx.isAdmin && (
             <MoreLink href={`${base}/messages?kind=book_session#write`}>
@@ -106,7 +106,7 @@ export default async function ParentSessionsPage({
               </p>
             ))
           ) : (
-            <p className="kp-meta">Recordings appear here after each session that was recorded.</p>
+            <p className="kp-meta">No recordings yet.</p>
           )}
         </Card>
         <Card>

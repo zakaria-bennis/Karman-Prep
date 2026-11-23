@@ -15,7 +15,7 @@ export default function Appearance() {
         <b>Accent color</b>
         <span className={s.swatch}>
           <i aria-hidden="true" />
-          Picked from today&rsquo;s painting, new each day.
+          New each day.
         </span>
       </div>
     </>

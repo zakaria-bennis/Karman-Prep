@@ -108,12 +108,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
   }
 
   if (rows.length === 0) {
-    return (
-      <WbEmpty title="No students yet.">
-        They show up here once an admin places a student in one of your cohorts or assigns you a
-        private student.
-      </WbEmpty>
-    );
+    return <WbEmpty title="No students yet.">An admin assigns them to you.</WbEmpty>;
   }
 
   const filtersOn = search.trim().length > 0 || cohortFilter !== "all";

@@ -29,7 +29,7 @@ const STATUS: Record<string, string> = {
   active: "Active",
   trialing: "Active",
   past_due: "Payment due",
-  canceled: "Cancelled",
+  canceled: "Canceled",
   incomplete: "Waiting for payment",
 };
 
@@ -58,21 +58,14 @@ export default async function ParentBillingPage({
           </h2>
           {planName ? (
             <>
-              <p className="kp-meta">
-                Change the card, see invoices or cancel in Stripe&rsquo;s secure billing page.
-              </p>
+              <p className="kp-meta">Change the card, see invoices or cancel.</p>
               <form action={openFamilyBillingAction}>
                 <input type="hidden" name="studentId" value={child.id} />
                 <Cta type="submit">Manage billing in Stripe</Cta>
               </form>
             </>
           ) : (
-            <>
-              <p className="kp-meta">
-                Practice, Pro, the Cohort and private tutoring are on the pricing page.
-              </p>
-              <Cta href="/pricing">See plans</Cta>
-            </>
+            <Cta href="/pricing">See plans</Cta>
           )}
         </section>
         {planName && (

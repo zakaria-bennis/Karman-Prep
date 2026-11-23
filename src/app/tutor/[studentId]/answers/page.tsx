@@ -76,7 +76,7 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
             <summary>
               <b>{s.name}</b>{" "}
               <span className="kp-meta">
-                {dateOf(s.day)} · {right} of {s.asked.length} right
+                {dateOf(s.day)} · {right} of {s.asked.length} correct
                 {s.score ? ` · scored ${s.score}` : ""}
               </span>
             </summary>
@@ -84,7 +84,8 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
               {s.asked.map((q) => (
                 <li key={q.id}>
                   <p>
-                    <b>{q.skill}</b> <span className="kp-meta">{q.right ? "Right" : "Missed"}</span>
+                    <b>{q.skill}</b>{" "}
+                    <span className="kp-meta">{q.right ? "Correct" : "Missed"}</span>
                     {q.flagged && <span className="kp-meta"> · flagged for you</span>}
                   </p>
                   <div className="kp-meta kp-answer-stem">
@@ -92,7 +93,7 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
                   </div>
                   {q.sample.typed ? (
                     <p>
-                      Answered {q.sample.typed.given || "nothing"}; right answer{" "}
+                      Answered {q.sample.typed.given || "nothing"}; correct answer{" "}
                       {q.sample.typed.correct}
                     </p>
                   ) : (
@@ -100,7 +101,7 @@ export default async function AnswersPage({ params }: { params: Promise<{ studen
                       Answered <Choice choices={q.sample.choices} i={q.picked} />
                       {!q.right && (
                         <>
-                          ; right answer <Choice choices={q.sample.choices} i={q.sample.answer} />
+                          ; correct answer <Choice choices={q.sample.choices} i={q.sample.answer} />
                         </>
                       )}
                     </p>

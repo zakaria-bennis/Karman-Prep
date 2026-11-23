@@ -150,8 +150,8 @@ export default async function StudentDetailPage({ params, searchParams }: Params
         />
       )}
 
-      <Card label="Note for the family" id="family-note">
-        <SectionHeader title="Note for the family" note="they see it in Messages" />
+      <Card label="Family note" id="family-note">
+        <SectionHeader title="Family note" note="they see it in Messages" />
         <ActionMessage done={done} error={error} />
         <form action={postFamilyNoteAction} className="kp-form">
           <input type="hidden" name="studentClerkId" value={studentId} />
@@ -167,9 +167,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           </label>
           <div className="kp-actions-row">
             <Cta type="submit">Share with the family</Cta>
-            <span className="kp-meta">
-              Shown next to this week&rsquo;s practice. No email goes out.
-            </span>
+            <span className="kp-meta">No email goes out.</span>
           </div>
         </form>
         {familyNotes.length > 0 && (

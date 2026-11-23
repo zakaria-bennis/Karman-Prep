@@ -40,7 +40,7 @@ export default async function ParentLinkPage({
         <ActionMessage error={error} />
         <section aria-labelledby="link-main">
           <h2 className="kp-title" id="link-main">
-            Type your student&rsquo;s code
+            Student code
           </h2>
           <p className="kp-meta">
             Your student finds it in their account menu, under Invite a parent. Or open the link

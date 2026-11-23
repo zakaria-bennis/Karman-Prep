@@ -85,11 +85,10 @@ export function StudentKarman({
         {set ? (
           <>
             <p className="kp-meta">
-              <Num>{set.size}</Num> questions on {set.skills.join(", ")}: the skills due for review
-              before Saturday&rsquo;s exam.
+              <Num>{set.size}</Num> questions on {set.skills.join(", ")}.
             </p>
             {set.status === "sent" ? (
-              <p className="kp-meta">Sent. It is on {firstName}&rsquo;s Homework.</p>
+              <p className="kp-meta">Sent to {firstName}&rsquo;s Homework.</p>
             ) : (
               <SendReviewSet setId={set.id} studentClerkId={studentClerkId} firstName={firstName} />
             )}

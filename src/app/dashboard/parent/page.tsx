@@ -6,7 +6,7 @@
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Card, MoreLink, Panel, PortalShell, Row, SectionHeader } from "@/components/portal";
+import { Card, MoreLink, Panel, PortalShell, Row } from "@/components/portal";
 import { CalendarSubscribe } from "@/components/dashboard/CalendarSubscribe";
 import { LinkStudentForm } from "@/components/parent/LinkStudentForm";
 import { PARENT_SETTINGS } from "@/components/parent/ParentShell";
@@ -33,7 +33,6 @@ export default async function ParentHomePage() {
         {ctx.children.length ? (
           <>
             <Card>
-              <SectionHeader title="Choose a student" />
               {ctx.children.map((c) => (
                 <Row key={c.id} title={c.name} href={`/dashboard/parent/${c.id}`} right="Open" />
               ))}

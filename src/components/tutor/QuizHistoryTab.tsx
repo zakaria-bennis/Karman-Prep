@@ -130,15 +130,15 @@ export default function QuizHistoryTab({ attempts, responsesByAttempt }: Props) 
                               data-right={step.was_correct ? "" : undefined}
                             >
                               {step.was_correct ? (
-                                <Check aria-label="Right" />
+                                <Check aria-label="Correct" />
                               ) : (
-                                <XIcon aria-label="Wrong" />
+                                <XIcon aria-label="Missed" />
                               )}
                             </span>
                             <b>{step.difficulty}</b>
                             {r ? (
                               <span className="kp-meta">
-                                — chose {r.student_answer} in {r.response_time_seconds}s
+                                Chose {r.student_answer} in {r.response_time_seconds}s
                               </span>
                             ) : (
                               <span />

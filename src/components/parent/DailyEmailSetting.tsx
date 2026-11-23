@@ -24,10 +24,7 @@ export function DailyEmailSetting({
 }) {
   return (
     <form action={saveDailyEmailTimeAction} className="kp-form">
-      <p className="kp-meta">
-        A short brief on your student&rsquo;s day: the work done, the predicted score and the
-        tutor&rsquo;s note. For the Cohort, Private tutoring and Pro plans.
-      </p>
+      <p className="kp-meta">For the Cohort, Private tutoring and Pro plans.</p>
       <label className="kp-field">
         <span>Send it at</span>
         <select className="kp-select" name="time" defaultValue={choice ?? "off"}>

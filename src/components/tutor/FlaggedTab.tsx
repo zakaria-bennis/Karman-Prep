@@ -31,7 +31,7 @@ export default function FlaggedTab({ studentId, flagged }: Props) {
   }
 
   if (rows.length === 0) {
-    return <p className="kp-st-empty">This student has no flagged questions.</p>;
+    return <p className="kp-st-empty">No flagged questions.</p>;
   }
 
   return (

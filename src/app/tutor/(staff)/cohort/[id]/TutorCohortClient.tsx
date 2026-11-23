@@ -118,12 +118,7 @@ function TabButton({
 
 function MembersTab({ members }: { members: TutorCohortMember[] }) {
   if (members.length === 0) {
-    return (
-      <EmptyBlock
-        title="No members yet"
-        subtitle="Students will appear here once admin places them in this cohort."
-      />
-    );
+    return <EmptyBlock title="No members yet" subtitle="An admin adds them." />;
   }
   return (
     <div className="wb-table-wrap">
@@ -174,7 +169,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
         await actionSaveCohortNote(cohortId, body);
         setSavedBody(body);
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed to save");
+        setErr(e instanceof Error ? e.message : "That didn't save. Try again.");
       }
     });
   }
@@ -182,7 +177,7 @@ function NotesTab({ cohortId, initialBody }: { cohortId: string; initialBody: st
   return (
     <div className="rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
       <label className="mb-2 block text-sm font-semibold text-[color:var(--ink)]">
-        Progress notes — only you and admin see these
+        Progress notes. Only you and admins see these.
       </label>
       <textarea
         value={body}
@@ -218,9 +213,6 @@ function HomeworkTab({ cohortId, homework }: { cohortId: string; homework: Tutor
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[color:var(--mute)]">
-          Assignments you post here appear in each student&apos;s cohort page and on the admin view.
-        </p>
         {!composerOpen && (
           <button onClick={() => setComposerOpen(true)} className="wb-btn" data-variant="primary">
             <Plus className="h-4 w-4" />
@@ -283,7 +275,7 @@ function HomeworkComposer({
         router.refresh();
         onDone();
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed");
+        setErr(e instanceof Error ? e.message : "That didn't post. Try again.");
       }
     });
   }
@@ -294,7 +286,7 @@ function HomeworkComposer({
       className="space-y-3 rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-[color:var(--ink)]">Post new homework</h3>
+        <h3 className="text-sm font-semibold text-[color:var(--ink)]">New homework</h3>
         <button
           type="button"
           onClick={onCancel}
@@ -309,7 +301,7 @@ function HomeworkComposer({
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title (e.g. Linear Functions — Practice Set B)"
+        placeholder="Title, like Linear functions: Set B"
         required
         maxLength={140}
         className="w-full rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--sunk)_60%,transparent)] px-3 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--accent)_40%,transparent)]"
@@ -318,7 +310,7 @@ function HomeworkComposer({
         value={body}
         onChange={(e) => setBody(e.target.value)}
         rows={4}
-        placeholder="Instructions (optional) — describe the task, link to resources, etc."
+        placeholder="Instructions (optional)"
         className="wb-textarea w-full"
       />
       <div>
@@ -366,7 +358,7 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
     const ok = await confirm({
       title: `Delete "${h.title}"?`,
       description: "Students will no longer see this assignment. This can't be undone.",
-      confirmLabel: "Delete",
+      confirmLabel: "Delete homework",
       danger: true,
     });
     if (!ok) return;
@@ -377,7 +369,7 @@ function HomeworkItem({ cohortId, h }: { cohortId: string; h: TutorHomework }) {
         await actionDeleteHomework(cohortId, h.id);
         router.refresh();
       } catch (e) {
-        setErr(e instanceof Error ? e.message : "Failed");
+        setErr(e instanceof Error ? e.message : "That didn't delete. Try again.");
       }
     });
   }

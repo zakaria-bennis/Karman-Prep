@@ -68,10 +68,7 @@ export default async function ParentWeekPage({
       <Card>
         <SectionHeader title="Predicted score" />
         {week.score.current !== null ? (
-          <>
-            <Num big>{week.score.current}</Num>
-            <p className="kp-meta">From {child.firstName}&rsquo;s latest full measure.</p>
-          </>
+          <Num big>{week.score.current}</Num>
         ) : (
           <p className="kp-meta">Shows after {child.firstName}&rsquo;s first full practice test.</p>
         )}

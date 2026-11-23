@@ -11,8 +11,7 @@ export default function SavedPracticeReview({ review }: { review: Review }) {
   return (
     <div className="kp-st">
       <p role="note" className="kp-st-note">
-        This shows the question version saved with the student&apos;s practice. Your selections stay
-        on this page; they are not graded or saved. Original student answers remain unchanged.
+        Your answers here are not graded or saved.
       </p>
       {review.questions.map((item, index) => (
         <section

@@ -18,7 +18,7 @@ import {
   billingLine,
 } from "@/components/tutor-affiliate/nav";
 
-export const metadata: Metadata = { title: "Billing — Karman tutor plan" };
+export const metadata: Metadata = { title: "Billing" };
 export const dynamic = "force-dynamic";
 
 export default async function TutorBillingPage() {
@@ -48,7 +48,7 @@ export default async function TutorBillingPage() {
           <p className="kp-meta">{billingLine(subscription, active)}</p>
           <p className="kp-meta">
             Up to 50 students on your code get the Practice plan free while your plan is active. If
-            it ends, they move to the Free plan and see a message saying so. Their work is kept.
+            it ends, they move to the Free plan and keep their work.
           </p>
           {!isImpersonating &&
             (subscription && active ? (

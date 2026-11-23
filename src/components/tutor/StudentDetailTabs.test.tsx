@@ -65,6 +65,6 @@ describe("the tutor's student tabs, in the portal's look", () => {
   });
 
   it("keeps the empty states", () => {
-    expect(render("flagged")).toContain("This student has no flagged questions.");
+    expect(render("flagged")).toContain("No flagged questions.");
   });
 });
