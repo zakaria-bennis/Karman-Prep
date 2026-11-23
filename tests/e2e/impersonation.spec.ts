@@ -10,8 +10,8 @@
 //      student's row.
 //   2. The site-wide banner should appear with the target's
 //      name + role pill.
-//   3. /dashboard/student should render the target's actual
-//      data (goal score, tier, etc.).
+//   3. /dashboard/student should render the target's own
+//      student portal.
 //   4. Click the banner × — cookies clear, admin lands back
 //      on /admin/users with no banner.
 //
@@ -78,8 +78,9 @@ test.describe("admin impersonation", () => {
     await stuckRow.getByRole("button", { name: /Impersonate/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard\/student/);
-    // Copy from src/app/dashboard/student/page.tsx's placement
-    // banner. Audit issue #10. Adjust if the wording shifts.
-    await expect(page.locator("body")).toContainText(/matching you with a tutor/i);
+    // The stuck student bought the cohort but has no cohort or tutor yet (scripts/seed-dev.mjs), so
+    // their portal opens on Homework, which says so (src/app/dashboard/student/_portal/Homework.tsx,
+    // data.placementPending). Audit issue #10.
+    await expect(page.getByText("Matching you with a tutor").first()).toBeVisible();
   });
 });

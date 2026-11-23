@@ -13,9 +13,8 @@ import { defineConfig, devices } from "@playwright/test";
 // `tests/e2e/global-setup.ts` runs it once before the suite.
 //
 // Run locally:
-//   npm run test:e2e
-// CI is not wired up yet — that needs a Supabase fixture project
-// reachable from GitHub Actions; tracked as future work.
+//   npm run test:e2e        (PW_CHANNEL=chrome to use the installed Chrome)
+// CI: .github/workflows/e2e.yml, against a fresh local Supabase stack.
 // ============================================================
 
 const PORT = Number(process.env.E2E_PORT ?? 3000);
@@ -27,10 +26,15 @@ export default defineConfig({
   // stays fast.
   testDir: "./tests",
   globalSetup: "./tests/e2e/global-setup.ts",
-  fullyParallel: false, // impersonation tests share the same dev server cookie jar
+  // One worker: every test shares one `next dev` server, which compiles pages one at a time.
+  // fullyParallel lets CI's --shard split a file's tests across machines (.github/workflows/e2e.yml);
+  // with one worker the tests of each machine still run one after another, in file order.
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: 1, // see fullyParallel comment
+  // One retry: a second try runs on pages that are already compiled. More only multiplied the time a
+  // truly broken test burned (three three-minute timeouts each).
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
   reporter: "list",
   // Every route compiles on its first visit under `next dev`, and a slow CI runner can spend most
   // of a minute on one portal page, so a test that opens several first-time routes needs room.
@@ -48,7 +52,12 @@ export default defineConfig({
     {
       name: "e2e",
       testDir: "./tests/e2e",
-      use: { ...devices["Desktop Chrome"] },
+      // PW_CHANNEL=chrome runs the suite in the installed Google Chrome when Playwright's own
+      // Chromium is not downloaded (a laptop); CI installs Playwright's Chromium and leaves it unset.
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+      },
     },
     {
       name: "visual",
@@ -115,6 +124,11 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // CI prints the server's request lines ("GET /admin/crm 200 in 41s (compile: 38s ...)"), so a slow
+    // run shows which page was slow and why.
+    stdout: process.env.CI ? "pipe" : "ignore",
+    // Stopped gently, so Turbopack finishes writing its compile cache (kept between CI runs).
+    gracefulShutdown: { signal: "SIGTERM", timeout: 15_000 },
     env: {
       DEV_IMPERSONATE_CLERK_ID: "dev_seed_admin",
     },

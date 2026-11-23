@@ -104,6 +104,16 @@ async function upsertSubscription(row) {
   });
 }
 
+/** Mark the portal's one-time welcome as seen (student_settings.welcomed_at), so a test lands on
+ *  the student's own first page. The fresh student has not onboarded and gets no row. */
+async function markWelcomed(userUuid, at) {
+  await sb(`student_settings?on_conflict=user_id`, {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: JSON.stringify({ user_id: userUuid, welcomed_at: at }),
+  });
+}
+
 /** Replace all learn_node_status rows for this user in one go.
  *  Deletes existing (cheap — usually a handful) and inserts the
  *  fresh set. Normalizes every row to the same key shape because
@@ -356,6 +366,7 @@ async function main() {
     created_at: A_MONTH_AGO,
   });
   log("✓ subscription active (Pro, monthly)");
+  await markWelcomed(midUuid, A_MONTH_AGO);
   await setLearnStatuses("dev_seed_student_mid", [
     // 4 mastered + 3 in-progress + 2 available across RW + Math.
     // best_quiz_score is smallint (0-100), not a float ratio.
@@ -394,7 +405,7 @@ async function main() {
 
   // 4. Stuck student — placement failed, no cohort or tutor
   header("dev_seed_student_stuck (placement_failure_at set)");
-  await upsertUser({
+  const stuckUuid = await upsertUser({
     clerk_id: "dev_seed_student_stuck",
     email: "dev-seed-stuck@karman.local",
     first_name: "Stuck",
@@ -404,17 +415,25 @@ async function main() {
     placement_failure_at: A_WEEK_AGO,
     sat_test_date: "2026-12-05",
   });
-  await upsertSubscription({
-    user_id: "dev_seed_student_stuck",
-    stripe_subscription_id: "sub_dev_seed_stuck",
-    stripe_customer_id: "cus_dev_seed_stuck",
-    status: "active",
-    plan_id: "practice",
-    billing_term: "month",
-    current_period_end: IN_A_MONTH,
-    created_at: A_WEEK_AGO,
+  // Placement only fails for the cohort and private plans, so the stuck student bought the cohort
+  // (a one-time purchase lives in plan_grants). Their portal opens on Homework, which says they are
+  // being matched with a tutor. An older seed gave them a Practice subscription: drop it.
+  await sb(`subscriptions?stripe_subscription_id=eq.sub_dev_seed_stuck`, { method: "DELETE" });
+  await sb(`plan_grants?on_conflict=id`, {
+    method: "POST",
+    headers: { Prefer: "return=minimal,resolution=merge-duplicates" },
+    body: JSON.stringify({
+      id: "0de00000-0000-4000-8000-0000000057c0",
+      user_id: "dev_seed_student_stuck",
+      plan_id: "cohort",
+      source: "purchase",
+      source_ref: "cs_dev_seed_stuck",
+      starts_at: A_WEEK_AGO,
+      created_at: A_WEEK_AGO,
+    }),
   });
-  log("✓ stuck-placement banner should appear on /dashboard/student");
+  await markWelcomed(stuckUuid, A_WEEK_AGO);
+  log("✓ cohort bought, no cohort yet: Homework says they are being matched with a tutor");
 
   // 5. Tutor — active with payouts enabled + a real cohort + a
   //    1:1 student so the /tutor portal isn't a double empty state.

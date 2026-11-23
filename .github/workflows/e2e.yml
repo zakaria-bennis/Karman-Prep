@@ -13,9 +13,16 @@
 #   4. Launches the Next.js dev server with DEV_IMPERSONATE_CLERK_ID
 #      = dev_seed_admin (per playwright.config.ts) so safeAuth()
 #      returns the seeded admin and Clerk doesn't need a real key.
-#   5. Runs `npm run test:e2e` (Chromium only).
+#   5. Runs `npm run test:e2e` (Chromium only), split across three
+#      machines that run at the same time (Playwright's --shard).
 #
-# Cost: $0/mo. Run time: ~7-9 min cold, ~5 min warm (npm cache hit).
+# Speed: `next dev` compiles each page the first time it is opened,
+# and on a CI machine that first compile is most of the run. So the
+# suite is split three ways, and Turbopack's compile cache
+# (.next/dev/cache) is kept between runs: each shard starts from the
+# last run's cache for its own part of the suite.
+#
+# Cost: $0/mo (public repository).
 #
 # Visual regression in CI is a deferred follow-up — the baselines
 # from PR #89 are platform-tagged `-darwin.png`; CI on Linux would
@@ -45,10 +52,15 @@ concurrency:
 
 jobs:
   e2e:
-    name: Playwright E2E
+    name: Playwright E2E (${{ matrix.shard }}/3)
     # Pinned: ubuntu-latest began serving 26.04, which this Playwright version has no Chromium build for.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      # One shard failing never cancels the others, so a run reports every failing test at once.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     env:
       # Clerk is bypassed via DEV_IMPERSONATE_CLERK_ID in CI. The
@@ -99,19 +111,36 @@ jobs:
       - name: Seed dev fixtures
         run: npm run seed:dev
 
+      - name: Restore the compile cache
+        # Turbopack's cache from the last run of this shard (this branch first, then main's).
+        uses: actions/cache/restore@v4
+        with:
+          path: .next/dev/cache
+          key: e2e-turbopack-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            e2e-turbopack-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-
+
       - name: Install Playwright browsers (Chromium only)
         # `--with-deps` installs the system libs Playwright needs on
         # ubuntu-latest. Chromium-only keeps the install fast (~30s).
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+
+      - name: Save the compile cache
+        # Saved even when a test fails: the pages it compiled are still good.
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .next/dev/cache
+          key: e2e-turbopack-${{ matrix.shard }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
