@@ -51,6 +51,7 @@ import Settings from "./Settings";
 import { TEXT_SIZES, frostOf, setSetting, useSettings } from "./settingsStore";
 import { startsDark } from "@/lib/portal/prefs";
 import { useSettingsEffects } from "./useSettingsEffects";
+import { useMounted } from "./useMounted";
 import { inView, slots, strip, waits } from "./moreBar";
 import { useBarWidth, useLensDrag } from "./useBar";
 import Progress, { type StudentKey } from "./Progress";
@@ -102,6 +103,8 @@ function Shell() {
     () => real !== null && (!real.welcomed || q.get("welcome") === "1")
   );
   const [rail, setRail] = useState(false);
+  /* the pages that show the student's own days and times wait for the browser (useMounted.ts) */
+  const mounted = useMounted();
   const [open, setOpen] = useState(q.get("open") === "1");
   const held = q.get("open") === "1";
   const { openSoon, notYet } = useMenuIntent(setOpen, held);
@@ -586,7 +589,7 @@ function Shell() {
           </AnimatePresence>
         )}
         {/* Progress: choosing a number slides its own page in, the same way a skill does */}
-        {page === "progress" && (
+        {page === "progress" && mounted && (
           <AnimatePresence mode="wait" initial={false} custom={dir.current}>
             <motion.div
               key={stat ?? "progress"}
@@ -612,10 +615,10 @@ function Shell() {
             </motion.div>
           </AnimatePresence>
         )}
-        {page === "chat" && plan !== "practice" && (
+        {page === "chat" && plan !== "practice" && mounted && (
           <Chat key={plan} rail={rail} alone={plan === "private"} onTrail={setTrail} />
         )}
-        {page === "homework" && !welcome && (
+        {page === "homework" && !welcome && mounted && (
           <Homework examOpen={examOpen} intro={intro} onTrail={setTrail} />
         )}
         {page === "schedule" && plan === "private" && <Schedule onGo={setPage} />}
@@ -631,7 +634,7 @@ function Shell() {
             onTrail={setTrail}
           />
         )}
-        {page === "mistakes" && (
+        {page === "mistakes" && mounted && (
           <MistakeLog
             key={student}
             rail={rail}

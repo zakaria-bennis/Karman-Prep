@@ -50,8 +50,14 @@ import { DAILY_10 } from "@/lib/student/quiz-routes";
 /** How near the test is, for the badge's color: within a week, within a month, or farther off. */
 const nearness = (days: number) => (days <= 7 ? "week" : days <= 31 ? "month" : "far");
 
-function Countdown({ days }: { days: number }) {
-  const on = new Date(TODAY.getTime() + days * DAY);
+function Countdown({ days: counted }: { days: number }) {
+  // a real student's SAT is a date as written ("2027-03-13"): read in their own calendar, so it
+  // never moves a day in another time zone (the server counts its days in Central)
+  const written = usePortalData()?.testDate?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const on = written
+    ? new Date(+written[1], +written[2] - 1, +written[3])
+    : new Date(TODAY.getTime() + counted * DAY);
+  const days = written ? Math.round((on.getTime() - TODAY.getTime()) / DAY) : counted;
   return (
     <p className={styles.countdown} data-near={nearness(days)}>
       <span>

@@ -210,6 +210,19 @@
   }
 }
 
+/* on a phone the menu bar stays over the foot of the screen, so the card keeps above it: on a short
+   screen (Safari with its toolbars) Take it on and Later were half under the bar */
+@media (max-width: 700px) {
+  .screen {
+    --bar: calc(max(12px, env(safe-area-inset-bottom)) + 88px);
+    padding: 12px 12px var(--bar);
+  }
+  .card {
+    --h: min(580px, calc(100dvh - 12px - var(--bar)));
+    padding: 22px 20px 20px;
+  }
+}
+
 /* on the Library's home, the small card waits in the top corner, over the picture */
 .corner {
   position: fixed;
