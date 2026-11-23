@@ -293,10 +293,6 @@
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
 }
-.range {
-  color: var(--soft);
-  font-variant-numeric: tabular-nums;
-}
 .sections {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

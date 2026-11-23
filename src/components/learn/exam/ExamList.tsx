@@ -64,7 +64,7 @@ export function ExamList({ canTest }: { canTest: boolean }) {
             Opens {dayTime(data.window.opensAt, zone)}, in {until(opens - now)}
           </span>
         )}
-        <span className={s.windowNote}>{zoneName(zone)} time</span>
+        <span className={s.windowNote}>{zoneName(zone)}</span>
       </div>
 
       {data.running !== null && (

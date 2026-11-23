@@ -143,10 +143,6 @@ export function ExamEnding({ result }: { result: ExamResult }) {
         <p className={s.score} aria-live="polite" aria-label={`Your score: ${result.total}`}>
           {shown}
         </p>
-        <p className={`${s.range} ${s.rise}`} style={{ animationDelay: `${REVEAL_MS}ms` }}>
-          {result.previousTotal !== null ? `Last exam ${result.previousTotal}. ` : ""}Likely range{" "}
-          {result.low} to {result.high}
-        </p>
       </div>
 
       {result.reinforce.length > 0 && (
