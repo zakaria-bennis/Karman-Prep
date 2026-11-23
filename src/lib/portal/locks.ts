@@ -37,9 +37,10 @@ export interface Access {
 }
 
 /** The plans a student on `planId` can move up to from the portal: Free to Practice or Pro, a
- *  Practice plan (bought or from a school) to Pro, nothing beyond Pro. */
-export function upgradesFor(planId: PlanId): UpgradeTo[] {
-  if (planId === "free") return ["practice", "pro"];
+ *  Practice plan (bought or from a school) to Pro, nothing beyond Pro. Only plans that open what was
+ *  tapped are offered: Workshops come with Pro, so Practice is never offered for them. */
+export function upgradesFor(planId: PlanId, why?: Locked | null): UpgradeTo[] {
+  if (planId === "free") return why === "workshops" ? ["pro"] : ["practice", "pro"];
   if (planId === "practice" || planId === "school") return ["pro"];
   return [];
 }

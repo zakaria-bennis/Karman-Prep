@@ -15,6 +15,12 @@ describe("which plans the portal offers", () => {
     expect(upgradesFor("cohort")).toEqual([]);
     expect(upgradesFor("private-20")).toEqual([]);
   });
+
+  it("offers only Pro for workshops, which Practice does not have", () => {
+    expect(upgradesFor("free", "workshops")).toEqual(["pro"]);
+    expect(upgradesFor("free", "questions")).toEqual(["practice", "pro"]);
+    expect(upgradesFor("practice", "workshops")).toEqual(["pro"]);
+  });
 });
 
 describe("what is locked", () => {

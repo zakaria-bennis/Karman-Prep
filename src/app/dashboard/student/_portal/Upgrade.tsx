@@ -84,7 +84,7 @@ export default function Upgrade() {
   const sheet = useRef<HTMLElement>(null);
   const back = useRef<Element | null>(null);
   // the design page has no plan: it shows what Free would be offered
-  const offers = upgradesFor(real?.planId ?? "free");
+  const offers = upgradesFor(real?.planId ?? "free", why);
 
   useEffect(() => {
     const m = matchMedia("(max-width: 640px)");
