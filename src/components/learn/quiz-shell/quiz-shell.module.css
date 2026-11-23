@@ -135,101 +135,21 @@
   --quiz-sky: #141627;
 }
 
-/* Figures (graphs, tables, charts, box plots, drawings, figure choices) on the quiz's glass
-   (founder, 2026-11-23): no plaque of their own, frost behind them, and every mark (lines, words,
-   angle marks, points, bars) in the quiz's ink: black by day, white by night. The ink follows the
-   glass, so it holds its contrast whatever the landscape shows through. These are the figure
-   engine's roles (figures/figure-roles.css) and the older figures' names (globals.css), set here so
-   only the quiz changes. */
+/* Figures on the quiz's glass (founder, 2026-11-23): figures/figure-glass.css draws them, with
+   every mark in the quiz's ink, black by day and white by night. The shell carries the class
+   figure-glass (QuizShell.tsx), and these are its colours. */
 .shell {
-  --figure-ink: var(--quiz-ink);
-  /* opaque, so a bar or a table rule never lets the grid through */
-  --figure-ink-muted: color-mix(in srgb, var(--quiz-ink) 84%, var(--quiz-bg));
-  --figure-grid: color-mix(in srgb, var(--quiz-ink) 24%, transparent);
-  --figure-fill-faint: color-mix(in srgb, var(--quiz-ink) 7%, transparent);
-  --figure-fill-shade: color-mix(in srgb, var(--quiz-ink) 18%, transparent);
-  --figure-highlight: var(--quiz-accent);
-  /* the gap between touching bars: the page's own tone */
-  --figure-paper: var(--quiz-bg);
-  --figure-background: transparent;
-  --figure-surface: transparent;
-  --figure-shade: var(--figure-fill-shade);
-  --figure-text: var(--quiz-ink);
-  --figure-axis: var(--quiz-ink);
-  --figure-cf-grid: var(--figure-grid);
-  --figure-grid-opacity: 1;
-  --figure-math: var(--quiz-ink);
-  --figure-series-1: var(--quiz-ink);
-}
-.shell :global(.themed-question-figure) {
-  border: 1px solid var(--quiz-line);
-  background: var(--quiz-lens);
-  -webkit-backdrop-filter: var(--quiz-frost);
-  backdrop-filter: var(--quiz-frost);
-  box-shadow: none;
-  color: var(--quiz-ink);
-}
-/* the older charts draw their own plaque inside the figure */
-.shell :global(.themed-question-figure .bg-night) {
-  border-color: transparent;
-  background: transparent;
-}
-/* A table too wide for a phone scrolls under its pinned first column: frost, not paint, keeps
-   the cells passing beneath from showing through, and the edge fades blur rather than tint. */
-.shell :global(.themed-question-table td.sticky),
-.shell :global(.themed-question-table th.sticky) {
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-}
-.shell :global(.themed-question-table [data-fade]) {
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-}
-.shell :global(.themed-question-table [data-fade="right"]) {
-  mask-image: linear-gradient(to left, #000, transparent);
-}
-.shell :global(.themed-question-table [data-fade="left"]) {
-  mask-image: linear-gradient(to right, #000, transparent);
-}
-/* Figure answer choices: the same glass as the worded answers (pane.module.css .choice), with
-   their letter, a picked one and the graded ones in the same colours. */
-.shell :global([data-figure-choice] > :first-child) {
-  border: 1.5px solid var(--quiz-line);
-  border-radius: 16px;
-  background: var(--quiz-lens);
-  color: var(--quiz-text);
-}
-.shell :global([data-figure-choice] [data-choice-letter]) {
-  border: 1.5px solid var(--quiz-text-muted);
-  background: transparent;
-  color: var(--quiz-text);
-}
-.shell :global([data-choice-state="selected"] > :first-child) {
-  border-color: var(--quiz-pick);
-  box-shadow: inset 0 0 0 1px var(--quiz-pick);
-}
-.shell :global([data-choice-state="selected"] [data-choice-letter]) {
-  border-color: var(--quiz-pick);
-  background: var(--quiz-pick);
-  color: var(--quiz-bg);
-}
-.shell :global([data-choice-state="correct"] > :first-child) {
-  border-color: var(--quiz-correct);
-  background: color-mix(in srgb, var(--quiz-correct) 30%, var(--quiz-lens));
-}
-.shell :global([data-choice-state="correct"] [data-choice-letter]) {
-  border-color: var(--quiz-correct);
-  background: var(--quiz-correct);
-  color: var(--quiz-bg);
-}
-.shell :global([data-choice-state="incorrect"] > :first-child) {
-  border-color: color-mix(in srgb, var(--quiz-wrong) 80%, transparent);
-  background: color-mix(in srgb, var(--quiz-wrong) 12%, var(--quiz-lens));
-}
-.shell :global([data-choice-state="incorrect"] [data-choice-letter]) {
-  border-color: var(--quiz-wrong);
-  background: var(--quiz-wrong);
-  color: var(--quiz-bg);
+  --fg-ink: var(--quiz-ink);
+  --fg-page: var(--quiz-bg);
+  --fg-accent: var(--quiz-accent);
+  --fg-line: var(--quiz-line);
+  --fg-lens: var(--quiz-lens);
+  --fg-frost: var(--quiz-frost);
+  --fg-text: var(--quiz-text);
+  --fg-text-muted: var(--quiz-text-muted);
+  --fg-pick: var(--quiz-pick);
+  --fg-correct: var(--quiz-correct);
+  --fg-wrong: var(--quiz-wrong);
 }
 
 /* The landscape, behind everything on the screen. */

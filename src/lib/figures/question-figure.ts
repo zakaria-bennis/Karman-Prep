@@ -1,4 +1,4 @@
-import type { QuizQuestion } from "@/types/quiz";
+import type { AnswerChoice, QuizQuestion } from "@/types/quiz";
 import type { SpecParser } from "./engine/choice-routing";
 import { storedSpecTypes } from "./engine/spec-types";
 import { buildGeometrySvg } from "./geometry-svg";
@@ -16,6 +16,18 @@ type FigureFields = Pick<
   | "figure_svg"
   | "figure_spec"
 >;
+
+/**
+ * What a screen needs to draw a question's figure (FigureSlot) and its figure or table answer
+ * choices: a question without the passage, words or key (the Mistake Log keeps these per answer).
+ */
+export type QuestionFigure = FigureFields &
+  Pick<QuizQuestion, "id" | "subject" | "image_alt"> & {
+    answer_choices: Pick<
+      AnswerChoice,
+      "letter" | "choice_text" | "choice_table_data" | "choice_figure_spec"
+    >[];
+  };
 
 /**
  * The figure a student screen actually draws for a question, or null when there is nothing

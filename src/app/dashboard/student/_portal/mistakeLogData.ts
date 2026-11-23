@@ -6,6 +6,7 @@
 //   10, a full-length exam, the challenge question, a time trial or a run of endless mode.
 //   The question shown for a past answer is one of eight samples, one for each domain: the bank's
 //   own questions take their place once the Mistake Log reads real answers.
+import type { QuestionFigure } from "@/lib/figures/question-figure";
 import { everySkill, type Found } from "./progressBreakdowns";
 import type { DayLog, Student } from "./progressData";
 import { SECTIONS, type Section, type Skill } from "./skills72";
@@ -27,6 +28,9 @@ export type Sample = {
   why: string;
   /** A typed answer (no choices): what the student entered and what was right. */
   typed?: { given: string; correct: string };
+  /** The question's figure and figure or table choices, drawn as the quiz draws them: only for a
+   * question that has one. Its choices are in letter order, as `choices` are. */
+  figure?: QuestionFigure;
 };
 /** One sample question for each domain (stand-ins written for this page, not from the bank). */
 const SAMPLES: Record<string, Sample> = {

@@ -22,6 +22,10 @@ import { clock, minSecWords, timeOfDay } from "./progressStats";
 import { tick } from "./sound";
 import GeneratedMark from "@/components/admin/GeneratedMark";
 import MathText from "@/components/learn/MathText";
+import QuestionTable from "@/components/learn/QuestionTable";
+import FigureChoices from "@/components/learn/figures/FigureChoices";
+import { FigureSlot } from "@/components/learn/quiz-shell/FigureSlot";
+import { useDrawnChoices } from "./MistakeLogFigure";
 import { useGenerated } from "./play/useGenerated";
 import { useStill } from "@/lib/painting/useStill";
 
@@ -406,6 +410,7 @@ export function QuestionView({
 }) {
   const made = useGenerated(q.questionId ?? "");
   const { sample } = q;
+  const drawn = useDrawnChoices(sample.figure);
   return (
     <>
       {ways.back && <BackIn back={ways.back} />}
@@ -486,6 +491,8 @@ export function QuestionView({
         {q.found.skill.name}
         <Chevron />
       </button>
+      {/* the figure leads the words, as it does in the quiz */}
+      {sample.figure && <FigureSlot q={sample.figure} calculator={false} />}
       <div className={styles.prompt}>
         <MathText text={sample.prompt} />
       </div>
@@ -505,21 +512,41 @@ export function QuestionView({
           )}
         </ol>
       )}
-      <ol className={styles.choices} hidden={sample.choices.length === 0}>
-        {sample.choices.map((choice, i) => {
-          const mine = i === q.picked;
-          const answer = i === sample.answer;
-          return (
-            <li key={choice} data-is={answer ? "right" : mine ? "missed" : undefined}>
-              <i>{"ABCD"[i]}</i>
-              <span>
-                <MathText text={choice} />
-              </span>
-              {(mine || answer) && <b>{mine ? "Your answer" : "Right answer"}</b>}
-            </li>
-          );
-        })}
-      </ol>
+      {drawn.grid ? (
+        <FigureChoices
+          choices={drawn.choices}
+          selected={drawn.choices[q.picked]?.letter ?? null}
+          submitted
+          correctLetter={drawn.choices[sample.answer]?.letter}
+          serializedFunctionLines={sample.figure?.subject === "math"}
+          className={styles.figureChoices}
+        />
+      ) : (
+        <ol className={styles.choices} hidden={sample.choices.length === 0}>
+          {sample.choices.map((choice, i) => {
+            const mine = i === q.picked;
+            const answer = i === sample.answer;
+            const table = drawn.choices[i]?.choice_table_data;
+            return (
+              <li key={i} data-is={answer ? "right" : mine ? "missed" : undefined}>
+                <i>{"ABCD"[i]}</i>
+                <span>
+                  {table ? (
+                    <QuestionTable
+                      data={table}
+                      ariaLabel={`Choice ${"ABCD"[i]} table`}
+                      className="my-1 w-auto max-w-full shadow-none"
+                    />
+                  ) : (
+                    <MathText text={choice} />
+                  )}
+                </span>
+                {(mine || answer) && <b>{mine ? "Your answer" : "Right answer"}</b>}
+              </li>
+            );
+          })}
+        </ol>
+      )}
       <div className={styles.why}>
         <h3>Explanation</h3>
         <div>

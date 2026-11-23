@@ -1,0 +1,113 @@
+/* Figures on glass (founder, 2026-11-23): a question's figure (graph, table, chart, box plot,
+   drawing) and its figure answer choices have no plaque of their own, frost behind them, and every
+   mark (lines, words, angle marks, points, bars) in one ink: black by day, white by night. The ink
+   follows the glass, so it holds its contrast whatever the landscape shows through.
+
+   A screen opts in with the class `figure-glass` on the element that holds its figures, and sets
+   these on it (or above it) from its own day and night colours:
+     --fg-ink           every mark of a figure
+     --fg-page          the page's own tone (the gap between touching bars)
+     --fg-accent        a highlighted mark
+     --fg-line          the edge of a figure and of a figure choice
+     --fg-lens          the glass behind a figure and a figure choice
+     --fg-frost         that glass's backdrop filter
+     --fg-text          a choice's letter
+     --fg-text-muted    the ring of an idle choice's letter
+     --fg-pick          a picked choice
+     --fg-correct       the right answer, once graded
+     --fg-wrong         a wrong pick, once graded
+     --fg-correct-tint  how much of --fg-correct tints the right answer's glass (30% if unset)
+     --fg-wrong-tint    how much of --fg-wrong tints a wrong pick's glass (12% if unset)
+   The quiz (quiz-shell.module.css) and the Mistake Log (mistakeLog.module.css) do.
+
+   Below are the figure engine's roles (figures/figure-roles.css) and the older figures' names
+   (globals.css), set only inside a `figure-glass` element. */
+.figure-glass {
+  --figure-ink: var(--fg-ink);
+  /* opaque, so a bar or a table rule never lets the grid through */
+  --figure-ink-muted: color-mix(in srgb, var(--fg-ink) 84%, var(--fg-page));
+  --figure-grid: color-mix(in srgb, var(--fg-ink) 24%, transparent);
+  --figure-fill-faint: color-mix(in srgb, var(--fg-ink) 7%, transparent);
+  --figure-fill-shade: color-mix(in srgb, var(--fg-ink) 18%, transparent);
+  --figure-highlight: var(--fg-accent);
+  --figure-paper: var(--fg-page);
+  --figure-background: transparent;
+  --figure-surface: transparent;
+  --figure-shade: var(--figure-fill-shade);
+  --figure-text: var(--fg-ink);
+  --figure-axis: var(--fg-ink);
+  --figure-cf-grid: var(--figure-grid);
+  --figure-grid-opacity: 1;
+  --figure-math: var(--fg-ink);
+  --figure-series-1: var(--fg-ink);
+}
+.figure-glass .themed-question-figure {
+  border: 1px solid var(--fg-line);
+  background: var(--fg-lens);
+  -webkit-backdrop-filter: var(--fg-frost);
+  backdrop-filter: var(--fg-frost);
+  box-shadow: none;
+  color: var(--fg-ink);
+}
+/* the older charts draw their own plaque inside the figure */
+.figure-glass .themed-question-figure .bg-night {
+  border-color: transparent;
+  background: transparent;
+}
+/* A table too wide for a phone scrolls under its pinned first column: frost, not paint, keeps
+   the cells passing beneath from showing through, and the edge fades blur rather than tint. */
+.figure-glass .themed-question-table td.sticky,
+.figure-glass .themed-question-table th.sticky {
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.figure-glass .themed-question-table [data-fade] {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.figure-glass .themed-question-table [data-fade="right"] {
+  mask-image: linear-gradient(to left, #000, transparent);
+}
+.figure-glass .themed-question-table [data-fade="left"] {
+  mask-image: linear-gradient(to right, #000, transparent);
+}
+/* Figure answer choices: the same glass as worded answers, with their letter, a picked one and
+   the graded ones in the screen's colours. */
+.figure-glass [data-figure-choice] > :first-child {
+  border: 1.5px solid var(--fg-line);
+  border-radius: 16px;
+  background: var(--fg-lens);
+  color: var(--fg-text);
+}
+.figure-glass [data-figure-choice] [data-choice-letter] {
+  border: 1.5px solid var(--fg-text-muted);
+  background: transparent;
+  color: var(--fg-text);
+}
+.figure-glass [data-choice-state="selected"] > :first-child {
+  border-color: var(--fg-pick);
+  box-shadow: inset 0 0 0 1px var(--fg-pick);
+}
+.figure-glass [data-choice-state="selected"] [data-choice-letter] {
+  border-color: var(--fg-pick);
+  background: var(--fg-pick);
+  color: var(--fg-page);
+}
+.figure-glass [data-choice-state="correct"] > :first-child {
+  border-color: var(--fg-correct);
+  background: color-mix(in srgb, var(--fg-correct) var(--fg-correct-tint, 30%), var(--fg-lens));
+}
+.figure-glass [data-choice-state="correct"] [data-choice-letter] {
+  border-color: var(--fg-correct);
+  background: var(--fg-correct);
+  color: var(--fg-page);
+}
+.figure-glass [data-choice-state="incorrect"] > :first-child {
+  border-color: color-mix(in srgb, var(--fg-wrong) 80%, transparent);
+  background: color-mix(in srgb, var(--fg-wrong) var(--fg-wrong-tint, 12%), var(--fg-lens));
+}
+.figure-glass [data-choice-state="incorrect"] [data-choice-letter] {
+  border-color: var(--fg-wrong);
+  background: var(--fg-wrong);
+  color: var(--fg-page);
+}

@@ -318,7 +318,7 @@ export function QuizShell(props: QuizShellProps) {
           data-calc={calcOpen || undefined}
           data-no-world={props.noWorld || undefined}
           data-finger-draw={(s.pencilOn && !s.penSeen) || undefined}
-          className={`${styles.shell} ${styles[layout]}`}
+          className={`figure-glass ${styles.shell} ${styles[layout]}`}
           style={
             {
               "--quiz-text-scale": s.textSize / 100,
