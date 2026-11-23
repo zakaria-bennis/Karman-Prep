@@ -8,6 +8,23 @@
   --down: #c0392b;
   --on-mark: #fffdf8;
   --thick: rgb(255 251 244 / 0.985);
+  /* a question's figure on the reading glass (figures/figure-glass.css, founder 2026-11-23): no
+     plaque, frost behind, every mark in the portal's ink, black by day and white by night */
+  --fg-ink: var(--ink);
+  --fg-page: var(--on-ink);
+  --fg-accent: var(--clay);
+  --fg-line: var(--lens-edge);
+  --fg-lens: var(--lens);
+  --fg-frost: var(--frost);
+  --fg-text: var(--ink);
+  --fg-text-muted: color-mix(in srgb, var(--ink) 60%, transparent);
+  --fg-pick: var(--ink);
+  --fg-correct: var(--up);
+  --fg-wrong: var(--down);
+  /* the tints of the log's own worded answers (.choices below), lighter than the quiz's, so a
+     graph's white lines keep their contrast on the right answer by night */
+  --fg-correct-tint: 14%;
+  --fg-wrong-tint: 12%;
   align-items: start;
 }
 
@@ -802,6 +819,10 @@
   background: var(--down);
   box-shadow: none;
   color: var(--on-mark);
+}
+
+.figureChoices {
+  max-width: 68ch;
 }
 
 .why {

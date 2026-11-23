@@ -26,6 +26,8 @@ import {
 // The views' theme roles, loaded with the page so a server-rendered figure is never unstyled
 // while the engine chunk downloads.
 import "./figure-roles.css";
+// Figures on glass, for a screen that opts in with the class figure-glass.
+import "./figure-glass.css";
 
 export type FigureEngine = typeof import("./engine-views");
 

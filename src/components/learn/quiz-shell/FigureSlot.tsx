@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useRef } from "react";
-import { drawnFigure } from "@/lib/figures/question-figure";
-import type { StudentQuizQuestion } from "@/types/quiz";
+import { drawnFigure, type QuestionFigure } from "@/lib/figures/question-figure";
 import ChartFigure from "../ChartFigure";
 import FigureFrame from "../FigureFrame";
 import GeometryFigure from "../GeometryFigure";
@@ -12,8 +11,9 @@ import styles from "./pane.module.css";
 import { useFigureDraw } from "./use-figure-draw";
 
 /** Where the figure engine draws: a figure_spec goes through FigureFrame's engine path (loaded
- * lazily), and the older figure fields keep their own components (spec: Figure contract). */
-export function FigureSlot({ q, calculator }: { q: StudentQuizQuestion; calculator: boolean }) {
+ * lazily), and the older figure fields keep their own components (spec: Figure contract). The quiz
+ * and the Mistake Log draw figures here. */
+export function FigureSlot({ q, calculator }: { q: QuestionFigure; calculator: boolean }) {
   const parse = useSpecParser(q);
   const drawn = useMemo(() => drawnFigure(q, parse), [q, parse]);
   // the figure draws itself in the first time the question is shown

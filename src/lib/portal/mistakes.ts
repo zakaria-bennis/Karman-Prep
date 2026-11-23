@@ -16,6 +16,7 @@ import type { Mode, RealSitting, Sample } from "@/app/dashboard/student/_portal/
 import { MODES } from "@/app/dashboard/student/_portal/mistakeLogData";
 import { skillOfSubSkill } from "./skill-bridge";
 import { loadSkill72OfQuestions } from "@/lib/bank/skills72-read";
+import { drawnFigure, type QuestionFigure } from "@/lib/figures/question-figure";
 
 export const MAX_QUESTIONS = 600;
 
@@ -62,13 +63,44 @@ export function sampleOf(snap: CatalogDeliverySnapshot, given: string): Sample {
   const choices = [...(q.answer_choices ?? [])].sort((a, b) => a.letter.localeCompare(b.letter));
   const correct = snap.answer.correctAnswer;
   const why = tidyMath(snap.review.explanation_text ?? "");
+  const figure = figureOf(q, choices);
   if (choices.length === 0)
-    return { prompt, choices: [], answer: -1, why, typed: { given, correct } };
+    return { prompt, choices: [], answer: -1, why, typed: { given, correct }, ...figure };
   return {
     prompt,
     choices: choices.map((c) => tidyMath(c.choice_text)),
     answer: choices.findIndex((c) => c.letter === correct),
     why,
+    ...figure,
+  };
+}
+
+/** The question's figure fields, only when it has a figure or figure or table choices to draw. */
+function figureOf(
+  q: CatalogDeliverySnapshot["student"],
+  choices: CatalogDeliverySnapshot["student"]["answer_choices"]
+): { figure?: QuestionFigure } {
+  const drawnChoices = choices.some((c) => c.choice_table_data || c.choice_figure_spec != null);
+  if (!drawnChoices && !drawnFigure(q)) return {};
+  return {
+    figure: {
+      id: q.id,
+      subject: q.subject,
+      image_url: q.image_url,
+      image_alt: q.image_alt,
+      figure_kind: q.figure_kind,
+      figure_table_data: q.figure_table_data,
+      figure_chart_data: q.figure_chart_data,
+      figure_geometry_data: q.figure_geometry_data,
+      figure_svg: q.figure_svg,
+      figure_spec: q.figure_spec,
+      answer_choices: choices.map((c) => ({
+        letter: c.letter,
+        choice_text: c.choice_text,
+        choice_table_data: c.choice_table_data,
+        choice_figure_spec: c.choice_figure_spec,
+      })),
+    },
   };
 }
 

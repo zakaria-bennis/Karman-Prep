@@ -377,7 +377,7 @@ export default function MistakeLog({
         {open && (
           <motion.section
             key="open"
-            className={`${lib.glass} ${styles.reading}`}
+            className={`figure-glass ${lib.glass} ${styles.reading}`}
             aria-label={question ? `Question ${question.number}` : (session?.name ?? "Open")}
             initial={still || !rail ? false : { x: 72, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
