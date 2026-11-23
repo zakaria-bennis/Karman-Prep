@@ -133,12 +133,12 @@ export function ExamEnding({ result }: { result: ExamResult }) {
         </h1>
         <p className={`${s.change} ${gain !== null && gain > 0 ? s.up : ""}`}>
           {gain === null
-            ? "Your first full-length exam"
+            ? "Your first exam"
             : gain > 0
-              ? `Up ${gain} points since your last exam`
+              ? `Up ${gain} since your last exam`
               : gain === 0
-                ? "The same score as your last exam"
-                : `Down ${-gain} points since your last exam`}
+                ? "Same as your last exam"
+                : `Down ${-gain} since your last exam`}
         </p>
         <p className={s.score} aria-live="polite" aria-label={`Your score: ${result.total}`}>
           {shown}
@@ -170,7 +170,7 @@ export function ExamEnding({ result }: { result: ExamResult }) {
           </ul>
           {result.reinforce.length > 3 && (
             <button type="button" className={s.quiet} onClick={() => setAll(!all)}>
-              {all ? "Show three" : `See all ${result.reinforce.length}`}
+              {all ? "Show 3" : `See all ${result.reinforce.length}`}
             </button>
           )}
         </div>
@@ -190,13 +190,11 @@ export function ExamEnding({ result }: { result: ExamResult }) {
             <>
               <span className={s.factValue}>{result.predicted.after}</span>
               <span className={s.windowNote}>
-                {result.predicted.before !== null
-                  ? `Was ${result.predicted.before}`
-                  : "Your first predicted score"}
+                {result.predicted.before !== null ? `Was ${result.predicted.before}` : "Your first"}
               </span>
             </>
           ) : (
-            <span className={s.windowNote}>It appears after your next exam.</span>
+            <span className={s.windowNote}>After your next exam</span>
           )}
         </div>
         <div className={`${s.fact} ${s.rise}`} style={{ animationDelay: `${REVEAL_MS + 1000}ms` }}>
@@ -206,7 +204,7 @@ export function ExamEnding({ result }: { result: ExamResult }) {
             {gain === null
               ? "For your first exam"
               : gain > 0
-                ? "More for every point you gained"
+                ? "More for each point gained"
                 : "For finishing"}
           </span>
         </div>
