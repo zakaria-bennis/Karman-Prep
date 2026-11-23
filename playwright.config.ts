@@ -50,7 +50,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
+    trace: process.env.E2E_TRACE_ALL ? "on" : "on-first-retry",
   },
   projects: [
     // ── Default projects (fast, run on `npm run test:e2e` /
