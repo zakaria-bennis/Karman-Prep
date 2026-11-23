@@ -53,7 +53,7 @@ export async function actionSetEventSpot(raw: unknown): Promise<SpotResult> {
       .eq("event_id", eventId)
       .eq("user_id", ctx.userId);
     if (delError) return { ok: false, message: "That didn’t save. Try again." };
-    revalidatePath("/dashboard/student/schedule");
+    revalidatePath("/dashboard/student?page=schedule");
     return { ok: true, saved: false };
   }
 
@@ -70,6 +70,6 @@ export async function actionSetEventSpot(raw: unknown): Promise<SpotResult> {
     .from("live_event_rsvps")
     .upsert({ event_id: eventId, user_id: ctx.userId }, { onConflict: "event_id,user_id" });
   if (saveError) return { ok: false, message: "That didn’t save. Try again." };
-  revalidatePath("/dashboard/student/schedule");
+  revalidatePath("/dashboard/student?page=schedule");
   return { ok: true, saved: true };
 }

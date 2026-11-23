@@ -81,7 +81,7 @@ export function RecapPreview({
             </div>
             <div className="mt-0.5 whitespace-pre-wrap">
               {draft[f.key]?.trim() || (
-                <span className="italic text-[color:var(--mute)]">— empty —</span>
+                <span className="italic text-[color:var(--mute)]">Empty</span>
               )}
             </div>
           </div>
@@ -117,11 +117,6 @@ export function RecapAlreadySent({
           <span>Sent {data.recapSentAt ? new Date(data.recapSentAt).toLocaleString() : "—"}</span>
         </div>
       </header>
-      <div className="rounded border border-[color-mix(in_srgb,var(--good)_30%,transparent)] bg-[color-mix(in_srgb,var(--good)_5%,transparent)] p-5">
-        <p className="text-sm text-[color:var(--good)]">
-          This recap has already been sent. The fields below are read-only.
-        </p>
-      </div>
       <RecapPreview
         draft={draft}
         signature={signature}

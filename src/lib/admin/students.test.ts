@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   clerkIdSchema,
-  countMastered,
   displayName,
   latestByKey,
   mapInBatches,
@@ -107,22 +106,13 @@ describe("mapInBatches", () => {
   });
 });
 
-describe("summarizeAttempts and countMastered", () => {
+describe("summarizeAttempts", () => {
   it("averages scored attempts only", () => {
     expect(summarizeAttempts([{ score: 80 }, { score: null }, { score: 61 }])).toEqual({
       count: 3,
       averageScore: 71,
     });
     expect(summarizeAttempts([])).toEqual({ count: 0, averageScore: null });
-  });
-
-  it("counts mastered nodes within the given ids", () => {
-    const statuses = [
-      { node_id: "r1", status: "mastered" },
-      { node_id: "r2", status: "in_progress" },
-      { node_id: "m1", status: "mastered" },
-    ];
-    expect(countMastered(statuses, ["r1", "r2", "r3"])).toBe(1);
   });
 });
 

@@ -72,13 +72,13 @@ export default async function ParentReportPage({
         {r.score.current !== null ? (
           <>
             <Num big>{r.score.current}</Num>
-            <p className="kp-meta">
-              {r.score.measuredThatDay
-                ? r.score.previous !== null
+            {r.score.measuredThatDay && (
+              <p className="kp-meta">
+                {r.score.previous !== null
                   ? `New measure this day, from ${r.score.previous}.`
-                  : "From a new measure this day."
-                : `From ${name}’s latest full measure.`}
-            </p>
+                  : "From a new measure this day."}
+              </p>
+            )}
           </>
         ) : (
           <p className="kp-meta">Shows after {name}&rsquo;s first full practice test.</p>
@@ -112,8 +112,8 @@ export default async function ParentReportPage({
             <p className="kp-meta">
               {r.quiet
                 ? r.isToday
-                  ? `Nothing logged yet today. ${name}’s work shows here as it happens.`
-                  : `A quiet day for ${name}. Rest days are part of it too.`
+                  ? "Nothing logged yet today."
+                  : `A quiet day for ${name}.`
                 : r.isToday
                   ? "No practice questions yet today."
                   : `${name} didn’t practice questions on this day.`}
@@ -129,12 +129,12 @@ export default async function ParentReportPage({
             <div className="kp-ring-row">
               <Ring
                 value={r.correct / r.answered}
-                label={`Accuracy: ${r.correct} of ${r.answered} right`}
+                label={`Accuracy: ${r.correct} of ${r.answered} correct`}
               >
                 <Num>{r.accuracy}%</Num>
               </Ring>
               <span className="kp-meta">
-                <Num>{r.correct}</Num> of <Num>{r.answered}</Num> right in <Num>{r.minutes}</Num>{" "}
+                <Num>{r.correct}</Num> of <Num>{r.answered}</Num> correct in <Num>{r.minutes}</Num>{" "}
                 {r.minutes === 1 ? "minute" : "minutes"}
               </span>
             </div>
@@ -163,7 +163,7 @@ export default async function ParentReportPage({
                 }
                 right={
                   <>
-                    <Num>{s.correct}</Num>/<Num>{s.answered}</Num> right
+                    <Num>{s.correct}</Num>/<Num>{s.answered}</Num> correct
                   </>
                 }
               />

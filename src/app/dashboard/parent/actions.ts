@@ -24,6 +24,7 @@ import { untypedAdmin } from "@/lib/school/db";
 import { claudeAssistant } from "@/lib/message-assistant/claude";
 import { isAssistantOn, readFamily } from "@/lib/message-assistant/server";
 import { officialScoreInput } from "@/lib/parent/test-day";
+import { dayKey } from "@/lib/student/streak";
 import { createAdminClient } from "@/lib/supabase/server";
 
 const studentSchema = z.object({ studentId: z.string().uuid() });
@@ -144,7 +145,7 @@ export async function sendFamilyMessageAction(formData: FormData) {
     // Only a session of this child that hasn't ended yet.
     const { upcoming } = await sessionsFor(untypedAdmin(), child, new Date());
     const session = upcoming.find((s) => s.id === parsed.data.sessionId);
-    if (!session) back(page, "error", "That session isn't coming up any more. Pick another.");
+    if (!session) back(page, "error", "That session isn't coming up anymore. Pick another.");
     sessionStartsAt = session.startsAt;
   } else if (NEEDS_SESSION.has(parsed.data.kind)) {
     back(page, "error", "Pick the session first.");
@@ -186,7 +187,7 @@ export async function sendFamilyMessageAction(formData: FormData) {
 /** A parent (or admin) types in a real College Board score. */
 export async function saveOfficialScoreAction(formData: FormData) {
   const ctx = await requireParentContext();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = dayKey(Date.now());
   const studentId = String(formData.get("studentId") ?? "");
   const page = /^[0-9a-f-]{36}$/i.test(studentId)
     ? `/dashboard/parent/${studentId}/progress`

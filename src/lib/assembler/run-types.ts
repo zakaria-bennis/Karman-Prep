@@ -1,6 +1,7 @@
 /* Shared shapes for quiz runs (Daily 10, practice set, Domain quiz, full-length test, diagnostic,
    time trial). */
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
+import type { PlayForm, PlayResult } from "@/lib/play/types";
 import type { SkillLevel } from "@/lib/levels/rules";
 import type { TrialRoundResult, TrialStart } from "@/lib/student/time-trial";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
@@ -36,6 +37,8 @@ export type RunForm = {
   adaptive?: { size: number; skillId: string; startDifficulty: number; maxDifficulty: number };
   /** Time trial: the round, pace and accuracy baseline this run was started with. */
   trial?: TrialStart;
+  /** Started from the portal (src/lib/play): what it is and how it ends. */
+  play?: PlayForm;
 };
 
 export type RunResponse = {
@@ -82,6 +85,8 @@ export type RunResult = {
   streak?: number;
   /** Time trial only: the round's pace, accuracy and the next round's pace. */
   trial?: TrialRoundResult;
+  /** A portal run: the 72 skills' levels it moved, its coins, the endless run (src/lib/play). */
+  play?: PlayResult;
 };
 
 export type RunRecord = {

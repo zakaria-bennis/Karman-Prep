@@ -6,7 +6,6 @@ import {
   actionOpenDailyTen,
   actionStartDiagnostic,
   actionStartDomainQuiz,
-  actionStartFullTest,
   actionStartPracticeSet,
   actionStartTimeTrial,
 } from "@/app/learn/quiz-run-actions";
@@ -21,6 +20,7 @@ import {
 } from "@/lib/student/time-trial";
 import { Message } from "./FlowFrame";
 import { RunPlayer } from "./RunPlayer";
+import { SetStart } from "./SetScreens";
 import type { ShellUser } from "./types";
 
 export function DailyTenFlow({ user }: { user: ShellUser }) {
@@ -34,11 +34,24 @@ export function DailyTenFlow({ user }: { user: ShellUser }) {
 export function PracticeSetFlow({
   user,
   skillId,
+  name,
+  domain,
+  subject,
+  level,
+  questions,
   exitHref,
   lessonHref,
 }: {
   user: ShellUser;
   skillId: string;
+  /** The skill's own name, for the start screen. */
+  name: string;
+  domain: string;
+  subject: "math" | "reading";
+  /** The student's level in the skill before the set (the engine's 0 to 4). */
+  level: number;
+  /** How many questions a set has. */
+  questions: number;
   exitHref: string;
   lessonHref: string | null;
 }) {
@@ -50,6 +63,20 @@ export function PracticeSetFlow({
       open={open}
       exitHref={exitHref}
       lessonHref={lessonHref}
+      bare
+      intro={(start, pending) => (
+        <SetStart
+          name={name}
+          domain={domain}
+          subject={subject}
+          level={level}
+          questions={questions}
+          onStart={start}
+          busy={pending}
+          exitHref={exitHref}
+          lessonHref={lessonHref}
+        />
+      )}
       againHref={`/learn/set/${encodeURIComponent(skillId)}?again=${Date.now()}`}
     />
   );
@@ -81,41 +108,6 @@ export function DomainQuizFlow({
           back={{ href: exitHref, label: "Back" }}
         />
       )}
-    />
-  );
-}
-
-export function FullTestFlow({
-  user,
-  form,
-  resumable,
-}: {
-  user: ShellUser;
-  form: number;
-  resumable: boolean;
-}) {
-  const open = useCallback(() => actionStartFullTest({ form }), [form]);
-  return (
-    <RunPlayer
-      user={user}
-      title={`Practice test ${form}`}
-      open={open}
-      exitHref="/learn/tests"
-      intro={
-        resumable
-          ? undefined
-          : (start, pending) => (
-              <Message
-                title={`Full-length practice test ${form}`}
-                text="Reading and Writing: two modules of 27 questions, 32 minutes each. Then a break. Then Math: two modules of 22 questions, 35 minutes each. The second module of each section is easier or harder depending on the first. You can leave and come back; your answers are saved when each module is submitted."
-                action={{
-                  onClick: start,
-                  label: pending ? "Loading" : "Start Reading and Writing",
-                }}
-                back={{ href: "/learn/tests", label: "Back to tests" }}
-              />
-            )
-      }
     />
   );
 }

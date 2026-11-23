@@ -1,0 +1,970 @@
+/*
+ * The Mistake Log: the log alone, then the log at the left with what was picked at the right. Glass,
+ * inset, corners, text sizes (13, 16, 20) and the one green come from library.module.css, set on
+ * .library. Correct is the green and missed is the red used across Progress.
+ */
+.mistakes {
+  --up: var(--p3);
+  --down: #c0392b;
+  --on-mark: #fffdf8;
+  --thick: rgb(255 251 244 / 0.985);
+  align-items: start;
+}
+
+:global([data-kp-mode="dark"]) .mistakes {
+  --up: var(--p1);
+  --down: #ff8d7e;
+  --on-mark: #1d1a22;
+  --thick: rgb(34 32 52 / 0.985);
+}
+
+.log,
+.reading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: calc(var(--pad) + 4px);
+}
+
+/* the log knows its own width, so it can show more about each row when it has the page to itself */
+.log {
+  container-type: inline-size;
+}
+
+.mistakes h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---- the top of the log: the three views, then the three menus ---- */
+.top {
+  display: grid;
+  flex: none;
+  gap: 10px;
+}
+
+/* the bars of choices: hollows in the glass, as on the rest of Progress */
+.mistakes .lenses {
+  justify-self: stretch;
+  flex: none;
+  background: var(--hover);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.lenses button {
+  flex: 1 1 0;
+  height: 36px;
+}
+
+.sift {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pick {
+  min-width: 0;
+}
+
+/* (the shell clears every button's background, so a button with one of its own is named through
+   the page) */
+.mistakes .picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  height: 40px;
+  padding: 0 8px 0 12px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.picker span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker svg,
+.fold svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.65;
+  transition: transform 0.25s var(--out);
+}
+
+.picker[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.pick[data-on] .picker,
+.picker[aria-expanded="true"] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+.pick[data-on] .picker {
+  font-weight: 600;
+}
+
+/* a menu lies over the log, as wide as the row of buttons, so opening it moves nothing. It is thicker
+   glass than the log, so the rows beneath never read through the choices. */
+.menu {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 6px);
+  left: 0;
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  max-width: 380px;
+  max-height: min(60dvh, 440px);
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--r-piece);
+  background: var(--thick);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge);
+  animation: drop 0.18s var(--out) both;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* each menu opens under its own button: the first at the left, the second in the middle, the third
+   at the right */
+.pick:nth-child(2) .menu {
+  left: max(0px, calc(50% - 190px));
+}
+
+.pick:nth-child(3) .menu {
+  right: 0;
+  left: auto;
+}
+
+.block {
+  display: grid;
+  gap: 2px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid var(--lens-edge);
+}
+
+.block h3 {
+  padding: 6px 10px 2px;
+  opacity: 0.78;
+}
+
+.inset {
+  display: grid;
+  gap: 2px;
+  padding-left: 22px;
+}
+
+.mistakes .choice,
+.mistakes .fold {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 10px;
+  border-radius: var(--r-lens);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.mistakes .choice[data-strong],
+.mistakes .fold {
+  font-weight: 600;
+}
+
+.choice svg {
+  flex: none;
+}
+
+.choice rect {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.choice path {
+  fill: none;
+  stroke: var(--on-go);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.choice:not([aria-checked="false"]) rect {
+  fill: var(--go);
+  stroke: var(--go);
+  opacity: 1;
+}
+
+.mistakes .fold {
+  gap: 6px;
+}
+
+.fold span {
+  flex: 1 1 auto;
+}
+
+.fold[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+/* how many of a domain's skills are chosen */
+.fold b {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--go);
+  color: var(--on-go);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .picker:hover {
+    background: var(--lens);
+  }
+
+  .choice:hover,
+  .fold:hover {
+    background: var(--hover);
+  }
+}
+
+/* ---- the log itself ---- */
+.scroll {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+}
+
+.day {
+  display: grid;
+  gap: 2px;
+}
+
+.day h3 {
+  padding: 10px 12px 4px;
+  opacity: 0.78;
+}
+
+.rows {
+  display: grid;
+  gap: 2px;
+}
+
+.row,
+.heads {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 8px 8px 12px;
+}
+
+.row {
+  min-height: 56px;
+  border-radius: var(--r-lens);
+  text-align: left;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.row[data-q] {
+  grid-template-columns: 20px minmax(0, 1fr) auto auto 20px;
+}
+
+/* the columns' names, and the columns kept for when the log is wide */
+.heads,
+.wide {
+  display: none;
+}
+
+.heads {
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  opacity: 0.78;
+}
+
+.wide {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@container (min-width: 760px) {
+  .row:not([data-q]),
+  .heads:not([data-q]) {
+    grid-template-columns: minmax(0, 1fr) 96px 96px 96px 20px;
+  }
+
+  .row[data-q],
+  .heads[data-q] {
+    grid-template-columns: 20px minmax(0, 1fr) auto 96px 20px;
+  }
+
+  .heads {
+    display: grid;
+  }
+
+  .heads[data-q] span:first-child {
+    grid-column: 1 / 4;
+  }
+
+  .wide {
+    display: block;
+  }
+
+  .got {
+    text-align: right;
+  }
+}
+
+.row[aria-current] {
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+}
+
+.row:active {
+  transform: scale(0.985);
+  background: var(--hover);
+}
+
+.what {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.what b {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.what small {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  opacity: 0.78;
+}
+
+.got,
+.took {
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.got b {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.took {
+  min-width: 36px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.signs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.signs span {
+  display: flex;
+}
+
+.sign {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chev {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.45;
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.mark {
+  flex: none;
+}
+
+.mark circle {
+  fill: var(--down);
+}
+
+.mark[data-right="true"] circle {
+  fill: var(--up);
+}
+
+.mark path {
+  fill: none;
+  stroke: var(--on-mark);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mistakes .more,
+.mistakes .primary {
+  justify-self: center;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.mistakes .scroll .more,
+.mistakes .none .more {
+  height: 40px;
+  margin: 8px 0 4px;
+  font-size: 13px;
+}
+
+.mistakes .primary {
+  background: var(--go);
+  box-shadow: none;
+  color: var(--on-go);
+}
+
+.more:active,
+.primary:active {
+  transform: scale(0.96);
+}
+
+.none {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 12px;
+  text-align: center;
+}
+
+.none p {
+  max-width: 34ch;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .row:hover,
+  .more:hover {
+    background: var(--hover);
+  }
+
+  .row[aria-current]:hover {
+    background: var(--lens);
+  }
+
+  .row:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* ---- what was picked: a sitting's overview, its questions, or one question ---- */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: turn 0.2s var(--out) both;
+}
+
+@keyframes turn {
+  from {
+    opacity: 0;
+  }
+}
+
+.head {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.when {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fact b {
+  font: 400 30px/1.1 var(--font-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.part {
+  display: grid;
+  gap: 8px;
+}
+
+/* each question as a square, in the order asked */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.strip i {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--down);
+}
+
+.strip i[data-right="true"] {
+  background: var(--up);
+}
+
+.lineOf {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* a skill, with the level it is at now: opens it in the Library */
+.mistakes .link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% + 16px);
+  min-height: 40px;
+  padding: 4px 4px 4px 8px;
+  margin: 0 -8px;
+  border-radius: var(--r-lens);
+  font-size: 16px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.mistakes .backIn {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: 2px;
+  height: 36px;
+  padding: 0 12px 0 6px;
+  margin: -2px 0 -2px -6px;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s var(--out);
+}
+
+.backIn .chev,
+.tool .chev {
+  opacity: 1;
+}
+
+.qhead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tools {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  margin: -6px -6px 0 0;
+}
+
+.tool {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-lens);
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.qhead > .tool {
+  margin: -6px -6px 0 0;
+}
+
+.tool:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.tool:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* a bookmark or flag that is off is an outline; on, it is filled */
+.tool .sign {
+  fill: none;
+}
+
+.tool[aria-pressed="true"] .sign {
+  fill: currentColor;
+}
+
+.tool[aria-pressed="true"] {
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict b {
+  font-weight: 600;
+  color: var(--down);
+}
+
+.verdict[data-right="true"] b {
+  color: var(--up);
+}
+
+/* the skill the question tests: opens it in the Library */
+.mistakes .skill {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: 4px;
+  min-height: 36px;
+  padding: 4px 8px 4px 12px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.2s var(--out);
+}
+
+.prompt {
+  max-width: 68ch;
+  white-space: pre-line;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.choices {
+  display: grid;
+  gap: 6px;
+  max-width: 68ch;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.choices li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: var(--r-lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.choices i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.choices b {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.choices li[data-is="right"] {
+  background: color-mix(in srgb, var(--up) 14%, transparent);
+  box-shadow: inset 0 0 0 2px var(--up);
+}
+
+.choices li[data-is="missed"] {
+  background: color-mix(in srgb, var(--down) 12%, transparent);
+  box-shadow: inset 0 0 0 2px var(--down);
+}
+
+.choices li[data-is="right"] i {
+  background: var(--up);
+  box-shadow: none;
+  color: var(--on-mark);
+}
+
+.choices li[data-is="missed"] i {
+  background: var(--down);
+  box-shadow: none;
+  color: var(--on-mark);
+}
+
+.why {
+  display: grid;
+  gap: 4px;
+  max-width: 68ch;
+}
+
+.why p,
+.why > div {
+  white-space: pre-line;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+@media (hover: hover) {
+  .backIn:hover,
+  .tool:hover:not(:disabled),
+  .skill:hover {
+    background: var(--lens);
+  }
+
+  .link:hover {
+    background: var(--hover);
+  }
+
+  .primary:hover {
+    background: color-mix(in srgb, var(--go) 88%, var(--ink));
+  }
+
+  .skill:hover .chev,
+  .link:hover .chev {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+
+/* with room: the log has the page to itself until something is picked. Then it draws in to the left
+   and what was picked comes in at the right. Each is as tall as the screen and scrolls inside itself,
+   so the page never scrolls (72 above the panes, 16 below). */
+@media (min-width: 960px) and (hover: hover) {
+  .mistakes {
+    position: relative;
+    display: block;
+  }
+
+  .log,
+  .reading {
+    height: calc(100dvh - 88px);
+    min-height: 420px;
+  }
+
+  .log {
+    width: 100%;
+    transition: width 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mistakes[data-open] .log {
+    width: calc((100% - var(--pad)) * 0.44);
+  }
+
+  /* placed at the right at its full size, so nothing inside it is squeezed while it comes in. Its
+     own arrival is the slide, so the glass's usual settling is left out. */
+  .reading {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: calc((100% - var(--pad)) * 0.56);
+    animation: none;
+  }
+
+  .scroll,
+  .reading {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--lens-edge) transparent;
+  }
+
+  .scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-right: 4px;
+    margin-right: -8px;
+  }
+
+  .top {
+    grid-template-columns: minmax(0, 420px) minmax(0, 560px);
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* the two bars stack once the log is the narrow pane, or the window is narrow */
+@container (max-width: 759px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  .choices li {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  /* the label goes under the choice, where there is room for it */
+  .choices b {
+    grid-column: 2;
+  }
+
+  .fact b {
+    font-size: 26px;
+  }
+
+  .facts {
+    gap: 8px 22px;
+  }
+
+  /* with the name in the page's title, the date sits level with the bookmark and the arrows */
+  .qhead {
+    align-items: center;
+  }
+
+  .tools {
+    margin-top: 0;
+  }
+
+  /* on a phone each button is as wide as its own words need, and they share what is left over, so
+     no name is cut short */
+  .sift {
+    display: flex;
+  }
+
+  .pick {
+    flex: 1 1 auto;
+  }
+
+  .mistakes .picker {
+    gap: 2px;
+    padding: 0 5px 0 8px;
+  }
+
+  .picker svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .log {
+    padding: var(--pad);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .menu {
+    animation: none;
+  }
+
+  .log,
+  .chev,
+  .picker svg,
+  .fold svg {
+    transition: none;
+  }
+}

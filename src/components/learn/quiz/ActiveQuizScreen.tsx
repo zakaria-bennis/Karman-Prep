@@ -8,7 +8,7 @@ import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MappedNode } from "../ConstellationMap";
+import type { MappedNode } from "../mapped-node";
 import { useOptionalQuizState, type QuizState } from "@/contexts/QuizContext";
 import type { StudentQuizQuestion } from "@/types/quiz";
 import { CalculatorChoiceAction } from "@/components/calculator/CalculatorSourceAction";

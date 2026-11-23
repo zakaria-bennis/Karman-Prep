@@ -8,7 +8,7 @@ import { mkdirSync } from "node:fs";
 const out = process.argv[2] ?? "tmp/portal-shots";
 const base = process.argv[3] ?? "http://localhost:3320";
 mkdirSync(out, { recursive: true });
-const SCREENS = { today: "/dashboard/student", progress: "/dashboard/student/progress" };
+const SCREENS = { today: "/dashboard/student", progress: "/dashboard/student?page=progress" };
 const INSET = 50;
 const CSS = `
   nextjs-portal { display: none !important; }

@@ -141,7 +141,13 @@ export function NumericEntry({
           id="quiz-numeric-answer"
           ref={box}
           className={styles.numericInput}
-          onFocus={() => setUp(true)}
+          onFocus={(e) => {
+            setUp(true);
+            // the keys take room at the bottom: once they are up, the box is brought to the foot
+            // of what is left, so as much of the question as fits shows over it
+            const box = e.currentTarget;
+            window.setTimeout(() => box.scrollIntoView({ block: "end", behavior: "smooth" }), 260);
+          }}
           // with keys of its own on screen, the device's keyboard is never called up
           inputMode={touch ? "none" : "decimal"}
           autoComplete="off"

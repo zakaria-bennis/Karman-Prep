@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 import { contrastRatio } from "../../src/lib/calculator/theme/contrast";
 import { SKIN_IDS } from "../../src/lib/calculator/theme/skins";
-import { chromeOnly, dock, openCalculator, trigger } from "./quiz-helpers";
+import { chromeOnly, dock, openCalculator, trigger, undock } from "./quiz-helpers";
 
 const hex = (css: string) =>
   `#${css
@@ -99,9 +99,10 @@ test("TH-1, TH-14 window chrome, every title-bar control, the move handle, grip,
       contrastRatio(hex((await styleOf(page, "[role=separator]")).color), await barColour(page)),
       skin
     ).toBeGreaterThanOrEqual(3);
-    await ring(page, skin, "Undock calculator");
+    // docked in the quiz, the window has no title bar (founder, 2026-11-17): only the separator
     await ring(page, skin, "Resize calculator dock", "separator");
   }
+  await undock(page); // maximize lives on the floating window's bar
   await page.getByRole("button", { name: "Maximize calculator" }).click();
   for (const skin of SKIN_IDS) {
     await setSkin(page, skin);

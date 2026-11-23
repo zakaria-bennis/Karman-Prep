@@ -78,7 +78,7 @@ export default async function ParentSettingsPage({
                   />
                 ))
               ) : (
-                <p className="kp-meta">Link your student first. Their plan shows here.</p>
+                <p className="kp-meta">Link a student to see their plan.</p>
               )}
             </SettingsCard>
           </>
@@ -103,8 +103,8 @@ export default async function ParentSettingsPage({
             </button>
             <p className="kp-meta">
               {alertsLive
-                ? "Alerts arrive by email as soon as it happens, once each."
-                : "Alerts aren't switched on yet. Your choices are saved for when they are."}
+                ? "By email, once each."
+                : "Alerts aren't on yet. Your choices are saved."}
             </p>
           </form>
         </SettingsCard>

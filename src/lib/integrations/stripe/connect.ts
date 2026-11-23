@@ -183,7 +183,7 @@ export interface PayoutInput {
   amount: number;
   connectedAccountId: string;
   /** "instant" → debit-card payout (~30s, +1% Stripe fee paid by destination)
-   *  "standard" → ACH (next business day, free) */
+   *  "standard" → ACH (usually 1 to 2 business days, free) */
   method: "instant" | "standard";
   description: string;
   metadata?: Record<string, string>;

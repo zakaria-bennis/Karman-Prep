@@ -51,8 +51,8 @@ export default function PayoutsClient({
     if (
       !confirm(
         method === "instant"
-          ? `Pay out ${fmt.format(instantNet)} instantly to your debit card? (2.5% fee applied to ${fmt.format(pendingAmount)} gross.)`
-          : `Pay out ${fmt.format(pendingAmount)} via ACH? Arrives in 2-3 business days.`
+          ? `Pay out ${fmt.format(instantNet)} to your debit card now? That's after the 2.5% fee on ${fmt.format(pendingAmount)}.`
+          : `Pay out ${fmt.format(pendingAmount)} by ACH? It arrives in 1 to 2 business days.`
       )
     )
       return;
@@ -112,7 +112,7 @@ export default function PayoutsClient({
         {pendingAmount === 0 ? (
           <div className="wb-empty" style={{ marginTop: 12 }}>
             <b>Nothing to pay out yet</b>
-            Send the recap after each session and it becomes ready here.
+            Send each session&rsquo;s recap to get paid for it.
           </div>
         ) : (
           <div
@@ -128,7 +128,8 @@ export default function PayoutsClient({
               {instantAvailable ? (
                 <>
                   <p className="kp-meta">
-                    <Num>{fmt.format(instantNet)}</Num> after the 2.5% fee. Arrives in seconds.
+                    <Num>{fmt.format(instantNet)}</Num> after the 2.5% fee. Arrives within 30
+                    minutes.
                   </p>
                   <Cta
                     onClick={() => request("instant")}
@@ -140,9 +141,7 @@ export default function PayoutsClient({
                 </>
               ) : (
                 <>
-                  <p className="kp-meta">
-                    Instant payouts need a debit card on file. Add one in payment settings.
-                  </p>
+                  <p className="kp-meta">Instant payouts need a debit card on file.</p>
                   <p className="kp-meta">
                     <Link className="kp-link" href="/tutor/settings/payment">
                       Add a debit card
@@ -155,7 +154,7 @@ export default function PayoutsClient({
             <div style={option}>
               <SectionHeader as="h3" title="ACH, to your bank account" />
               <p className="kp-meta">
-                <Num>{fmt.format(pendingAmount)}</Num> with no fee. Arrives in 2 to 3 business days.
+                <Num>{fmt.format(pendingAmount)}</Num> with no fee. Arrives in 1 to 2 business days.
               </p>
               {instantAvailable ? (
                 <button
@@ -225,12 +224,7 @@ export default function PayoutsClient({
           caption="Payout history"
           rows={history}
           rowKey={(p) => p.id}
-          empty={
-            <>
-              <b>No payouts yet</b>
-              Your payouts will show here.
-            </>
-          }
+          empty={<b>No payouts yet</b>}
           columns={[
             {
               key: "amount",
@@ -302,16 +296,16 @@ function humanize(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg === "not_onboarded") return "Finish Stripe onboarding before requesting a payout.";
   if (msg === "payouts_not_enabled")
-    return "Stripe hasn't approved your account for payouts yet — check your settings page.";
+    return "Stripe hasn't approved your account for payouts yet. Check payment settings.";
   if (msg === "instant_not_available")
-    return "Instant payouts require a US debit card. Add one in Payment Settings, then try again. (ACH still works without a card.)";
+    return "Instant payouts need a US debit card. Add one in payment settings, or pay out by ACH.";
   if (msg === "no_eligible_sessions")
-    return "No sessions ready for payout. Send recap emails to mark sessions as eligible.";
-  if (msg === "zero_amount") return "Pending amount is zero.";
+    return "No sessions are ready. Send each session's recap first.";
+  if (msg === "zero_amount") return "Nothing to pay out yet.";
   if (msg.startsWith("transfer_failed:"))
     return `Stripe couldn't move money to your account: ${msg.slice("transfer_failed: ".length)}`;
   if (msg.startsWith("payout_failed:"))
-    return `Money is in your Stripe balance, but the payout to your bank/card failed: ${msg.slice("payout_failed: ".length)}. Contact admin.`;
+    return `Money is in your Stripe balance, but the payout to your bank or card failed: ${msg.slice("payout_failed: ".length)}. Contact an admin.`;
   return msg;
 }
 
@@ -319,7 +313,7 @@ const HISTORY_STATUS: Record<string, { label: string; tone: Tone }> = {
   pending_approval: { label: "In progress", tone: "info" },
   approved: { label: "Payment in flight", tone: "info" },
   paid: { label: "Paid", tone: "ok" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+  cancelled: { label: "Canceled", tone: "neutral" },
   failed: { label: "Failed", tone: "fail" },
 };
 

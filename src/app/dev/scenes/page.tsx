@@ -1,16 +1,22 @@
 "use client";
 
 // A dev-only look at the pictures behind the Schedule tab's next session, alone and large: each is
-// a real photograph, painted, then brought to life (src/app/dev/shell/SchedulePhoto.tsx).
+// a real photograph, painted, then brought to life (src/app/dashboard/student/_portal/SchedulePhoto.tsx).
 //   /dev/scenes                     the first place in every light it has, and the list of places
 //   /dev/scenes?place=beach         another place
 //   /dev/scenes?place=beach&sky=night  one picture, large
 //   /dev/scenes?photo=real          the plain photographs, the backup
 import { notFound, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import PhotoScene from "../shell/SchedulePhoto";
-import type { Sky } from "../shell/scheduleData";
-import { PLACES, PLACE_NAMES, plain, type Picture, type Place } from "../shell/scenes/photos";
+import PhotoScene from "@/app/dashboard/student/_portal/SchedulePhoto";
+import type { Sky } from "@/app/dashboard/student/_portal/scheduleData";
+import {
+  PLACES,
+  PLACE_NAMES,
+  plain,
+  type Picture,
+  type Place,
+} from "@/app/dashboard/student/_portal/scenes/photos";
 
 const SKIES: Sky[] = ["sunrise", "day", "sunset", "night"];
 

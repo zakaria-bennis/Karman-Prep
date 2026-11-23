@@ -31,11 +31,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
   if (!status.connected) {
     return (
       <Card>
-        <SectionHeader title="Connect your Cal.com account" />
-        <p className="kp-meta">
-          We&rsquo;ll read your event types and point your Karman students at the right one. You can
-          disconnect at any time.
-        </p>
+        <SectionHeader title="Cal.com" />
         {/* A plain link, not next/link: this starts the Cal OAuth flow and must not be prefetched. */}
         <a className="kp-cta" href="/api/cal/oauth/start">
           <span>Connect Cal.com</span>
@@ -47,7 +43,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
 
   async function onPick() {
     if (typeof selectedId !== "number") {
-      setErr("Please pick an event-type.");
+      setErr("Pick an event type.");
       return;
     }
     setErr("");
@@ -63,7 +59,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
     setErr("");
     try {
       const res = await fetch("/api/cal/oauth/disconnect", { method: "POST" });
-      if (!res.ok) throw new Error(`Disconnect failed (HTTP ${res.status})`);
+      if (!res.ok) throw new Error("Cal didn't disconnect. Try again.");
       startTransition(() => router.refresh());
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Couldn't disconnect.");
@@ -86,7 +82,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
         </p>
       ) : (
         <p className="kp-meta" style={{ color: "var(--warn)" }}>
-          Almost done. Pick which of your event types is the Karman session.
+          Pick the Karman event type.
         </p>
       )}
 
@@ -95,10 +91,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
           {eventTypesError}
         </p>
       ) : eventTypes.length === 0 ? (
-        <p className="kp-meta">
-          Your Cal account has no event types yet. Make one on cal.com (60 minutes works well), then
-          refresh this page.
-        </p>
+        <p className="kp-meta">No event types yet. Make one on cal.com, then refresh this page.</p>
       ) : (
         <div
           style={{
@@ -110,11 +103,7 @@ export function CalConnectionClient({ status, eventTypes, eventTypesError }: Pro
           }}
         >
           <label className="wb-field" style={{ flex: "1 1 240px", minWidth: 0 }}>
-            <span>
-              {status.eventTypeId
-                ? "Change which event type is the Karman session"
-                : "Pick the Karman session event type"}
-            </span>
+            <span>Karman event type</span>
             <select
               className="wb-select"
               value={selectedId}

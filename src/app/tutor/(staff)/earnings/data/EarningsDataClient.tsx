@@ -105,7 +105,7 @@ export default function EarningsDataClient({
       </Card>
 
       <Card>
-        <SectionHeader title="Sessions in this range" note={<Num>{sessions.length}</Num>} />
+        <SectionHeader title="Sessions" note={<Num>{sessions.length}</Num>} />
         <WbTable
           caption={`Sessions, ${TIME_RANGE_LABELS[range]}`}
           rows={sessions}
@@ -161,12 +161,7 @@ export default function EarningsDataClient({
           caption="Recent payouts"
           rows={payouts}
           rowKey={(p) => p.id}
-          empty={
-            <>
-              <b>No payouts yet</b>
-              Sessions waiting to be paid are in the table above.
-            </>
-          }
+          empty={<b>No payouts yet</b>}
           columns={[
             {
               key: "amount",
@@ -270,7 +265,7 @@ const PAYOUT_STATUS: Record<string, { label: string; tone: Tone }> = {
   pending_approval: { label: "Awaiting review", tone: "info" },
   approved: { label: "Payment in flight", tone: "info" },
   paid: { label: "Paid", tone: "ok" },
-  cancelled: { label: "Cancelled", tone: "neutral" },
+  cancelled: { label: "Canceled", tone: "neutral" },
   failed: { label: "Failed", tone: "fail" },
 };
 
@@ -361,7 +356,7 @@ function WeeklyChart({ points }: { points: WeeklyEarningsPoint[] }) {
           );
         })}
       </svg>
-      <p className="wb-note">Each bar is one week, before fees. Hover a bar for the details.</p>
+      <p className="wb-note">Each bar is one week, before fees.</p>
     </div>
   );
 }

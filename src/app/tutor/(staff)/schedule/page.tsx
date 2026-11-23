@@ -61,7 +61,7 @@ function statusLabel(s: BookingRow["status"]): { label: string; tone: Tone } {
     case "completed":
       return { label: "Completed", tone: "ok" };
     case "cancelled":
-      return { label: "Cancelled", tone: "neutral" };
+      return { label: "Canceled", tone: "neutral" };
     case "no_show":
       return { label: "No-show", tone: "fail" };
   }
@@ -203,11 +203,7 @@ export default async function TutorSchedulePage({
                 : "No cohort classes yet."
           }
         >
-          {tab === "upcoming"
-            ? "New bookings show up here as students book in."
-            : tab === "seminars"
-              ? "They appear here once an admin schedules one for your group."
-              : "They appear here once an admin schedules a class for one of your cohorts."}
+          {tab === "upcoming" ? undefined : "An admin schedules them."}
         </WbEmpty>
       ) : (
         <ScheduleGrouped

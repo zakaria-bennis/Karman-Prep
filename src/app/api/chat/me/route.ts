@@ -9,6 +9,7 @@
 import { NextResponse } from "next/server";
 import { safeAuth as auth } from "@/lib/auth/dev-auth";
 import { channelUnread, isHere, shortName, tutorOf } from "@/lib/chat/extras";
+import { ensureClassChats } from "@/lib/chat/provisioning";
 import { getStanding } from "@/lib/chat/standing";
 import { isAfterHours } from "@/lib/chat-assistant/model";
 import { getUserUuidByClerkId } from "@/lib/supabase/queries/bookings";
@@ -45,12 +46,22 @@ export async function GET() {
   let classes: { id: string; name: string }[] = [];
   let unread = { chat: 0, announcements: 0 };
   if (cohortIds.length > 0) {
-    const { data: channels } = await supa
-      .from("chat_channels")
-      .select("id, display_name")
-      .in("cohort_id", cohortIds)
-      .eq("channel_type", "cohort_chat")
-      .order("display_name");
+    const read = () =>
+      supa
+        .from("chat_channels")
+        .select("id, cohort_id, display_name")
+        .in("cohort_id", cohortIds)
+        .eq("channel_type", "cohort_chat")
+        .order("display_name");
+    let { data: channels } = await read();
+    // a class without its chat yet gets it now, then is read again
+    if (
+      await ensureClassChats(
+        cohortIds,
+        (channels ?? []).map((c) => c.cohort_id)
+      )
+    )
+      ({ data: channels } = await read());
     classes = (channels ?? []).map((c) => ({ id: c.id, name: c.display_name }));
     if (!staff && classes[0]) unread = await channelUnread(selfUuid, classes[0].id);
   }

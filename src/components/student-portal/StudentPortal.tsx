@@ -11,12 +11,12 @@ import type { StudentContext } from "@/lib/student/context";
 export const STUDENT_HOME = "/dashboard/student";
 export const STUDENT_ROUTES = {
   today: "/dashboard/student",
-  homework: "/dashboard/student/homework",
-  library: "/dashboard/student/library",
-  calendar: "/dashboard/student/schedule",
-  progress: "/dashboard/student/progress",
-  rewards: "/dashboard/student/rewards",
-  settings: "/dashboard/student/settings",
+  homework: "/dashboard/student?page=homework",
+  library: "/dashboard/student?page=library",
+  calendar: "/dashboard/student?page=schedule",
+  progress: "/dashboard/student?page=progress",
+  rewards: "/dashboard/student?page=rewards",
+  settings: "/dashboard/student?page=settings",
 } as const;
 
 export function studentNav(
@@ -48,10 +48,10 @@ export function studentNav(
 export function studentMenu(ctx: Pick<StudentContext, "hasChat">): AccountMenuItem[] {
   const menu: AccountMenuItem[] = [
     { label: "Plan and billing", icon: "money", href: `${STUDENT_ROUTES.settings}#plan` },
-    { label: "Invite a parent", icon: "invite", href: "/dashboard/student/invite-parent" },
+    { label: "Invite a parent", icon: "invite", href: "/dashboard/student?page=settings" },
   ];
   if (ctx.hasChat)
-    menu.push({ label: "Messages", icon: "messages", href: "/dashboard/student/chat" });
+    menu.push({ label: "Messages", icon: "messages", href: "/dashboard/student?page=chat" });
   return menu;
 }
 

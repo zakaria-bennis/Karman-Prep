@@ -19,7 +19,7 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import StatusDraftClient, { type StatusDraftPageData } from "./StatusDraftClient";
 import type { StatusDraft } from "@/lib/integrations/openai/generate-status-draft";
 
-export const metadata: Metadata = { title: "Session recap draft — Karman" };
+export const metadata: Metadata = { title: "Session recap" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {

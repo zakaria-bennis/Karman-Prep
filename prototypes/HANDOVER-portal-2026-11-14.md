@@ -1048,7 +1048,7 @@ reaches karmanprep.com only when the branch is merged and deployed.
 **The Class tab is removed** (menus, label and icon). Its class button is on Homework; its workshops are
 in the Library (`Workshops.tsx`): for Cohort and Private, each side of the Library shows a Workshop
 banner with Sign up where Free, Practice and Pro have Today (the Daily 10 and challenge are on Homework
-for taught students); for Pro, "See upcoming workshops" at the top right of More ways to practice opens
+for taught students); for Pro, "See upcoming workshops" at the top right of More practice opens
 the list. The dev page cannot tell Practice from Pro, so the button shows for the whole "Free,
 Practice, Pro" plan unless the Free switch is on. Workshops are stand-ins. **Chat** now has the middle
 of the Cohort phone bar. Its icon: a big gray bubble in front with its tail to the left and three white
@@ -1699,3 +1699,34 @@ side, the tutor giving the late change back, the 30 minutes added when a tutor m
 and real results behind "Work on" (it reads the Library's stand-in levels). The 12-month expiry and
 the 30 minutes are promises to families and are not in `offer.ts` or the terms yet. His "monthly
 limit or 3" was read as three moves a month and is not confirmed.
+
+## The rebuilt portal is the only student portal (2026-11-21, PR 309)
+
+The founder asked for the new portal to be the only one, student first, real data first (parent,
+tutor and admin portals stay until their new versions exist). On branch
+`claude/student-portal-swap` (built on PR 307's branch), not merged.
+
+- **Where it lives:** `src/app/dashboard/student/_portal/` (moved from `src/app/dev/shell/`). The
+  real page is `/dashboard/student`; `?page=library|progress|mistakes|rewards|homework|schedule|
+  chat|settings` opens a tab. `/dev/shell` still shows the same portal with the made-up students and
+  the demo switches (`?real=0` there forces the stand-ins when signed in).
+- **Data:** read once on the server by `src/lib/portal/load.ts`, handed down through
+  `_portal/portalData.tsx`. One file per screen in `src/lib/portal/`: `progress.ts`, `mistakes.ts`,
+  `homework.ts`, `schedule.ts`, `rewards.ts` (+ `reward-actions.ts`), `settings-actions.ts`.
+- **The 72 skills:** the bank is still tagged with the 92 old sub-skills, so each of the 72 reads the
+  sub-skills that cover it (`src/lib/portal/skill-bridge.ts`, average of the practiced ones,
+  rounded down). Delete the bridge when the retag lands.
+- **Rewards:** coins are the existing point awards less what was spent; boxes, passes and the outfit
+  are saved in a new table `portal_rewards` (migration `20261121200000`, applied on merge).
+- **Schedule:** sessions from `bookings`, hours from the package plus `private_hour_purchases`, open
+  times from the tutor's Cal.com calendar; book, move and cancel go through `/api/bookings/*`. The
+  Schedule's own rules (three moves a month, one late pass, 90 and 120 minute sessions) are not
+  enforced by that backend, which allows one move per booking and one length; real bookings are 60
+  minutes.
+- **Deleted:** the old Today, Homework, Library (with course and endless), Progress, Rewards,
+  Schedule, Chat, quiz history, Settings and invite-parent pages and their components.
+- **Still on the old look:** the scholarship page, and the old frame (`StudentPortal.tsx`) that
+  `/billing`, `/join/class`, the tutor-code page, `/learn/tests` and the quiz screens' menus use.
+  Each needs a page in the new look.
+- **Still made up:** characters' unlock progress on Rewards, strategy quizzes, flashcards and Word
+  Line (no pages yet), recordings and notes on past sessions.

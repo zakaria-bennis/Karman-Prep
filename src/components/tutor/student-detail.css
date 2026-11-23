@@ -54,7 +54,6 @@
 }
 .kp-st-tab:focus-visible,
 .kp-st-btn:focus-visible,
-.kp-st-sort:focus-visible,
 .kp-st-attempt > button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -137,102 +136,6 @@
 }
 .kp-st [data-band="mastered"] {
   --c: var(--accent);
-}
-
-/* ---------- tables: one hairline per row, wide ones scroll inside the card ---------- */
-.kp-st-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--line);
-  border-radius: var(--kp-r, 4px);
-}
-.kp-st-scroll[data-tall] {
-  max-height: 32rem;
-  overflow-y: auto;
-}
-.kp-st-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-}
-.kp-st-table th,
-.kp-st-table td {
-  padding: 9px 12px;
-  text-align: left;
-  vertical-align: middle;
-  border-top: 1px solid var(--line);
-}
-.kp-st-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  border-top: 0;
-  background: color-mix(in srgb, var(--bg, #fff) 92%, var(--ink));
-  color: var(--mute);
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.kp-st-table td small {
-  display: block;
-  color: var(--mute);
-  font-size: 13px;
-}
-.kp-st-table [data-num] {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-.kp-st-table tr[data-band] td:first-child {
-  box-shadow: inset 3px 0 0 var(--c);
-}
-.kp-st-sort {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-.kp-st-sort[aria-sort] {
-  color: var(--ink);
-}
-.kp-st-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 10px 14px;
-}
-.kp-st-filters .kp-field {
-  gap: 4px;
-  font-size: 13px;
-}
-.kp-st-filters .kp-select {
-  min-height: 40px;
-  width: auto;
-  padding: 6px 10px;
-  font-size: 15px;
-}
-.kp-st-filters .kp-meta {
-  margin-left: auto;
-}
-
-/* ---------- skills: how the skills spread across the four bands, as one ring per band ---------- */
-.kp-st-spread {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 26px;
-}
-.kp-st-spread > div {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-.kp-st-spread span {
-  display: grid;
-  font-size: 14px;
-  line-height: 1.3;
-}
-.kp-st-spread b {
-  font-weight: 700;
 }
 
 /* ---------- flagged questions ---------- */
@@ -412,30 +315,6 @@
   height: 13px;
 }
 
-/* ---------- tutor controls ---------- */
-.kp-st-search {
-  position: relative;
-}
-.kp-st-search svg {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  translate: 0 -50%;
-  color: var(--mute);
-  pointer-events: none;
-}
-.kp-st-search .kp-input {
-  padding-left: 36px;
-}
-.kp-st-table .kp-select {
-  min-height: 36px;
-  width: auto;
-  padding: 4px 8px;
-  font-size: 14px;
-}
-
 /* ---------- the briefings: one sub-card per session or practice ---------- */
 .kp-st-cards {
   list-style: none;
@@ -563,4 +442,33 @@
   color: var(--ink);
   font-weight: 700;
   cursor: pointer;
+}
+
+/* every answer in the student's Mistake Log (/tutor/[studentId]/answers): one sitting a fold */
+.kp-answers {
+  padding: 4px 0;
+  border-top: 1px solid var(--line);
+}
+.kp-answers summary {
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  cursor: pointer;
+}
+.kp-answers ol {
+  display: grid;
+  gap: 12px;
+  margin: 4px 0 12px;
+  padding-left: 22px;
+}
+.kp-answers .kp-answer-stem {
+  margin: 2px 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.kp-answers li p {
+  margin: 2px 0;
+  overflow-wrap: anywhere;
 }

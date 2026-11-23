@@ -13,8 +13,7 @@ import type { readStudentBriefing } from "@/lib/educator-briefing/server";
 export function BriefingUnavailable() {
   return (
     <p role="status" className="kp-st-empty">
-      The briefing is unavailable right now. No saved work has been changed. Reload this page to try
-      again.
+      The briefing is unavailable right now. Reload to try again.
     </p>
   );
 }
@@ -23,7 +22,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
   if (!briefing.timeZone)
     return (
       <p role="status" className="kp-st-empty">
-        Your account timezone is unavailable, so a calendar-day briefing cannot be shown.{" "}
+        Your time zone is missing, so the briefing can&rsquo;t show.{" "}
         <Link className="kp-link" href="/tutor/schedule">
           Open your schedule
         </Link>
@@ -34,7 +33,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
     <div className="kp-st">
       <form method="get" className="kp-st-day">
         <label className="kp-field">
-          <span>Briefing date</span>
+          <span>Date</span>
           <input
             type="date"
             name="date"
@@ -49,9 +48,7 @@ export function DailyBriefingView({ briefing }: { briefing: DailyBriefing }) {
         <p className="kp-meta">Times in {briefing.timeZone}</p>
       </form>
       {briefing.sessions.length === 0 ? (
-        <p className="kp-st-empty">
-          No scheduled sessions with students in your current roster on this date.
-        </p>
+        <p className="kp-st-empty">No sessions on this day.</p>
       ) : (
         <ul className="kp-st-cards">
           {briefing.sessions.map((session) => (
@@ -82,7 +79,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
   return (
     <div className="kp-st">
       <p className="kp-meta">
-        The most recent 30 saved skill-practice sessions are shown. Earlier quizzes remain in the{" "}
+        Earlier quizzes are in the{" "}
         <Link
           href={`/tutor/${encodeURIComponent(briefing.studentClerkId)}?tab=quiz`}
           className="kp-link"
@@ -92,11 +89,10 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
         .
       </p>
       <p role="note" className="kp-st-note">
-        Assigned practice is not yet linked to individual tutoring sessions here. These records do
-        not establish session-homework deadlines, lateness, or parent notices.
+        Assigned practice is not yet linked to sessions, so no due dates or lateness show here.
       </p>
       {briefing.attempts.length === 0 ? (
-        <p className="kp-st-empty">No saved skill-practice sessions were found.</p>
+        <p className="kp-st-empty">No saved practice yet.</p>
       ) : (
         <ul className="kp-st-cards" data-one="">
           {briefing.attempts.map((attempt) => {
@@ -141,10 +137,10 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
                   (UTC)
                 </p>
                 {attempt.missed.length === 0 ? (
-                  <p className="kp-meta">No missed answers among the responses saved so far.</p>
+                  <p className="kp-meta">No misses yet.</p>
                 ) : (
                   <>
-                    <h3>Recorded misses ({attempt.missed.length})</h3>
+                    <h3>Misses ({attempt.missed.length})</h3>
                     <ul className="kp-st-misses">
                       {attempt.missed.map((miss) => (
                         <li key={miss.ordinal}>
@@ -166,9 +162,7 @@ export function StudentBriefingView({ briefing }: { briefing: StudentBriefing })
         </ul>
       )}
       {briefing.hasMore && (
-        <p className="kp-meta">
-          Older skill-practice sessions are outside this briefing. Their saved history is preserved.
-        </p>
+        <p className="kp-meta">Latest 30 shown. Older skill-practice sessions are kept.</p>
       )}
     </div>
   );

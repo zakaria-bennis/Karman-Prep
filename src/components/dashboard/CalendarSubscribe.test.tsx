@@ -75,6 +75,6 @@ describe("CalendarSubscribe", () => {
     actions.getCalendarFeedLinks.mockRejectedValue(new Error("boom"));
     render(<CalendarSubscribe audience="student" />);
     fireEvent.click(screen.getByRole("button", { name: "Add to your calendar" }));
-    expect((await screen.findByRole("alert")).textContent).toContain("could not load");
+    expect((await screen.findByRole("alert")).textContent).toContain("didn't load");
   });
 });

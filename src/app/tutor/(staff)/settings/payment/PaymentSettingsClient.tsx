@@ -70,9 +70,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
         <Alert tone="ok">Stripe is set up. You can now ask for payouts.</Alert>
       )}
       {state.justOnboarded && status === "incomplete" && (
-        <Alert style={WARN_ALERT}>
-          Almost done. Stripe still needs a few details before it can pay you.
-        </Alert>
+        <Alert style={WARN_ALERT}>Stripe still needs a few details.</Alert>
       )}
       {state.justUpdated && <Alert tone="ok">Payment details updated.</Alert>}
       {error && <Alert role="alert">{error}</Alert>}
@@ -83,8 +81,8 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
         {status === "not_started" && (
           <>
             <p className="kp-meta">
-              You haven&apos;t set up payouts yet. Stripe asks for your name, address, date of birth
-              and a bank account (or a debit card for instant payouts). It takes about 3 minutes.
+              Stripe asks for your name, address, date of birth and a bank account (or a debit card
+              for instant payouts). About 3 minutes.
             </p>
             <Cta
               onClick={() => call(actionStartOnboarding, (r) => go(r.url))}
@@ -98,9 +96,7 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
 
         {status === "incomplete" && (
           <>
-            <p className="kp-meta">
-              Stripe needs more information before it can pay you. Finish onboarding to carry on.
-            </p>
+            <p className="kp-meta">Stripe needs a few more details before it can pay you.</p>
             {state.requirements.length > 0 && (
               <details className="wb-note" style={{ marginTop: 8 }}>
                 <summary style={{ cursor: "pointer" }}>
@@ -168,16 +164,15 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
       </Card>
 
       <Card>
-        <SectionHeader title="How payouts work" />
+        <SectionHeader title="Payouts" />
         <p className="kp-meta">
-          <b>ACH (standard).</b> Free, so you get 100%. It reaches your bank account in 2 to 5
-          business days.
+          <b>ACH.</b> Free. Reaches your bank in 1 to 2 business days.
         </p>
         <p className="kp-meta">
-          <b>Instant.</b> A 2.5% fee, so you get 97.5%. It reaches your debit card in seconds.
+          <b>Instant.</b> 2.5% fee. Reaches your debit card within 30 minutes.
         </p>
         <p className="wb-note" style={{ marginTop: 8 }}>
-          You choose the method each time you ask for a payout. No hidden fees and no minimum.
+          You pick the method each time. No minimum.
         </p>
       </Card>
     </>
@@ -217,10 +212,9 @@ function Alert({
 
 function humanize(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
-  if (msg === "missing_email") return "Your account doesn't have an email on file. Contact admin.";
+  if (msg === "missing_email") return "Your account has no email on file. Contact an admin.";
   if (msg === "not_onboarded_yet") return "Finish initial onboarding before updating details.";
-  if (msg === "forbidden") return "Tutor access required.";
-  if (msg.startsWith("save_account_failed"))
-    return "Failed to save your Stripe account ID. Try again.";
+  if (msg === "forbidden") return "Tutors only.";
+  if (msg.startsWith("save_account_failed")) return "Your Stripe account didn't save. Try again.";
   return msg;
 }

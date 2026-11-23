@@ -51,8 +51,6 @@ export const SECTION_SHAPE: Record<Section, { perModule: number; minutes: number
 /** Module 1 right answers needed for the harder Module 2 (about 55%). */
 export const ROUTE_HARDER_FROM: Record<Section, number> = { reading: 15, math: 12 };
 
-export const FULL_LENGTH_FORMS = 4;
-
 export type Band = readonly number[];
 
 /** Difficulty targets per band, cycled in order. `maxDifficulty` is 5 (core) or 7 (mastery). */
@@ -147,77 +145,6 @@ export function pickFromDomain(
 }
 
 export type AssembledModule = { items: BankItem[] };
-export type AssembledSection = {
-  section: Section;
-  module1: BankItem[];
-  easier: BankItem[];
-  harder: BankItem[];
-};
-export type FullLengthForm = { form: number; sections: AssembledSection[] };
-
-function moduleFor(
-  pool: readonly BankItem[],
-  section: Section,
-  band: Band,
-  picker: Picker
-): BankItem[] {
-  const out: BankItem[] = [];
-  MODULE_BLUEPRINT[section].forEach(({ domainId, count }, index) => {
-    out.push(...pickFromDomain(pool, domainId, count, band, picker, index * 3));
-  });
-  // Spread the Domains through the module rather than in blocks, easier questions first.
-  return out.sort(
-    (a, b) =>
-      a.difficulty - b.difficulty ||
-      stableHash(`${picker.seed}:${a.id}`) - stableHash(`${picker.seed}:${b.id}`)
-  );
-}
-
-/**
- * Builds forms 1 to `upTo` in order, so later forms never reuse an earlier form's families.
- * `exclude` carries families the student already met in full-length tests they took before.
- */
-export function assembleFullLengthForms(
-  pool: readonly BankItem[],
-  options: { upTo: number; maxDifficulty: number; exclude?: Iterable<string>; seed?: string }
-): FullLengthForm[] {
-  const used = new Set(options.exclude ?? []);
-  const forms: FullLengthForm[] = [];
-  for (let form = 1; form <= options.upTo; form++) {
-    const picker: Picker = {
-      used,
-      seed: `${options.seed ?? "karman-full-length"}:${form}`,
-      maxDifficulty: options.maxDifficulty,
-    };
-    const sections = (["reading", "math"] as const).map((section) => {
-      const sectionPool = pool.filter((item) => item.section === section);
-      return {
-        section,
-        module1: moduleFor(
-          sectionPool,
-          section,
-          bandTargets("mixed", picker.maxDifficulty),
-          picker
-        ),
-        harder: moduleFor(
-          sectionPool,
-          section,
-          bandTargets("harder", picker.maxDifficulty),
-          picker
-        ),
-        easier: moduleFor(
-          sectionPool,
-          section,
-          bandTargets("easier", picker.maxDifficulty),
-          picker
-        ),
-      };
-    });
-    forms.push({ form, sections });
-  }
-  return forms;
-}
-
 /**
  * A time trial: one module of `section` in the full-length blueprint, mixed difficulty. Questions
  * the student has not answered come first; the rest of the pool fills any gap. Families never

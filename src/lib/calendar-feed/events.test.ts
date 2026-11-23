@@ -58,7 +58,7 @@ describe("studentFeedEvents", () => {
     if (first.kind === "timed") {
       expect(first.location).toBe("https://zoom.us/j/1");
       expect(first.description).toContain("Join on Zoom: https://zoom.us/j/1");
-      expect(first.url).toBe("https://karmanprep.com/dashboard/student/schedule");
+      expect(first.url).toBe("https://karmanprep.com/dashboard/student?page=schedule");
     }
   });
 

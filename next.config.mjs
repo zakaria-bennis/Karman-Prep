@@ -19,6 +19,9 @@ const SECURITY_HEADERS = [
 const nextConfig = {
   // No "x-powered-by: Next.js" on responses.
   poweredByHeader: false,
+  // Development only: other names this computer may be opened by (a phone on the same network or
+  // cable). Set DEV_ORIGINS to a comma-separated list of hosts; with none, only localhost may.
+  allowedDevOrigins: (process.env.DEV_ORIGINS ?? "").split(",").filter(Boolean),
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
@@ -26,10 +29,60 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/plans", destination: "/pricing", permanent: true },
-      // The student's Account page became Settings (2026-11-08). Old links still land.
+      // The student portal is one page now (2026-11-22): the old addresses open the matching tab.
       {
         source: "/dashboard/student/account",
-        destination: "/dashboard/student/settings",
+        destination: "/dashboard/student?page=account",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/settings",
+        destination: "/dashboard/student?page=account",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/library",
+        destination: "/dashboard/student?page=library",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/progress",
+        destination: "/dashboard/student?page=progress",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/homework",
+        destination: "/dashboard/student?page=homework",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/schedule",
+        destination: "/dashboard/student?page=schedule",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/rewards",
+        destination: "/dashboard/student?page=rewards",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/chat",
+        destination: "/dashboard/student?page=chat",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/library/:path*",
+        destination: "/dashboard/student?page=library",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/quizzes/:path*",
+        destination: "/dashboard/student",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/student/invite-parent",
+        destination: "/dashboard/student?page=account&folder=people",
         permanent: false,
       },
       { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },

@@ -2792,7 +2792,7 @@
   {
     "cat": "implicit",
     "rows": ["a(2)"],
-    "desmos": [{ "error": "Add y= at the start." }]
+    "desmos": [{ "error": "a isn't defined yet. Define a(x) = ... on its own line first." }]
   },
   {
     "cat": "implicit",
@@ -4837,7 +4837,7 @@
   {
     "cat": "piecewise",
     "rows": ["\\{1\\}"],
-    "desmos": [{ "error": "A piecewise needs at least one condition." }]
+    "desmos": [{ "error": "Lists use [ ], like [4, 7]. { } needs a condition." }]
   },
   { "cat": "piecewise", "rows": ["\\{x>0\\}"], "desmos": [{ "graph": true, "shown": false }] },
   { "cat": "piecewise", "rows": ["\\{x>0:1\\}"], "desmos": [{ "graph": true, "shown": false }] },
@@ -5255,7 +5255,7 @@
     "rows": ["y\\sim x"],
     "desmos": [
       {
-        "error": "y can't be a regression parameter."
+        "error": "Use the data's name here, like y_1, not y."
       }
     ]
   },
@@ -6073,7 +6073,7 @@
     "rows": ["y\\sim y"],
     "desmos": [
       {
-        "error": "y can't be a regression parameter."
+        "error": "Use the data's name here, like y_1, not y."
       }
     ]
   },
@@ -6082,7 +6082,7 @@
     "rows": ["y\\sim mx+b"],
     "desmos": [
       {
-        "error": "y can't be a regression parameter."
+        "error": "Use the data's name here, like y_1, not y."
       }
     ]
   },
@@ -6096,7 +6096,7 @@
     "rows": ["x\\sim y"],
     "desmos": [
       {
-        "error": "x can't be a regression parameter."
+        "error": "Use the data's name here, like x_1, not x."
       }
     ]
   },

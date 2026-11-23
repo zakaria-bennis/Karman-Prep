@@ -36,6 +36,10 @@ const TABLES = [
   { name: "answer_choices", key: "id" },
   { name: "answer_key_entries", key: "id" },
   { name: "source_assets", key: "id", nullColumns: ["pdf_job_id"] },
+  // the 72-skill tags and the 20 full-length exams (2026-11-22)
+  { name: "question_skills72", key: "question_id" },
+  { name: "exam_forms", key: "form" },
+  { name: "exam_form_items", key: "question_id" },
 ];
 
 // ── production: read-only ────────────────────────────────

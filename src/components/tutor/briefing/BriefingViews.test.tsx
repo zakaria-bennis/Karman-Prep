@@ -14,7 +14,7 @@ describe("briefing presentation", () => {
   it("separates unavailable from empty", () => {
     const { unmount } = render(<BriefingUnavailable />);
     expect(screen.getByRole("status").textContent).toContain("unavailable");
-    expect(screen.queryByText("No saved skill-practice sessions were found.")).toBeNull();
+    expect(screen.queryByText("No saved practice yet.")).toBeNull();
     unmount();
     render(
       <StudentBriefingView
@@ -27,7 +27,7 @@ describe("briefing presentation", () => {
         }}
       />
     );
-    expect(screen.getByText("No saved skill-practice sessions were found.")).toBeTruthy();
+    expect(screen.getByText("No saved practice yet.")).toBeTruthy();
   });
   it("links exact original miss and preserves unknown completed scores", () => {
     render(

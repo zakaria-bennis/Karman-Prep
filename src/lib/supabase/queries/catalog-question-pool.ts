@@ -11,6 +11,8 @@ import {
   reviewedNumericAnswers,
 } from "@/lib/question-bank/numeric-answer-set";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
+import { practiceOnly, practicePlanOnly } from "@/lib/assembler/pools";
+import { generatedHidden } from "@/lib/generator/switch";
 
 /** One bad row is left out with a log line; it never breaks the whole skill. */
 function skipQuestion(questionId: string | null, reason: string) {
@@ -19,8 +21,20 @@ function skipQuestion(questionId: string | null, reason: string) {
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-/** Canonical catalog read lane; existing node/slug pools and histories are never rewritten. */
-export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQuestionWithChoices[]> {
+/**
+ * Canonical catalog read lane; existing node/slug pools and histories are never rewritten. Practice
+ * questions only, unless a server script (the exam form builder) passes `lane: "whole-bank"` as the
+ * second argument; nothing a student sends can reach it.
+ */
+export async function fetchCatalogQuestionPool(
+  input: unknown,
+  lane: "practice" | "whole-bank" = "practice",
+  /** Server only, from the student's plan: core plans (Free, Practice, school seats) read only the
+   *  Practice plan's fixed set (quiz_questions.practice_plan; founder, 2026-11-13). `onlyIds`
+   *  limits the read to these questions (a pool that samples first, src/lib/play/server/pool72.ts):
+   *  the same checks, on a few dozen rows instead of the whole skill. */
+  options: { practiceSet?: boolean; onlyIds?: readonly string[] } = {}
+): Promise<QuizQuestionWithChoices[]> {
   const scope = catalogPoolInputSchema.parse(input);
   const skill = CATALOG_SKILLS.find((candidate) => candidate.id === scope.skillId)!;
   const db = createAdminClient();
@@ -33,13 +47,16 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
     `raw_model_response->evidence->approved_tags->>catalog_skill_id.eq.${skill.id}`,
   ].join(",");
   const pageSize = 500;
-  for (let offset = 0; ; offset += pageSize) {
-    const { data, error } = await db
+  const only = options.onlyIds ? [...new Set(options.onlyIds)] : null;
+  if (only && !only.length) return [];
+  for (let offset = 0; ; offset += only ? 200 : pageSize) {
+    const read = db
       .from("answer_key_entries")
       .select("id, question_id, raw_model_response")
-      .or(filter)
-      .order("id", { ascending: true })
-      .range(offset, offset + pageSize - 1);
+      .or(filter);
+    const { data, error } = await (only
+      ? read.in("question_id", only.slice(offset, offset + 200))
+      : read.order("id", { ascending: true }).range(offset, offset + pageSize - 1));
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const key of data ?? []) {
       if (!key.question_id) {
@@ -64,16 +81,18 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
       }
       if (tag.publicationAllowed) evidence.set(key.question_id, key.raw_model_response);
     }
-    if ((data ?? []).length < pageSize) break;
+    if (only ? offset + 200 >= only.length : (data ?? []).length < pageSize) break;
   }
   for (const id of ambiguous) {
     skipQuestion(id, "reviewed skill evidence is ambiguous");
     evidence.delete(id);
   }
   const ids = [...evidence.keys()];
+  // An admin can hide every generated question at once (src/lib/generator/switch.ts).
+  const hideGenerated = ids.length > 0 && (await generatedHidden());
   const questions: QuizQuestionWithChoices[] = [];
   for (let offset = 0; offset < ids.length; offset += 200) {
-    const { data, error } = await db
+    const query = db
       .from("quiz_questions")
       .select("*, answer_choices(*)")
       .in("id", ids.slice(offset, offset + 200))
@@ -83,8 +102,15 @@ export async function fetchCatalogQuestionPool(input: unknown): Promise<QuizQues
       .eq("domain", skill.domainId)
       .in("topic_cluster", clusterLabelsForDomain(skill.domainId as SATDomain))
       .gte("difficulty_level", scope.minimumDifficulty)
-      .lte("difficulty_level", scope.maximumDifficulty)
-      .order("id", { ascending: true });
+      .lte("difficulty_level", scope.maximumDifficulty);
+    // Practice only: questions held for the full-length exams never reach a practice pool.
+    const shown = hideGenerated ? query.filter("origin", "neq", "generated") : query;
+    const practice = lane === "practice" ? practiceOnly(shown) : shown;
+    const { data, error } = await (
+      options.practiceSet ? practicePlanOnly(practice) : practice
+    ).order("id", {
+      ascending: true,
+    });
     if (error) throw new Error("Reviewed skill questions could not be loaded");
     for (const row of data ?? []) {
       const raw = evidence.get(row.id);

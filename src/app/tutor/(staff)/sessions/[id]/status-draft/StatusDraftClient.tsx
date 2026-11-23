@@ -156,7 +156,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           setEditMode(false);
         } else {
           setError(
-            `Transcript saved, but draft generation failed: ${res.draftError}. Write the draft manually below.`
+            `Transcript saved, but the draft didn't generate: ${res.draftError}. Write it below.`
           );
           setEditMode(true);
         }
@@ -194,7 +194,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
     <div className="space-y-6">
       {/* ── Header ──────────────────────────────────────── */}
       <header>
-        <h2 className="kp-title">Session recap draft: {data.studentName}</h2>
+        <h2 className="kp-title">Recap draft: {data.studentName}</h2>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[color:var(--mute)]">
           <span>{sessionDateLabel}</span>
           <span className="text-[color:var(--mute)]">·</span>
@@ -225,8 +225,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <h2 className="text-sm font-bold text-[color:var(--ink)]">No transcript yet</h2>
           </div>
           <p className="mb-3 text-sm text-[color:var(--mute)]">
-            If Fireflies has a transcript for this session, the draft will appear here
-            automatically. Otherwise, paste the transcript below and we&apos;ll generate the draft.
+            Fireflies adds it on its own. Or paste it below.
           </p>
           <textarea
             value={pendingTranscript}
@@ -257,8 +256,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
         <div className="flex items-start gap-2 rounded border border-[color-mix(in_srgb,var(--late)_30%,transparent)] bg-[color-mix(in_srgb,var(--late)_5%,transparent)] px-4 py-3 text-sm text-[color:var(--late)]">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <strong>Draft generation failed.</strong> The transcript is saved. You can write the
-            recap manually in the form below or regenerate.
+            <strong>The draft didn&apos;t generate.</strong> The transcript is saved. Write the
+            recap below, or regenerate.
             <div className="mt-1 font-mono text-xs text-[color-mix(in_srgb,var(--late)_80%,transparent)]">
               {data.draftError}
             </div>
@@ -315,7 +314,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
                     onClick={handleRegenerate}
                     disabled={isPending}
                     className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--line)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink)] hover:bg-[color:var(--raised)] disabled:opacity-40"
-                    title="Re-run OpenAI on the stored transcript"
+                    title="Draft again from the transcript"
                   >
                     {isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -361,9 +360,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
             <div className="sticky top-6 rounded border border-[color:var(--line)] bg-[color-mix(in_srgb,var(--card)_40%,transparent)] p-5">
               <div className="mb-3 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-[color:var(--info)]" />
-                <h2 className="text-sm font-bold text-[color:var(--ink)]">
-                  Preview — what the parent sees
-                </h2>
+                <h2 className="text-sm font-bold text-[color:var(--ink)]">Preview</h2>
               </div>
               <RecapPreview
                 draft={draft}
@@ -385,9 +382,8 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
           </div>
           {allRecipients.length === 0 ? (
             <p className="text-sm text-[color:var(--mute)]">
-              No email addresses on file for this student or any linked parents. Add a parent
-              linkage in <code>parent_student_links</code> or update the student email before
-              sending.
+              No email on file for this student or a linked parent. Link a parent or add the
+              student&apos;s email first.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -423,7 +419,7 @@ export default function StatusDraftClient({ data }: { data: StatusDraftPageData 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <p className="text-xs text-[color:var(--mute)]">
             {!allFieldsFilled
-              ? `Fill in all ${FIELDS.length} fields to enable sending.`
+              ? `Fill in all ${FIELDS.length} fields to send.`
               : recipientIds.size === 0
                 ? "Pick at least one recipient."
                 : !isOneOnOne

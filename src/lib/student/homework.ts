@@ -23,7 +23,7 @@ import { CATALOG_SKILLS, SKILL_DOMAINS } from "@/data/curriculum/skill-catalog";
 import { catalogSessionHref } from "@/lib/catalog-practice/student-entry";
 import { listSchoolHomeworkForStudent } from "@/lib/school/homework";
 import { createAdminClient } from "@/lib/supabase/server";
-import { assignedSetHref, courseSlug, practiceHref } from "./course";
+import { assignedSetHref, practiceHref } from "./course";
 import {
   COHORT_LATE_DAYS,
   FULL_LENGTH,
@@ -36,7 +36,7 @@ import {
   type StudentHomeworkItem,
 } from "./homework-model";
 import { TRIAL_MODULE, type TrialSection } from "./time-trial";
-import { TIME_TRIAL } from "./quiz-routes";
+import { TIME_TRIAL, domainQuiz } from "./quiz-routes";
 import { assignmentState, type Assignment } from "./unlocks";
 
 export * from "./homework-model";
@@ -79,8 +79,9 @@ const skillLabel = (id: string | null) => CATALOG_SKILLS.find((s) => s.id === id
 
 function domainHref(domainId: string | null): string {
   const domain = SKILL_DOMAINS.find((d) => d.id === domainId);
-  if (!domain) return "/dashboard/student/library";
-  return `/dashboard/student/library/${courseSlug(domain.subject)}?domain=${encodeURIComponent(domain.id)}`;
+  if (!domain) return "/dashboard/student?page=library";
+  // a domain's homework is its Domain quiz
+  return domainQuiz(domain.id).path;
 }
 
 interface SessionInfo {
@@ -283,14 +284,15 @@ export async function loadStudentHomework(
     const kind = str(r.kind);
     const target = str(r.target_id);
     const done = r.status === "completed";
-    let href = "/dashboard/student/library#tests";
+    // A full-length test opens the exam list, which starts the next exam (src/app/learn/tests).
+    let href = "/learn/tests";
     let size: StudentHomeworkItem["size"] = {
       questions: FULL_LENGTH.questions,
       timedMinutes: FULL_LENGTH.minutes,
     };
     let result: HomeworkResult | null = null;
     if (kind === "skill_practice") {
-      href = target ? practiceHref(target) : "/dashboard/student/library";
+      href = target ? practiceHref(target) : "/dashboard/student?page=library";
       size = { questions: PRACTICE_SET_QUESTIONS };
       if (done) {
         const from = str(r.created_at) ?? "";
@@ -417,7 +419,7 @@ export async function loadStudentHomework(
           ? null
           : a.kind === "time_trial" && a.section
             ? `${TIME_TRIAL.path}?section=${a.section}`
-            : "/dashboard/student/library#practice",
+            : "/dashboard/student?page=library#practice",
       note: null,
       from: a.tutor || null,
       completedAt: a.completedAt,

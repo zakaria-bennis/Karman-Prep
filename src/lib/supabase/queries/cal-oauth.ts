@@ -145,7 +145,7 @@ export async function getValidCalAccessToken(tutorUserId: string): Promise<strin
 }
 
 /** True if we've emailed the admin about this tutor's incomplete
- *  setup in the last 24h. Driver of dedup on /dashboard/student/schedule
+ *  setup in the last 24h. Driver of dedup on /dashboard/student?page=schedule
  *  so we don't fire the alert on every student page load. */
 export async function shouldAlertAdminAboutMissingSetup(tutorUserId: string): Promise<boolean> {
   const supabase = createAdminClient();

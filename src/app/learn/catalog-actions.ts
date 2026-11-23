@@ -7,7 +7,7 @@ import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { fetchCatalogQuestionPool } from "@/lib/supabase/queries/catalog-question-pool";
 import { catalogPoolInputSchema } from "@/lib/question-bank/catalog-question-scope";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
-import { difficultyRangeFor, getPlan } from "@/lib/plans";
+import { difficultyRangeFor, getPlan, usesPracticeSet } from "@/lib/plans";
 
 /** Read-only pool preview. Starting/saving a canonical attempt is a separate scoped lane.
  *  The student's plan decides the pool on the server (src/lib/plans): core plans (Free,
@@ -24,12 +24,14 @@ export async function actionCatalogPracticePool(input: unknown) {
 
   const plan = await getPlan(userId);
   const cap = difficultyRangeFor(plan).maximumDifficulty;
+  const practiceSet = usesPracticeSet(plan);
   const rows =
     scope.minimumDifficulty <= cap
-      ? await fetchCatalogQuestionPool({
-          ...scope,
-          maximumDifficulty: Math.min(scope.maximumDifficulty, cap),
-        })
+      ? await fetchCatalogQuestionPool(
+          { ...scope, maximumDifficulty: Math.min(scope.maximumDifficulty, cap) },
+          "practice",
+          { practiceSet }
+        )
       : [];
   if (rows.length > 0 || plan.entitlements.pool === "mastery") {
     return rows.map(toStudentQuizQuestion);

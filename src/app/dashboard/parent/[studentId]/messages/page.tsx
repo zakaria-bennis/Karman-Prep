@@ -109,7 +109,7 @@ export default async function ParentMessagesPage({
         <p className="kp-meta">Compared with the 7 days before.</p>
       </Card>
       <Card label="Quick requests">
-        <SectionHeader title="Need something?" />
+        <SectionHeader title="Requests" />
         {(["miss_class", "move_session", "book_session"] as const).map((k) => (
           <p key={k} style={{ margin: "6px 0" }}>
             <a className="kp-link" href={`${base}/messages?kind=${k}#write`}>
@@ -125,9 +125,9 @@ export default async function ParentMessagesPage({
     <ParentShell ctx={ctx} child={child} title="Messages">
       <Panel side={side}>
         <ActionMessage done={done} error={error} />
-        <Card label="Notes from the tutor">
+        <Card label="Tutor notes">
           <SectionHeader
-            title="Notes from the tutor"
+            title="Tutor notes"
             note={notes.length ? <Num>{notes.length}</Num> : undefined}
           />
           {notes.length ? (
@@ -141,16 +141,14 @@ export default async function ParentMessagesPage({
                   <p className="kp-note-body">{n.body}</p>
                   <Stats week={n.week} before={notes[i + 1]?.week ?? null} />
                   <p className="kp-meta" style={{ margin: 0 }}>
-                    {child.firstName}&rsquo;s practice in the 7 days before this note
-                    {notes[i + 1] ? ", next to the note before it." : "."}
+                    Practice in the 7 days before this note.
                   </p>
                 </li>
               ))}
             </ol>
           ) : (
             <p className="kp-meta">
-              After each session, {child.firstName}&rsquo;s tutor leaves a note here, with a look at
-              that week&rsquo;s practice.
+              No notes yet. {child.firstName}&rsquo;s tutor writes one after each session.
             </p>
           )}
         </Card>
@@ -160,10 +158,7 @@ export default async function ParentMessagesPage({
           {thread.length ? (
             <Thread messages={thread} mine="parent" />
           ) : (
-            <p className="kp-meta">
-              Questions about {child.firstName}&rsquo;s prep, a class to miss, a session to move:
-              write to us here and we&rsquo;ll answer here.
-            </p>
+            <p className="kp-meta">No messages yet. Write to us below.</p>
           )}
           {canWrite ? (
             <form action={sendFamilyMessageAction} className="kp-form" style={{ marginTop: 16 }}>
@@ -184,7 +179,7 @@ export default async function ParentMessagesPage({
                   <span>Which session?</span>
                   <small>
                     {NEEDS_SESSION.has(kind)
-                      ? "Pick the one your student will miss or wants to move."
+                      ? "The one to miss or move."
                       : "Only for missing or moving a session."}
                   </small>
                   <select name="sessionId" className="kp-select" defaultValue={pickedSession ?? ""}>

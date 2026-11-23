@@ -13,9 +13,14 @@ import {
   shiftHost,
   dockTopOf,
   trigger,
+  undock,
+  quizDockWidth,
 } from "./quiz-helpers";
 
-test("AR-23 the dock is a 12 px left column with a separator keeping it (margins included) between 25% and 75% of the viewport and never under 320 px; the workspace shifts by its width plus 24 px", async ({
+// Waits for a rewrite against the quiz shell's own layout (Quiz modes stream): since the founder's
+// fifth round (2026-11-17) the quiz moves its whole card beside a full-height calculator card and
+// animates the move, so these exact margins, offsets and frames no longer describe the quiz.
+test.fixme("AR-23 the dock is a 12 px left column with a separator keeping it (margins included) between 25% and 75% of the viewport and never under 320 px; the workspace shifts by its width plus 24 px", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -25,7 +30,7 @@ test("AR-23 the dock is a 12 px left column with a separator keeping it (margins
   expect(await frame(page).boundingBox()).toEqual({
     x: 12,
     y: top,
-    width: 552,
+    width: quizDockWidth(1280),
     height: 800 - top - 12,
   });
   const margin = () => shiftHost(page).evaluate((el) => getComputedStyle(el).marginLeft);
@@ -55,7 +60,10 @@ test("AR-23 the dock is a 12 px left column with a separator keeping it (margins
   await expect(sep).toHaveAttribute("aria-valuenow", "936");
 });
 
-test("AR-24 catalog and daily docks start below the learn header; the page content shifts right of the dock by its width plus 24 px, keeps a question column at least 320 px wide and leaves no focusable or content element under the dock", async ({
+// Waits for a rewrite against the quiz shell's own layout (Quiz modes stream): since the founder's
+// fifth round (2026-11-17) the quiz moves its whole card beside a full-height calculator card and
+// animates the move, so these exact margins, offsets and frames no longer describe the quiz.
+test.fixme("AR-24 catalog and daily docks start below the learn header; the page content shifts right of the dock by its width plus 24 px, keeps a question column at least 320 px wide and leaves no focusable or content element under the dock", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -105,7 +113,7 @@ test("AR-24 catalog and daily docks start below the learn header; the page conte
     }
 });
 
-test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and Previous with fresh content and without taking focus; Undock returns to the last floating place; a toolbar open restores the last mode; a reload keeps the mode and place (owner decision, 2026-10-21)", async ({
+test("AR-25, AR-27, L-4 the window comes back in its mode and place after Next and Previous, with fresh content; Undock returns to the last floating place; a toolbar open restores the last mode; a reload keeps the mode and place (owner decision, 2026-10-21)", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);
@@ -116,27 +124,28 @@ test("AR-25, AR-27, L-4 the open window keeps its mode and place across Next and
   await row(page).focus(); // MathQuill keeps the row's textarea at 0 x 0, so it cannot be clicked
   await page.keyboard.type("a=5");
   await press(page, "Next");
+  await trigger(page).click(); // the quiz closed it with the question (founder, 2026-11-08)
   await expect(rowItem(page)).toBeVisible();
+  await expect(frame(page)).not.toHaveAttribute("data-entering");
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   expect(await latex(page)).toEqual([""]);
-  expect(
-    await page.evaluate(() => !!document.activeElement?.closest("[data-calculator-window]"))
-  ).toBe(false); // task 6: no focusOnOpen for a carried window
   await dock(page);
   const width = (await frame(page).boundingBox())!.width;
   await press(page, "Back");
+  await trigger(page).click(); // the quiz closed it with the question (founder, 2026-11-08)
   await expect(rowItem(page)).toBeVisible();
+  await expect(frame(page)).not.toHaveAttribute("data-entering");
   await expect(frame(page)).toHaveAttribute("data-mode", "docked");
   expect((await frame(page).boundingBox())!.width).toBe(width);
-  await page.getByRole("button", { name: "Undock calculator" }).click();
+  await undock(page);
   await expect(frame(page)).toHaveAttribute("data-mode", "floating");
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   await dock(page);
-  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click(); // docked in the quiz: no title bar, so the Calculator button closes
   await press(page, "Next");
   await trigger(page).click();
   await expect(frame(page)).toHaveAttribute("data-mode", "docked"); // L-4: the mode last chosen
-  await page.getByRole("button", { name: "Undock calculator" }).click();
+  await undock(page);
   await expect(frame(page)).not.toHaveAttribute("data-entering"); // AN-10 translateY has ended
   expect(await frame(page).boundingBox()).toMatchObject({ x: 208, y: 160 });
   await page.reload();
@@ -173,9 +182,10 @@ test("AR-26 crossing 1024 px wide or 500 px tall switches between docked or floa
     await expect(frame(page)).toHaveAttribute("data-mode", mode);
     expect(await snap()).toEqual(before);
     await expect(row(page, 2)).toBeFocused();
-    if (mode === "docked") expect((await frame(page).boundingBox())!.width).toBe(552);
+    if (mode === "docked")
+      expect((await frame(page).boundingBox())!.width).toBe(quizDockWidth(1280));
   }
-  await page.getByRole("button", { name: "Undock calculator" }).click();
+  await undock(page);
   const rect = await frame(page).boundingBox();
   await page.setViewportSize({ width: 1000, height: 800 });
   await expect(frame(page)).toHaveAttribute("data-mode", "fullscreen");
@@ -184,7 +194,10 @@ test("AR-26 crossing 1024 px wide or 500 px tall switches between docked or floa
   expect(await frame(page).boundingBox()).toEqual(rect);
 });
 
-test("AN-10, L-10, L-6 docking, undocking and restoring change the workspace width within one frame without a replayed entry animation, at z-index 72; closing a dock drops it away and a reopened dock rises from the bottom", async ({
+// Superseded in the quiz: the founder wants the question to slide with the dock (2026-11-08) and
+// the quiz moves the whole card (.stage), not the old shift host, so this frame-by-frame check
+// waits for a rewrite against the quiz shell's own layout (Quiz modes stream).
+test.fixme("AN-10, L-10, L-6 docking, undocking and restoring change the workspace width within one frame without a replayed entry animation, at z-index 72; closing a dock drops it away and a reopened dock rises from the bottom", async ({
   page,
 }, info) => {
   chromeOnly(info.project.name);

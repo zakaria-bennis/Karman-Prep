@@ -1,0 +1,701 @@
+/*
+ * Today's tasks, the ways to practice, the icon tiles and their movements, and the main button.
+ * Sizes, colours and corners come from the page (library.module.css sets them on .library).
+ */
+.glass {
+  padding: var(--pad);
+  border-radius: var(--r-piece);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    var(--lift),
+    inset 0 0 0 1px var(--glass-edge),
+    inset 0 1px 0 1px var(--glass-shine);
+  animation: settle 0.22s var(--out) both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.today,
+.modes {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: calc(var(--pad) * 2);
+}
+
+.today ul {
+  display: grid;
+  gap: 16px;
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.taskWords {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.taskWords b,
+.mode b {
+  font-weight: 600;
+}
+
+.taskWords > span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.taskWords .streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.modes ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 calc(var(--pad) * -1) calc(var(--pad) * -1);
+}
+
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;
+  padding: var(--pad) calc(var(--pad) + 6px) var(--pad) var(--pad);
+  border-radius: var(--r-lens);
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.2s var(--out),
+    transform 0.2s var(--out);
+}
+
+.mode:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) {
+  .mode:hover {
+    background: var(--hover);
+  }
+}
+
+/* ---- the tile an icon sits on ---- */
+.tile {
+  --tint: var(--p2);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: var(--r-lens);
+  background: color-mix(in srgb, var(--tint) 16%, var(--lens));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tint) 40%, var(--lens-edge));
+}
+
+.tile svg {
+  display: block;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tile[data-done] {
+  background: var(--p3);
+  color: #fffdf8;
+  box-shadow: 0 0 0 1px var(--sq-edge);
+  animation: pop 0.4s cubic-bezier(0.3, 1.7, 0.45, 1);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+
+/* ---- each icon's own movement ---- */
+.tile [data-a],
+.streak [data-a] {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+
+.tile [data-a="card"] {
+  transform-origin: 12px 21px;
+  transform: rotate(calc(var(--n) * 7deg));
+}
+
+.tile [data-a="wind"] {
+  transform-box: fill-box;
+  animation: wind 0.7s linear infinite;
+  animation-delay: var(--lag);
+}
+
+@keyframes wind {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(-70px);
+    opacity: 0;
+  }
+}
+
+/* the fire breathes from the watch's own edge: it stretches and settles about the watch's centre
+   (the origin of the group it is drawn in), so it never comes away from the rim */
+.tile [data-a="flame"] {
+  transform-origin: 0 0;
+  animation: flame 0.42s ease-in-out infinite alternate;
+  animation-delay: var(--lag);
+}
+
+.tile [data-a="clock"] {
+  transform-origin: 16.8px 18px;
+  animation: turn 2.4s linear infinite;
+}
+
+.tile [data-a="rays"] {
+  animation: turn 14s linear infinite;
+}
+
+.tile [data-a="glint"] {
+  transform-box: view-box;
+  animation: glint 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--n) * 0.45s);
+}
+
+.tile [data-a="hop"] {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: hop 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc(var(--n) * 0.06s);
+}
+
+.tile [data-a="sweep"],
+.tile [data-a="draw"] {
+  stroke-dasharray: 1;
+}
+
+/* the endless loop's shader: a soft marigold stretch that runs round with the orb, always */
+.tile [data-a="shade"] {
+  stroke-dasharray: 0.14 0.86;
+  animation: run 2.2s linear infinite;
+}
+
+/* the flame flickers, always */
+.streak [data-a="flick"] {
+  transform-origin: 12px 20px;
+  animation: flick 0.5s ease-in-out infinite alternate;
+}
+
+/* at rest it is only a clock. Under the pointer the fire grows out of the rim and the wind starts. */
+.tile [data-a="roar"] {
+  transform: scale(0.4);
+  transform-origin: 0 0;
+  opacity: 0;
+  transition:
+    transform 0.25s var(--out),
+    opacity 0.18s var(--out);
+}
+
+.tile [data-a="gust"] {
+  opacity: 0;
+  transition: opacity 0.18s var(--out);
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="watch"],
+:is(.mode, .task):is(:hover, :focus-within) [data-a="hand"] {
+  animation: turn 1s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="roar"] {
+  transform: scale(1);
+  opacity: 1;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="gust"] {
+  opacity: 0.8;
+}
+
+/* the compass goes wild, settles on north, rests, and begins again */
+:is(.mode, .task):is(:hover, :focus-within) [data-a="needle"] {
+  animation: seek 2.8s cubic-bezier(0.3, 0.1, 0.3, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="card"] {
+  animation: fan 1.7s cubic-bezier(0.3, 1.5, 0.5, 1) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="rays"] {
+  animation-duration: 3s;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="draw"],
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sweep"] {
+  animation: draw 1.3s var(--out) infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sheet1"] {
+  animation: riffle 1.2s ease-in-out infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="sheet2"] {
+  animation: riffle 1.2s ease-in-out 0.12s infinite;
+}
+
+:is(.mode, .task):is(:hover, :focus-within) [data-a="jolt"] {
+  animation: jolt 0.9s ease-in-out infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes run {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes flick {
+  to {
+    transform: scale(1.06, 0.94) skewX(-3deg);
+  }
+}
+
+@keyframes seek {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  12% {
+    transform: rotate(230deg);
+  }
+
+  24% {
+    transform: rotate(-170deg);
+  }
+
+  36% {
+    transform: rotate(120deg);
+  }
+
+  47% {
+    transform: rotate(-60deg);
+  }
+
+  57% {
+    transform: rotate(24deg);
+  }
+
+  65% {
+    transform: rotate(-8deg);
+  }
+
+  72%,
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* the cards open like a hand, then spring back together */
+@keyframes fan {
+  35%,
+  60% {
+    transform: rotate(calc(var(--n) * 21deg));
+  }
+}
+
+@keyframes flame {
+  from {
+    transform: scale(0.93, 1.04) skewY(-2deg);
+  }
+
+  to {
+    transform: scale(1.07, 0.96) skewY(2deg);
+  }
+}
+
+@keyframes glint {
+  0%,
+  60%,
+  100% {
+    transform: scale(0);
+  }
+
+  30% {
+    transform: scale(1.3);
+  }
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0);
+  }
+
+  45% {
+    transform: translateY(-3px) scaleY(1.08);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  60%,
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes riffle {
+  40% {
+    transform: translate(1.4px, -1.4px);
+  }
+}
+
+@keyframes jolt {
+  20% {
+    transform: scale(1.18) rotate(-8deg);
+    fill-opacity: 0.8;
+  }
+
+  40% {
+    transform: scale(0.96) rotate(5deg);
+  }
+}
+
+/* ---- the main button: an outline that fills ---- */
+.gobtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 104px;
+  height: var(--cell);
+  padding: 0 16px 0 20px;
+  border-radius: var(--r-lens);
+  /* 1. resting: an outline */
+  background: transparent;
+  color: var(--go);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 2px var(--go);
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color 0.25s var(--out),
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    box-shadow 0.2s var(--out);
+}
+
+/* the fill: a rectangle at the heart of the button that grows outward to its edges */
+.gobtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--go) 82%, #fff), var(--go));
+  transform: scale(0);
+  opacity: 0.6;
+  transition:
+    transform 0.28s var(--out),
+    opacity 0.2s var(--out);
+}
+
+.gobtn[data-wide] {
+  width: 100%;
+  height: 56px;
+}
+
+.gobtn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+@media (hover: hover) {
+  /* 2. hovered: the colour fills in, and the arrow leans forward */
+  .gobtn:hover:not(:disabled, [data-loading]) {
+    color: var(--on-go);
+  }
+
+  .gobtn:hover:not(:disabled, [data-loading])::before {
+    transform: none;
+    opacity: 1;
+  }
+
+  .gobtn:hover:not(:disabled, [data-loading]) svg {
+    transform: translateX(4px);
+  }
+}
+
+/* 3. focused, from the keyboard */
+.gobtn:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* 4. pressed: filled, and it sinks */
+.gobtn:active:not(:disabled, [data-loading]) {
+  color: var(--on-go);
+  transform: scale(0.96);
+}
+
+.gobtn:active:not(:disabled, [data-loading])::before {
+  transform: none;
+  opacity: 1;
+}
+
+/* 5. loading: the orb turns and breathes while it works */
+.gobtn[data-loading] {
+  cursor: progress;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--go) 45%, transparent);
+}
+
+/* three orbs that circle one another in step, swelling as they come to the front */
+.orb {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  animation: turn 1.5s linear infinite;
+}
+
+.orb i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dance 1.5s ease-in-out infinite;
+}
+
+.orb i:nth-child(2) {
+  rotate: 120deg;
+  animation-delay: -0.5s;
+}
+
+.orb i:nth-child(3) {
+  rotate: 240deg;
+  animation-delay: -1s;
+}
+
+@keyframes dance {
+  0%,
+  100% {
+    transform: translateY(-9px) scale(1);
+  }
+
+  50% {
+    transform: translateY(-3px) scale(0.55);
+  }
+}
+
+/* 6. disabled */
+.gobtn:disabled {
+  color: inherit;
+  opacity: 0.5;
+  box-shadow: inset 0 0 0 2px var(--p0);
+  cursor: not-allowed;
+}
+
+@media (max-width: 479px) {
+  .task {
+    grid-template-columns: auto 1fr;
+  }
+
+  .task .gobtn {
+    grid-column: 2;
+    justify-self: start;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .tile[data-done],
+  .tile [data-a],
+  .streak [data-a="flick"],
+  .orb {
+    animation: none !important;
+  }
+
+  .gobtn,
+  .gobtn::before,
+  .gobtn svg {
+    transition: none;
+  }
+}
+
+/* a phone: the ways to practice sit two to a row, so every name is read in full */
+@media (max-width: 599px) {
+  .modes ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mode {
+    gap: 10px;
+    padding-right: var(--pad);
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
+
+/* the heading of "More ways to practice", and at its far end the way to the workshops; what that
+   opens runs the full width */
+.modesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.modes .modesHead > ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+/* ---- Free's questions at the top of Today: how many of the 100 are left, and the way up ---- */
+.today .freeLeft {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  padding: 12px 14px 14px;
+  border-radius: var(--r-lens);
+  color: inherit;
+  text-align: left;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  font-size: 15px;
+  font-weight: 500;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.today .freeLeft b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.today .freeLeft em {
+  color: var(--go);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* the band: what is left of the 100, in the Library's green */
+.today .freeLeft > i {
+  grid-column: 1 / -1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.today .freeLeft > i > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--go);
+}
+
+.today .freeLeft[data-out] {
+  background: color-mix(in srgb, var(--go) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--go) 55%, transparent);
+}
+
+.today .freeLeft[data-out] > i {
+  display: none;
+}
+
+.today .freeLeft:active {
+  transform: scale(0.98);
+}
+
+.today .freeLeft:focus-visible,
+.modes .lockedWorkshops:focus-visible {
+  outline: 3px solid var(--p2);
+  outline-offset: 3px;
+}
+
+/* Workshops, locked for Free and Practice: the same pill as Pro's, with a padlock */
+.modes .lockedWorkshops {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  opacity: 0.86;
+  transition: background 0.2s var(--out);
+}
+
+@media (hover: hover) {
+  .modes .lockedWorkshops:hover {
+    background: var(--hover);
+    opacity: 1;
+  }
+}
+
+.lock {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today .freeLeft {
+    transition: none;
+  }
+}

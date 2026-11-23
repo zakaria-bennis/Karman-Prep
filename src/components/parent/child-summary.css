@@ -1,0 +1,18 @@
+/* A parent's summary (ChildSummary.tsx): time studied as eight small bars, one a week, this week
+   last. */
+.kp-weeks {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  align-items: end;
+  gap: 6px;
+  height: 64px;
+  margin: 6px 0 4px;
+}
+.kp-weeks i {
+  display: block;
+  border-radius: 6px 6px 2px 2px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.kp-weeks i:last-child {
+  background: var(--accent);
+}

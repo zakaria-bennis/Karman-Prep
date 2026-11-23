@@ -130,7 +130,7 @@ export function buildCalendarWeek(
       at: row.scheduled_start,
       endAt: row.scheduled_end,
       postedAt: null,
-      href: row.id === nextSessionId ? "/dashboard/student/schedule" : null,
+      href: row.id === nextSessionId ? "/dashboard/student?page=schedule" : null,
     })),
     ...data.cohortHomework.items.map((row) => ({
       id: `cohort:${row.id}`,

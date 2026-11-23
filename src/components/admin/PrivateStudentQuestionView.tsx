@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { QuizProvider } from "@/contexts/QuizContext";
 import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";
-import type { MappedNode } from "@/components/learn/ConstellationMap";
+import type { MappedNode } from "@/components/learn/mapped-node";
 import type { StudentQuizQuestion } from "@/types/quiz";
 
 const inspectOnly = () => {};

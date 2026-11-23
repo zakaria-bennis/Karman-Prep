@@ -1,0 +1,236 @@
+/*
+ * The Daily 10's start page (DailyStart.tsx), on the Library's glass (library.module.css); its
+ * picture is DailyWorld.tsx. On a computer the two columns end level and the page fits the screen.
+ */
+.page h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+.left {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--pad);
+  min-height: 0;
+}
+
+/* ---- today: the scene, the character in it, the greeting ---- */
+.today {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 14px;
+  min-height: 0;
+  padding: var(--pad);
+}
+
+.window {
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  border-radius: calc(var(--r-piece) - 4px);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  background: var(--hover);
+}
+
+.world {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.world[data-painted] {
+  opacity: 1;
+}
+
+/* the character in the middle of the picture, set a touch above its true middle so it looks
+   centered, with a soft shadow to stand it off the land */
+.buddy {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  translate: -50% -50%;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.35));
+}
+
+.hello {
+  display: grid;
+  gap: 4px;
+  padding: 0 var(--pad) 4px;
+}
+
+.page .hello h2 {
+  font-size: 28px;
+  font-weight: 650;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.hello p {
+  font-weight: 500;
+  opacity: 0.75;
+  min-height: 1.4em;
+}
+
+/* ---- the streak, in a card of its own under the scene ---- */
+.streak {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px 14px 16px;
+}
+
+.flame {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  color: #ff8a2a;
+  background: color-mix(in srgb, #ff8a2a 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #ff8a2a 45%, transparent);
+}
+
+.streak p {
+  display: grid;
+  gap: 2px;
+}
+
+.streak b {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.best {
+  justify-items: end;
+  text-align: right;
+}
+
+/* ---- the mix: the skills today's ten come from, then Start ---- */
+.mix {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 14px;
+  min-height: 0;
+  padding: calc(var(--pad) * 2);
+}
+
+/* the skills: the rows share what height there is, so ten different skills still fit */
+.groups {
+  display: grid;
+  grid-template-rows: auto 1fr auto 1fr;
+  gap: 6px;
+  min-height: 0;
+}
+
+.group {
+  display: contents;
+}
+
+.group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.page .group ul {
+  display: grid;
+  grid-auto-rows: minmax(26px, 1fr);
+  gap: 4px;
+  min-height: 0;
+}
+
+.group li {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 6px;
+  border-radius: 12px;
+  /* depth from light, not a colored edge: a lit top, a soft shadow under it */
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0) 60%), var(--hover);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    inset 0 0 0 1px var(--lens-edge),
+    0 3px 8px -4px rgb(0 0 0 / 0.35);
+  font-weight: 600;
+}
+
+.group li svg {
+  justify-self: center;
+}
+
+.group li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group li b {
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.page .start {
+  min-height: 60px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%), var(--go);
+  color: var(--on-go);
+}
+
+.start svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* ---- on a computer: the two columns side by side, the same height, the page fitting the screen ---- */
+@media (min-width: 960px) and (hover: hover) {
+  .page {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: stretch;
+    height: calc(100dvh - 112px);
+    min-height: 600px;
+  }
+}
+
+@media (max-width: 959px), (hover: none) {
+  .window {
+    aspect-ratio: 2 / 1;
+    min-height: 0;
+  }
+
+  .groups {
+    grid-template-rows: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .page .hello h2 {
+    font-size: 24px;
+  }
+}
+
+/* while today's ten are picked */
+.wait {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* a skill back for a spaced review: a quiet tag after its name */
+.review {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(120 200 255 / 0.18);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}

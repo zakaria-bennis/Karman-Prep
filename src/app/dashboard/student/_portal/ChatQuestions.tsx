@@ -1,0 +1,179 @@
+"use client";
+
+// Questions in Chat (founder, 2026-11-16).
+//   QuestionPicker   the student's bookmarked and flagged questions as a grid, each card saying its
+//                    skill, its side of the test, where it was met, and how it begins, with a row
+//                    of sorts over them. Pressing one chooses it; pressing anywhere outside, or
+//                    Escape, leaves without choosing.
+//   QuestionView     a question sent in a chat, opened to the whole screen with its choices, so
+//                    the people in the chat can work on it together. Anywhere outside, or Escape,
+//                    closes it.
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { BROUGHT, type Shared } from "./chatStore";
+import { fromReal } from "./mistakeLogData";
+import { usePortalData } from "./portalData";
+import { dateOf, type Student } from "./progressData";
+import styles from "./chatQuestions.module.css";
+import { tick } from "./sound";
+
+const SORTS = ["All", "Flagged", "Reading and Writing", "Math"] as const;
+
+/** A signed-in student's own bookmarked and flagged questions, newest first, once each. */
+export function savedOf(student: Student): Shared[] {
+  const seen = new Set<string>();
+  const out: Shared[] = [];
+  for (const session of fromReal(student.sittings ?? [])) {
+    for (const q of session.asked) {
+      if (!q.bookmarked && !q.flagged) continue;
+      const id = q.questionId ?? q.id;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const day = dateOf(student, q.day).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      out.push({
+        id,
+        skill: q.found.skill.name,
+        section: q.found.section,
+        from: `${q.sessionName}, ${day}`,
+        prompt: q.sample.prompt,
+        choices: q.sample.choices,
+        flagged: q.flagged,
+      });
+    }
+  }
+  return out;
+}
+
+/** Escape leaves. */
+const useEscape = (leave: () => void) =>
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === "Escape" && leave();
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+/** Over the whole screen: drawn at the top of the portal's frame, not inside the chat's own pane
+ *  (glass keeps what is "fixed" inside itself). */
+const Whole = ({ children }: { children: ReactNode }) => {
+  const frame = typeof document === "undefined" ? null : document.querySelector(".kp-shell");
+  return frame ? createPortal(children, frame) : null;
+};
+
+export function Card({ q, full = false }: { q: Shared; full?: boolean }) {
+  return (
+    <span className={styles.card} data-side={q.section === "Math" ? "math" : "rw"}>
+      <small>
+        {q.flagged ? "Flagged" : "Bookmarked"}
+        <i>{q.section}</i>
+      </small>
+      <b>{q.skill}</b>
+      <span data-full={full || undefined}>{q.prompt}</span>
+      <em>{q.from}</em>
+    </span>
+  );
+}
+
+export function QuestionPicker({
+  onPick,
+  onLeave,
+}: {
+  onPick: (q: Shared) => void;
+  onLeave: () => void;
+}) {
+  const [sort, setSort] = useState<(typeof SORTS)[number]>("All");
+  useEscape(onLeave);
+  // the design page brings made-up questions; a signed-in student only their own
+  const real = usePortalData();
+  const mine = useMemo(() => (real ? savedOf(real.student) : BROUGHT), [real]);
+  const shown = mine.filter(
+    (q) => sort === "All" || (sort === "Flagged" ? q.flagged : q.section === sort)
+  );
+  return (
+    <Whole>
+      <div className={styles.screen} onClick={onLeave}>
+        <div
+          className={styles.sheet}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Your questions"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <header>
+            <h2>Your questions</h2>
+            <div className={styles.sorts} role="group" aria-label="Show">
+              {SORTS.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={sort === name}
+                  onClick={() => {
+                    setSort(name);
+                    tick();
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </header>
+          {shown.length === 0 && (
+            <p className={styles.none}>
+              {sort === "All" ? "No bookmarked questions yet" : "None here yet"}
+            </p>
+          )}
+          <ul className={styles.grid}>
+            {shown.map((q) => (
+              <li key={q.id ?? q.skill}>
+                <button
+                  type="button"
+                  onClick={() => onPick(q)}
+                  aria-label={`${q.skill}, ${q.from}`}
+                >
+                  <Card q={q} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Whole>
+  );
+}
+
+export function QuestionView({ q, onLeave }: { q: Shared; onLeave: () => void }) {
+  useEscape(onLeave);
+  return (
+    <Whole>
+      <div className={styles.screen} onClick={onLeave}>
+        <div
+          className={styles.whole}
+          role="dialog"
+          aria-modal="true"
+          aria-label={q.skill}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className={styles.where}>
+            <b>{q.skill}</b>
+            <span>
+              {q.section}, {q.from}
+            </span>
+          </p>
+          <p className={styles.prompt}>{q.prompt}</p>
+          <ol className={styles.choices}>
+            {q.choices.map((choice, n) => (
+              <li key={choice}>
+                <b>{"ABCD"[n]}</b>
+                {choice}
+              </li>
+            ))}
+          </ol>
+          <p className={styles.hint}>The answer isn&rsquo;t shown here.</p>
+        </div>
+      </div>
+    </Whole>
+  );
+}

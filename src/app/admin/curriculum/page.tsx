@@ -18,7 +18,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import {
   groupNodesForAdmin,
   SUBJECT_LABELS,
-  nodeAtmosphere,
+  TIER_LABELS,
   type CurriculumNode,
 } from "@/data/curriculum";
 import { fetchFlaggedQuestions, fetchFlaggedQuestionCount } from "@/lib/supabase/queries/quiz";
@@ -63,10 +63,10 @@ interface PageProps {
 const PATH = "/admin/curriculum";
 const n = (value: number) => value.toLocaleString("en-US");
 
-const ATMOSPHERE_NOTE = {
-  Troposphere: "Easiest: foundational concepts",
-  Mesosphere: "Intermediate: core SAT skills",
-  Stratosphere: "Hardest: advanced mastery",
+const TIER_NOTE = {
+  1: "Easiest: foundational concepts",
+  2: "Intermediate: core SAT skills",
+  3: "Hardest: advanced mastery",
 } as const;
 
 /** 0 is empty, under 10 is thin, 100 or more is full. */
@@ -144,7 +144,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
               {([1, 2, 3] as const).map((tier) => {
                 const clusters = grouped[subject][tier];
                 if (!clusters || Object.keys(clusters).length === 0) return null;
-                const atmo = nodeAtmosphere(tier);
+                const atmo = TIER_LABELS[tier];
                 const rows: NodeRow[] = Object.entries(clusters).flatMap(([cluster, nodes]) =>
                   nodes.map((node) => ({ ...node, cluster }))
                 );
@@ -153,7 +153,7 @@ export default async function AdminCurriculumPage({ searchParams }: PageProps) {
                     <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600 }}>
                       {atmo}{" "}
                       <span className="wb-note" style={{ fontWeight: 400 }}>
-                        {ATMOSPHERE_NOTE[atmo as keyof typeof ATMOSPHERE_NOTE] ?? ""}
+                        {TIER_NOTE[tier]}
                       </span>
                     </h3>
                     <WbTable<NodeRow>

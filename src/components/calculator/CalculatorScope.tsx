@@ -59,6 +59,9 @@ export interface CalculatorScopeProps {
   /** The tab at the side of a phone's screen that opens the calculator. A host with a button of
    *  its own for that (the quiz's top bar) turns it off. Default true. */
   sideToggle?: boolean;
+  /** The question is bookmarked: its calculator is kept for the rest of the page session and
+   *  comes back on the next visit (founder, 2026-11-17). Default false: fresh each visit (AR-58). */
+  remember?: boolean;
   children: ReactNode;
 }
 
@@ -233,6 +236,7 @@ export function CalculatorScope({
   questionKey,
   dockTop = 12,
   sideToggle = true,
+  remember,
   children,
 }: CalculatorScopeProps): JSX.Element {
   const hostId = `karman-calculator-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
@@ -532,6 +536,7 @@ export function CalculatorScope({
                   chromeSlot={chromeSlot}
                   reducedMotion={reducedMotion}
                   announceReset={announceReset}
+                  memory={remember && questionKey}
                   onStatus={(nextStatus, nextFailure) => {
                     setStatus(nextStatus);
                     setFailure(nextFailure);

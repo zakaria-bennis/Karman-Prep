@@ -1,0 +1,357 @@
+/*
+ * The algebra pictures (AlgebraFigs.tsx), beside figure.module.css: the balance's weights and steps,
+ * the number line's ticks and ray, tape bars, the area model and the function machine. Glass is the
+ * lesson's (--lens, --lens-edge); color comes from the tone classes (--tone) and the page's --warm
+ * and --gold, so day and night both hold. A class here never sets a property that a
+ * figure.module.css class beside it also sets, because the two files may load in either order.
+ * Anything that pops in (data-pop) is a block, a grid item or a flex item, so it can grow in.
+ */
+
+/* ---------------------------------------------------------------- the balance */
+.balance {
+  display: grid;
+  gap: 14px;
+}
+
+.scale {
+  position: relative;
+}
+
+.scaleArt {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* the two sides sit on the pans: three columns whose middles are the left pan, the post and the
+   right pan (x = 50, 120 and 190 of the drawing's 240) */
+.sides {
+  position: absolute;
+  inset-inline: 0;
+  display: grid;
+  grid-template-columns: 5fr 2fr 5fr;
+  align-items: end;
+  justify-items: center;
+}
+
+.weight {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 5px 10px 6px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow:
+    inset 0 0 0 1px var(--lens-edge),
+    var(--lens-shade, 0 4px 12px -6px rgb(24 28 58 / 0.3));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.equals {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--warm, #b8620c);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* the moves: each equals sign stands under the balance's, so the steps read down one line */
+.steps {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 8px;
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.move {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0.72;
+}
+
+.lhs {
+  justify-self: end;
+  text-align: right;
+}
+
+.rhs {
+  justify-self: start;
+}
+
+.eq {
+  color: var(--warm, #b8620c);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- the number line */
+.axis {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.8;
+}
+
+.tick {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-opacity: 0.6;
+}
+
+.num {
+  fill-opacity: 0.82;
+  font-variant-numeric: tabular-nums;
+}
+
+.ray {
+  fill: none;
+  stroke: var(--tone, currentColor);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------------------------------------------------------------- tape bars */
+.tape {
+  display: grid;
+  gap: 12px;
+}
+
+.bars {
+  display: grid;
+  grid-template-columns: fit-content(38%) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.barName {
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.track {
+  display: flex;
+  min-width: 0;
+}
+
+/* a part's slot is exactly its share of the track; the gap is inside it, so every bar's parts
+   start on the same unit lines */
+.slot {
+  box-sizing: border-box;
+  display: flex;
+  flex: none;
+  min-width: 0;
+  padding-right: 3px;
+}
+
+.part {
+  box-sizing: border-box;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-width: 0;
+  height: 32px;
+  padding: 0 3px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tone) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 62%, transparent);
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.note {
+  justify-self: center;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- the area model */
+.area {
+  display: grid;
+  gap: 5px;
+  max-width: 280px;
+  margin-inline: auto;
+}
+
+.times {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.4;
+}
+
+.colHead,
+.rowHead {
+  display: grid;
+  color: var(--warm, #b8620c);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.colHead {
+  place-items: end center;
+  padding-bottom: 2px;
+  text-align: center;
+}
+
+.rowHead {
+  place-items: center end;
+  padding-right: 5px;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- the function machine */
+.machines {
+  display: grid;
+  gap: 6px;
+}
+
+.stage {
+  display: grid;
+  gap: 8px;
+}
+
+.flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.arrow {
+  flex: none;
+  width: 28px;
+  height: 14px;
+  overflow: visible;
+}
+
+.feed {
+  justify-self: center;
+  width: 24px;
+  height: 26px;
+  overflow: visible;
+}
+
+.arrowPath {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.7;
+}
+
+.machine {
+  box-sizing: border-box;
+  min-width: 96px;
+  max-width: calc(100% - 64px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warm, #b8620c) 9%, var(--lens));
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--warm, #b8620c) 55%, transparent),
+    var(--lens-shade, 0 4px 12px -6px rgb(24 28 58 / 0.3));
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.table {
+  box-sizing: border-box;
+  display: grid;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.th {
+  padding: 0 4px 0 2px;
+  font-size: 12.5px;
+  font-weight: 650;
+  opacity: 0.7;
+}
+
+.td {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 26px;
+  border-radius: 7px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* a value that came out of a machine: warm when it is the answer, gold when it goes on */
+.passed {
+  background: color-mix(in srgb, var(--tone) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 55%, transparent);
+}

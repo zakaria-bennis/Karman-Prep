@@ -19,9 +19,6 @@ export default async function DailyBriefingPage({
     /* Fail closed without exposing private errors. */
   }
   return (
-    <Card>
-      <p className="kp-meta">Open a student&apos;s saved practice before your session.</p>
-      {briefing ? <DailyBriefingView briefing={briefing} /> : <BriefingUnavailable />}
-    </Card>
+    <Card>{briefing ? <DailyBriefingView briefing={briefing} /> : <BriefingUnavailable />}</Card>
   );
 }

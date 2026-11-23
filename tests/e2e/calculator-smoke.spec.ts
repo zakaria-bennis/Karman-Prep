@@ -11,15 +11,31 @@ const row = (page: Page) => page.getByRole("textbox", { name: "Expression 1", ex
 const rowItem = (page: Page) => page.getByRole("listitem").filter({ has: row(page) });
 
 async function openPractice(page: Page) {
-  // The QuizEngine practice route: /learn/math is now the skill catalog, and the constellation
-  // that local-quiz-audit.spec.ts drives moved to /learn/earlier/math.
-  await page.goto("/learn/earlier/math");
+  // A Math Endless run in the student portal, where students meet the calculator (the old node map
+  // that this test used to open was deleted). Signed in as a Pro test student by the development
+  // header, sent to this server only.
+  await page.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.hostname !== "localhost" && url.hostname !== "127.0.0.1") return route.continue();
+    return route.continue({
+      headers: { ...route.request().headers(), "x-dev-as": "dev_seed_student_pro" },
+    });
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard/student?page=library");
   const consent = page.getByRole("dialog", { name: /Help us debug/i });
   if (await consent.isVisible()) await consent.getByRole("button", { name: "Decline" }).click();
-  if (!(await page.getByRole("button", { name: "Start Quiz" }).isVisible()))
-    await page.getByRole("button", { name: "Linear equations (one variable)" }).first().click();
-  await page.getByRole("button", { name: "Start Quiz" }).first().click();
-  await expect(trigger(page)).toBeVisible();
+  await page.getByRole("button", { name: /^Math/ }).first().click();
+  await page.getByRole("button", { name: "Practice", exact: true }).click();
+  await page
+    .getByRole("button", { name: /^Endless/ })
+    .first()
+    .click();
+  await page
+    .getByRole("button", { name: /^Start endless/ })
+    .first()
+    .click();
+  await expect(trigger(page)).toBeVisible({ timeout: 60_000 });
 }
 
 const failOneMount = () => {

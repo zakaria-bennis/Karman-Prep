@@ -55,7 +55,7 @@ describe("student calendar projection", () => {
       "Weekly live session",
       "Cohort class",
     ]);
-    expect(week.days[0].items[0].href).toBe("/dashboard/student/schedule");
+    expect(week.days[0].items[0].href).toBe("/dashboard/student?page=schedule");
     expect(week.days[0].items[1].href).toBeNull();
   });
 

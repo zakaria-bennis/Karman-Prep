@@ -24,7 +24,7 @@ export const CHALLENGE: QuizRoute = { path: "/learn/daily", ready: true };
 /** The Daily 10: Today's main button until it's done for the day (founder, 2026-11-08). */
 export const DAILY_10: QuizRoute = { path: "/learn/daily-ten", ready: true };
 
-/** A 10-question practice set, adaptive within the set, that moves the skill's level. */
+/** An 8-question practice set, adaptive within the set, that moves the skill's level. */
 export const practiceSet = (skillId: string): QuizRoute => ({
   path: `/learn/set/${encodeURIComponent(skillId)}`,
   ready: true,
@@ -40,11 +40,16 @@ export const domainQuiz = (domainId: string): QuizRoute => ({
  *  `?section=reading` or `?section=math` goes straight to that section's next round. */
 export const TIME_TRIAL: QuizRoute = { path: "/learn/time-trial", ready: true };
 
-/** Full-length tests (the assembler builds four forms). */
-export const fullLengthTest = (form: number): QuizRoute => ({
-  path: `/learn/test/${form}`,
+/** Full-length exams: the list of twenty, which opens the next one (src/app/learn/tests). The number
+ *  is kept for callers; exams go in order, so the list decides which one starts. */
+export const fullLengthTest = (_form: number): QuizRoute => ({
+  path: "/learn/tests",
   ready: true,
 });
 
-/** Endless mode lives in the Library: untimed, adaptive, with the mistake log inside. */
-export const ENDLESS = { path: "/dashboard/student/library/endless", ready: true } as const;
+/** A strategy quiz: the compass, at most five questions on one skill's strategy, opened from the
+ *  end of that skill's lesson (overnight build, 2026-11-22). */
+export const strategyQuiz = (skillId: string): QuizRoute => ({
+  path: `/learn/strategy/${encodeURIComponent(skillId)}`,
+  ready: true,
+});

@@ -1,0 +1,664 @@
+/*
+ * A skill's written lesson (Lesson.tsx), inside the skill page's lesson glass (skill.module.css). It
+ * takes the page's inset (--pad), corners (--r-piece 16, --r-lens 10), glass (--hover, --lens,
+ * --lens-edge) and its two warm accents (--warm amber, --gold). Calm and focused: one column at a
+ * reading measure, pieces of lighter glass for the things to do, and color only where it means
+ * something: amber for the idea's key words, green for right, red for a trap or a miss.
+ */
+.lesson {
+  --right: #17885a;
+  --miss: #c8432f;
+  display: grid;
+  gap: 30px;
+  padding: var(--pad) calc(var(--pad) * 1.5) calc(var(--pad) * 2);
+  max-width: 74ch;
+  line-height: 1.55;
+  container-type: inline-size;
+}
+
+:global([data-kp-mode="dark"]) .lesson {
+  --right: #6fe3ae;
+  --miss: #ff8f7c;
+}
+
+.lesson h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.lesson p {
+  margin: 0;
+}
+
+.lesson b {
+  font-weight: 650;
+}
+
+.lesson section {
+  display: grid;
+  gap: 10px;
+}
+
+/* ---- the opening: what the skill tests, and how to spot one ---- */
+.lede {
+  font-size: 18px;
+  font-weight: 560;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.spot {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 15px;
+}
+
+.spot svg {
+  margin-top: 2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+
+.spot b {
+  margin-right: 4px;
+}
+
+/* ---- the idea, with its picture ---- */
+.idea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px);
+  align-items: center;
+  gap: 24px;
+}
+
+.ideaText {
+  display: grid;
+  gap: 10px;
+}
+
+.ideaText b {
+  color: var(--warm);
+}
+
+.rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.rules > span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--r-lens);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.figure {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.figure:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: var(--r-lens);
+}
+
+/* ---- the strategy, named once, in steps ---- */
+.strategyName {
+  margin-top: -6px;
+  color: var(--warm);
+  font-weight: 650;
+}
+
+.strategySteps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: s;
+}
+
+.strategySteps li,
+.steps li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  counter-increment: s;
+}
+
+.strategySteps li::before,
+.steps li::before {
+  content: counter(s);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--warm) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warm) 58%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+/* ---- a piece of lighter glass: an example, the tip, the check ---- */
+.piece {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--r-piece);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+}
+
+.pieceHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.pieceHead small {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.pieceHead b {
+  font-size: 16px;
+}
+
+.passage {
+  padding: 12px 14px;
+  border-radius: var(--r-lens);
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.problem {
+  font-weight: 520;
+}
+
+.exampleFigure {
+  justify-self: center;
+  width: min(100%, 240px);
+}
+
+/* ---- the check-in under an example, and its twin after a miss ---- */
+.checkIn,
+.twin {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--lens-edge);
+}
+
+.checkIn > .pieceHead small,
+.twin > .pieceHead small {
+  color: var(--gold);
+  opacity: 1;
+}
+
+/* ---- steps: shown one at a time ---- */
+.steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: s;
+}
+
+.steps li > div {
+  display: grid;
+  gap: 4px;
+}
+
+.steps .show {
+  font-size: 17px;
+}
+
+.turn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-lens);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent);
+  font-size: 15px;
+  font-weight: 560;
+}
+
+.turn svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.answer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.answer small {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* a quiet glass pill: never white, close to the background (founder, 2026-11-16) */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--lens);
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px var(--lens-edge);
+  font-weight: 600;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.pill svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill:active {
+  transform: scale(0.97);
+}
+
+.pill:focus-visible,
+.choice:focus-visible,
+.go:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ---- choices: an example's, the check's ---- */
+.choices {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px 8px 8px;
+  border-radius: var(--r-lens);
+  background: var(--lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  text-align: left;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.choice > i {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.choice > svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button.choice:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  button.choice:not(:disabled):hover {
+    background: color-mix(in srgb, var(--lens) 60%, var(--lens-edge));
+  }
+}
+
+.choice[data-state="right"] {
+  background: color-mix(in srgb, var(--right) 18%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--right);
+}
+
+.choice[data-state="right"] > i,
+.choice[data-state="right"] > svg {
+  color: var(--right);
+  opacity: 1;
+}
+
+.choice[data-state="wrong"] {
+  background: color-mix(in srgb, var(--miss) 14%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--miss);
+}
+
+.choice[data-state="wrong"] > i,
+.choice[data-state="wrong"] > svg {
+  color: var(--miss);
+  opacity: 1;
+}
+
+.choice[data-state="faded"] {
+  opacity: 0.55;
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.why {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 15px;
+}
+
+.why > svg {
+  margin-top: 3px;
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.why[data-right] > svg {
+  stroke: var(--right);
+}
+
+.why[data-wrong] > svg {
+  stroke: var(--miss);
+}
+
+/* ---- traps ---- */
+.traps {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.traps li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.traps li > svg {
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--miss);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.traps b {
+  display: block;
+}
+
+/* ---- the calculator tip: the lines to type, like a calculator's list of entries ---- */
+.keys {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--r-lens);
+  box-shadow: inset 0 0 0 1px var(--lens-edge);
+  list-style: none;
+  counter-reset: k;
+}
+
+.keys li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: stretch;
+  counter-increment: k;
+  background: var(--lens);
+}
+
+.keys li + li {
+  border-top: 1px solid var(--lens-edge);
+}
+
+.keys li::before {
+  content: counter(k);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.6;
+  background: color-mix(in srgb, var(--warm) 12%, transparent);
+}
+
+.keys code {
+  padding: 10px 12px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  font-size: 15px;
+  opacity: 0.85;
+}
+
+/* ---- the end: the strategy quiz, with its compass ---- */
+.go {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px 10px 10px;
+  border-radius: var(--r-piece);
+  background: color-mix(in srgb, var(--warm) 12%, var(--hover));
+  box-shadow:
+    var(--lens-shade),
+    inset 0 0 0 1px color-mix(in srgb, var(--warm) 40%, var(--lens-edge));
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+.go b {
+  display: block;
+  font-weight: 650;
+}
+
+.go small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.go > svg {
+  fill: none;
+  stroke: currentColor;
+  opacity: 0.7;
+  transition: transform 0.4s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.go:active {
+  transform: scale(0.985);
+}
+
+@media (hover: hover) {
+  .go:hover > svg {
+    transform: translateX(3px);
+    opacity: 1;
+  }
+}
+
+/* ---- loading and missing ---- */
+.missing {
+  padding: var(--pad) calc(var(--pad) * 1.5);
+  opacity: 0.8;
+}
+
+.waiting {
+  display: grid;
+  gap: 12px;
+  padding: var(--pad) calc(var(--pad) * 1.5);
+}
+
+.waiting i {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--hover);
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.waiting i:nth-child(1) {
+  width: 70%;
+  height: 20px;
+}
+
+.waiting i:nth-child(3) {
+  width: 85%;
+}
+
+.waiting i:nth-child(4) {
+  width: 55%;
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---- math and marks inside the text ---- */
+.math :global(.katex) {
+  font-size: 1.06em;
+}
+
+.blank {
+  display: inline-block;
+  width: 4em;
+  margin: 0 0.2em;
+  border-bottom: 0.12em solid currentColor;
+  vertical-align: baseline;
+}
+
+.under {
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 0.08em;
+}
+
+/* steps and answers rise in as they are shown */
+.rise {
+  animation: rise 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (max-width: 620px) {
+  .lesson {
+    gap: 26px;
+    padding: var(--pad) var(--pad) calc(var(--pad) * 2);
+  }
+}
+
+/* a narrow lesson (a phone, or the lesson's column beside the skill's pane): the picture goes under
+   the idea, centered */
+@container (max-width: 560px) {
+  .idea {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .figure {
+    width: min(100%, 250px);
+    justify-self: center;
+  }
+
+  .piece {
+    padding: 14px;
+  }
+
+  .lede {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .waiting i {
+    animation: none;
+  }
+
+  .pill,
+  .choice,
+  .go,
+  .go > svg {
+    transition: none;
+  }
+}

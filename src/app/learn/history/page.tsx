@@ -22,7 +22,7 @@ export default async function LearningHistoryPage() {
         Back to skills
       </Link>
       <Link
-        href="/dashboard/student/quizzes"
+        href="/dashboard/student?page=mistakes"
         className="ml-6 mt-4 inline-block text-sm underline underline-offset-4"
       >
         Review past quizzes

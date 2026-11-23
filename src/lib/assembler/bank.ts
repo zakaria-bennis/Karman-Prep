@@ -10,6 +10,7 @@ import { admitCatalogPool } from "@/lib/catalog-practice/session";
 import type { CatalogDeliverySnapshot } from "@/lib/catalog-practice/delivery-contract";
 import { loadCatalogQuestionEvidence } from "@/lib/catalog-practice/supabase-store";
 import { fetchCatalogQuestionPool } from "@/lib/supabase/queries/catalog-question-pool";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import type { BankItem, Section } from "./forms";
 
@@ -39,18 +40,22 @@ const sectionOf = (skill: CatalogSkill): Section => (skill.subject === "math" ? 
 /** Admitted questions for each skill, at most `maxDifficulty`. One bad skill never breaks the rest. */
 export async function loadAdmittedBank(
   skillIds: readonly string[],
-  maxDifficulty: number
+  maxDifficulty: number,
+  /** Core plans read only the Practice plan's fixed set (QuizAccess.practiceSet). */
+  practiceSet = false,
+  /** Only these questions of each skill (a sampled pool, src/lib/play/server/pool72.ts). */
+  onlyIds?: ReadonlyMap<string, readonly string[]>
 ): Promise<AdmittedBank> {
   const items: BankItem[] = [];
   const snapshots = new Map<string, CatalogDeliverySnapshot>();
   const skills = CATALOG_SKILLS.filter((skill) => skillIds.includes(skill.id));
   const loadSkill = async (skill: CatalogSkill) => {
     const pool = (
-      await fetchCatalogQuestionPool({
-        skillId: skill.id,
-        minimumDifficulty: 1,
-        maximumDifficulty: maxDifficulty,
-      })
+      await fetchCatalogQuestionPool(
+        { skillId: skill.id, minimumDifficulty: 1, maximumDifficulty: maxDifficulty },
+        "practice",
+        { practiceSet, onlyIds: onlyIds?.get(skill.id) ?? (onlyIds ? [] : undefined) }
+      )
     ).filter((row) => !HELD_BACK_PREFIXES.some((prefix) => row.id.startsWith(prefix)));
     const admitted = admitCatalogPool(
       skill.id,
@@ -94,6 +99,54 @@ export async function loadAdmittedBank(
     }
   }
   return { items, snapshots };
+}
+
+/** Up to `count` reviewed questions of one catalog skill, from a random place in question-id order,
+ *  wrapping round: ids only, so no question text or evidence is read to choose them. */
+async function sampleCatalogSkill(skill: CatalogSkill, count: number, from: string) {
+  const filter = [
+    `raw_model_response->approved_tags->>catalog_skill_id.eq.${skill.id}`,
+    `raw_model_response->evidence->approved_tags->>catalog_skill_id.eq.${skill.id}`,
+  ].join(",");
+  const read = async (after: boolean, limit: number) => {
+    const q = createAdminClient().from("answer_key_entries").select("question_id").or(filter);
+    const { data, error } = await (after ? q.gte("question_id", from) : q.lt("question_id", from))
+      .order("question_id", { ascending: true })
+      .limit(limit);
+    if (error) throw new Error("Reviewed skill questions could not be loaded");
+    return ((data ?? []) as { question_id: string | null }[]).flatMap((r) =>
+      r.question_id ? [r.question_id] : []
+    );
+  };
+  const first = await read(true, count);
+  return first.length < count ? [...first, ...(await read(false, count - first.length))] : first;
+}
+
+/** Like loadAdmittedBank, but only a sample of each skill (`perSkill`, drawn fresh each call): for
+ *  a run that uses a few questions a skill, where reading every question of every skill took
+ *  seconds (the Daily 10 read 20,000 to pick ten). */
+export async function loadAdmittedSample(
+  skillIds: readonly string[],
+  maxDifficulty: number,
+  practiceSet: boolean,
+  perSkill: number
+): Promise<AdmittedBank> {
+  const from = crypto.randomUUID();
+  const skills = CATALOG_SKILLS.filter((skill) => skillIds.includes(skill.id));
+  const only = new Map<string, string[]>();
+  for (let i = 0; i < skills.length; i += 8) {
+    const batch = skills.slice(i, i + 8);
+    const ids = await Promise.all(
+      batch.map((skill) => sampleCatalogSkill(skill, perSkill, from).catch(() => [] as string[]))
+    );
+    batch.forEach((skill, k) => only.set(skill.id, ids[k]));
+  }
+  return loadAdmittedBank(
+    skills.map((s) => s.id),
+    maxDifficulty,
+    practiceSet,
+    only
+  );
 }
 
 export function skillsInSection(section: Section): string[] {

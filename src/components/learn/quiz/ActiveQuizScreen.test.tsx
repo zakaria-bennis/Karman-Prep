@@ -5,7 +5,7 @@ import petry from "@/lib/question-bank/reviewed-passage.fixture.json";
 import { toStudentQuizQuestion } from "@/lib/student-quiz-payload";
 import type { QuizQuestionWithChoices } from "@/types/quiz";
 import type { StudentQuizQuestion } from "@/types/quiz";
-import type { MappedNode } from "../ConstellationMap";
+import type { MappedNode } from "../mapped-node";
 import { ActiveQuizScreen } from "./ActiveQuizScreen";
 import { loadFigureEngine } from "@/components/learn/figures/engine-loader";
 

@@ -1,121 +1,141 @@
 // ============================================================
 // POST /api/bookings/cancel
 //
-// Cancels a booking. Allowed by either the student or the tutor
-// on the booking. Within-24h cancellations forfeit credit for
-// Private + Elite tiers; Group + small_group never forfeit.
+// Cancels a booking, by the student or their tutor.
 //
-// Email is NOT sent here — fired by the Cal webhook handler (P4)
-// when Cal echoes the BOOKING_CANCELLED event back. That keeps
-// emails idempotent regardless of which side initiated the
-// cancel (UI button vs. Cal native UI vs. tutor cancellation).
+// A student's cancel follows the Schedule's rules (src/lib/bookings/rules.ts):
+//   · with more than 24 hours to go it is free and the hours go back,
+//   · with less, it spends the package's one free late pass and the hours
+//     still go back,
+//   · with the pass spent it is refused: the session stays booked and
+//     counts as used (the page tells the student to message the tutor,
+//     who can still cancel it at no cost).
+// A tutor's cancel never costs the student: the hours always go back.
+// Every allowed cancel returns the session's token, if it holds one.
+//
+// Email is NOT sent here — fired by the Cal webhook handler when Cal
+// echoes BOOKING_CANCELLED back; it reads this row's window and credit
+// flags, so the email matches what was decided here.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cancelBooking, CalAdapterError } from "@/lib/integrations/cal";
+import { createAdminClient } from "@/lib/supabase/server";
 import {
   findBookingById,
+  getActiveSubscription,
   getUserUuidByClerkId,
-  isWithinCancellationWindow,
-  shouldForfeitCredit,
   updateBooking,
 } from "@/lib/supabase/queries/bookings";
-import { consumeTokenForBooking, releaseTokenFromBooking } from "@/lib/supabase/queries/tokens";
+import { releaseTokenFromBooking } from "@/lib/supabase/queries/tokens";
+import { checkCancel, isPack, refusal, type Pack } from "@/lib/bookings/rules";
+import { dropLock, loadStudentBookings, recordChange, takeLock } from "@/lib/bookings/state";
+import { already, calSays, refuse, say, SAY } from "../replies";
 import { cancelBookingBodySchema } from "../schemas";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!userId) return say(401, SAY.signIn);
 
   const parsed = cancelBookingBodySchema.safeParse(await req.json().catch(() => ({})));
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request body", issues: parsed.error.issues },
-      { status: 400 }
-    );
-  }
+  if (!parsed.success) return say(400, SAY.body, { issues: parsed.error.issues });
   const body = parsed.data;
 
   const booking = await findBookingById(body.bookingId);
-  if (!booking) {
-    return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-  }
-  if (booking.status !== "scheduled") {
-    return NextResponse.json({ error: `Booking is already ${booking.status}` }, { status: 409 });
-  }
+  if (!booking) return say(404, SAY.notFound);
+  if (booking.status !== "scheduled") return already(booking.status);
 
   // Ownership: only the student or tutor on the booking may cancel.
   const callerUuid = await getUserUuidByClerkId(userId);
   if (!callerUuid || (callerUuid !== booking.student_id && callerUuid !== booking.tutor_id)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return say(403, SAY.forbidden);
+  }
+  const byTutor = callerUuid === booking.tutor_id;
+  const db = createAdminClient() as unknown as SupabaseClient;
+  const start = Date.parse(booking.scheduled_start);
+
+  let pack: Pack | null = null;
+  if (!byTutor) {
+    if (booking.plan_tier !== "private") return say(403, SAY.tutorOnly);
+    const sub = await getActiveSubscription(userId);
+    pack = sub && isPack(sub.planId) ? sub.planId : null;
+    if (!pack) return refuse(refusal("plan"));
+    const lock = await takeLock(db, booking.student_id);
+    if (lock === "error") return say(500, SAY.broke);
+    if (lock === "busy") return say(429, SAY.busy);
   }
 
-  const isTutorInitiated = callerUuid === booking.tutor_id;
-
-  const withinWindow = isWithinCancellationWindow(booking.scheduled_start);
-  // Tutor-initiated cancellations never forfeit the student's credit —
-  // the student didn't choose to drop. They get a token refund (via
-  // the !withinWindow branch below) regardless of timing.
-  const forfeit = isTutorInitiated ? false : shouldForfeitCredit(booking.plan_tier, withinWindow);
-
-  // Cancel on Cal first, then update DB. If Cal fails, DB row
-  // stays 'scheduled' — surfaces 502 so the caller can retry.
-  // Exception: Cal returns 400 "already cancelled" if the booking
-  // was cancelled out-of-band (Cal native UI, prior attempt that
-  // succeeded on Cal but failed on our DB write). That's the desired
-  // final state — treat as success and let the DB catch up.
-  if (booking.cal_booking_uid) {
-    try {
-      await cancelBooking(booking.cal_booking_uid, body.reason);
-    } catch (err) {
-      const isAdapter = err instanceof CalAdapterError;
-      const alreadyCancelled =
-        isAdapter &&
-        err.statusCode === 400 &&
-        JSON.stringify(err.body ?? "")
-          .toLowerCase()
-          .includes("already");
-      if (!alreadyCancelled) {
-        console.error("[api/bookings/cancel] cal error:", isAdapter ? err.toString() : err);
-        return NextResponse.json({ error: "Failed to cancel on Cal.com" }, { status: 502 });
-      }
-      console.warn(
-        `[api/bookings/cancel] booking ${booking.id} already cancelled on Cal — syncing DB`
-      );
-    }
-  }
-
-  const updated = await updateBooking(booking.id, {
-    status: "cancelled",
-    cancelled_at: new Date().toISOString(),
-    cancelled_within_window: withinWindow,
-    credit_forfeited: forfeit,
-  });
-
-  // Token resolution. Idempotent — re-running (e.g. via Cal webhook)
-  // is a no-op once the first call has either consumed or released
-  // the token.
-  //   · Tutor-initiated cancel → always refund the student's token
-  //     (forfeit is forced false above).
-  //   · Student-initiated within-window forfeit → consume the token.
-  //   · Student-initiated outside the window → refund.
   try {
-    if (withinWindow && forfeit) {
-      await consumeTokenForBooking({
-        bookingId: booking.id,
-        reason: "forfeited_within_window",
-      });
-    } else {
-      await releaseTokenFromBooking(booking.id);
-    }
-    // group/small_group within-window: no token to refund (those tiers
-    // don't have tokens at all). releaseTokenFromBooking is a no-op.
-  } catch (err) {
-    console.error("[api/bookings/cancel] token resolution failed:", err);
-  }
+    const now = Date.now();
+    const latePass = pack
+      ? (
+          await loadStudentBookings(
+            db,
+            { studentUuid: booking.student_id, clerkId: userId, pack },
+            now
+          )
+        ).latePass
+      : false;
+    const verdict = checkCancel({ start, now, byTutor, latePass });
+    if (!verdict.ok) return refuse(verdict);
 
-  return NextResponse.json({ booking: updated });
+    // Cancel on Cal first, then update DB. If Cal fails, DB row
+    // stays 'scheduled'. Cal's 400 "already cancelled" (cancelled out
+    // of band) is the desired final state: let the DB catch up.
+    if (booking.cal_booking_uid) {
+      try {
+        await cancelBooking(booking.cal_booking_uid, body.reason);
+      } catch (err) {
+        const isAdapter = err instanceof CalAdapterError;
+        const alreadyCancelled =
+          isAdapter &&
+          err.statusCode === 400 &&
+          JSON.stringify(err.body ?? "")
+            .toLowerCase()
+            .includes("already");
+        if (!alreadyCancelled) {
+          console.error("[api/bookings/cancel] cal error:", isAdapter ? err.toString() : err);
+          return calSays(err, "cancel");
+        }
+        console.warn(
+          `[api/bookings/cancel] booking ${booking.id} already cancelled on Cal — syncing DB`
+        );
+      }
+    }
+
+    const updated = await updateBooking(booking.id, {
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+      cancelled_within_window: verdict.late,
+      credit_forfeited: false,
+    });
+
+    // The hours go back on every allowed cancel; so does the token, if any. Idempotent.
+    try {
+      await releaseTokenFromBooking(booking.id);
+    } catch (err) {
+      console.error("[api/bookings/cancel] token release failed:", err);
+    }
+
+    await recordChange(db, {
+      bookingId: booking.id,
+      studentId: booking.student_id,
+      kind: "cancel",
+      late: verdict.late,
+      usedLatePass: verdict.usesPass,
+      byTutor,
+      fromStart: booking.scheduled_start,
+      toStart: null,
+      byUserId: callerUuid,
+    });
+
+    return NextResponse.json({ booking: updated });
+  } catch (err) {
+    console.error("[api/bookings/cancel] failed:", err);
+    return say(500, SAY.broke);
+  } finally {
+    if (pack) await dropLock(db, booking.student_id);
+  }
 }

@@ -37,10 +37,7 @@ export function NoDailyReport({ childName, base }: { childName: string; base: st
       <h2 className="kp-title" id="report-main">
         Daily report
       </h2>
-      <p className="kp-meta">
-        {childName}&rsquo;s plan doesn&rsquo;t include the daily report. The week page and the
-        tutor&rsquo;s notes have the big picture.
-      </p>
+      <p className="kp-meta">{childName}&rsquo;s plan doesn&rsquo;t include the daily report.</p>
       <MoreLink href={`${base}/messages`}>Tutor notes and messages</MoreLink>
     </section>
   );

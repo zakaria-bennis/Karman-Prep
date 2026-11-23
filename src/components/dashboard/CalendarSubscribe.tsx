@@ -34,7 +34,7 @@ export function CalendarSubscribe({ audience }: CalendarSubscribeProps) {
           setLinks(await getCalendarFeedLinks());
           setError(null);
         } catch {
-          setError("Your calendar link could not load. Please try again.");
+          setError("Your calendar link didn't load. Try again.");
         }
       });
     }
@@ -46,7 +46,7 @@ export function CalendarSubscribe({ audience }: CalendarSubscribeProps) {
       await navigator.clipboard.writeText(links.feedUrl);
       setStatus("Link copied.");
     } catch {
-      setStatus("Copy did not work. Select the link below and copy it.");
+      setStatus("Copy didn't work. Select the link below and copy it.");
     }
   };
 
@@ -58,14 +58,14 @@ export function CalendarSubscribe({ audience }: CalendarSubscribeProps) {
         setError(null);
         setStatus("New link ready. Calendars using the old link will stop updating.");
       } catch {
-        setError("The link could not be reset. Please try again.");
+        setError("The link didn't reset. Try again.");
       }
     });
   };
 
   const intro =
     audience === "parent"
-      ? "See your student's sessions, classes and due dates in your own calendar app. It updates on its own."
+      ? "Sessions, classes and due dates. It updates on its own."
       : "See your sessions, classes and due dates in your own calendar app. It updates on its own.";
 
   return (

@@ -56,10 +56,12 @@
   position: fixed;
   z-index: 10;
   box-sizing: border-box;
-  width: 200px;
-  padding: 5px 8px;
-  border-radius: var(--kc-radius-chip);
+  width: var(--kc-error-tip-width);
+  max-width: calc(100vw - 16px);
+  padding: var(--kc-error-tip-pad);
+  border-radius: var(--kc-error-tip-radius);
   background: var(--kc-tooltip-error);
+  box-shadow: var(--kc-error-tip-shadow);
   color: var(--kc-tooltip-label);
   font-family: var(--kc-font-ui);
   font-size: var(--kc-size-tooltip);
@@ -93,6 +95,7 @@
 
 .kc-error-tip::before {
   content: "";
+  display: var(--kc-show-arrow);
   position: absolute;
   top: -5px;
   left: var(--kc-tip-arrow);

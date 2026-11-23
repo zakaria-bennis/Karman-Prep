@@ -1,0 +1,196 @@
+test,section,route,m1_correct,m2_correct,total_correct,m1_wrong,m2_wrong,total_wrong,scaled,is_real_sat,source_url,thread_date,note,thread_id,comment_id,batch
+1,RW,easier,,,43,,,,560,0,https://www.applerouth.com/blog/deep-dive-on-the-4-digital-sat-practice-tests,,"Applerouth: lower route, 43 correct total (module split not given; count likely of 54 incl. pretest)",applerouth-deep-dive,,applerouth
+1,Math,harder,15,0,15,,,,460,0,https://www.applerouth.com/blog/deep-dive-on-the-4-digital-sat-practice-tests,,"Applerouth: 15 of 44 correct, none correct in the higher module",applerouth-deep-dive,,applerouth
+1,RW,harder,,,,,,1,780,0,https://www.applerouth.com/blog/deep-dive-on-the-4-digital-sat-practice-tests,,Applerouth: missing only question #25,applerouth-deep-dive,,applerouth
+1,RW,harder,,,,,,1,750,0,https://www.applerouth.com/blog/deep-dive-on-the-4-digital-sat-practice-tests,,Applerouth: missing only question #23,applerouth-deep-dive,,applerouth
+2,Math,,,,,0,1,1,800,0,https://www.reddit.com/r/Sat/comments/1eblhrt/,2024-07-25,"1 wrong, in Module 2; total 1540",1eblhrt,post,manual
+2,RW,,,,,,,2,740,0,https://www.reddit.com/r/Sat/comments/1eblhrt/,2024-07-25,2 wrong in reading; RW derived as total 1540 minus Math 800,1eblhrt,post,manual
+1,RW,,,,,,,1,800,0,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzl6gto/,2024-11-29,"one question wrong, still 800",1h2r4tz,lzl6gto,manual
+,Math,,,,,,,1,800,0,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzlkiu2/,2024-11-29,one of my BB tests,1h2r4tz,lzlkiu2,manual
+4,,,,,,1,2,3,790,0,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzmckpe/,2024-11-29,section not stated (thread about 800),1h2r4tz,lzmckpe,manual
+,Math,,,,,,,2,800,0,https://www.reddit.com/r/Sat/comments/1badl7u/comment/ku2gdkx/,2024-03-09,"bluebook practice test, 2 wrong total in math",1badl7u,ku2gdkx,manual
+,Math,,,,,,,4,780,0,https://www.reddit.com/r/Sat/comments/1asnom4/comment/kqrkbdm/,2024-02-16,"-4 on math, one of the bluebook tests",1asnom4,kqrkbdm,manual
+4,RW,,,,,0,1,1,770,0,https://www.reddit.com/r/Sat/comments/1lwq7m6/,2025-07-10,"one wrong, in module 2; test number given in reply n2k6y93",1lwq7m6,post,manual
+4,Math,,,,,0,4,4,770,0,https://www.reddit.com/r/Sat/comments/1lwq7m6/,2025-07-10,"4 wrong all in module 2, incl. the last 3",1lwq7m6,post,manual
+,Math,,,,,1,1,2,790,0,https://www.reddit.com/r/Sat/comments/1ozm5lv/comment/npg1j0t/,2025-11-17,last bluebook practice; 1 wrong in each module,1ozm5lv,npg1j0t,manual
+5,RW,,,,,,,1,800,0,https://www.reddit.com/r/Sat/comments/1bku0vl/,2024-03-22,"1 wrong (grammar), still 800",1bku0vl,post,manual
+7,Total,,,,,,,10,1510,0,https://www.reddit.com/r/Sat/comments/1pfncom/comment/nskx75z/,2025-12-06,total score with 10 wrong,1pfncom,nskx75z,manual
+,Total,,,,,,,9,1530,0,https://www.reddit.com/r/Sat/comments/1pfncom/comment/nskyifp/,2025-12-06,"bluebook practice, 9 wrong",1pfncom,nskyifp,manual
+3,RW,,,,,,,20,580,0,https://www.reddit.com/r/digitalSATs/comments/10m7f8i/comment/j8vh8oj/,2023-01-27,20 mistakes in RW,10m7f8i,j8vh8oj,A1
+1,RW,,,,,,,15,530,0,https://www.reddit.com/r/digitalSATs/comments/10m7f8i/comment/j8vh8oj/,2023-01-27,15 mistakes in RW,10m7f8i,j8vh8oj,A1
+,RW,,,,,,,3,690,0,https://www.reddit.com/r/psat/comments/1fxp26c/,2024-10-06,PSAT practice test 1 (Bluebook); PSAT scale,1fxp26c,post,A1
+,Math,,,,,1,3,4,630,0,https://www.reddit.com/r/psat/comments/1fxp26c/,2024-10-06,PSAT practice test 1 (Bluebook); PSAT scale,1fxp26c,post,A1
+,RW,,,,,,,0,760,0,https://www.reddit.com/r/psat/comments/1fxp26c/,2024-10-06,PSAT practice test 2 (Bluebook); PSAT scale; all 3 wrong were math,1fxp26c,post,A1
+,Math,,,,,2,1,3,750,0,https://www.reddit.com/r/psat/comments/1fxp26c/,2024-10-06,PSAT practice test 2 (Bluebook); PSAT scale,1fxp26c,post,A1
+,,,,,,,,1,800,0,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzm72bm/,2024-11-29,"practice test, 'a mistake'; section and test not stated",1h2r4tz,lzm72bm,A1
+,,,,,,,,2,790,1,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzlos4r/,2024-11-29,August SAT (2024); 2 left blank; section not stated; reply lzoilw8 says blanks at end of module 2,1h2r4tz,lzlos4r,A1
+,,,,,,,,2,780,1,https://www.reddit.com/r/Sat/comments/1h2r4tz/comment/lzmpro2/,2024-11-29,August SAT (2024); 'i think i got two wrong'; section not stated,1h2r4tz,lzmpro2,A1
+,Math,,,,,,,2,800,0,https://www.reddit.com/r/Sat/comments/1lwq7m6/comment/n2gqvad/,2025-07-10,bluebook test,1lwq7m6,n2gqvad,A1
+,Math,,,,,,,1,790,0,https://www.reddit.com/r/Sat/comments/1lwq7m6/comment/n2gqvad/,2025-07-10,another bluebook test,1lwq7m6,n2gqvad,A1
+,RW,,23,,,4,11,15,630,0,https://www.reddit.com/r/Sat/comments/1mdugc8/,2025-07-31,"last practice test, source unstated; module 1 23/27; total 1280",1mdugc8,post,A1
+,RW,,,,,2,3,5,760,0,https://www.reddit.com/r/Sat/comments/1mqny0i/,2025-08-15,"bluebook test, total 1540",1mqny0i,post,A1
+,Math,,,,,1,2,3,780,0,https://www.reddit.com/r/Sat/comments/1mqny0i/,2025-08-15,"bluebook test, total 1540",1mqny0i,post,A1
+7,RW,,,,,1,10,11,710,0,https://www.reddit.com/r/Sat/comments/1nw5q8f/comment/nhdifwr/,2025-10-02,section from context (thread about RW module 2),1nw5q8f,nhdifwr,A1
+8,RW,,,,,,,2,760,0,https://www.reddit.com/r/Sat/comments/1vh2kxz/comment/p23ckck/,2026-08-06,only 2 RW wrong but lost 40 points (scaled derived as 800 minus 40); total 1550,1vh2kxz,p23ckck,A2
+,RW,,,,,,,5,760,1,https://www.reddit.com/r/Sat/comments/1wpocfq/comment/pby02i7/,2026-09-25,"September 12, 2026 real SAT; wrong count checked against an answer PDF; total 1540",1wpocfq,pby02i7,A2
+,Math,,,,,0,2,2,780,1,https://www.reddit.com/r/Sat/comments/1wpocfq/comment/pby02i7/,2026-09-25,"September 12, 2026 real SAT; questions 21 and 22 of module 2 wrong, rest perfect",1wpocfq,pby02i7,A2
+7,RW,,,,,,,11,740,0,https://www.reddit.com/r/Sat/comments/1wpocfq/comment/pby2nvn/,2026-09-25,,1wpocfq,pby2nvn,A2
+,Math,,,,,,,2,800,0,https://www.reddit.com/r/Sat/comments/1wpocfq/comment/pby2nvn/,2026-09-25,test not named; practice source unstated,1wpocfq,pby2nvn,A2
+,Math,,,,,,,3,790,0,https://www.reddit.com/r/Sat/comments/1wpocfq/comment/pby2nvn/,2026-09-25,test not named; practice source unstated,1wpocfq,pby2nvn,A2
+,RW,,,,,0,1,1,760,0,https://www.reddit.com/r/psat/comments/1wrvym7/,2026-09-27,PSAT practice test 1; total 1520 is the PSAT max so each section 760,1wrvym7,post,A2
+,Math,,,,,0,1,1,760,0,https://www.reddit.com/r/psat/comments/1wrvym7/,2026-09-27,PSAT practice test 1; total 1520 is the PSAT max so each section 760,1wrvym7,post,A2
+,RW,,,,,2,3,5,750,0,https://www.reddit.com/r/Sat/comments/1g88r6a/,2024-10-20,"bluebook practice test, number not named; restated in lsxbnkn",1g88r6a,post,B1
+6,RW,,,,,6,3,9,550,0,https://www.reddit.com/r/Sat/comments/1trxcv1/,2026-05-30,route not stated (a reply asks if it was the easy module 2),1trxcv1,post,B1
+,RW,harder,,,,,3,,700,0,https://www.reddit.com/r/psat/comments/1fmd1x1/,2024-09-21,PSAT practice test 2 (Bluebook); PSAT scale; module 1 count not stated; says 20 points off per wrong; total 1420,1fmd1x1,post,B1
+,Math,harder,,,,,2,,720,0,https://www.reddit.com/r/psat/comments/1fmd1x1/,2024-09-21,PSAT practice test 2 (Bluebook); PSAT scale; module 1 count not stated; total 1420,1fmd1x1,post,B1
+,RW,,,,,2,,,750,0,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/lodbmyu/,2024-09-21,PSAT practice test 1 (first digital psat); PSAT scale; module 2 count not stated; total 1510,1fmd1x1,lodbmyu,B1
+,Math,harder,,,,,2,,760,0,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/lodbmyu/,2024-09-21,PSAT practice test 1 (first digital psat); PSAT scale; module 1 count not stated; total 1510,1fmd1x1,lodbmyu,B1
+,RW,harder,,,,,3,,720,0,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/loeitli/,2024-09-21,"PSAT practice, likely test 1 (reply context); PSAT scale; module 1 count not stated; total 1480",1fmd1x1,loeitli,B1
+,Math,harder,,,,,1,,760,0,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/loeitli/,2024-09-21,"PSAT practice, likely test 1 (reply context); PSAT scale; module 1 count not stated; total 1480",1fmd1x1,loeitli,B1
+,Math,,,,,0,4,4,670,,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/lr2vj9y/,2024-09-21,PSAT; PSAT scale; unclear if real or practice; 'only in M2',1fmd1x1,lr2vj9y,B1
+,RW,,,,,,,1,730,,https://www.reddit.com/r/psat/comments/1fmd1x1/comment/lo9phj2/,2024-09-21,PSAT ('on my psat'); PSAT scale; unclear if real or practice,1fmd1x1,lo9phj2,B1
+,Math,,,,,,,2,800,,https://www.reddit.com/r/Sat/comments/1d6wxl6/comment/mew4gu0/,2024-06-03,unclear if real SAT or practice test,1d6wxl6,mew4gu0,B1
+,RW,,,,,,,3,780,,https://www.reddit.com/r/Sat/comments/1d6wxl6/comment/mew4gu0/,2024-06-03,unclear if real SAT or practice test,1d6wxl6,mew4gu0,B1
+,Math,,,,,0,2,2,760,0,https://www.reddit.com/r/psat/comments/1fvle3k/,2024-10-03,PSAT practice on Bluebook (PSAT scale); both wrong at end of module 2 per OP reply lq8ahb9,1fvle3k,post,B2
+,RW,,,,,,,2,720,0,https://www.reddit.com/r/psat/comments/1fvle3k/comment/lq7zwxa/,2024-10-03,PSAT practice on Bluebook (PSAT scale),1fvle3k,lq7zwxa,B2
+7,RW,,,,,,11,,690,0,https://www.reddit.com/r/Sat/comments/1orrbwt/,2025-11-08,11 mistakes on second module,1orrbwt,post,B2
+11,RW,,,,,6,8,14,670,0,https://www.reddit.com/r/Sat/comments/1orrbwt/comment/o9dfl13/,2025-11-08,total 1460,1orrbwt,o9dfl13,B2
+11,Math,,,,,0,2,2,790,0,https://www.reddit.com/r/Sat/comments/1orrbwt/comment/o9dfl13/,2025-11-08,total 1460; 16 wrong overall listed by module,1orrbwt,o9dfl13,B2
+4,RW,,,,,1,3,4,720,0,https://www.reddit.com/r/Sat/comments/1orrbwt/comment/o9dfl13/,2025-11-08,total 1460; says missed only hard-rated questions,1orrbwt,o9dfl13,B2
+4,Math,,,,,0,4,4,740,0,https://www.reddit.com/r/Sat/comments/1orrbwt/comment/o9dfl13/,2025-11-08,total 1460; 8 wrong overall listed by module,1orrbwt,o9dfl13,B2
+,RW,,,,,,,1,760,0,https://www.reddit.com/r/Sat/comments/1azyduj/,2024-02-25,Bluebook practice (test not named); total 1560,1azyduj,post,B2
+,Math,,,,,,,2,800,0,https://www.reddit.com/r/Sat/comments/1azyduj/,2024-02-25,2 wrong per commenters reading OP's image; 800 derived as OP total 1560 (ksd8h4a) minus RW 760,1azyduj,post,B2
+,Math,,,,,,,2,790,0,https://www.reddit.com/r/Sat/comments/1azyduj/comment/ksd8h4a/,2024-02-25,"friend's result on the same test, reported by OP",1azyduj,ksd8h4a,B2
+,RW,,,,,,,1,770,0,https://www.reddit.com/r/Sat/comments/1azyduj/comment/ksd8h4a/,2024-02-25,"friend's result on the same test, reported by OP",1azyduj,ksd8h4a,B2
+,Math,,,,,,,2,790,0,https://www.reddit.com/r/Sat/comments/1azyduj/comment/kst6wh9/,2024-02-25,test not named; thread about Bluebook practice,1azyduj,kst6wh9,B2
+4,Math,,,,,,,3,790,0,https://www.reddit.com/r/Sat/comments/12zmeg2/comment/jwjg6lk/,2023-04-26,,12zmeg2,jwjg6lk,B2
+4,Math,,,,,,,8,730,0,https://www.reddit.com/r/Sat/comments/12zmeg2/comment/jxlfcnq/,2023-04-26,section is math per context of reply,12zmeg2,jxlfcnq,B2
+,Math,,,,,,,6,710,0,https://www.reddit.com/r/Sat/comments/19ce03o/comment/kj0ac86/,2024-01-21,one of the 4 Bluebook DSAT practice tests,19ce03o,kj0ac86,B2
+,Math,,,,,,,11,700,0,https://www.reddit.com/r/Sat/comments/19ce03o/comment/kj0ac86/,2024-01-21,a different one of the 4 Bluebook DSAT practice tests,19ce03o,kj0ac86,B2
+,RW,,,,,,,4,740,0,https://www.reddit.com/r/Sat/comments/19ce03o/comment/kj0ac86/,2024-01-21,same result on 2 of the 4 Bluebook DSAT practice tests; all misses grammar,19ce03o,kj0ac86,B2
+5,RW,,,,,,,2,770,0,https://www.reddit.com/r/Sat/comments/1btleky/,2024-04-02,missed two,1btleky,post,B3
+5,Math,,,,,,,1,790,0,https://www.reddit.com/r/Sat/comments/1btleky/comment/li6npng/,2024-04-02,got the hardest question wrong,1btleky,li6npng,B3
+3,Math,,,,,3,,5,780,0,https://www.reddit.com/r/Sat/comments/1h4wfd0/,2024-12-02,"5 wrong, 3 of them in module 1",1h4wfd0,post,B3
+6,Math,,,,,0,4,4,750,0,https://www.reddit.com/r/Sat/comments/1h4wfd0/,2024-12-02,"4 wrong, all in module 2",1h4wfd0,post,B3
+5,RW,,,,,1,6,,720,0,https://www.reddit.com/r/Sat/comments/1frpltv/comment/lpjevv8/,2024-09-28,-1 M1 and -6 M2,1frpltv,lpjevv8,C2
+,Math,,,,,1,,1,750,1,https://www.reddit.com/r/Sat/comments/121kt7t/comment/jdmyar7/,2023-03-25,"real March 2023 digital SAT (international); only one mistake, in module 1",121kt7t,jdmyar7,C2
+,RW,,,,,,,2,770,1,https://www.reddit.com/r/Sat/comments/1o10wew/comment/nidoj5o/,2025-10-08,"real test (thread about August 2025 SAT, date not stated); '800m/770rw (missed two)', the two misses read as RW",1o10wew,nidoj5o,C3
+6,RW,,,,,2,12,14,640,0,https://www.reddit.com/r/Sat/comments/1l5aq7t/comment/myr7nwg/,2025-06-07,test inferred as practice test 6 from reply chain; math 780 with no counts,1l5aq7t,myr7nwg,C4
+10,RW,,,,,3,3,6,740,0,https://www.reddit.com/r/Sat/comments/1p9dxo4/,2025-11-29,,1p9dxo4,post,C4
+10,Math,,,,,0,4,4,740,0,https://www.reddit.com/r/Sat/comments/1p9dxo4/,2025-11-29,,1p9dxo4,post,C4
+,Math,,,,,,1,,800,1,https://www.reddit.com/r/Sat/comments/1g79913/,2024-10-19,"real SAT; knows 1 wrong in Module 2, still 800; total wrong not stated; scores posted 2024-10-19, test date not stated",1g79913,post,D1
+1,RW,,,,,0,2,2,760,0,https://www.reddit.com/r/Sat/comments/15jjpj4/,2023-08-06,"2 reading wrong in Module 2, lost 40; RW derived as total 1560 minus Math 800; totals -2 RW and -1 Math confirmed in OP reply jv3mo70 so M1 wrong = 0",15jjpj4,post,D1
+1,Math,,,,,0,1,1,800,0,https://www.reddit.com/r/Sat/comments/15jjpj4/,2023-08-06,"2nd-last question of Module 2 wrong, no points lost; total -1 per OP reply jv3mo70",15jjpj4,post,D1
+5,RW,,,,,0,8,8,710,0,https://www.reddit.com/r/Sat/comments/1ft4zm3/comment/lpqcbf5/,2024-09-30,"8 wrong, all on the second module; section from thread (RW)",1ft4zm3,lpqcbf5,D1
+7,Math,,,,,1,3,4,750,0,https://www.reddit.com/r/Sat/comments/1j6imkl/comment/mgouwne/,2025-03-08,"section inferred from thread (math); commenter thought practice tests gave easier module, disputed by others; total added from module counts",1j6imkl,mgouwne,D1
+,RW,,,,,,7,,710,0,https://www.reddit.com/r/Sat/comments/1nhz2uy/,2025-09-15,7 wrong in Module 2 gave 710 on two practice tests (numbers not named); M1 not stated,1nhz2uy,post,D1
+,RW,,,,,,,2,750,0,https://www.reddit.com/r/Sat/comments/1nhz2uy/comment/nef529a/,2025-09-15,last practice test; section from thread (reading),1nhz2uy,nef529a,D1
+,RW,,,,,,,3,740,0,https://www.reddit.com/r/Sat/comments/1nhz2uy/comment/nef674f/,2025-09-15,"practice test, once 740 with 3 wrong; section from thread",1nhz2uy,nef674f,D1
+8,RW,,,,,,,6,740,0,https://www.reddit.com/r/Sat/comments/1nhz2uy/comment/nefgy8o/,2025-09-15,last practice test; test number from reply neitmwq; section from thread,1nhz2uy,nefgy8o,D1
+,Total,,,,,,,28,1250,,https://www.reddit.com/r/Sat/comments/1oyk1b5/comment/npth8d2/,2025-11-16,total score with exactly 28 wrong; real or practice not stated,1oyk1b5,npth8d2,D1
+,Math,,,,,,,5,690,,https://www.reddit.com/r/satprep/comments/1v7crfd/,2026-07-26,title says 5 math wrong; 690 is from commenters reading OP's screenshot; real or practice not stated,1v7crfd,post,D1
+,Math,,,,,,,1,790,0,https://www.reddit.com/r/satprep/comments/1v7crfd/comment/ozx8xs2/,2026-07-26,practice tests: one hard question wrong gave 790,1v7crfd,ozx8xs2,D1
+,Math,,,,,,,1,770,0,https://www.reddit.com/r/satprep/comments/1v7crfd/comment/ozx8xs2/,2026-07-26,practice tests: one easy question wrong gave 770,1v7crfd,ozx8xs2,D1
+4,Math,,,,,,,4,780,0,https://www.reddit.com/r/Sat/comments/1ecv32l/comment/lf2uui1/,2024-07-26,"four wrong 'I believe'; first said 790, corrected to 780 in lf2zdkx",1ecv32l,lf2uui1,D1
+4,Math,,,,,0,4,4,720,0,https://www.reddit.com/r/Sat/comments/1ecv32l/comment/lf2z2tu/,2024-07-26,"four wrong, all in second module; same test as lf2uui1 who got 780 with 4 wrong",1ecv32l,lf2z2tu,D1
+4,RW,,,,,,,1,760,0,https://www.reddit.com/r/Sat/comments/1mnwsm7/,2025-08-12,only one wrong (rhetorical synthesis),1mnwsm7,post,D1
+,RW,,,,,,,6,740,0,https://www.reddit.com/r/Sat/comments/1mnwsm7/comment/n8d6gni/,2025-08-12,"practice test, number not given; section from thread (RW)",1mnwsm7,n8d6gni,D1
+,RW,,,,,,,6,690,0,https://www.reddit.com/r/Sat/comments/1mnwsm7/comment/n8d6gni/,2025-08-12,"another practice test, number not given; same 6 wrong; section from thread",1mnwsm7,n8d6gni,D1
+,RW,,,,,,,2,760,0,https://www.reddit.com/r/Sat/comments/1b9lk35/,2024-03-08,"practice test, number not given; 2 mistakes",1b9lk35,post,D1
+,Math,,,,,,3,,780,0,https://www.reddit.com/r/Sat/comments/1b9lk35/,2024-03-08,"practice test, number not given; 3 mistakes in second module; M1 not stated",1b9lk35,post,D1
+2,Total,,,,,,,13,1470,0,https://www.reddit.com/r/Sat/comments/1b9lk35/comment/ktzz2qv/,2024-03-08,13 wrong,1b9lk35,ktzz2qv,D1
+3,Total,,,,,,,13,1410,0,https://www.reddit.com/r/Sat/comments/1b9lk35/comment/ktzz2qv/,2024-03-08,"13 wrong, same count as test 2",1b9lk35,ktzz2qv,D1
+,Math,,,,,,1,,800,1,https://www.reddit.com/r/Sat/comments/1fxv8by/comment/lqpnz2p/,2024-10-07,"August SAT (2024); one easy question wrong in M2, total wrong not stated; unsure if it was experimental",1fxv8by,lqpnz2p,D2
+,Math,,,,,1,0,1,790,1,https://www.reddit.com/r/Sat/comments/1fxv8by/comment/olymfmg/,2024-10-07,"real SAT, scores released 2026-05-15 (test date not stated); 1 easy question wrong in M1, aced M2 (stated in okjtvxf)",1fxv8by,olymfmg,D2
+4,RW,,,,,1,1,2,750,0,https://www.reddit.com/r/Sat/comments/1fttw5e/,2024-10-01,one wrong in each module,1fttw5e,post,D2
+4,RW,,,,,,,3,750,0,https://www.reddit.com/r/Sat/comments/1fttw5e/comment/lpuhrx9/,2024-10-01,,1fttw5e,lpuhrx9,D2
+,RW,,,,,,,1,760,,https://www.reddit.com/r/Sat/comments/1fttw5e/comment/lpy3i2u/,2024-10-01,source unstated (practice or real); 'missed 1 question on RW and got a 760 once',1fttw5e,lpy3i2u,D2
+7,Math,,,,,,,6,710,0,https://www.reddit.com/r/Sat/comments/1nz6i71/comment/ni1mk00/,2025-10-06,section inferred from thread (math); 5 of the 6 wrong were question 17 onwards,1nz6i71,ni1mk00,D2
+,RW,,,,,3,7,10,690,0,https://www.reddit.com/r/Sat/comments/1fv3lgd/,2024-10-03,"bluebook test, number not given",1fv3lgd,post,D2
+,Math,,,,,,,3,790,0,https://www.reddit.com/r/Sat/comments/1fv3lgd/comment/lq4nnqp/,2024-10-03,practice source unstated,1fv3lgd,lq4nnqp,D2
+,RW,,,,,,,3,730,0,https://www.reddit.com/r/Sat/comments/1fv3lgd/comment/lq4nnqp/,2024-10-03,practice source unstated; a different practice test from the math row,1fv3lgd,lq4nnqp,D2
+6,Total,,,,,,,10,1470,0,https://www.reddit.com/r/Sat/comments/1nis9ix/,2025-09-16,"10 wrong overall; RW had 6 wrong (1 M1, 5 M2) per OP reply nenaaxp; section scores not stated",1nis9ix,post,D2
+6,RW,,,,,,,5,720,0,https://www.reddit.com/r/Sat/comments/1nis9ix/comment/nen99ho/,2025-09-16,,1nis9ix,nen99ho,D2
+6,RW,,,,,,,5,760,0,https://www.reddit.com/r/Sat/comments/1f0w6hq/comment/ljv5dk2/,2024-08-25,'test 6 reading',1f0w6hq,ljv5dk2,D2
+5,RW,,,,,,,3,760,0,https://www.reddit.com/r/Sat/comments/1f0w6hq/comment/ljv5dk2/,2024-08-25,'test 5 reading',1f0w6hq,ljv5dk2,D2
+6,,,,,,,,10,700,0,https://www.reddit.com/r/Sat/comments/1gi66ld/comment/lv35oid/,2024-11-02,section not stated (thread about reaching 700),1gi66ld,lv35oid,D2
+,Math,,22,14,36,0,8,8,700,0,https://www.reddit.com/r/Sat/comments/1gi66ld/comment/lv3964s/,2024-11-02,"'the practice SAT', test not named (asked, no answer); module split 22/22 and 14/22 in reply lv6xgcz",1gi66ld,lv3964s,D2
+6,,,,,,,,10,690,0,https://www.reddit.com/r/Sat/comments/1gi66ld/comment/lvbobbv/,2024-11-02,section not stated,1gi66ld,lvbobbv,D2
+1,,,,,,,,8,730,0,https://www.reddit.com/r/Sat/comments/1gi66ld/comment/lvbobbv/,2024-11-02,section not stated,1gi66ld,lvbobbv,D2
+1,Math,,,,,,,1,800,0,https://www.reddit.com/r/Sat/comments/1ex8o9s/,2024-08-20,from post title: 'got 1 wrong and still a perfect math' on BlueBook 1,1ex8o9s,post,D2
+11,RW,,,,,,,9,740,0,https://www.reddit.com/r/Sat/comments/1wfnp37/comment/p9qc1ih/,2026-09-13,'9 questions off Ela test 11',1wfnp37,p9qc1ih,D2
+,Math,,,,,,,14,660,0,https://www.reddit.com/r/Sat/comments/1evm05n/,2024-08-18,practice source unstated,1evm05n,post,D2
+3,Math,,,,,2,0,2,790,0,https://www.reddit.com/r/Sat/comments/1dtyv2h/,2024-07-02,"2 wrong in M1; OP reply lbcyan1 says 2 questions in total, so M2 0 wrong",1dtyv2h,post,D2
+3,RW,,,,,,,1,770,0,https://www.reddit.com/r/Sat/comments/1dtyv2h/,2024-07-02,'only 1 question wrong',1dtyv2h,post,D2
+4,RW,,,,,1,3,4,710,0,https://www.reddit.com/r/Sat/comments/1ds3cxe/,2024-06-30,module split in OP reply lazoh85,1ds3cxe,post,D2
+3,RW,,,,,,,5,710,0,https://www.reddit.com/r/Sat/comments/1ds3cxe/comment/lb0q5om/,2024-06-30,,1ds3cxe,lb0q5om,D2
+4,RW,,,,,1,3,4,710,0,https://www.reddit.com/r/Sat/comments/1ds3cxe/comment/n98td76/,2024-06-30,"test number from thread title (commenter replies to post about practice test 4); 1 wrong in M1, M2 = 4-1",1ds3cxe,n98td76,D2
+6,RW,,,,,1,12,13,660,0,https://www.reddit.com/r/Sat/comments/1j20a8e/comment/mfrd0dh/,2025-03-02,,1j20a8e,mfrd0dh,D2
+,RW,,,,,0,4,4,740,0,https://www.reddit.com/r/Sat/comments/12lgzi6/,2023-04-14,"Bluebook practice test, April 2023; all 4 wrong in M2; poster preparing for digital PSAT, test type not named",12lgzi6,post,D2
+4,Total,,,,,,,5,1510,0,https://www.reddit.com/r/Sat/comments/134frc1/comment/jiemmjb/,2023-05-01,dSAT practice test 4; 'lost 5 marks in total',134frc1,jiemmjb,D2
+7,Total,,,,,,,8,1530,0,https://www.reddit.com/r/Sat/comments/1x6py4j/,2026-10-15,"8 wrong on Practice test 7, total score",1x6py4j,post,D3
+4,Total,,,,,,,13,1370,0,https://www.reddit.com/r/Sat/comments/1po0nrh/comment/nufo160/,2025-12-16,"pt4, 13 wrong total",1po0nrh,nufo160,D3
+3,Total,,,,,,,33,1200,0,https://www.reddit.com/r/Sat/comments/1fecqrp/,2024-09-11,"practice 3, 33 mistakes",1fecqrp,post,D3
+,Total,,,,,,,13,1250,0,https://www.reddit.com/r/Sat/comments/1fecqrp/,2024-09-11,"PSAT 10 practice, 13 mistakes, PSAT scale (max 1520)",1fecqrp,post,D3
+,RW,,,,52,,,2,760,0,https://www.reddit.com/r/Sat/comments/1euxhxa/,2024-08-18,bluebook tests (reply linkkgn); 52/54 after correction in lio1wq1; says this is typical,1euxhxa,post,D3
+,RW,,,,52,,,2,750,0,https://www.reddit.com/r/Sat/comments/1euxhxa/,2024-08-18,bluebook tests; once got 52/54 and 750,1euxhxa,post,D3
+10,Math,harder,,,,,5,,710,0,https://www.reddit.com/r/Sat/comments/1ozn1ts/,2025-11-17,5 missed in module 2; M1 count not stated; harder module for both sections (reply npheg6l),1ozn1ts,post,D3
+,,,,,,,,5,720,0,https://www.reddit.com/r/Sat/comments/1ozn1ts/comment/npesjfh/,2025-11-17,PSAT 8/9 practice test; missed 5; 720 called perfect (PSAT 8/9 section max); section not stated,1ozn1ts,npesjfh,D3
+,,,,,,,,6,750,0,https://www.reddit.com/r/Sat/comments/1ozn1ts/comment/oin2hk8/,2025-11-17,posted in a PT10 math curve thread; test and section not stated,1ozn1ts,oin2hk8,D3
+,Math,,,,,0,5,5,750,0,https://www.reddit.com/r/Sat/comments/1j61zi1/comment/mgl6udk/,2025-03-07,practice source unstated; five wrong in module 2; perfect M1 confirmed in reply mglaxsf; section inferred from math thread,1j61zi1,mgl6udk,D3
+,Math,,,,,,,1,800,0,https://www.reddit.com/r/digitalSATs/comments/16zbfpp/comment/k3em5mx/,2023-10-04,"mocks, source unstated; 1 mistake in math",16zbfpp,k3em5mx,D3
+,RW,,,,,,,13,650,0,https://www.reddit.com/r/digitalSATs/comments/16zbfpp/comment/k3em5mx/,2023-10-04,"mocks, source unstated; 13 mistakes in R&W",16zbfpp,k3em5mx,D3
+,RW,harder,,,,0,1,1,770,,https://www.reddit.com/r/Sat/comments/1g8tit5/,2024-10-21,"1 mistake in RW Hard Module, only 1 wrong overall (lt4dl95); real or practice not stated; posted Oct 2024",1g8tit5,post,D3
+,Math,,,,,,,2,790,,https://www.reddit.com/r/Sat/comments/1g8tit5/comment/lt4dl95/,2024-10-21,same test as the 770 RW; real or practice not stated,1g8tit5,lt4dl95,D3
+,Math,,,,,,,2,750,,https://www.reddit.com/r/Sat/comments/1g8tit5/comment/lt5hn53/,2024-10-21,2 wrong for math and got a 750; real or practice not stated,1g8tit5,lt5hn53,D3
+,RW,,,,,,,5,740,,https://www.reddit.com/r/Sat/comments/1pan5c9/comment/nrkvbv0/,2025-11-30,740 with 5 wrong (pretty sure); section from RW thread; real or practice not stated,1pan5c9,nrkvbv0,D3
+,RW,,,,,,,3,760,,https://www.reddit.com/r/Sat/comments/1pan5c9/comment/nrn3ra2/,2025-11-30,760 with 3 wrong (pretty sure); section from RW thread; real or practice not stated,1pan5c9,nrn3ra2,D3
+,RW,,,,,,,6,680,,https://www.reddit.com/r/Sat/comments/1fvdkjh/comment/lq7mkba/,2024-10-03,6 wrong and got 680; section from English thread; real or practice not stated,1fvdkjh,lq7mkba,D3
+,RW,,,,,,,1,780,,https://www.reddit.com/r/Sat/comments/1wzjyfe/comment/peelvft/,2026-10-07,one wrong and got 780; section from RW thread; real or practice not stated,1wzjyfe,peelvft,D3
+,RW,,,,,2,,,610,,https://www.reddit.com/r/Sat/comments/1spszp9/comment/oh2p6bl/,2026-04-19,M1 2 mistakes; M2 '9-10 mistakes probably'; total 1330; real or practice not stated,1spszp9,oh2p6bl,D3
+,Math,,,,,1,,,720,,https://www.reddit.com/r/Sat/comments/1spszp9/comment/oh2p6bl/,2026-04-19,M1 1 mistake; M2 'probably 3-4 mistakes'; total 1330; real or practice not stated,1spszp9,oh2p6bl,D3
+,RW,,,,,,4,,740,1,https://www.reddit.com/r/Sat/comments/1pnrl03/comment/nubiqtf/,2025-12-16,"Dec 2025 SAT; self-estimate before scores: M1 '1-2' wrong, M2 'approximately 4'",1pnrl03,nubiqtf,D3
+,Math,,,,,,,0,790,1,https://www.reddit.com/r/Sat/comments/1pnrl03/comment/nubiqtf/,2025-12-16,Dec 2025 SAT; self-estimate: 'knew I had scored everything' yet 790,1pnrl03,nubiqtf,D3
+,Math,,,,,,,1,800,1,https://www.reddit.com/r/Sat/comments/13a2p37/comment/jj83l5v/,2023-05-06,March 2023 SAT; format uncertain (digital only outside the US then),13a2p37,jj83l5v,D3
+,Math,,,,,,,1,800,1,https://www.reddit.com/r/Sat/comments/13a2p37/comment/jj8aqe0/,2023-05-06,"March 2023 SAT, 1 wrong and 800; format uncertain (digital only outside the US then)",13a2p37,jj8aqe0,D3
+,Math,,,,,,,1,800,1,https://www.reddit.com/r/Sat/comments/17293cc/comment/k3vej8s/,2023-10-07,"August 2023 SAT, 'pretty sure' one wrong; format uncertain (digital only outside the US then)",17293cc,k3vej8s,D3
+4,RW,,,,,,,1,780,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 4; 1 missed on RW,1f4yc6z,lkpzqtp,D4
+4,Math,,,,,,,5,730,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 4; 5 missed on math,1f4yc6z,lkpzqtp,D4
+5,RW,,,,,,,3,760,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 5; 3 missed on RW,1f4yc6z,lkpzqtp,D4
+5,Math,,,,,,,1,790,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 5; 1 missed on math,1f4yc6z,lkpzqtp,D4
+6,RW,,,,,,,4,750,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 6; 4 missed on RW,1f4yc6z,lkpzqtp,D4
+6,Math,,,,,,,4,760,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkpzqtp/,2024-08-30,practice test 6; 4 missed on math,1f4yc6z,lkpzqtp,D4
+6,RW,,,,,,,5,740,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkql0d8/,2024-08-30,practice test 6 RW with 5 wrong,1f4yc6z,lkql0d8,D4
+5,RW,,,,,,,4,730,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkqrciv/,2024-08-30,"ran Test 5 three times missing 4 each: 730, 730, 740 (run 1); section inferred from English context; same report as lkqpuoz",1f4yc6z,lkqrciv,D4
+5,RW,,,,,,,4,740,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkqrciv/,2024-08-30,run 3 of 3; section inferred from English context,1f4yc6z,lkqrciv,D4
+6,RW,,,,,0,7,7,700,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkr6ryc/,2024-08-30,"bluebook practice 6; all 7 wrong in module 2 reading, every other question right, total 1500; RW derived as 1500 minus Math 800",1f4yc6z,lkr6ryc,D4
+6,Math,,,,,,,0,800,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkr6ryc/,2024-08-30,every math question right (total 1500); Math 800 follows from 0 wrong,1f4yc6z,lkr6ryc,D4
+,RW,,,,,,,10,700,0,https://www.reddit.com/r/Sat/comments/1f4yc6z/comment/lkyfz40/,2024-08-30,700 on RW with 10 wrong on one of my practice tests; practice source unstated,1f4yc6z,lkyfz40,D4
+4,RW,harder,,,,0,2,2,740,0,https://www.reddit.com/r/Sat/comments/1vpbrqt/,2026-08-15,both wrong in the harder module; total 1540; test 4 per commenters reading the screenshot (BB4),1vpbrqt,post,D4
+4,Math,,,,,,,0,800,0,https://www.reddit.com/r/Sat/comments/1vpbrqt/,2026-08-15,"title says only 2 wrong overall, both in RW, so 0 wrong in math; test 4 per commenters",1vpbrqt,post,D4
+11,Total,,,,,,,6,1540,0,https://www.reddit.com/r/Sat/comments/1vpbrqt/comment/p3wcksl/,2026-08-15,"BB11 1540 with 6 wrong; reply p402of8 says wrong ones were in the harder module (Q4 and 16), unclear",1vpbrqt,p3wcksl,D4
+11,RW,,,,,,,9,730,0,https://www.reddit.com/r/Sat/comments/1vpbrqt/comment/p3whvua/,2026-08-15,#11 730 RW with nine wrong,1vpbrqt,p3whvua,D4
+4,RW,,,,,0,1,1,770,0,https://www.reddit.com/r/Sat/comments/1ezpnk1/,2024-08-23,"practice test 4 English, only one wrong, in module 2 (a grammar question)",1ezpnk1,post,D4
+5,RW,,,,,,7,,740,0,https://www.reddit.com/r/Sat/comments/1ezpnk1/comment/ljmb7fy/,2024-08-23,7 wrong on module 2 of practice 5; M1 count not stated; section inferred from thread (English),1ezpnk1,ljmb7fy,D4
+,RW,harder,,,,4,0,4,710,0,https://www.reddit.com/r/Sat/comments/1ezpnk1/comment/ljn56gb/,2024-08-23,"710 english on one practice; '4 wrong on the easy section, none on the hard' read as M1 4 wrong, hard M2 0 wrong; practice source unstated",1ezpnk1,ljn56gb,D4
+,RW,,,,,6,4,10,650,0,https://www.reddit.com/r/Sat/comments/1tswv6v/,2026-05-31,"practice source unstated (uses Bluebook, OnePrep, Test-Ninja)",1tswv6v,post,D4
+,RW,,,,,,,2,760,,https://www.reddit.com/r/Sat/comments/1fvqn1z/comment/lq93njo/,2024-10-04,source unstated (practice or real),1fvqn1z,lq93njo,D4
+,RW,,,,,,4,,770,,https://www.reddit.com/r/Sat/comments/1fvqn1z/comment/lq96wz4/,2024-10-04,4 wrong on module 2 of english; M1 not stated; source unstated,1fvqn1z,lq96wz4,D4
+,Math,,,,,1,3,4,760,,https://www.reddit.com/r/Sat/comments/1fvqn1z/comment/lq96wz4/,2024-10-04,"1 wrong in module one, 3 wrong in 'module 3' (read as module 2); source unstated",1fvqn1z,lq96wz4,D4
+7,Math,,,,,,,3,790,0,https://www.reddit.com/r/Sat/comments/1m55ihc/,2025-07-21,"practice 7: 1 medium wrong, 2 hard wrong",1m55ihc,post,D4
+,Math,,,,,,,4,730,0,https://www.reddit.com/r/Sat/comments/1m55ihc/,2025-07-21,next practice test (number not given): 4 hard wrong,1m55ihc,post,D4
+4,RW,,,,,,,2,750,0,https://www.reddit.com/r/Sat/comments/1m55ihc/comment/n49na6o/,2025-07-21,"practice test 4 RW, missed two",1m55ihc,n49na6o,D4
+5,Math,harder,,,,2,1,3,790,0,https://www.reddit.com/r/Sat/comments/1cxtmtm/,2024-05-22,OP: 3 wrong; reply l56ntnx (answering which ones) lists Q17 and Q21 in module 1 and Q6 in module 2; OP mentions the hard module,1cxtmtm,post,D4
+5,Math,,,,,0,3,3,760,0,https://www.reddit.com/r/Sat/comments/1cxtmtm/comment/l55kwd3/,2024-05-22,"three wrong, the last ones of module 2 except the very last",1cxtmtm,l55kwd3,D4
+5,Math,,,,,,,3,760,0,https://www.reddit.com/r/Sat/comments/1cxtmtm/comment/l56l7sg/,2024-05-22,the 3 hardest math questions on Test 5 wrong,1cxtmtm,l56l7sg,D4
+3,RW,,,,,,2,,760,0,https://www.reddit.com/r/Sat/comments/1ei4bux/comment/lg3x5p4/,2024-08-02,pt3 760 RW with only 2 questions on module 2 wrong; M1 not stated explicitly,1ei4bux,lg3x5p4,D4
+6,Math,,,,,,,1,790,0,https://www.reddit.com/r/Sat/comments/1wxdwmu/comment/pdzycvg/,2026-10-04,tried getting 1 wrong on practice test 6 math; always took off 10 points whatever the difficulty,1wxdwmu,pdzycvg,D4
+10,Math,,,,,0,2,2,760,0,https://www.reddit.com/r/Sat/comments/1quc48s/,2026-02-02,practice test 10; both wrong near the end of module 2 (M1 0 follows),1quc48s,post,D4
+,Math,,,,,,,1,800,,https://www.reddit.com/r/Sat/comments/1njt611/comment/nesss99/,2025-09-17,800 despite one wrong; source unstated (thread about real SAT math),1njt611,nesss99,D4
+,RW,,26,23,49,1,4,5,750,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/npcxvif/,2025-11-17,"real SAT per thread; counts self-reported (26/27, 23/27); RW from reply npewhzj; total 1530",1ozj886,npcxvif,D4
+,Math,,22,21,43,0,1,1,780,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/npcxvif/,2025-11-17,"real SAT per thread; counts self-reported (22/22, 21/22); Math from reply npewhzj",1ozj886,npcxvif,D4
+,Total,,,,,,,7,1500,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/npfedyz/,2025-11-17,"real SAT per thread; self-reported 2 wrong math, 5 wrong english",1ozj886,npfedyz,D4
+,Math,,,,,,,2,780,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/npgtycl/,2025-11-17,September SAT (2025); self-reported 2 wrong,1ozj886,npgtycl,D4
+,RW,,,,,,,4,760,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/nplnpdp/,2025-11-17,real SAT per thread; thinks 4 wrong,1ozj886,nplnpdp,D4
+,Math,,,,,,,1,780,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/nplnpdp/,2025-11-17,real SAT per thread; thinks 1 '20-pointer' wrong,1ozj886,nplnpdp,D4
+,Math,,,,,1,0,1,790,1,https://www.reddit.com/r/Sat/comments/1ozj886/comment/nq7fx8x/,2025-11-17,real SAT per thread; knows the one wrong was a basic data question in module 1,1ozj886,nq7fx8x,D4

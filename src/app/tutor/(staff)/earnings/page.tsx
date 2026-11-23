@@ -16,7 +16,7 @@ import { fetchTutorEarningsSummary } from "@/lib/supabase/queries/earnings";
 import { Card, Cta, MoreLink, Num, SectionHeader } from "@/components/portal";
 import { WbStats } from "@/components/admin/workbench";
 
-export const metadata: Metadata = { title: "My Earnings — Karman" };
+export const metadata: Metadata = { title: "Earnings" };
 export const dynamic = "force-dynamic";
 
 const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -69,23 +69,19 @@ export default async function TutorEarningsPage() {
           <>
             <p className="kp-meta">
               <Num>{fmt.format(summary.pending_amount)}</Num> from{" "}
-              <Num>{plural(readySessions, "session")}</Num> is ready. Choose Instant or ACH on the
-              next screen.
+              <Num>{plural(readySessions, "session")}</Num> is ready.
             </p>
             <Cta href="/tutor/payouts">Request a payout</Cta>
           </>
         ) : (
           <p className="kp-meta">
-            Nothing to pay out yet. Send the recap after each session and it becomes ready here.
+            Nothing to pay out yet. Send each session&rsquo;s recap to get paid for it.
           </p>
         )}
       </Card>
 
       <Card>
         <SectionHeader title="Earnings data" />
-        <p className="kp-meta">
-          Every session by date range, payout history, and the last 12 weeks.
-        </p>
         <MoreLink href="/tutor/earnings/data">See earnings data</MoreLink>
       </Card>
 

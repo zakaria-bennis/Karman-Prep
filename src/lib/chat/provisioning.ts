@@ -136,3 +136,20 @@ export async function ensureCohortChannels(cohortId: string): Promise<EnsureChan
     createdNow,
   };
 }
+
+/** Makes sure each class has its chat (founder, 2026-11-22: a Cohort student must see their class
+ *  chat and Announcements). Joining a class never created them, only the admin's button did, so the
+ *  chat page asks here: any class without a chat channel gets its two Slack channels now. Quietly does
+ *  nothing without a Slack token (local development). Returns whether anything was created. */
+export async function ensureClassChats(
+  cohortIds: readonly string[],
+  have: readonly string[]
+): Promise<boolean> {
+  if (!process.env.SLACK_BOT_TOKEN) return false;
+  const missing = cohortIds.filter((id) => !have.includes(id));
+  if (missing.length === 0) return false;
+  const made = await Promise.all(
+    missing.slice(0, 5).map((id) => ensureCohortChannels(id).catch(() => null))
+  );
+  return made.some(Boolean);
+}

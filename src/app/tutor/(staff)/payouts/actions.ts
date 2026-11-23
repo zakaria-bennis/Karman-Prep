@@ -212,8 +212,8 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
       html: `<p>Hi ${tutorName},</p>
 <p>Your KarmanPrep payout of <strong>$${net.toFixed(2)}</strong> is on its way${
         method === "instant"
-          ? " — should arrive on your debit card in seconds"
-          : " via ACH — typically 2-3 business days"
+          ? ", and should reach your debit card within 30 minutes"
+          : " by ACH, and usually arrives in 1 to 2 business days"
       }.</p>
 <p>${eligible.length} session${eligible.length === 1 ? "" : "s"} · ${totalHours.toFixed(2)} hours · ${
         method === "instant" ? `$${fee.toFixed(2)} fee` : "no fee"
@@ -236,7 +236,7 @@ export async function actionRequestPayout(method: PayoutMethod): Promise<PayoutR
     total_hours: totalHours,
     booking_count: eligible.length,
     method,
-    arrival_estimate: method === "instant" ? "in seconds" : "in 2-3 business days",
+    arrival_estimate: method === "instant" ? "within 30 minutes" : "in 1 to 2 business days",
   };
 }
 

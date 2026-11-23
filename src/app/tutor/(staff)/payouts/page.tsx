@@ -25,7 +25,7 @@ import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
 import { Card, Cta, SectionHeader } from "@/components/portal";
 import PayoutsClient from "./PayoutsClient";
 
-export const metadata: Metadata = { title: "Payouts — Karman" };
+export const metadata: Metadata = { title: "Payouts" };
 export const dynamic = "force-dynamic";
 
 export default async function TutorPayoutsPage() {
@@ -126,17 +126,10 @@ export default async function TutorPayoutsPage() {
 
   return (
     <div className="wb" style={{ paddingBlock: 0 }}>
-      <p className="wb-note">
-        Choose Instant or ACH. The money goes from Karman to your Stripe account, then to your bank
-        or debit card.
-      </p>
       {!caller.stripe_connect_account_id || !caller.stripe_payouts_enabled ? (
         <Card>
           <SectionHeader title="Set up payments first" />
-          <p className="kp-meta">
-            Finish Stripe onboarding so we know where to send your money. Then you can ask for a
-            payout here.
-          </p>
+          <p className="kp-meta">Finish Stripe onboarding to get paid.</p>
           <Cta href="/tutor/settings/payment">Go to payment settings</Cta>
         </Card>
       ) : (

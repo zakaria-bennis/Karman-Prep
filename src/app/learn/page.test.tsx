@@ -13,8 +13,8 @@ import ReadingPage from "./reading/page";
 
 describe("old Learn pages open the Library", () => {
   it("sends the landing page and both skill maps to the Library", () => {
-    expect(() => LearnPage()).toThrow("redirect:/dashboard/student/library");
-    expect(() => MathPage()).toThrow("redirect:/dashboard/student/library/math");
-    expect(() => ReadingPage()).toThrow("redirect:/dashboard/student/library/reading-writing");
+    expect(() => LearnPage()).toThrow("redirect:/dashboard/student?page=library");
+    expect(() => MathPage()).toThrow("redirect:/dashboard/student?page=library");
+    expect(() => ReadingPage()).toThrow("redirect:/dashboard/student?page=library");
   });
 });

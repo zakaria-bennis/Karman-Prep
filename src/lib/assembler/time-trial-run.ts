@@ -149,6 +149,11 @@ export async function startTimeTrial(clerkId: string, rawSection: string): Promi
       title: "Time trial",
       grading: "end",
       trial: standing,
+      // the portal's coins and ending (src/lib/play)
+      play: {
+        mode: "trial",
+        scope: { kind: "section", section: section === "math" ? "Math" : "Reading and Writing" },
+      },
       sections: [
         {
           key: section === "reading" ? "rw1" : "m1",
@@ -172,7 +177,10 @@ export function trialRoundOf(
   responses: readonly RunResponse[],
   elapsedSeconds: number
 ): TrialRoundResult | null {
-  const section = trialSectionSchema.safeParse(run.scope);
+  // a skill or domain trial (src/lib/play/server/trials.ts) is timed by its section's pace
+  const section = trialSectionSchema.safeParse(
+    run.scope?.startsWith("trial:") ? run.form.sections[0]?.subject : run.scope
+  );
   const form = run.form.sections[0];
   if (!section.success || !form) return null;
   const ids = new Set(sectionQuestionIds(run, 0));

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff, ChevronLeft, ChevronRight, Sun, Moon } from "lucide-react";
 import type { QuizQuestionWithChoices, StudentQuizQuestion } from "@/types/quiz";
 import type { QuizState } from "@/contexts/QuizContext";
-import type { MappedNode } from "@/components/learn/ConstellationMap";
+import type { MappedNode } from "@/components/learn/mapped-node";
 import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";
 import MathText from "@/components/learn/MathText";
 

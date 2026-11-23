@@ -26,21 +26,19 @@ import type { QuizQuestionWithChoices } from "@/types/quiz";
 import {
   catalogSkill,
   loadAdmittedBank,
+  loadAdmittedSample,
   questionFamily,
   skillsInDomain,
   skillsInSection,
 } from "./bank";
 import {
   DIAGNOSTIC_BLUEPRINT,
-  FULL_LENGTH_FORMS,
-  SECTION_SHAPE,
   assembleDiagnostic,
   assembleDomainQuiz,
-  assembleFullLengthForms,
   routeHarder,
   type Section,
 } from "./forms";
-import { PlanLimitError, assertQuestionsLeft, loadQuizAccess } from "./plan-gate";
+import { assertQuestionsLeft } from "./plan-gate";
 import { COUNTED_RUN_KINDS } from "@/lib/plans";
 import { practiceSetPool } from "./set-pool";
 import { finishTimeTrial } from "./time-trial-run";
@@ -51,9 +49,7 @@ import {
   dailyTenDays,
   findOpenRun,
   findRunByKey,
-  fullTestQuestionIds,
   getOwnedRun,
-  openFullTest,
   insertResponses,
   insertRun,
   latestRunOfKind,
@@ -62,6 +58,10 @@ import {
   updateRun,
 } from "./run-store";
 import type { RunForm, RunRecord, RunResponse, RunSectionForm, RunView } from "./run-types";
+import { finishPlay, nextEndless, playOver } from "@/lib/play/server/play-runs";
+import { pickReviews } from "@/lib/play/server/reviews";
+import { topUpEndless } from "@/lib/play/server/generated";
+import { REVIEWS_MAX, withReviews } from "@/lib/play/reviews";
 import { diagnosticSectionScore, predictedTotal, sectionScore } from "./score";
 import {
   buildView,
@@ -75,7 +75,7 @@ import {
   summarise,
 } from "./run-view";
 
-export const PRACTICE_SET_SIZE = 10;
+export const PRACTICE_SET_SIZE = 8;
 const title: Record<Section, string> = { reading: "Reading and Writing", math: "Math" };
 
 const familyOf = (snap: CatalogDeliverySnapshot) =>
@@ -110,14 +110,17 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   });
   const seed = `${clerkId}:${day}`;
   const first = skillsToLoad(skills, now, seed);
-  let bank = await loadAdmittedBank(first, access.maxDifficulty);
+  // a sample of each ranked skill: the Daily 10 takes about one question a skill
+  let bank = await loadAdmittedSample(first, access.maxDifficulty, access.practiceSet, 60);
   // Too few questions in the first skills (small pools, a failed read): widen to every skill.
   const perSection = (section: Section) =>
     bank.items.filter((item) => item.section === section).length;
   if (perSection("reading") < 10 || perSection("math") < 10) {
-    const more = await loadAdmittedBank(
+    const more = await loadAdmittedSample(
       CATALOG_SKILLS.map((skill) => skill.id).filter((id) => !first.includes(id)),
-      access.maxDifficulty
+      access.maxDifficulty,
+      access.practiceSet,
+      20
     );
     bank = {
       items: [...bank.items, ...more.items],
@@ -154,10 +157,44 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
   });
   if (access.questionsLeft !== null) picks = picks.slice(0, access.questionsLeft);
   if (!picks.length) throw new Error("No distinct approved questions are available");
-  const ids = picks.map((p) => p.questionId);
+  // up to five of the ten are spaced reviews of skills that are due (src/lib/play/reviews.ts)
+  const sectionOfPick = new Map(bank.items.map((item) => [item.id, item.section as string]));
+  const reviews = await pickReviews(clerkId, day, {
+    maxDifficulty: access.maxDifficulty,
+    practiceSet: access.practiceSet,
+    answered: history,
+    taken: new Set(picks.map((p) => p.questionId)),
+    max: Math.min(REVIEWS_MAX, picks.length),
+  }).catch(() => []);
+  const ten = withReviews(
+    picks.map((p) => ({
+      questionId: p.questionId,
+      section: sectionOfPick.get(p.questionId) ?? "",
+    })),
+    reviews.map((r) => ({ questionId: r.item.id, section: r.item.section as string }))
+  );
+  const ids = ten.map((p) => p.questionId);
+  const snapshots = new Map([
+    ...bank.snapshots,
+    ...reviews.map((r) => [r.item.id, r.snapshot] as const),
+  ]);
+  const reviewIds = reviews.map((r) => r.item.id).filter((id) => ids.includes(id));
   const form: RunForm = {
     title: "Daily 10",
     grading: "instant",
+    play: {
+      mode: "daily",
+      ...(reviewIds.length
+        ? {
+            reviews: reviewIds,
+            skills: Object.fromEntries(
+              reviews
+                .filter((r) => reviewIds.includes(r.item.id))
+                .map((r) => [r.item.id, { s: r.item.skill72, d: r.item.domain72 }])
+            ),
+          }
+        : {}),
+    },
     sections: [
       {
         key: "main",
@@ -175,14 +212,14 @@ export async function openDailyTen(clerkId: string, timeZone: string): Promise<R
       runKey,
       scope: day,
       form,
-      snapshots: ids.map((id) => bank.snapshots.get(id)!),
+      snapshots: ids.map((id) => snapshots.get(id)!),
       sequence: ids,
     })
   );
 }
 
 /**
- * A 10-question practice set in one sub-skill (or a whole catalog skill), adaptive within the
+ * A practice set (PRACTICE_SET_SIZE questions) in one sub-skill (or a whole catalog skill), adaptive within the
  * set. Resumes an open one. A sub-skill serves only its own questions (src/lib/subskills/).
  */
 export async function startPracticeSet(clerkId: string, setId: string): Promise<RunView> {
@@ -198,7 +235,7 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
   const [levels, history, bank] = await Promise.all([
     loadStoredLevels(clerkId),
     answeredInRuns(clerkId),
-    loadAdmittedBank([skill.id], access.maxDifficulty),
+    loadAdmittedBank([skill.id], access.maxDifficulty, access.practiceSet),
   ]);
   const items =
     sub && split
@@ -245,11 +282,26 @@ export async function startPracticeSet(clerkId: string, setId: string): Promise<
 }
 
 /** Appends the next adaptive question to the set when the last one is answered. */
-async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunView> {
+export async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunView> {
   const answered = new Set(responses.map((r) => r.questionId));
-  if (run.form.adaptive && run.sequence.every((id) => answered.has(id))) {
-    const families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
-    const next = nextAdaptive(run, responses, await answeredInRuns(run.studentId), families);
+  const adaptive = run.form.adaptive;
+  if (adaptive && run.sequence.every((id) => answered.has(id))) {
+    let families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
+    const history = await answeredInRuns(run.studentId);
+    // endless: a Math skill running low gets one more question, made on demand
+    if (run.form.play?.mode === "endless" && !playOver(run, responses)) {
+      const before = run;
+      run = await topUpEndless(run, responses, families).catch(() => before);
+      if (run !== before)
+        families = new Map(run.snapshots.map((s) => [s.binding.questionId, familyOf(s)]));
+    }
+    // endless mode picks its own way (src/lib/play); a run that is over gets nothing more
+    const next =
+      run.form.play?.mode === "endless"
+        ? playOver(run, responses)
+          ? null
+          : nextEndless(run, responses, families, history)
+        : nextAdaptive(run, responses, history, families);
     if (next) {
       run = { ...run, sequence: [...run.sequence, next] };
       await updateRun(run.id, run.studentId, { sequence: run.sequence });
@@ -257,7 +309,10 @@ async function serveNext(run: RunRecord, responses: RunResponse[]): Promise<RunV
       // The pool ran dry before ten: the set ends with what was answered.
       run = {
         ...run,
-        form: { ...run.form, adaptive: { ...run.form.adaptive, size: run.sequence.length } },
+        form: {
+          ...run.form,
+          adaptive: { ...adaptive, size: run.sequence.length },
+        },
       };
       await updateRun(run.id, run.studentId, { form: run.form });
     }
@@ -345,61 +400,6 @@ function timedSections(
   });
 }
 
-/** Full-length test `form` (1 to 4). Free gets one. A started form resumes; a finished one shows its report. */
-export async function startFullTest(clerkId: string, formNumber: number): Promise<RunView> {
-  const form = z.number().int().min(1).max(FULL_LENGTH_FORMS).parse(formNumber);
-  const saved = await findRunByKey(clerkId, `full-test:${form}`);
-  if (saved) return view(saved);
-  const access = await loadQuizAccess(clerkId);
-  if (!access.canStartFullTest)
-    throw new PlanLimitError("The Free plan includes one full-length test.");
-  // A limited plan finishes the test it started before opening another form.
-  if (access.limited && (await openFullTest(clerkId)))
-    throw new PlanLimitError("Finish the full-length test you started first.");
-  const bank = await loadAdmittedBank(
-    [...skillsInSection("reading"), ...skillsInSection("math")],
-    access.maxDifficulty
-  );
-  const taken = new Set(await fullTestQuestionIds(clerkId));
-  const exclude = bank.items.filter((i) => taken.has(i.id)).map((i) => i.family);
-  const forms = assembleFullLengthForms(bank.items, {
-    upTo: form,
-    maxDifficulty: access.maxDifficulty,
-    exclude,
-  });
-  const built = forms[form - 1];
-  const parts = built.sections.map((s) => ({
-    section: s.section,
-    first: s.module1.map((i) => i.id),
-    easier: s.easier.map((i) => i.id),
-    harder: s.harder.map((i) => i.id),
-    minutes: SECTION_SHAPE[s.section].minutes,
-  }));
-  const short = parts.some(
-    (p) =>
-      p.first.length < SECTION_SHAPE[p.section].perModule ||
-      p.easier.length < SECTION_SHAPE[p.section].perModule ||
-      p.harder.length < SECTION_SHAPE[p.section].perModule
-  );
-  if (short) throw new Error("No distinct approved questions are available");
-  const ids = parts.flatMap((p) => [...p.first, ...p.easier, ...p.harder]);
-  return view(
-    await insertRun({
-      studentId: clerkId,
-      kind: "full-test",
-      runKey: `full-test:${form}`,
-      scope: String(form),
-      form: {
-        title: `Practice test ${form}`,
-        grading: "end",
-        sections: timedSections(parts, true),
-      },
-      snapshots: ids.map((id) => bank.snapshots.get(id)!),
-      sequence: [],
-    })
-  );
-}
-
 /** The diagnostic, drawn from the bank: one timed module per section. Resumes or shows its report. */
 export async function startDiagnostic(clerkId: string): Promise<RunView> {
   const latest = await latestRunOfKind(clerkId, "diagnostic");
@@ -476,8 +476,9 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
   const before = levels.get(levelKey) ?? NOT_STARTED;
   const now = new Date();
   // Domain quizzes move levels by the quiz rule when they finish; sets and the Daily 10 by runs.
+  // A portal run moves the 72 skills' levels when it finishes (src/lib/play), not answer by answer.
   const moved =
-    run.kind === "domain-quiz"
+    run.kind === "domain-quiz" || run.form.play
       ? null
       : applyAnswer(before, { correct, usedHint: input.usedHint, at: now });
   const response: RunResponse = {
@@ -501,16 +502,20 @@ export async function answerQuestion(clerkId: string, raw: z.input<typeof answer
     return { review: reviewOf(snap, saved), change: null, view: await resumeRun(clerkId, run.id) };
   }
   if (moved) await saveLevels(clerkId, new Map([[levelKey, moved.state]]));
-  const points = await awardForAnswer({
-    key: `run:${run.id}:${input.questionId}`,
-    clerkId,
-    correct,
-    difficulty: snap.student.difficulty_level,
-    skillId,
-  });
+  // A portal run banks its coins when it finishes (src/lib/coins/earn.ts), not answer by answer.
+  const points = run.form.play
+    ? 0
+    : await awardForAnswer({
+        key: `run:${run.id}:${input.questionId}`,
+        clerkId,
+        correct,
+        difficulty: snap.student.difficulty_level,
+        skillId,
+      });
   const all = [...responses, saved];
   let current = run;
-  if (all.length >= (run.form.adaptive?.size ?? ids.length)) current = await finishRun(run, all);
+  if (all.length >= (run.form.adaptive?.size ?? ids.length) || playOver(run, all))
+    current = await finishRun(run, all);
   return {
     review: reviewOf(snap, saved, points),
     change:
@@ -653,6 +658,8 @@ async function finishRun(run: RunRecord, responses: RunResponse[]): Promise<RunR
     const day = run.scope ?? run.runKey.replace("daily-ten:", "");
     result.streak = streakDays([...days, day], day);
   }
+  // a portal run (or a Daily 10): the 72 skills' levels, the coins, the endless run's best
+  if (run.form.play) result.play = await finishPlay(run, responses, result);
   const completedAt = now.toISOString();
   await updateRun(run.id, run.studentId, { completed_at: completedAt, result });
   if (run.kind === "diagnostic" && result.predicted)

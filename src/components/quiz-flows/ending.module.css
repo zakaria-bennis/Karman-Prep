@@ -1,0 +1,639 @@
+/*
+ * The skill set's start screen and its ending in stages (SetScreens.tsx). Colors and glass come
+ * from the stage (stage.module.css); a tone (gold, blue, rose) colors the burst behind the
+ * character. Rules that must beat the stage's resets are named through [data-flow-stage].
+ * Three layouts: a phone reads top to bottom; a tablet and a computer set the character beside
+ * the facts.
+ */
+.screen,
+.end {
+  --a: #ffc94a;
+  --b: #ff8a3d;
+}
+
+.screen[data-tone="blue"],
+.end[data-tone="blue"] {
+  --a: #5db4ff;
+  --b: #7a6bff;
+}
+
+.screen[data-tone="rose"],
+.end[data-tone="rose"] {
+  --a: #ff8fa3;
+  --b: #b574ff;
+}
+
+/* the summary sits inside the ending and keeps the ending's tone */
+.end .screen {
+  --a: inherit;
+  --b: inherit;
+}
+
+/* ---- the character on its burst ---- */
+.hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--hero);
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.rays,
+.glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.rays {
+  inset: -24%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--a) 80%, transparent) 0deg 12deg,
+    transparent 12deg 30deg
+  );
+  -webkit-mask: radial-gradient(circle, #000 34%, transparent 68%);
+  mask: radial-gradient(circle, #000 34%, transparent 68%);
+  animation:
+    turn 26s linear infinite,
+    bloom 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.glow {
+  inset: 14%;
+  background: radial-gradient(circle at 50% 45%, var(--a), var(--b) 62%, transparent 72%);
+  filter: blur(2px);
+  box-shadow: 0 0 60px 10px color-mix(in srgb, var(--a) 45%, transparent);
+  animation: bloom 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.who {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  filter: drop-shadow(0 10px 14px rgb(0 0 0 / 0.35));
+  animation:
+    jump 0.8s cubic-bezier(0.3, 1.6, 0.45, 1) 0.15s both,
+    bob 3.4s ease-in-out 1s infinite;
+}
+
+/* the character keeps its share of the burst at any size */
+.who svg {
+  width: 62%;
+  height: auto;
+}
+
+@keyframes turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes bloom {
+  from {
+    scale: 0.2;
+    opacity: 0;
+  }
+}
+
+@keyframes jump {
+  0% {
+    translate: 0 60%;
+    scale: 0.4;
+    opacity: 0;
+  }
+
+  60% {
+    translate: 0 -8%;
+    scale: 1.08;
+    opacity: 1;
+  }
+}
+
+@keyframes bob {
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+/* ---- pieces both screens share ---- */
+.screen {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 520px);
+  margin-inline: auto;
+  padding-bottom: 96px; /* the button is fixed under the thumb on a phone */
+  align-content: start;
+}
+
+.lead,
+.side {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lead {
+  justify-items: center;
+}
+
+/* a name on glass, so it reads on any sky */
+.name {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  margin-top: -18px;
+  padding: 12px 22px 13px;
+  border-radius: 24px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    inset 0 0 0 1px var(--edge),
+    0 18px 40px -24px rgb(0 0 0 / 0.5);
+  text-align: center;
+}
+
+:global([data-flow-stage]) .name h1 {
+  font-size: clamp(26px, 7.5vw, 34px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.name p {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+:global([data-flow-stage]) .facts {
+  display: grid;
+  padding: 4px 16px;
+  border-radius: var(--r);
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.facts > li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+}
+
+.facts > li + li {
+  box-shadow: 0 -1px 0 var(--tray);
+}
+
+.facts svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+.facts span {
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.facts b {
+  font-size: 15px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-radius: var(--r);
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.card > small {
+  color: var(--soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---- the level: its name over a bar that fills ---- */
+.level {
+  display: grid;
+  gap: 8px;
+}
+
+.level > b {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  animation: name 0.45s cubic-bezier(0.3, 1.6, 0.45, 1) both;
+}
+
+.bar {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--tray);
+}
+
+.bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--to) * 100%);
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--b), var(--a));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--a) 70%, transparent);
+}
+
+/* the stops between levels, as notches */
+.bar span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+/* slowly, from where the skill was to where it is */
+.level[data-play] .bar i {
+  animation: fill 1.7s cubic-bezier(0.45, 0, 0.2, 1) 0.5s both;
+}
+
+@keyframes fill {
+  from {
+    width: calc(var(--from) * 100%);
+  }
+}
+
+@keyframes name {
+  from {
+    scale: 0.7;
+    opacity: 0;
+  }
+}
+
+:global([data-flow-stage]) .level ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.level li {
+  text-align: center;
+}
+
+.level li:first-child {
+  text-align: left;
+}
+
+.level li:last-child {
+  text-align: right;
+}
+
+/* the button: fixed under the thumb on a phone */
+.foot {
+  position: fixed;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  gap: 10px;
+}
+
+.foot > :first-child {
+  flex: 1;
+}
+
+/* ---- the ending's stages ---- */
+.end {
+  display: grid;
+  min-height: calc(100dvh - 96px);
+}
+
+.spot {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* one stage's words and numbers, on glass under the character */
+.act {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 440px);
+  margin-top: -22px;
+  padding: 18px 20px 20px;
+  border-radius: 28px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    inset 0 0 0 1px var(--edge),
+    0 24px 50px -26px rgb(0 0 0 / 0.55);
+  text-align: center;
+  animation: act 0.55s cubic-bezier(0.3, 1.4, 0.45, 1) both;
+}
+
+.act .level {
+  width: 100%;
+  text-align: left;
+}
+
+.act .level > b {
+  font-size: 30px;
+  text-align: center;
+}
+
+:global([data-flow-stage]) .act h1 {
+  font-size: clamp(24px, 7vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.big {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+.big b {
+  font-size: clamp(64px, 20vw, 96px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.big span {
+  color: var(--soft);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.big svg {
+  align-self: center;
+}
+
+@keyframes act {
+  from {
+    translate: 0 24px;
+    scale: 0.92;
+    opacity: 0;
+  }
+}
+
+:global([data-flow-stage]) .skip {
+  margin-top: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---- the answers, in order ---- */
+:global([data-flow-stage]) .dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dots i,
+:global([data-flow-stage]) .dots button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--miss);
+  color: var(--on-mark);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.dots [data-right] {
+  background: var(--right);
+  box-shadow: 0 0 14px -2px var(--right);
+}
+
+/* in the score's stage they are a little smaller, to sit in one row, and light up one after
+   another */
+.act .dots {
+  gap: 6px;
+}
+
+.act .dots i {
+  width: 30px;
+  height: 30px;
+}
+
+.act .dots li {
+  animation: dot 0.45s cubic-bezier(0.3, 1.8, 0.45, 1) calc(1.3s + var(--i) * 0.12s) both;
+}
+
+@keyframes dot {
+  from {
+    scale: 0;
+    opacity: 0;
+  }
+}
+
+:global([data-flow-stage]) .dots button {
+  transition: scale 0.22s cubic-bezier(0.3, 1.6, 0.45, 1);
+}
+
+:global([data-flow-stage]) .dots button:hover {
+  scale: 1.12;
+}
+
+:global([data-flow-stage]) .dots button[aria-pressed="true"] {
+  scale: 1.16;
+  outline: 2.5px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---- the coin counter in the corner ---- */
+.corner {
+  position: fixed;
+  z-index: 6;
+  top: max(16px, env(safe-area-inset-top));
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px 0 8px;
+  border-radius: 20px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow:
+    inset 0 0 0 1px var(--edge),
+    0 14px 30px -18px rgb(0 0 0 / 0.6);
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  translate: 0 -16px;
+  transition:
+    opacity 0.35s ease,
+    translate 0.5s cubic-bezier(0.3, 1.5, 0.45, 1);
+}
+
+.corner[data-on] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ---- the summary's own pieces ---- */
+.line b {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.line small {
+  color: var(--soft);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.card .dots {
+  justify-content: flex-start;
+}
+
+:global([data-flow-stage]) .shown {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: var(--tray);
+  animation: act 0.3s var(--out) both;
+}
+
+.shown b {
+  display: block;
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shown small,
+.shown em,
+.hint {
+  color: var(--soft);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+:global([data-flow-stage]) .pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pair li {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--pane);
+  -webkit-backdrop-filter: var(--frost);
+  backdrop-filter: var(--frost);
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.pair b {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.pair span {
+  color: var(--soft);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ---- a tablet and a computer: the character beside the rest ---- */
+@media (min-width: 700px) {
+  .screen {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 28px;
+    width: min(100%, 880px);
+    min-height: calc(100dvh - 120px);
+    padding-bottom: 0;
+  }
+
+  .foot {
+    position: static;
+  }
+}
+
+@media (min-width: 1100px) and (hover: hover) {
+  .screen {
+    gap: 64px;
+    width: min(100%, 1080px);
+  }
+
+  .screen .hero {
+    --hero: 300px !important;
+  }
+
+  :global([data-flow-stage]) .name h1 {
+    font-size: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rays,
+  .glow,
+  .who,
+  .act,
+  .act .dots li,
+  .level > b,
+  .level[data-play] .bar i,
+  .shown {
+    animation: none;
+  }
+}

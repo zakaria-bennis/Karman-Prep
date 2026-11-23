@@ -3,14 +3,19 @@
  * `src/lib/plans` (pools, the Free plan's 100 questions and one full-length test); this file only
  * shapes its answers for the assembler.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/server";
 import {
   CORE_MAX_DIFFICULTY,
   canAccess,
+  challengeSubjectsOpen,
+  type ChallengeSubject,
   difficultyRangeFor,
   getPlan,
   getUsage,
   PLAN_ENTITLEMENTS,
   questionsLeft,
+  usesPracticeSet,
   type PlanAccess,
   type PlanUsage,
 } from "@/lib/plans";
@@ -25,6 +30,8 @@ export type QuizAccess = {
   questionsLeft: number | null;
   /** Whether the plan may start a full-length test it has not started before. */
   canStartFullTest: boolean;
+  /** Core plans read only the Practice plan's fixed set of 5,000. */
+  practiceSet: boolean;
 };
 
 /** Pure: the quiz-flow view of a resolved plan and its usage (usage only matters with limits). */
@@ -36,6 +43,7 @@ export function quizAccessFor(plan: PlanAccess, usage?: PlanUsage): QuizAccess {
     maxDifficulty: difficultyRangeFor(plan).maximumDifficulty,
     questionsLeft: questionsLeft(plan, used),
     canStartFullTest: canAccess(plan, "full-length-test:new", limited ? usage : undefined),
+    practiceSet: usesPracticeSet(plan),
   };
 }
 
@@ -74,4 +82,32 @@ export async function maxDifficultyFor(clerkId: string | null): Promise<number> 
     return null;
   });
   return plan ? difficultyRangeFor(plan).maximumDifficulty : CORE_MAX_DIFFICULTY;
+}
+
+/**
+ * Today's challenge subjects the student may still answer (Free: one of the two a day; every other
+ * plan: both). `day` is the challenge's own day key (src/lib/daily-challenge `utcDayKey`). A plan
+ * that cannot be read counts as Free. Call this before saving a challenge answer and refuse the
+ * answer (show Upgrade) when its subject is not in the list.
+ */
+export async function challengeSubjectsLeft(
+  clerkId: string,
+  day: string
+): Promise<ChallengeSubject[]> {
+  const plan: PlanAccess = await getPlan(clerkId).catch((error: unknown) => {
+    console.error("[quiz access] plan could not be read", error);
+    return { entitlements: PLAN_ENTITLEMENTS.free };
+  });
+  const { data, error } = await (createAdminClient() as unknown as SupabaseClient)
+    .from("daily_challenge_answers")
+    .select("subject")
+    .eq("day", day)
+    .eq("student_id", clerkId)
+    .limit(2);
+  // an unreadable record opens nothing new rather than everything
+  if (error) return [];
+  return challengeSubjectsOpen(
+    plan,
+    ((data ?? []) as { subject: string }[]).map((r) => r.subject)
+  );
 }

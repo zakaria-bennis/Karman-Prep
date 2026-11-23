@@ -5,6 +5,7 @@
 
 import { reportCalculatorError } from "@/components/calculator/report-error";
 import type { TransferResult, TransferTrigger } from "@/lib/calculator-transfer/payload";
+import type { CalculatorState } from "@/lib/calculator/core/api/types";
 import type { ThemeChoice } from "@/lib/calculator/theme/choice";
 import { KarmanCalculator, lastFocusedRow } from "../KarmanCalculator";
 import type { ThemeHint } from "../theme-hint";
@@ -34,6 +35,33 @@ export interface QuizMountOptions {
   themeHint?: ThemeHint | null;
   // True on the /calculator page: side by side, as desmos.com/calculator, with no layout setting.
   fixedSideBySide?: boolean;
+  // Founder, 2026-11-17: a bookmarked question keeps its own calculator for the rest of the quiz.
+  // The loader's live props: `memory` is the question's key (makeQuestionKey) while it is
+  // bookmarked. Read at mount, a kept calculator for it comes back; read again on destroy, this
+  // one is kept for the next visit. Absent, every calculator starts clean (AR-58).
+  live?: { readonly current: { readonly memory?: string | false } };
+}
+
+/** The most kept calculators a page holds; the oldest goes first. */
+export const KEPT_LIMIT = 120;
+
+// One kept calculator per bookmarked question, for the page session (this module loads once a
+// page). A Map keeps insertion order, so the first key is the oldest.
+const kept = new Map<string, CalculatorState>();
+
+/** The kept calculator for `key`, if any (tests and the host). */
+export function keptCalculator(key: string): CalculatorState | undefined {
+  return kept.get(key);
+}
+
+export function forgetKeptCalculatorsForTests(): void {
+  kept.clear();
+}
+
+function keepCalculator(key: string, state: CalculatorState): void {
+  kept.delete(key);
+  kept.set(key, state);
+  while (kept.size > KEPT_LIMIT) kept.delete(kept.keys().next().value as string);
 }
 
 export interface QuizCalculatorHandle {
@@ -47,6 +75,8 @@ export interface QuizCalculatorHandle {
 }
 
 export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHandle {
+  const memory = options.live?.current.memory;
+  const back = memory ? kept.get(memory) : undefined;
   const calculator = new KarmanCalculator(
     options.element,
     {
@@ -55,13 +85,23 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
     },
     {
       chromeSlot: options.chromeSlot,
-      announceResetOnMount: options.announceReset,
+      // a kept calculator coming back is not a cleared one (OI-3)
+      announceResetOnMount: options.announceReset && back === undefined,
       defaultTheme:
         options.defaultTheme ?? (options.themeHint ? nearestSkin(options.themeHint) : undefined),
       fixedSideBySide: options.fixedSideBySide,
     }
   );
-  // Everything else starts blank (AR-58); the carried settings are applied before the first frame.
+  // A bookmarked question's kept calculator comes back as it was left; everything else starts
+  // blank (AR-58). The carried settings are applied after it, before the first frame, so the
+  // student's latest angle mode and the rest win over the ones kept with the question.
+  if (back !== undefined) {
+    try {
+      calculator.setState(back);
+    } catch (error) {
+      reportCalculatorError(error, CALCULATOR_BUILD); // a state that no longer loads starts clean
+    }
+  }
   if (options.preferences) {
     try {
       calculator.updateSettings(options.preferences);
@@ -87,8 +127,16 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
       }
       calculator.focusExpression(id);
     },
+    // AR-28: Tab past the window's end wraps to its title bar while the bar shows; the quiz hides it
+    // docked and full screen (founder, 2026-11-17), so then to the calculator's first element.
     focusBoundary(edge) {
-      calculator.focusBoundary(edge);
+      const bar = [
+        ...options.frame.querySelectorAll<HTMLElement>(
+          '[data-calculator-titlebar] :is(button:not([disabled]), [tabindex="0"])'
+        ),
+      ].find((el) => el.getClientRects().length > 0);
+      if (edge === "first" && bar) bar.focus();
+      else calculator.focusBoundary(edge);
     },
     setReducedMotion(value) {
       calculator.updateSettings({ reducedMotion: value });
@@ -108,6 +156,15 @@ export function mountQuizCalculator(options: QuizMountOptions): QuizCalculatorHa
         report();
       } catch (error) {
         reportCalculatorError(error, CALCULATOR_BUILD);
+      }
+      // A question bookmarked now keeps this calculator for its next visit (founder, 2026-11-17).
+      const key = options.live?.current.memory;
+      if (key) {
+        try {
+          keepCalculator(key, calculator.getState());
+        } catch (error) {
+          reportCalculatorError(error, CALCULATOR_BUILD);
+        }
       }
       unobserve();
       unexpose();

@@ -35,13 +35,17 @@ export function parameterValues(row: RowView): ShownValue[] {
   );
 }
 
-/** D-31, D-32: R² (or RMSE in its place) and r when defined. */
+/** D-31, D-32: r² or R² (or RMSE in its place) and r when defined. */
 export function statisticValues(row: RowView): ShownValue[] {
   const fit = row.regression?.result;
   if (fit === null || fit === undefined || !fit.ok) return [];
   const out: ShownValue[] = [];
-  if (fit.r2 !== null) out.push(value("r2", "R²", "R squared", formatStatistic(fit.r2)));
-  else if (fit.rmse !== null) out.push(value("rmse", "RMSE", "RMSE", formatStatistic(fit.rmse)));
+  // r² for a straight-line fit, where r shows too; R² for every other model (2026-11-22)
+  const straight = fit.r !== null;
+  if (fit.r2 !== null) {
+    const [shown, said] = straight ? ["r²", "r squared"] : ["R²", "R squared"];
+    out.push(value("r2", shown, said, formatStatistic(fit.r2)));
+  } else if (fit.rmse !== null) out.push(value("rmse", "RMSE", "RMSE", formatStatistic(fit.rmse)));
   if (fit.r !== null) out.push(value("r", "r", "r", formatStatistic(fit.r)));
   return out;
 }

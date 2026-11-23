@@ -6,7 +6,7 @@ describe("Clerk's existing on-site authentication routes", () => {
   it.each([
     "/learn/diagnostic",
     "/learn/practice/rw-skill-central-ideas-and-details",
-    "/learn/earlier/math?resume=saved-attempt",
+    "/learn/tests?resume=saved-attempt",
     "/dashboard/parent/student-id",
     "/tutor/student-id",
     "/admin/questions/preview/rapid?questionId=example",

@@ -23,7 +23,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { fetchAccountStatus } from "@/lib/integrations/stripe/connect";
 import PaymentSettingsClient from "./PaymentSettingsClient";
 
-export const metadata: Metadata = { title: "Payment Settings — Karman" };
+export const metadata: Metadata = { title: "Payment settings" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -87,7 +87,6 @@ export default async function PaymentSettingsPage({ searchParams }: PageProps) {
 
   return (
     <div className="wb" style={{ paddingBlock: 0 }}>
-      <p className="wb-note">Set up how Karman pays you.</p>
       <PaymentSettingsClient
         state={{
           hasConnectAccount: !!caller.stripe_connect_account_id,

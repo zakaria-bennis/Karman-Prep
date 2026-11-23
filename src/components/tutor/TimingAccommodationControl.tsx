@@ -44,7 +44,7 @@ export function TimingAccommodationControl({
                   setCurrent(o.value);
                   router.refresh();
                 } catch {
-                  setError("That did not save. Try again.");
+                  setError("That didn't save. Try again.");
                 }
               })
             }

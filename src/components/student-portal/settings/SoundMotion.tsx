@@ -91,27 +91,11 @@ export default function SoundMotion({ quizSounds = true }: { quizSounds?: boolea
 
   return (
     <div>
-      <Switch
-        label="Background music"
-        sub="A soft Karman theme, very quiet. Remembered on this device."
-        on={music}
-        onChange={changeMusic}
-      />
-      {quizSounds && (
-        <Switch
-          label="Quiz sounds"
-          sub="A short chime for right answers and new levels."
-          on={quiz}
-          onChange={setQuizSounds}
-        />
-      )}
+      <Switch label="Background music" on={music} onChange={changeMusic} />
+      {quizSounds && <Switch label="Quiz sounds" on={quiz} onChange={setQuizSounds} />}
       <Switch
         label="Reduce motion"
-        sub={
-          deviceCalm
-            ? "Your device already asks for less motion, so this is on."
-            : "Holds the painting still and turns off slides and springs."
-        }
+        sub={deviceCalm ? "On in your device settings." : undefined}
         on={still || deviceCalm}
         disabled={deviceCalm}
         onChange={changeMotion}

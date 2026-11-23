@@ -250,51 +250,65 @@
 }
 /* Phones: two rows. Exit, the name and the clock on top; every tool, with its word, under. On
    a phone the clock is put away by pressing it, so its Hide button is not shown. */
+/* Phones: one short row, so the question has the screen (founder, 2026-11-19: "the header takes
+   up way too much space"). The clock at the left, the five tools as drawings without their words,
+   and Exit at the right, away from Calculator so it is not pressed by mistake. The quiz's name is
+   left out here: there is no room for it, and the student has just chosen it. */
 .compact .topBar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  row-gap: 4px;
-  min-height: 0;
-  padding-bottom: 4px;
+  display: flex;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px max(8px, env(safe-area-inset-right)) 6px max(8px, env(safe-area-inset-left));
+  padding-top: max(6px, env(safe-area-inset-top));
 }
 .compact .barStart {
   display: contents;
 }
-/* the name is in the middle of the screen whatever is at its sides: it spans the whole row */
 .compact .barTitle {
-  position: static;
-  grid-column: 1 / -1;
-  grid-row: 1;
-  justify-self: center;
-  max-width: calc(100% - 210px);
-  transform: none;
-}
-.compact .barButton.exit {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-}
-/* On a phone the clock is at the left and Exit at the right, over More: Exit is kept away from
-   Calculator, which is pressed often, so it is not pressed by mistake (founder, 2026-11-17). */
-.compact .barCentre {
-  grid-column: 1;
-  grid-row: 1;
-  justify-content: flex-start;
-}
-.compact .topic {
   display: none;
 }
-.compact .tools {
-  grid-column: 1 / -1;
-  justify-content: space-between;
-  gap: 0;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 45%, transparent);
+.compact .barCentre {
+  order: 0;
+  justify-content: flex-start;
 }
-.compact .tools > * {
+.compact .tools {
+  order: 1;
   flex: 1;
-  display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
+  gap: 0;
+}
+.compact .barButton.exit {
+  order: 2;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px 0 10px;
+}
+/* the tools lose their words; Exit keeps its own, so it reads as the way out */
+.compact .tools .barWord {
+  font-size: 0;
+  opacity: 0;
+}
+.compact .barButton.exit .barWord {
+  font-size: 0.9rem;
+  opacity: 1;
+}
+.compact .barButton.exit svg {
+  width: 20px;
+  height: 20px;
+}
+.compact .tools svg {
+  width: 23px;
+  height: 23px;
+}
+.compact .tools .barButton,
+.compact .tools :global([data-calculator-trigger]) {
+  gap: 0;
+  min-width: 38px;
+  min-height: 40px;
+  padding: 0;
+}
+.compact .tools :global([data-calculator-trigger]) {
+  font-size: 0;
 }
 .compact .bottomBar {
   min-height: 60px;
@@ -608,6 +622,11 @@
   font-weight: 650;
   cursor: pointer;
 }
+/* The middle of the bottom bar gives way first on a narrow screen (Endless's strip of dots
+   scrolls inside it), so Back and Next keep their room. */
+.navSlot {
+  min-width: 0;
+}
 
 /* Question area. */
 .area {
@@ -720,6 +739,25 @@
     font-size 320ms cubic-bezier(0.3, 1.3, 0.5, 1),
     opacity 200ms ease;
 }
+/* the host's own picture shows through (noWorld): no sky of the shell's, and the page's glass as
+   see-through as its panels, so the picture moves behind it */
+.shell[data-no-world] {
+  /* lighter frost than the landscape's (founder, 2026-11-21: "see the buildings a little bit and
+     some lights"): the buildings and their windows stay readable behind the words */
+  --quiz-panel: rgb(255 251 244 / 0.5);
+  --quiz-sheet: rgb(255 251 244 / 0.5);
+  --quiz-bar: rgb(255 251 244 / 0.62);
+  --quiz-frost: blur(5px) saturate(1.3);
+  background: transparent;
+}
+
+:global([data-kp-mode="dark"]) .shell[data-no-world] {
+  --quiz-panel: rgb(14 16 34 / 0.5);
+  --quiz-sheet: rgb(14 16 34 / 0.5);
+  --quiz-bar: rgb(14 16 34 / 0.66);
+  --quiz-frost: blur(5px) saturate(1.3) brightness(0.85);
+}
+
 .shell[data-calc] .topBar {
   min-height: 52px;
 }
@@ -898,6 +936,52 @@
   --kc-focus-bar-label: #ffffff;
   --kc-accent: var(--quiz-pick);
   --kc-boundary: color-mix(in srgb, var(--quiz-ink) 45%, transparent);
+  /* The screens finished on 2026-11-22 (tables, sliders, regressions, error tips, statistics):
+     the focus ring and the selection in the quiz's own pick, so no calculator skin's blue shows
+     through, and the tones the calculator mixes into a solid made see-through. */
+  --kc-focus-ring: color-mix(in srgb, var(--quiz-pick) 75%, transparent);
+  --kc-selection: color-mix(in srgb, var(--quiz-pick) 28%, transparent);
+  --kc-hidden-ring: color-mix(in srgb, var(--quiz-ink) 40%, transparent);
+  --kc-letter-top: color-mix(in srgb, var(--quiz-ink) 5%, transparent);
+  --kc-letter-bottom: color-mix(in srgb, var(--quiz-ink) 8%, transparent);
+  --kc-letter-border: var(--quiz-line);
+  /* Error tips */
+  --kc-error-tip-width: 240px;
+  --kc-error-tip-pad: 8px 12px;
+  --kc-error-tip-radius: 12px;
+  --kc-error-tip-shadow: var(--kc-popover-shadow);
+
+  /* Statistics */
+
+  /* Regressions */
+  --kc-tr-control-radius: 11px;
+  --kc-tr-control-fill: var(--kc-pill);
+  --kc-tr-list-shadow: var(--kc-popover-shadow);
+  --kc-tr-menu-edge: var(--quiz-line);
+  --kc-tr-button-radius: 9px;
+  --kc-tr-danger: var(--kc-error);
+  --kc-tr-plot-edge: var(--quiz-line);
+  --kc-tr-plot-radius: 9px;
+
+  /* Sliders, tables and menus */
+  --kc-slider-tick: color-mix(in srgb, var(--quiz-ink) 40%, transparent);
+  --kc-slider-menu-edge: var(--quiz-line);
+  --kc-slider-button-radius: 9px;
+  --kc-letter-radius: 9px;
+  --kc-table-radius: 12px;
+  --kc-table-fill: color-mix(in srgb, var(--quiz-ink) 4%, transparent);
+  --kc-table-edge: inset 0 0 0 1px var(--quiz-line);
+  --kc-table-strong-rule: color-mix(in srgb, var(--quiz-ink) 55%, transparent);
+  --kc-table-focus-radius: 8px;
+  --kc-table-button-radius: 9px;
+  --kc-menu-edge: var(--quiz-line);
+  --kc-add-item-width: 100%;
+  --kc-add-item-pad: 4px 6px;
+  --kc-add-item-radius: 10px;
+  --kc-add-item-hover: color-mix(in srgb, var(--quiz-ink) 8%, transparent);
+  --kc-menu-item-rest: 0.8;
+  --kc-menu-item-hover: 1;
+
 }
 /* Docked, the graph is as tall as 55% of the calculator's width, so with x from -10 to 10 the
    default window runs from -5.5 to 5.5 on y, round numbers, with squares still square (founder,
@@ -1098,11 +1182,10 @@
 
 /* Where a phone's number keys sit: a strip of the bar's own glass, just above the bottom bar.
    Empty, it takes no room. */
+/* The number pad has no tray of its own (founder, 2026-11-19): the keys float on the landscape,
+   which shows between them. */
 .keysSlot:not(:empty) {
-  border-top: 1px solid color-mix(in srgb, var(--quiz-line) 55%, transparent);
-  background: var(--quiz-bar);
-  -webkit-backdrop-filter: var(--quiz-frost);
-  backdrop-filter: var(--quiz-frost);
+  background: none;
 }
 
 /* On a phone or a tablet there is no room beside the question: the explanation comes up from the
@@ -1193,4 +1276,13 @@
   .shell {
     display: none !important;
   }
+}
+
+/* ...and its padding tightens, so nothing is spent on empty glass while typing. */
+.compact [data-quiz-scroll] > [data-quiz-pane] {
+  transition: padding 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.shell:has(:global([data-answer-keys])) [data-quiz-scroll] > [data-quiz-pane] {
+  padding-top: 14px;
+  padding-bottom: 14px;
 }

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "../../../src/components/shared/ThemeProvider";
 import { QuizProvider } from "../../../src/contexts/QuizContext";
 import QuizEngine from "../../../src/components/learn/QuizEngine";
-import type { MappedNode } from "../../../src/components/learn/ConstellationMap";
+import type { MappedNode } from "../../../src/components/learn/mapped-node";
 import DiagnosticClient from "../../../src/components/diagnostic/DiagnosticClient";
 import type { DiagnosticQuestion } from "../../../src/components/diagnostic/diagnostic-question";
 import DailyChallenge from "../../../src/components/learn/DailyChallenge";

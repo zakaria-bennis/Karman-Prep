@@ -6,7 +6,7 @@ import { BriefingAccessError } from "@/lib/educator-briefing/access";
 import { BriefingUnavailable } from "@/components/tutor/briefing/BriefingViews";
 import SavedPracticeReview from "@/components/tutor/briefing/SavedPracticeReview";
 
-export const metadata: Metadata = { title: "Review saved practice — Tutor Portal" };
+export const metadata: Metadata = { title: "Review saved practice" };
 export const dynamic = "force-dynamic";
 export default async function EducatorPracticeReviewPage({
   params,

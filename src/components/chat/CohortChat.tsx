@@ -3,7 +3,7 @@
 // ============================================================
 // CohortChat — student cohort-channel chat experience.
 //
-// Loaded by /dashboard/student/chat page after the page
+// Loaded by /dashboard/student?page=chat page after the page
 // resolves the student's active cohort_chat channel id and
 // passes it in as a prop. Only rendered for self-bookable
 // students who actually have a cohort (private/elite tutors

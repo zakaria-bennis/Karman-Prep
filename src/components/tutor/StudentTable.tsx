@@ -3,14 +3,12 @@
 // ============================================================
 // StudentTable — the staff tutor's sortable roster, on the admin
 // kit's table (stacks into cards on phones): search by name or email,
-// a cohort filter, plan pill, a ring per section, flags.
+// a cohort filter, plan pill, when they last practiced, flags.
 // ============================================================
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { StudentDashboardRow } from "@/lib/supabase/queries/tutor";
-import { currentAtmosphere } from "@/data/curriculum";
-import { Ring } from "@/components/portal";
 import {
   WbEmpty,
   WbPill,
@@ -33,26 +31,14 @@ interface Props {
   cohorts?: CohortLite[];
 }
 
-type SortKey =
-  | "name"
-  | "atmosphere"
-  | "plan"
-  | "reading"
-  | "math"
-  | "last_active"
-  | "flags"
-  | "struggling";
+type SortKey = "name" | "plan" | "last_active" | "flags";
 type SortDir = "asc" | "desc";
 
 const COLS: { key: SortKey; label: string; numeric?: boolean }[] = [
   { key: "name", label: "Student" },
   { key: "plan", label: "Plan" },
-  { key: "atmosphere", label: "Atmosphere" },
-  { key: "reading", label: "Reading", numeric: true },
-  { key: "math", label: "Math", numeric: true },
   { key: "last_active", label: "Last active" },
   { key: "flags", label: "Flags", numeric: true },
-  { key: "struggling", label: "Struggling", numeric: true },
 ];
 
 type Plan = NonNullable<StudentDashboardRow["plan_tier"]>;
@@ -104,18 +90,10 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
           return sign * fullName(a).localeCompare(fullName(b));
         case "plan":
           return sign * (planRank(a.plan_tier) - planRank(b.plan_tier));
-        case "atmosphere":
-          return sign * (a.atmosphere_level - b.atmosphere_level);
-        case "reading":
-          return sign * (a.reading_mastered - b.reading_mastered);
-        case "math":
-          return sign * (a.math_mastered - b.math_mastered);
         case "last_active":
           return sign * (a.last_active ?? "").localeCompare(b.last_active ?? "");
         case "flags":
           return sign * (a.flagged_open - b.flagged_open);
-        case "struggling":
-          return sign * (a.struggling_count - b.struggling_count);
       }
     });
     return arr;
@@ -130,12 +108,7 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
   }
 
   if (rows.length === 0) {
-    return (
-      <WbEmpty title="No students yet.">
-        They show up here once an admin places a student in one of your cohorts or assigns you a
-        private student.
-      </WbEmpty>
-    );
+    return <WbEmpty title="No students yet.">An admin assigns them to you.</WbEmpty>;
   }
 
   const filtersOn = search.trim().length > 0 || cohortFilter !== "all";
@@ -218,9 +191,6 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
             </thead>
             <tbody>
               {sorted.map((r) => {
-                const atmo = currentAtmosphere(r.atmosphere_level);
-                const readingPct = pct(r.reading_mastered, r.reading_total);
-                const mathPct = pct(r.math_mastered, r.math_total);
                 const display = fullName(r);
                 return (
                   <tr key={r.clerk_id}>
@@ -237,41 +207,11 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
                         "—"
                       )}
                     </td>
-                    <td data-label="Atmosphere">{atmo}</td>
-                    <td data-label="Reading" data-num="">
-                      <span className="kp-staff-ringcell">
-                        <Ring
-                          value={readingPct / 100}
-                          size={28}
-                          width={4}
-                          label={`Reading: ${r.reading_mastered} of ${r.reading_total} mastered`}
-                        />
-                        {readingPct}%
-                      </span>
-                    </td>
-                    <td data-label="Math" data-num="">
-                      <span className="kp-staff-ringcell">
-                        <Ring
-                          value={mathPct / 100}
-                          size={28}
-                          width={4}
-                          label={`Math: ${r.math_mastered} of ${r.math_total} mastered`}
-                        />
-                        {mathPct}%
-                      </span>
-                    </td>
                     <td data-label="Last active" data-testid="last-active-cell">
                       {r.last_active ? formatDateTime(r.last_active) : "Never"}
                     </td>
                     <td data-label="Flags" data-num="">
                       {r.flagged_open > 0 ? <WbPill tone="fail">{r.flagged_open}</WbPill> : "0"}
-                    </td>
-                    <td data-label="Struggling" data-num="">
-                      {r.struggling_count > 0 ? (
-                        <WbPill tone="warn">{r.struggling_count}</WbPill>
-                      ) : (
-                        "0"
-                      )}
                     </td>
                   </tr>
                 );
@@ -282,8 +222,4 @@ export default function StudentTable({ rows, cohorts = [] }: Props) {
       )}
     </div>
   );
-}
-
-function pct(done: number, total: number): number {
-  return total > 0 ? Math.round((done / total) * 100) : 0;
 }

@@ -65,9 +65,9 @@ export default async function TutorPage() {
       {needsCalSetup ? (
         <Banner>
           {!calStatus.connected
-            ? "Connect Cal.com so your students can book sessions with you."
+            ? "Students can't book you yet."
             : calStatus.needsEventTypePick
-              ? "Pick which of your Cal.com event types is the Karman session."
+              ? "Pick which Cal.com event type is the Karman session."
               : "Finish setting up your booking link."}{" "}
           <Link className="kp-link" href="/tutor/settings/booking">
             {!calStatus.connected ? "Connect Cal.com" : "Pick the event type"}
@@ -81,7 +81,7 @@ export default async function TutorPage() {
           note={`${scope.cohorts.length} ${scope.cohorts.length === 1 ? "cohort" : "cohorts"}`}
         />
         {scope.cohorts.length === 0 ? (
-          <p className="kp-meta">No cohorts yet. An admin assigns cohorts from Admin, Cohorts.</p>
+          <p className="kp-meta">No cohorts yet. An admin assigns them.</p>
         ) : (
           scope.cohorts.map((c) => {
             const topic = cohortTopicPresentation(c.status, c.current_topic);
@@ -115,10 +115,7 @@ export default async function TutorPage() {
       </Card>
 
       <Card>
-        <SectionHeader
-          title="Your students"
-          note={`${rows.length} across cohorts and private tutoring`}
-        />
+        <SectionHeader title="Your students" note={`${rows.length}`} />
         <StudentTable
           rows={rows}
           cohorts={scope.cohorts.map((c) => ({ id: c.id, name: c.name, tier: c.tier }))}

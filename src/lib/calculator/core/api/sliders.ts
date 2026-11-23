@@ -194,6 +194,14 @@ function playersOf(host: SliderHost) {
 }
 
 /**
+ * The next frame of every playing slider moves by one frame, as right after Play: used when a
+ * hidden calculator shows again, so the time it was away does not jump the sliders (2026-11-22).
+ */
+export function restartSliderClocks(host: SliderHost): void {
+  for (const player of playersOf(host).values()) player.last = null;
+}
+
+/**
  * SLIDERS-24, SLIDERS-35: writes a dragged value (already snapped). Pauses playback; the first
  * write of a drag is the undo step (`first`), later ones join it.
  */

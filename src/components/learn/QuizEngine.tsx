@@ -6,7 +6,7 @@
 import { createPortal } from "react-dom";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import type { MappedNode } from "./ConstellationMap";
+import type { MappedNode } from "./mapped-node";
 import { useQuiz } from "@/contexts/QuizContext";
 import { modeFor } from "@/lib/quiz/mode";
 import { clearWorkspaces } from "@/lib/quiz/workspace";

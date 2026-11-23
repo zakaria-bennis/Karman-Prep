@@ -72,7 +72,7 @@ describe("educator briefing routes", () => {
           : await EducatorPracticeReviewPage(reviewParams)
       );
       expect(screen.getByRole("status")).toHaveTextContent("briefing is unavailable");
-      expect(screen.queryByText(/PRIVATE_DB_ERROR|No saved skill-practice/)).toBeNull();
+      expect(screen.queryByText(/PRIVATE_DB_ERROR|No saved practice/)).toBeNull();
       expect(notFound).not.toHaveBeenCalled();
     }
   );
@@ -103,6 +103,6 @@ describe("educator briefing routes", () => {
     vi.mocked(readDailyBriefing).mockRejectedValue(new Error("PRIVATE_BOOKING_ERROR"));
     render(await DailyBriefingPage({ searchParams: Promise.resolve({}) }));
     expect(screen.getByRole("status")).toHaveTextContent("briefing is unavailable");
-    expect(screen.queryByText(/PRIVATE_BOOKING_ERROR|No scheduled sessions/)).toBeNull();
+    expect(screen.queryByText(/PRIVATE_BOOKING_ERROR|No sessions on this day/)).toBeNull();
   });
 });

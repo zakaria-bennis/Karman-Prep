@@ -49,7 +49,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(j.error || `Failed (HTTP ${res.status})`);
+        throw new Error(j.error || "That didn't go through. Try again.");
       }
       startTransition(() => router.refresh());
       setMode("idle");
@@ -74,7 +74,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(j.error || `Failed (HTTP ${res.status})`);
+        throw new Error(j.error || "That didn't go through. Try again.");
       }
       startTransition(() => router.refresh());
       setMode("idle");
@@ -100,7 +100,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
         <div className="flex items-center gap-1.5">
           <button onClick={cancel} disabled={pending} className="wb-btn" data-variant="danger">
             {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-            Confirm cancel
+            Cancel session
           </button>
           <button
             onClick={() => {
@@ -111,7 +111,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
             disabled={pending}
             className="wb-btn"
           >
-            Back
+            Keep
           </button>
         </div>
         {err ? <span className="text-[color:var(--late)]">{err}</span> : null}
@@ -123,7 +123,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
     return (
       <div className="mt-2 flex flex-col gap-2 rounded border border-[color-mix(in_srgb,var(--info)_40%,transparent)] bg-[color-mix(in_srgb,var(--info)_10%,transparent)] p-2 text-xs">
         <p className="font-semibold text-[color:var(--info)]">
-          Pick a new start time. The student will get an email with the new details.
+          Pick a new start time. The student gets an email with it.
         </p>
         <input
           type="datetime-local"
@@ -141,7 +141,7 @@ export function TutorBookingActions({ bookingId, scheduledStart, tier }: Props) 
         <div className="flex items-center gap-1.5">
           <button onClick={reschedule} disabled={pending} className="wb-btn">
             {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-            Confirm reschedule
+            Save new time
           </button>
           <button
             onClick={() => {

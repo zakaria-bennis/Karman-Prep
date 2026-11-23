@@ -1,6 +1,6 @@
 // ============================================================
-// /tutor/[studentId] — Student detail with 4 tabs:
-//   Skills Overview · Tutor Controls · Flagged · Quiz History
+// /tutor/[studentId] — Student detail: their progress on the 72
+//   skills, then two tabs: Flagged · Quiz History
 // ============================================================
 
 import type { Metadata } from "next";
@@ -12,13 +12,12 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { getTimingAccommodation } from "@/lib/supabase/queries/quiz/saved";
 import { TimingAccommodationControl } from "@/components/tutor/TimingAccommodationControl";
-import { fetchStudentById, fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
+import { fetchStudentById } from "@/lib/supabase/queries/tutor";
 import {
   fetchAllAttemptsForStudent,
   fetchFlaggedQuestionsForStudent,
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
-import { RW_NODES, MATH_NODES, currentAtmosphere } from "@/data/curriculum";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 import AffiliateStudent from "@/components/tutor-affiliate/AffiliateStudent";
 import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
@@ -26,6 +25,12 @@ import { when } from "@/components/messages/Thread";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { recentParentNotes } from "@/lib/parent/messages";
 import { postFamilyNoteAction } from "./actions";
+import { StudentKarman } from "@/components/tutor/StudentKarman";
+import { weekSet } from "@/lib/portal/review-sets";
+import { loadStudentSummary } from "@/lib/portal/student-summary";
+import { dayKey } from "@/lib/student/streak";
+import { byClerkId } from "@/lib/portal/tutor-route";
+import { SKILLS, type Section } from "@/app/dashboard/student/_portal/skills72";
 import "@/components/portal-extras/forms.css";
 
 export const metadata: Metadata = { title: "Student" };
@@ -37,6 +42,7 @@ interface Params {
 
 export default async function StudentDetailPage({ params, searchParams }: Params) {
   const [{ studentId }, { tab: tabParam, done, error }] = await Promise.all([params, searchParams]);
+  await byClerkId(studentId);
 
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
@@ -62,13 +68,20 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged, timing, familyNotes] = await Promise.all([
-    fetchNodeStatuses(studentId),
+  const [attempts, flagged, timing, familyNotes, summary] = await Promise.all([
     fetchAllAttemptsForStudent(studentId),
     fetchFlaggedQuestionsForStudent(studentId),
     getTimingAccommodation(studentId),
     recentParentNotes(student.id),
+    loadStudentSummary(studentId).catch(() => null),
   ]);
+  // this week's curated review set: the tutor (or an admin) is this student's teacher here
+  const reviewSet = summary
+    ? await weekSet(
+        { clerkId: studentId, planId: summary.data.planId, hasTutor: true },
+        dayKey(Date.now())
+      ).catch(() => null)
+    : null;
 
   // Preload per-attempt responses (expandable in Quiz History tab) — first 20 only for perf
   const responsesByAttempt: Record<
@@ -80,29 +93,16 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   }
 
   // Summary stats
-  const statusMap = new Map(statuses.map((s) => [s.node_id, s]));
-  const readingMastered = RW_NODES.filter((n) => statusMap.get(n.id)?.status === "mastered").length;
-  const mathMastered = MATH_NODES.filter((n) => statusMap.get(n.id)?.status === "mastered").length;
-  const tiersDone =
-    (RW_NODES.filter((n) => n.tier === 1).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 1).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0) +
-    (RW_NODES.filter((n) => n.tier === 2).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 2).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0) +
-    (RW_NODES.filter((n) => n.tier === 3).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 3).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0);
-  const atmo = currentAtmosphere(tiersDone);
+  // the 72 skills, Proficient as the student portal's Library counts them (34 RW, 38 Math)
+  const proficient = (section: Section) => {
+    const names = SKILLS[section].flatMap((d) => d.skills.map((k) => k.name));
+    return {
+      done: names.filter((n) => summary?.data.skills[n]?.level === 3).length,
+      total: names.length,
+    };
+  };
+  const reading = proficient("Reading and Writing");
+  const math = proficient("Math");
 
   const completedAttempts = attempts.filter((a) => a.score !== null);
   const avgScore = completedAttempts.length
@@ -110,13 +110,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
         completedAttempts.reduce((s, a) => s + (a.score ?? 0), 0) / completedAttempts.length
       )
     : null;
-  const lastActive =
-    statuses
-      .map((s) => s.updated_at)
-      .sort()
-      .reverse()[0] ?? null;
-
-  const activeTab = (tabParam ?? "skills") as "skills" | "controls" | "flagged" | "quiz";
+  const activeTab: "flagged" | "quiz" = tabParam === "quiz" ? "quiz" : "flagged";
 
   const name =
     [student.first_name, student.last_name].filter(Boolean).join(" ").trim() || student.email;
@@ -124,11 +118,11 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   return (
     <>
       <Card>
-        <SectionHeader title={name} note={atmo} />
+        <SectionHeader title={name} />
         {name !== student.email && <p className="kp-meta">{student.email}</p>}
         <div className="kp-staff-rings">
-          <CourseRing label="Reading and Writing" mastered={readingMastered} total={50} />
-          <CourseRing label="Math" mastered={mathMastered} total={50} />
+          <CourseRing label="Reading and Writing" proficient={reading.done} total={reading.total} />
+          <CourseRing label="Math" proficient={math.done} total={math.total} />
           {avgScore !== null && (
             <div className="kp-staff-ringcell">
               <Ring value={avgScore / 100} label={`Average quiz score ${avgScore}%`}>
@@ -138,9 +132,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
             </div>
           )}
         </div>
-        {lastActive && (
-          <p className="kp-meta">Last active {new Date(lastActive).toLocaleString()}</p>
-        )}
         <TimingAccommodationControl studentClerkId={studentId} value={timing} />
         <div className="kp-staff-links">
           <MoreLink href={`/tutor/${encodeURIComponent(studentId)}/briefing`}>
@@ -150,8 +141,17 @@ export default async function StudentDetailPage({ params, searchParams }: Params
         </div>
       </Card>
 
-      <Card label="Note for the family" id="family-note">
-        <SectionHeader title="Note for the family" note="they see it in Messages" />
+      {summary && (
+        <StudentKarman
+          summary={summary}
+          set={reviewSet}
+          studentClerkId={studentId}
+          firstName={student.first_name?.trim() || "your student"}
+        />
+      )}
+
+      <Card label="Family note" id="family-note">
+        <SectionHeader title="Family note" note="they see it in Messages" />
         <ActionMessage done={done} error={error} />
         <form action={postFamilyNoteAction} className="kp-form">
           <input type="hidden" name="studentClerkId" value={studentId} />
@@ -167,9 +167,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
           </label>
           <div className="kp-actions-row">
             <Cta type="submit">Share with the family</Cta>
-            <span className="kp-meta">
-              Shown next to this week&rsquo;s practice. No email goes out.
-            </span>
+            <span className="kp-meta">No email goes out.</span>
           </div>
         </form>
         {familyNotes.length > 0 && (
@@ -190,7 +188,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       <Card>
         <StudentDetailTabs
           studentId={studentId}
-          statuses={statuses}
           attempts={attempts}
           flagged={flagged}
           responsesByAttempt={responsesByAttempt}
@@ -203,24 +200,24 @@ export default async function StudentDetailPage({ params, searchParams }: Params
 
 function CourseRing({
   label,
-  mastered,
+  proficient,
   total,
 }: {
   label: string;
-  mastered: number;
+  proficient: number;
   total: number;
 }) {
-  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+  const pct = total > 0 ? Math.round((proficient / total) * 100) : 0;
   return (
     <div className="kp-staff-ringcell">
-      <Ring value={pct / 100} label={`${label}: ${mastered} of ${total} skills mastered`}>
+      <Ring value={pct / 100} label={`${label}: ${proficient} of ${total} skills Proficient`}>
         <Num>{pct}%</Num>
       </Ring>
       <span>
         {label}
         <br />
         <small className="kp-meta">
-          <Num>{mastered}</Num> of <Num>{total}</Num> mastered
+          <Num>{proficient}</Num> of <Num>{total}</Num> Proficient
         </small>
       </span>
     </div>

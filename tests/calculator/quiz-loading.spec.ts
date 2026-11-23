@@ -7,9 +7,7 @@ import {
   RUNAWAY,
   chromeOnly,
   openCalculator,
-  phoneSized,
   rowItem,
-  side,
   trigger,
   calculatorRequests,
 } from "./quiz-helpers";
@@ -51,24 +49,21 @@ test("AR-56 a runaway row leaves the diagnostic timer and Skip responsive and sh
     await page.waitForTimeout(1100);
   }
   expect(ticks.size).toBe(3);
+  // Next answers within 300 ms: the click runs and the page paints its next frame. The window then
+  // closes with the question once the quiz's slide ends (founder, 2026-11-08); an empty calculator
+  // takes the same time to leave, so the slide, not the runaway row, sets that pace.
   const elapsed = await page.evaluate(
     () =>
       new Promise<number>((resolve) => {
-        const old = document.querySelector("[data-calculator-host]")!;
         const start = performance.now();
-        const watch = new MutationObserver(() => {
-          if (!old.isConnected) {
-            watch.disconnect();
-            resolve(performance.now() - start);
-          }
-        });
-        watch.observe(document.body, { childList: true, subtree: true });
         [...document.querySelectorAll("button")]
           .find((b) => b.textContent?.includes("Next"))!
           .click();
+        requestAnimationFrame(() => resolve(performance.now() - start));
       })
   );
   expect(elapsed).toBeLessThan(300);
+  await expect(host).toHaveCount(0, { timeout: 2000 });
 });
 
 test("AR-30 no calculator module loads on a fresh page or a Reading page; pointer-enter and focus on the trigger prefetch", async ({
@@ -98,11 +93,11 @@ test("AR-31 a failed chunk shows the reload panel, stays failed for the page and
   const hostModule = /\/calculator\/host\/quiz-host\.ts/;
   await page.route(hostModule, (route) => route.abort());
   await page.goto("/?flow=diagnostic");
-  const open = () => (phoneSized(page) ? side(page) : trigger(page)).click();
+  const open = () => trigger(page).click();
   const panel = page.getByText("The calculator could not load. Reload the page to try again.");
   await open();
   await expect(panel).toBeVisible();
-  await page.getByRole("button", { name: "Close calculator", exact: true }).click();
+  await trigger(page).click(); // the Calculator button closes it (no title bar when docked)
   await open();
   await expect(panel).toBeVisible();
   await page.unroute(hostModule);
@@ -134,7 +129,7 @@ test("AR-31 a mount failure shows Retry, which mounts from the module already lo
     if (r.url().includes("/calculator/host/quiz-host")) requests++;
   });
   await page.goto("/?flow=diagnostic");
-  await (phoneSized(page) ? side(page) : trigger(page)).click();
+  await trigger(page).click();
   await expect(page.getByText("The calculator could not load.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(rowItem(page)).toBeVisible();

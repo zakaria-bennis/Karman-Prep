@@ -464,18 +464,13 @@ async function main() {
     { tutor_user_id: id.david, student_user_id: id.private, started_at: daysAgo(70) },
     "return=minimal"
   );
-  const privateDays = [
-    "2026-09-19",
-    "2026-09-26",
-    "2026-10-03",
-    "2026-10-10",
-    "2026-10-17",
-    "2026-10-24",
-    "2026-10-31",
-    "2026-11-07",
-    "2026-11-14",
-    "2026-11-21",
-  ];
+  // weekly Saturdays around today: eight behind (done) and the next two (booked), so the parent
+  // portal and Schedule always have upcoming sessions however late the seed is run
+  const nextSat = new Date(now);
+  nextSat.setUTCDate(nextSat.getUTCDate() + ((6 - nextSat.getUTCDay() + 7) % 7 || 7));
+  const privateDays = [-8, -7, -6, -5, -4, -3, -2, -1, 0, 1].map((w) =>
+    new Date(nextSat.getTime() + w * 7 * DAY).toISOString().slice(0, 10)
+  );
   const bookings = await post(
     "bookings",
     privateDays.map((d) => {

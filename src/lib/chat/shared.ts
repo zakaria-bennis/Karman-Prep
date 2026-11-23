@@ -1,7 +1,11 @@
 // What is the same on the server and in the browser for Chat's extras.
 import { z } from "zod";
 
-/** Every reaction a message can be given (drawn in src/app/dev/shell/ChatEmoji.tsx). */
+/** The longest message a student, tutor or parent may send (2026-11-22: there was no limit, and the
+ *  database has a 500 MB cap). The box stops typing there; the server refuses anything longer. */
+export const MESSAGE_MAX = 2000;
+
+/** Every reaction a message can be given (drawn in src/app/dashboard/student/_portal/ChatEmoji.tsx). */
 export const REACTIONS = [
   "up",
   "down",

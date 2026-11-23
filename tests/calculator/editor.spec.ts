@@ -141,7 +141,7 @@ test("R-5 the value sits below the math, right-aligned, in a small raised box af
   await expect(box).toHaveCSS("border-top-width", "1px");
   await expect(box).toHaveCSS("border-top-left-radius", "4px"); // EL-32
   await expect(box).toHaveCSS("padding-top", "3px");
-  await expect(box).toHaveCSS("padding-left", "5px");
+  await expect(box).toHaveCSS("padding-left", "6px");
   const equals = (await value.locator(".kc-row-equals").boundingBox())!;
   const boxed = (await box.boundingBox())!;
   expect(boxed.x).toBeGreaterThan(equals.x); // the = comes first, the box follows

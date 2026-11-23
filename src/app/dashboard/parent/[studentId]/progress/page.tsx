@@ -27,6 +27,7 @@ import { loadOfficialScores } from "@/lib/parent/messages";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
 import { FIRST_DIGITAL_SAT } from "@/lib/parent/test-day";
 import { saveOfficialScoreAction } from "../../actions";
+import { dayKey } from "@/lib/student/streak";
 
 export const metadata: Metadata = { title: "Progress" };
 export const dynamic = "force-dynamic";
@@ -42,7 +43,7 @@ export default async function ParentProgressPage({
   const child = await requireChild(ctx, (await params).studentId);
   const { done, error } = await searchParams;
   const [week, official] = await Promise.all([loadChildWeek(child), loadOfficialScores(child.id)]);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = dayKey(Date.now());
   const canWrite = !ctx.isAdmin || ctx.children.some((c) => c.id === child.id);
   const { glance, score } = week;
   const started = glance.counts[1] + glance.counts[2] + glance.counts[3] + glance.counts[4];
@@ -109,7 +110,7 @@ export default async function ParentProgressPage({
                     Best so far <Num>{best}</Num>, from {score.history.length} measures.
                   </>
                 ) : (
-                  "One measure so far. The next full practice test adds a point here."
+                  "1 measure so far."
                 )}
               </p>
             </>
@@ -148,8 +149,7 @@ export default async function ParentProgressPage({
             </ul>
           ) : (
             <p className="kp-meta">
-              When {child.firstName} gets a score back from the College Board, add it here. It sits
-              next to the predicted score, and the test-day countdown measures from the best one.
+              No real SAT scores yet. Add one when it comes back from the College Board.
             </p>
           )}
           {canWrite && (

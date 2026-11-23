@@ -9,7 +9,7 @@ import { loadTrialStatus, trialSectionSchema } from "@/lib/assembler/time-trial-
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Time trial" };
 
-const EXIT = "/dashboard/student/library";
+const EXIT = "/dashboard/student?page=library";
 
 const query = z.object({
   section: trialSectionSchema.optional().catch(undefined),
