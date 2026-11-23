@@ -35,7 +35,7 @@ export const EAGER_ROUTES = Object.freeze([
   "/learn/[subject]/[nodeId]/page",
   "/learn/practice/[skillId]/page",
   "/learn/daily/page",
-  "/learn/earlier/[subject]/page",
+  "/dashboard/student/page",
   "/learn/diagnostic/page",
 ]);
 
