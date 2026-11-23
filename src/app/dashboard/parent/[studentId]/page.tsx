@@ -27,6 +27,7 @@ import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/
 import { testDay } from "@/lib/parent/test-day";
 import { ChildSummary } from "@/components/parent/ChildSummary";
 import { loadStudentSummary } from "@/lib/portal/student-summary";
+import { dayKey } from "@/lib/student/streak";
 
 export const metadata: Metadata = { title: "Week" };
 export const dynamic = "force-dynamic";
@@ -45,7 +46,8 @@ export default async function ParentWeekPage({
     loadStudentSummary(child.clerkId).catch(() => null),
   ]);
   const day = testDay({
-    today: new Date().toISOString().slice(0, 10),
+    // the student's calendar day (Central, like the student portal), not UTC's
+    today: dayKey(Date.now()),
     testDate,
     target: week.guarantee?.target ?? null,
     predicted: week.score.current,

@@ -30,6 +30,7 @@ import { StudentKarman } from "@/components/tutor/StudentKarman";
 import { weekSet } from "@/lib/portal/review-sets";
 import { loadStudentSummary } from "@/lib/portal/student-summary";
 import { dayKey } from "@/lib/student/streak";
+import { byClerkId } from "@/lib/portal/tutor-route";
 import "@/components/portal-extras/forms.css";
 
 export const metadata: Metadata = { title: "Student" };
@@ -41,6 +42,7 @@ interface Params {
 
 export default async function StudentDetailPage({ params, searchParams }: Params) {
   const [{ studentId }, { tab: tabParam, done, error }] = await Promise.all([params, searchParams]);
+  await byClerkId(studentId);
 
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");

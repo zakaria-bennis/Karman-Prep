@@ -8,6 +8,7 @@ import { Card, MoreLink, Num, SectionHeader } from "@/components/portal";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { loadSittings } from "@/lib/portal/mistakes";
+import { byClerkId } from "@/lib/portal/tutor-route";
 import { between } from "@/lib/portal/progress";
 import { dayKey } from "@/lib/student/streak";
 import { fetchStudentById } from "@/lib/supabase/queries/tutor";
@@ -25,6 +26,7 @@ const shown = (choices: string[], i: number) =>
 export default async function AnswersPage({ params }: { params: Promise<{ studentId: string }> }) {
   const { studentId: raw } = await params;
   const studentId = decodeURIComponent(raw);
+  await byClerkId(studentId, "/answers");
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect("/auth/sign-in");
   const { clerkId } = await resolveEffectiveClerkId(realUserId);
