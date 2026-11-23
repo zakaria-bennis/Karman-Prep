@@ -1,6 +1,6 @@
 // ============================================================
-// /tutor/[studentId] — Student detail with 4 tabs:
-//   Skills Overview · Tutor Controls · Flagged · Quiz History
+// /tutor/[studentId] — Student detail: their progress on the 72
+//   skills, then two tabs: Flagged · Quiz History
 // ============================================================
 
 import type { Metadata } from "next";
@@ -12,13 +12,12 @@ import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { canTutorAccessStudent } from "@/lib/auth/tutor-access";
 import { getTimingAccommodation } from "@/lib/supabase/queries/quiz/saved";
 import { TimingAccommodationControl } from "@/components/tutor/TimingAccommodationControl";
-import { fetchStudentById, fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
+import { fetchStudentById } from "@/lib/supabase/queries/tutor";
 import {
   fetchAllAttemptsForStudent,
   fetchFlaggedQuestionsForStudent,
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
-import { RW_NODES, MATH_NODES, currentAtmosphere } from "@/data/curriculum";
 import StudentDetailTabs from "@/components/tutor/StudentDetailTabs";
 import AffiliateStudent from "@/components/tutor-affiliate/AffiliateStudent";
 import { fetchUserNameAndEmail } from "@/lib/tutor-affiliate/profile";
@@ -69,8 +68,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   const student = await fetchStudentById(studentId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged, timing, familyNotes, summary] = await Promise.all([
-    fetchNodeStatuses(studentId),
+  const [attempts, flagged, timing, familyNotes, summary] = await Promise.all([
     fetchAllAttemptsForStudent(studentId),
     fetchFlaggedQuestionsForStudent(studentId),
     getTimingAccommodation(studentId),
@@ -95,7 +93,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   }
 
   // Summary stats
-  const statusMap = new Map(statuses.map((s) => [s.node_id, s]));
   // the 72 skills, Proficient as the student portal's Library counts them (34 RW, 38 Math)
   const proficient = (section: Section) => {
     const names = SKILLS[section].flatMap((d) => d.skills.map((k) => k.name));
@@ -106,26 +103,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   };
   const reading = proficient("Reading and Writing");
   const math = proficient("Math");
-  const tiersDone =
-    (RW_NODES.filter((n) => n.tier === 1).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 1).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0) +
-    (RW_NODES.filter((n) => n.tier === 2).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 2).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0) +
-    (RW_NODES.filter((n) => n.tier === 3).every(
-      (n) => statusMap.get(n.id)?.status === "mastered"
-    ) &&
-    MATH_NODES.filter((n) => n.tier === 3).every((n) => statusMap.get(n.id)?.status === "mastered")
-      ? 1
-      : 0);
-  const atmo = currentAtmosphere(tiersDone);
 
   const completedAttempts = attempts.filter((a) => a.score !== null);
   const avgScore = completedAttempts.length
@@ -133,13 +110,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
         completedAttempts.reduce((s, a) => s + (a.score ?? 0), 0) / completedAttempts.length
       )
     : null;
-  const lastActive =
-    statuses
-      .map((s) => s.updated_at)
-      .sort()
-      .reverse()[0] ?? null;
-
-  const activeTab = (tabParam ?? "skills") as "skills" | "controls" | "flagged" | "quiz";
+  const activeTab: "flagged" | "quiz" = tabParam === "quiz" ? "quiz" : "flagged";
 
   const name =
     [student.first_name, student.last_name].filter(Boolean).join(" ").trim() || student.email;
@@ -147,7 +118,7 @@ export default async function StudentDetailPage({ params, searchParams }: Params
   return (
     <>
       <Card>
-        <SectionHeader title={name} note={atmo} />
+        <SectionHeader title={name} />
         {name !== student.email && <p className="kp-meta">{student.email}</p>}
         <div className="kp-staff-rings">
           <CourseRing label="Reading and Writing" proficient={reading.done} total={reading.total} />
@@ -161,9 +132,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
             </div>
           )}
         </div>
-        {lastActive && (
-          <p className="kp-meta">Last active {new Date(lastActive).toLocaleString()}</p>
-        )}
         <TimingAccommodationControl studentClerkId={studentId} value={timing} />
         <div className="kp-staff-links">
           <MoreLink href={`/tutor/${encodeURIComponent(studentId)}/briefing`}>
@@ -222,7 +190,6 @@ export default async function StudentDetailPage({ params, searchParams }: Params
       <Card>
         <StudentDetailTabs
           studentId={studentId}
-          statuses={statuses}
           attempts={attempts}
           flagged={flagged}
           responsesByAttempt={responsesByAttempt}

@@ -9,8 +9,8 @@
 //     (Math blue) — constellation accents as subject SIGNALS
 //   • Mastered stars earn GOLD — halo + core dot (gold marks
 //     earned moments; mastery is the canonical one)
-//   • Background is a warm-dark vertical gradient, lamp-warmth near
-//     the Troposphere at the bottom, near-black at the top
+//   • Background is a warm-dark vertical gradient, lamp-warmth at
+//     the bottom, near-black at the top
 //   • Nodes are real stars: bright core + four diffraction rays + halo
 //   • Prereq lines are the brain's "convolutions"
 // ============================================================

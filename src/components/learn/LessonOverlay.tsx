@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Video, BookOpen, Zap, Trophy, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MappedNode } from "./ConstellationMap";
-import { TIER_LABELS, nodeAtmosphere, SUBJECT_COLORS } from "@/data/curriculum";
+import { TIER_LABELS, SUBJECT_COLORS } from "@/data/curriculum";
 import type { QuizAttempt, ConfidenceBand } from "@/types/quiz";
 import { DIFFICULTY_COLORS } from "@/types/quiz";
 import VideoPlayer from "./VideoPlayer";
@@ -51,7 +51,6 @@ export default function LessonOverlay({
   onGoToNext,
 }: Props) {
   const subjectColor = SUBJECT_COLORS[node.subject].hex;
-  const atmosphere = nodeAtmosphere(node.tier);
   const [activeSection, setActiveSection] = useState<SectionKey>("video");
 
   const videoRef = useRef<HTMLDivElement>(null);
@@ -151,7 +150,6 @@ export default function LessonOverlay({
           <header>
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-night dark:text-ivory md:text-4xl">
               {node.topic}
-              <span className="font-semibold text-taupe dark:text-taupe"> — {atmosphere}</span>
             </h1>
             <p className="mt-2 text-base text-taupe/70 dark:text-taupe">{node.description}</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">

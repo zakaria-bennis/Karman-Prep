@@ -50,11 +50,11 @@
 //              and brain-lobe (Math) curves. Do not edit manually.
 // ============================================================
 
-import type { CurriculumNode, NodeStatus, RawNode, Subject, Tier, AtmosphereTier } from "./types";
+import type { CurriculumNode, NodeStatus, RawNode, Subject, Tier } from "./types";
 import { rwRaw } from "./reading-writing";
 import { maRaw } from "./math";
 
-export type { CurriculumNode, NodeStatus, Subject, Tier, AtmosphereTier } from "./types";
+export type { CurriculumNode, NodeStatus, Subject, Tier } from "./types";
 
 export const LOBE_LAYOUT = {
   // Each lobe is a vertical ellipse.
@@ -65,7 +65,7 @@ export const LOBE_LAYOUT = {
   reading: { cx: 0.29 }, // left lobe (Reading & Writing)
   math: { cx: 0.71 }, // right lobe (Math)
 
-  // Atmospheric strip at the very top of the map (Stratosphere).
+  // A strip at the very top of the map.
   // Nodes never go above this y.
   topLimit: 0.08,
   bottomLimit: 0.94,
@@ -114,7 +114,7 @@ function distributeInLobe(
 // ── Pre-computed positions ────────────────────────────────────
 // Both subjects share the same brain. Reading nodes live in the left lobe,
 // Math nodes live in the right lobe. Tier 1 sits near the bottom of the
-// lobe (Troposphere), Tier 3 near the top (Stratosphere).
+// lobe, Tier 3 near the top.
 
 const { cy: LOBE_CY, rx: LOBE_RX, ry: LOBE_RY, reading: L_READ, math: L_MATH } = LOBE_LAYOUT;
 
@@ -334,47 +334,6 @@ export const SUBJECT_LABELS: Record<Subject, string> = {
 export const SUBJECT_COLORS: Record<Subject, { hex: string; glow: string; dim: string }> = {
   reading: { hex: "#D84F73", glow: "#F06A8C80", dim: "#D84F7330" }, // R&W rose
   math: { hex: "#2FA8FF", glow: "#42D9FF80", dim: "#2FA8FF30" }, // Math blue
-};
-
-// ── Atmospheric tier naming ──────────────────────────────────
-// The student-facing UI (and cinematic) uses these names instead of
-// the developer-facing "Tier 1/2/3". Troposphere is where a new student
-// begins; the Kármán Line is the final ascent when Tier 3 is mastered.
-
-/** Atmosphere a student is currently climbing *through* given completed-tier count. */
-export function currentAtmosphere(masteredTiers: number): AtmosphereTier {
-  if (masteredTiers >= 3) return "Kármán Line";
-  if (masteredTiers === 2) return "Stratosphere";
-  if (masteredTiers === 1) return "Mesosphere";
-  return "Troposphere";
-}
-
-/** The atmosphere a student ascends *to* after completing `tier`. */
-export function ascendsTo(tier: Tier): AtmosphereTier {
-  if (tier === 1) return "Mesosphere";
-  if (tier === 2) return "Stratosphere";
-  return "Kármán Line";
-}
-
-/** The atmosphere a node belongs to (based on its curriculum tier). */
-export function nodeAtmosphere(tier: Tier): AtmosphereTier {
-  if (tier === 1) return "Troposphere";
-  if (tier === 2) return "Mesosphere";
-  return "Stratosphere";
-}
-
-export const ATMOSPHERE_CONTEXT: Record<AtmosphereTier, string> = {
-  Troposphere: "The ground level. Build your foundation here.",
-  Mesosphere: "The foundations are behind you. The real challenge begins here.",
-  Stratosphere: "You are among the top students. Push further.",
-  "Kármán Line": "You have reached the edge of the atmosphere. Mastery awaits.",
-};
-
-export const ATMOSPHERE_COLORS: Record<AtmosphereTier, { hex: string; glow: string }> = {
-  Troposphere: { hex: "#2FA8FF", glow: "#2FA8FF60" }, // sky
-  Mesosphere: { hex: "#C8AB6A", glow: "#C8AB6A60" }, // violet
-  Stratosphere: { hex: "#F0BE72", glow: "#F0BE7260" }, // gold
-  "Kármán Line": { hex: "#D84F73", glow: "#D84F7360" }, // pink
 };
 
 // ── Navigation helpers ───────────────────────────────────────

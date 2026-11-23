@@ -19,11 +19,9 @@ import {
   WbTable,
   formatDate,
 } from "@/components/admin/workbench";
-import { MATH_NODES, RW_NODES } from "@/data/curriculum";
 import { HOMEWORK_SOURCE_LABEL, type HomeworkItem } from "@/lib/admin/student-homework";
 import {
   clerkIdSchema,
-  countMastered,
   fetchHomeworkForStudent,
   fetchStudentForAdmin,
   mapInBatches,
@@ -36,17 +34,13 @@ import {
   fetchFlaggedQuestionsForStudent,
   fetchResponsesForAttempt,
 } from "@/lib/supabase/queries/quiz";
-import { fetchNodeStatuses } from "@/lib/supabase/queries/tutor";
 
 export const metadata: Metadata = { title: "Student | Karman admin" };
 export const dynamic = "force-dynamic";
 
-const TABS = ["skills", "controls", "flagged", "quiz"] as const;
+const TABS = ["flagged", "quiz"] as const;
 type Tab = (typeof TABS)[number];
 const isTab = (value: unknown): value is Tab => TABS.includes(value as Tab);
-
-const RW_IDS = RW_NODES.map((n) => n.id);
-const MATH_IDS = MATH_NODES.map((n) => n.id);
 
 export default async function AdminStudentPage({
   params,
@@ -64,8 +58,7 @@ export default async function AdminStudentPage({
   const student = await fetchStudentForAdmin(clerkId);
   if (!student) notFound();
 
-  const [statuses, attempts, flagged, homework] = await Promise.all([
-    fetchNodeStatuses(clerkId),
+  const [attempts, flagged, homework] = await Promise.all([
     fetchAllAttemptsForStudent(clerkId),
     fetchFlaggedQuestionsForStudent(clerkId),
     fetchHomeworkForStudent(student),
@@ -76,7 +69,7 @@ export default async function AdminStudentPage({
   const quiz = summarizeAttempts(attempts);
   const answerCount = answers.reduce((sum, list) => sum + list.length, 0);
   const openFlags = flagged.filter((f) => !f.resolved).length;
-  const activeTab: Tab = isTab(raw.tab) ? raw.tab : "skills";
+  const activeTab: Tab = isTab(raw.tab) ? raw.tab : "flagged";
 
   const summary = [
     `Signed up as ${student.email || "no email"} on ${formatDate(student.joinedAt)}.`,
@@ -104,23 +97,14 @@ export default async function AdminStudentPage({
             label: "Average score",
             value: quiz.averageScore === null ? "—" : `${quiz.averageScore}%`,
           },
-          {
-            label: "Reading and Writing mastered",
-            value: `${countMastered(statuses, RW_IDS)} of ${RW_IDS.length}`,
-          },
-          {
-            label: "Math mastered",
-            value: `${countMastered(statuses, MATH_IDS)} of ${MATH_IDS.length}`,
-          },
           { label: "Open flags", value: openFlags },
           { label: "Homework", value: homework.items.length },
         ]}
       />
 
-      <WbSection title="Skills and quizzes">
+      <WbSection title="Flags and quizzes">
         <StudentDetailTabs
           studentId={clerkId}
-          statuses={statuses}
           attempts={attempts}
           flagged={flagged}
           responsesByAttempt={responsesByAttempt}

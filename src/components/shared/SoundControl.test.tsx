@@ -15,7 +15,7 @@ describe("explicit sound preference", () => {
     expect(soundEnabled()).toBe(false);
     preloadSounds();
     playSound("error");
-    expect(getSound("ambientTroposphere")).toBeNull();
+    expect(getSound("nodeComplete")).toBeNull();
   });
   it("provides a named, reversible toggle shared by visible controls", () => {
     render(<SoundControl />);

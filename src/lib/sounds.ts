@@ -16,11 +16,7 @@ export type SoundName =
   | "checkpointPass" // Checkpoint quiz passed
   | "error" // Incorrect answer or failed action
   | "tierAscendRumble" // Tier-ascent cinematic Phase 1 building tension
-  | "tierAscendBreak" // Tier-ascent cinematic Phase 2 atmospheric breakthrough
-  | "ambientTroposphere" // Crossfade-in tracks for each atmosphere
-  | "ambientMesosphere"
-  | "ambientStratosphere"
-  | "ambientKarman";
+  | "tierAscendBreak"; // Tier-ascent cinematic Phase 2 breakthrough
 
 // Full Howl instances are exposed here (not just `.play()`) so the
 // tier-ascension cinematic can call `.fade()` for crossfading.
@@ -60,10 +56,6 @@ function initCache() {
       error: make("/sounds/error.mp3", 0.4),
       tierAscendRumble: make("/sounds/tier-ascend.mp3", 0.6),
       tierAscendBreak: make("/sounds/tier-breakthrough.mp3", 0.8),
-      ambientTroposphere: make("/sounds/ambient-troposphere.mp3", 0.4, true),
-      ambientMesosphere: make("/sounds/ambient-mesosphere.mp3", 0.4, true),
-      ambientStratosphere: make("/sounds/ambient-stratosphere.mp3", 0.4, true),
-      ambientKarman: make("/sounds/ambient-karman.mp3", 0.4, true),
     };
   } catch {
     // Howler not available (SSR, missing dep) — no-op
@@ -79,23 +71,6 @@ export function getSound(name: SoundName): HowlLike | null {
     return cache?.[name] ?? null;
   } catch {
     return null;
-  }
-}
-
-/** Crossfade two ambient tracks over the given duration (ms). */
-export function crossfadeAmbient(from: SoundName, to: SoundName, durationMs: number): void {
-  if (typeof window === "undefined" || !soundEnabled()) return;
-  try {
-    const a = getSound(from);
-    const b = getSound(to);
-    if (a?.playing()) a.fade(a.volume(), 0, durationMs);
-    if (b) {
-      if (!b.playing()) b.play();
-      b.volume(0);
-      b.fade(0, 0.4, durationMs);
-    }
-  } catch {
-    /* no-op */
   }
 }
 

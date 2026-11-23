@@ -1,7 +1,7 @@
 "use client";
 
 // Static sky behind the constellation: gradients, nebulae, parallax
-// star field, atmospheric tier labels and bands. Split out of
+// star field and faint bands. Split out of
 // ConstellationMap.tsx.
 
 import { motion, type MotionValue } from "framer-motion";
@@ -21,8 +21,8 @@ export default function ConstellationBackdrop({
   return (
     <>
       <defs>
-        {/* Warm-night vertical gradient: lamp-warmth near the
-                Troposphere (bottom), near-black at the top */}
+        {/* Warm-night vertical gradient: lamp-warmth at the
+                bottom, near-black at the top */}
         <linearGradient id="space-gradient" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#040302" />
           <stop offset="40%" stopColor="#070605" />
@@ -100,29 +100,7 @@ export default function ConstellationBackdrop({
         ))}
       </motion.g>
 
-      {/* ── Atmospheric tier labels on the right edge ──── */}
-      {[
-        { label: "TROPOSPHERE", y: H * 0.88 },
-        { label: "MESOSPHERE", y: H * 0.54 },
-        { label: "STRATOSPHERE", y: H * 0.13 },
-      ].map(({ label, y }) => (
-        <text
-          key={label}
-          x={W - 18}
-          y={y}
-          textAnchor="end"
-          fill="#b8b0a1"
-          fillOpacity={0.3}
-          fontSize={10}
-          fontWeight={500}
-          letterSpacing={2.5}
-          fontFamily="var(--font-plex-mono), ui-monospace, monospace"
-        >
-          {label}
-        </text>
-      ))}
-
-      {/* Faint horizontal atmospheric bands */}
+      {/* Faint horizontal bands */}
       {[0.33, 0.66].map((fy, i) => (
         <line
           key={i}
