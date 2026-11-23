@@ -44,8 +44,8 @@ import {
 } from "./progressData";
 import { tick } from "./sound";
 import { usePortalData, useStudent } from "./portalData";
-import { askUpgrade, startOr } from "./upgradeStore";
-import { DAILY_10 } from "@/lib/student/quiz-routes";
+import { askUpgrade } from "./upgradeStore";
+import { useDailyTen } from "./useDailyTen";
 
 /** How near the test is, for the badge's color: within a week, within a month, or farther off. */
 const nearness = (days: number) => (days <= 7 ? "week" : days <= 31 ? "month" : "far");
@@ -94,6 +94,7 @@ function Waiting({
   const taken = student.exams.length;
   const real = usePortalData();
   const gate = real && { planId: real.planId, access: real.access };
+  const daily = useDailyTen(gate);
   // the list of full-length exams knows which one is next and what the plan still opens
   const exams = () => real && window.location.assign("/learn/tests");
   if (free)
@@ -107,6 +108,7 @@ function Waiting({
   const ready = taken > 0 || answered >= BEFORE_EXAM;
   return (
     <div className={styles.waiting}>
+      {daily.layer}
       <Tile name={ready ? "exam" : "daily"} />
       <h2>Take two full-length exams to see your predicted score</h2>
       {ready ? (
@@ -136,9 +138,7 @@ function Waiting({
           <p>
             <b>{answered}</b> of {BEFORE_EXAM} questions before your first exam
           </p>
-          <GoButton onDone={() => startOr(gate, "questions", DAILY_10.path)}>
-            Start the Daily 10
-          </GoButton>
+          <GoButton onDone={daily.start}>Start the Daily 10</GoButton>
           <button
             type="button"
             className={styles.sooner}

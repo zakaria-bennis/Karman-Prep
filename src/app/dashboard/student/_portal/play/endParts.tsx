@@ -87,8 +87,15 @@ export function Frame({
   onDone: () => void;
   children: ReactNode;
 }) {
+  // the ending lies on the page's body, outside the portal's frame, so it takes the student's light or
+  // dark from the page itself: without it the glass stayed light while the words turned white
+  // (found 2026-11-22, the words unreadable on a bright sky)
+  const mode =
+    typeof document !== "undefined" && document.documentElement.dataset.kpMode === "dark"
+      ? "dark"
+      : "light";
   return (
-    <div className={`kp-shell ${portalFontVars} ${shell.shell} ${p.frame}`}>
+    <div className={`kp-shell ${portalFontVars} ${shell.shell} ${p.frame}`} data-mode={mode}>
       <QuizWorld />
       <div className={`${lib.library} ${p.page}`}>
         <header className={p.top}>

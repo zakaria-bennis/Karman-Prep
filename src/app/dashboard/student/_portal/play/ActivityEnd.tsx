@@ -382,7 +382,7 @@ export function ActivityEnd({
                     <b>
                       {a.rescued ? "Put right" : a.ok ? "Correct" : "Incorrect"}
                       {a.skill && view.activity !== "set" && (
-                        <small>{a.review ? `Review · ${a.skill}` : a.skill}</small>
+                        <small> {a.review ? `Review · ${a.skill}` : a.skill}</small>
                       )}
                     </b>
                     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

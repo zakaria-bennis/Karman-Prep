@@ -156,6 +156,15 @@
   font-weight: 650;
 }
 
+/* the skill sits under the verdict on its own line (the Daily 10 and reviews name it; sets do not) */
+.answer small {
+  display: block;
+  margin-top: 1px;
+  font-size: 13px;
+  font-weight: 500;
+  color: color-mix(in srgb, currentColor 78%, transparent);
+}
+
 .answer svg {
   flex: none;
   fill: none;
