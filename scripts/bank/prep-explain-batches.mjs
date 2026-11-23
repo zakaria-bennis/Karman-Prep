@@ -3,6 +3,8 @@
 // whose key is settled (confirmed by both blind solvers, or kept by the adjudicator) and that have
 // no new explanation yet. Each question carries its correct answer, its skill and the old
 // explanation for reference.
+// A round named "retry..." takes every settled question not yet published (failed, flagged by the
+// automatic checks, or never checked) and tells the writer why the last attempt failed.
 // Usage: node scripts/bank/prep-explain-batches.mjs <backup-dir> <work-dir> <round-name>
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -37,13 +39,29 @@ const settled = new Set(
     .filter((k) => k.verdict === "confirmed" || k.verdict.startsWith("kept"))
     .map((k) => k.id)
 );
+const retry = round.startsWith("retry");
+const finals = jsonl(join(work, "results", "explain-final.jsonl"));
+const autoProblems = new Map(
+  jsonl(join(work, "results", "explain-checked.jsonl")).map((c) => [c.id, c.problems])
+);
+const lastProblems = new Map(
+  finals.map((r) => [
+    r.id,
+    [
+      ...(r.status.startsWith("passed") ? [] : (r.problems ?? [])),
+      ...(autoProblems.get(r.id) ?? []),
+    ],
+  ])
+);
 const done = new Set(
-  jsonl(join(work, "results", "explain-final.jsonl"))
-    .filter((r) => r.status.startsWith("passed"))
-    .map((r) => r.id)
+  retry
+    ? jsonl(join(work, "results", "published.jsonl"))
+        .filter((p) => p.outcome === "replaced")
+        .map((p) => p.id)
+    : finals.filter((r) => r.status.startsWith("passed")).map((r) => r.id)
 );
 const queued = new Set(
-  existsSync(join(work, "batches", "explain", "queued.json"))
+  !retry && existsSync(join(work, "batches", "explain", "queued.json"))
     ? JSON.parse(readFileSync(join(work, "batches", "explain", "queued.json"), "utf8"))
     : []
 );
@@ -90,6 +108,9 @@ for (const [id, q] of content) {
     correct,
     old_explanation: (row.explanation_text ?? "").slice(0, 2500),
     old_hint: row.hint ?? null,
+    ...(retry && lastProblems.get(id)?.length
+      ? { a_previous_attempt_failed_because: lastProblems.get(id) }
+      : {}),
   });
 }
 
