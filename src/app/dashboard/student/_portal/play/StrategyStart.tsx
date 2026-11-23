@@ -78,12 +78,11 @@ export function StrategyStart({ skillId }: { skillId: string }) {
         {quiz === null ? (
           <p data-rise>Getting it ready</p>
         ) : quiz.length === 0 ? (
-          <p data-rise>This skill&rsquo;s strategy quiz is on its way.</p>
+          <p data-rise>Not ready yet</p>
         ) : (
           <>
             <p data-rise>
-              {quiz.length} {quiz.length === 1 ? "question" : "questions"} on the strategy you just
-              read. Use it on each one.
+              {quiz.length} {quiz.length === 1 ? "question" : "questions"}
             </p>
             <button
               ref={start}

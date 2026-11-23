@@ -195,7 +195,7 @@ export function ChallengeBanner({
         <span className={styles.shade} aria-hidden="true" />
         {/* the words stand in the sky at the top, and the choice at the foot, over the rooftops */}
         <h2 data-rise>Challenge question</h2>
-        <p data-rise>One Reading question and one Math question, every day.</p>
+        <p data-rise>1 Reading and Writing, 1 Math, every day</p>
         <span className={styles.room} />
         <p className={styles.streak} data-rise>
           {streak > 0 ? (
@@ -203,7 +203,7 @@ export function ChallengeBanner({
               <b>{streak}</b> {streak === 1 ? "day" : "days"} in a row
             </>
           ) : (
-            "Answer today's to start your streak"
+            "Start a streak today"
           )}
         </p>
         <div className={styles.pair} data-rise>
@@ -260,7 +260,7 @@ export function ChallengeCard({ onStart }: { onStart: () => void }) {
         <small>
           {streak > 0
             ? `${streak} ${streak === 1 ? "day" : "days"} in a row`
-            : "Start your streak today"}
+            : "Start a streak today"}
         </small>
       </p>
       <button

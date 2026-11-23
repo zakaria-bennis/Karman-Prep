@@ -1048,7 +1048,7 @@ reaches karmanprep.com only when the branch is merged and deployed.
 **The Class tab is removed** (menus, label and icon). Its class button is on Homework; its workshops are
 in the Library (`Workshops.tsx`): for Cohort and Private, each side of the Library shows a Workshop
 banner with Sign up where Free, Practice and Pro have Today (the Daily 10 and challenge are on Homework
-for taught students); for Pro, "See upcoming workshops" at the top right of More ways to practice opens
+for taught students); for Pro, "See upcoming workshops" at the top right of More practice opens
 the list. The dev page cannot tell Practice from Pro, so the button shows for the whole "Free,
 Practice, Pro" plan unless the Free switch is on. Workshops are stand-ins. **Chat** now has the middle
 of the Cohort phone bar. Its icon: a big gray bubble in front with its tail to the left and three white

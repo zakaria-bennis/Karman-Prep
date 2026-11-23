@@ -447,14 +447,14 @@ const TASKS = [
     key: "daily",
     icon: "daily",
     name: "Daily 10",
-    what: "Ten questions across your skills.",
+    what: "10 questions",
     streak: null,
   },
   {
     key: "challenge",
     icon: "challenge",
     name: "Challenge question",
-    what: "One hard question.",
+    what: "1 hard question",
     streak: true,
   },
 ] as const;
@@ -528,11 +528,11 @@ export function Today() {
             )}
             <span className={styles.taskWords}>
               <b>{task.name}</b>
-              <span>{done[task.key] ? "Done for today." : task.what}</span>
+              <span>{done[task.key] ? "Done for today" : task.what}</span>
               {task.streak && (
                 <span className={styles.streak}>
                   <Icon name="flame" size={18} />
-                  {streak > 0 ? `${streak} day streak` : "Start your streak today"}
+                  {streak > 0 ? `${streak} day streak` : "Start a streak today"}
                 </span>
               )}
             </span>
@@ -586,9 +586,9 @@ export function Modes({
   const showWorkshops = real ? real.plan === "practice" : workshops;
   const lockedWorkshops = real !== null && isLocked("workshops", real.planId, real.access);
   return (
-    <section className={`${styles.glass} ${styles.modes}`} aria-label="More ways to practice">
+    <section className={`${styles.glass} ${styles.modes}`} aria-label="More practice">
       <header className={styles.modesHead}>
-        <h2>More ways to practice</h2>
+        <h2>More practice</h2>
         {/* a Pro student opens the workshops coming up from here */}
         {showWorkshops &&
           (lockedWorkshops ? (
