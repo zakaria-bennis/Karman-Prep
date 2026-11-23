@@ -166,10 +166,10 @@ export default function PaymentSettingsClient({ state }: { state: State }) {
       <Card>
         <SectionHeader title="Payouts" />
         <p className="kp-meta">
-          <b>ACH.</b> Free. Reaches your bank account in 2 to 5 business days.
+          <b>ACH.</b> Free. Reaches your bank in 1 to 2 business days.
         </p>
         <p className="kp-meta">
-          <b>Instant.</b> 2.5% fee. Reaches your debit card in seconds.
+          <b>Instant.</b> 2.5% fee. Reaches your debit card within 30 minutes.
         </p>
         <p className="wb-note" style={{ marginTop: 8 }}>
           You pick the method each time. No minimum.

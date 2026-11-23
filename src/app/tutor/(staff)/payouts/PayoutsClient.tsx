@@ -52,7 +52,7 @@ export default function PayoutsClient({
       !confirm(
         method === "instant"
           ? `Pay out ${fmt.format(instantNet)} to your debit card now? That's after the 2.5% fee on ${fmt.format(pendingAmount)}.`
-          : `Pay out ${fmt.format(pendingAmount)} by ACH? It arrives in 2 to 3 business days.`
+          : `Pay out ${fmt.format(pendingAmount)} by ACH? It arrives in 1 to 2 business days.`
       )
     )
       return;
@@ -128,7 +128,8 @@ export default function PayoutsClient({
               {instantAvailable ? (
                 <>
                   <p className="kp-meta">
-                    <Num>{fmt.format(instantNet)}</Num> after the 2.5% fee. Arrives in seconds.
+                    <Num>{fmt.format(instantNet)}</Num> after the 2.5% fee. Arrives within 30
+                    minutes.
                   </p>
                   <Cta
                     onClick={() => request("instant")}
@@ -153,7 +154,7 @@ export default function PayoutsClient({
             <div style={option}>
               <SectionHeader as="h3" title="ACH, to your bank account" />
               <p className="kp-meta">
-                <Num>{fmt.format(pendingAmount)}</Num> with no fee. Arrives in 2 to 3 business days.
+                <Num>{fmt.format(pendingAmount)}</Num> with no fee. Arrives in 1 to 2 business days.
               </p>
               {instantAvailable ? (
                 <button
