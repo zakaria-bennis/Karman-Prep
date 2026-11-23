@@ -131,15 +131,15 @@ export function ExamEnding({ result }: { result: ExamResult }) {
         <h1 id="score" className={s.label}>
           Full-length exam {result.form}
         </h1>
-        <p className={`${s.change} ${gain !== null && gain > 0 ? s.up : ""}`}>
-          {gain === null
-            ? "Your first exam"
-            : gain > 0
+        {gain !== null && (
+          <p className={`${s.change} ${gain > 0 ? s.up : ""}`}>
+            {gain > 0
               ? `Up ${gain} since your last exam`
               : gain === 0
                 ? "Same as your last exam"
                 : `Down ${-gain} since your last exam`}
-        </p>
+          </p>
+        )}
         <p className={s.score} aria-live="polite" aria-label={`Your score: ${result.total}`}>
           {shown}
         </p>
@@ -185,9 +185,9 @@ export function ExamEnding({ result }: { result: ExamResult }) {
           {result.predicted.after !== null ? (
             <>
               <span className={s.factValue}>{result.predicted.after}</span>
-              <span className={s.windowNote}>
-                {result.predicted.before !== null ? `Was ${result.predicted.before}` : "Your first"}
-              </span>
+              {result.predicted.before !== null && (
+                <span className={s.windowNote}>Was {result.predicted.before}</span>
+              )}
             </>
           ) : (
             <span className={s.windowNote}>After your next exam</span>
@@ -196,13 +196,9 @@ export function ExamEnding({ result }: { result: ExamResult }) {
         <div className={`${s.fact} ${s.rise}`} style={{ animationDelay: `${REVEAL_MS + 1000}ms` }}>
           <span className={s.label}>Coins</span>
           <span className={s.factValue}>+{result.coins.toLocaleString("en-US")}</span>
-          <span className={s.windowNote}>
-            {gain === null
-              ? "For your first exam"
-              : gain > 0
-                ? "More for each point gained"
-                : "For finishing"}
-          </span>
+          {gain !== null && gain > 0 && (
+            <span className={s.windowNote}>More for each point gained</span>
+          )}
         </div>
       </div>
 

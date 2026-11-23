@@ -6,7 +6,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import { dailyTenDays } from "@/lib/assembler/run-store";
-import { utcDayKey } from "@/lib/daily-challenge/selection";
+import { dayKey } from "@/lib/student/streak";
 import { dayToSave } from "../saver";
 import { challengeDays, savedDays } from "./coins";
 
@@ -30,7 +30,9 @@ async function held(clerkId: string): Promise<number> {
 export async function saverOffer(clerkId: string, now = new Date()): Promise<SaverOffer | null> {
   const count = await held(clerkId);
   if (count < 1) return null;
-  const today = utcDayKey(now);
+  // the same day the portal's streak counts in (Central), so the evening of a kept day is never
+  // called missed
+  const today = dayKey(now);
   const [challenge, daily, saved] = await Promise.all([
     challengeDays(clerkId),
     dailyTenDays(clerkId).catch(() => [] as string[]),
@@ -46,9 +48,11 @@ export async function saverOffer(clerkId: string, now = new Date()): Promise<Sav
 export async function spendStreakSaver(clerkId: string): Promise<{ day: string }> {
   const offer = await saverOffer(clerkId);
   if (!offer) throw new Error("There is no missed day to save.");
+  // a plain insert: when another tab saved the day a moment ago, this one spends nothing
   const { error } = await db()
     .from("student_streak_saves")
-    .upsert({ student_id: clerkId, day: offer.day }, { ignoreDuplicates: true });
+    .insert({ student_id: clerkId, day: offer.day });
+  if (error?.code === "23505") return { day: offer.day };
   if (error) throw new Error("Your streak saver was not used. Try again.");
   const { data: used, error: passError } = await db().rpc("portal_use_pass", {
     p_student: clerkId,
