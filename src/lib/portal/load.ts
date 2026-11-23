@@ -23,7 +23,7 @@ import {
 import { subSkillQuestionCount } from "@/lib/subskills/map";
 import { createAdminClient } from "@/lib/supabase/server";
 import { quizAccessFor } from "@/lib/assembler/plan-gate";
-import { challengeQuestionsPerDay, getUsage } from "@/lib/plans";
+import { CHALLENGE_SUBJECTS, getUsage } from "@/lib/plans";
 import { SECTIONS, SKILLS } from "@/app/dashboard/student/_portal/skills72";
 import type { PortalData } from "./data";
 import { portalPlanOf } from "./plan";
@@ -241,10 +241,10 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     ctx.plan,
     limited ? (usage ?? { questionsAnswered: 0, fullLengthTestsCompleted: 0 }) : undefined
   );
-  // Free answers one of the two challenge questions a day; every other plan both
+  // both challenge questions, on every plan
   const done = {
     dailyDone: doneToday(daily, nowMs),
-    challengeDone: challengeToday >= challengeQuestionsPerDay(ctx.plan),
+    challengeDone: challengeToday >= CHALLENGE_SUBJECTS.length,
   };
   const [sittings, homework, schedule, rewards, generatedAdmin] = await Promise.all([
     loadSittings(db, ctx.clerkId, (at) => student.days - between(dayKey(at), today)),

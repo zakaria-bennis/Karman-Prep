@@ -36,11 +36,9 @@ describe("what is locked", () => {
     expect(isLocked("exam", "practice", open)).toBe(false);
   });
 
-  it("keeps the predicted score and the second challenge question for paying plans", () => {
+  it("keeps the predicted score for paying plans", () => {
     expect(isLocked("score", "free", freeFresh)).toBe(true);
     expect(isLocked("score", "practice", open)).toBe(false);
-    expect(isLocked("challenge", "free", freeFresh)).toBe(true);
-    expect(isLocked("challenge", "pro", open)).toBe(false);
   });
 
   it("opens workshops to Pro and the taught plans only", () => {

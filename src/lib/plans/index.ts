@@ -46,7 +46,6 @@ export {
   explanationTypes,
   questionsLeft,
   usesPracticeSet,
-  challengeQuestionsPerDay,
   challengeSubjectsOpen,
   CHALLENGE_SUBJECTS,
   type ChallengeSubject,
