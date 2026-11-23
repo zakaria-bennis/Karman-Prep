@@ -6,7 +6,7 @@ import CatalogQuestion from "@/components/learn/catalog-practice/CatalogQuestion
 import QuizReviewQuestion from "@/components/learn/QuizReviewQuestion";
 import DailyChallenge from "@/components/learn/DailyChallenge";
 import { ActiveQuizScreen } from "@/components/learn/quiz/ActiveQuizScreen";
-import type { MappedNode } from "@/components/learn/ConstellationMap";
+import type { MappedNode } from "@/components/learn/mapped-node";
 import { CHOICE_BOX, choiceScenes, sharedFrame } from "@/lib/figures/engine/choices";
 import { hasFigureChoices, withSpecTables } from "@/lib/figures/engine/choice-routing";
 import { buildScene } from "@/lib/figures/engine/index";

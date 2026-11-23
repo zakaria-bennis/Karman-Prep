@@ -73,7 +73,6 @@ const FEATURES: Array<[string, string]> = [
   ["/learn/math", "Question bank"],
   ["/learn/reading", "Question bank"],
   ["/learn/history", "History and review"],
-  ["/learn/earlier", "History and review"],
   ["/learn", "Question bank"],
   ["/diagnostic", "Diagnostic"],
   ["/dashboard/student?page=schedule", "Calendar"],
