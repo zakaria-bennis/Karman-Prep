@@ -38,7 +38,15 @@ export default function LibraryHero({ onPick }: { onPick: (section: Section) => 
         import("./heroes/splitSky"),
       ]);
       if (gone) return;
-      const stage = createStage(box, still);
+      let stage: Stage;
+      try {
+        stage = createStage(box, still);
+      } catch {
+        // a browser that cannot draw WebGL keeps the plain sky: the heading and the two choices
+        // still show, and choosing opens the subject at once (choose() with no scene)
+        setReady(true);
+        return;
+      }
       let hero!: Hero;
       const ctx = gsap.context(() => {
         // how much of Math is Proficient decides how many constellations are joined up

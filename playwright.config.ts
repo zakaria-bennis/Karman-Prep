@@ -17,11 +17,14 @@ import { defineConfig, devices } from "@playwright/test";
 // CI: .github/workflows/e2e.yml, against a fresh local Supabase stack.
 // ============================================================
 
-// The portals draw a live WebGL landscape (src/lib/flight). A CI machine has no graphics card, so it
-// draws in software, and the moving landscape starved the browser until clicks timed out. Asked for
-// reduced motion, the landscape draws once and holds still, as it does for any student who asks.
-// Motion itself is checked by scripts/dev/motion-sheet.mjs, not here.
+// Every portal and admin page draws the live WebGL landscape behind it (src/lib/flight), and it
+// redraws on every pointer move, key press and scroll. A CI machine has no graphics card, so Chromium
+// drew it in software, under frosted glass, after every click: the suite went from one minute
+// (2026-11-10) to past its 20-minute limit. With WebGL off the landscape keeps its plain sky, as it
+// does in any browser that cannot draw it, and reduced motion holds the rest of the page still.
+// No test here checks the landscape or the motion; scripts/dev/motion-sheet.mjs watches those.
 const STILL = { reducedMotion: "reduce" } as const;
+const NO_WEBGL = { launchOptions: { args: ["--disable-webgl", "--disable-webgl2"] } };
 
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
@@ -50,7 +53,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: BASE_URL,
-    trace: process.env.E2E_TRACE_ALL ? "on" : "on-first-retry",
+    trace: "on-first-retry",
   },
   projects: [
     // ── Default projects (fast, run on `npm run test:e2e` /
@@ -63,6 +66,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         ...STILL,
+        ...NO_WEBGL,
         ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
       },
     },

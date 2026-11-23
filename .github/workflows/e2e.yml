@@ -126,8 +126,6 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
-        env:
-          E2E_TRACE_ALL: "1"
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
 
       - name: Save the compile cache
@@ -140,7 +138,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         # A shard stopped at its time limit counts as cancelled, not failed; its traces matter most.
-        if: always()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.shard }}
