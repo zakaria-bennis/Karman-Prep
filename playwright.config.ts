@@ -17,6 +17,12 @@ import { defineConfig, devices } from "@playwright/test";
 // CI: .github/workflows/e2e.yml, against a fresh local Supabase stack.
 // ============================================================
 
+// The portals draw a live WebGL landscape (src/lib/flight). A CI machine has no graphics card, so it
+// draws in software, and the moving landscape starved the browser until clicks timed out. Asked for
+// reduced motion, the landscape draws once and holds still, as it does for any student who asks.
+// Motion itself is checked by scripts/dev/motion-sheet.mjs, not here.
+const STILL = { reducedMotion: "reduce" } as const;
+
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
@@ -56,6 +62,7 @@ export default defineConfig({
       // Chromium is not downloaded (a laptop); CI installs Playwright's Chromium and leaves it unset.
       use: {
         ...devices["Desktop Chrome"],
+        ...STILL,
         ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
       },
     },
@@ -74,13 +81,13 @@ export default defineConfig({
       name: "e2e-firefox",
       testDir: "./tests/e2e",
       testIgnore: /calculator-smoke/,
-      use: { ...devices["Desktop Firefox"] },
+      use: { ...devices["Desktop Firefox"], ...STILL },
     },
     {
       name: "e2e-webkit",
       testDir: "./tests/e2e",
       testIgnore: /calculator-smoke/,
-      use: { ...devices["Desktop Safari"] },
+      use: { ...devices["Desktop Safari"], ...STILL },
     },
     {
       name: "visual-firefox",

@@ -19,10 +19,17 @@ async function openPractice(page: Page) {
       headers: { ...route.request().headers(), "x-dev-as": "dev_seed_student_mid" },
     })
   );
+  // Whatever opens over the portal first is answered the way a student would: the session-replay
+  // question is declined, and the day's challenge question waits for Later.
+  await page.addLocatorHandler(page.getByRole("dialog", { name: /Help us debug/i }), (d) =>
+    d.getByRole("button", { name: "Decline" }).click()
+  );
+  await page.addLocatorHandler(
+    page.getByRole("dialog", { name: "Today's challenge question" }),
+    (d) => d.getByRole("button", { name: "Later" }).click()
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/dashboard/student?page=library");
-  const consent = page.getByRole("dialog", { name: /Help us debug/i });
-  if (await consent.isVisible()) await consent.getByRole("button", { name: "Decline" }).click();
   await page.getByRole("button", { name: /^Math/ }).first().click();
   await page.getByRole("button", { name: "Practice", exact: true }).click();
   await page
