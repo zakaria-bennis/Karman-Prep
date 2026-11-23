@@ -120,7 +120,7 @@ export function predict(p: DataPoint) {
   return { route, right, count, best: pattern(true), worst: pattern(false) };
 }
 
-type Row = DataPoint &
+export type Row = DataPoint &
   NonNullable<ReturnType<typeof predict>> & {
     official: number;
     karman: number;
@@ -161,9 +161,8 @@ function summarize(rows: readonly Row[], key: (r: Row) => string) {
   return out;
 }
 
-function main() {
-  const file = process.argv[2] ?? path.join(HERE, "bluebook/datapoints.json");
-  const points = JSON.parse(readFileSync(file, "utf8")) as DataPoint[];
+/** Every data point the engine can score, with Bluebook's score and the engine's. */
+export function compareAll(points: readonly DataPoint[]): Row[] {
   const rows: Row[] = [];
   for (const p of points) {
     const official =
@@ -180,6 +179,13 @@ function main() {
         routeMatches: p.m1_correct == null || inferRoute({ ...p, route: null }) === p.route,
       });
   }
+  return rows;
+}
+
+function main() {
+  const file = process.argv[2] ?? path.join(HERE, "bluebook/datapoints.json");
+  const points = JSON.parse(readFileSync(file, "utf8")) as DataPoint[];
+  const rows = compareAll(points);
   // Routing: where a source gives both the Module 1 count and the route, would we route the same?
   const routed = points.filter((p) => p.route && p.m1_correct != null);
   const agree = routed.filter((p) => inferRoute({ ...p, route: null }) === p.route);

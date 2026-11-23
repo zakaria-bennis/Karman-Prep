@@ -54,3 +54,22 @@ Access notes: Reddit (www/old.reddit.com) is blocked to this session (WebFetch S
 - https://www.youtube.com/watch?v=9JFmKINPa2M — bot page; walkthrough, no scores.
 - https://www.scribd.com/document/911928848/Module-2-Report — not a Bluebook report.
 - Blocked/refused: reddit.com (SITE_BLOCKED; reddit-domain search rejected), zhuanlan.zhihu.com/p/614276909 and /p/1914373009109684877 (robots), talk.collegeconfidential.com (robots), quora.com (robots).
+
+## Added 2026-11-22: College Board's method and 117 Reddit self-reports
+
+- `research-2026-11-22/digital-sat-scoring.md`: how the digital SAT is scored, from College Board's
+  _Digital SAT Suite Technical Manual_ (2024) and score guides, with page numbers. It confirms the
+  engine's method: 3PL multiple choice (2PL typed answers), D = 1, 25 + 2 (RW) and 20 + 2 (Math)
+  questions per module, EAP routing on Module 1 with a flat prior at the median student, final score by
+  MLE on the answer pattern, 61 scale scores in steps of 10, all right = 800, ±30 a section on reports.
+- `datapoints.json` gained 117 rows (`kind: "self-report"`) from r/Sat and similar threads, read
+  through the Arctic Shift archive (Reddit blocks direct reading). Counts include the unscored
+  questions. A row with no route and a score of 660 or more is taken as the harder route, since the
+  easier route cannot reach it. Self-reports are weaker than the `analysis` rows above.
+- `research-2026-11-22/*.csv`: the raw rows (no usernames), 1,083 practice-vs-real SAT pairs, the
+  official paper conversion tables for PT4–11 and two r/Sat survey correlations.
+- Result (`npx tsx scripts/sat-engine/compare-bluebook.ts`): 171 points, 21.3 points off a section
+  on average, bias −0.9, 73% within 20, 91% within 40. Bluebook's own tests differ by 14 (Math) to
+  18 (RW) points at the same number wrong. `tune-bluebook.ts` found no setting that clearly beats the
+  current one (RW 23.4 → 22.8, Math 18.8 → 16.6 in-sample only), so nothing in the engine changed.
+  `tests/unit/sat-engine/bluebook-agreement.test.ts` keeps the grader this close.
