@@ -20,6 +20,7 @@ import {
 import styles from "./chat.module.css";
 import { timeOfDay } from "./progressStats";
 import { tick } from "./sound";
+import { MESSAGE_MAX } from "@/lib/chat/shared";
 
 const nameOf = (id: string) => (id === "me" ? "You" : (personOf(id)?.name ?? id));
 export const gist = (m: Msg) =>
@@ -417,6 +418,7 @@ export default function ChatThread({
               }}
               placeholder={held ? "Say what you need help with" : "Message"}
               aria-label="Message"
+              maxLength={MESSAGE_MAX}
               enterKeyHint="send"
             />
             <button

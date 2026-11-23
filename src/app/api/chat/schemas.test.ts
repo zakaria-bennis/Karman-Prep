@@ -81,6 +81,16 @@ describe("sendMessageBodySchema", () => {
 });
 
 describe("sendDmBodySchema", () => {
+  it("refuses a message longer than the limit, and takes one at the limit", () => {
+    const at = sendDmBodySchema.safeParse({ recipientId: "clerk-abc", content: "a".repeat(2000) });
+    const over = sendDmBodySchema.safeParse({
+      recipientId: "clerk-abc",
+      content: "a".repeat(2001),
+    });
+    expect(at.success).toBe(true);
+    expect(over.success).toBe(false);
+  });
+
   it("accepts a recipient + content", () => {
     const r = sendDmBodySchema.safeParse({
       recipientId: "clerk-abc",

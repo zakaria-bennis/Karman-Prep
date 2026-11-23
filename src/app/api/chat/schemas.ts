@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 import { isChatMediaUrl, MAX_PICTURES } from "@/lib/chat/media";
-import { REACTIONS, sharedQuestionSchema } from "@/lib/chat/shared";
+import { MESSAGE_MAX, REACTIONS, sharedQuestionSchema } from "@/lib/chat/shared";
 
 const nonEmptyString = z.string().min(1);
 
@@ -42,7 +42,7 @@ const hasBody = (d: { content?: string; mediaUrls?: string[]; question?: unknown
 export const sendMessageBodySchema = z
   .object({
     channelId: nonEmptyString,
-    content: z.string().optional(),
+    content: z.string().max(MESSAGE_MAX).optional(),
     mediaUrls: pictures,
     isAnonymous: z.boolean().optional(),
     messageType: chatMessageTypeSchema,
@@ -63,7 +63,7 @@ export const sendMessageBodySchema = z
 export const sendDmBodySchema = z
   .object({
     recipientId: nonEmptyString,
-    content: z.string().optional(),
+    content: z.string().max(MESSAGE_MAX).optional(),
     mediaUrls: pictures,
     parentMessageId: z.string().uuid().optional(),
     question: sharedQuestionSchema.optional(),
