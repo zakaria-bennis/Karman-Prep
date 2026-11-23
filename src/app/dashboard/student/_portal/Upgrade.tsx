@@ -162,7 +162,7 @@ export default function Upgrade() {
               </svg>
             </button>
             <h2 id="upgrade-title">{words.title}</h2>
-            <p className={styles.say}>{words.say}</p>
+            {words.say && <p className={styles.say}>{words.say}</p>}
             <div className={styles.term}>
               <Seg
                 label="How to pay"
