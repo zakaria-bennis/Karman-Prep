@@ -53,8 +53,14 @@
 }
 /* A table keeps its rules; its headings (the top row, or the first column when the rows are
    named) are shaded a little darker than the cells, so one side reads as the labels. */
-.figure-glass .themed-question-table th {
+.figure-glass .themed-question-table th,
+.figure-glass .themed-question-table thead td {
   background: color-mix(in srgb, var(--fg-ink) 7%, transparent);
+}
+/* the blank boxes above the headings (a two-way table's corner) are shaded like them, with a rule
+   between them and the headings below (founder, 2026-11-23) */
+.figure-glass .themed-question-table thead tr:not(:last-child) td {
+  border-bottom: 1px solid var(--figure-ink-muted);
 }
 /* the older charts draw their own plaque inside the figure */
 .figure-glass .themed-question-figure .bg-night {

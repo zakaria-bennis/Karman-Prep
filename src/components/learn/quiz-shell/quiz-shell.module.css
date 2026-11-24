@@ -27,10 +27,10 @@
   --quiz-line: rgb(29 26 34 / 0.2);
   --quiz-accent: #2a4fc4;
   /* a picked answer: a bright blue */
-  --quiz-pick: #2f6bff;
-  --quiz-correct: #1f6b45;
+  --quiz-pick: #0a6cff;
+  --quiz-correct: #12834a;
   --quiz-correct-soft: rgb(31 107 69 / 0.16);
-  --quiz-wrong: #a5372c;
+  --quiz-wrong: #c9302c;
   /* by day the pen is black and the first highlighter blue; by night white and yellow */
   --quiz-highlight-1: rgb(47 139 255 / 0.32);
   --quiz-highlight-2: rgb(242 182 50 / 0.45);
@@ -80,10 +80,10 @@
     --quiz-text-muted: #cfc9d8;
     --quiz-line: rgb(255 255 255 / 0.2);
     --quiz-accent: #a9c1ff;
-    --quiz-pick: #5b94ff;
-    --quiz-correct: #8fe0b0;
+    --quiz-pick: #2e8bff;
+    --quiz-correct: #3ddc84;
     --quiz-correct-soft: rgb(143 224 176 / 0.18);
-    --quiz-wrong: #ff9d8c;
+    --quiz-wrong: #ff6b5b;
     --quiz-highlight-1: rgb(242 182 50 / 0.38);
     --quiz-highlight-2: rgb(90 169 255 / 0.36);
     --quiz-highlight-3: rgb(255 110 180 / 0.32);
@@ -116,10 +116,10 @@
   --quiz-text-muted: #cfc9d8;
   --quiz-line: rgb(255 255 255 / 0.2);
   --quiz-accent: #a9c1ff;
-  --quiz-pick: #5b94ff;
-  --quiz-correct: #8fe0b0;
+  --quiz-pick: #2e8bff;
+  --quiz-correct: #3ddc84;
   --quiz-correct-soft: rgb(143 224 176 / 0.18);
-  --quiz-wrong: #ff9d8c;
+  --quiz-wrong: #ff6b5b;
   --quiz-highlight-1: rgb(242 182 50 / 0.38);
   --quiz-highlight-2: rgb(90 169 255 / 0.36);
   --quiz-highlight-3: rgb(255 110 180 / 0.32);
@@ -282,6 +282,10 @@
   display: contents;
 }
 .compact .barTitle {
+  display: none;
+}
+/* with the calculator open, the quiz's name gives its width to the tools (founder, 2026-11-23) */
+.shell[data-calc] .barTitle {
   display: none;
 }
 .compact .barCentre {
@@ -1032,6 +1036,14 @@
 }
 .wide.split .frame {
   grid-template-columns: minmax(0, var(--split)) auto minmax(0, 1fr);
+}
+/* side by side, the passage and the question sit close: half the inner space on each side of the
+   divider (founder, 2026-11-23: "too far apart") */
+.wide.split .frame > .pane:first-child {
+  padding-right: clamp(8px, 2vw, 24px);
+}
+.wide.split .frame > .pane:last-child {
+  padding-left: clamp(8px, 2vw, 24px);
 }
 
 .divider {

@@ -2,7 +2,7 @@
 // Keeping questions from being lifted off the screen (founder, 2026-11-17). Nothing here is seen
 // by a student who is simply answering:
 //   masked     the question blurs at once when the page is left, when the pointer leaves the
-//              window, or when the keys that begin a screenshot go down, and comes straight back
+//              window (except up into the browser's own tabs and address bar), or when the keys that begin a screenshot go down, and comes straight back
 //              when the student returns (a click or a move back in the page)
 //   blocked    the right-click menu, and the keys that open a browser's developer tools or a
 //              page's source
@@ -40,8 +40,12 @@ export function useGuard({
     };
     const seen = () => (document.hidden ? hide() : !held && show());
     const left = (e: MouseEvent) => {
-      // the pointer went out through an edge of the window
-      if (!e.relatedTarget) hide();
+      // the pointer went out through an edge of the window; out through the top, with the page
+      // still in front, it is resting on the browser's own tabs or address bar, and that alone
+      // does not blur the question (founder, 2026-11-23)
+      if (e.relatedTarget) return;
+      if (e.clientY <= 0 && document.hasFocus()) return;
+      hide();
     };
     const back = () => !held && document.hasFocus() && show();
     // the pointer moving in the page, with the page in front, means the student is back (a
