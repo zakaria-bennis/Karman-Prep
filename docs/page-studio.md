@@ -69,6 +69,7 @@ npm run studio -- done <note id…>
 
 ## Adding a page
 
-Every `page.tsx` under `src/app` must be listed in `src/lib/page-studio/inventory.ts` (the test in
-`inventory.test.ts` fails otherwise). Give it an area, a title, the address, who sees it and, for an
+Every `page.tsx` under `src/app` must be listed in `src/lib/page-studio/pages-public.ts` (site,
+sign-up, student portal, quizzes) or `pages-portals.ts` (parent, tutor, school, admin); the test in
+`inventory.test.ts` fails otherwise. Give it an area, a title, the address, who sees it and, for an
 address with a `[param]`, either a sample (`samples`) or the page that links to it (`from`).
