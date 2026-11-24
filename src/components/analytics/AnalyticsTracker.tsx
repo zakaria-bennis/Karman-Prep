@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { configureAnalytics, flush, recordingAllowed, track } from "@/lib/analytics/client";
 import { surfaceOf } from "@/lib/analytics/shared";
+import { recordPageOpen, speedEnd, speedStart } from "@/lib/analytics/speed";
 
 const TICK_MS = 5_000;
 const CHUNK_SECONDS = 600;
@@ -69,6 +70,7 @@ export default function AnalyticsTracker({ siteDefault }: { siteDefault: boolean
   }, [pathname]);
 
   useEffect(() => {
+    recordPageOpen();
     const touch = () => {
       lastInput.current = Date.now();
     };
@@ -83,7 +85,11 @@ export default function AnalyticsTracker({ siteDefault }: { siteDefault: boolean
       if (document.visibilityState === "hidden") sendTime.current(true);
       else touch();
     };
-    const onHide = () => sendTime.current(true);
+    const onHide = () => {
+      // speed: the checkout redirect has answered and the next page is replacing this one
+      speedEnd("checkout");
+      sendTime.current(true);
+    };
     const onConsent = () => viewIfAllowed.current();
     const onClick = (ev: MouseEvent) => {
       touch();
@@ -95,6 +101,7 @@ export default function AnalyticsTracker({ siteDefault }: { siteDefault: boolean
         track("ui_click", { target: name.toLowerCase() });
       }
       const link = el.closest<HTMLAnchorElement>("a[href]");
+      if (link && ctaTarget(link.href) === "checkout") speedStart("checkout");
       const to = link && surfaceOf(location.pathname) === "site" ? ctaTarget(link.href) : null;
       if (to) {
         track("cta_click", { to });

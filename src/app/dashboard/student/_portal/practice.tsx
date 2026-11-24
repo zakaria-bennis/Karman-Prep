@@ -22,7 +22,7 @@ import { buzz, chosen, tick } from "./sound";
 import { UpcomingWorkshops } from "./Workshops";
 import { openEndless, openTrial } from "./endless";
 import { DailyStart } from "./DailyStart";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import { useStill } from "@/lib/painting/useStill";
 
 const LOOP =

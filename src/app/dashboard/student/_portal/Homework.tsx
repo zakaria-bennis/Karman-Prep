@@ -38,7 +38,7 @@ import {
   type Work as WorkPiece,
 } from "./homeworkData";
 import { usePortalData } from "./portalData";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import styles from "./homework.module.css";
 import lib from "./library.module.css";
 import type { Trail } from "./MistakeLog";

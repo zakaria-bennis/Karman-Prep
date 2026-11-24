@@ -8,7 +8,7 @@
 // Coins are not spoken of here: they appear only on Rewards.
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import type { LocalQuestion } from "./play/LocalPlay";
 import { HeroFlight } from "./HomeworkHero";
 import { calm, finish } from "./homeworkMotion";

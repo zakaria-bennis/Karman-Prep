@@ -18,7 +18,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { actionEndlessBest } from "@/app/learn/play-actions";
 import go from "./play/go.module.css";
 import { CIRCLES } from "./play/demo-questions";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import { scopeOf, TrialStart } from "./TrialStart";
 import { type EndlessRun } from "./endless";
 

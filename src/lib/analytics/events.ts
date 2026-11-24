@@ -58,6 +58,22 @@ export const CLIENT_EVENTS = {
       seconds: z.number().int().min(0).max(3600).optional(),
     })
     .strict(),
+  /** How long something took, in milliseconds (founder, 2026-11-23: "make it fast"). Timings only:
+   *  which kind of wait, how long, and for a first page load the server's share (ttfb). See speed.ts. */
+  speed: z
+    .object({
+      action: z.enum([
+        "page_open",
+        "tab_switch",
+        "quiz_fetch",
+        "quiz_start",
+        "next_question",
+        "checkout",
+      ]),
+      ms: z.number().int().min(0).max(120_000),
+      ttfb: z.number().int().min(0).max(120_000).optional(),
+    })
+    .strict(),
   /** The calculator was opened on a question. */
   calculator_opened: z.object({ questionId: uuid.optional() }).strict(),
 } as const;
