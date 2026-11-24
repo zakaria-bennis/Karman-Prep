@@ -17,7 +17,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { actionDailyMix, type DailyPick } from "@/app/learn/play-actions";
 import { TailsMark } from "./play/fox/TailsStage";
 import go from "./play/go.module.css";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import { DailyWorld } from "./DailyWorld";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";

@@ -21,7 +21,7 @@ import { SKILLS72 } from "@/lib/skills/ids72";
 import { TailsMark } from "./play/fox/TailsStage";
 import go from "./play/go.module.css";
 import { CIRCLES } from "./play/demo-questions";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import { openEndless, openTrial } from "./endless";
 import { Buddy } from "./HomeworkBuddy";
 import lib from "./library.module.css";

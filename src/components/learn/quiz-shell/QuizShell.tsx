@@ -6,6 +6,7 @@ import { sectionStart } from "@/lib/quiz/workspace";
 import { showsDots } from "@/lib/quiz/rewards";
 import { toOriginal } from "@/lib/quiz/shuffle";
 import { track } from "@/lib/analytics/client";
+import { speedEndAfterPaint, speedStart } from "@/lib/analytics/speed";
 import styles from "./quiz-shell.module.css";
 import { AnnotationContext } from "./annotation-context";
 import { BottomBar } from "./BottomBar";
@@ -106,7 +107,12 @@ export function QuizShell(props: QuizShellProps) {
   );
   // Analytics: which questions were seen (skips and time to first answer, with the answer tables).
   useEffect(() => {
-    if (q && !props.loading) track("question_viewed", { questionId: q.id, mode: mode.grading });
+    if (q && !props.loading) {
+      track("question_viewed", { questionId: q.id, mode: mode.grading });
+      // speed: the quiz's first question, or the next one, is on screen
+      speedEndAfterPaint("quiz_start");
+      speedEndAfterPaint("next_question");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q?.id, props.loading]);
   /** Bumped by "?" to open the shortcuts list in the More menu. */
@@ -186,7 +192,10 @@ export function QuizShell(props: QuizShellProps) {
   });
   const last = index + 1 >= total;
   const goNext = () => {
-    if (!last) return props.onNavigate(index + 1);
+    if (!last) {
+      speedStart("next_question");
+      return props.onNavigate(index + 1);
+    }
     if (mode.grading === "end") return setChecking(true);
     props.onFinish?.();
   };

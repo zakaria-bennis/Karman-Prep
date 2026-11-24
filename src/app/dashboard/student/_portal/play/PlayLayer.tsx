@@ -12,8 +12,8 @@
 import gsap from "gsap";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { QuizWorld } from "@/components/learn/quiz-shell/QuizWorld";
+import { speedEnd, speedStart } from "@/lib/analytics/speed";
 import { prefersStill } from "@/lib/painting/motion";
 import {
   actionChallengeToday,
@@ -27,7 +27,6 @@ import {
   type ChallengeToday,
 } from "@/app/learn/play-actions";
 import type { RunView } from "@/lib/assembler/run-types";
-import type { PlayScope } from "@/lib/play/types";
 import { actionStartReviewSet } from "@/lib/portal/review-set-actions";
 import { usePortalData } from "../portalData";
 import { ActivityEnd } from "./ActivityEnd";
@@ -36,19 +35,8 @@ import { endFromRun } from "./end-from-run";
 import type { EndActions, EndView } from "./end-view";
 import { LocalPlay, type LocalQuestion } from "./LocalPlay";
 import { RunPlay } from "./RunPlay";
+import type { PlayRequest } from "./usePlay";
 import styles from "./play.module.css";
-
-export type PlayRequest =
-  | { kind: "set"; skillId: string; skill: string }
-  | { kind: "daily" }
-  | { kind: "endless"; scope: PlayScope }
-  /** Mistakes to review, or (`setId`) a curated review set the tutor sent. */
-  | { kind: "review"; skillId?: string; questionIds?: string[]; setId?: string }
-  | { kind: "trial"; scope: PlayScope }
-  | { kind: "challenge"; noWorld?: boolean }
-  | { kind: "strategy"; skillId: string; skill: string; questions: LocalQuestion[] }
-  /** The design page (no student signed in): made-up questions, a made-up ending. */
-  | { kind: "demo"; title: string; questions: LocalQuestion[] };
 
 type Opened =
   | { kind: "run"; view: RunView; seed: string; chances: number }
@@ -177,9 +165,12 @@ export function PlayLayer({
     if (!begun) return;
     let live = true;
     setPhase({ at: "opening" });
+    speedStart("quiz_start");
+    speedStart("quiz_fetch");
     open(request)
       .then((r) => {
         if (!live) return;
+        speedEnd("quiz_fetch");
         if ("error" in r) return setPhase({ at: "error", text: r.error, limit: r.limit });
         // a run that was already finished (today's Daily 10 done) goes straight to its ending
         if (r.kind === "run" && r.view.completedAt)
@@ -424,45 +415,4 @@ function endActions(
         ? () => can.practice(skill.id, skill.name)
         : undefined,
   };
-}
-
-/** A start page's player: `play(request, startButton)` opens an activity over the portal. */
-export function usePlay(
-  actions?: Omit<EndActions, "done">,
-  /** Called when the layer closes; `finished` when the activity reached its ending. */
-  onClosed?: (finished: boolean) => void
-) {
-  const [now, setNow] = useState<{
-    request: PlayRequest;
-    from: DOMRect | null;
-    intro?: (start: (from?: Element | null) => void) => ReactNode;
-  } | null>(null);
-  const play = useCallback(
-    (
-      request: PlayRequest,
-      from?: Element | null,
-      intro?: (start: (from?: Element | null) => void) => ReactNode
-    ) => {
-      setNow({ request, from: from?.getBoundingClientRect() ?? null, intro });
-    },
-    []
-  );
-  // on the page's body, so no moving or clipped parent (a sliding skill page) holds it in
-  const layer = now
-    ? createPortal(
-        <PlayLayer
-          key={JSON.stringify(now.request)}
-          request={now.request}
-          from={now.from}
-          intro={now.intro}
-          actions={actions}
-          onClose={(finished) => {
-            setNow(null);
-            onClosed?.(finished);
-          }}
-        />,
-        document.body
-      )
-    : null;
-  return { layer, play, playing: now?.request ?? null, close: () => setNow(null) };
 }

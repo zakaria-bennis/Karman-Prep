@@ -47,7 +47,22 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  * account) or when its amount or interval differs from offer.ts, so a
  * family is never charged a price the site does not show.
  */
-export async function getCheckoutPrice(spec: StripePriceSpec): Promise<Stripe.Price> {
+export function getCheckoutPrice(spec: StripePriceSpec): Promise<Stripe.Price> {
+  // Speed (2026-11-23): one Stripe round trip saved per checkout. A checked price is kept for a
+  // few minutes in this server instance; a failed lookup is not kept.
+  const key = `${spec.lookupKey}|${spec.amount}|${spec.intervalMonths}`;
+  const hit = priceCache.get(key);
+  if (hit && Date.now() - hit.at < PRICE_CACHE_MS) return hit.price;
+  const price = fetchCheckoutPrice(spec);
+  priceCache.set(key, { at: Date.now(), price });
+  price.catch(() => priceCache.delete(key));
+  return price;
+}
+
+const PRICE_CACHE_MS = 5 * 60_000;
+const priceCache = new Map<string, { at: number; price: Promise<Stripe.Price> }>();
+
+async function fetchCheckoutPrice(spec: StripePriceSpec): Promise<Stripe.Price> {
   const { data } = await stripe.prices.list({
     lookup_keys: [spec.lookupKey],
     active: true,
@@ -236,17 +251,25 @@ export async function createReservationCheckoutSession({
   });
 }
 
-/**
- * Creates or retrieves a Stripe customer for the given Clerk user.
- */
-export async function getOrCreateCustomer(userId: string, email: string) {
-  // Search for an existing customer by metadata
+/** The Stripe customer already made for this Clerk user, found by its metadata. */
+export async function findCustomer(userId: string): Promise<Stripe.Customer | null> {
   const existing = await stripe.customers.search({
     query: `metadata['userId']:'${userId}'`,
     limit: 1,
   });
+  return existing.data[0] ?? null;
+}
 
-  if (existing.data.length > 0) return existing.data[0];
+/**
+ * Creates or retrieves a Stripe customer for the given Clerk user.
+ */
+export async function getOrCreateCustomer(
+  userId: string,
+  email: string,
+  found: Promise<Stripe.Customer | null> = findCustomer(userId)
+) {
+  const existing = await found;
+  if (existing) return existing;
 
   return stripe.customers.create({
     email,

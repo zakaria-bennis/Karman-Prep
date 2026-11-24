@@ -6,7 +6,13 @@
 // ============================================================
 
 import { currentUser } from "@clerk/nextjs/server";
-import { createCheckoutSession, getOrCreateCustomer } from "./client";
+import { after } from "next/server";
+import {
+  createCheckoutSession,
+  findCustomer,
+  getCheckoutPrice,
+  getOrCreateCustomer,
+} from "./client";
 import { findStripePrice, isSubscriptionPlan } from "./prices";
 import { createCheckoutBodySchema } from "./schemas";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -51,10 +57,24 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
   const spec = findStripePrice(parsed.data.plan, parsed.data.term);
   if (!spec) return { ok: false, status: 400, error: "That plan is not sold here" };
 
-  const email = await emailFor(userId);
-  if (!email) return { ok: false, status: 400, error: "No email address found" };
-
+  // Speed (2026-11-23): the lookups that do not depend on each other run side by side, and the
+  // Stripe price is fetched (and checked) while they run; createCheckoutSession reuses it.
+  getCheckoutPrice(spec).catch(() => null);
+  // Stripe's customer search is its slowest call; start it now and use it only if no plan row
+  // already names the customer.
+  const customerSearch = findCustomer(userId);
+  customerSearch.catch(() => null);
   const supabase = createAdminClient();
+  const subsQuery = supabase
+    .from("subscriptions")
+    .select("stripe_customer_id, status")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  const [email, { data: subs, error: subsError }] = await Promise.all([
+    emailFor(userId),
+    subsQuery,
+  ]);
+  if (!email) return { ok: false, status: 400, error: "No email address found" };
 
   // Families join a call before any cohort seat. Karman adds the student to a
   // cohort after the call; only then can that seat be paid here.
@@ -84,11 +104,6 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     }
   }
 
-  const { data: subs, error: subsError } = await supabase
-    .from("subscriptions")
-    .select("stripe_customer_id, status")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
   if (subsError) throw subsError;
 
   if (isSubscriptionPlan(spec.planId) && subs?.some((s) => LIVE_STATUSES.has(s.status))) {
@@ -101,7 +116,7 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
 
   const customerId =
     subs?.find((s) => s.stripe_customer_id)?.stripe_customer_id ??
-    (await getOrCreateCustomer(userId, email)).id;
+    (await getOrCreateCustomer(userId, email, customerSearch)).id;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const session = await createCheckoutSession({
@@ -118,6 +133,9 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     cancelUrl: `${appUrl}/pricing`,
   });
   if (!session.url) return { ok: false, status: 500, error: "Stripe returned no checkout link" };
-  await trackServer("checkout_started", userId, { plan: spec.planId, term: parsed.data.term });
+  // Written after the redirect is sent, so the family does not wait on it.
+  const plan = spec.planId;
+  const term = parsed.data.term;
+  after(() => trackServer("checkout_started", userId, { plan, term }));
   return { ok: true, url: session.url };
 }

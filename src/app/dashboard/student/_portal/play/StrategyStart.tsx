@@ -11,7 +11,7 @@ import { prefersStill } from "@/lib/painting/motion";
 import { strategyNameFor, strategyQuizFor, type StrategyQuestion } from "@/lib/lessons";
 import { skill72 } from "@/lib/skills/ids72";
 import { Compass } from "./Compass";
-import { usePlay } from "./PlayLayer";
+import { usePlay } from "./usePlay";
 import s from "./strategy.module.css";
 
 export function StrategyStart({ skillId }: { skillId: string }) {

@@ -29,6 +29,7 @@ import { Group, Row, Say, Seg } from "./settingsControls";
 import { TesterSwitch } from "./SettingsTester";
 import type { PaneProps } from "./SettingsPanes";
 import styles from "./settings.module.css";
+import { speedStart } from "@/lib/analytics/speed";
 
 const NAMES = { practice: PRACTICE_PLAN.name, pro: PRO_PLAN.name } as const;
 
@@ -114,6 +115,7 @@ export function PlanPane({ plan, onGo }: PaneProps) {
     setSaid(null);
     if (!real) return setSaid("On a real account this opens checkout.");
     if (state?.renewing) return void openBilling();
+    speedStart("checkout");
     window.location.href = checkoutHref(planId, t);
   };
 

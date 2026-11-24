@@ -6,7 +6,7 @@
 import { useRouter } from "next/navigation";
 import { isLocked } from "@/lib/portal/locks";
 import { DailyStart } from "./DailyStart";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import { askUpgrade, type Gate } from "./upgradeStore";
 
 export function useDailyTen(gate: Gate) {

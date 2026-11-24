@@ -20,7 +20,7 @@ import { closeEndless, type EndlessRun } from "./endless";
 import lib from "./library.module.css";
 import { Icon } from "./practice";
 import { usePortalData } from "./portalData";
-import { usePlay } from "./play/PlayLayer";
+import { usePlay } from "./play/usePlay";
 import go from "./play/go.module.css";
 import styles from "./dailyStart.module.css";
 import own from "./endlessStart.module.css";
