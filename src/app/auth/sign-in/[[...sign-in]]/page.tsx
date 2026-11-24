@@ -14,6 +14,8 @@ export default async function Page({
   searchParams: Promise<{ redirect_url?: string }>;
 }) {
   const { redirect_url } = await searchParams;
+  // On the local test copy, signing in is a one-click pick of a test account (/dev/sign-in).
+  if (devBypassClerkId()) redirect("/dev/sign-in");
   // Someone already signed in has no business here: on to where they were going, or their portal.
   // (Not on the dev server's stand-in account, which is always "signed in".)
   if (!devBypassClerkId() && (await safeAuth()).userId) redirect(safeNext(redirect_url));
