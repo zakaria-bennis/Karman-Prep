@@ -130,9 +130,9 @@ export async function startTimeTrial(clerkId: string, rawSection: string): Promi
     // a sample of each skill, not the whole section (founder, 2026-11-23: "getting your questions
     // ready" took far too long); the module still draws a full, fresh 27 or 22 from it
     pool72(
-      SKILLS72.filter((s) => s.section === (section === "math" ? "Math" : "Reading and Writing")).map(
-        (s) => s.id
-      ),
+      SKILLS72.filter(
+        (s) => s.section === (section === "math" ? "Math" : "Reading and Writing")
+      ).map((s) => s.id),
       access.maxDifficulty,
       access.practiceSet,
       TRIAL_SAMPLE_PER_SKILL
