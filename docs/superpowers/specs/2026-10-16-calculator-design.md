@@ -43,8 +43,8 @@ Success means:
    calculator.
 2. Every checklist ID scheduled in Phases 1 to 3 passes its stated test and the phase checks of
    section 8.2 pass.
-3. Phase 4 completes the remaining functions, display size and audio (Reverse contrast was
-   retired on 2026-10-26, S-4).
+3. Phase 4 completes the remaining functions and display size (Reverse contrast was retired on
+   2026-10-26, S-4).
 
 | Owner requirement                                                                | Where it is met                                                                                                                                                       |
 | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -134,8 +134,8 @@ scoring, persistence or question data.
 | [D, architecture and integration](calculator/d-architecture-integration.md)             | Module layout, quiz seam, window modes, lazy loading and budgets, shadow root, worker, containment, reset, API, style build                                    |
 | [E, UX, keypad, accessibility and theme](calculator/e-ux-keypad-accessibility-theme.md) | Layouts, rows, typing, keypads, settings, keyboard, Scientific mode, animation, screen readers and audio, theme and contrast                                   |
 
-Audio is in scope for Phase 4: audio trace (A11Y-13) and `tone` playback (FN-88, A11Y-14). Until
-then the keypad audio key is present and disabled (K-9).
+The calculator makes no sound (founder, 2026-11-23). Audio trace tones (A11Y-13) and `tone` playback
+(FN-88, A11Y-14) are removed; the keypad's audio key starts the spoken keyboard trace (K-9, POI-20).
 
 ### 4.2 Out of scope
 
@@ -456,7 +456,7 @@ when it stays at or under 400 ms with no overshoot.
 | F1      | CB-3 moved to Phase 2 with SC-1 to SC-15 (R1); the Phase 3 checks require SC- and the screen-reader essentials (section 8.2)                                                                                                                                                                                          |
 | F12     | Every ID placed in section 7.2; dependency checks and resolutions in section 7.3; L-1's controls ship with G-5 in Phase 1; Add item adds expressions until S-2; CB-1 in Phase 1; existing contracts as Phase 1 entry conditions (section 3); transfer phasing including answer choices and default deny (TR-5, TR-77) |
 | F22     | D9 restated in the approved wording; animation moved out of D9 to AN-; measurable colour-blind, gridline, slot, explicit-colour and swatch rules in TH-1, TH-6, TH-7 and TH-10 to TH-12                                                                                                                               |
-| F31     | The audio key is present and disabled from Phase 1 (K-9); audio trace (A11Y-13) and `tone` (FN-88, A11Y-14) are Phase 4 scope; braille is out of scope (A11Y-15, section 4.2)                                                                                                                                         |
+| F31     | The audio key starts the spoken keyboard trace (K-9, POI-20); the calculator makes no sound, so audio trace tones (A11Y-13) and `tone` (FN-88, A11Y-14) are removed; braille is out of scope (A11Y-15, section 4.2)                                                                                                   |
 | F32     | D3 names master commit `1cbc1c4128`; the full SHA and file hashes are recorded and tested (AR-5); any other commit is a D3 change for the owner                                                                                                                                                                       |
 
 | Other findings                         | Resolved in |

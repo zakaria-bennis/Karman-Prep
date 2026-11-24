@@ -40,14 +40,7 @@ import { useAnswerRecord } from "./use-answer-record";
 import { useSecondChance } from "./use-second-chance";
 import { shownWorkspace, useShuffle } from "./use-shuffle";
 import { traceMark, useGuard, type GuardEvent } from "./use-guard";
-import {
-  useBarHeight,
-  useCalculatorSounds,
-  useRewards,
-  useEscape,
-  useMissHold,
-  useNotice,
-} from "./use-shell-effects";
+import { useBarHeight, useRewards, useEscape, useMissHold, useNotice } from "./use-shell-effects";
 
 export type { QuizShellProps } from "./quiz-shell-props";
 
@@ -132,7 +125,6 @@ export function QuizShell(props: QuizShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.loadedFor, attemptKey]);
   const { header, barH } = useBarHeight();
-  useCalculatorSounds();
   const lastIndex = useRef(index);
   const direction: 1 | -1 = index >= lastIndex.current ? 1 : -1;
   useEffect(() => {

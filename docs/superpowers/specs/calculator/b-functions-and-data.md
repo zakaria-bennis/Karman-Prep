@@ -335,7 +335,7 @@ calculator (SC-) uses them.
 
 ## 17. Advanced
 
-- **FN-88** tone(f, g) is a tone with frequency f in hertz (20 ≤ f ≤ 20,000, otherwise undefined) and gain g (default 1) clamped to [0, 1], and lists give one tone per element; the row shows the A11Y-14 Play/Stop toggle, sound starts only when that button is pressed (never on load or edit), and it stops when the row is hidden or deleted, the calculator closes, or setBlank() runs. (Phase 4; verified by component test)
+- **FN-88** tone(f, g): removed (founder, 2026-11-23). The calculator makes no sound.
 - **FN-89** `E with v=A, w=B` evaluates E with v bound to A and w bound to B for that row only (`x^2 with x=3` is 9; `a+b with a=[1,2], b=10` is [11, 12]); A and B are evaluated in the row's outer scope, `with` has the lowest precedence, and the bound names stay undefined elsewhere. (Phase 4; verified by unit test)
 - **FN-90** In piecewise conditions, domain restrictions and inequality rows, `A and B` holds when both hold and `A or B` when either holds, with `and` binding tighter than `or`; `y=x^2\{x<-1 or x>1\}` draws only |x| > 1, and an inequality row joined by and or or shades the intersection or union of the regions (confirm by REA behaviour capture in Phase 4). (Phase 4; verified by unit test)
 

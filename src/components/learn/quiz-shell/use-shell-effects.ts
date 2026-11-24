@@ -2,7 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import { initialRewards, rewardFor, rewardReducer } from "@/lib/quiz/rewards";
-import { playRewardSound, quizSoundsEnabled, subscribeQuizSounds } from "@/lib/quiz/reward-sound";
+import { playRewardSound } from "@/lib/quiz/reward-sound";
 
 /** How long Next waits after a miss graded in front of the student. */
 export const NEXT_HOLD_MS = 3000;
@@ -129,24 +129,4 @@ export function useRewards(
       playRewardSound(rewardFor(rewards).tier === "streak5" ? "correctStreak" : "correct");
   }, [instant, q, review, rewards]);
   return rewards;
-}
-
-/** The calculator's key sounds follow the quiz's Sounds switch (founder, 2026-11-17): there is one
- *  sound setting, in the More menu. The calculator is loaded only when it is opened, so it is
- *  told two ways: the setting it reads when it loads, and an event it listens for after that
- *  (key-sounds.ts; the names are its own, written out here so its code is not loaded early). */
-export function useCalculatorSounds() {
-  useEffect(() => {
-    const tell = () => {
-      const on = quizSoundsEnabled();
-      try {
-        localStorage.setItem("karman.calculator.keySounds", on ? "on" : "off");
-      } catch {
-        /* blocked storage: the event still tells an open calculator */
-      }
-      window.dispatchEvent(new CustomEvent("karman:key-sounds", { detail: on }));
-    };
-    tell();
-    return subscribeQuizSounds(tell);
-  }, []);
 }

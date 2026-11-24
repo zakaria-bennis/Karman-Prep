@@ -1519,10 +1519,10 @@ leave the calculator unchanged elsewhere).
 - **Radians / Degrees** is a tray with a pill for the choice (`--kc-seg-*`).
 - **Text Size:** the default is in the middle of the track for every host (`sizeStop`, `sizeAtStop` in
   `TextSizeSlider.tsx`); the notches are quiet dots.
-- **Left out of Graph Settings in the quiz:** the theme picker, the layout choice, Key Sounds
-  (`--kc-show-theme/layout/sounds: none`).
-- **Key sounds follow the quiz's Sounds switch** (`useCalculatorSounds` writes the calculator's setting and
-  sends `karman:key-sounds`; `key-sounds.ts` listens). Sounds are on by default, so key sounds now are too.
+- **Left out of Graph Settings in the quiz:** the theme picker and the layout choice
+  (`--kc-show-theme/layout: none`).
+- **The calculator makes no sound** (founder, 2026-11-23). Its key sounds and their setting are gone; the
+  quiz's Sounds switch covers the quiz's own reward sounds only.
 - **A row's color circle only shows and hides its line** in the quiz (`--kc-style-menu: 0`, read by
   `styleMenuOff`): no style menu on a click, a long-press or Shift+Enter. The menu's code is kept.
 - **Open question to him:** which "dots" look too striking. The graph's key-point dots are already plain black.

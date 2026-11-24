@@ -35,7 +35,6 @@ import { CalculatorLayout } from "./layout/CalculatorLayout";
 import { performRedo, performUndo } from "./list/row-actions";
 import { ThemeChoiceContext } from "./settings/ThemeSection";
 import { ShortcutsHost } from "./shortcuts/ShortcutsHost";
-import { installKeySounds } from "./sound/install-key-sounds";
 
 export interface AppProps {
   engine: CalculatorEngine;
@@ -118,9 +117,6 @@ export function App(props: AppProps): JSX.Element {
   useLayoutEffect(() => {
     host.dataset.displaySize = String(settings.displaySize);
   }, [host, settings.displaySize]);
-
-  // Key sounds (Graph Settings, off by default): the listeners only read key presses.
-  useEffect(() => installKeySounds(rootRef.current!), []);
 
   const toggleSettings = useCallback(
     (anchor: HTMLElement) => setSettingsAnchor((open) => (open === null ? anchor : null)),

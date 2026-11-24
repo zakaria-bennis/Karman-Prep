@@ -1,10 +1,19 @@
 // The Graph Settings redesign (founder decision, 2026-10-26) in real browsers: the one on/off
 // switch with its spring and its reduced-motion fallback, the help buttons on hover, keyboard
-// focus and touch, the axis "Label and step" disclosure, key sounds that make no audio until they
-// are turned on, the keyboard-only path through the popover, and a phone-width layout.
+// focus and touch, the axis "Label and step" disclosure, a calculator that makes no sound, the
+// keyboard-only path through the popover, and a phone-width layout.
 
 import { expect, test, type Page } from "@playwright/test";
-import { enc, openSettings, openShell, rowField, tap, useConsoleGuard } from "./shell-helpers";
+import {
+  enc,
+  keypadOpen,
+  openSettings,
+  openShell,
+  rowField,
+  shortcutKeys,
+  tap,
+  useConsoleGuard,
+} from "./shell-helpers";
 
 // eslint-disable-next-line react-hooks/rules-of-hooks -- registers Playwright hooks; not a React hook
 useConsoleGuard();
@@ -17,8 +26,8 @@ test("every on/off setting is the same switch: it springs across, fills with the
   await openShell(page, "?w=1000&h=900");
   await openSettings(page);
   const switches = region(page).locator(".kc-toggle");
-  // Grid, Minor Gridlines, Axis Numbers, Arrows, X-Axis, Y-Axis, Complex Mode and Key Sounds.
-  await expect(switches).toHaveCount(8);
+  // Grid, Minor Gridlines, Axis Numbers, Arrows, X-Axis, Y-Axis and Complex Mode.
+  await expect(switches).toHaveCount(7);
   const looks = await region(page)
     .getByRole("checkbox", { name: "Arrows" })
     .evaluate((input) => {
@@ -148,12 +157,12 @@ test("each axis keeps its range in view and puts the label and step behind Label
   expect(auto).toBe('"Auto"');
 });
 
-test("key sounds are off by default and make no audio until turned on; on, typing and the keypad play", async ({
+test("S-12 the calculator makes no sound: no Key Sounds switch, and typing and the keypad start no audio", async ({
   page,
   isMobile,
 }) => {
   await page.addInitScript(() => {
-    const seen = { made: 0, voices: 0 };
+    const seen = { made: 0 };
     (globalThis as unknown as { __audio: typeof seen }).__audio = seen;
     const Base = window.AudioContext;
     class Counting extends Base {
@@ -163,41 +172,26 @@ test("key sounds are off by default and make no audio until turned on; on, typin
       }
     }
     window.AudioContext = Counting;
-    const start = OscillatorNode.prototype.start;
-    OscillatorNode.prototype.start = function (when?: number) {
-      seen.voices += 1;
-      return start.call(this, when);
-    };
   });
-  const audio = () =>
-    page.evaluate(
-      () => (globalThis as unknown as { __audio: { made: number; voices: number } }).__audio
-    );
+  const made = () =>
+    page.evaluate(() => (globalThis as unknown as { __audio: { made: number } }).__audio.made);
   await openShell(page, `?w=1000&h=900&rows=${enc([""])}`);
   await rowField(page, "1").click();
-  await page.keyboard.type("y=2^x");
-  expect(await audio()).toEqual({ made: 0, voices: 0 });
+  await page.keyboard.type("y=2^x+3");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.press("Enter");
   await openSettings(page);
-  const sounds = region(page).getByRole("checkbox", { name: "Key Sounds" });
-  await expect(sounds).not.toBeChecked();
-  await tap(isMobile, sounds);
-  await expect(sounds).toBeChecked();
-  expect((await audio()).made).toBe(1);
+  await expect(region(page).getByRole("checkbox", { name: /sound/i })).toHaveCount(0);
+  await expect(region(page).getByText(/sound/i)).toHaveCount(0);
   await page.keyboard.press("Escape");
-  const before = (await audio()).voices;
   await rowField(page, "1").click();
-  await page.keyboard.type("+3");
-  await expect.poll(async () => (await audio()).voices).toBeGreaterThan(before);
-  // Off again: nothing more plays.
-  await openSettings(page);
-  await tap(isMobile, region(page).getByRole("checkbox", { name: "Key Sounds" }));
-  await page.keyboard.press("Escape");
-  const after = (await audio()).voices;
-  await rowField(page, "1").click();
-  await page.keyboard.type("+1");
+  if (!(await keypadOpen(page))) await page.keyboard.press((await shortcutKeys(page)).keypad);
+  await expect.poll(() => keypadOpen(page)).toBe(true);
+  const keys = page.getByRole("region", { name: "Keypad" });
+  await tap(isMobile, keys.getByRole("button", { name: "Pi", exact: true }));
+  await tap(isMobile, keys.getByRole("button", { name: "Backspace", exact: true }));
   await page.waitForTimeout(100);
-  expect((await audio()).voices).toBe(after);
-  expect((await audio()).made).toBe(1);
+  expect(await made()).toBe(0);
 });
 
 test("keyboard only: Tab walks the popover in order and Space flips a switch", async ({

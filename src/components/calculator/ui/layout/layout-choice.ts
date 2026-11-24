@@ -2,7 +2,7 @@
 // with the rows under it at every size, as on a phone, which keeps more of the graph in view.
 // Graph Settings can switch to the rows beside the graph (side by side) instead, which applies
 // from LAYOUT_DESKTOP_MIN_WIDTH up. The choice is remembered on the device in localStorage, every
-// access in try/catch, like Key Sounds.
+// access in try/catch.
 
 import { createContext } from "react";
 

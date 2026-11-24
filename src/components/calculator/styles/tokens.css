@@ -82,10 +82,9 @@
   --kc-seg-tray: transparent;
   --kc-seg-tray-radius: 0px;
   /* Parts of Graph Settings a host may leave out (display: none): the theme picker, the layout
-     choice and Key Sounds. The quiz decides all three itself. */
+     choice. The quiz decides both itself. */
   --kc-show-theme: block;
   --kc-show-layout: block;
-  --kc-show-sounds: block;
   /* 1: a row's colour circle opens the style menu (long-press, Shift+Enter, or a click while
      editing the list). 0: it only shows and hides the row. Read by the row. */
   --kc-style-menu: 1;
@@ -145,7 +144,6 @@
   --kc-add-item-pad: 0px;
   --kc-add-item-radius: 0px;
   --kc-add-item-hover: transparent;
-
 
   /* Tones mixed from the roles */
   --kc-rule: color-mix(in srgb, var(--kc-text) 20%, transparent);
