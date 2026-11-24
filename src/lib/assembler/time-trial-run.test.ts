@@ -27,10 +27,7 @@ vi.mock("./run-store", () => ({
   loadResponses: m.loadResponses,
   updateRun: m.updateRun,
 }));
-vi.mock("./bank", () => ({
-  loadAdmittedBank: m.loadAdmittedBank,
-  skillsInSection: (section: string) => [`${section}-skills`],
-}));
+vi.mock("@/lib/play/server/pool72", () => ({ pool72: m.loadAdmittedBank }));
 vi.mock("./plan-gate", async () => {
   class PlanLimitError extends Error {}
   return { PlanLimitError, loadQuizAccess: m.loadQuizAccess };
