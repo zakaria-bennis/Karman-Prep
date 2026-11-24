@@ -26,7 +26,8 @@ import {
   type TrialSection,
   type TrialStart,
 } from "@/lib/student/time-trial";
-import { loadAdmittedBank, skillsInSection } from "./bank";
+import { SKILLS72 } from "@/lib/skills/ids72";
+import { pool72 } from "@/lib/play/server/pool72";
 import { assembleTrialModule } from "./forms";
 import { PlanLimitError, loadQuizAccess } from "./plan-gate";
 import {
@@ -61,6 +62,9 @@ const BASELINE_RUN_KINDS = ["daily-ten", "practice-set", "domain-quiz", "full-te
 const sectionOfSkill = new Map(
   CATALOG_SKILLS.map((s) => [s.id, (s.subject === "math" ? "math" : "reading") as TrialSection])
 );
+
+/** Questions sampled from each of a section's skills for a round. */
+const TRIAL_SAMPLE_PER_SKILL = 8;
 
 /** The student's recent answers outside time trials, by section, for the accuracy baseline. */
 export async function loadBaselineAnswers(clerkId: string): Promise<BaselineAnswer[]> {
@@ -123,7 +127,16 @@ export async function startTimeTrial(clerkId: string, rawSection: string): Promi
   const [finished, history, bank, answers] = await Promise.all([
     latestFinishedRun(clerkId, "time-trial", section),
     answeredInRuns(clerkId),
-    loadAdmittedBank(skillsInSection(section), access.maxDifficulty),
+    // a sample of each skill, not the whole section (founder, 2026-11-23: "getting your questions
+    // ready" took far too long); the module still draws a full, fresh 27 or 22 from it
+    pool72(
+      SKILLS72.filter(
+        (s) => s.section === (section === "math" ? "Math" : "Reading and Writing")
+      ).map((s) => s.id),
+      access.maxDifficulty,
+      access.practiceSet,
+      TRIAL_SAMPLE_PER_SKILL
+    ),
     loadBaselineAnswers(clerkId),
   ]);
   const standing: TrialStart = {

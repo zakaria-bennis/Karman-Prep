@@ -35,6 +35,7 @@ import { LibraryChallenge } from "./HomeworkChallenge";
 import { StreakSaverAsk } from "./StreakSaverAsk";
 import LibraryHero from "./LibraryHero";
 import { EndlessStart, useEndlessTrail } from "./EndlessStart";
+import { closeEndless } from "./endless";
 import { Where } from "./Where";
 import type { Trail } from "./MistakeLog";
 import { AccountMenu, tuckedIn } from "./More";
@@ -136,6 +137,10 @@ function Shell() {
   /* what is open inside the Mistake Log on a phone: it names the page and the way back */
   const [trail, setTrail] = useState<Trail | null>(null);
   const endless = useEndlessTrail(setTrail);
+  /* an open endless run or time trial belongs to the page it was opened on: leaving that page, or
+     picking the other section, closes it (founder, 2026-11-23: Math opened the Reading and Writing
+     time trial left open earlier, with no way out) */
+  useEffect(() => closeEndless(), [page, section]);
   /* where the phone's five are taken, the Mistake Log can also be opened from Progress, and then it
      goes back there */
   const [viaProgress, setViaProgress] = useState(false);
