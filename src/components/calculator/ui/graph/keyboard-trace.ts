@@ -4,7 +4,7 @@
 // branch by 1/100 of the view; Up and Down switch branch; Alt or Cmd with Up and Down switch
 // expression; Home/End or U/N go to the branch's ends in view; O goes to the origin; X and Y read
 // one coordinate, P the number of points, T the point's type; Escape stops and returns focus to
-// the row. Each step is announced; A11Y-13's tones arrive in Phase 4.
+// the row. Each step is announced to screen readers; the trace plays no sound (founder, 2026-11-23).
 
 import type { CalculatorEngine } from "@/lib/calculator/core/api/engine";
 import type { ViewSpec } from "@/lib/calculator/plot/viewport";
