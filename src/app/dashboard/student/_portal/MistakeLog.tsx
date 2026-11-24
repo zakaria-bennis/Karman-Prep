@@ -428,6 +428,13 @@ export default function MistakeLog({
                       setListing(true);
                       if (!rail) window.scrollTo({ top: 0 });
                     }}
+                    onOpen={(q) =>
+                      pick(() => {
+                        setShown("All");
+                        setListing(true);
+                        setOpenQuestion(q.id);
+                      })
+                    }
                     onSkill={onSkill}
                   />
                 )

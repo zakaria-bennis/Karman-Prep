@@ -190,7 +190,16 @@ function TimedPlay({ view, seed, onWorked, onFinished, onExit, onError }: RunPla
   const [index, setIndex] = useState(0);
   const answers = useRef<Record<string, string>>({});
   const startedAt = useRef(Date.now());
+  // each question's own time: the clock runs for whichever question is on screen
+  const spent = useRef<Record<string, number>>({});
+  const shownAt = useRef(Date.now());
   const busy = useRef(false);
+  const leave = () => {
+    const id = section.questions[index]?.id;
+    const now = Date.now();
+    if (id) spent.current[id] = (spent.current[id] ?? 0) + (now - shownAt.current);
+    shownAt.current = now;
+  };
   const ids = useMemo(() => section.questions.map((q) => q.id).join(","), [section.questions]);
   const student = useStudentState(ids);
   const generated = useGenerated(ids);
@@ -198,12 +207,16 @@ function TimedPlay({ view, seed, onWorked, onFinished, onExit, onError }: RunPla
   async function finish() {
     if (busy.current) return;
     busy.current = true;
+    leave();
     try {
       const done = await actionSubmitRunSection({
         runId: view.id,
         sectionKey: section.key,
         answers: answers.current,
         seconds: Math.min(86400, Math.round((Date.now() - startedAt.current) / 1000)),
+        times: Object.fromEntries(
+          Object.entries(spent.current).map(([id, ms]) => [id, Math.min(86400, Math.round(ms / 1000))])
+        ),
       });
       if (!done.ok) return onError(done.error);
       clearWorkspaces(`${view.id}:${section.key}`);
@@ -232,7 +245,10 @@ function TimedPlay({ view, seed, onWorked, onFinished, onExit, onError }: RunPla
       hasCalculator={section.subject === "math"}
       shuffleSeed={seed}
       generated={generated}
-      onNavigate={setIndex}
+      onNavigate={(next) => {
+        leave();
+        setIndex(next);
+      }}
       onSelectAnswer={(id, answer) => {
         if (answer) answers.current[id] = answer;
         else delete answers.current[id];

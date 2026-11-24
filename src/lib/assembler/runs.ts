@@ -532,6 +532,9 @@ export const sectionSchema = z
     sectionKey: z.string().min(1).max(8),
     answers: z.record(z.string().uuid(), z.string().max(200)),
     seconds: z.number().int().min(0).max(86400),
+    /** Seconds spent on each question, timed on the device. Without it the section's time is
+     *  split evenly, which once filled the Mistake Log with identical times. */
+    times: z.record(z.string().uuid(), z.number().int().min(0).max(86400)).optional(),
   })
   .strict();
 
@@ -568,7 +571,7 @@ export async function submitSection(
         studentAnswer: answer,
         isCorrect: gradeAgainst(answer, snap),
         usedHint: false,
-        seconds: per,
+        seconds: input.times ? (input.times[id] ?? 0) : per,
         answeredAt: now,
         levelBefore: null,
         levelAfter: null,
