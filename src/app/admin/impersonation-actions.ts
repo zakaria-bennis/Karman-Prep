@@ -23,16 +23,11 @@
 // admin SEES.
 // ============================================================
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { createAdminClient } from "@/lib/supabase/server";
-import {
-  fetchUserRole,
-  IMPERSONATE_COOKIE,
-  IMPERSONATE_USER_COOKIE,
-  type AppRole,
-} from "@/lib/supabase/queries/admin";
+import { clearViewAs, setViewAs, type ViewAsRole } from "@/lib/admin/impersonation-cookies";
+import { fetchUserRole } from "@/lib/supabase/queries/admin";
 import { impersonateUserInputSchema, setImpersonationInputSchema } from "./schemas";
 
 async function guardRealAdmin() {
@@ -42,7 +37,7 @@ async function guardRealAdmin() {
   if (real !== "admin") throw new Error("Admin role required");
 }
 
-type ImpersonateRole = Exclude<AppRole, "admin">;
+type ImpersonateRole = ViewAsRole;
 
 function landingFor(role: ImpersonateRole): string {
   if (role === "tutor") return "/tutor";
@@ -50,21 +45,11 @@ function landingFor(role: ImpersonateRole): string {
   return "/dashboard/student";
 }
 
-const COOKIE_OPTS = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 60 * 60 * 2, // 2 hours — long enough to debug, short enough that you can't forget it
-};
-
 export async function actionSetImpersonation(role: ImpersonateRole) {
   setImpersonationInputSchema.parse({ role });
   await guardRealAdmin();
-  const store = await cookies();
-  store.set(IMPERSONATE_COOKIE, role, COOKIE_OPTS);
-  // Clear any granular impersonation so the two modes don't stack.
-  store.delete(IMPERSONATE_USER_COOKIE);
+  // No account id: clears any granular impersonation so the two modes don't stack.
+  await setViewAs(role, null);
   redirect(landingFor(role));
 }
 
@@ -86,16 +71,12 @@ export async function actionImpersonateUser(userId: string) {
   if (target.role === "admin") throw new Error("Cannot impersonate another admin");
 
   const role = target.role as ImpersonateRole;
-  const store = await cookies();
-  store.set(IMPERSONATE_COOKIE, role, COOKIE_OPTS);
-  store.set(IMPERSONATE_USER_COOKIE, target.id as string, COOKIE_OPTS);
+  await setViewAs(role, target.id as string);
   redirect(landingFor(role));
 }
 
 export async function actionClearImpersonation() {
   await guardRealAdmin();
-  const store = await cookies();
-  store.delete(IMPERSONATE_COOKIE);
-  store.delete(IMPERSONATE_USER_COOKIE);
+  await clearViewAs();
   redirect("/admin/users");
 }
