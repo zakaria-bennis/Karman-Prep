@@ -58,6 +58,8 @@ export function QuizShell(props: QuizShellProps) {
   const q = questions[index];
   const total = props.total ?? questions.length;
   const review = q ? reviews[q.id] : undefined;
+  // forward only (the daily challenge): never back, never skipping ahead
+  const go = (i: number) => (!props.forwardOnly || i === index + 1) && props.onNavigate(i);
   const shuffled = q ? mapFor(q.id) : null;
   const locked = mode.grading === "locked" || (mode.grading === "instant" && !!review);
   const s = useShellState({ attemptKey, q, mode, locked, saved: props.saved });
@@ -186,7 +188,7 @@ export function QuizShell(props: QuizShellProps) {
   const goNext = () => {
     if (!last) {
       speedStart("next_question");
-      return props.onNavigate(index + 1);
+      return go(index + 1);
     }
     if (mode.grading === "end") return setChecking(true);
     props.onFinish?.();
@@ -210,7 +212,7 @@ export function QuizShell(props: QuizShellProps) {
     },
     undo: () => s.act({ type: "undo" }),
     redo: () => s.act({ type: "redo" }),
-    back: () => (checking ? setChecking(false) : index > 0 && props.onNavigate(index - 1)),
+    back: () => (checking ? setChecking(false) : index > 0 && go(index - 1)),
     next: () => canNext && !checking && goNext(),
     highlight: toggleHighlighter,
     calculator: () =>
@@ -262,8 +264,8 @@ export function QuizShell(props: QuizShellProps) {
         total={total}
         endless={props.endless}
         putRight={chance.isPutRight}
-        onOpen={() => setDialog("nav")}
-        onGo={props.onNavigate}
+        onOpen={() => !props.forwardOnly && setDialog("nav")}
+        onGo={go}
       />
     ) : undefined);
 
@@ -301,7 +303,7 @@ export function QuizShell(props: QuizShellProps) {
       squares={squares}
       onJump={(i) => {
         setChecking(false);
-        props.onNavigate(i);
+        go(i);
       }}
     />
   ) : null;
@@ -492,9 +494,9 @@ export function QuizShell(props: QuizShellProps) {
                 <BottomBar
                   index={index}
                   total={total}
-                  canBack={checking || index > 0}
-                  onBack={() => (checking ? setChecking(false) : props.onNavigate(index - 1))}
-                  onOpenNavigator={() => setDialog("nav")}
+                  canBack={checking || (index > 0 && !props.forwardOnly)}
+                  onBack={() => (checking ? setChecking(false) : go(index - 1))}
+                  onOpenNavigator={() => !props.forwardOnly && setDialog("nav")}
                   centre={
                     checking ? <span className={styles.counter}>Check your work</span> : progress
                   }
@@ -515,7 +517,7 @@ export function QuizShell(props: QuizShellProps) {
             onClose={() => setDialog(null)}
             onJump={(i) => {
               setDialog(null);
-              props.onNavigate(i);
+              go(i);
             }}
             onLeave={() => props.onExit?.()}
           />

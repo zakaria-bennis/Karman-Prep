@@ -20,6 +20,7 @@ import hw from "../homework.module.css";
 import lib from "../library.module.css";
 import { LEVELS } from "../skills72";
 import { Icon } from "../practice";
+import { ChallengeResults, MultiplierRoll } from "./ChallengeResults";
 import { Compass } from "./Compass";
 import type { EndActions, EndView } from "./end-view";
 import { Frame, Go, Mood, Others, ringColor, toneOf, useCoins } from "./endParts";
@@ -111,7 +112,7 @@ function Fact({ view, shown }: { view: EndView; shown: number }) {
         <b>{LEVELS[shown]}</b>
       </>
     );
-  if ((view.activity === "daily" || view.activity === "challenge") && view.streak)
+  if (view.activity === "daily" && view.streak)
     return (
       <>
         <span className={o.factIcon} data-flame>
@@ -158,8 +159,11 @@ export function ActivityEnd({
   actions,
   intro,
   onGone,
+  noWorld,
 }: {
   view: EndView;
+  /** Keep the host's picture behind (the challenge's city) instead of the landscape. */
+  noWorld?: boolean;
   actions: EndActions;
   /** Carry the last question (the player's quiz screen) into this ending. */
   intro?: { kind: IntroKind; card: HTMLElement | null };
@@ -253,13 +257,20 @@ export function ActivityEnd({
   }, [home, tone]);
 
   const many = view.answers.length > 12;
+  const challenge = view.activity === "challenge";
   const longest = Math.max(
     1,
     ...view.answers.map((a) => a.seconds ?? 0),
     view.trial?.testPace ?? 0
   );
   return (
-    <Frame title={view.title} corner={corner} wallet={view.wallet} onDone={actions.done}>
+    <Frame
+      title={view.title}
+      corner={corner}
+      wallet={view.wallet}
+      onDone={actions.done}
+      noWorld={noWorld}
+    >
       {burst}
       {transition?.card && (
         <Intro
@@ -320,11 +331,6 @@ export function ActivityEnd({
             <h2 className={o.verdict} data-about>
               {verdictOf(view, share)}
             </h2>
-            {view.activity === "challenge" && view.challenge && (
-              <p className={o.sub} data-about>
-                Multiplier ×{view.challenge.before.toFixed(2)} → ×{view.challenge.after.toFixed(2)}
-              </p>
-            )}
             {view.activity === "trial" && view.trial && (
               <p className={o.sub} data-about>
                 Round {view.trial.round} at {view.trial.multiplier.toFixed(2)}× · next{" "}
@@ -332,10 +338,18 @@ export function ActivityEnd({
               </p>
             )}
           </div>
-          <p className={o.levelRow} ref={levelRow} data-lit={leveled || undefined} data-about>
-            <Fact view={view} shown={shown} />
-          </p>
-          {view.coins > 0 && (
+          {challenge ? (
+            view.challenge && (
+              <div data-about>
+                <MultiplierRoll before={view.challenge.before} after={view.challenge.after} />
+              </div>
+            )
+          ) : (
+            <p className={o.levelRow} ref={levelRow} data-lit={leveled || undefined} data-about>
+              <Fact view={view} shown={shown} />
+            </p>
+          )}
+          {view.coins > 0 && !challenge && (
             <p className={o.coinRow} data-about>
               {coins}
             </p>
@@ -343,7 +357,13 @@ export function ActivityEnd({
         </section>
 
         <section className={`${lib.glass} ${hw.main} ${o.main}`} data-pane aria-label="Answers">
-          {view.activity === "trial" && view.trial ? (
+          {challenge ? (
+            <ChallengeResults
+              results={view.results ?? []}
+              onLeave={actions.done}
+              onReview={actions.review}
+            />
+          ) : view.activity === "trial" && view.trial ? (
             <div className={o.bars} aria-label="Seconds a question">
               {view.answers.map((a, i) => (
                 <span
@@ -408,16 +428,18 @@ export function ActivityEnd({
               ))}
             </ul>
           )}
-          <div className={o.next}>
-            <div data-next>
-              <Go onClick={next.main.onClick}>{next.main.label}</Go>
-            </div>
-            {next.others.length > 0 && (
+          {!challenge && (
+            <div className={o.next}>
               <div data-next>
-                <Others links={next.others} />
+                <Go onClick={next.main.onClick}>{next.main.label}</Go>
               </div>
-            )}
-          </div>
+              {next.others.length > 0 && (
+                <div data-next>
+                  <Others links={next.others} />
+                </div>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </Frame>

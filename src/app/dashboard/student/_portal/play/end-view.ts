@@ -79,6 +79,23 @@ export type EndView = {
   };
   /** Challenge: the multiplier before and after today, and the streak of days. */
   challenge?: { before: number; after: number };
+  /** Challenge: each question beside everyone who played it today (challenge-results.ts). */
+  results?: ChallengeResultView[];
+};
+
+/** One challenge question on the ending: how the student did, and how everyone did. */
+export type ChallengeResultView = {
+  subject: "Reading and Writing" | "Math";
+  ok: boolean;
+  /** The student's seconds; null when no time was kept. */
+  seconds: number | null;
+  /** Null below the fewest players worth showing ("Too few players yet"). */
+  crowd: {
+    rightPercent: number;
+    averageSeconds: number | null;
+    /** Every choice in the letters the student saw (a typed answer: the most given), in order. */
+    picks: { label: string; percent: number; right: boolean; mine: boolean }[];
+  } | null;
 };
 
 /** What the ending's buttons do. The player passes only the ones that apply. */

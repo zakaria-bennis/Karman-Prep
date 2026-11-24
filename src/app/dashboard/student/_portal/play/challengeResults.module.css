@@ -1,0 +1,235 @@
+/* The daily challenge's ending (ChallengeResults.tsx). Its colors are the quiz's own: the blue of
+   a picked answer and the glowing green of a right one, by night and by day. */
+.results {
+  --cr-pick: #0a6cff;
+  --cr-correct: #12834a;
+  --cr-wrong: #c9302c;
+  --cr-track: rgb(29 26 34 / 0.1);
+  --cr-crowd: rgb(29 26 34 / 0.38);
+  position: relative;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+:global(:root:not([data-kp-mode="light"])) .results {
+  --cr-pick: #2e8bff;
+  --cr-correct: #3ddc84;
+  --cr-wrong: #ff6b5b;
+  --cr-track: rgb(255 255 255 / 0.1);
+  --cr-crowd: rgb(255 255 255 / 0.45);
+}
+
+.results .x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line, rgb(127 127 127 / 0.3));
+  border-radius: 50%;
+  background: rgb(127 127 127 / 0.12);
+  color: inherit;
+  cursor: pointer;
+}
+.x svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+@media (hover: hover) {
+  .results .x:hover {
+    background: rgb(127 127 127 / 0.22);
+  }
+}
+
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.q {
+  padding: 6px 0 18px;
+  animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.q + .q {
+  padding-top: 18px;
+  border-top: 1px solid var(--line, rgb(127 127 127 / 0.3));
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding-right: 48px;
+}
+.head b {
+  font-size: 18px;
+}
+
+.res {
+  padding: 2px 12px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0b0d26;
+  background: var(--cr-wrong);
+  box-shadow: 0 0 14px 0 var(--cr-wrong);
+}
+.res[data-ok] {
+  background: var(--cr-correct);
+  box-shadow: 0 0 14px 0 var(--cr-correct);
+}
+
+.nums {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.nums p {
+  margin: 0;
+}
+.v {
+  display: block;
+  padding: 4px 0;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.v[data-pace="fast"] {
+  color: var(--cr-correct);
+}
+.v[data-pace="slow"] {
+  color: var(--cr-wrong);
+}
+.nums small {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.picks {
+  display: grid;
+  grid-template-columns: max-content 1fr 46px;
+  gap: 8px 10px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pick {
+  /* the picks share one grid, so every bar starts at the same place */
+  display: contents;
+  font-variant-numeric: tabular-nums;
+}
+.pick > b {
+  min-width: 24px;
+}
+.pick > span:last-child {
+  text-align: right;
+}
+.bar {
+  position: relative;
+  height: 14px;
+  border-radius: 9px;
+  background: var(--cr-track);
+}
+.bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 9px;
+  background: var(--cr-crowd);
+  transition: width 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pick[data-right] .bar i {
+  background: var(--cr-correct);
+  box-shadow: 0 0 14px 0 var(--cr-correct);
+}
+.pick[data-mine] .bar {
+  outline: 2px solid var(--cr-pick);
+  outline-offset: 2px;
+}
+
+.few {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.acts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 4px;
+}
+.acts > button {
+  justify-content: center;
+}
+.results .leave {
+  min-height: 52px;
+  border: 1px solid var(--line, rgb(127 127 127 / 0.3));
+  border-radius: 16px;
+  background: rgb(127 127 127 / 0.12);
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .results .leave:hover {
+    background: rgb(127 127 127 / 0.22);
+  }
+}
+
+/* the multiplier, rolling */
+.roll {
+  display: flex;
+  margin: 0;
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 48px;
+  font-variant-numeric: tabular-nums;
+}
+.win {
+  display: inline-block;
+  height: 48px;
+  overflow: hidden;
+}
+.reel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reel > span {
+  height: 48px;
+}
+.reel[data-rolled] {
+  transform: translateY(-48px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .q {
+    animation: none;
+  }
+  .bar i,
+  .reel {
+    transition: none;
+  }
+}

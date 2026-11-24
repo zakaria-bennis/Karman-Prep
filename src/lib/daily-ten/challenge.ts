@@ -5,6 +5,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
+import { crowdOf, type Crowd, type CrowdRow } from "@/lib/daily-challenge/crowd";
 
 export type ChallengeStats = { answered: number; right: number };
 
@@ -20,18 +21,23 @@ export async function recordChallengeAnswer(input: {
   questionId: string;
   answer: string;
   correct: boolean;
+  /** Time worked on the question, from the quiz's record; absent from older callers. */
+  activeMs?: number;
 }): Promise<void> {
-  const { error } = await db().from("daily_challenge_answers").upsert(
-    {
-      day: input.day,
-      subject: input.subject,
-      student_id: input.clerkId,
-      question_id: input.questionId,
-      student_answer: input.answer,
-      is_correct: input.correct,
-    },
-    { onConflict: "day,subject,student_id", ignoreDuplicates: true }
-  );
+  const { error } = await db()
+    .from("daily_challenge_answers")
+    .upsert(
+      {
+        day: input.day,
+        subject: input.subject,
+        student_id: input.clerkId,
+        question_id: input.questionId,
+        student_answer: input.answer,
+        is_correct: input.correct,
+        ...(input.activeMs === undefined ? {} : { active_ms: input.activeMs }),
+      },
+      { onConflict: "day,subject,student_id", ignoreDuplicates: true }
+    );
   if (error) console.error("[daily challenge] answer could not be kept", error.message);
 }
 
@@ -74,4 +80,47 @@ export async function challengeAnsweredCount(clerkId: string, day: string): Prom
     .limit(2);
   if (error) return 0;
   return new Set(((data ?? []) as { subject: string }[]).map((r) => r.subject)).size;
+}
+
+/** Everyone's answers to one of today's challenge questions, for the ending. Null on a failed read. */
+export async function challengeCrowd(
+  day: string,
+  subject: "math" | "reading",
+  questionId: string
+): Promise<Crowd | null> {
+  const { data, error } = await db()
+    .from("daily_challenge_answers")
+    .select("student_answer, is_correct, active_ms")
+    .eq("day", day)
+    .eq("subject", subject)
+    .eq("question_id", questionId)
+    .limit(10000);
+  if (error) return null;
+  return crowdOf((data ?? []) as CrowdRow[]);
+}
+
+/** This student's answers today, Reading and Writing first. Empty on a failed read. */
+export async function challengeAnswersOf(
+  clerkId: string,
+  day: string
+): Promise<
+  {
+    subject: "math" | "reading";
+    question_id: string;
+    student_answer: string;
+    is_correct: boolean;
+    active_ms: number | null;
+  }[]
+> {
+  const { data, error } = await db()
+    .from("daily_challenge_answers")
+    .select("subject, question_id, student_answer, is_correct, active_ms")
+    .eq("day", day)
+    .eq("student_id", clerkId)
+    .limit(2);
+  if (error || !data) return [];
+  type Row = Awaited<ReturnType<typeof challengeAnswersOf>>[number];
+  return (data as Row[]).sort((a, b) =>
+    a.subject === "reading" ? -1 : b.subject === "reading" ? 1 : 0
+  );
 }

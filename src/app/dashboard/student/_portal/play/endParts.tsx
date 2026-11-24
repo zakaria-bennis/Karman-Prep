@@ -79,12 +79,15 @@ export function Frame({
   corner,
   wallet,
   onDone,
+  noWorld,
   children,
 }: {
   title: string;
   corner: RefObject<HTMLDivElement>;
   wallet: number;
   onDone: () => void;
+  /** The host's own picture stays behind (the challenge's city): no landscape of its own. */
+  noWorld?: boolean;
   children: ReactNode;
 }) {
   // the ending lies on the page's body, outside the portal's frame, so it takes the student's light or
@@ -95,8 +98,12 @@ export function Frame({
       ? "dark"
       : "light";
   return (
-    <div className={`kp-shell ${portalFontVars} ${shell.shell} ${p.frame}`} data-mode={mode}>
-      <QuizWorld />
+    <div
+      className={`kp-shell ${portalFontVars} ${shell.shell} ${p.frame}`}
+      data-mode={mode}
+      data-no-world={noWorld || undefined}
+    >
+      {!noWorld && <QuizWorld />}
       <div className={`${lib.library} ${p.page}`}>
         <header className={p.top}>
           <button type="button" className={shell.back} onClick={onDone}>
