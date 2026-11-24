@@ -215,7 +215,10 @@ function TimedPlay({ view, seed, onWorked, onFinished, onExit, onError }: RunPla
         answers: answers.current,
         seconds: Math.min(86400, Math.round((Date.now() - startedAt.current) / 1000)),
         times: Object.fromEntries(
-          Object.entries(spent.current).map(([id, ms]) => [id, Math.min(86400, Math.round(ms / 1000))])
+          Object.entries(spent.current).map(([id, ms]) => [
+            id,
+            Math.min(86400, Math.round(ms / 1000)),
+          ])
         ),
       });
       if (!done.ok) return onError(done.error);
