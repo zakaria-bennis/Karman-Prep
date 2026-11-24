@@ -4,7 +4,7 @@
 // (a seven-notch slider) and the Theme picker; Grid with the Cartesian Grid and Polar Grid buttons,
 // Arrows, Axis Numbers and Minor Gridlines; each axis (AxisSection); Complex Mode (S-5) with its
 // hint and the Angle Settings choice (S-6, announced per A11Y-2; greyed while complex,
-// SETTINGS-23); in the quiz only, Layout (graph on top or side by side); Key Sounds; then More
+// SETTINGS-23); in the quiz only, Layout (graph on top or side by side); then More
 // Options (axis scale, Lock Viewport and Braille Mode). Every on/off setting is the same switch (SettingSwitchRow). Visibility follows SETTINGS-14 and -15: no
 // grid type or Minor Gridlines with the grid off, no Minor Gridlines in polar. It appears and
 // leaves at once (VIS-5). Escape (rank "popover", KB-3) or a pointerdown outside closes it.
@@ -29,7 +29,6 @@ import {
   setLayoutChoice,
   subscribeLayoutChoice,
 } from "../layout/layout-choice";
-import { keySoundsEnabled, setKeySoundsEnabled, subscribeKeySounds } from "../sound/key-sounds";
 import { AxisSection } from "./AxisSection";
 import {
   CartesianGlyph,
@@ -114,7 +113,6 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
   const announcer = useAnnouncer();
   const escape = useEscapeStack();
   const radioName = useId();
-  const sounds = useSyncExternalStore(subscribeKeySounds, keySoundsEnabled, () => false);
   const layoutSetting = useContext(LayoutSettingContext);
   const layout = useSyncExternalStore(subscribeLayoutChoice, layoutChoice, layoutChoice);
   const ref = useRef<HTMLDivElement>(null);
@@ -256,14 +254,6 @@ export function SettingsPopover(props: SettingsPopoverProps): JSX.Element | null
             />
           </div>
         )}
-        <div className="kc-settings-section kc-settings-sounds">
-          <SettingSwitchRow
-            label="Key Sounds"
-            checked={sounds}
-            onChange={setKeySoundsEnabled}
-            hint="A soft sound for each key you type or press."
-          />
-        </div>
         <MoreOptions />
       </div>
     </div>

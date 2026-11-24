@@ -27,7 +27,6 @@ const ORDER = [
   ["checkbox", "Complex Mode"],
   ["radio", "Radians"],
   ["radio", "Degrees"],
-  ["checkbox", "Key Sounds"],
   ["button", "More Options"],
 ] as const;
 const popover = (onClose: () => void = vi.fn()) => (
@@ -183,19 +182,6 @@ it("More Options explains the axis scale, Lock Viewport and Braille Mode on a he
   }
   const lock = screen.getByRole("button", { name: "About Lock Viewport" });
   expect(lock).toHaveAccessibleDescription(/dragging, scrolling and the zoom buttons/);
-});
-
-it("Key Sounds is off by default and remembers a change on the device", async () => {
-  localStorage.removeItem("karman.calculator.keySounds");
-  renderEditor(popover(), { rows: [""] });
-  const box = screen.getByRole("checkbox", { name: "Key Sounds" });
-  expect(box).not.toBeChecked();
-  expect(box).toHaveAccessibleDescription("A soft sound for each key you type or press.");
-  await userEvent.setup().click(box);
-  expect(box).toBeChecked();
-  expect(localStorage.getItem("karman.calculator.keySounds")).toBe("on");
-  await userEvent.setup().click(box);
-  expect(localStorage.getItem("karman.calculator.keySounds")).toBe("off");
 });
 
 it("SETTINGS-14, -15 grid off hides the grid type and Minor Gridlines; polar hides Minor Gridlines and Step", async () => {

@@ -908,10 +908,9 @@
   --kc-seg-radius-last: 9px;
   --kc-seg-tray: color-mix(in srgb, var(--quiz-ink) 10%, transparent);
   --kc-seg-tray-radius: 12px;
-  /* the quiz decides the theme, the layout and the sounds; a row's circle only shows and hides */
+  /* the quiz decides the theme and the layout; a row's circle only shows and hides */
   --kc-show-theme: none;
   --kc-show-layout: none;
-  --kc-show-sounds: none;
   --kc-style-menu: 0;
   /* no numbers on the rows, no arrows on the pop-ups, a thin scroll bar, ink dots on the graph */
   --kc-show-row-number: none;

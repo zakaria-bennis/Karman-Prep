@@ -475,7 +475,3 @@
 .kc-settings-layout {
   display: var(--kc-show-layout);
 }
-
-.kc-settings-sounds {
-  display: var(--kc-show-sounds);
-}
