@@ -169,8 +169,15 @@
   filter: grayscale(1);
   cursor: not-allowed;
 }
+/* an untouched letter is quiet; a picked or graded one is at full strength (founder, 2026-11-23:
+   the picked letter read as grayed out) */
 .badge {
-  opacity: 0.45;
+  opacity: 0.7;
+}
+.choice[aria-checked="true"] .badge,
+.correct .badge,
+.wrong .badge {
+  opacity: 1;
 }
 .badge {
   position: relative;
