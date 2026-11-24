@@ -166,17 +166,19 @@ export const within = (session: Session, shown: Within) =>
     ? session.asked
     : session.asked.filter((q) => q.right === (shown === "Correct"));
 
-/** One small square for each question, in the order they were asked: green correct, red missed. */
-function Strip({ asked }: { asked: Asked[] }) {
-  const right = asked.filter((q) => q.right).length;
+/** One small square for each question, in the order they were asked: green correct, red missed.
+ *  Pressing one opens that question. */
+function Strip({ asked, onOpen }: { asked: Asked[]; onOpen: (q: Asked) => void }) {
   return (
-    <p
-      className={styles.strip}
-      role="img"
-      aria-label={`${right} correct, ${asked.length - right} missed`}
-    >
+    <p className={styles.strip}>
       {asked.map((q) => (
-        <i key={q.id} data-right={q.right} />
+        <button
+          key={q.id}
+          type="button"
+          data-right={q.right}
+          aria-label={`Question ${q.number}, ${q.right ? "correct" : "missed"}`}
+          onClick={() => onOpen(q)}
+        />
       ))}
     </p>
   );
@@ -188,6 +190,7 @@ export function SessionOverview({
   named,
   ways,
   onQuestions,
+  onOpen,
   onSkill,
 }: {
   student: Student;
@@ -197,6 +200,8 @@ export function SessionOverview({
   ways: Ways;
   /** Goes on to the sitting's questions: all of them, or only the missed. */
   onQuestions: (shown: Within) => void;
+  /** Opens one question, from its square. */
+  onOpen: (q: Asked) => void;
   onSkill: (found: Found) => void;
 }) {
   const many = session.asked.length;
@@ -250,11 +255,14 @@ export function SessionOverview({
             sections.map((section) => (
               <div key={section} className={styles.lineOf}>
                 <span>{section}</span>
-                <Strip asked={session.asked.filter((q) => q.found.section === section)} />
+                <Strip
+                  asked={session.asked.filter((q) => q.found.section === section)}
+                  onOpen={onOpen}
+                />
               </div>
             ))
           ) : (
-            <Strip asked={session.asked} />
+            <Strip asked={session.asked} onOpen={onOpen} />
           )}
         </div>
       )}
