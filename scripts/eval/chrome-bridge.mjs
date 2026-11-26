@@ -5,7 +5,9 @@
 import { createServer } from "node:http";
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs";
 const E = "/Users/zakariabennis/Documents/Karman-SAT-eval";
-const todo = readFileSync(process.argv[2], "utf8").split(/\s+/).filter(Boolean);
+const todo = readFileSync(process.argv[2] ?? "/dev/null", "utf8")
+  .split(/\s+/)
+  .filter(Boolean);
 const cors = {
   "Access-Control-Allow-Origin": "https://www.cvtpsolver.com",
   "Access-Control-Allow-Headers": "content-type",
@@ -44,6 +46,23 @@ createServer((req, res) => {
         `${E}/chrome-run.log`,
         `ok ${qid} ${out.seconds}s credits ${out.credits_used}\n`
       );
+      res.writeHead(200, cors).end("ok");
+    });
+    return;
+  }
+  if (kind === "savehint" && /^Q\d{3}$/.test(qid) && req.method === "POST") {
+    let b = "";
+    req.on("data", (c) => (b += c));
+    req.on("end", () => {
+      const { hint, credits_used } = JSON.parse(b);
+      const f = `${E}/solver_outputs/${qid}.json`;
+      const out = JSON.parse(readFileSync(f, "utf8"));
+      out.hint_stale = out.hint; // the first run's hint, made from the previous question's picture
+      out.hint = hint;
+      out.hint_redone_at = new Date().toISOString();
+      out.credits_used = (out.credits_used ?? 0) + credits_used;
+      writeFileSync(f, JSON.stringify(out, null, 2));
+      appendFileSync(`${E}/chrome-run.log`, `hint ${qid} credits ${credits_used}\n`);
       res.writeHead(200, cors).end("ok");
     });
     return;
