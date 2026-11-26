@@ -15,6 +15,8 @@ export interface PaidProps {
   name: string;
   /** The whole title, when it is not a seat: "Paid. You're on Pro." */
   title?: string;
+  /** The same for a plan paid from a bank, which takes a few days to arrive: its title and its line. */
+  clearing?: { title: string; text: string };
   /** "The 9-week SAT cohort, March" */
   what: string;
   /** What was paid today: "$995". */
@@ -31,6 +33,7 @@ export default function Paid({
   state,
   name,
   title,
+  clearing,
   what,
   amount,
   reference,
@@ -43,7 +46,7 @@ export default function Paid({
     <div className="gq-card pp-paid" role="status">
       {paid ? <Confetti /> : null}
       <FoxCheer />
-      <h1>{paid && title ? title : say(paid ? W.title : W.clearingTitle)}</h1>
+      <h1>{paid && title ? title : (clearing?.title ?? say(paid ? W.title : W.clearingTitle))}</h1>
       <dl className="pp-bill">
         <div>
           <dt>{what}</dt>
@@ -62,8 +65,12 @@ export default function Paid({
           </div>
         ) : null}
       </dl>
-      {email ? <p className="pp-sent">{say(paid ? W.sent : W.clearingText)}</p> : null}
-      {paid ? (
+      {!paid && clearing ? (
+        <p className="pp-sent">{clearing.text}</p>
+      ) : email ? (
+        <p className="pp-sent">{say(paid ? W.sent : W.clearingText)}</p>
+      ) : null}
+      {paid || clearing ? (
         <a className="btn pp-go" href={next} suppressHydrationWarning>
           <span className="lb">{W.button}</span>
         </a>

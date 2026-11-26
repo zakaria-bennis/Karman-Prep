@@ -13,6 +13,24 @@ export function okPhone(v: string): boolean {
   return /^\+?[\d\s().-]+$/.test(s) && digits >= 10 && digits <= 15;
 }
 
+/** A phone number as it is typed: (512) 555-0142, or + and digits for a number abroad. */
+export function formatPhone(v: string): string {
+  if (v.trim().startsWith("+")) return `+${v.replace(/\D/g, "").slice(0, 15)}`;
+  const d = v
+    .replace(/\D/g, "")
+    .replace(/^1(?=\d{10})/, "")
+    .slice(0, 10);
+  if (d.length < 4) return d;
+  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+/** The same number as a payment provider wants it: + and digits, a ten-digit number taken as American. */
+export function dialPhone(v: string): string {
+  const d = v.replace(/\D/g, "");
+  return v.trim().startsWith("+") || d.length !== 10 ? `+${d}` : `+1${d}`;
+}
+
 /** A call time as the form sends it: "2026-11-19 5:15 pm". Calls start on the quarter hour (founder,
  *  2026-11-25). */
 export function okSlot(v: string): boolean {

@@ -66,16 +66,26 @@ export const RESERVE = {
     later: "Then {count} monthly payments",
     each: "{each} each",
     total: "Total today",
-    oneTap: "Pay in one tap",
-    card: "Card",
-    byCard: "Pay by card",
-    later2: "Buy now, pay later",
-    bank: "Bank",
-    more: "More options",
+    subtotal: "Subtotal",
+    /** Between the one-tap buttons and the rest of the form. */
+    or: "Or",
+    contact: "Contact information",
+    email: "Email",
+    method: "Payment method",
+    /** A promotion code, on the bill. {percent} is "50"; {amount} {per} is "$69 a month". */
+    code: {
+      add: "Add promotion code",
+      field: "Promotion code",
+      apply: "Apply",
+      remove: "Remove the code {code}",
+      off: "{percent}% off",
+      bad: "That code didn't work. Check it and try again.",
+      then: "Then {amount} {per}.",
+    },
+    /** The ways whose button says "Continue with ...", because they finish on their own screen. */
     ways: {
       klarna: "Klarna",
       affirm: "Affirm",
-      us_bank_account: "Bank account (ACH)",
       cashapp: "Cash App Pay",
       amazon_pay: "Amazon Pay",
     },
@@ -87,13 +97,15 @@ export const RESERVE = {
     errors: {
       load: "Payment didn't load. Refresh the page, or email hello@karmanprep.com.",
       pay: "That payment didn't go through. Try again, or pay another way.",
-      way: "That way to pay didn't open. Choose another.",
     },
     /** The moment the payment is made (Paid.tsx). {name} is the student's first name. */
     paid: {
       title: "Paid. {name}'s seat is reserved.",
       /** A renewing plan paid on the same screen (/checkout/pay). {plan} is its name. */
       planTitle: "Paid. You're on {plan}.",
+      /** The plan paid from a bank: on from today, while the bank sends the payment. */
+      planClearingTitle: "You're on {plan}.",
+      planClearingText: "Your bank is sending the payment. It takes a few business days to arrive.",
       amount: "Paid today",
       reference: "Reference",
       sent: "The details are on their way to {email}.",

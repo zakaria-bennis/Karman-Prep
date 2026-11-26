@@ -5,7 +5,10 @@ const db = vi.hoisted(() => ({
   upserts: [] as Record<string, unknown>[],
 }));
 const client = vi.hoisted(() => ({
-  stripe: { checkout: { sessions: { retrieve: vi.fn() } } },
+  stripe: {
+    checkout: { sessions: { retrieve: vi.fn() } },
+    customers: { update: vi.fn(async () => ({})) },
+  },
   createPlanPaySession: vi.fn(),
 }));
 
@@ -32,7 +35,7 @@ const session = (over: Record<string, unknown> = {}) => ({
   mode: "subscription",
   status: "open",
   client_secret: "secret_one",
-  customer: "cus_1",
+  customer: { id: "cus_1", email: "pat@example.com", phone: null },
   metadata: { userId: "user_1", planId: "pro", term: "month" },
   subscription: null,
   ...over,
@@ -40,6 +43,8 @@ const session = (over: Record<string, unknown> = {}) => ({
 const paid = () =>
   session({
     status: "complete",
+    payment_status: "paid",
+    customer_details: { phone: "+15125550142" },
     subscription: {
       id: "sub_1",
       customer: "cus_1",
@@ -54,21 +59,23 @@ beforeEach(() => {
   db.held = [];
   db.upserts = [];
   client.stripe.checkout.sessions.retrieve.mockResolvedValue(session());
-  client.createPlanPaySession.mockResolvedValue({ client_secret: "secret_card" });
+  client.createPlanPaySession.mockResolvedValue({ client_secret: "secret_tap" });
 });
 
 describe("the plan payment page", () => {
-  it("opens the buyer's own checkout, with a second one for the typed card", async () => {
+  it("opens the buyer's own checkout, with a second one for the one-tap buttons", async () => {
     expect(await planPayment("user_1", ID, APP)).toMatchObject({
       state: "open",
       clientSecret: "secret_one",
-      cardSecret: "secret_card",
+      tapSecret: "secret_tap",
+      email: "pat@example.com",
+      phone: "",
       spec: { planId: "pro", term: "month" },
     });
     expect(client.createPlanPaySession.mock.calls[0][0]).toMatchObject({
       customerId: "cus_1",
       userId: "user_1",
-      way: "card",
+      tap: true,
       returnUrl: `${APP}/checkout/pay?s={CHECKOUT_SESSION_ID}`,
     });
   });
@@ -104,7 +111,7 @@ describe("the plan payment page", () => {
 describe("the moment a plan is paid", () => {
   it("gives the account the plan without waiting for Stripe's message", async () => {
     client.stripe.checkout.sessions.retrieve.mockResolvedValue(paid());
-    expect(await confirmPlanPaid("user_1", ID)).toBe(true);
+    expect(await confirmPlanPaid("user_1", ID)).toBe("paid");
     expect(db.upserts[0]).toMatchObject({
       user_id: "user_1",
       plan_id: "pro",
@@ -112,6 +119,17 @@ describe("the moment a plan is paid", () => {
       status: "active",
       stripe_subscription_id: "sub_1",
     });
+    // the mobile number given on the page is kept where the founder reads it
+    expect(client.stripe.customers.update).toHaveBeenCalledWith("cus_1", { phone: "+15125550142" });
+  });
+
+  it("says a bank payment is on its way, with the plan already on", async () => {
+    client.stripe.checkout.sessions.retrieve.mockResolvedValue({
+      ...paid(),
+      payment_status: "unpaid",
+    });
+    expect(await confirmPlanPaid("user_1", ID)).toBe("clearing");
+    expect(db.upserts).toHaveLength(1);
   });
 
   it("gives nothing for a checkout that is unpaid, or somebody else's", async () => {

@@ -169,6 +169,14 @@ export async function createCheckoutSession({
  * carries the reservation instead of a user, and the webhook settles it by that id.
  * The payment is taken on our own page (/reserve/pay): the session is made for Stripe's fields to be
  * placed inside it (ui_mode "elements"), and its client secret is what that page opens them with.
+ * The page is laid out like Stripe's own (founder, 2026-11-26): one-tap buttons, then one list of ways.
+ * It opens two checkouts for the same seat, and whichever is paid settles it:
+ *   - the list: the card, and for a seat paid in full the other ways this account can take (a deposit
+ *     keeps to the card, which stays on file for the payments that follow). Link is kept out of it,
+ *     because inside the card form Link adds a "save my information" box that asks for the phone again
+ *     and blocks the payment until it is filled (tried 2026-11-26).
+ *   - `tap`: Link with the card behind it, which is what the one-tap buttons need (Link, Apple Pay,
+ *     Google Pay).
  */
 export async function createReservationCheckoutSession({
   customerId,
@@ -176,7 +184,7 @@ export async function createReservationCheckoutSession({
   programId,
   payment,
   returnUrl,
-  way,
+  tap = false,
 }: {
   customerId: string;
   reservationId: string;
@@ -184,32 +192,29 @@ export async function createReservationCheckoutSession({
   payment: CohortPayment;
   /** Where Stripe sends the family once the payment is made. */
   returnUrl: string;
-  /** One way to pay alone: a checkout that offers only that way, for its own group on the payment
-   *  page ("card": the typed card, with none of Link's extra tabs; or a pay-later plan, the bank, a
-   *  wallet, opened when the family picks it). Left out: the one-tap ways (Link, Apple Pay, Google Pay). */
-  way?: PayWay | "card";
+  /** The checkout behind the one-tap buttons, opened beside the seat's own each time the page is. */
+  tap?: boolean;
 }) {
   const metadata = {
     reservationId,
     planId: "cohort",
     term: payment,
     programId,
-    ...(way ? { way } : {}),
+    ...(tap ? { way: "tap" } : {}),
   };
+  const full = payment !== "installments";
   const shared = {
     customer: customerId,
     ui_mode: "elements" as const,
     return_url: returnUrl,
     metadata,
-    // the typed card's own checkout shows card fields only: Link stays with the one-tap buttons
-    ...(way === "card" ? { wallet_options: { link: { display: "never" as const } } } : {}),
+    ...(await offered(tap, full ? await payWays() : [])),
   };
-  if (payment === "installments") {
+  if (!full) {
     const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
     return stripe.checkout.sessions.create({
       ...shared,
       mode: "payment",
-      payment_method_types: way === "card" ? ["card"] : [...CARD_METHODS],
       line_items: [{ price: deposit.id, quantity: 1 }],
       payment_intent_data: { setup_future_usage: "off_session", metadata },
     });
@@ -217,58 +222,71 @@ export async function createReservationCheckoutSession({
   const spec = findStripePrice("cohort");
   if (!spec) throw new Error("The cohort has no Stripe price in prices.ts");
   const price = await getCheckoutPrice(spec);
-  // The payment page draws each group of ways itself (one tap, card, pay later, bank, more), so each
-  // checkout names what it offers: Link with the card behind it (which brings Apple Pay and Google Pay)
-  // for the one-tap buttons, or one way alone. Link is kept out of the typed card's checkout because
-  // it adds tabs of its own there (a bank and a pay-later plan run by Link).
   return stripe.checkout.sessions.create({
     ...shared,
     mode: "payment",
-    payment_method_types: way ? [way] : [...CARD_METHODS],
+    allow_promotion_codes: true,
     line_items: [{ price: price.id, quantity: 1 }],
     payment_intent_data: { metadata },
   });
 }
 
+/** What one of the page's two checkouts offers (see createReservationCheckoutSession), and that both
+ *  take the mobile number: asked on our page above the list, or given by the wallet in one tap. */
+async function offered(tap: boolean, ways: PayWay[]) {
+  return {
+    phone_number_collection: { enabled: true },
+    ...(tap
+      ? { payment_method_types: [...CARD_METHODS] }
+      : {
+          payment_method_types: ["card" as const, ...ways],
+          wallet_options: { link: { display: "never" as const } },
+        }),
+  };
+}
+
 /**
  * Checkout for a renewing plan (Practice, Pro), paid on our own page (/checkout/pay) the way a cohort
  * seat is (founder, 2026-11-26): Stripe's fields inside our page, so the session is made in ui_mode
- * "elements". The page opens two: this one for the one-tap buttons (Link, Apple Pay, Google Pay), and
- * one with `way: "card"` for the typed card alone, with none of Link's extras. Whichever is paid starts
- * the subscription; the same metadata goes on it, so the webhook knows whose it is.
+ * "elements". The page opens two, as a seat's does: the list of ways (every way that can renew; Affirm
+ * cannot), and `tap` for the one-tap buttons. Whichever is paid starts the subscription; the same
+ * metadata goes on it, so the webhook knows whose it is.
  */
 export async function createPlanPaySession({
   customerId,
   spec,
   userId,
   returnUrl,
-  way,
+  tap = false,
 }: {
   customerId: string;
   spec: StripePriceSpec;
   userId: string;
   /** Where Stripe sends the buyer back to after a step that left the site (a bank's own check). */
   returnUrl: string;
-  way?: "card";
+  tap?: boolean;
 }) {
   const price = await getCheckoutPrice(spec);
   const metadata = { userId, planId: spec.planId, term: spec.term };
+  const ways = (await payWays()).filter((w) => !ONE_PAYMENT_ONLY.has(w));
   return stripe.checkout.sessions.create({
     customer: customerId,
     ui_mode: "elements",
     return_url: returnUrl,
     mode: "subscription",
-    payment_method_types: way === "card" ? ["card"] : [...CARD_METHODS],
+    allow_promotion_codes: true,
     line_items: [{ price: price.id, quantity: 1 }],
-    metadata: { ...metadata, ...(way ? { way } : {}) },
+    metadata: { ...metadata, ...(tap ? { way: "tap" } : {}) },
     subscription_data: { metadata },
-    ...(way === "card" ? { wallet_options: { link: { display: "never" as const } } } : {}),
+    ...(await offered(tap, ways)),
   });
 }
 
-/** The other ways to pay for a cohort seat in full, in the order the payment page groups them. */
-export const PAY_WAYS = ["klarna", "affirm", "us_bank_account", "cashapp", "amazon_pay"] as const;
+/** The other ways to pay, beside the card and Link, in the order the payment page lists them. */
+export const PAY_WAYS = ["us_bank_account", "klarna", "affirm", "cashapp", "amazon_pay"] as const;
 export type PayWay = (typeof PAY_WAYS)[number];
+/** Ways that take one payment and cannot renew a plan (Stripe refuses them in a subscription). */
+const ONE_PAYMENT_ONLY = new Set<PayWay>(["affirm"]);
 
 let waysKept: { at: number; ways: PayWay[] } | null = null;
 /**

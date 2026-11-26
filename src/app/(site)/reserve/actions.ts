@@ -6,7 +6,6 @@
 import { reserveBuyer } from "@/lib/reserve/buyer";
 import {
   checkoutReservation,
-  openWay,
   saveDetails,
   saveRegistration,
   startReservation,
@@ -34,15 +33,6 @@ export async function payForSeat(input: unknown) {
   return result.ok
     ? { ok: true as const, url: result.value.url }
     : { ok: false as const, error: result.error };
-}
-
-/** On the payment page: another way to pay was picked (a pay-later plan, the bank, a wallet). The
- *  page hands this to the payment screen with the seat already named. */
-export async function openSeatWay(reservationId: string, way: string) {
-  const result = await openWay({ reservationId, way });
-  return result.ok
-    ? { ok: true as const, clientSecret: result.value.clientSecret }
-    : { ok: false as const };
 }
 
 /** On the payment page, the moment Stripe says the payment is made: mark the seat paid now, so the

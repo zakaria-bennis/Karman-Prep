@@ -10,8 +10,7 @@ import { track } from "@/lib/analytics/client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
-import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
-import { RESERVE } from "@/lib/marketing/reserve-copy";
+import { cleanName, formatPhone, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
@@ -35,6 +34,8 @@ export interface CallWords extends SlotWords {
   sending: string;
   /** One sentence, with {time} and {day} in it. */
   done: string;
+  /** The one way on after a booked call: back to the site. */
+  home: string;
   errors: Record<Field | "slot" | "server" | "network", string>;
 }
 
@@ -74,19 +75,6 @@ const INPUT: Record<Field, Record<string, string | number>> = {
 // first name, last name, email, then the phone with its reason (founder, 2026-11-14)
 const FIELDS: Field[] = ["first", "last", "email", "phone"];
 
-/** A phone number as it is typed: digits only, set out as (512) 555-0142. A number that starts with + is
- *  kept as + and digits, for families abroad. */
-function formatPhone(v: string): string {
-  if (v.trim().startsWith("+")) return `+${v.replace(/\D/g, "").slice(0, 15)}`;
-  const d = v
-    .replace(/\D/g, "")
-    .replace(/^1(?=\d{10})/, "")
-    .slice(0, 10);
-  if (d.length < 4) return d;
-  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-}
-
 /** The moment a Central-Time hour on a date happens, daylight saving included. */
 function centralInstant(d: Date, h: number): Date {
   const noon = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12));
@@ -114,8 +102,7 @@ export default function CallForm({
 }: {
   w: CallWords;
   today: string;
-  /** Signed in: the name and email are already there (never asked twice), and the booked call ends
-   *  with the way into the portal the account already has. */
+  /** Signed in: the name and email are already there (never asked twice). */
   me?: CallMe | null;
 }) {
   const days = useDays(today);
@@ -222,14 +209,14 @@ export default function CallForm({
             ? ""
             : w.done.replace("{time}", timeLabel(day, hour)).replace("{day}", dayLabel(day, hour))}
         </h3>
-        {me ? (
-          <a className="btn" href="/portal">
-            <span className="lb">{RESERVE.start.land.mineOpen}</span>
-            <span className="go">
-              <Arrow />
-            </span>
-          </a>
-        ) : null}
+        {/* a call is booked, nothing is bought: the way on is back to the site, never into a portal
+            (founder, 2026-11-26) */}
+        <a className="btn" href="/">
+          <span className="lb">{w.home}</span>
+          <span className="go">
+            <Arrow />
+          </span>
+        </a>
       </div>
     );
 

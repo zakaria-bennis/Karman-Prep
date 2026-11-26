@@ -17,6 +17,8 @@ import { planPaid } from "./actions";
 export const metadata = { title: "Karman Prep: Payment", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
+const W = RESERVE.payPage.paid;
+
 /** Our own payment page for a renewing plan, Practice or Pro (founder, 2026-11-26): the same screen a
  *  cohort seat is paid on (PayStage), instead of Stripe's page. /checkout/start opens the checkout and
  *  sends the buyer here with its id (?s=). Once paid, the same address says so and opens the portal. */
@@ -41,7 +43,11 @@ export default async function PlanPayPage({
   const amount = formatPrice(spec.amount);
   const paid = {
     name: "",
-    title: RESERVE.payPage.paid.planTitle.replace("{plan}", plan.name),
+    title: W.planTitle.replace("{plan}", plan.name),
+    clearing: {
+      title: W.planClearingTitle.replace("{plan}", plan.name),
+      text: W.planClearingText,
+    },
     what: plan.name,
     amount,
     next: "/dashboard/student?welcome=1",
@@ -55,7 +61,7 @@ export default async function PlanPayPage({
             flow="plan"
             settle={planPaid}
             clientSecret={pay.clientSecret}
-            cardSecret={pay.cardSecret}
+            tapSecret={pay.tapSecret}
             publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
             back={cancelPath(spec.planId, me?.role ?? null)}
             title={plan.name}
@@ -71,11 +77,13 @@ export default async function PlanPayPage({
             later={null}
             includes={plan.includes}
             promise={PLAN_RENEWAL}
-            ways={[]}
+            email={pay.email}
+            phone={pay.phone}
+            promo
             paid={paid}
           />
         ) : (
-          <Paid {...paid} state="paid" />
+          <Paid {...paid} state={pay.state} />
         )}
       </section>
     </SitePage>

@@ -13,12 +13,7 @@
 //      their account; the paid seat is attached to it. The founder then places the student in a class
 //      by starting score (admin, cohorts).
 import type Stripe from "stripe";
-import {
-  createReservationCheckoutSession,
-  payWays,
-  stripe,
-  type PayWay,
-} from "@/lib/integrations/stripe/client";
+import { createReservationCheckoutSession, stripe } from "@/lib/integrations/stripe/client";
 import { recordPurchaseGrant } from "@/lib/plans/resolve";
 import { createAdminClient } from "@/lib/supabase/server";
 import { monthName } from "@/lib/onboarding/known";
@@ -34,7 +29,7 @@ import {
 } from "./notify";
 import { UNDECIDED, openPrograms } from "./programs";
 import { ensureUserRow } from "@/lib/auth/ensure-user";
-import { detailsSchema, emailSchema, registrationSchema, seatSchema, waySchema } from "./schemas";
+import { detailsSchema, emailSchema, registrationSchema, seatSchema } from "./schemas";
 
 export type ReserveResult<T> =
   | { ok: true; value: T }
@@ -235,40 +230,6 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
  *  page can confirm the payment itself. */
 const returnTo = (r: Reservation) => `${appUrl()}/reserve/pay?id=${r.id}&s={CHECKOUT_SESSION_ID}`;
 
-/** Another way to pay, picked on the payment page: a second checkout for the same seat that offers
- *  only that way. Only for a seat paid in full (a deposit keeps a card on file for the later payments). */
-export async function openWay(input: unknown): Promise<ReserveResult<{ clientSecret: string }>> {
-  const parsed = waySchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: "invalid" };
-  const w = parsed.data;
-  const { data } = await createAdminClient()
-    .from(TABLE)
-    .select("*")
-    .eq("id", w.reservationId)
-    .maybeSingle();
-  const r = data as Reservation | null;
-  if (!r || r.status !== "started" || !r.program_id || !r.stripe_customer_id)
-    return { ok: false, error: "invalid" };
-  if (r.payment_option !== "full" || !(await payWays()).includes(w.way))
-    return { ok: false, error: "closed" };
-  try {
-    const session = await createReservationCheckoutSession({
-      customerId: r.stripe_customer_id,
-      reservationId: r.id,
-      programId: r.program_id,
-      payment: "full",
-      returnUrl: returnTo(r),
-      way: w.way,
-    });
-    return session.client_secret
-      ? { ok: true, value: { clientSecret: session.client_secret } }
-      : { ok: false, error: "server" };
-  } catch (e) {
-    console.error(`[reserve] could not open ${w.way}`, e);
-    return { ok: false, error: "server" };
-  }
-}
-
 /** The Stripe webhook's call when a reservation's checkout is paid. Safe to run twice. */
 export async function settleReservation(
   session: Pick<Stripe.Checkout.Session, "id" | "metadata" | "customer">
@@ -336,7 +297,7 @@ export async function paymentFor(
   /** Back from a way of paying that left the site: the checkout Stripe says was just finished. */
   returned = ""
 ): Promise<
-  | { state: "open"; clientSecret: string; cardSecret: string; seat: Reservation; ways: PayWay[] }
+  | { state: "open"; clientSecret: string; tapSecret: string; seat: Reservation }
   | { state: "paid" | "clearing"; seat: Reservation }
   | null
 > {
@@ -358,28 +319,24 @@ export async function paymentFor(
     if (session.status === "complete")
       return { state: session.payment_status === "unpaid" ? "clearing" : "paid", seat };
     if (session.status !== "open" || !session.client_secret) return null;
-    // the other ways are for a seat paid in full: a deposit keeps a card on file for what follows
-    const [ways, card] = await Promise.all([
-      seat.payment_option === "full" ? payWays() : [],
-      // the typed card has a checkout of its own, so Stripe draws plain card fields and nothing else
+    // the one-tap buttons have a checkout of their own (see createReservationCheckoutSession)
+    const tap =
       seat.program_id && seat.stripe_customer_id && seat.payment_option
-        ? createReservationCheckoutSession({
+        ? await createReservationCheckoutSession({
             customerId: seat.stripe_customer_id,
             reservationId: seat.id,
             programId: seat.program_id,
             payment: seat.payment_option,
             returnUrl: returnTo(seat),
-            way: "card",
+            tap: true,
           }).catch(() => null)
-        : null,
-    ]);
+        : null;
     return {
       state: "open",
       clientSecret: session.client_secret,
-      // if the card's own checkout could not be made, the first one still takes a card
-      cardSecret: card?.client_secret ?? session.client_secret,
+      // if it could not be made the page shows the list alone, which still takes a card
+      tapSecret: tap?.client_secret ?? "",
       seat,
-      ways,
     };
   } catch (e) {
     console.error("[reserve] could not open the payment", e);
@@ -414,7 +371,7 @@ export async function reservationExpired(
   session: Pick<Stripe.Checkout.Session, "id" | "metadata" | "after_expiration">
 ): Promise<void> {
   const id = session.metadata?.reservationId;
-  // a second checkout opened for another way to pay says nothing: the first one speaks for the seat
+  // the one-tap buttons' own checkout says nothing: the seat's first one speaks for it
   if (!id || session.metadata?.way) return;
   const { data } = await createAdminClient().from(TABLE).select("*").eq("id", id).maybeSingle();
   const r = data as Reservation | null;

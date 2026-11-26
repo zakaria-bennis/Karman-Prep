@@ -1,44 +1,459 @@
-/* The payment page for a reserved seat (/reserve/pay; PayStage.tsx and Paid.tsx). Two frosted cards on
-   the landscape: the receipt and the payment. Side by side on a wide screen, one above the other on a
-   phone or a tablet held upright. The card look is the guarantee page's (.gq-card).
+/* The checkout (/reserve/pay and /checkout/pay; PayStage.tsx) and the screen that says paid (Paid.tsx).
+   The checkout is one frosted sheet on the landscape, laid out the way Stripe's own page is: what is
+   being bought on the left, the payment on the right; on a phone or a tablet held upright, one above
+   the other. The glass is the guarantee page's (.gq-card).
    One rule to a line; never run Prettier on this. */
 
-.ks :is(.pp, .pp-paid) {
+.ks :is(.co, .pp-paid) {
   position: relative;
   z-index: 1;
-  --glass: rgba(255, 253, 248, 0.56);
+  --glass: rgba(255, 253, 248, 0.6);
   --line: color-mix(in srgb, currentColor 16%, transparent);
+  --field: rgba(255, 253, 248, 0.6);
+  --on-a: #fffdf8;
 }
-.ks.lit[data-mode="dark"] :is(.pp, .pp-paid) {
-  --glass: rgba(22, 22, 40, 0.66);
+.ks.lit[data-mode="dark"] :is(.co, .pp-paid) {
+  --glass: rgba(22, 22, 40, 0.68);
+  --field: rgba(255, 250, 243, 0.08);
+  --on-a: #1d1a22;
 }
-.ks .pp {
-  width: min(100%, 1080px);
+.ks .co {
+  width: min(100%, 1120px);
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.ks .co > * {
+  min-width: 0;
   display: grid;
-  gap: 18px;
-  align-items: start;
+  align-content: start;
+  padding: clamp(22px, 3vw, 44px);
 }
 @media (min-width: 940px) {
-  .ks .pp {
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
-    gap: 24px;
+  .ks .co {
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1fr);
   }
-  /* stays in view beside a long payment column, clear of the word Karman at the top */
-  .ks .pp-sum {
-    position: sticky;
-    top: 96px;
+  /* the two halves read apart as they do on Stripe's page: the bill sits a shade deeper */
+  .ks .co-sum {
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    box-shadow: inset -1.5px 0 0 var(--line);
   }
 }
-.ks.lit :is(.pp, .pp-paid) h1 {
+.ks.lit :is(.co, .pp-paid) h1 {
   margin: 0;
   font-size: clamp(30px, 3.2vw, 44px);
   line-height: 1.08;
   text-wrap: balance;
 }
 
-/* the receipt: each line a name and an amount, the total set apart under a rule */
-.ks .pp-sum {
+/* left: what is being bought */
+.ks .co-sum {
   gap: 18px;
+}
+.ks .co-back {
+  justify-self: start;
+  min-height: 44px;
+  margin: -10px 0 -6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.ks .co-back::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-left: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  rotate: 45deg;
+  transition: translate 0.3s var(--spring);
+}
+.ks .co-price {
+  margin: -6px 0 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 10px;
+  font-size: 19px;
+  font-weight: 800;
+}
+.ks.lit .co-price .num {
+  font-size: clamp(44px, 4.6vw, 62px);
+  line-height: 1;
+  color: var(--a);
+}
+.ks .co-bill {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1.5px solid var(--line);
+}
+.ks .co-bill p {
+  margin: 0;
+}
+.ks .co-bill > p:not(.rs-msg, .co-then) {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.ks .co-bill > p > :first-child {
+  min-width: 0;
+}
+.ks .co-bill > p > .num {
+  flex: none;
+  font-weight: 800;
+}
+.ks .co-bill .co-total {
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1.5px solid var(--line);
+  font-size: 19px;
+  font-weight: 800;
+}
+.ks .co-then {
+  font-size: 15px;
+  font-weight: 600;
+}
+/* the promotion code: a quiet button, which opens into a field with its own Apply */
+.ks .co-add {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  transition:
+    background 0.2s,
+    translate 0.3s var(--spring);
+}
+.ks .co-add:active {
+  translate: 0 2px;
+}
+.ks .co-code {
+  display: flex;
+  min-height: 52px;
+  border-radius: 999px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: box-shadow 0.2s;
+}
+.ks .co-code:focus-within {
+  box-shadow: inset 0 0 0 2.5px var(--a);
+}
+.ks.lit .co .co-code input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px 0 22px;
+  border: 0;
+  outline: 0;
+  border-radius: 999px;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ks .co-code input::placeholder {
+  color: inherit;
+  opacity: 0.6;
+  text-transform: none;
+}
+.ks .co-code button {
+  flex: none;
+  margin: 5px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--a);
+  color: var(--on-a);
+  font-size: 16px;
+  font-weight: 800;
+  transition: opacity 0.2s;
+}
+.ks .co-code button:is(:disabled, [data-busy]) {
+  opacity: 0.45;
+}
+.ks .co-cut > :first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.ks .co-cut em {
+  font-style: normal;
+  font-size: 15px;
+}
+.ks .co-tag {
+  min-height: 36px;
+  padding: 0 10px 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--a) 20%, transparent);
+  box-shadow: inset 0 0 0 1.5px var(--a);
+  color: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+/* the small cross that takes the code off, drawn in CSS */
+.ks .co-tag i {
+  position: relative;
+  width: 14px;
+  height: 14px;
+}
+.ks .co-tag i::before,
+.ks .co-tag i::after {
+  content: "";
+  position: absolute;
+  inset: 6px 0;
+  border-radius: 2px;
+  background: currentColor;
+  rotate: 45deg;
+}
+.ks .co-tag i::after {
+  rotate: -45deg;
+}
+.ks .co .co-msg {
+  margin-left: 4px;
+}
+/* what it includes: plain lines, each with a small tick drawn in CSS */
+.ks .co-in {
+  margin: 0;
+  padding: 18px 0 0;
+  border-top: 1.5px solid var(--line);
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.ks .co-in li {
+  position: relative;
+  padding-left: 28px;
+}
+.ks .co-in li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.28em;
+  width: 11px;
+  height: 6px;
+  border-left: 2.5px solid var(--a);
+  border-bottom: 2.5px solid var(--a);
+  rotate: -45deg;
+}
+.ks .co-promise {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+@media (max-width: 939px) {
+  /* above the payment on a narrow screen the bill stays short: the price, the lines, the code */
+  .ks .co-sum {
+    gap: 14px;
+    padding-bottom: 6px;
+  }
+  .ks .co-in,
+  .ks .co-promise {
+    display: none;
+  }
+}
+
+/* right: the payment */
+.ks .co-pay {
+  gap: 22px;
+}
+.ks.lit .co-pay h2 {
+  margin: 0 0 10px;
+  max-width: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.ks .co-fast {
+  display: grid;
+  gap: 20px;
+}
+.ks .co[data-ready] .co-fast[data-off] {
+  display: none;
+}
+.ks .co-express {
+  min-height: 55px;
+}
+/* "Or", with a rule either side */
+.ks .co-or {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.ks .co-or::before,
+.ks .co-or::after {
+  content: "";
+  flex: 1;
+  height: 1.5px;
+  background: var(--line);
+}
+.ks .co-part {
+  display: grid;
+}
+/* contact information: two rows in one box, the email as it is on the account, the phone to fill in */
+.ks .co-group {
+  border-radius: 22px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.ks .co-row {
+  position: relative;
+  margin: 0;
+  min-height: 62px;
+  padding: 10px 20px;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  font-size: 17px;
+}
+.ks .co-row + .co-row {
+  box-shadow: inset 0 1.5px 0 var(--line);
+}
+.ks .co-row > span {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.ks .co-row b {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ks label.co-row {
+  border-radius: 0 0 22px 22px;
+  cursor: text;
+  transition: box-shadow 0.2s;
+}
+.ks label.co-row:focus-within {
+  box-shadow: inset 0 0 0 2.5px var(--a);
+}
+.ks label.co-row[data-bad] {
+  box-shadow: inset 0 0 0 2.5px #c2452f;
+}
+/* the phone's name sits in the row, and rises once there is something typed or the cursor is in it */
+.ks label.co-row > span {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  translate: 0 -50%;
+  font-size: 17px;
+  pointer-events: none;
+  transform-origin: left;
+  transition:
+    top 0.18s var(--out),
+    scale 0.18s var(--out);
+}
+.ks label.co-row:is([data-filled], :focus-within) > span {
+  top: 19px;
+  scale: 0.765;
+}
+.ks.lit .co label.co-row input {
+  width: 100%;
+  height: 42px;
+  padding: 18px 0 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+}
+.ks .co-fields {
+  min-height: 150px;
+}
+.ks .co-wait {
+  display: block;
+  height: 55px;
+  border-radius: 28px;
+  background: linear-gradient(
+      100deg,
+      color-mix(in srgb, currentColor 8%, transparent) 30%,
+      color-mix(in srgb, currentColor 16%, transparent) 50%,
+      color-mix(in srgb, currentColor 8%, transparent) 70%
+    )
+    0 0 / 200% 100%;
+  animation: co-wait 1.3s linear infinite;
+}
+.ks .co:not([data-ready]) .co-pay > :not(.co-wait) {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+@keyframes co-wait {
+  to {
+    background-position: -200% 0;
+  }
+}
+.ks :is(.co, .pp-paid) :is(.co-go, .pp-go) {
+  justify-content: center;
+  width: 100%;
+}
+/* the terms and the privacy policy, quiet, under the pay button */
+.ks .co-legal {
+  margin: -8px 0 -10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.ks .co-legal a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.ks .co :is(.co-add, .co-tag, .co-back, .co-code button, .co-legal a):focus-visible {
+  outline: 3px solid var(--a);
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ks .co-add:hover {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+  }
+  .ks .co-back:hover::before {
+    translate: -4px 0;
+  }
+}
+
+/* paid: one card, the fox, the receipt and the way on */
+.ks .pp-paid {
+  width: min(100%, 560px);
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
 }
 .ks .pp-bill {
   margin: 0;
@@ -62,9 +477,6 @@
   font-weight: 800;
 }
 .ks .pp-bill .pp-total {
-  margin-top: 4px;
-  padding-top: 14px;
-  border-top: 1.5px solid var(--line);
   font-size: 19px;
   font-weight: 800;
 }
@@ -72,212 +484,6 @@
   font-size: clamp(32px, 3.4vw, 44px);
   line-height: 1;
   color: var(--a);
-}
-/* a renewing plan: the one line is the receipt, so it carries no rule above it */
-.ks .pp-bill .pp-one {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.ks .pp-per {
-  font-size: 17px;
-  font-weight: 800;
-}
-/* the terms and the privacy policy, quiet, under the pay button */
-.ks .pp-legal {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 20px;
-  font-size: 14.5px;
-  font-weight: 600;
-}
-.ks .pp-legal a {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-/* what the seat includes: plain lines, each with a small tick drawn in CSS */
-.ks .pp-in {
-  margin: 0;
-  padding: 16px 0 0;
-  border-top: 1.5px solid var(--line);
-  list-style: none;
-  display: grid;
-  gap: 9px;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.35;
-}
-.ks .pp-in li {
-  position: relative;
-  padding-left: 28px;
-}
-.ks .pp-in li::before {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 0.28em;
-  width: 11px;
-  height: 6px;
-  border-left: 2.5px solid var(--a);
-  border-bottom: 2.5px solid var(--a);
-  rotate: -45deg;
-}
-.ks .pp-promise {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.4;
-}
-@media (max-width: 939px) {
-  /* above the payment on a narrow screen the receipt stays short: the list waits below the fold's worth */
-  .ks .pp-sum {
-    gap: 14px;
-  }
-  .ks .pp-in {
-    display: none;
-  }
-}
-
-/* the payment: each group of ways under a small heading */
-.ks .pp-pay {
-  gap: 20px;
-}
-.ks.lit .pp-pay h2 {
-  margin: 0 0 10px;
-  max-width: none;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0;
-}
-.ks .pp-fast {
-  padding-bottom: 20px;
-  border-bottom: 1.5px solid var(--line);
-}
-.ks .pp-express {
-  min-height: 55px;
-}
-.ks .pp[data-ready] .pp-fast[data-off] {
-  display: none;
-}
-.ks .pp-way {
-  display: grid;
-  gap: 0;
-}
-.ks .pp-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.ks .pp-pill {
-  flex: 1 1 0;
-  min-width: 132px;
-  min-height: 52px;
-  padding: 0 20px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 7%, transparent);
-  color: inherit;
-  font-size: 17px;
-  font-weight: 800;
-  white-space: nowrap;
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 30%, transparent);
-  transition:
-    box-shadow 0.2s,
-    background 0.2s,
-    translate 0.3s var(--spring);
-}
-.ks .pp-pill:active {
-  translate: 0 2px;
-}
-.ks .pp-pill[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--a) 16%, transparent);
-  box-shadow: inset 0 0 0 2.5px var(--a);
-}
-.ks :is(.pp-pill, .pp-more):focus-visible {
-  outline: 3px solid var(--a);
-  outline-offset: 3px;
-}
-@media (hover: hover) and (pointer: fine) {
-  .ks .pp-pill:hover {
-    box-shadow: inset 0 0 0 2.5px var(--a);
-  }
-}
-/* Stripe's own fields for the way that is picked; the others stay drawn but out of sight */
-.ks .pp-panel {
-  display: none;
-}
-.ks .pp-panel[data-on] {
-  display: block;
-}
-.ks .pp-pills + .pp-panel[data-on],
-.ks .pp-panel[data-on] ~ .pp-panel[data-on],
-.ks .pp-pills ~ .pp-panel[data-on] {
-  margin-top: 12px;
-}
-.ks .pp-more {
-  justify-self: start;
-  min-height: 44px;
-  padding: 0;
-  background: none;
-  color: inherit;
-  font-size: 16px;
-  font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.ks .pp-rest:not([hidden]) {
-  margin-top: 6px;
-}
-.ks .pp-wait {
-  display: block;
-  height: 55px;
-  border-radius: 22px;
-  background: linear-gradient(
-      100deg,
-      color-mix(in srgb, currentColor 8%, transparent) 30%,
-      color-mix(in srgb, currentColor 16%, transparent) 50%,
-      color-mix(in srgb, currentColor 8%, transparent) 70%
-    )
-    0 0 / 200% 100%;
-  animation: pp-wait 1.3s linear infinite;
-}
-.ks .pp:not([data-ready]) .pp-pay > :not(.pp-wait) {
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-@keyframes pp-wait {
-  to {
-    background-position: -200% 0;
-  }
-}
-.ks :is(.pp, .pp-paid) .pp-go {
-  justify-content: center;
-  width: 100%;
-}
-.ks .pp-pay .rs-back {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  padding-left: 0;
-}
-
-/* paid: one card, the fox, the receipt and the way on */
-.ks .pp-paid {
-  width: min(100%, 560px);
-  gap: 18px;
-  justify-items: center;
-  text-align: center;
 }
 .ks .pp-paid .pp-bill {
   width: 100%;
@@ -298,15 +504,11 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-@media (max-width: 560px) {
-  .ks .pp-pill {
-    min-width: 0;
-    padding: 0 14px;
-    font-size: 16px;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .ks .pp-wait {
+  .ks .co-wait {
     animation: none;
+  }
+  .ks :is(.co-add, .co-back::before, label.co-row > span) {
+    transition: none;
   }
 }

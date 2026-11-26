@@ -293,6 +293,7 @@ form phone: Phone
 form email: Email
 form button: Schedule my call
 form done: You will receive a call at {time} on {day}.
+form home: Back to the home page
 
 ## 51 Guarantee: opening
 headline: ${UP_TO.private}, or your money back.

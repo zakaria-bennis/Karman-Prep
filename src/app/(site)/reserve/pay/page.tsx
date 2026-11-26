@@ -8,7 +8,8 @@ import { MARCH_PROGRAM as MP, formatPrice } from "@/lib/marketing/offer";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import { openPrograms } from "@/lib/reserve/programs";
 import { paymentFor, referenceOf } from "@/lib/reserve/service";
-import { openSeatWay, seatPaid } from "../actions";
+import { SITE } from "@/lib/marketing/site-copy";
+import { seatPaid } from "../actions";
 
 export const metadata = { title: "Karman Prep: Payment", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -48,9 +49,8 @@ export default async function ReservePayPage({
           <PayStage
             flow="reserve"
             settle={seatPaid.bind(null, seat.id)}
-            openWay={openSeatWay.bind(null, seat.id)}
             clientSecret={pay.clientSecret}
-            cardSecret={pay.cardSecret}
+            tapSecret={pay.tapSecret}
             publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
             back={`${ROUTES.reserve}?back=${seat.id}`}
             title={W.title.replace("{name}", seat.student_first_name ?? "")}
@@ -67,7 +67,13 @@ export default async function ReservePayPage({
             }
             includes={MP.includes.map((i) => i.title)}
             promise={RESERVE.pay.promise}
-            ways={pay.ways}
+            email={seat.parent_email}
+            phone={seat.parent_phone ?? ""}
+            promo={!deposit}
+            legal={[
+              { href: ROUTES.terms, label: SITE["terms link"] },
+              { href: ROUTES.privacy, label: SITE["privacy link"] },
+            ]}
             paid={paid}
           />
         ) : (

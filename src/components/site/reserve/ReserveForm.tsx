@@ -22,7 +22,7 @@ import { ParentPicture, StudentPicture } from "./RolePictures";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { payForSeat, saveEmail, saveNames } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
-import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
+import { cleanName, formatPhone, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import { RESERVE as W } from "@/lib/marketing/reserve-copy";
 import { keepKnown, monthName, readKnown } from "@/lib/onboarding/known";
 import { UNDECIDED, type OpenProgram } from "@/lib/reserve/programs";
@@ -32,18 +32,6 @@ type Field = "email" | "name" | "student" | "phone";
 type Pay = "full" | "installments";
 const STEPS = ["who", "email", "student", "parent", "date", "pay"] as const;
 const at = (step: (typeof STEPS)[number]) => STEPS.indexOf(step);
-
-/** A phone number as it is typed: (512) 555-0142, or + and digits for a number abroad. */
-function formatPhone(v: string): string {
-  if (v.trim().startsWith("+")) return `+${v.replace(/\D/g, "").slice(0, 15)}`;
-  const d = v
-    .replace(/\D/g, "")
-    .replace(/^1(?=\d{10})/, "")
-    .slice(0, 10);
-  if (d.length < 4) return d;
-  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-}
 
 /** Whether a field's answer will do. */
 const OK: Record<Field, (v: string) => boolean> = {

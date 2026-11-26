@@ -1,70 +1,114 @@
 "use client";
 
-// Our own payment screen (founder, 2026-11-14), for a reserved cohort seat (/reserve/pay) and for a
-// renewing plan (/checkout/pay; founder, 2026-11-26). Stripe's fields are placed inside our
-// page, in our type and colours: card numbers are typed into Stripe's own frames, so they never touch
-// this site. It is the page where a family pays, so it is laid out plainly (founder, 2026-11-25):
-//   - what is being bought, as a receipt of its own: on a wide screen it sits beside the payment, on a
-//     phone above it. No tax line: none is charged.
-//   - the one-tap ways (Link, Apple Pay, Google Pay), first and largest.
-//   - then each other way under its own small heading: the card; "Buy now, pay later" as pills in one
-//     row; the bank; and the less-used wallets behind a "More options" link.
-// Stripe draws one list of ways per checkout and takes no headings, so each group is a checkout of its
-// own for the same purchase: the card's is open from the start, and another is opened when its pill
-// is tapped (openWay). Whichever is paid settles it (settle). A plan offers the one-tap ways and the
-// card only.
+// Our own checkout (founder, 2026-11-26), for a reserved cohort seat (/reserve/pay) and for a renewing
+// plan (/checkout/pay). It is laid out the way Stripe's own checkout page is, in Karman's glass, type
+// and colours, on the landscape:
+//   - left, what is being bought: its name, the price, the lines of the bill with a subtotal, a
+//     promotion code, and what it includes.
+//   - right, the payment, top to bottom: the one-tap ways (Apple Pay, Google Pay, Link) in the shape of
+//     our buttons with their own logos; "Or"; contact information (the account's email, and a mobile
+//     number, filled in when we have it); the payment method as one list (card, bank, then the rest
+//     under "More"); and the pay button.
+// Stripe draws the one-tap buttons and the list of ways inside frames of its own, so card and bank
+// details never touch this site; everything else here is ours. The buttons and the list are two
+// checkouts for the same purchase (why: createReservationCheckoutSession), so a promotion code is put
+// on both, and whichever is paid settles it (settle).
 // The moment a payment is made the page shows "paid" itself (Paid.tsx): no wait, no page in between.
 // Words: reserve-copy.ts (payPage). Styles: styles/pay.css.
 import { useEffect, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import type { Appearance, Stripe, StripeCheckoutElementsSdk } from "@stripe/stripe-js";
+import type { Appearance, StripeCheckoutElementsSdk } from "@stripe/stripe-js";
 import { track } from "@/lib/analytics/client";
+import { dialPhone, formatPhone, okPhone } from "@/lib/marketing/lead-rules";
+import { formatPrice } from "@/lib/marketing/offer";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import Paid, { type PaidProps } from "./Paid";
 
 const W = RESERVE.payPage;
-type Other = keyof typeof W.ways;
-type Way = "card" | Other;
 type Actions = Extract<
   Awaited<ReturnType<StripeCheckoutElementsSdk["loadActions"]>>,
   { type: "success" }
 >["actions"];
-const LATER: Other[] = ["klarna", "affirm"];
-const MORE: Other[] = ["cashapp", "amazon_pay"];
+type Session = ReturnType<Actions["getSession"]>;
+/** The order of the list: the card and the bank in sight, the rest under "More". */
+const ORDER = ["card", "us_bank_account", "klarna", "affirm", "cashapp", "amazon_pay"];
 const FONTS = [
   {
     cssSrc: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&display=swap",
   },
 ];
 
-/** Stripe's fields, dressed like the site's pills. They follow the page's light or dark mode. */
+/** Stripe's fields, dressed like the site: glass rows and the page's own blue. They follow the page's
+ *  light or dark mode. */
 function appearance(dark: boolean): Appearance {
   const ink = dark ? "#fffaf3" : "#1d1a22";
-  const line = `1.5px solid ${dark ? "#5c5c7c" : "#cfc8bd"}`;
+  const blue = dark ? "#8fb0ff" : "#2449b8";
+  const glass = dark ? "rgba(255, 250, 243, 0.08)" : "rgba(255, 253, 248, 0.6)";
+  const line = `1.5px solid ${dark ? "rgba(255, 250, 243, 0.2)" : "rgba(29, 26, 34, 0.16)"}`;
   return {
-    theme: dark ? "night" : "flat",
+    theme: dark ? "night" : "stripe",
+    labels: "floating",
     variables: {
       fontFamily: '"Hanken Grotesk", system-ui, sans-serif',
-      fontSizeBase: "17px",
+      fontSizeBase: "16px",
       fontWeightNormal: "600",
-      colorPrimary: dark ? "#8fb0ff" : "#2449b8",
+      colorPrimary: blue,
       colorText: ink,
       colorTextSecondary: ink,
       colorBackground: dark ? "#24243c" : "#fffdf8",
       colorDanger: dark ? "#ffb4a6" : "#b23a26",
-      borderRadius: "22px",
-      spacingUnit: "5px",
+      // the one-tap buttons take this: 55 tall, so fully round like our own
+      borderRadius: "28px",
+      spacingUnit: "4px",
     },
     rules: {
-      ".Input": { boxShadow: "none", border: line },
-      ".Input:focus": {
+      ".Input": {
         boxShadow: "none",
-        border: `2px solid ${dark ? "#8fb0ff" : "#2449b8"}`,
+        border: line,
+        borderRadius: "22px",
+        backgroundColor: glass,
+        fontWeight: "700",
       },
-      ".Label": { fontWeight: "800" },
-      ".Tab, .AccordionItem, .Block": { boxShadow: "none", border: line },
+      ".Input:focus": { boxShadow: "none", border: `2px solid ${blue}` },
+      ".Label": { fontWeight: "700" },
+      ".AccordionItem": {
+        boxShadow: "none",
+        border: line,
+        backgroundColor: glass,
+        fontWeight: "800",
+      },
+      ".AccordionItem--selected": { color: ink, fontWeight: "800" },
+      ".Block, .Tab": { boxShadow: "none", border: line, backgroundColor: glass },
     },
   };
+}
+
+/** The lines of the bill as Stripe holds them, in cents. */
+interface Bill {
+  subtotal: number;
+  discount: number;
+  total: number;
+  /** The promotion code that is on, and its "50" when it is a percentage. */
+  code: string | null;
+  off: number | null;
+  /** A renewing plan: what the next payment will be. */
+  next: number | null;
+}
+function billOf(s: Session): Bill {
+  const d = s.discountAmounts?.[0] ?? null;
+  return {
+    subtotal: s.total.subtotal.minorUnitsAmount,
+    discount: s.total.discount.minorUnitsAmount,
+    total: s.total.total.minorUnitsAmount,
+    code: d ? (d.promotionCode ?? d.displayName) : null,
+    off: d?.percentOff ?? null,
+    next: s.recurring?.dueNext.total.minorUnitsAmount ?? null,
+  };
+}
+/** "$69", or "$34.50" when there are cents. */
+function money(cents: number): string {
+  const n = cents / 100;
+  return Number.isInteger(n) ? formatPrice(n) : `$${n.toFixed(2)}`;
 }
 
 export interface PayStageProps {
@@ -72,12 +116,10 @@ export interface PayStageProps {
   flow: "reserve" | "plan";
   /** Called with Stripe's finished checkout the moment a payment is made: records it at once. */
   settle: (session: string) => Promise<{ state: string }>;
-  /** Opens a checkout for one of the other ways. Left out when only `ways` is empty. */
-  openWay?: (way: string) => Promise<{ ok: true; clientSecret: string } | { ok: false }>;
-  /** The checkout behind the one-tap buttons (Link, Apple Pay, Google Pay). */
+  /** The checkout behind the list of ways to pay. */
   clientSecret: string;
-  /** The checkout behind the typed card. */
-  cardSecret: string;
+  /** The checkout behind the one-tap buttons (Link, Apple Pay, Google Pay), or "" when there is none. */
+  tapSecret: string;
   publishableKey: string;
   /** Back to where this was chosen. */
   back: string;
@@ -88,8 +130,7 @@ export interface PayStageProps {
   amount: string;
   /** The full price beside it: "$995". */
   price: string;
-  /** A renewing plan: how often the amount is paid ("a month"). The receipt is then the one line, the
-   *  plan and its price, with no "Total today" under it (founder, 2026-11-26). */
+  /** A renewing plan: how often the amount is paid ("a month"). */
   per?: string;
   /** After a deposit: "Then 3 monthly payments" and "$300 each". Null when paid in full. */
   later: { label: string; each: string } | null;
@@ -97,39 +138,47 @@ export interface PayStageProps {
   includes: readonly string[];
   /** The line under them: the guarantee, or that a plan can be cancelled. */
   promise: string;
-  /** The other ways this account can be paid, besides the card and the one-tap ways. */
-  ways: Other[];
+  /** The account's email: where the receipt goes. */
+  email: string;
+  /** The mobile number we already have, or "". */
+  phone: string;
+  /** Whether a promotion code can be entered (not on a deposit). */
+  promo: boolean;
   /** Links under the pay button: the terms and the privacy policy. */
-  legal?: { href: string; label: string }[];
+  legal: { href: string; label: string }[];
   /** What the "paid" screen shows once the payment is made. */
   paid: Omit<PaidProps, "state">;
 }
 
 export default function PayStage(p: PayStageProps) {
   const express = useRef<HTMLDivElement>(null);
-  const hosts = useRef<Partial<Record<Way, HTMLDivElement | null>>>({});
-  const stripe = useRef<Stripe | null>(null);
-  const opened = useRef<Partial<Record<Way, Actions | "opening">>>({});
+  const fields = useRef<HTMLDivElement>(null);
+  const actions = useRef<Actions | null>(null);
+  const tapActions = useRef<Actions | null>(null);
   const [ready, setReady] = useState(false);
   const [oneTap, setOneTap] = useState(true);
-  const [way, setWay] = useState<Way>("card");
-  const [loaded, setLoaded] = useState<Partial<Record<Way, boolean>>>({});
-  const [more, setMore] = useState(false);
+  const [way, setWay] = useState("card");
+  const [bill, setBill] = useState<Bill | null>(null);
+  // an American number comes back from Stripe as +1 and ten digits: shown the way it is typed here
+  const [phone, setPhone] = useState(() => formatPhone(p.phone.replace(/^\+1(?=\d{10}$)/, "")));
+  const [phoneBad, setPhoneBad] = useState(false);
+  const [coding, setCoding] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeBad, setCodeBad] = useState("");
+  const [applying, setApplying] = useState(false);
   const [busy, setBusy] = useState(false);
   const [bad, setBad] = useState("");
-  const [done, setDone] = useState<"paid" | "clearing" | null>(null);
+  const [done, setDone] = useState<{ state: "paid" | "clearing"; amount: string } | null>(null);
 
-  /** Stripe says the payment is made: settle the seat now and show it, with no page in between. */
-  const finish = async (session: string) => {
-    const { state } = await p.settle(session).catch(() => ({ state: "paid" }));
+  /** Stripe says the payment is made: settle it now and show it, with no page in between. */
+  const finish = async (session: Session) => {
+    const { state } = await p.settle(session.id).catch(() => ({ state: "paid" }));
     track("form_step", { form: p.flow, step: "pay-page", kind: "next" });
-    setDone(state === "clearing" ? "clearing" : "paid");
+    setDone({
+      state: state === "clearing" ? "clearing" : "paid",
+      amount: money(session.total.total.minorUnitsAmount),
+    });
   };
-
-  const options = () => ({
-    appearance: appearance(document.getElementById("ks")?.dataset.mode === "dark"),
-    fonts: FONTS,
-  });
 
   useEffect(() => {
     let live = true;
@@ -138,76 +187,96 @@ export default function PayStage(p: PayStageProps) {
       const js = p.publishableKey ? await loadStripe(p.publishableKey) : null;
       if (!live) return;
       if (!js) return setBad(W.errors.load);
-      stripe.current = js;
-      const checkout = js.initCheckoutElementsSdk({
-        clientSecret: p.clientSecret,
-        elementsOptions: options(),
-      });
-      const got = await checkout.loadActions();
+      const dark = document.getElementById("ks")?.dataset.mode === "dark";
+      const start = async (clientSecret: string) => {
+        const checkout = js.initCheckoutElementsSdk({
+          clientSecret,
+          elementsOptions: { appearance: appearance(dark), fonts: FONTS },
+        });
+        const got = await checkout.loadActions();
+        return got.type === "success" ? { checkout, actions: got.actions } : null;
+      };
+      const [main, tap] = await Promise.all([
+        start(p.clientSecret),
+        p.tapSecret ? start(p.tapSecret).catch(() => null) : null,
+      ]);
       if (!live) return;
-      if (got.type !== "success") return setBad(W.errors.load);
+      if (!main) return setBad(W.errors.load);
+      const { checkout } = main;
+      actions.current = main.actions;
+      tapActions.current = tap?.actions ?? null;
+      setBill(billOf(main.actions.getSession()));
+      checkout.on("change", (session) => {
+        if (live) setBill(billOf(session));
+      });
 
-      // The one-tap ways. Apple Pay and Google Pay are asked for everywhere they can work: in Safari,
-      // and in Chrome and other browsers too, where Apple Pay shows a code to scan with an iPhone
-      // (Stripe only offers that when it is asked for: "always").
-      type OneTap = Parameters<typeof checkout.createExpressCheckoutElement>[0];
-      const one = checkout.createExpressCheckoutElement({
-        buttonHeight: 55,
-        paymentMethods: { applePay: "always", googlePay: "always" },
-      } as unknown as OneTap);
       let answered = false;
       const settle = (any: boolean) => {
         if (answered || !live) return;
         answered = true;
-        // none of the one-tap ways is offered on this device: the card form is all there is to show
+        // none of the one-tap ways is offered on this device: the list below is all there is to show
         setOneTap(any);
         setReady(true);
       };
-      // Stripe says which buttons it can show here, or nothing when there are none
-      // (the event is newer than the installed type definitions)
-      type Ways = {
-        availablePaymentMethods?: Record<string, boolean> | null;
-        paymentMethods?: Record<string, boolean> | null;
-      };
-      const heard = (e: Ways) =>
-        settle(Object.values(e.availablePaymentMethods ?? e.paymentMethods ?? {}).some(Boolean));
-      const listen = one as unknown as { on: (name: string, heard: (e: Ways) => void) => void };
-      listen.on("ready", heard);
-      listen.on("availablepaymentmethodschange", heard);
-      one.on("confirm", async (event) => {
-        setBusy(true);
-        setBad("");
-        track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: "one-tap" });
-        const result = await got.actions.confirm({
-          expressCheckoutConfirmEvent: event,
-          redirect: "if_required",
+      if (tap) {
+        // The one-tap ways. Apple Pay and Google Pay are asked for everywhere they can work: in
+        // Safari, and in Chrome and other browsers too, where Apple Pay shows a code to scan with an
+        // iPhone (Stripe only offers that when it is asked for: "always").
+        type OneTap = Parameters<typeof checkout.createExpressCheckoutElement>[0];
+        const logo = dark ? "white" : "black";
+        const one = tap.checkout.createExpressCheckoutElement({
+          buttonHeight: 55,
+          buttonType: { applePay: "plain", googlePay: "plain" },
+          buttonTheme: { applePay: logo, googlePay: logo },
+          paymentMethods: { applePay: "always", googlePay: "always", link: "auto" },
+        } as unknown as OneTap);
+        // Stripe says which buttons it can show here, or nothing when there are none
+        // (the event is newer than the installed type definitions)
+        type Ways = {
+          availablePaymentMethods?: Record<string, boolean> | null;
+          paymentMethods?: Record<string, boolean> | null;
+        };
+        const heard = (e: Ways) =>
+          settle(Object.values(e.availablePaymentMethods ?? e.paymentMethods ?? {}).some(Boolean));
+        const listen = one as unknown as { on: (name: string, heard: (e: Ways) => void) => void };
+        listen.on("ready", heard);
+        listen.on("availablepaymentmethodschange", heard);
+        one.on("confirm", async (event) => {
+          setBusy(true);
+          setBad("");
+          track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: "one-tap" });
+          const result = await tap.actions.confirm({
+            expressCheckoutConfirmEvent: event,
+            redirect: "if_required",
+          });
+          if (result.type === "error") {
+            setBusy(false);
+            return setBad(result.error.message || W.errors.pay);
+          }
+          await finish(result.session);
         });
-        if (result.type === "error") {
-          setBusy(false);
-          return setBad(result.error.message || W.errors.pay);
-        }
-        await finish(result.session.id);
-      });
-      if (express.current) one.mount(express.current);
+        if (express.current) one.mount(express.current);
+      } else settle(false);
 
-      // the typed card: its own checkout, so only card fields are drawn
-      const cards =
-        p.cardSecret === p.clientSecret
-          ? { checkout, actions: got.actions }
-          : await (async () => {
-              const own = js.initCheckoutElementsSdk({
-                clientSecret: p.cardSecret,
-                elementsOptions: options(),
-              });
-              const its = await own.loadActions();
-              return its.type === "success" ? { checkout: own, actions: its.actions } : null;
-            })();
-      if (!live) return;
-      if (!cards) return setBad(W.errors.load);
-      opened.current.card = cards.actions;
-      const card = cards.checkout.createPaymentElement({ layout: { type: "tabs" } });
-      if (hosts.current.card) card.mount(hosts.current.card);
-      card.on("ready", () => setLoaded((l) => ({ ...l, card: true })));
+      // the list of ways: Stripe draws each row with its own logo, and the fields of the one picked
+      type List = Parameters<typeof checkout.createPaymentElement>[0];
+      const list = checkout.createPaymentElement({
+        layout: {
+          type: "accordion",
+          defaultCollapsed: false,
+          radios: "always",
+          spacedAccordionItems: true,
+          visibleAccordionItemsCount: 2,
+        },
+        paymentMethodOrder: ORDER,
+        // Apple Pay and Google Pay are the buttons above, not rows here as well
+        wallets: { applePay: "never", googlePay: "never" },
+      } as unknown as List);
+      list.on("change", (e) => {
+        const picked = (e as { value?: { type?: string } }).value?.type;
+        if (picked && live) setWay(picked);
+      });
+      if (fields.current) list.mount(fields.current);
       // Stripe says nothing at all when no one-tap way is available: do not leave the page waiting on it
       setTimeout(() => settle(false), 3500);
     };
@@ -224,50 +293,18 @@ export default function PayStage(p: PayStageProps) {
     };
     // the checkout is opened once for the page
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.clientSecret, p.cardSecret, p.publishableKey]);
-
-  /** Another way is picked: its own checkout opens the first time, and its fields go under its pill. */
-  async function pick(next: Way) {
-    if (busy) return;
-    setBad("");
-    setWay(next);
-    track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: next });
-    if (next === "card" || opened.current[next] || !stripe.current) return;
-    opened.current[next] = "opening";
-    const fail = () => {
-      delete opened.current[next];
-      setWay("card");
-      setBad(W.errors.way);
-    };
-    try {
-      const res = await p.openWay?.(next);
-      if (!res?.ok) return fail();
-      const checkout = stripe.current.initCheckoutElementsSdk({
-        clientSecret: res.clientSecret,
-        elementsOptions: options(),
-      });
-      const got = await checkout.loadActions();
-      if (got.type !== "success") return fail();
-      opened.current[next] = got.actions;
-      const fields = checkout.createPaymentElement({
-        // one way per checkout, so Stripe draws its fields alone, with no list or heading of its own
-        layout: { type: "tabs", defaultCollapsed: false },
-      });
-      const host = hosts.current[next];
-      if (host) fields.mount(host);
-      fields.on("ready", () => setLoaded((l) => ({ ...l, [next]: true })));
-    } catch (e) {
-      console.error(`[pay] could not open ${next}`, e);
-      fail();
-    }
-  }
+  }, [p.clientSecret, p.tapSecret, p.publishableKey]);
 
   async function pay() {
-    const actions = opened.current[way];
-    if (busy || !actions || actions === "opening") return;
+    const go = actions.current;
+    if (busy || !go) return;
+    if (!okPhone(phone)) {
+      setPhoneBad(true);
+      return document.getElementById("co-phone")?.focus();
+    }
     setBusy(true);
     setBad("");
-    const result = await actions.confirm({ redirect: "if_required" });
+    const result = await go.confirm({ redirect: "if_required", phoneNumber: dialPhone(phone) });
     // a way that leaves the site (a pay-later plan, a wallet) comes back to this page, which then
     // shows "paid"; a card is settled right here
     if (result.type === "error") {
@@ -275,149 +312,204 @@ export default function PayStage(p: PayStageProps) {
       setBad(result.error.message || W.errors.pay);
       return track("form_step", { form: p.flow, step: "pay-page", kind: "error" });
     }
-    await finish(result.session.id);
+    await finish(result.session);
   }
 
-  if (done) return <Paid {...p.paid} state={done} />;
+  async function applyCode() {
+    const go = actions.current;
+    const typed = code.trim();
+    if (!go || !typed || applying) return;
+    setApplying(true);
+    setCodeBad("");
+    const result = await go.applyPromotionCode(typed).catch(() => null);
+    // the one-tap buttons charge their own checkout, so the code goes on it too
+    if (result?.type === "success")
+      await tapActions.current?.applyPromotionCode(typed).catch(() => null);
+    setApplying(false);
+    if (result?.type !== "success") return setCodeBad(W.code.bad);
+    track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: "code" });
+    setBill(billOf(result.session));
+    setCoding(false);
+    setCode("");
+  }
+  async function removeCode() {
+    const result = await actions.current?.removePromotionCode().catch(() => null);
+    await tapActions.current?.removePromotionCode().catch(() => null);
+    if (result?.type === "success") setBill(billOf(result.session));
+  }
 
-  const has = (list: Other[]) => list.filter((w) => p.ways.includes(w));
-  const pill = (w: Other) => (
-    <button
-      type="button"
-      key={w}
-      className="pp-pill"
-      aria-pressed={way === w}
-      onClick={() => pick(way === w ? "card" : w)}
-    >
-      {W.ways[w]}
-    </button>
-  );
-  /** Stripe's own fields for one way, shown only while that way is the one picked. */
-  const panel = (w: Way) => (
-    <div className="pp-panel" key={w} data-on={way === w || undefined} data-loaded={loaded[w]}>
-      {way === w && !loaded[w] ? (
-        <i className="pp-wait" role="status" aria-label={W.loading} />
-      ) : null}
-      <div
-        ref={(el) => {
-          hosts.current[w] = el;
-        }}
-      />
-    </div>
-  );
-  const group = (list: Other[]) => (
-    <>
-      <div className="pp-pills">{list.map(pill)}</div>
-      {list.map(panel)}
-    </>
-  );
-  const later = has(LATER);
-  const rest = has(MORE);
+  if (done) return <Paid {...p.paid} amount={done.amount} state={done.state} />;
+
+  const total = bill ? money(bill.total) : p.amount;
+  const cut = bill && bill.discount > 0 ? bill : null;
+  const named = (W.ways as Record<string, string>)[way];
   const label =
-    way === "card"
-      ? W.pay.replace("{amount}", p.amount)
-      : way === "us_bank_account"
-        ? W.payBank.replace("{amount}", p.amount)
-        : W.payWith.replace("{way}", W.ways[way]);
+    way === "us_bank_account"
+      ? W.payBank.replace("{amount}", total)
+      : named
+        ? W.payWith.replace("{way}", named)
+        : W.pay.replace("{amount}", total);
 
   return (
-    <div className="pp" data-ready={ready || undefined}>
-      <aside className="gq-card pp-sum">
+    <div className="gq-card co" data-ready={ready || undefined}>
+      <aside className="co-sum">
+        <a className="co-back" href={p.back}>
+          {RESERVE.back}
+        </a>
         <h1>{p.title}</h1>
-        <dl className="pp-bill">
-          {p.per ? (
-            <div className="pp-total pp-one">
-              <dt>{p.what}</dt>
-              <dd>
-                <span className="num">{p.amount}</span> <span className="pp-per">{p.per}</span>
-              </dd>
-            </div>
-          ) : (
-            <div>
-              <dt>{p.what}</dt>
-              <dd className="num">{p.price}</dd>
-            </div>
-          )}
+        <p className="co-price">
+          <span className="num">{p.amount}</span>
+          {p.per ? <span>{p.per}</span> : null}
+        </p>
+        <div className="co-bill">
+          <p>
+            <span>{p.what}</span>
+            <span className="num">{p.price}</span>
+          </p>
           {p.later ? (
             <>
-              <div>
-                <dt>{W.deposit}</dt>
-                <dd className="num">{p.amount}</dd>
-              </div>
-              <div>
-                <dt>{p.later.label}</dt>
-                <dd className="num">{p.later.each}</dd>
-              </div>
+              <p>
+                <span>{W.deposit}</span>
+                <span className="num">{p.amount}</span>
+              </p>
+              <p>
+                <span>{p.later.label}</span>
+                <span className="num">{p.later.each}</span>
+              </p>
             </>
-          ) : null}
-          {p.per ? null : (
-            <div className="pp-total">
-              <dt>{W.total}</dt>
-              <dd className="num">{p.amount}</dd>
-            </div>
+          ) : (
+            <p>
+              <span>{W.subtotal}</span>
+              <span className="num">{bill ? money(bill.subtotal) : p.amount}</span>
+            </p>
           )}
-        </dl>
-        <ul className="pp-in">
+          {cut ? (
+            <p className="co-cut">
+              <span>
+                <button
+                  type="button"
+                  className="co-tag"
+                  onClick={removeCode}
+                  aria-label={W.code.remove.replace("{code}", cut.code ?? "")}
+                >
+                  {cut.code}
+                  <i aria-hidden="true" />
+                </button>
+                {cut.off ? <em>{W.code.off.replace("{percent}", String(cut.off))}</em> : null}
+              </span>
+              <span className="num">-{money(cut.discount)}</span>
+            </p>
+          ) : p.promo && coding ? (
+            <form
+              className="co-code"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void applyCode();
+              }}
+            >
+              <input
+                autoFocus
+                value={code}
+                onChange={(e) => {
+                  setCode(e.target.value);
+                  setCodeBad("");
+                }}
+                aria-label={W.code.field}
+                placeholder={W.code.field}
+                aria-invalid={codeBad ? true : undefined}
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={40}
+              />
+              <button type="submit" data-busy={applying || undefined} disabled={!code.trim()}>
+                {W.code.apply}
+              </button>
+            </form>
+          ) : p.promo ? (
+            <button type="button" className="co-add" onClick={() => setCoding(true)}>
+              {W.code.add}
+            </button>
+          ) : null}
+          {codeBad && !cut ? (
+            <p className="rs-msg co-msg" role="alert">
+              {codeBad}
+            </p>
+          ) : null}
+          {p.later || cut || !p.per ? (
+            <p className="co-total">
+              <span>{W.total}</span>
+              <span className="num">{total}</span>
+            </p>
+          ) : null}
+          {cut && p.per && bill?.next != null && bill.next !== bill.total ? (
+            <p className="co-then">
+              {W.code.then.replace("{amount}", money(bill.next)).replace("{per}", p.per)}
+            </p>
+          ) : null}
+        </div>
+        <ul className="co-in">
           {p.includes.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="pp-promise">{p.promise}</p>
+        <p className="co-promise">{p.promise}</p>
       </aside>
 
-      <section className="gq-card pp-pay" aria-label={p.title}>
-        {ready ? null : <i className="pp-wait" role="status" aria-label={W.loading} />}
-        <div className="pp-fast" data-off={oneTap ? undefined : ""}>
-          <h2>{W.oneTap}</h2>
-          <div className="pp-express" ref={express} />
+      <section className="co-pay" aria-label={p.title}>
+        {ready ? null : <i className="co-wait" role="status" aria-label={W.loading} />}
+        <div className="co-fast" data-off={oneTap ? undefined : ""}>
+          <div className="co-express" ref={express} />
+          <p className="co-or">
+            <span>{W.or}</span>
+          </p>
         </div>
 
-        <div className="pp-way">
-          <h2>{W.card}</h2>
-          {way === "card" ? null : (
-            <div className="pp-pills">
-              <button type="button" className="pp-pill" onClick={() => pick("card")}>
-                {W.byCard}
-              </button>
-            </div>
-          )}
-          {panel("card")}
-        </div>
-
-        {later.length ? (
-          <div className="pp-way">
-            <h2>{W.later2}</h2>
-            {group(later)}
-          </div>
-        ) : null}
-
-        {p.ways.includes("us_bank_account") ? (
-          <div className="pp-way">
-            <h2>{W.bank}</h2>
-            {group(["us_bank_account"])}
-          </div>
-        ) : null}
-
-        {rest.length ? (
-          <div className="pp-way">
-            <button
-              type="button"
-              className="pp-more"
-              aria-expanded={more}
-              onClick={() => setMore((m) => !m)}
+        <div className="co-part">
+          <h2>{W.contact}</h2>
+          <div className="co-group">
+            <p className="co-row">
+              <span>{W.email}</span>
+              <b>{p.email}</b>
+            </p>
+            <label
+              className="co-row"
+              data-filled={phone ? true : undefined}
+              data-bad={phoneBad || undefined}
             >
-              {W.more}
-            </button>
-            {/* kept on the page while closed, so fields Stripe has already drawn are not thrown away */}
-            <div className="pp-rest" hidden={!more}>
-              {group(rest)}
-            </div>
+              <span>{RESERVE.names.phone}</span>
+              <input
+                id="co-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength={17}
+                value={phone}
+                aria-invalid={phoneBad || undefined}
+                aria-describedby={phoneBad ? "co-phone-msg" : undefined}
+                onChange={(e) => {
+                  setPhone(formatPhone(e.target.value));
+                  setPhoneBad(false);
+                }}
+                onBlur={() => setPhoneBad(Boolean(phone) && !okPhone(phone))}
+              />
+            </label>
           </div>
-        ) : null}
+          {phoneBad ? (
+            <p className="rs-msg co-msg" id="co-phone-msg" role="alert">
+              {RESERVE.errors.phone}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="co-part">
+          <h2>{W.method}</h2>
+          <div className="co-fields" ref={fields} />
+        </div>
 
         <button
           type="button"
-          className="btn pp-go"
+          className="btn co-go"
           onClick={pay}
           data-busy={busy || undefined}
           suppressHydrationWarning
@@ -429,18 +521,13 @@ export default function PayStage(p: PayStageProps) {
             {bad}
           </p>
         ) : null}
-        {p.legal ? (
-          <p className="pp-legal">
-            {p.legal.map((l) => (
-              <a key={l.href} href={l.href} target="_blank" rel="noreferrer">
-                {l.label}
-              </a>
-            ))}
-          </p>
-        ) : null}
-        <a className="rs-back" href={p.back}>
-          {RESERVE.back}
-        </a>
+        <p className="co-legal">
+          {p.legal.map((l) => (
+            <a key={l.href} href={l.href} target="_blank" rel="noreferrer">
+              {l.label}
+            </a>
+          ))}
+        </p>
       </section>
     </div>
   );
