@@ -1,6 +1,7 @@
 // ============================================================
 // startCheckout: one Stripe Checkout Session for one plan, for a
-// signed-in user. Used by POST /api/stripe/checkout (the billing page)
+// signed-in user. Practice and Pro are then paid on our own page
+// (/checkout/pay); the tutor plan and the one-payment plans on Stripe's. Used by POST /api/stripe/checkout (the billing page)
 // and by GET /checkout/start (the pricing page's plan buttons, which
 // go straight to checkout; founder, 2026-11-08). Server only.
 //
@@ -13,12 +14,14 @@ import { currentUser } from "@clerk/nextjs/server";
 import { after } from "next/server";
 import {
   createCheckoutSession,
+  createPlanPaySession,
   findCustomer,
   getCheckoutPrice,
   getOrCreateCustomer,
 } from "./client";
 import { findStripePrice, isSubscriptionPlan } from "./prices";
 import { createCheckoutBodySchema } from "./schemas";
+import { planPayPath, planPayReturnUrl } from "@/lib/checkout/plan-pay";
 import { createAdminClient } from "@/lib/supabase/server";
 import { trackServer } from "@/lib/analytics/server";
 import { settingsHref } from "@/lib/portal/settings-rules";
@@ -28,8 +31,9 @@ import { TUTOR_PLAN_REFUSED, tutorPlanRefused } from "@/lib/tutor-affiliate/buye
  *  would bill twice, so those users change plan in the Stripe portal. */
 const LIVE_STATUSES = new Set(["active", "trialing", "past_due", "incomplete"]);
 
-/** `redirect`: the page (a path on this site) that answers a refusal better than Billing does. GET
- *  /checkout/start sends the visitor there. */
+/** `url`: Stripe's page, or a path on this site (the plan payment page). `redirect`: the page (a path
+ *  on this site) that answers a refusal better than Billing does. GET /checkout/start sends the
+ *  visitor there. */
 export type StartCheckoutResult =
   | { ok: true; url: string }
   | { ok: false; status: number; error: string; issues?: unknown; redirect?: string };
@@ -55,7 +59,7 @@ async function emailFor(userId: string): Promise<string | null> {
 /** Where leaving Stripe without paying lands: back where the plan was picked. A tutor's own billing
  *  page or the For tutors page for the tutor plan, a student's Plan and billing in the portal, and
  *  the Pricing page for everyone else. */
-function cancelPath(planId: string, role: string | null): string {
+export function cancelPath(planId: string, role: string | null): string {
   if (planId === "tutor-affiliate")
     return role === "affiliate_tutor" ? "/tutor/billing" : "/for-tutors";
   return role === "student" ? settingsHref("plan") : "/pricing";
@@ -153,6 +157,20 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     (await getOrCreateCustomer(userId, email, customerSearch)).id;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const plan = spec.planId;
+  const term = parsed.data.term;
+  // A student's renewing plan is paid on our own page, like a cohort seat (founder, 2026-11-26), not
+  // on Stripe's. The address is a path on this site.
+  if (isSubscriptionPlan(plan) && !forTutors) {
+    const own = await createPlanPaySession({
+      customerId,
+      spec,
+      userId,
+      returnUrl: planPayReturnUrl(appUrl),
+    });
+    after(() => trackServer("checkout_started", userId, { plan, term }));
+    return { ok: true, url: planPayPath(own.id) };
+  }
   const session = await createCheckoutSession({
     customerId,
     spec,
@@ -166,8 +184,6 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
   });
   if (!session.url) return { ok: false, status: 500, error: "Stripe returned no checkout link" };
   // Written after the redirect is sent, so the family does not wait on it.
-  const plan = spec.planId;
-  const term = parsed.data.term;
   after(() => trackServer("checkout_started", userId, { plan, term }));
   return { ok: true, url: session.url };
 }

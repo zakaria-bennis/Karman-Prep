@@ -1,6 +1,7 @@
 "use client";
 
-// Our own payment page for a reserved seat (founder, 2026-11-14). Stripe's fields are placed inside our
+// Our own payment screen (founder, 2026-11-14), for a reserved cohort seat (/reserve/pay) and for a
+// renewing plan (/checkout/pay; founder, 2026-11-26). Stripe's fields are placed inside our
 // page, in our type and colours: card numbers are typed into Stripe's own frames, so they never touch
 // this site. It is the page where a family pays, so it is laid out plainly (founder, 2026-11-25):
 //   - what is being bought, as a receipt of its own: on a wide screen it sits beside the payment, on a
@@ -9,14 +10,14 @@
 //   - then each other way under its own small heading: the card; "Buy now, pay later" as pills in one
 //     row; the bank; and the less-used wallets behind a "More options" link.
 // Stripe draws one list of ways per checkout and takes no headings, so each group is a checkout of its
-// own for the same seat: the card's is open from the start, and another is opened when its pill is
-// tapped (payAnotherWay). Whichever is paid settles the seat.
+// own for the same purchase: the card's is open from the start, and another is opened when its pill
+// is tapped (openWay). Whichever is paid settles it (settle). A plan offers the one-tap ways and the
+// card only.
 // The moment a payment is made the page shows "paid" itself (Paid.tsx): no wait, no page in between.
 // Words: reserve-copy.ts (payPage). Styles: styles/pay.css.
 import { useEffect, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import type { Appearance, Stripe, StripeCheckoutElementsSdk } from "@stripe/stripe-js";
-import { payAnotherWay, seatPaid } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import Paid, { type PaidProps } from "./Paid";
@@ -67,28 +68,39 @@ function appearance(dark: boolean): Appearance {
 }
 
 export interface PayStageProps {
-  /** The reservation. */
-  id: string;
+  /** Which purchase this is, for the step counts only. */
+  flow: "reserve" | "plan";
+  /** Called with Stripe's finished checkout the moment a payment is made: records it at once. */
+  settle: (session: string) => Promise<{ state: string }>;
+  /** Opens a checkout for one of the other ways. Left out when only `ways` is empty. */
+  openWay?: (way: string) => Promise<{ ok: true; clientSecret: string } | { ok: false }>;
   /** The checkout behind the one-tap buttons (Link, Apple Pay, Google Pay). */
   clientSecret: string;
   /** The checkout behind the typed card. */
   cardSecret: string;
   publishableKey: string;
-  /** Back to the reservation's last step. */
+  /** Back to where this was chosen. */
   back: string;
   title: string;
-  /** "The 9-week SAT cohort, March" */
+  /** "The 9-week SAT cohort, March", or the plan's name. */
   what: string;
   /** What is due today: "$995", or "$95" for a deposit. */
   amount: string;
-  /** The cohort's full price: "$995". */
+  /** The full price beside it: "$995". */
   price: string;
+  /** A renewing plan: how often the amount is paid ("a month"). The receipt is then the one line, the
+   *  plan and its price, with no "Total today" under it (founder, 2026-11-26). */
+  per?: string;
   /** After a deposit: "Then 3 monthly payments" and "$300 each". Null when paid in full. */
   later: { label: string; each: string } | null;
-  /** What the seat includes, as short lines. */
-  includes: string[];
+  /** What it includes, as short lines. */
+  includes: readonly string[];
+  /** The line under them: the guarantee, or that a plan can be cancelled. */
+  promise: string;
   /** The other ways this account can be paid, besides the card and the one-tap ways. */
   ways: Other[];
+  /** Links under the pay button: the terms and the privacy policy. */
+  legal?: { href: string; label: string }[];
   /** What the "paid" screen shows once the payment is made. */
   paid: Omit<PaidProps, "state">;
 }
@@ -109,10 +121,8 @@ export default function PayStage(p: PayStageProps) {
 
   /** Stripe says the payment is made: settle the seat now and show it, with no page in between. */
   const finish = async (session: string) => {
-    const { state } = await seatPaid({ id: p.id, session }).catch(() => ({
-      state: "paid" as const,
-    }));
-    track("form_step", { form: "reserve", step: "pay-page", kind: "next" });
+    const { state } = await p.settle(session).catch(() => ({ state: "paid" }));
+    track("form_step", { form: p.flow, step: "pay-page", kind: "next" });
     setDone(state === "clearing" ? "clearing" : "paid");
   };
 
@@ -123,7 +133,7 @@ export default function PayStage(p: PayStageProps) {
 
   useEffect(() => {
     let live = true;
-    track("form_step", { form: "reserve", step: "pay-page", kind: "view" });
+    track("form_step", { form: p.flow, step: "pay-page", kind: "view" });
     const open = async () => {
       const js = p.publishableKey ? await loadStripe(p.publishableKey) : null;
       if (!live) return;
@@ -167,7 +177,7 @@ export default function PayStage(p: PayStageProps) {
       one.on("confirm", async (event) => {
         setBusy(true);
         setBad("");
-        track("form_step", { form: "reserve", step: "pay-page", kind: "choice", value: "one-tap" });
+        track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: "one-tap" });
         const result = await got.actions.confirm({
           expressCheckoutConfirmEvent: event,
           redirect: "if_required",
@@ -221,7 +231,7 @@ export default function PayStage(p: PayStageProps) {
     if (busy) return;
     setBad("");
     setWay(next);
-    track("form_step", { form: "reserve", step: "pay-page", kind: "choice", value: next });
+    track("form_step", { form: p.flow, step: "pay-page", kind: "choice", value: next });
     if (next === "card" || opened.current[next] || !stripe.current) return;
     opened.current[next] = "opening";
     const fail = () => {
@@ -230,8 +240,8 @@ export default function PayStage(p: PayStageProps) {
       setBad(W.errors.way);
     };
     try {
-      const res = await payAnotherWay({ reservationId: p.id, way: next });
-      if (!res.ok) return fail();
+      const res = await p.openWay?.(next);
+      if (!res?.ok) return fail();
       const checkout = stripe.current.initCheckoutElementsSdk({
         clientSecret: res.clientSecret,
         elementsOptions: options(),
@@ -263,7 +273,7 @@ export default function PayStage(p: PayStageProps) {
     if (result.type === "error") {
       setBusy(false);
       setBad(result.error.message || W.errors.pay);
-      return track("form_step", { form: "reserve", step: "pay-page", kind: "error" });
+      return track("form_step", { form: p.flow, step: "pay-page", kind: "error" });
     }
     await finish(result.session.id);
   }
@@ -315,10 +325,19 @@ export default function PayStage(p: PayStageProps) {
       <aside className="gq-card pp-sum">
         <h1>{p.title}</h1>
         <dl className="pp-bill">
-          <div>
-            <dt>{p.what}</dt>
-            <dd className="num">{p.price}</dd>
-          </div>
+          {p.per ? (
+            <div className="pp-total pp-one">
+              <dt>{p.what}</dt>
+              <dd>
+                <span className="num">{p.amount}</span> <span className="pp-per">{p.per}</span>
+              </dd>
+            </div>
+          ) : (
+            <div>
+              <dt>{p.what}</dt>
+              <dd className="num">{p.price}</dd>
+            </div>
+          )}
           {p.later ? (
             <>
               <div>
@@ -331,20 +350,22 @@ export default function PayStage(p: PayStageProps) {
               </div>
             </>
           ) : null}
-          <div className="pp-total">
-            <dt>{W.total}</dt>
-            <dd className="num">{p.amount}</dd>
-          </div>
+          {p.per ? null : (
+            <div className="pp-total">
+              <dt>{W.total}</dt>
+              <dd className="num">{p.amount}</dd>
+            </div>
+          )}
         </dl>
         <ul className="pp-in">
           {p.includes.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="pp-promise">{RESERVE.pay.promise}</p>
+        <p className="pp-promise">{p.promise}</p>
       </aside>
 
-      <section className="gq-card pp-pay" aria-label={W.title}>
+      <section className="gq-card pp-pay" aria-label={p.title}>
         {ready ? null : <i className="pp-wait" role="status" aria-label={W.loading} />}
         <div className="pp-fast" data-off={oneTap ? undefined : ""}>
           <h2>{W.oneTap}</h2>
@@ -406,6 +427,15 @@ export default function PayStage(p: PayStageProps) {
         {bad ? (
           <p className="rs-msg rs-form-msg" role="alert">
             {bad}
+          </p>
+        ) : null}
+        {p.legal ? (
+          <p className="pp-legal">
+            {p.legal.map((l) => (
+              <a key={l.href} href={l.href} target="_blank" rel="noreferrer">
+                {l.label}
+              </a>
+            ))}
           </p>
         ) : null}
         <a className="rs-back" href={p.back}>

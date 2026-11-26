@@ -6,6 +6,7 @@ const db = vi.hoisted(() => ({
 }));
 const client = vi.hoisted(() => ({
   createCheckoutSession: vi.fn(),
+  createPlanPaySession: vi.fn(),
   findCustomer: vi.fn(),
   getCheckoutPrice: vi.fn(),
   getOrCreateCustomer: vi.fn(),
@@ -36,7 +37,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { startCheckout } from "./start-checkout";
+import { cancelPath, startCheckout } from "./start-checkout";
 
 const APP = "http://localhost:3000";
 const TUTOR = { plan: "tutor-affiliate", term: "month" };
@@ -56,6 +57,7 @@ beforeEach(() => {
   client.getCheckoutPrice.mockResolvedValue({ id: "price_1" });
   client.getOrCreateCustomer.mockResolvedValue({ id: "cus_1" });
   client.createCheckoutSession.mockResolvedValue({ url: "https://checkout.stripe.com/x" });
+  client.createPlanPaySession.mockResolvedValue({ id: "cs_test_own1234567" });
   getPlan.mockResolvedValue({ sources: [] });
 });
 
@@ -118,21 +120,39 @@ describe("a student's plan", () => {
       });
     }
     expect(client.createCheckoutSession).not.toHaveBeenCalled();
+    expect(client.createPlanPaySession).not.toHaveBeenCalled();
     // A private package is one payment, and a parent may make it.
     expect((await startCheckout("user_1", { plan: "private-10" })).ok).toBe(true);
   });
 
-  it("brings a student who leaves Stripe back to Plan and billing in the portal", async () => {
+  it("is paid on our own payment page, not Stripe's", async () => {
     db.me = { id: "u1", role: "student" };
-    expect((await startCheckout("user_1", PRACTICE)).ok).toBe(true);
+    for (const plan of [PRACTICE, { plan: "pro", term: "quarter" }]) {
+      expect(await startCheckout("user_1", plan)).toEqual({
+        ok: true,
+        url: "/checkout/pay?s=cs_test_own1234567",
+      });
+    }
+    expect(client.createCheckoutSession).not.toHaveBeenCalled();
+    // Stripe sends the buyer back to that same page after a step that left the site
+    expect(client.createPlanPaySession.mock.calls[0][0]).toMatchObject({
+      customerId: "cus_1",
+      userId: "user_1",
+      returnUrl: `${APP}/checkout/pay?s={CHECKOUT_SESSION_ID}`,
+    });
+  });
+
+  it("brings a student who leaves Stripe's page back to Plan and billing in the portal", async () => {
+    db.me = { id: "u1", role: "student" };
+    expect((await startCheckout("user_1", { plan: "private-10" })).ok).toBe(true);
     expect(sentTo()).toEqual({
       successUrl: `${APP}/dashboard/student?welcome=1`,
       cancelUrl: `${APP}/dashboard/student?page=account&folder=plan`,
     });
   });
 
-  it("brings everyone else back to the Pricing page", async () => {
-    expect((await startCheckout("user_1", PRACTICE)).ok).toBe(true);
-    expect(sentTo().cancelUrl).toBe(`${APP}/pricing`);
+  it("names the page to go back to: the portal for a student, Pricing for everyone else", () => {
+    expect(cancelPath("pro", "student")).toBe("/dashboard/student?page=account&folder=plan");
+    expect(cancelPath("pro", null)).toBe("/pricing");
   });
 });

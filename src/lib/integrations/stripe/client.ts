@@ -230,6 +230,42 @@ export async function createReservationCheckoutSession({
   });
 }
 
+/**
+ * Checkout for a renewing plan (Practice, Pro), paid on our own page (/checkout/pay) the way a cohort
+ * seat is (founder, 2026-11-26): Stripe's fields inside our page, so the session is made in ui_mode
+ * "elements". The page opens two: this one for the one-tap buttons (Link, Apple Pay, Google Pay), and
+ * one with `way: "card"` for the typed card alone, with none of Link's extras. Whichever is paid starts
+ * the subscription; the same metadata goes on it, so the webhook knows whose it is.
+ */
+export async function createPlanPaySession({
+  customerId,
+  spec,
+  userId,
+  returnUrl,
+  way,
+}: {
+  customerId: string;
+  spec: StripePriceSpec;
+  userId: string;
+  /** Where Stripe sends the buyer back to after a step that left the site (a bank's own check). */
+  returnUrl: string;
+  way?: "card";
+}) {
+  const price = await getCheckoutPrice(spec);
+  const metadata = { userId, planId: spec.planId, term: spec.term };
+  return stripe.checkout.sessions.create({
+    customer: customerId,
+    ui_mode: "elements",
+    return_url: returnUrl,
+    mode: "subscription",
+    payment_method_types: way === "card" ? ["card"] : [...CARD_METHODS],
+    line_items: [{ price: price.id, quantity: 1 }],
+    metadata: { ...metadata, ...(way ? { way } : {}) },
+    subscription_data: { metadata },
+    ...(way === "card" ? { wallet_options: { link: { display: "never" as const } } } : {}),
+  });
+}
+
 /** The other ways to pay for a cohort seat in full, in the order the payment page groups them. */
 export const PAY_WAYS = ["klarna", "affirm", "us_bank_account", "cashapp", "amazon_pay"] as const;
 export type PayWay = (typeof PAY_WAYS)[number];

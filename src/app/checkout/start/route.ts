@@ -1,7 +1,7 @@
 // ============================================================
 // GET /checkout/start?plan=practice&term=month
-// The plan buttons: a signed-in visitor goes straight to Stripe
-// Checkout for that plan. An account comes before any payment (founder,
+// The plan buttons: a signed-in visitor goes straight to the payment
+// for that plan (our own page for Practice and Pro, Stripe's for the rest). An account comes before any payment (founder,
 // 2026-11-25), so a visitor without one goes through Get started and
 // comes back here with the same plan.
 // If checkout can't open (already on a plan, a cohort seat not held
@@ -47,7 +47,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await startCheckout(userId, input);
-    if (result.ok) return NextResponse.redirect(result.url, 303);
+    // Stripe's page, or our own payment page (a path on this site)
+    if (result.ok) return NextResponse.redirect(new URL(result.url, origin), 303);
     console.warn(`[checkout/start] ${result.status}: ${result.error}`);
     if (result.redirect) return NextResponse.redirect(new URL(result.redirect, origin), 303);
   } catch (error) {

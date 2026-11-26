@@ -114,8 +114,7 @@ export default function OnboardingClient({
   const [dir, setDir] = useState<1 | -1>(1);
   const [bad, setBad] = useState("");
   const [ready, setReady] = useState(false);
-  // the plan screen's button that was pressed, by where it leads, while that page opens
-  const [going, setGoing] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [parentBusy, startParent] = useTransition();
   // a choice was just tapped and the flow is about to move on
   const [picking, setPicking] = useState(false);
@@ -287,7 +286,7 @@ export default function OnboardingClient({
   /** Signed in: opens the plan's next step. Signed out: the answers are already kept, so the visitor
    *  makes an account and comes straight back to this plan. */
   async function continueTo(href: string) {
-    setGoing(href);
+    setSubmitting(true);
     if (!signedIn) {
       track("form_step", { form: "onboarding", step: "plan", kind: "choice", value: "sign_up" });
       window.location.assign("/auth/sign-up?redirect_url=/onboarding");
@@ -307,9 +306,7 @@ export default function OnboardingClient({
     // a renewing plan belongs to the student's account, so a parent goes to their portal to add the
     // student first; a cohort seat or a tutoring call they can take from here
     window.location.assign(
-      role === "parent" && (href.startsWith("/checkout") || href === "/portal")
-        ? "/dashboard/parent"
-        : href
+      role === "parent" && href.startsWith("/checkout") ? "/dashboard/parent" : href
     );
   }
 
@@ -502,7 +499,7 @@ export default function OnboardingClient({
                 <RecommendationStep
                   recommendation={recommendation}
                   onContinue={continueTo}
-                  going={going}
+                  submitting={submitting}
                   signedIn={signedIn}
                   parent={role === "parent"}
                 />

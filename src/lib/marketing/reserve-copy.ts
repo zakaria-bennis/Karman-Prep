@@ -92,6 +92,8 @@ export const RESERVE = {
     /** The moment the payment is made (Paid.tsx). {name} is the student's first name. */
     paid: {
       title: "Paid. {name}'s seat is reserved.",
+      /** A renewing plan paid on the same screen (/checkout/pay). {plan} is its name. */
+      planTitle: "Paid. You're on {plan}.",
       amount: "Paid today",
       reference: "Reference",
       sent: "The details are on their way to {email}.",

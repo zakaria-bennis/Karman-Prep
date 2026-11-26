@@ -73,6 +73,34 @@
   line-height: 1;
   color: var(--a);
 }
+/* a renewing plan: the one line is the receipt, so it carries no rule above it */
+.ks .pp-bill .pp-one {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ks .pp-per {
+  font-size: 17px;
+  font-weight: 800;
+}
+/* the terms and the privacy policy, quiet, under the pay button */
+.ks .pp-legal {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.ks .pp-legal a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 /* what the seat includes: plain lines, each with a small tick drawn in CSS */
 .ks .pp-in {
   margin: 0;

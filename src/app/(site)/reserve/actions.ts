@@ -36,21 +36,21 @@ export async function payForSeat(input: unknown) {
     : { ok: false as const, error: result.error };
 }
 
-/** On the payment page: another way to pay was picked (a pay-later plan, the bank, a wallet). */
-export async function payAnotherWay(input: unknown) {
-  const result = await openWay(input);
+/** On the payment page: another way to pay was picked (a pay-later plan, the bank, a wallet). The
+ *  page hands this to the payment screen with the seat already named. */
+export async function openSeatWay(reservationId: string, way: string) {
+  const result = await openWay({ reservationId, way });
   return result.ok
     ? { ok: true as const, clientSecret: result.value.clientSecret }
-    : { ok: false as const, error: result.error };
+    : { ok: false as const };
 }
 
 /** On the payment page, the moment Stripe says the payment is made: mark the seat paid now, so the
  *  next screen never has to wait for Stripe's own message. */
-export async function seatPaid(input: { id?: unknown; session?: unknown }) {
-  const id = typeof input?.id === "string" ? input.id : "";
-  const session = typeof input?.session === "string" ? input.session : "";
+export async function seatPaid(reservationId: string, session: string) {
+  const id = typeof reservationId === "string" ? reservationId : "";
   const { paymentFor } = await import("@/lib/reserve/service");
-  const pay = await paymentFor(id, session);
+  const pay = await paymentFor(id, typeof session === "string" ? session : "");
   return { state: pay?.state ?? ("open" as const) };
 }
 

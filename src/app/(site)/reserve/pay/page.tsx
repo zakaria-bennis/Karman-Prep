@@ -8,6 +8,7 @@ import { MARCH_PROGRAM as MP, formatPrice } from "@/lib/marketing/offer";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import { openPrograms } from "@/lib/reserve/programs";
 import { paymentFor, referenceOf } from "@/lib/reserve/service";
+import { openSeatWay, seatPaid } from "../actions";
 
 export const metadata = { title: "Karman Prep: Payment", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -45,7 +46,9 @@ export default async function ReservePayPage({
         <div className="mist" aria-hidden="true" />
         {pay.state === "open" ? (
           <PayStage
-            id={seat.id}
+            flow="reserve"
+            settle={seatPaid.bind(null, seat.id)}
+            openWay={openSeatWay.bind(null, seat.id)}
             clientSecret={pay.clientSecret}
             cardSecret={pay.cardSecret}
             publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""}
@@ -63,6 +66,7 @@ export default async function ReservePayPage({
                 : null
             }
             includes={MP.includes.map((i) => i.title)}
+            promise={RESERVE.pay.promise}
             ways={pay.ways}
             paid={paid}
           />

@@ -72,7 +72,6 @@ export const FINDER = {
     also: "Or",
     save: "Save my plan",
     all: "See every plan",
-    free: "Start free",
     parentFirst: "Add my student first",
     busy: "One moment",
   },
