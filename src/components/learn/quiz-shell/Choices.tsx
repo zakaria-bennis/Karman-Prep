@@ -1,5 +1,6 @@
 "use client";
 import { tidyMathText } from "@/lib/quiz/tidy-math";
+import { unwrapMathProse, unwrapProse } from "@/lib/quiz/stem-layout";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CalculatorChoiceAction,
@@ -248,7 +249,11 @@ export function Choices({
               </span>
               <span className={styles.choiceText}>
                 <MathText
-                  text={q.subject === "math" ? tidyMathText(c.choice_text) : c.choice_text}
+                  text={
+                    q.subject === "math"
+                      ? tidyMathText(unwrapMathProse(c.choice_text))
+                      : unwrapProse(c.choice_text)
+                  }
                   serializedFunctionLines={q.subject === "math"}
                 />
                 <span className={styles.srOnly}>{suffix(letter, state)}</span>

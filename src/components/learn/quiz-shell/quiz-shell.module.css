@@ -719,12 +719,14 @@
   max-width: 44rem;
   margin: 0 auto;
 }
+/* The passage in its own pane reads in the same face and size as one set in the question
+   (.stemRead): the serif is the portal's heading face, not a reading one. */
 .passageText {
   max-width: 75ch;
   margin: 0 auto;
-  font-family: var(--font-serif, serif);
   font-size: 1.06rem;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 .stem {
   margin: 0 0 20px;
@@ -732,6 +734,49 @@
   font-weight: 500;
   line-height: 1.55;
   white-space: pre-line;
+}
+
+/* A reading question set like the real test (StemText.tsx): the passage reads as body text, its
+   paragraphs apart; the question comes last, a step heavier, with room above it. */
+.stemRead {
+  margin: 0 0 22px;
+  font-size: 1.06rem;
+  font-weight: 400;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+.stemRead > :first-child {
+  margin-top: 0;
+}
+.para,
+.verse,
+.notes {
+  margin: 0 0 0.9em;
+}
+.verse {
+  white-space: pre-line;
+  padding-inline-start: 1.25em;
+}
+.notes {
+  list-style: disc;
+  padding-inline-start: 1.35em;
+}
+.notes li + li {
+  margin-top: 0.45em;
+}
+.notes li::marker {
+  color: var(--quiz-text-muted);
+}
+.textLabel {
+  margin: 1.3em 0 0.3em;
+  font-weight: 700;
+}
+.prompt {
+  margin: 1.5em 0 0;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: 1.55;
+  text-wrap: pretty;
 }
 
 /* The calculator's own holder sits in the question's frame; its window is fixed to the screen, so
@@ -1056,6 +1101,17 @@
 .wide .divider {
   width: 14px;
   cursor: col-resize;
+}
+/* Two panes of glass side by side sit as far apart as each sits from the screen's edges and the
+   bars: one 12px gap everywhere, with the divider's grip in it (founder, 2026-11-26). */
+.wide.split .divider {
+  width: 12px;
+}
+.wide.split [data-quiz-scroll] > [data-quiz-pane="passage"]:only-child::before {
+  right: 0;
+}
+.wide.split [data-quiz-scroll] > [data-quiz-pane="question"]:only-child::before {
+  left: 0;
 }
 .medium .divider {
   height: 14px;
