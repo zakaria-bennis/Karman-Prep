@@ -1,7 +1,7 @@
 // One or two panes of glass for a question (founder, 2026-11-26: "consistency across the same
 // device"). On a computer or a tablet held sideways every Reading and Writing question shows its passage on the
 // left and its question and answers on the right. A Math question does the same when it has a
-// figure (the figure left, the question right) or runs to three lines or more (the setup left, the
+// figure (the setup and figure left, the question right) or runs to three lines or more (the setup left, the
 // question right); a short one stays in one pane. A phone, and a tablet held upright, show one pane
 // (a stored passage still sits above the question there, as before).
 import { drawnFigure } from "@/lib/figures/question-figure";
@@ -25,8 +25,13 @@ export function panePlan(q: StudentQuizQuestion, layout: QuizLayout): PanePlan {
   if (layout !== "wide") return { kind: "single" };
   const figure = drawnFigure(q) !== null;
   if (q.subject === "math") {
-    // a figure moves left and the words stay with the answers
-    if (figure) return { kind: "lead", figure: true, text: false };
+    // a figure moves left, with the setup above it; the question stays with the answers
+    if (figure)
+      return {
+        kind: "lead",
+        figure: true,
+        text: !!splitMathStem(q.question_text, { figure: true }),
+      };
     return splitMathStem(q.question_text)
       ? { kind: "lead", figure: false, text: true }
       : { kind: "single" };

@@ -62,6 +62,11 @@
 .figure-glass .themed-question-table thead tr:not(:last-child) td {
   border-bottom: 1px solid var(--figure-ink-muted);
 }
+/* the table's outer edge is drawn like its inner rules: the same ink, weight and opacity
+   (founder, 2026-11-26) */
+.figure-glass .themed-question-table {
+  border: 1px solid var(--figure-ink-muted);
+}
 /* the older charts draw their own plaque inside the figure */
 .figure-glass .themed-question-figure .bg-night {
   border-color: transparent;

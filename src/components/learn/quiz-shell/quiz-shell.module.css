@@ -1113,6 +1113,37 @@
 .wide.split [data-quiz-scroll] > [data-quiz-pane="question"]:only-child::before {
   left: 0;
 }
+/* A figure in the left pane is drawn large, nine tenths of the pane's width, and the pane's
+   content sits in its middle rather than at its top; a long passage still starts at the top,
+   as it fills the pane (founder, 2026-11-26). */
+/* side padding, not width: a table measures its title from this box less its padding */
+.wide.split [data-quiz-pane="passage"] [data-ink-figure] {
+  padding-inline: 5%;
+}
+/* a table's words need the room more than a graph does */
+.wide.split [data-quiz-pane="passage"] [data-ink-figure]:has(:global(.themed-question-table)) {
+  padding-inline: 2.5%;
+}
+.wide.split [data-quiz-pane="passage"] [data-ink-figure] > * {
+  width: 100%;
+  max-width: none;
+}
+.wide.split [data-quiz-pane="passage"] [data-ink-figure] :global(.themed-question-table) {
+  display: block;
+}
+.wide.split [data-quiz-pane="passage"] [data-ink-figure] :is(svg, img) {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+}
+.wide.split [data-quiz-pane="passage"]:has([data-ink-figure]) {
+  display: flex;
+  flex-direction: column;
+}
+.wide.split [data-quiz-pane="passage"]:has([data-ink-figure]) > :first-child {
+  width: 100%;
+  margin-block: auto;
+}
 .medium .divider {
   height: 14px;
   cursor: row-resize;

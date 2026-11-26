@@ -24,6 +24,8 @@ export type QuestionContentProps = {
   figureHere: boolean;
   /** Split across two panes, the question pane shows only the question ("ask"); see pane-plan.ts. */
   stemPart?: "all" | "ask";
+  /** The figure sits in the left pane, with the setup above it (pane-plan.ts). */
+  figureLeft?: boolean;
   hasCalculator: boolean;
   pickOffer: string | null;
   /** The explanation is shown beside the question instead (a miss on a wide screen). */
@@ -71,7 +73,8 @@ export function QuestionContent(p: QuestionContentProps) {
           <MathText
             text={
               p.stemPart === "ask"
-                ? (splitMathStem(q.question_text)?.ask ?? unwrapMathProse(q.question_text))
+                ? (splitMathStem(q.question_text, { figure: !!p.figureLeft })?.ask ??
+                  unwrapMathProse(q.question_text))
                 : unwrapMathProse(q.question_text)
             }
             serializedFunctionLines

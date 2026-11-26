@@ -154,16 +154,24 @@ export function readingPart(text: string, part: StemPart): StemBlock[] {
 
 // About how many characters fill one line of the question column on a wide screen.
 const LINE_CHARS = 85;
+// A setup shorter than this (about two lines) stays with its question when there is no figure.
+const MIN_SETUP_CHARS = 150;
 
 /** A math question's setup and its question, when it runs to three lines or more; null when it
  *  fits in one pane (founder, 2026-11-26: "less than three lines long ... all in one pane"). The
  *  question is the last sentence or line; everything before it is the setup. */
-export function splitMathStem(text: string): { lead: string; ask: string } | null {
-  const clean = unwrapMathProse(text.replace(/\r\n?/g, "\n")).trim();
+export function splitMathStem(
+  text: string,
+  { figure = false }: { figure?: boolean } = {}
+): { lead: string; ask: string } | null {
+  const clean = unwrapMathProse(text.replace(/\r\n?/g, "\n"))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
   const lines = clean
     .split("\n")
     .reduce((n, line) => n + Math.max(1, Math.ceil(line.length / LINE_CHARS)), 0);
-  if (lines < 3) return null;
+  // With a figure the setup always joins it on the left; without one, only a long question splits.
+  if (!figure && lines < 3) return null;
   // the last line break, or the last ". " before a capital, whichever is later
   const lastBreak = clean.lastIndexOf("\n");
   let lastSentence = -1;
@@ -173,5 +181,9 @@ export function splitMathStem(text: string): { lead: string; ask: string } | nul
   if (cut <= 0) return null;
   const lead = clean.slice(0, cut).trim();
   const ask = clean.slice(cut).trim();
-  return lead && ask ? { lead, ask } : null;
+  if (!lead || !ask) return null;
+  // A setup of an equation or two looks lost alone in a pane (founder, 2026-11-26): without a
+  // figure it stays with the question.
+  if (!figure && lead.length < MIN_SETUP_CHARS) return null;
+  return { lead, ask };
 }
