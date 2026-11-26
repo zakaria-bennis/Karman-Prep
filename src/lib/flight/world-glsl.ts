@@ -54,21 +54,8 @@ float shape(vec2 x, float a) {
 }
 `;
 
-/** Villages, and the finest ground with its trees. Needs the terrain, the trees and the houses. */
+/** The finest ground with its trees. Needs the terrain and the trees. */
 export const WORLD_BUILT = `
-float townAt(vec2 x, float h) {
-  float d = land(x.y, 5.).a;
-  /* no village on a river's banks */
-  if (d > .02) d *= 1. - riverAt(x.y) * smoothstep(.26, .16, abs(x.x - riverX(x.y)));
-  float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.5, .3, abs(x.x - pathX(x.y)));
-  float t = level * smoothstep(.8 - .2 * d, .84 - .2 * d, n2(x * 10. + 7.3)) * step(.02, d);
-  if (t < .01) return 0.;
-  /* houses stand only on gentle ground: on a steep valley side a house lay along the slope like a white
-     smear, plain to see from down by the river */
-  float e = .004, c = terrL(x);
-  return t * smoothstep(.8, .5, length(vec2(terrL(x + vec2(e, 0.)) - c, terrL(x + vec2(0., e)) - c)) / e);
-}
-float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
 /* one tree in its cell: x = how far up its crown this point is (0 at its edge, 1 at its top), y = which tree;
    fo.xy = where this point is from the tree's trunk, in crowns' widths, fo.z its size. The wind leans each crown downwind,
    more in a gust, and each tree sways to its own beat. round: 0 a fir, 1 a broadleaf crown */
@@ -129,10 +116,10 @@ vec2 beast(vec2 x) {
 }
 /* where animals may stand: low open ground in a land that has meadows (m: how much) */
 float pasture(float h, float m) { return step(.3, m) * smoothstep(.006, .014, h) * smoothstep(.3, .22, h); }
-/* what stands on the ground at x, for the ray: a house, a tree or an animal, whichever is tallest */
+/* what stands on the ground at x, for the ray: a tree or an animal, whichever is taller */
 float stands(vec2 x, float h, float fade) {
-  float up = built(x, h);
-  if (fade < .01) return up;
+  if (fade < .01) return 0.;
+  float up = 0.;
   vec4 g2 = land(x.y, 2.);
   up = max(up, woods(x, g2).x * treeBand(h, g2.x * 1.2) * fade);
   return max(up, beast(x).x * .0026 * pasture(h, land(x.y, 4.).a) * fade);
@@ -142,7 +129,7 @@ vec2 terrH2(vec2 x) {
   float h = terrD(x);
   float band = treeBand(h, G2.x * 1.2);
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(max(built(x, h), woods(x, G2).x * band * TF), beast(x).x * .0026 * pasture(h, G4.w) * TF));
+  return vec2(h + (1. - band * G2.z) * crag * (1. - .85 * max(G6.w, G4.w)) * FINE, max(woods(x, G2).x * band * TF, beast(x).x * .0026 * pasture(h, G4.w) * TF));
 }
 `;
 

@@ -106,7 +106,11 @@ export async function linkedParents(studentUserId: string, supabase: Admin = unt
 export type InviteKey = { token: string } | { code: string };
 
 export type InviteLookup =
-  | { state: "open"; inviteId: string; student: { id: string; firstName: string } }
+  | {
+      state: "open";
+      inviteId: string;
+      student: { id: string; clerkId: string; firstName: string };
+    }
   | { state: "used" | "expired" | "missing" };
 
 export async function lookupInvite(
@@ -120,7 +124,7 @@ export async function lookupInvite(
   const { data } = await supabase
     .from("parent_invites")
     .select(
-      "id, accepted_at, revoked_at, expires_at, student:users!parent_invites_student_user_id_fkey (id, first_name)"
+      "id, accepted_at, revoked_at, expires_at, student:users!parent_invites_student_user_id_fkey (id, clerk_id, first_name)"
     )
     .eq(byToken ? "token" : "code", value)
     .maybeSingle();
@@ -128,14 +132,14 @@ export async function lookupInvite(
   if (data.accepted_at) return { state: "used" };
   if (data.revoked_at || (data.expires_at as string) <= new Date().toISOString())
     return { state: "expired" };
-  type S = { id: string; first_name: string | null };
+  type S = { id: string; clerk_id: string; first_name: string | null };
   const raw = (data as { student: S | S[] | null }).student;
   const s = Array.isArray(raw) ? raw[0] : raw;
   if (!s) return { state: "missing" };
   return {
     state: "open",
     inviteId: data.id as string,
-    student: { id: s.id, firstName: s.first_name || "your student" },
+    student: { id: s.id, clerkId: s.clerk_id, firstName: s.first_name || "your student" },
   };
 }
 

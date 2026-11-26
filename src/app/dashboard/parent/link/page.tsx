@@ -1,6 +1,7 @@
 // ============================================================
 // /dashboard/parent/link — link a student with the code from their
-// "Invite a parent" page. Open from the account menu, and where a
+// invite (their Settings shows it under "Invite a parent", and it is
+// in the invite email). Open from the account menu, and where a
 // typed code goes back to when it doesn't work.
 // ============================================================
 
@@ -43,8 +44,8 @@ export default async function ParentLinkPage({
             Student code
           </h2>
           <p className="kp-meta">
-            Your student finds it in their account menu, under Invite a parent. Or open the link
-            they send you.
+            The code is in your student&rsquo;s invite email. They send it from their Settings,
+            under Invite a parent.
           </p>
           <LinkStudentForm />
         </section>

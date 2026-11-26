@@ -3,6 +3,10 @@ import { z } from "zod";
 import { okEmail, okName, okPhone, okScore } from "@/lib/marketing/lead-rules";
 import { COHORT_PAYMENT_OPTIONS } from "@/lib/integrations/stripe/cohort-installments";
 
+/** The other ways to pay on the payment page (the same list as PAY_WAYS in the Stripe client, which
+ *  cannot be imported here: this file is also read in the browser). */
+const WAYS = ["klarna", "affirm", "us_bank_account", "cashapp", "amazon_pay"] as const;
+
 const name = (max: number) =>
   z
     .string()
@@ -13,6 +17,12 @@ const name = (max: number) =>
         .trim()
     )
     .pipe(z.string().min(1).max(max).refine(okName));
+
+/** Another way to pay, picked on the payment page. */
+export const waySchema = z.object({
+  reservationId: z.string().uuid(),
+  way: z.enum(WAYS),
+});
 
 /** The email step. The lead is saved here, so an unfinished reservation can be followed up. */
 export const emailSchema = z.object({

@@ -117,7 +117,12 @@ export const POST = withWebhookInstrumentation(
           if (becameLive && ["active", "trialing"].includes(sub.status))
             await trackServer("paid", parsed.userId, { plan: parsed.row.plan_id });
 
-          if (event.type === "customer.subscription.created") {
+          // A tutor's plan is not a student's: no student welcome for it. The tutor's code and
+          // link are on /tutor, where /tutors/welcome sends them after paying.
+          if (
+            event.type === "customer.subscription.created" &&
+            parsed.row.plan_id !== "tutor-affiliate"
+          ) {
             const { data: user, error: userError } = await supabase
               .from("users")
               .select("email")
@@ -156,8 +161,9 @@ export const POST = withWebhookInstrumentation(
         case "checkout.session.completed":
         case "checkout.session.async_payment_succeeded": {
           const session = event.data.object as Stripe.Checkout.Session;
-          // Paid before having an account (src/lib/checkout/guest.ts): the buyer's account claims
-          // it on /checkout/done. The email carries that link in case the tab was closed.
+          // Paid before having an account, under the old rule (src/lib/checkout/guest.ts): the
+          // buyer's account claims it on /checkout/done. The email carries that link in case the
+          // tab was closed.
           if (session.metadata?.guest === "1") {
             if (session.payment_status !== "unpaid") await sendFinishEmail(session);
             break;

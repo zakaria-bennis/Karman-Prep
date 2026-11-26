@@ -36,8 +36,7 @@ export function callWords(): CallWords {
     email: close["form email"],
     button: close["form button"],
     sending: SITE["form sending"],
-    doneTitle: close["form done title"],
-    doneText: close["form done text"],
+    done: close["form done"],
     errors: {
       first: SITE["form error your name"],
       last: SITE["form error your name"],

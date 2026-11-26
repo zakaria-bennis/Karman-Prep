@@ -2,6 +2,7 @@ import "server-only";
 /*
  * The parent's daily email time, in public.parent_email_settings (migration
  * 20261112200000_parent_daily_email.sql). No row means the default (7:30 PM); a NULL time means off.
+ * The time zone it is counted in is the parent's own users.time_zone.
  * Callers pass the signed-in parent's own users.id.
  */
 import { untypedAdmin, type UntypedAdmin } from "@/lib/school/db";
@@ -44,5 +45,14 @@ export async function saveDailyEmailChoice(
     },
     { onConflict: "parent_user_id" }
   );
+  if (error) throw error;
+}
+
+/** The zone the parent's times are in: the daily email and the daily report both read it. */
+export async function saveParentTimeZone(parentUserId: string, timeZone: string): Promise<void> {
+  const { error } = await untypedAdmin()
+    .from("users")
+    .update({ time_zone: timeZone })
+    .eq("id", parentUserId);
   if (error) throw error;
 }

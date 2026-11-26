@@ -5,12 +5,11 @@ const stripe = vi.hoisted(() => ({
   subscriptions: { update: vi.fn() },
   customers: { update: vi.fn() },
 }));
-const createGuestCheckoutSession = vi.hoisted(() => vi.fn());
 const upsert = vi.hoisted(() => vi.fn());
 const usersWithEmail = vi.hoisted(() => ({ rows: [] as { id: string }[] }));
 const recordPurchaseGrant = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/integrations/stripe/client", () => ({ stripe, createGuestCheckoutSession }));
+vi.mock("@/lib/integrations/stripe/client", () => ({ stripe }));
 vi.mock("@/lib/integrations/resend/client", () => ({
   FROM: "hello@karmanprep.com",
   resend: { emails: { send: vi.fn() } },
@@ -30,7 +29,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { claimGuestPurchase, guestPurchase, startGuestCheckout } from "./guest";
+import { claimGuestPurchase, guestPurchase } from "./guest";
 
 const ID = "cs_test_a1B2c3D4e5F6g7H8";
 const paid = (over: Record<string, unknown> = {}) => ({
@@ -54,22 +53,7 @@ beforeEach(() => {
   upsert.mockResolvedValue({ error: null });
 });
 
-describe("paying before having an account", () => {
-  it("opens Stripe for Practice, Pro and the private packages, and for nothing else", async () => {
-    createGuestCheckoutSession.mockResolvedValue({ url: "https://checkout.stripe.com/x" });
-    expect(await startGuestCheckout({ plan: "pro", term: "month" })).toBe(
-      "https://checkout.stripe.com/x"
-    );
-    expect(await startGuestCheckout({ plan: "private-10" })).toBeTruthy();
-    for (const no of [
-      { plan: "cohort" },
-      { plan: "tutor-affiliate" },
-      { plan: "pro" }, // no term
-      { plan: "gold" },
-    ])
-      expect(await startGuestCheckout(no)).toBeNull();
-  });
-
+describe("finishing a purchase paid before having an account", () => {
   it("knows a paid purchase from a link that is not one", async () => {
     stripe.checkout.sessions.retrieve.mockResolvedValue(paid());
     expect(await guestPurchase(ID)).toEqual({

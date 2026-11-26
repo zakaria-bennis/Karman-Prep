@@ -12,7 +12,7 @@ export const FINDER = {
     headline: "Who is this for?",
     student: ["I'm the student", "I'm taking the SAT."],
     parent: ["I'm a parent", "My child is taking the SAT."],
-    parentBusy: "Opening your parent portal",
+    parentBusy: "Setting up your parent account",
   },
   month: {
     say: "Where are we headed?",
@@ -67,16 +67,56 @@ export const FINDER = {
       didnt_move: "Yes, but my score didn't improve.",
     },
   },
-  building: "I can see it from here.",
   plan: {
     say: "We've landed. Here's your plan.",
-    because: "From your answers",
     also: "Or",
     save: "Save my plan",
     all: "See every plan",
+    free: "Start free",
+    parentFirst: "Add my student first",
     busy: "One moment",
   },
-  errors: { score: "Enter a score from 400 to 1600 that ends in 0." },
+} as const;
+
+/** The same questions, asked of a parent about their student (founder, 2026-11-25: a parent answers
+ *  for their student, then sees the plan). Only the words that say "you" change. */
+export const FINDER_PARENT = {
+  ...FINDER,
+  month: { ...FINDER.month, headline: "Which SAT is your student taking?" },
+  score: { ...FINDER.score, headline: "Your student's latest SAT score" },
+  goal: {
+    ...FINDER.goal,
+    say: "And where should they land?",
+    headline: "Your student's goal score",
+  },
+  time: {
+    ...FINDER.time,
+    headline: "How much time can your student give the SAT each week?",
+  },
+  study: {
+    ...FINDER.study,
+    headline: "How does your student study best?",
+    options: {
+      on_my_own: "On their own. They stick to a plan.",
+      with_checkins: "With a teacher and a set class time.",
+      needs_structure: "They put it off unless someone is expecting them.",
+    },
+  },
+  miss: {
+    ...FINDER.miss,
+    say: "This tells me how to teach them.",
+    headline: "When your student misses an SAT question, what helps?",
+  },
+  prior: {
+    ...FINDER.prior,
+    headline: "Has your student prepped for the SAT before?",
+    options: {
+      first_time: "No, this is their first time.",
+      worked: "Yes, and their score improved.",
+      didnt_move: "Yes, but their score didn't improve.",
+    },
+  },
+  plan: { ...FINDER.plan, say: "We've landed. Here's your student's plan." },
 } as const;
 
 /** Karman's answer to the scores: the distance, said plainly. */

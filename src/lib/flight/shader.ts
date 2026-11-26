@@ -95,38 +95,16 @@ vec2 treeAt(vec2 x, float dens) {
   float patchy = smoothstep(.3, .62, n2(x * 21.));
   return vec2(max(a.x, b.x * .7) * mix(.35, 1., patchy), a.x > b.x * .7 ? a.y : b.y);
 }
-/* one house in its cell: x = its height here, y = how far outside its walls (below 0 is inside),
-   z = which house it is (0 to 1), w = 1 where a house stands */
-vec4 house(vec2 x) {
-  vec2 g = x * 54., id = floor(g);
-  float r = tx(id + 5.), r2 = tx(id + 23.);
-  vec2 f = fract(g) - .5 - (vec2(r, r2) - .5) * .28;
-  float an = tx(id + 61.) * 3.14159, c = cos(an), sn = sin(an);
-  f = vec2(c * f.x + sn * f.y, c * f.y - sn * f.x);
-  vec2 hs = vec2(.25 + .1 * r, .16 + .06 * r2);
-  vec2 d = abs(f) - hs;
-  float inside = max(d.x, d.y), on = step(.25, tx(id + 97.));
-  float wall = .0056 + .0026 * r2, roof = .005 * clamp(1. - abs(f.y) / hs.y, 0., 1.);
-  return vec4((wall + roof) * smoothstep(.035, -.02, inside) * on, inside, r, on);
-}
 #ifdef WORLD
 ${WORLD_BUILT}
 #else
-/* settlements (founder, 2026-11-14): small villages on the low, level ground along the valley and the
-   fjord, each a cluster of houses with pitched roofs */
-float townAt(vec2 x, float h) {
-  float level = smoothstep(.004, .012, h) * smoothstep(.2, .15, h) * smoothstep(.44, .3, abs(x.x - pathX(x.y)));
-  return level * smoothstep(.5, .6, n2(x * 4.6 + 7.3)) * smoothstep(2.3, 2.7, x.y);
-}
-float built(vec2 x, float h) { return townAt(x, h) < .5 ? 0. : house(x).x; }
 float terrH(vec2 x) {
   float h = terrD(x);
   float low = lowAt(x.y);
   float band = smoothstep(mix(.74, .5, low), mix(.6, .36, low), h) * smoothstep(.004, .03, h);
   /* bare rock is cracked and ledged; the forest floor carries its trees */
   float crag = (fbm(x * 23.) - .47) * .02 + (fbm(x * 71. + 5.) - .47) * .006;
-  float town = townAt(x, h);
-  return h + (band * (1. - town) * .0056 * treeAt(x, .72).x + (1. - band) * crag) * FINE + built(x, h);
+  return h + (band * .0056 * treeAt(x, .72).x + (1. - band) * crag) * FINE;
 }
 #endif
 
@@ -298,24 +276,8 @@ ${WORLD_ALBEDO}
   alb = mix(alb, vec3(.36, .31, .22), smoothstep(.018, .004, h));
   alb = mix(alb, vec3(.78, .83, .9), snow);
 #endif
-  /* the villages: plaster walls, roofs of tile or slate, trodden earth between the houses */
-  float hb = terrD(p.xz), town = step(.5, townAt(p.xz, hb));
-  vec4 hz = house(p.xz);
-  float isH = town * hz.w * smoothstep(.035, -.02, hz.y);
-  float roofy = smoothstep(.3, .55, n.y);
-#ifdef WORLD
-  /* old houses: slate, weathered shingle or faded tile roofs; limewash or dark timber walls */
-  vec3 roofc = mix(mix(vec3(.11, .11, .12), vec3(.22, .15, .1), step(.38, hz.z)), vec3(.3, .12, .07), step(.78, hz.z));
-  vec3 wallc = mix(vec3(.58, .54, .46), vec3(.26, .17, .1), step(.6, fract(hz.z * 7.)));
-#else
-  vec3 roofc = mix(mix(vec3(.4, .12, .06), vec3(.5, .2, .08), hz.z), vec3(.13, .16, .2), step(.72, hz.z));
-  vec3 wallc = vec3(.66, .6, .5);
-#endif
-  alb = mix(alb, vec3(.3, .25, .17), town * .22 * (1. - snow));
-  alb = mix(alb, mix(wallc, roofc * (.8 + .4 * r), roofy), isH);
-  /* lamps: at night most houses have a window lit, and the light spills onto the ground around them */
-  float lamp = step(.45, hz.z) * town * hz.w;
-  vec3 glow = NIGHT * vec3(1., .55, .2) * lamp * (isH * (1. - roofy) * 1.1 + exp(-max(hz.y, 0.) * 13.) * .07);
+  /* what shines by its own light at night */
+  vec3 glow = vec3(0.);
 #ifdef WORLD
   /* by night the flowers hold a little light of their own, and it breathes */
   glow += NIGHT * petal * bloom * (.022 + .01 * sin(uTime * .7 + r * 6.3));
@@ -404,21 +366,35 @@ void main() {
   /* the camera: forward along the valley and steadily down, with a slow breath so it never sits dead still */
   float z = .2 + 8.45 * P, alt = .05 + 1.72 * pow(1. - P, 2.6), tilt = mix(-.36, .05, smoothstep(0., .92, P));
 #ifdef WORLD
-  /* fly on and on, low enough to see the trees and the houses, rising and sinking a little */
-  z = uWorld; alt = .11 + .07 * n2(vec2(z * .21, 5.)); tilt = -.11;
+  /* fly on and on, low enough to see the trees, rising and sinking a little */
+  z = uWorld; alt = .15 + .05 * n2(vec2(z * .21, 5.)); tilt = -.11;
   /* or down the river (Endless mode's picture): at its own height above the water, following each bend */
   if (uView.x > .5) { alt = uView.y + .012 * n2(vec2(z * .21, 5.)); tilt = uView.z; }
 #endif
   vec3 ro = vec3(pathX(z) + .004 * sin(uTime * .21), alt + .002 * sin(uTime * .33), z);
   /* the opening: the camera starts a little higher and sinks to its place */
   ro.y += .16 * left;
+  /* the camera keeps well clear of the land without ever jolting: it rides a smoothed line drawn over the
+     ground from a little behind it to well ahead, so it starts to rise long before a ridge arrives and
+     settles long after (founder, 2026-11-25). The plain clearance under it is only a last guard. */
+  float lift = 0., lw = 0.;
 #ifdef WORLD
   ro.x += (riverX(z) - pathX(z)) * uView.x;
+  for (int i = 0; i < 9; i++) {
+    float s = float(i) / 8., zz = z - .5 + 1.7 * s, wt = sin(3.14159 * (s * .9 + .05));
+    lift += wt * wt * terrL(vec2(mix(pathX(zz), riverX(zz), uView.x), zz)); lw += wt * wt;
+  }
+  ro.y = max(ro.y, lift / lw + mix(.12, .03, uView.x));
   vec2 ahead = vec2(mix(ro.x, riverX(z + .2), uView.x), z + .2);
-  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ahead)) + mix(.075, .02, uView.x), mix(.06, .012, uView.x)));
+  ro.y = max(ro.y, max(max(terrL(ro.xz), terrL(ahead)) + mix(.035, .014, uView.x), mix(.06, .012, uView.x)));
   EYE = ro;
 #else
-  ro.y = max(ro.y, max(terrL(ro.xz) + .1, .045));
+  for (int i = 0; i < 9; i++) {
+    float s = float(i) / 8., zz = z - .5 + 1.7 * s, wt = sin(3.14159 * (s * .9 + .05));
+    lift += wt * wt * terrL(vec2(pathX(zz), zz)); lw += wt * wt;
+  }
+  ro.y = max(ro.y, lift / lw + .13);
+  ro.y = max(ro.y, max(terrL(ro.xz) + .04, .045));
 #endif
   float zt = z + 1.3;
   vec3 ta = vec3(pathX(zt) + .004 * sin(uTime * .17), ro.y + tilt, zt);
@@ -439,8 +415,6 @@ void main() {
     float tm = terrM(p.xz), h = p.y - tm;
 #ifdef WORLD
     if (h < .06) h -= stands(p.xz, tm, clamp(1.7 - t * .6, 0., 1.));
-#else
-    if (h < .04) h -= built(p.xz, tm);
 #endif
     if (h < .0012 * t) { hit = t; break; }
 #ifdef WORLD
@@ -511,16 +485,6 @@ void main() {
     col += SUNCOL * pow(max(dot(rr, SUN), 0.), 520.) * 5. + NIGHT * vec3(.5, .6, .8) * pow(max(dot(rr, MOON), 0.), 700.) * 1.2;
     float edge = depth + .0025 * sin(uTime * 1.2 + n2(w * 30.) * 6.3);
     col = mix(col, (AMB + KEYCOL) * .6, smoothstep(.0045, .0, edge) * .7);
-    /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
-    vec2 bg = w * 8., bid = floor(bg);
-    vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
-    bf.x -= .12 * sin(uTime * .04 + tx(bid) * 6.3);
-    float boat = step(.84, tx(bid + 41.)) * smoothstep(.03, .06, depth) * (1. - ice);
-    float hull = smoothstep(.05, .03, length(bf * vec2(1., 2.4)));
-    float sail = smoothstep(.028, .014, length((bf + vec2(.004, 0.)) * vec2(2.6, 1.3)));
-    col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
-    col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
-    col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
 #endif
     col = haze(col, p, rd, tw);
     tend = tw;

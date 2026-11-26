@@ -16,9 +16,9 @@
 // onboarding.
 //
 // MAINTENANCE: when College Board officially announces a new
-// year's dates, append them below. The dates here are based on
-// historically-announced first-Saturday patterns; treat any
-// pattern-derived date as best-effort until College Board confirms.
+// year's dates, append them below. Copy them from College Board's
+// page; never work a date out from a pattern (September 2027 was
+// missed and two dates were a week off that way).
 // Registration deadlines are left NULL — only the scraper fills
 // those in (and the existing /onboarding flow doesn't surface them).
 // ============================================================
@@ -29,25 +29,49 @@ export interface StaticSatDate {
   late_registration_deadline: string | null;
 }
 
-/** Officially announced SAT test dates as of 2026-05.
- *  Source: collegeboard.org/digital-sat → "test dates" page. */
-export const STATIC_SAT_DATES: StaticSatDate[] = [
-  // ── 2026 (College Board confirmed) ─────────────────────────
-  { test_date: "2026-03-14", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-05-02", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-06-06", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-08-22", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-10-03", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-11-07", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2026-12-05", registration_deadline: null, late_registration_deadline: null },
+/** SAT weekend test dates as College Board lists them (read 2026-11-25).
+ *  Source: satsuite.collegeboard.org/sat/dates-deadlines. Dates through June 2027 are open for
+ *  registration; the 2027-28 dates are the ones College Board calls "anticipated". */
+const row = (test_date: string): StaticSatDate => ({
+  test_date,
+  registration_deadline: null,
+  late_registration_deadline: null,
+});
 
-  // ── 2027 (projected — first Saturday of each month College Board
-  //         typically administers; replace once announced) ────
-  { test_date: "2027-03-13", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-05-01", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-06-05", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-08-28", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-10-02", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-11-06", registration_deadline: null, late_registration_deadline: null },
-  { test_date: "2027-12-04", registration_deadline: null, late_registration_deadline: null },
-];
+export const STATIC_SAT_DATES: StaticSatDate[] = [
+  // 2026
+  "2026-03-14",
+  "2026-05-02",
+  "2026-06-06",
+  "2026-08-22",
+  "2026-10-03",
+  "2026-11-07",
+  "2026-12-05",
+  // spring 2027 (registration open)
+  "2027-03-06",
+  "2027-05-01",
+  "2027-06-05",
+  // 2027-28 (anticipated)
+  "2027-08-28",
+  "2027-09-18",
+  "2027-10-09",
+  "2027-11-06",
+  "2027-12-04",
+  "2028-03-04",
+  "2028-05-06",
+  "2028-06-03",
+].map(row);
+
+/** Two dates this file once guessed from the first-Saturday pattern, which College Board then set
+ *  a week apart. The table may still hold them until the migration that corrects it has run. */
+const GUESSED_WRONG = ["2027-03-13", "2027-10-02"];
+
+/** The SAT dates a student may pick from today on: the table's, with every date above added and
+ *  the two wrong guesses left out, in order. */
+export function knownSatDates(fromTable: readonly string[], today: string): string[] {
+  const all = new Set([
+    ...fromTable.map((d) => d.slice(0, 10)),
+    ...STATIC_SAT_DATES.map((d) => d.test_date),
+  ]);
+  return [...all].filter((d) => d >= today && !GUESSED_WRONG.includes(d)).sort();
+}

@@ -1,19 +1,47 @@
 /* The Next.js port's own additions to the mock's styles (everything else in this folder is the approved
    mock, scoped under .ks so none of it reaches the student app). */
-.ks { min-height: 100svh; }
-html:has(#ks) { background: #0e0d0c; }
+.ks {
+  min-height: 100svh;
+}
+html:has(#ks) {
+  background: #0e0d0c;
+}
 /* our drawings are placed through a wrapper that must not add a box of its own */
-.ks .scr-host, .ks .k-icon-wrap, .ks .k-arrow-wrap { display: contents; }
-.ks .k-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.ks .scr-host,
+.ks .k-icon-wrap,
+.ks .k-arrow-wrap {
+  display: contents;
+}
+.ks .k-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
 /* the theme switch shows the moon in light mode and the sun in dark mode, before any script runs */
-.ks .theme .sun, .ks[data-mode="dark"] .theme .moon { display: none; }
-.ks[data-mode="dark"] .theme .sun { display: inline; }
-.ks .theme .sun, .ks .theme .moon { width: 20px; height: 20px; }
+.ks .theme .sun,
+.ks[data-mode="dark"] .theme .moon {
+  display: none;
+}
+.ks[data-mode="dark"] .theme .sun {
+  display: inline;
+}
+.ks .theme .sun,
+.ks .theme .moon {
+  width: 20px;
+  height: 20px;
+}
 
 /* the app's floating theme toggle stays off any page drawn with the site's frame (the 404 and error pages
    too, whose addresses aren't in SITE_PAGES): the site header has its own switch */
-body:has(#ks) button.fixed[title="Toggle light and dark mode"] { display: none; }
+body:has(#ks) button.fixed[title="Toggle light and dark mode"] {
+  display: none;
+}
 
 /* Leaving for the sign-in pages, the page blows away like a flurry and the cabin clearing settles in (the
    moves themselves are in auth/cabin.css). Every other page change stays instant: ShellBehaviour skips it. */
-@view-transition { navigation: auto; }
+@view-transition {
+  navigation: auto;
+}

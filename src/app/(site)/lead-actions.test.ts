@@ -78,11 +78,11 @@ describe("submitLead", () => {
   });
 
   it("answers a filled bot trap like a person, and keeps nothing", async () => {
-    const r = await submitLead("seat", {
+    const r = await submitLead("apply", {
       email: "a@b.co",
-      name: "Ava",
-      grade: "11th",
-      date: "March 6",
+      latest: "1180",
+      target: "1400",
+      date: "March 1",
       company: "spam inc",
     });
     expect(r).toEqual({ ok: true });
@@ -91,11 +91,11 @@ describe("submitLead", () => {
 
   it("sends the whole lead to the admin inbox when the database fails, and says received", async () => {
     db.error = { message: "table missing" };
-    const r = await submitLead("seat", {
+    const r = await submitLead("apply", {
       email: "a@b.co",
-      name: "Ava",
-      grade: "11th",
-      date: "Not sure yet",
+      latest: "1180",
+      target: "1400",
+      date: "March 1",
       company: "",
     });
     expect(r).toEqual({ ok: true });
@@ -103,17 +103,17 @@ describe("submitLead", () => {
     expect(sent.to).toBe("admin@example.com");
     expect(sent.text).toContain("only record of this lead");
     expect(sent.text).toContain("a@b.co");
-    expect(sent.text).toContain("Ava");
+    expect(sent.text).toContain("1180");
   });
 
   it("says so when both the database and the admin email fail", async () => {
     db.error = { message: "down" };
     mail.send.mockResolvedValue({ data: null, error: { message: "resend down" } });
-    const r = await submitLead("seat", {
+    const r = await submitLead("apply", {
       email: "a@b.co",
-      name: "Ava",
-      grade: "11th",
-      date: "Not sure yet",
+      latest: "1180",
+      target: "1400",
+      date: "March 1",
       company: "",
     });
     expect(r).toEqual({ ok: false, error: "server" });

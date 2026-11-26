@@ -5,13 +5,14 @@ import { FINDER } from "./shared";
 
 const W = FINDER.plan;
 
-/** The plan, said briefly: its name and price, one or two sentences of why, the three answers it turned
- *  on, and the site's own button to its real next step. */
+/** The plan, said briefly: its name and price, one or two sentences of why, the points to gain with the
+ *  weeks left as one plain line, and the site's own button to its real next step. */
 export function RecommendationStep({
   recommendation,
   onContinue,
   submitting,
   signedIn,
+  parent = false,
 }: {
   /** Signed out, the plan is shown first and the account is asked for here, to save it. */
   signedIn: boolean;
@@ -19,6 +20,9 @@ export function RecommendationStep({
   /** Goes to the plan's real next step: checkout, the reservation or the call booking. */
   onContinue: (href: string) => void | Promise<void>;
   submitting: boolean;
+  /** A parent is answering for their student: a renewing plan belongs to the student's account, so
+   *  the parent adds the student first. */
+  parent?: boolean;
 }) {
   const plan = planSummary(recommendation.planId);
   const other = recommendation.alsoConsidered;
@@ -27,11 +31,9 @@ export function RecommendationStep({
       <h1>{recommendation.headline}</h1>
       <p className="ob-price num">{plan.price}</p>
       <p>{recommendation.why}</p>
-      <ul aria-label={W.because}>
-        {recommendation.signals.map((s) => (
-          <li key={s}>{s}</li>
-        ))}
-      </ul>
+      {recommendation.signals.length > 0 && (
+        <p className="ob-facts">{recommendation.signals.join(" with ")}.</p>
+      )}
       <button
         type="button"
         className="btn"
@@ -39,16 +41,32 @@ export function RecommendationStep({
         data-busy={submitting || undefined}
         suppressHydrationWarning
       >
-        <span className="lb">{submitting ? W.busy : signedIn ? plan.action : W.save}</span>
+        <span className="lb">
+          {submitting
+            ? W.busy
+            : !signedIn
+              ? W.save
+              : parent && plan.href.startsWith("/checkout")
+                ? W.parentFirst
+                : plan.action}
+        </span>
       </button>
       {other ? (
         <p className="ob-also">
           {W.also} <b>{planSummary(other.planId).name}</b>: {other.reason}
         </p>
       ) : null}
-      <a className="ob-quiet" href="/pricing">
-        {W.all}
-      </a>
+      <p className="ob-ways">
+        {/* an account can always start on the free plan: nobody has to buy to get in */}
+        {signedIn ? (
+          <button type="button" className="ob-quiet" onClick={() => void onContinue("/portal")}>
+            {W.free}
+          </button>
+        ) : null}
+        <a className="ob-quiet" href="/pricing">
+          {W.all}
+        </a>
+      </p>
     </div>
   );
 }

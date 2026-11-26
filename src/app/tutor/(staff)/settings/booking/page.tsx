@@ -45,7 +45,7 @@ export default async function TutorBookingSettingsPage({ searchParams }: PagePro
   if (role !== "tutor" && role !== "admin") redirect("/dashboard/student");
 
   const tutorUuid = await getUserUuidByClerkId(userId);
-  if (!tutorUuid) redirect("/onboarding");
+  if (!tutorUuid) redirect("/tutor");
 
   const params = await searchParams;
   const status = await getCalConnectionStatus(tutorUuid);

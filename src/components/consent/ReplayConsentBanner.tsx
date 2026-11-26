@@ -39,9 +39,22 @@ const APP_PREFIXES = [
   "/admin",
   "/school",
   "/onboarding",
-  "/calculator",
   "/billing",
   "/checkout",
+];
+
+/** The crumbs a bite throws: how far sideways, how high, how big, and which part of the cookie.
+ *  Three bites take them in turn. */
+const CRUMBS: [number, number, number, string][] = [
+  [-13, 9, 3, "var(--kc-dough)"],
+  [9, 12, 2.4, "#5b3a24"],
+  [16, 6, 3.4, "var(--kc-crumb)"],
+  [-7, 13, 2.6, "var(--kc-crumb)"],
+  [12, 10, 3, "var(--kc-dough)"],
+  [20, 5, 2.2, "#5b3a24"],
+  [-16, 7, 2.8, "#5b3a24"],
+  [5, 14, 3.2, "var(--kc-dough)"],
+  [14, 8, 2.4, "var(--kc-crumb)"],
 ];
 
 function isAppScreen(pathname: string | null): boolean {
@@ -99,14 +112,29 @@ export default function ReplayConsentBanner({ show, privacyHref = "/cookies" }: 
       data-leaving={leaving ? "" : undefined}
     >
       <div className="kc-top">
-        {/* the fox works through a plate of cookies, one bite after another */}
+        {/* the fox wolfs a cookie down in three bites (consent.css) */}
         <span className="kc-eat" aria-hidden="true">
-          <Fox size={46} />
-          {[0, 1, 2].map((i) => (
-            <i key={i} style={{ "--n": i } as React.CSSProperties} />
-          ))}
-          {[0, 1, 2, 3].map((i) => (
-            <b key={i} style={{ "--n": i } as React.CSSProperties} />
+          <span className="kc-fox">
+            <Fox size={50} />
+            <svg className="kc-jaw" viewBox="-60 -112 120 128" width={50} height={(50 * 128) / 120}>
+              <ellipse cx="0" cy="-3" rx="7" ry="6" fill="#24180F" />
+              <ellipse cx="0" cy="0" rx="4" ry="2.6" fill="#F28B7E" />
+            </svg>
+          </span>
+          <i className="kc-cookie" />
+          {CRUMBS.map(([dx, up, size, color], n) => (
+            <b
+              key={n}
+              style={
+                {
+                  "--k": n % 3,
+                  "--dx": `${dx}px`,
+                  "--up": `${up}px`,
+                  "--s": `${size}px`,
+                  "--c": color,
+                } as React.CSSProperties
+              }
+            />
           ))}
         </span>
         <div>

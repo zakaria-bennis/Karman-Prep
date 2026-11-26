@@ -10,10 +10,11 @@
 // Words: reserve-copy.ts (start). Styles: app/onboarding/intake.css.
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Guide } from "@/app/onboarding/_steps/Guide";
-import { Progress, ScoreField } from "@/app/onboarding/_steps/Parts";
+import { Progress, ScoreWheel } from "@/app/onboarding/_steps/Parts";
 import { saveStart } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { okScore } from "@/lib/marketing/lead-rules";
+import { readKnown } from "@/lib/onboarding/known";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import { CLASS_TIMES, HARDEST } from "@/lib/reserve/schemas";
 import { Observatory } from "./Observatory";
@@ -37,6 +38,8 @@ export default function RegistrationFlight({
   filledBy,
   claimed = false,
   landed = false,
+  mine = false,
+  known: fromSeat,
 }: {
   token: string;
   /** Opens the parent portal for this seat (the parents' own link). */
@@ -49,6 +52,10 @@ export default function RegistrationFlight({
   claimed?: boolean;
   /** The questions were answered on an earlier visit: open on the landing. */
   landed?: boolean;
+  /** The visitor is signed in to the account that reserved the seat. */
+  mine?: boolean;
+  /** What the seat already knows (an earlier visit), so it is not asked again. */
+  known?: { score: string; goal: string };
 }) {
   const [step, setStep] = useState(landed ? STEPS.length - 1 : 0);
   const [dir, setDir] = useState<1 | -1>(1);
@@ -63,7 +70,22 @@ export default function RegistrationFlight({
   const [busy, start] = useTransition();
   const card = useRef<HTMLFormElement>(null);
   const at: Step = STEPS[step];
-  const say = (t: string) => t.replaceAll("{name}", name);
+  // The words are written about the student ("{name} is ready"). When the student is the one reading,
+  // they are said to them ("you're ready"); only the welcome keeps their name.
+  const say = (t: string) =>
+    filledBy === "student"
+      ? t
+          .replaceAll("Welcome, {name}", `Welcome, ${name}`)
+          .replaceAll("is {name}", "are you")
+          .replaceAll("{name} is", "you're")
+          .replaceAll("{name} takes", "you take")
+          .replaceAll("{name}'s", "your")
+          .replaceAll("{name}", "you")
+          .replace(
+            /(^|[.?!] )([a-z])/g,
+            (_, gap: string, letter: string) => gap + letter.toUpperCase()
+          )
+      : t.replaceAll("{name}", name);
   const claim = `/reserve/claim?r=${encodeURIComponent(token)}`;
 
   // The flight: each answer is a leg, and between answers the view keeps drifting forward, so the
@@ -95,7 +117,25 @@ export default function RegistrationFlight({
     setDir(to > step ? 1 : -1);
     setStep(to);
   };
-  const back = () => go(STEPS[step - 1] === "gap" ? step - 2 : step - 1);
+  // the scores, when the sign-up questions already asked for them (lib/onboarding/known.ts): filled
+  // in, and those two steps are left out
+  const [known, setKnown] = useState(false);
+  useEffect(() => {
+    const k = readKnown();
+    const theirGoal = fromSeat?.goal || k.goal;
+    const theirScore = fromSeat?.score || k.score;
+    if (!theirGoal || !(theirScore || k.noScore)) return;
+    setScore(theirScore ?? "");
+    setNoScore(!theirScore);
+    setGoal(theirGoal);
+    setKnown(true);
+  }, [fromSeat]);
+  // the questions actually asked: the count Karman names, and the segments of the progress
+  const asked = QUESTIONS.filter((q) => !(known && (q === "score" || q === "goal")));
+  const back = () => {
+    if (known && at === "hardest") return go(0);
+    go(STEPS[step - 1] === "gap" ? step - 2 : step - 1);
+  };
 
   /** A check failed: say so, and put the cursor back in the field. */
   const fail = (msg: string) => {
@@ -107,6 +147,7 @@ export default function RegistrationFlight({
     if (at === "goal" && !okScore(goal, 400)) return fail(W.errors.score);
     if (at === "hardest" && !hardest) return;
     if (at === "times" && !times.length) return setBad(W.errors.times);
+    if (at === "hello" && known) return go(STEPS.indexOf("gap"));
     if (at !== "note") return go(step + 1);
     start(async () => {
       const res = await saveStart({
@@ -130,7 +171,7 @@ export default function RegistrationFlight({
       : W.gap.replace("{from}", score).replace("{to}", goal).replace("{gap}", String(d));
   };
   const said: Record<Step, string> = {
-    hello: say(W.hello),
+    hello: say(W.hello).replace("{count}", W.counts[asked.length] ?? W.counts[5]),
     score: say(W.score.say),
     goal: W.goal.say,
     gap: gap(),
@@ -159,16 +200,20 @@ export default function RegistrationFlight({
     }
   };
 
-  const number = (value: string, set: (v: string) => void, label: string, off = false) => (
-    <ScoreField
+  const number = (
+    value: string,
+    set: (v: string) => void,
+    label: string,
+    off = false,
+    min = 400
+  ) => (
+    <ScoreWheel
       label={label}
       value={value}
-      bad={!!bad}
       off={off}
-      onChange={(v) => {
-        set(v);
-        if (bad) setBad("");
-      }}
+      min={min}
+      start={Math.min(1600, min === 400 ? 1200 : min + 150)}
+      onChange={set}
     />
   );
 
@@ -194,7 +239,13 @@ export default function RegistrationFlight({
     goal: (
       <>
         <h1>{say(W.goal.headline)}</h1>
-        {number(goal, setGoal, W.goal.field)}
+        {number(
+          goal,
+          setGoal,
+          W.goal.field,
+          false,
+          noScore || !okScore(score, 400) ? 400 : Number(score)
+        )}
       </>
     ),
     hardest: (
@@ -207,7 +258,11 @@ export default function RegistrationFlight({
               role="radio"
               aria-checked={hardest === k}
               key={k}
-              onClick={() => setHardest(k)}
+              onClick={() => {
+                // the tap is the answer: it shows for a moment, then the next question comes
+                setHardest(k);
+                window.setTimeout(() => go(step + 1), 220);
+              }}
             >
               {W.hardest.options[k]}
             </button>
@@ -254,11 +309,20 @@ export default function RegistrationFlight({
   const landing = (
     <div className="ob-land">
       <section className="ob-card ob-link">
-        {claimed ? (
+        {claimed && mine && filledBy === "student" ? (
+          // the student reserved with their own account: the seat is already on it
+          <>
+            <h2>{W.land.mineTitle}</h2>
+            <p>{W.land.mineText}</p>
+            <a className="btn" href="/dashboard/student?welcome=1" suppressHydrationWarning>
+              <span className="lb">{W.land.mineOpen}</span>
+            </a>
+          </>
+        ) : claimed ? (
           <>
             <h2>{say(W.land.studentTitle)}</h2>
             <p>{RESERVE.welcome.claimed}</p>
-            <a className="btn" href="/auth/sign-in" suppressHydrationWarning>
+            <a className="btn" href="/auth/sign-in?redirect_url=/portal" suppressHydrationWarning>
               <span className="lb">{RESERVE.welcome.signIn}</span>
             </a>
           </>
@@ -283,10 +347,14 @@ export default function RegistrationFlight({
       {filledBy === "parent" ? (
         <section className="ob-card ob-link">
           <h2>{W.land.parentTitle}</h2>
-          <p>{W.land.parentText}</p>
+          <p>{mine ? W.land.parentTextMine : W.land.parentText}</p>
           <a
             className="btn"
-            href={`/reserve/parent?p=${encodeURIComponent(parentToken)}`}
+            href={
+              mine
+                ? "/dashboard/parent?welcome=1"
+                : `/reserve/parent?p=${encodeURIComponent(parentToken)}`
+            }
             suppressHydrationWarning
           >
             <span className="lb">{W.land.parentButton}</span>
@@ -299,11 +367,7 @@ export default function RegistrationFlight({
           {W.land.steps.map(([when, what]) => (
             <li key={when}>
               <b>{when}</b>
-              <span>
-                {filledBy === "student"
-                  ? what.replace("{name}'s", "Your").replace("{name}", "you")
-                  : say(what)}
-              </span>
+              <span>{say(what)}</span>
             </li>
           ))}
         </ol>
@@ -312,13 +376,21 @@ export default function RegistrationFlight({
     </div>
   );
 
+  const goButton = (
+    <button type="submit" className="btn" data-busy={busy || undefined} suppressHydrationWarning>
+      <span className="lb">
+        {at === "hello" ? W.helloButton : at === "note" ? (busy ? W.saving : W.finish) : W.next}
+      </span>
+    </button>
+  );
+
   return (
     <div className="ob" data-landed={at === "done" || undefined}>
       {at === "done" ? <Observatory /> : null}
       {at === "done" || at === "hello" ? null : (
         <Progress
-          total={QUESTIONS.length}
-          at={QUESTIONS.indexOf(at) + 1 || QUESTIONS.indexOf("goal") + 2}
+          total={asked.length}
+          at={asked.indexOf(at) + 1 || asked.indexOf("goal") + 2}
           onBack={back}
           canBack={step > 0 && !busy}
         />
@@ -347,32 +419,24 @@ export default function RegistrationFlight({
                   {bad}
                 </p>
               ) : null}
+              {/* the button is part of the glass, centred; a question answered by one tap has none */}
+              {at === "hardest" ? null : <div className="ob-go">{goButton}</div>}
             </div>
           )}
-          {at === "done" ? (
-            landing
-          ) : (
-            // outside the card on purpose: on a phone it is fixed to the bottom of the screen
-            <div className="ob-go" data-centre={at === "hello" || undefined}>
-              <button
-                type="submit"
-                className="btn"
-                disabled={at === "hardest" && !hardest}
-                data-busy={busy || undefined}
-                suppressHydrationWarning
-              >
-                <span className="lb">
-                  {at === "hello"
-                    ? W.helloButton
-                    : at === "note"
-                      ? busy
-                        ? W.saving
-                        : W.finish
-                      : W.next}
-                </span>
-              </button>
-            </div>
-          )}
+          {at === "done" ? landing : moment ? <div className="ob-go">{goButton}</div> : null}
+          {/* the scores were filled in from what was said before: one tap puts them right */}
+          {at === "gap" && known ? (
+            <button
+              type="button"
+              className="ob-quiet ob-fix"
+              onClick={() => {
+                setKnown(false);
+                go(STEPS.indexOf("score"));
+              }}
+            >
+              {W.fixScores}
+            </button>
+          ) : null}
         </form>
       </div>
     </div>

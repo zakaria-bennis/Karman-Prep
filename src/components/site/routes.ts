@@ -12,7 +12,6 @@ export const ROUTES = {
   portal: "/portal",
   schools: "/schools",
   tutors: "/for-tutors",
-  test: "/free-practice-test",
   pricing: "/pricing",
   guarantee: "/guarantee",
   faq: "/faq",
@@ -27,7 +26,6 @@ export const ROUTES = {
   billing: "/billing",
   /** A plan button: sign-up if needed, then straight to Stripe Checkout. */
   checkout: "/checkout/start",
-  calculator: "/calculator",
 } as const;
 
 /** Pages drawn with the marketing shell (its own header, theme switch and footer). */
@@ -38,7 +36,6 @@ export const SITE_PAGES = [
   ROUTES.reserve,
   ROUTES.schools,
   ROUTES.tutors,
-  ROUTES.test,
   ROUTES.pricing,
   ROUTES.guarantee,
   ROUTES.faq,

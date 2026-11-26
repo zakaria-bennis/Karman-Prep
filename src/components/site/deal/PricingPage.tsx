@@ -5,11 +5,13 @@
 //   A plan with a guarantee shows it at the top of the card, beside a shield.
 //   Self-study plans carry one sliding pill in the top corner: 3 months (the default) or Monthly.
 //   Private 20's saving is a ribbon that is pulled across its corner.
-//   The cohort card holds the choice of SAT (each cohort ends on one) and the scholarship badge. Pressing
+//   The cohort card holds the choice of SAT date (one sliding pill, up to four dates; each cohort ends on
+//   one), its two dates on two lines, and the scholarship badge (its room is kept when a cohort has none). Pressing
 //   the badge dims the page and opens a small placard about the scholarship; it closes on a click anywhere,
 //   its X, or Escape. Tapping the fox in it sets off a small celebration instead.
 // Words and numbers arrive as props from pricing-data.ts. Styles: pricing.css.
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+// /billing shows these same cards to a signed-in account, opened on its side, under its current plan.
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Fox } from "@/components/portal/Fox";
 import { Arrow } from "@/components/site/parts";
 import { Confetti } from "@/components/site/private/FoxCheer";
@@ -134,10 +136,26 @@ function AwardCard({ a, onClose }: { a: PriceAward; onClose: () => void }) {
   );
 }
 
-export default function PricingPage({ headline, sides, self, tutor, words, links }: PriceProps) {
-  const [side, setSide] = useState<"self" | "tutor">("tutor");
+export default function PricingPage({
+  headline,
+  sides,
+  self,
+  tutor,
+  words,
+  links,
+  start,
+  top,
+}: PriceProps & {
+  /** Where to open (/billing): which side, and one plan's term already picked. */
+  start?: { side: "self" | "tutor"; plan?: string | null; term?: number };
+  /** Shown between the headline and the switch (/billing: the plan the account already has). */
+  top?: ReactNode;
+}) {
+  const [side, setSide] = useState<"self" | "tutor">(start?.side ?? "tutor");
   const [when, setWhen] = useState(0);
-  const [term, setTerm] = useState<Record<string, number>>({});
+  const [term, setTerm] = useState<Record<string, number>>(
+    start?.plan ? { [start.plan]: start.term ?? 0 } : {}
+  );
   const [pop, setPop] = useState<PriceAward | null>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const plans = side === "self" ? self : tutor;
@@ -179,11 +197,15 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
             ))}
           </div>
         ) : null}
-        {p.award && cohort?.award ? (
+        {p.award ? (
           <button
             className="pz-award"
             type="button"
             aria-haspopup="dialog"
+            // a cohort without the scholarship keeps the badge's room, so the card never jumps
+            data-off={cohort?.award ? undefined : ""}
+            aria-hidden={cohort?.award ? undefined : true}
+            disabled={!cohort?.award}
             onClick={(e) => {
               opener.current = e.currentTarget;
               setPop(p.award ?? null);
@@ -203,7 +225,6 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
           </p>
         ) : null}
         <div className="pz-head">
-          {p.tag ? <p className="pz-tag">{p.tag}</p> : null}
           <h2>{p.name}</h2>
         </div>
         <p className="pz-price" key={t?.label} aria-live="polite">
@@ -214,7 +235,15 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
         {p.cohorts && cohort ? (
           <div className="pz-when">
             <span>{words.sat}</span>
-            <div role="radiogroup" aria-label={words.sat}>
+            <div
+              className="pz-dates"
+              role="radiogroup"
+              aria-label={words.sat}
+              style={
+                { "--n": p.cohorts.length, "--at": p.cohorts.indexOf(cohort) } as CSSProperties
+              }
+            >
+              <i aria-hidden="true" />
               {p.cohorts.map((c, k) => (
                 <button
                   key={c.sat}
@@ -227,9 +256,14 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
                 </button>
               ))}
             </div>
-            <small aria-live="polite">
-              {words.starts} {cohort.starts} · {words.closes} {cohort.closes}
-            </small>
+            <p aria-live="polite">
+              <small>
+                {words.starts} {cohort.starts}
+              </small>
+              <small>
+                {words.closes} {cohort.closes}
+              </small>
+            </p>
           </div>
         ) : null}
         <a className="btn pz-go" href={t?.href ?? p.href}>
@@ -255,6 +289,7 @@ export default function PricingPage({ headline, sides, self, tutor, words, links
       <div className="mist" aria-hidden="true" />
       <div className="pg-in">
         <h1>{headline}</h1>
+        {top}
         <div className="pz-switch" role="tablist">
           <i aria-hidden="true" />
           {(["self", "tutor"] as const).map((k) => (

@@ -246,10 +246,10 @@ export default function CabinStage({
       for (const spinner of root.querySelectorAll(".cl-spinner")) {
         const home = spinner.parentElement;
         if (!home || home.querySelector(".cb-orb")) continue;
-        const c = document.createElement("canvas");
+        const c = document.createElement("span");
         c.className = "cb-orb";
         home.append(c);
-        stops.set(c, orb(c, { size: 22, dark: true }));
+        stops.set(c, orb(c));
       }
       for (const [c, stop] of stops)
         if (!c.parentElement?.querySelector(".cl-spinner")) {
@@ -383,7 +383,14 @@ export default function CabinStage({
         </div>
         <p className="cb-foot">
           {up ? "Already have an account?" : "New here?"}{" "}
-          <a href={up ? "/auth/sign-in" : "/auth/sign-up"}>{up ? "Sign in" : "Get started"}</a>
+          {/* switching keeps where the visitor was going: a paid seat's link, an invite, a plan */}
+          <a
+            href={`${up ? "/auth/sign-in" : "/auth/sign-up"}${
+              next ? `?redirect_url=${encodeURIComponent(next)}` : ""
+            }`}
+          >
+            {up ? "Sign in" : "Get started"}
+          </a>
         </p>
       </div>
     </section>

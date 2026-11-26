@@ -129,16 +129,6 @@ vec3 sea(vec3 p, vec3 rd, float tw, float jit) {
   /* by night the sea shines blue where it breaks on the shore, and in patches where it is stirred */
   col += NIGHT * vec3(.08, .55, .8) * (smoothstep(surf * 1.5, .0, depth) * .5 * smoothstep(.0, .03, max(depth, -terrL(w + vec2(0., .05)))) + .05 * smoothstep(.6, .8, n2(w * 9. + T * .05)) * smoothstep(.1, .0, depth)) * (1. - ice) * (1. - inRiver);
 
-  /* boats: a few small sailing boats out on the deeper water, each with a lantern at night */
-  vec2 bg = w * 8., bid = floor(bg);
-  vec2 bf = fract(bg) - .5 - (vec2(tx(bid + 3.), tx(bid + 17.)) - .5) * .6;
-  bf.x -= .12 * sin(T * .04 + tx(bid) * 6.3);
-  float boat = step(.84, tx(bid + 41.)) * smoothstep(.03, .06, depth) * (1. - ice) * (1. - inRiver);
-  float hull = smoothstep(.05, .03, length(bf * vec2(1., 2.4)));
-  float sail = smoothstep(.028, .014, length((bf + vec2(.004, 0.)) * vec2(2.6, 1.3)));
-  col = mix(col, vec3(.2, .13, .08) * (AMB + KEYCOL), hull * boat);
-  col = mix(col, vec3(.92, .9, .84) * (AMB * .9 + KEYCOL), sail * boat);
-  col += NIGHT * vec3(1., .6, .25) * boat * smoothstep(.09, .0, length(bf)) * .5;
   /* swans near the shore, each trailing a wake */
   vec2 sg = w * 16. + vec2(T * .02, 0.), sid = floor(sg);
   vec2 sf = fract(sg) - .5 - (vec2(tx(sid + 3.), tx(sid + 17.)) - .5) * .6;

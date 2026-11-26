@@ -1,11 +1,17 @@
 "use client";
 
-// Reserve a seat, built to docs/forms/form-rules.md (founder, 2026-11-13). Five short steps:
-//   1. who is reserving (one tap, and it words the rest);
-//   2. the email, alone: on Continue the lead is saved, so a family who stops here can be followed up;
-//   3. the names and a mobile phone;
-//   4. the SAT date the cohort ends on;
-//   5. how to pay, with the total and the guarantee on screen, then Stripe's own payment page.
+// Reserve a seat, built to docs/forms/form-rules.md (founder, 2026-11-13). The visitor is signed in
+// before this form opens (founder, 2026-11-25: nobody pays before they have an account), so it asks only
+// what the account does not already say. At most six short steps:
+//   1. who is reserving (one tap, and it words the rest): not asked of a parent account, or of anyone
+//      who already said;
+//   2. the parent's email, asked only of a student (a parent's is their account's);
+//   3. the student's first name, alone (the seat is theirs): not asked of a student whose account has it;
+//   4. the parent's name and mobile phone, after a word back about the student;
+//   5. the SAT date the cohort ends on (one tap, no Continue): not asked when it is already known;
+//   6. how to pay (one tap, no Continue), with the total and the guarantee on screen, then our payment page.
+// The reservation is saved from the first answer, so a family who stops can be followed up, and coming
+// back (or pressing Back on the payment page) carries on where they were.
 // Nothing else is asked before payment: a buyer who has decided should reach the payment page fast, and the
 // questions that get the student started come right after it (RegistrationFlight.tsx).
 // The price is in view from the first step. Each field keeps its name while it is typed in, is checked when
@@ -18,13 +24,14 @@ import { payForSeat, saveEmail, saveNames } from "@/app/(site)/reserve/actions";
 import { track } from "@/lib/analytics/client";
 import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import { RESERVE as W } from "@/lib/marketing/reserve-copy";
+import { keepKnown, monthName, readKnown } from "@/lib/onboarding/known";
 import { UNDECIDED, type OpenProgram } from "@/lib/reserve/programs";
 
 type Who = "parent" | "student";
 type Field = "email" | "name" | "student" | "phone";
 type Pay = "full" | "installments";
-const STEPS = ["who", "email", "names", "date", "pay"] as const;
-const KEEP = "karman:reserve";
+const STEPS = ["who", "email", "student", "parent", "date", "pay"] as const;
+const at = (step: (typeof STEPS)[number]) => STEPS.indexOf(step);
 
 /** A phone number as it is typed: (512) 555-0142, or + and digits for a number abroad. */
 function formatPhone(v: string): string {
@@ -85,77 +92,108 @@ const INPUT: Record<Field, Record<string, string | number | boolean>> = {
   phone: { type: "tel", inputMode: "tel", autoComplete: "tel", maxLength: 17 },
 };
 
-interface Saved {
-  step: number;
+/** What the signed-in account already says (lib/reserve/buyer.ts). */
+export interface ReserveMe {
   who: Who | null;
-  v: Record<Field, string>;
-  id: string | null;
+  firstName: string;
+  fullName: string;
+  /** The SAT the account is taking, YYYY-MM-DD, or "". */
+  satDate: string;
+}
+/** The account's unfinished reservation, carried on with. */
+export interface ReserveOpen {
+  id: string;
+  who: Who;
+  email: string;
+  name: string;
+  student: string;
+  phone: string;
   program: string;
-  pay: Pay;
 }
 
-export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
+export default function ReserveForm({
+  programs,
+  me,
+  open,
+}: {
+  programs: OpenProgram[];
+  me: ReserveMe;
+  open: ReserveOpen | null;
+}) {
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
-  const [who, setWho] = useState<Who | null>(null);
+  const [who, setWho] = useState<Who | null>(open?.who ?? me.who);
   const [v, setV] = useState<Record<Field, string>>({
-    email: "",
-    name: "",
-    student: "",
-    phone: "",
+    email: open?.email ?? "",
+    name: open?.name ?? "",
+    student: open?.student ?? "",
+    phone: open?.phone ? formatPhone(open.phone) : "",
   });
   const [bad, setBad] = useState<Partial<Record<Field | "form", string>>>({});
-  const [id, setId] = useState<string | null>(null);
-  const [program, setProgram] = useState(programs[0]?.id ?? "");
-  const [pay, setPay] = useState<Pay>("full");
+  const [id, setId] = useState<string | null>(open?.id ?? null);
+  const [program, setProgram] = useState(open?.program ?? "");
+  const [pay, setPay] = useState<Pay | null>(null);
   const [busy, start] = useTransition();
   const [ready, setReady] = useState(false);
+  // steps that are already answered (by the account, or earlier in this browser): never asked twice
+  const [skip, setSkip] = useState({ who: false, student: false, date: false });
   const trap = useRef<HTMLInputElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const since = useRef(0);
   const name = STEPS[step];
   const say = who ?? "parent";
+  // a parent's own account already has their name
+  const nameKnown = who === "parent" && okName(me.fullName) && me.fullName.trim().length > 0;
   const stepRef = useRef(0);
   useEffect(() => {
     stepRef.current = step;
   }, [step]);
 
-  // answers survive a refresh and the trip to the payment page and back (this tab only)
+  // Where the form opens: on the first question that is not answered yet. The account and its
+  // unfinished reservation come from the server; what this browser was told before (who, which SAT)
+  // fills the gaps for a brand-new account.
   useEffect(() => {
-    try {
-      const kept = JSON.parse(sessionStorage.getItem(KEEP) ?? "null") as Saved | null;
-      if (kept?.who) {
-        setWho(kept.who);
-        setV(kept.v);
-        setId(kept.id);
-        if (kept.program === UNDECIDED || programs.some((p) => p.id === kept.program))
-          setProgram(kept.program);
-        setPay(kept.pay);
-        setStep(Math.min(kept.step, kept.id ? STEPS.length - 1 : 1));
-      }
-    } catch {
-      // a private window may refuse storage: the form still works, it just starts fresh
-    }
+    const known = readKnown();
+    const role = open?.who ?? me.who ?? known.role ?? null;
+    const sat = me.satDate || known.satDate || "";
+    const theirs = sat ? programs.find((p) => p.month === monthName(sat)) : undefined;
+    const chosen =
+      open?.program && (open.program === UNDECIDED || programs.some((p) => p.id === open.program))
+        ? open.program
+        : (theirs?.id ?? "");
+    const student = open?.student || (role === "student" ? me.firstName : "");
+    const skips = {
+      who: Boolean(role),
+      student: role === "student" && Boolean(me.firstName),
+      date: Boolean(chosen),
+    };
+    setWho(role);
+    setProgram(chosen);
+    // the account's own name is the student's for a student, the parent's for a parent
+    setV((old) => ({
+      ...old,
+      student: student || old.student,
+      name: old.name || (role === "parent" ? me.fullName : ""),
+    }));
+    setSkip(skips);
+    const answered: Record<(typeof STEPS)[number], boolean> = {
+      who: skips.who,
+      email: role === "parent" || Boolean(open?.email),
+      student: Boolean(student),
+      parent: Boolean(open?.name && open?.phone),
+      date: skips.date,
+      pay: false,
+    };
+    setStep(STEPS.findIndex((x) => !answered[x]));
     setReady(true);
-  }, [programs]);
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      sessionStorage.setItem(
-        KEEP,
-        JSON.stringify({ step, who, v, id, program, pay } satisfies Saved)
-      );
-    } catch {
-      // see above
-    }
-  }, [ready, step, who, v, id, program, pay]);
+  }, [programs, me, open]);
 
   // each step: note that it was seen, and put the cursor where the visitor will type
   useEffect(() => {
     if (!ready) return;
     since.current = Date.now();
     track("form_step", { form: "reserve", step: STEPS[step], kind: "view" });
-    if (step > 0) {
+    if (STEPS[step] !== "who") {
       const root = card.current;
       (
         root?.querySelector<HTMLElement>(".rs-pill input") ?? root?.querySelector<HTMLElement>("h1")
@@ -185,6 +223,36 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     setStep(to);
   };
 
+  /** Which SAT: the tap is the answer, so it shows for a moment and the form moves on (founder,
+   *  2026-11-25: a question answered by a tap has no Continue). */
+  const choosing = useRef(0);
+  const choose = (programId: string) => {
+    setProgram(programId);
+    window.clearTimeout(choosing.current);
+    choosing.current = window.setTimeout(() => go(at("pay")), 260);
+  };
+  /** How to pay: the same, and the payment page opens. */
+  const choosePay = (how: Pay) => {
+    if (busy || !id) return;
+    setPay(how);
+    window.clearTimeout(choosing.current);
+    choosing.current = window.setTimeout(
+      () =>
+        start(async () => {
+          track("form_step", { form: "reserve", step: "pay", kind: "choice", value: how });
+          const res = await payForSeat({
+            reservationId: id,
+            programId: program || UNDECIDED,
+            payment: how,
+          });
+          if (res.ok) return window.location.assign(res.url);
+          setPay(null);
+          failed(res.error);
+        }),
+      220
+    );
+  };
+
   const set = (k: Field, raw: string) => {
     const value = TIDY[k] ? TIDY[k](raw) : raw;
     setV((old) => ({ ...old, [k]: value }));
@@ -210,53 +278,65 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     return !first;
   };
   const failed = (error: string) =>
-    setBad({ form: error === "closed" ? W.errors.closed : W.errors.server });
+    setBad({
+      form:
+        error === "closed" ? W.errors.closed : error === "role" ? W.errors.role : W.errors.server,
+    });
+  /** The reservation, made the first time something is saved (a parent's needs no email typed). */
+  const reservation = async (filledBy: Who): Promise<string | null> => {
+    if (id && filledBy === "parent") return id;
+    const res = await saveEmail({
+      filledBy,
+      email: v.email,
+      company: trap.current?.value ?? "",
+    });
+    if (!res.ok) {
+      failed(res.error);
+      return null;
+    }
+    setId(res.id);
+    return res.id;
+  };
 
   const submit: Record<(typeof STEPS)[number], () => void> = {
     who: () => {},
+    // only a student is asked: the parent's email, saved (again, if it was corrected) on Continue
     email: () => {
       if (!check(["email"], ["email"]) || !who) return;
-      if (id) return go(2); // already saved on an earlier pass
       start(async () => {
-        const res = await saveEmail({
-          filledBy: who,
-          email: v.email,
-          company: trap.current?.value ?? "",
-        });
-        if (!res.ok) return failed(res.error);
-        setId(res.id);
-        go(2);
+        if (await reservation(who)) go(next("email"));
       });
     },
-    names: () => {
-      if (!check(["name", "student", "phone"], ["name", "student", "phone"]) || !id) return;
+    // the seat is for the student, so their name comes first and alone; the parent's name and phone
+    // are the next question (founder, 2026-11-25)
+    student: () => {
+      if (!check(["student"], ["student"]) || !who) return;
+      // a parent's reservation starts here (their email is their account's), so a family who stops
+      // after this step can still be followed up
       start(async () => {
+        if (await reservation(who)) go(at("parent"));
+      });
+    },
+    parent: () => {
+      const asked: Field[] = nameKnown ? ["phone"] : ["name", "phone"];
+      if (!check(asked, asked) || !who) return;
+      start(async () => {
+        const seat = await reservation(who);
+        if (!seat) return;
         const res = await saveNames({
-          reservationId: id,
+          reservationId: seat,
           parentName: v.name,
           studentFirst: v.student,
           phone: v.phone,
         });
         if (!res.ok) return failed(res.error);
-        go(3);
+        go(next("parent"));
       });
     },
     date: () => {
-      if (program) go(4);
+      if (program) go(at("pay"));
     },
-    pay: () => {
-      if (!id) return;
-      start(async () => {
-        track("form_step", { form: "reserve", step: "pay", kind: "choice", value: pay });
-        const res = await payForSeat({
-          reservationId: id,
-          programId: program,
-          payment: pay,
-        });
-        if (res.ok) return window.location.assign(res.url);
-        failed(res.error);
-      });
-    },
+    pay: () => {},
   };
 
   const field = (k: Field, label: string, opts: { optional?: boolean } = {}) => (
@@ -301,8 +381,18 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
               data-on={who === k || undefined}
               onClick={() => {
                 setWho(k);
+                keepKnown({ role: k });
                 track("form_step", { form: "reserve", step: "who", kind: "choice", value: k });
-                go(1);
+                // a parent's email is their account's; a student whose account has a name is not
+                // asked for it
+                const skipName = k === "student" && Boolean(me.firstName);
+                setV((old) => ({
+                  ...old,
+                  student: skipName ? me.firstName : old.student,
+                  name: old.name || (k === "parent" ? me.fullName : ""),
+                }));
+                setSkip((old) => ({ ...old, student: skipName }));
+                go(at(k === "parent" ? "student" : "email"));
               }}
             >
               {k === "parent" ? <ParentPicture /> : <StudentPicture />}
@@ -326,11 +416,19 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         />
       </>
     ),
-    names: (
+    student: (
       <>
         <h1 tabIndex={-1}>{W.names[say].headline}</h1>
-        {field("name", W.names[say].name)}
         {field("student", W.names[say].student)}
+      </>
+    ),
+    parent: (
+      <>
+        {/* something back for the name they just gave, before the next ask */}
+        <p className="rs-note rs-gave">{W.names[say].gave.replace("{name}", v.student.trim())}</p>
+        {/* a parent whose account has their name is asked only for the phone */}
+        <h1 tabIndex={-1}>{nameKnown ? W.names.phoneHeadline : W.names[say].parentHeadline}</h1>
+        {nameKnown ? null : field("name", W.names[say].name)}
         {field("phone", W.names.phone)}
       </>
     ),
@@ -345,7 +443,8 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
                 type="radio"
                 name="program"
                 checked={p.id === program}
-                onChange={() => setProgram(p.id)}
+                onChange={() => choose(p.id)}
+                onClick={() => choose(p.id)}
               />
               <b>{p.month}</b>
             </label>
@@ -355,7 +454,8 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
               type="radio"
               name="program"
               checked={program === UNDECIDED}
-              onChange={() => setProgram(UNDECIDED)}
+              onChange={() => choose(UNDECIDED)}
+              onClick={() => choose(UNDECIDED)}
             />
             <b>{W.score.notSure}</b>
           </label>
@@ -364,8 +464,28 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
     ),
     pay: (
       <>
+        {/* which cohort this is, with a way to change it: it may have been filled in for them */}
+        <p className="rs-note rs-chosen">
+          {program === UNDECIDED || !program
+            ? W.pay.chosenOpen
+            : W.pay.chosen.replace(
+                "{month}",
+                programs.find((p) => p.id === program)?.month ?? ""
+              )}{" "}
+          <button
+            type="button"
+            className="rs-change"
+            disabled={busy}
+            onClick={() => {
+              setSkip((old) => ({ ...old, date: false }));
+              go(at("date"));
+            }}
+          >
+            {W.pay.change}
+          </button>
+        </p>
         <h1 tabIndex={-1}>{W.pay.headline}</h1>
-        <fieldset className="rs-pay">
+        <fieldset className="rs-pay" disabled={busy}>
           <legend className="rs-trap">{W.pay.headline}</legend>
           {(
             [
@@ -374,29 +494,52 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
             ] as const
           ).map(([k, label, price, note]) => (
             <label key={k} data-on={pay === k || undefined}>
-              <input type="radio" name="pay" checked={pay === k} onChange={() => setPay(k)} />
+              <input
+                type="radio"
+                name="pay"
+                checked={pay === k}
+                onChange={() => choosePay(k)}
+                onClick={() => choosePay(k)}
+              />
               <span>{label}</span>
               <b className="num">{price}</b>
               <small>{note}</small>
             </label>
           ))}
         </fieldset>
-        <p className="rs-note rs-promise">{W.pay.promise}</p>
+        {busy ? (
+          <p className="rs-note rs-opening" role="status">
+            {W.pay.sending}
+          </p>
+        ) : (
+          <p className="rs-note rs-promise">{W.pay.promise}</p>
+        )}
       </>
     ),
   };
 
-  const last = step === STEPS.length - 1;
+  // the questions actually asked, in order: the count, and where Back and Continue lead
+  const asked = STEPS.filter(
+    (x) =>
+      !(x === "who" && skip.who) &&
+      !(x === "email" && who === "parent") &&
+      !(x === "student" && skip.student) &&
+      !(x === "date" && skip.date)
+  );
+  const next = (from: (typeof STEPS)[number]) => at(asked[asked.indexOf(from) + 1] ?? "pay");
+  const before = asked[asked.indexOf(name) - 1];
   return (
     <div className="rs gq-card" ref={card}>
       <header className="rs-head">
         <p className="rs-sum">{W.summary}</p>
         <p className="rs-count" aria-live="polite">
-          {W.stepOf.replace("{n}", String(step + 1)).replace("{total}", String(STEPS.length))}
+          {W.stepOf
+            .replace("{n}", String(asked.indexOf(name) + 1))
+            .replace("{total}", String(asked.length))}
         </p>
         <i
           className="rs-bar"
-          style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+          style={{ width: `${((asked.indexOf(name) + 1) / asked.length) * 100}%` }}
           aria-hidden="true"
         />
       </header>
@@ -411,21 +554,34 @@ export default function ReserveForm({ programs }: { programs: OpenProgram[] }) {
         }}
       >
         {steps[name]}
-        {step > 0 ? (
+        {name === "who" ? null : (
           <div className="rs-nav">
-            <button type="button" className="rs-back" onClick={() => go(step - 1)} disabled={busy}>
-              {W.back}
-            </button>
-            <button
-              type="submit"
-              className="btn"
-              aria-disabled={busy || undefined}
-              data-busy={busy || undefined}
-            >
-              <span className="lb">{last ? (busy ? W.pay.sending : W.pay.button) : W.next}</span>
-            </button>
+            {/* Back goes to the last question that was asked; the first one has no Back */}
+            {before ? (
+              <button
+                type="button"
+                className="rs-back"
+                onClick={() => go(at(before))}
+                disabled={busy}
+              >
+                {W.back}
+              </button>
+            ) : (
+              <span />
+            )}
+            {/* a question answered by one tap has no Continue */}
+            {name === "date" || name === "pay" ? null : (
+              <button
+                type="submit"
+                className="btn"
+                aria-disabled={busy || undefined}
+                data-busy={busy || undefined}
+              >
+                <span className="lb">{W.next}</span>
+              </button>
+            )}
           </div>
-        ) : null}
+        )}
       </form>
       {bad.form ? (
         <p className="rs-msg rs-form-msg" role="alert">

@@ -5,12 +5,13 @@
  * their test date, and a parent's invite. Each one acts only on the signed-in student's own
  * account; an admin previewing a student can look but not change anything (own-student.ts).
  */
+import { knownSatDates } from "@/lib/sat-dates-static";
 import { clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isDevAuthBypassActive } from "@/lib/auth/dev-auth";
 import { appUrl } from "@/lib/billing-portal/stripe";
-import { createInvite } from "@/lib/parent/invites";
+import { createInvite, currentInvite, formatLinkCode } from "@/lib/parent/invites";
 import { dayKey } from "@/lib/student/streak";
 import {
   TEST_TYPES,
@@ -123,7 +124,10 @@ export async function actionSaveTest(
   const today = dayKey(Date.now());
   const db = portalDb();
   const { data: rows } = await db.from("sat_dates").select("test_date").gte("test_date", today);
-  const satDates = ((rows ?? []) as { test_date: string }[]).map((r) => r.test_date.slice(0, 10));
+  const satDates = knownSatDates(
+    ((rows ?? []) as { test_date: string }[]).map((r) => r.test_date),
+    today
+  );
   const problem = testDateProblem(testType, testDate, today, satDates);
   if (problem) return { ok: false, error: problem };
 
@@ -141,16 +145,38 @@ export async function actionSaveTest(
 
 // ---------------------------------------------------------------- a parent's invite
 
-/** Makes a fresh link that invites a parent (any older open link stops working), for the student
- *  to send from their own email. */
-export async function actionParentInviteLink(): Promise<{ ok: true; link: string } | Failure> {
+/** Makes a fresh link and code that invite a parent (any older open one stops working). The student
+ *  sends the link from their own email; a parent can type the code in the parent portal instead. */
+export async function actionParentInviteLink(): Promise<
+  { ok: true; link: string; code: string } | Failure
+> {
   const who = await ownStudent();
   if (!who.ok) return who;
   try {
     const invite = await createInvite(who.student.id);
-    return { ok: true, link: `${appUrl()}/join/parent/${invite.token}` };
+    return {
+      ok: true,
+      link: `${appUrl()}/join/parent/${invite.token}`,
+      code: formatLinkCode(invite.code),
+    };
   } catch (e) {
     console.error("[account] parent invite failed:", e instanceof Error ? e.message : e);
     return { ok: false, error: "The invite didn't save. Try again in a moment." };
+  }
+}
+
+/** The code of the student's open invite, shown again in Settings; null when there is none. Only
+ *  the student sees it: it links a parent account to theirs. */
+export async function actionParentInviteCode(): Promise<
+  { ok: true; code: string | null } | Failure
+> {
+  const who = await ownStudent();
+  if (!who.ok) return who;
+  try {
+    const invite = await currentInvite(who.student.id);
+    return { ok: true, code: invite ? formatLinkCode(invite.code) : null };
+  } catch (e) {
+    console.error("[account] parent invite read failed:", e instanceof Error ? e.message : e);
+    return { ok: false, error: "The code didn't load. Try again in a moment." };
   }
 }

@@ -1,29 +1,23 @@
 // ============================================================
 // /dashboard/parent/[studentId]/billing — the family's plan and
 // Stripe's customer portal (test mode tonight) for card, invoices
-// and cancelling.
+// and cancelling. The portal opens only where there is a Stripe
+// customer on a renewing plan; a Cohort seat or a granted plan
+// has none, so it gets the billing address instead.
 // ============================================================
 
 import type { Metadata } from "next";
 import { Card, Cta, MoreLink, Panel, Row, SectionHeader } from "@/components/portal";
 import { ParentShell } from "@/components/parent/ParentShell";
 import { ActionMessage } from "@/components/school/SchoolShell";
+import { isPlaceholderCustomer, mayCreateTestCustomer } from "@/lib/billing-portal/stripe";
+import { CONTACT } from "@/lib/marketing/offer";
 import { loadChildWeek, requireChild, requireParentContext } from "@/lib/parent/server";
+import { PLAN_NAMES } from "@/lib/student/plan-gate";
 import { openFamilyBillingAction } from "../../actions";
 
 export const metadata: Metadata = { title: "Billing" };
 export const dynamic = "force-dynamic";
-
-const PLAN_NAMES: Record<string, string> = {
-  practice: "Practice",
-  pro: "Pro",
-  group: "9-week Cohort",
-  small_group: "9-week Cohort",
-  cohort: "9-week Cohort",
-  private: "Private tutoring",
-  "private-10": "Private 10",
-  "private-20": "Private 20",
-};
 
 const STATUS: Record<string, string> = {
   active: "Active",
@@ -44,7 +38,9 @@ export default async function ParentBillingPage({
   const child = await requireChild(ctx, (await params).studentId);
   const [{ done, error }, week] = await Promise.all([searchParams, loadChildWeek(child)]);
   const plan = week.plan;
-  const planName = plan.tier ? (PLAN_NAMES[plan.tier] ?? "Karman plan") : null;
+  const planName = plan.id && plan.id !== "free" ? PLAN_NAMES[plan.id] : null;
+  const canManage =
+    !!plan.customerId && (!isPlaceholderCustomer(plan.customerId) || mayCreateTestCustomer());
 
   return (
     <ParentShell ctx={ctx} child={child} title="Billing">
@@ -54,9 +50,11 @@ export default async function ParentBillingPage({
           <h2 className="kp-title" id="billing-main">
             {planName
               ? `${child.firstName}'s plan: ${planName}`
-              : `${child.firstName} is on the free plan`}
+              : plan.id
+                ? `${child.firstName} is on the free plan`
+                : `${child.firstName}'s plan didn't load`}
           </h2>
-          {planName ? (
+          {planName && canManage ? (
             <>
               <p className="kp-meta">Change the card, see invoices or cancel.</p>
               <form action={openFamilyBillingAction}>
@@ -64,8 +62,18 @@ export default async function ParentBillingPage({
                 <Cta type="submit">Manage billing in Stripe</Cta>
               </form>
             </>
-          ) : (
+          ) : planName ? (
+            <p className="kp-meta">
+              For a receipt or a billing question, email{" "}
+              <a className="kp-link" href={`mailto:${CONTACT.billing}`}>
+                {CONTACT.billing}
+              </a>
+              .
+            </p>
+          ) : plan.id ? (
             <Cta href="/pricing">See plans</Cta>
+          ) : (
+            <p className="kp-meta">Refresh the page to try again.</p>
           )}
         </section>
         {planName && (

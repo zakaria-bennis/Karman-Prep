@@ -13,9 +13,10 @@ export function okPhone(v: string): boolean {
   return /^\+?[\d\s().-]+$/.test(s) && digits >= 10 && digits <= 15;
 }
 
-/** A call time as the form sends it: "2026-11-19 5:00 pm". */
+/** A call time as the form sends it: "2026-11-19 5:15 pm". Calls start on the quarter hour (founder,
+ *  2026-11-25). */
 export function okSlot(v: string): boolean {
-  return /^\d{4}-\d{2}-\d{2} (1[0-2]|[1-9]):00 (am|pm)$/.test(v);
+  return /^\d{4}-\d{2}-\d{2} (1[0-2]|[1-9]):(00|15|30|45) (am|pm)$/.test(v);
 }
 
 /** A person's name: letters in any alphabet, with spaces, hyphens, apostrophes and full stops between them.
@@ -30,9 +31,9 @@ export function cleanName(v: string): string {
 }
 
 /** A call slot that can really be booked: its date is today or later (a day of slack for time zones), no
- *  more than `days` ahead, and its hour is one the calendar offers (8 am to 11 pm Central). */
+ *  more than `days` ahead, and its hour is one the calendar offers (8 am to 11:45 pm Central). */
 export function slotInWindow(v: string, now = new Date(), days = 32): boolean {
-  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):00 (am|pm)$/.exec(v);
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(?:00|15|30|45) (am|pm)$/.exec(v);
   if (!m) return false;
   const day = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   const hour = (Number(m[4]) % 12) + (m[5] === "pm" ? 12 : 0);
@@ -51,4 +52,4 @@ export function okScore(v: string, lo: number): boolean {
 /** The lowest score each field accepts: a real latest score, and a target worth aiming for. */
 export const SCORE_FLOOR = { latest: 320, target: 400 } as const;
 
-export type LeadForm = "apply" | "call" | "seat";
+export type LeadForm = "apply" | "call";

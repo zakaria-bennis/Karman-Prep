@@ -1,5 +1,7 @@
-// /tutor/billing — the affiliate tutor's $199 plan: status, Stripe's
-// customer portal, or restarting a lapsed plan.
+// /tutor/billing — the affiliate tutor's plan: status, Stripe's customer
+// portal, or restarting a plan that has ended. A failed payment (past_due)
+// is fixed in Stripe's portal even after the period ended: the plan is
+// still there, so checkout would refuse a second one.
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -33,6 +35,7 @@ export default async function TutorBillingPage() {
   ]);
   const active = overview?.access === "active";
   const subscription = overview?.subscription ?? null;
+  const fixInStripe = !!subscription && (active || subscription.status === "past_due");
 
   return (
     <PortalShell
@@ -51,12 +54,12 @@ export default async function TutorBillingPage() {
             it ends, they move to the Free plan and keep their work.
           </p>
           {!isImpersonating &&
-            (subscription && active ? (
+            (fixInStripe ? (
               <ManageBillingButton asMain />
             ) : (
               <StartTutorPlanButton label="Restart the tutor plan" />
             ))}
-          {!isImpersonating && subscription && !active && <ManageBillingButton />}
+          {!isImpersonating && subscription && !fixInStripe && <ManageBillingButton />}
         </Card>
         <Card>
           <MoreLink href="/tutor">Back to your students</MoreLink>

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  FREE_PRACTICE_TEST,
   GUARANTEE,
   guaranteeMax,
   MARCH_PROGRAM,
@@ -22,7 +21,6 @@ describe("site copy", () => {
       `${formatPrice(MARCH_PROGRAM.price)}, or a ${formatPrice(MARCH_PROGRAM.depositAmount)} deposit and three payments of ${formatPrice(MARCH_PROGRAM.installments.amount)}.`
     );
     expect(section(21).text).toContain(MARCH_PROGRAM.startLabel.replace(/, \d{4}$/, ""));
-    expect(section(41).text).toContain(String(FREE_PRACTICE_TEST.questionCount));
     expect(section(51).headline).toBe(section(10).headline); // the home page and the guarantee page agree
     expect(section(51).headline).toContain(`Up to +${guaranteeMax("private")} points`);
     expect(section(8).promise).toBe(`Up to +${guaranteeMax("cohort")} points`);

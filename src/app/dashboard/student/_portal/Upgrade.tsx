@@ -22,6 +22,7 @@ import { tick } from "./sound";
 import { closeUpgrade, useUpgrade } from "./upgradeStore";
 import styles from "./upgrade.module.css";
 import { useStill } from "@/lib/painting/useStill";
+import { Orb } from "@/components/shared/Orb";
 
 const UP = { type: "spring", stiffness: 420, damping: 38, mass: 1 } as const;
 const STILL = { duration: 0 } as const;
@@ -61,15 +62,7 @@ function Plan({ to, term, lead }: { to: UpgradeTo; term: Term; lead: boolean }) 
           setGoing(true);
         }}
       >
-        {going ? (
-          <span className={styles.orbs} role="img" aria-label="Opening checkout">
-            <i />
-            <i />
-            <i />
-          </span>
-        ) : (
-          `Get ${card.name}`
-        )}
+        {going ? <Orb label="Opening checkout" /> : `Get ${card.name}`}
       </a>
     </article>
   );

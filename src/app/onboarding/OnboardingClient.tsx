@@ -27,10 +27,13 @@ import {
 } from "@/lib/onboarding/recommend-plan";
 import { okScore } from "@/lib/marketing/lead-rules";
 import { track } from "@/lib/analytics/client";
-import { FINDER as W, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
+import { FINDER, FINDER_PARENT, LANDING, flownAt, gapLine, type Role } from "./_steps/shared";
+import { ParentPicture, StudentPicture } from "@/components/site/reserve/RolePictures";
+import { keepKnown, readKnown } from "@/lib/onboarding/known";
 import { Guide } from "./_steps/Guide";
-import { Options, Progress, ScoreField } from "./_steps/Parts";
+import { Options, Progress, ScoreWheel } from "./_steps/Parts";
 import { RecommendationStep } from "./_steps/RecommendationStep";
+import { saveAnswersAction } from "./answers-action";
 import { startParentAccountAction } from "./parent-action";
 
 const KEEP = "karman:finder";
@@ -46,31 +49,38 @@ const STEPS = [
   "study",
   "miss",
   "prior",
-  "building",
   "plan",
 ] as const;
 type StepName = (typeof STEPS)[number];
 /** The fox's own moments: no question, so no segment and Back steps over them. */
-const MOMENTS: StepName[] = ["hello", "gap", "building"];
+const MOMENTS: StepName[] = ["hello", "gap"];
 const QUESTIONS = STEPS.filter((s) => !MOMENTS.includes(s) && s !== "plan");
 const pairs = <T extends string>(o: Record<T, string>) => Object.entries(o) as [T, string][];
 
-/** "December", "March": the month of each coming SAT, with the year only where a month comes twice. */
-function monthsOf(dates: string[]): [string, string][] {
-  const name = (iso: string, year: boolean) =>
+/** The questions with one answer to tap: the tap is the answer, and the flow moves on by itself
+ *  (founder, 2026-11-25: no Continue after a choice; Back is how to change one). */
+const CHOICES: StepName[] = ["role", "month", "time", "study", "miss", "prior"];
+
+/** "December 2026", "March 2027": the month and year of each coming SAT, each month once (founder,
+ *  2026-11-25). Two sittings in one month keep the earlier date. */
+export function monthsOf(dates: string[]): [string, string][] {
+  const seen = new Set<string>();
+  const first = dates.filter((iso) => {
+    const month = iso.slice(0, 7);
+    return seen.has(month) ? false : !!seen.add(month);
+  });
+  return first.slice(0, 5).map((iso) => [
+    iso,
     new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", {
       month: "long",
-      year: year ? "numeric" : undefined,
+      year: "numeric",
       timeZone: "UTC",
-    });
-  const first = dates.slice(0, 5);
-  return first.map((iso) => [
-    iso,
-    name(iso, first.filter((d) => d.slice(5, 7) === iso.slice(5, 7)).length > 1),
+    }),
   ]);
 }
 
 export default function OnboardingClient({
+  who = null,
   satDates,
   signedIn,
 }: {
@@ -79,12 +89,18 @@ export default function OnboardingClient({
   signedIn: boolean;
   /** Upcoming SAT dates (YYYY-MM-DD) from the sat_dates table. */
   satDates: string[];
+  /** Who this is, when we already know (a parent account, or a link that says so): the "student or
+   *  parent" question is then never asked. */
+  who?: Role | null;
 }) {
   useEffect(() => {
     if (signedIn) track("signup");
   }, [signedIn]);
 
-  const [role, setRole] = useState<Role | null>(null);
+  const [role, setRole] = useState<Role | null>(who);
+  // known from the server, or answered before in this browser: the question is skipped
+  const [sure, setSure] = useState(who !== null);
+  const W = role === "parent" ? FINDER_PARENT : FINDER;
   const [satDate, setSatDate] = useState("");
   const [score, setScore] = useState("");
   const [noScore, setNoScore] = useState(false);
@@ -100,17 +116,40 @@ export default function OnboardingClient({
   const [ready, setReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [parentBusy, startParent] = useTransition();
+  // a choice was just tapped and the flow is about to move on
+  const [picking, setPicking] = useState(false);
+  // an answer lights up only in the moment it is tapped: coming back to a question, nothing is
+  // picked for the visitor (founder, 2026-11-25)
+  const lit = picking || parentBusy;
   const since = useRef(0);
   const card = useRef<HTMLFormElement>(null);
   const at: StepName = STEPS[step];
   const months = useMemo(() => monthsOf(satDates), [satDates]);
+  // a goal never sits below the score the student already has
+  const floor = noScore || !okScore(score, 400) ? 400 : Number(score);
 
   // answers survive a refresh, and the trip to create an account and back (this tab only)
   useEffect(() => {
     try {
+      // /onboarding?fresh=1 starts over: the kept answers are dropped (used when reviewing the flow)
+      if (new URLSearchParams(window.location.search).has("fresh")) sessionStorage.removeItem(KEEP);
       const k = JSON.parse(sessionStorage.getItem(KEEP) ?? "null");
+      // Who this is: the account says, when there is one. Before an account exists, what this browser
+      // was told. (A signed-in account never takes it from the browser: on a shared family computer
+      // that would turn a student's new account into a parent's.)
+      const before = who ?? (signedIn ? null : (readKnown().role ?? null));
+      // "I'm a parent" was tapped in this tab before the account existed: the account that was just
+      // made becomes the parent account now
+      if (signedIn && who !== "parent" && k?.role === "parent")
+        void startParentAccountAction().then((r) => {
+          if ("error" in r) setBad(r.error);
+        });
+      if (before) {
+        setRole(before);
+        setSure(true);
+      }
       if (k && typeof k.step === "number") {
-        setRole(k.role);
+        if (!before) setRole(k.role);
         setSatDate(k.satDate);
         setScore(k.score);
         setNoScore(k.noScore);
@@ -119,14 +158,13 @@ export default function OnboardingClient({
         setStudy(k.study);
         setMiss(k.miss);
         setPrior(k.prior);
-        // "building" is a passing moment: come back to the plan itself
-        setStep(Math.min(STEPS[k.step] === "building" ? k.step + 1 : k.step, STEPS.length - 1));
+        setStep(Math.min(k.step, STEPS.length - 1));
       }
     } catch {
       // a private window may refuse storage: the plan-finder still works, it just starts fresh
     }
     setReady(true);
-  }, []);
+  }, [who, signedIn]);
   useEffect(() => {
     if (!ready) return;
     try {
@@ -137,21 +175,21 @@ export default function OnboardingClient({
     } catch {
       // see above
     }
+    // what the cohort forms will not ask again (lib/onboarding/known.ts)
+    keepKnown({
+      role: role ?? undefined,
+      satDate: satDate && satDate !== NOT_SURE ? satDate : undefined,
+      score: okScore(score, 400) ? score : undefined,
+      noScore: noScore || undefined,
+      goal: okScore(goal, 400) ? goal : undefined,
+    });
   }, [ready, step, role, satDate, score, noScore, goal, hours, study, miss, prior]);
 
-  // each step is measured (never what was answered), and "building" passes by itself
+  // each step is measured (never what was answered)
   useEffect(() => {
     if (!ready) return;
     since.current = Date.now();
     track("form_step", { form: "onboarding", step: STEPS[step], kind: "view" });
-    if (STEPS[step] === "score" || STEPS[step] === "goal")
-      card.current?.querySelector<HTMLElement>("input[type='text']")?.focus();
-    if (STEPS[step] !== "building") return;
-    const t = setTimeout(() => {
-      setDir(1);
-      setStep((s) => s + 1);
-    }, 1400);
-    return () => clearTimeout(t);
   }, [ready, step]);
 
   const answered: Record<StepName, boolean> = {
@@ -165,9 +203,20 @@ export default function OnboardingClient({
     study: !!study,
     miss: !!miss,
     prior: !!prior,
-    building: true,
     plan: true,
   };
+
+  // the plan is on screen: a signed-in student's SAT date and goal go onto their account, so the
+  // portal and the cohort form never ask for them again
+  const kept = useRef(false);
+  useEffect(() => {
+    if (!ready || !signedIn || role === "parent" || STEPS[step] !== "plan" || kept.current) return;
+    kept.current = true;
+    void saveAnswersAction({
+      satDate: satDate === NOT_SURE ? "" : satDate,
+      goal: okScore(goal, 400) ? goal : "",
+    }).catch(() => {});
+  }, [ready, signedIn, role, step, satDate, goal]);
 
   const recommendation: Recommendation | null = useMemo(() => {
     if (!study || !miss || !prior || !satDate || hours === null || !okScore(goal, 400)) return null;
@@ -194,27 +243,43 @@ export default function OnboardingClient({
       seconds: Math.min(3600, Math.round((Date.now() - since.current) / 1000)),
     });
     setBad("");
+    setPicking(false);
     setDir(to > step ? 1 : -1);
     setStep(to);
   };
-  const fail = () => {
-    setBad(W.errors.score);
-    card.current?.querySelector<HTMLElement>("input[type='text']")?.focus();
+  const beParent = () =>
+    startParent(async () => {
+      // no account yet: the choice is remembered, and the account made at the end becomes a parent's
+      if (!signedIn) return move(step + 1);
+      const result = await startParentAccountAction();
+      if ("error" in result) {
+        setBad(result.error);
+        setPicking(false);
+        return;
+      }
+      // a parent now: the same questions follow, asked about their student
+      move(step + 1);
+    });
+  /** A tapped choice: it shows as picked for a moment, then the flow moves on. */
+  const pick = (apply: () => void, parent = false) => {
+    if (picking || parentBusy) return;
+    apply();
+    setBad("");
+    setPicking(true);
+    window.setTimeout(() => (parent ? beParent() : move(step + 1)), 200);
   };
   function next() {
     if (!answered[at]) return;
-    if (at === "score" && !noScore && !okScore(score, 400)) return fail();
-    if (at === "goal" && !okScore(goal, 400)) return fail();
-    if (at === "role" && role === "parent")
-      return startParent(async () => {
-        const result = await startParentAccountAction();
-        if (result?.error) setBad(result.error);
-      });
+    if (at === "score" && !noScore && !okScore(score, 400)) return;
+    if (at === "goal" && !okScore(goal, 400)) return;
+    if (at === "role" && role === "parent") return beParent();
+    // who they are is already known: the question after the opening is not asked
+    if (at === "hello" && sure && role) return move(step + 2);
     if (step < STEPS.length - 1) move(step + 1);
   }
   function back() {
     let to = step - 1;
-    while (to > 0 && MOMENTS.includes(STEPS[to])) to -= 1;
+    while (to > 0 && (MOMENTS.includes(STEPS[to]) || (sure && STEPS[to] === "role"))) to -= 1;
     if (step > 0) move(Math.max(0, to));
   }
 
@@ -227,17 +292,24 @@ export default function OnboardingClient({
       window.location.assign("/auth/sign-up?redirect_url=/onboarding");
       return;
     }
-    await fetch("/api/auth/sync-user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: "student" }),
-    }).catch(() => {});
+    if (role !== "parent")
+      await fetch("/api/auth/sync-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "student" }),
+      }).catch(() => {});
     try {
       sessionStorage.removeItem(KEEP);
     } catch {
       // nothing kept, nothing to clear
     }
-    window.location.assign(href);
+    // a renewing plan belongs to the student's account, so a parent goes to their portal to add the
+    // student first; a cohort seat or a tutoring call they can take from here
+    window.location.assign(
+      role === "parent" && (href.startsWith("/checkout") || href === "/portal")
+        ? "/dashboard/parent"
+        : href
+    );
   }
 
   const said: Record<StepName, string> = {
@@ -251,7 +323,6 @@ export default function OnboardingClient({
     study: W.study.say,
     miss: W.miss.say,
     prior: W.prior.say,
-    building: W.building,
     plan: W.plan.say,
   };
   const moment = MOMENTS.includes(at);
@@ -273,12 +344,27 @@ export default function OnboardingClient({
   const question = QUESTIONS.indexOf(at as (typeof QUESTIONS)[number]) + 1;
   const progressAt = question || QUESTIONS.filter((q) => STEPS.indexOf(q) < step).length + 1;
 
+  const go = (
+    <button
+      type="submit"
+      className="btn"
+      disabled={!answered[at]}
+      data-busy={parentBusy || undefined}
+      suppressHydrationWarning
+    >
+      <span className="lb">
+        {at === "hello" ? W.helloButton : parentBusy ? W.role.parentBusy : W.next}
+      </span>
+    </button>
+  );
+
   return (
     <div className="ob">
-      {at === "hello" ? null : (
+      {/* no bars and no Back at the welcome, nor once the plan is on screen */}
+      {at === "hello" || isLast ? null : (
         <Progress
           total={QUESTIONS.length}
-          at={isLast || at === "building" ? QUESTIONS.length + 1 : progressAt}
+          at={progressAt}
           onBack={back}
           canBack={step > 0 && !parentBusy}
         />
@@ -308,17 +394,11 @@ export default function OnboardingClient({
                       <button
                         type="button"
                         role="radio"
-                        aria-checked={role === r}
+                        aria-checked={lit && role === r}
                         key={r}
-                        onClick={() => {
-                          setRole(r);
-                          setBad("");
-                        }}
+                        onClick={() => pick(() => setRole(r), r === "parent")}
                       >
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                          <circle cx="12" cy="12" r="10.5" />
-                          <path pathLength={1} d="M7 12.500l3.300 3.300L17 9" />
-                        </svg>
+                        {r === "parent" ? <ParentPicture /> : <StudentPicture />}
                         <b>{W.role[r][0]}</b>
                         <span>{W.role[r][1]}</span>
                       </button>
@@ -330,25 +410,23 @@ export default function OnboardingClient({
                 <>
                   <h1>{W.month.headline}</h1>
                   <Options
+                    row
                     label={W.month.headline}
                     options={[...months, [NOT_SURE, W.month.notSure]]}
-                    value={satDate || null}
-                    onChange={setSatDate}
+                    value={lit ? satDate || null : null}
+                    onChange={(v) => pick(() => setSatDate(v))}
                   />
                 </>
               )}
               {at === "score" && (
                 <>
                   <h1>{W.score.headline}</h1>
-                  <ScoreField
+                  <ScoreWheel
                     label={W.score.field}
                     value={score}
-                    bad={!!bad}
+                    start={1200}
                     off={noScore}
-                    onChange={(v) => {
-                      setScore(v);
-                      setBad("");
-                    }}
+                    onChange={setScore}
                   />
                   <label className="ob-tick">
                     <input
@@ -366,14 +444,12 @@ export default function OnboardingClient({
               {at === "goal" && (
                 <>
                   <h1>{W.goal.headline}</h1>
-                  <ScoreField
+                  <ScoreWheel
                     label={W.goal.field}
                     value={goal}
-                    bad={!!bad}
-                    onChange={(v) => {
-                      setGoal(v);
-                      setBad("");
-                    }}
+                    min={floor}
+                    start={Math.min(1600, floor + 150)}
+                    onChange={setGoal}
                   />
                 </>
               )}
@@ -383,8 +459,8 @@ export default function OnboardingClient({
                   <Options
                     label={W.time.headline}
                     options={W.time.options}
-                    value={hours}
-                    onChange={setHours}
+                    value={lit ? hours : null}
+                    onChange={(v) => pick(() => setHours(v))}
                   />
                 </>
               )}
@@ -394,8 +470,8 @@ export default function OnboardingClient({
                   <Options
                     label={W.study.headline}
                     options={pairs(W.study.options)}
-                    value={study}
-                    onChange={setStudy}
+                    value={lit ? study : null}
+                    onChange={(v) => pick(() => setStudy(v))}
                   />
                 </>
               )}
@@ -405,8 +481,8 @@ export default function OnboardingClient({
                   <Options
                     label={W.miss.headline}
                     options={pairs(W.miss.options)}
-                    value={miss}
-                    onChange={setMiss}
+                    value={lit ? miss : null}
+                    onChange={(v) => pick(() => setMiss(v))}
                   />
                 </>
               )}
@@ -416,8 +492,8 @@ export default function OnboardingClient({
                   <Options
                     label={W.prior.headline}
                     options={pairs(W.prior.options)}
-                    value={prior}
-                    onChange={setPrior}
+                    value={lit ? prior : null}
+                    onChange={(v) => pick(() => setPrior(v))}
                   />
                 </>
               )}
@@ -427,6 +503,7 @@ export default function OnboardingClient({
                   onContinue={continueTo}
                   submitting={submitting}
                   signedIn={signedIn}
+                  parent={role === "parent"}
                 />
               ) : null}
               {bad ? (
@@ -434,24 +511,16 @@ export default function OnboardingClient({
                   {bad}
                 </p>
               ) : null}
+              {/* the button is part of the glass, centred under the answer (founder, 2026-11-25). A
+                  choice never has one: the tap is the answer. It shows there only while the parent
+                  account is being made */}
+              {!isLast && !(CHOICES.includes(at) && !parentBusy) ? (
+                <div className="ob-go">{go}</div>
+              ) : null}
             </div>
           )}
-          {/* outside the card on purpose: on a phone it is fixed to the bottom of the screen */}
-          {!isLast && at !== "building" ? (
-            <div className="ob-go" data-centre={at === "hello" || undefined}>
-              <button
-                type="submit"
-                className="btn"
-                disabled={!answered[at]}
-                data-busy={parentBusy || undefined}
-                suppressHydrationWarning
-              >
-                <span className="lb">
-                  {at === "hello" ? W.helloButton : parentBusy ? W.role.parentBusy : W.next}
-                </span>
-              </button>
-            </div>
-          ) : null}
+          {/* the opening has no card, so its button stands alone under the fox */}
+          {moment && !isLast ? <div className="ob-go">{go}</div> : null}
         </form>
       </div>
     </div>

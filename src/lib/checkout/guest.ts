@@ -1,21 +1,23 @@
 // ============================================================
-// Pay first, account after (founder, 2026-11-14). A visitor with no
-// account goes straight to Stripe from a plan button. Stripe sends them
-// back to /checkout/done with the checkout session's id; they make an
-// account (or sign in), and that account claims the purchase here.
-// Until then nothing in our database points at the payment: Stripe
-// holds it, and the session id (long, unguessable, shown only to the
-// buyer and emailed to the address they paid with) is the claim.
-// Server only.
+// Finishing a purchase that was paid before the buyer had an account.
+// Nobody starts one any more: an account comes before any payment
+// (founder, 2026-11-25; /checkout/start). What stays here is the way
+// out for a checkout opened under the old rule (2026-11-14): Stripe
+// sends that buyer to /checkout/done with the checkout session's id,
+// they make an account (or sign in), and that account claims the
+// purchase. Until then nothing in our database points at the payment:
+// Stripe holds it, and the session id (long, unguessable, shown only to
+// the buyer and emailed to the address they paid with) is the claim.
+// Delete this file, /checkout/done and the webhook's guest branch once
+// Stripe shows no unclaimed guest payment. Server only.
 // ============================================================
 
 import type Stripe from "stripe";
 import { z } from "zod";
 import { trackServer } from "@/lib/analytics/server";
 import { FROM, resend } from "@/lib/integrations/resend/client";
-import { createGuestCheckoutSession, stripe } from "@/lib/integrations/stripe/client";
-import { findStripePrice, isSubscriptionPlan } from "@/lib/integrations/stripe/prices";
-import { createCheckoutBodySchema } from "@/lib/integrations/stripe/schemas";
+import { stripe } from "@/lib/integrations/stripe/client";
+import { isSubscriptionPlan } from "@/lib/integrations/stripe/prices";
 import { recordPurchaseGrant } from "@/lib/plans";
 import { ONE_TIME_PLAN_IDS, SUBSCRIPTION_PLAN_IDS } from "@/lib/plans/catalog";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -25,26 +27,8 @@ const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 /** Stripe's checkout session ids: "cs_test_..." or "cs_live_...". */
 export const sessionIdSchema = z.string().regex(/^cs_(test|live)_[A-Za-z0-9]{10,200}$/);
 
-/** Plans a visitor can buy before having an account. A cohort seat is reserved on /reserve, and a
- *  tutor's plan belongs to a tutor account, so neither is sold this way. */
-const GUEST_PLANS = new Set<string>(["practice", "pro", "private-10", "private-20"]);
-
 /** Where the buyer lands after paying. */
 export const donePath = (sessionId: string) => `/checkout/done?s=${sessionId}`;
-
-/** Opens Stripe Checkout for a visitor with no account. Null when this plan is not sold that way. */
-export async function startGuestCheckout(input: unknown): Promise<string | null> {
-  const parsed = createCheckoutBodySchema.safeParse(input);
-  if (!parsed.success || !GUEST_PLANS.has(parsed.data.plan)) return null;
-  const spec = findStripePrice(parsed.data.plan, parsed.data.term);
-  if (!spec) return null;
-  const session = await createGuestCheckoutSession({
-    spec,
-    successUrl: `${appUrl()}/checkout/done?s={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${appUrl()}/pricing`,
-  });
-  return session.url;
-}
 
 const guestMeta = z.object({
   guest: z.literal("1"),

@@ -1,9 +1,9 @@
 "use client";
 
 // The pieces every guided form on the landscape shares (the plan-finder and the registration flight):
-// the segmented progress with its back button, a written score with a slider under it, and a list of
-// answers to pick one from. Styles: app/onboarding/intake.css.
-import type { CSSProperties } from "react";
+// the segmented progress with its back button, a score on a wheel, and a list of answers to pick one
+// from. Styles: app/onboarding/intake.css.
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 /** One segment for each question. Answered ones are full; the one on screen fills as it opens. */
 export function Progress({
@@ -46,60 +46,94 @@ export function Progress({
   );
 }
 
-const digits = (v: string) => v.replace(/\D/g, "").slice(0, 4);
+/** How tall one score is on the wheel, in pixels (intake.css gives each the same height). */
+const ROW = 64;
 
-/** A score from 400 to 1600: typed into a pill whose name rises as it fills, or set with the slider
- *  under it. The two always agree. */
-export function ScoreField({
+/** A score on a wheel (founder, 2026-11-25: a scroller, not a text box and a slider). Scores step by 10
+ *  from `min` to 1600, the higher ones above. Drag or scroll it, tap a score, or use the arrow keys; the
+ *  one in the middle is the answer. With nothing chosen yet it rests on `start`. */
+export function ScoreWheel({
   label,
   value,
   onChange,
-  bad,
+  min = 400,
+  start = 1200,
   off = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  bad?: boolean;
+  /** The lowest score on the wheel: a goal never sits below the score already given. */
+  min?: number;
+  start?: number;
   /** Greyed out, when "No SAT yet" is ticked. */
   off?: boolean;
 }) {
-  const n = Math.min(1600, Math.max(400, Number(value) || 1000));
+  const wheel = useRef<HTMLDivElement>(null);
+  const top = 1600;
+  const count = (top - min) / 10 + 1;
+  const n = Math.min(top, Math.max(min, Math.round((Number(value) || start) / 10) * 10));
+  const row = (top - n) / 10;
+
+  // the wheel always holds a real score, so the form never has to ask for one again
+  useEffect(() => {
+    if (!off && value !== String(n)) onChange(String(n));
+  }, [off, value, n, onChange]);
+
+  // keep the wheel on the score when it is set from outside (first paint, or a new lowest score)
+  useLayoutEffect(() => {
+    const el = wheel.current;
+    if (el && Math.round(el.scrollTop / ROW) !== row) el.scrollTop = row * ROW;
+  }, [row, count]);
+
+  const turnTo = (to: number, smooth = true) => {
+    const next = Math.min(count - 1, Math.max(0, to));
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    wheel.current?.scrollTo({ top: next * ROW, behavior: smooth && !still ? "smooth" : "auto" });
+  };
+  const keys: Record<string, number> = {
+    ArrowUp: row - 1,
+    ArrowDown: row + 1,
+    PageUp: row - 10,
+    PageDown: row + 10,
+    Home: count - 1,
+    End: 0,
+  };
+
   return (
-    <div className="ob-score" data-off={off || undefined}>
-      <label
-        className="rs-pill"
-        data-bad={bad || undefined}
-        data-filled={value && !off ? true : undefined}
+    <div className="ob-wheel" data-off={off || undefined}>
+      <div
+        ref={wheel}
+        role="spinbutton"
+        tabIndex={off ? -1 : 0}
+        aria-label={label}
+        aria-valuemin={min}
+        aria-valuemax={top}
+        aria-valuenow={n}
+        aria-disabled={off || undefined}
+        onScroll={(e) => {
+          const at = Math.round(e.currentTarget.scrollTop / ROW);
+          const score = top - Math.min(count - 1, Math.max(0, at)) * 10;
+          if (!off && score !== n) onChange(String(score));
+        }}
+        onKeyDown={(e) => {
+          if (!(e.key in keys)) return;
+          e.preventDefault();
+          turnTo(keys[e.key]);
+        }}
       >
-        <span>{label}</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          maxLength={4}
-          disabled={off}
-          value={off ? "" : value}
-          aria-invalid={bad || undefined}
-          onChange={(e) => onChange(digits(e.target.value))}
-        />
-      </label>
-      <div className="ob-range" style={{ "--p": (n - 400) / 1200 } as CSSProperties}>
-        <input
-          type="range"
-          min={400}
-          max={1600}
-          step={10}
-          value={n}
-          disabled={off}
-          aria-label={`${label}, slider`}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <div aria-hidden="true">
-          <span>400</span>
-          <span>1000</span>
-          <span>1600</span>
-        </div>
+        {Array.from({ length: count }, (_, i) => (
+          <button
+            type="button"
+            tabIndex={-1}
+            key={i}
+            data-near={Math.min(2, Math.abs(i - row))}
+            aria-hidden={i !== row || undefined}
+            onClick={() => turnTo(i)}
+          >
+            {top - i * 10}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -111,25 +145,41 @@ export function Options<T extends string | number>({
   options,
   value,
   onChange,
+  row,
 }: {
   label: string;
   options: readonly (readonly [T, string])[];
   value: T | null;
   onChange: (v: T) => void;
+  /** Dates ("March 2027"): side by side in one row, the month over its year, as many as the screen
+   *  holds comfortably (a phone shows the first three or four). An answer with no year in it
+   *  ("Not sure yet") runs the full width under them. Founder, 2026-11-25. */
+  row?: boolean;
 }) {
   return (
-    <div className="ob-opts" role="radiogroup" aria-label={label}>
-      {options.map(([id, text]) => (
-        <button
-          type="button"
-          role="radio"
-          aria-checked={value === id}
-          key={String(id)}
-          onClick={() => onChange(id)}
-        >
-          {text}
-        </button>
-      ))}
+    <div className={row ? "ob-opts ob-row" : "ob-opts"} role="radiogroup" aria-label={label}>
+      {options.map(([id, text]) => {
+        const dated = row ? /^(.+) (\d{4})$/.exec(text) : null;
+        return (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={value === id}
+            data-wide={row && !dated ? "" : undefined}
+            key={String(id)}
+            onClick={() => onChange(id)}
+          >
+            {dated ? (
+              <>
+                <b>{dated[1]}</b>
+                <small>{dated[2]}</small>
+              </>
+            ) : (
+              text
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

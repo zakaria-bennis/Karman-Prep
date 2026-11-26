@@ -15,6 +15,7 @@ import "./styles/company.css";
 import "./styles/deal.css";
 import "./styles/guarantee.css";
 import "./styles/reserve.css";
+import "./styles/pay.css";
 import "./styles/pricing.css";
 import "./styles/hero.css";
 import "./styles/private.css";

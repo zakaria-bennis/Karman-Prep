@@ -14,13 +14,19 @@ export default async function Page({
   searchParams: Promise<{ redirect_url?: string }>;
 }) {
   const { redirect_url } = await searchParams;
-  // On the local test copy, signing in is a one-click pick of a test account (/dev/sign-in).
-  if (devBypassClerkId()) redirect("/dev/sign-in");
+  // The local test copy is always signed in as a test account (Settings, Test accounts, changes which):
+  // straight on to where they were going, or their portal.
+  if (devBypassClerkId()) redirect(safeNext(redirect_url));
   // Someone already signed in has no business here: on to where they were going, or their portal.
   // (Not on the dev server's stand-in account, which is always "signed in".)
   if (!devBypassClerkId() && (await safeAuth()).userId) redirect(safeNext(redirect_url));
   return (
-    <SitePage kind="lit" flight={false} className={`${litFonts} ${cabinFont.variable} cb-page`}>
+    <SitePage
+      kind="lit"
+      flight={false}
+      noTheme
+      className={`${litFonts} ${cabinFont.variable} cb-page`}
+    >
       <CabinStage
         mode="sign-in"
         greetings={greetingsFor("sign-in", redirect_url)}

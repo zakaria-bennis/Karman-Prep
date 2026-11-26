@@ -1,7 +1,8 @@
 "use client";
 
 // The offer of classical music on late nights (founder, 2026-11-16): tired students focus better
-// with it, so after 8 PM a small friendly banner comes in at the top right and offers to turn it on.
+// with it, so from two hours after sunset a small friendly banner comes in at the top right and
+// offers to turn it on. On a phone it is one short row across the top: the words, the button, the cross.
 //   It gives one choice, "Turn it on", and a cross to send it away. Left alone for about six
 //   seconds, it leaves by itself. Turned on, its notes dance for a moment and it slides away to
 //   the right, as it does whenever it leaves.
@@ -15,6 +16,7 @@ import styles from "./musicOffer.module.css";
 import { ping, tick } from "./sound";
 import { setSetting } from "./settingsStore";
 import { useStill } from "@/lib/painting/useStill";
+import { isLate } from "@/lib/portal/sunset";
 
 const KEY = "kp-music";
 /** After this many refusals in a row the offer is not made again. */
@@ -24,11 +26,9 @@ const WAIT = 1600;
 const STAY = 4000; // founder, 2026-11-19: four seconds at most
 /** How long the notes dance once music is turned on, before the banner slides away. */
 const DANCE = 1300;
-/** It is offered from 8 PM until the small hours. */
-const late = () => {
-  const hour = new Date().getHours();
-  return hour >= 20 || hour < 4;
-};
+/** It is offered from two hours after sunset in the student's own time zone until the small hours
+ *  (founder, 2026-11-25). */
+const late = () => isLate(new Date(), Intl.DateTimeFormat().resolvedOptions().timeZone);
 
 type Memory = { on: boolean; refused: number };
 const read = (): Memory => {
@@ -54,7 +54,7 @@ export default function MusicOffer({ force = false }: { force?: boolean }) {
   const [stage, setStage] = useState<"away" | "asking" | "on">("away");
   const [held, setHeld] = useState(false);
 
-  // after 8 PM, once, a moment after the page has settled: unless music is on or it was refused
+  // when it is late, once, a moment after the page has settled: unless music is on or it was refused
   // twice. (`force` shows it at any hour, for looking at it while the page is being designed.)
   useEffect(() => {
     const memory = read();

@@ -7,6 +7,7 @@ import "server-only";
  */
 import { notFound, redirect } from "next/navigation";
 import { safeAuth } from "@/lib/auth/dev-auth";
+import { getPlan, type PlanId } from "@/lib/plans";
 import {
   buildProgressGlance,
   predictedScore,
@@ -134,7 +135,45 @@ export interface ChildWeek {
   score: { current: number | null; history: { takenAt: string; score: number }[] };
   guarantee: GuaranteeStatus | null;
   tutorNote: { body: string; from: string | null; at: string } | null;
-  plan: { tier: string | null; status: string | null; customerId: string | null };
+  plan: ChildPlan;
+}
+
+export interface ChildPlan {
+  /** The child's plan as the student portal reads it (getPlan); null when it could not be read. */
+  id: PlanId | null;
+  /** Stripe's status, for a renewing plan only; a one-time purchase or a granted plan has none. */
+  status: string | null;
+  /** The Stripe customer the billing portal opens for; null when there is none (a Cohort seat). */
+  customerId: string | null;
+}
+
+/** The plan comes from getPlan (subscriptions.plan_id and plan_grants), never the retired `tier`. */
+async function childPlan(supabase: Admin, child: Child): Promise<ChildPlan> {
+  const [resolved, subs] = await Promise.all([
+    getPlan(child.clerkId).catch((error: unknown) => {
+      console.error("[parent] plan could not be read", error);
+      return null;
+    }),
+    supabase
+      .from("subscriptions")
+      .select("status, stripe_customer_id, stripe_subscription_id")
+      .eq("user_id", child.clerkId)
+      .order("created_at", { ascending: false }),
+  ]);
+  const rows = (subs.data ?? []) as {
+    status: string | null;
+    stripe_customer_id: string | null;
+    stripe_subscription_id: string | null;
+  }[];
+  const source = resolved?.sources.find((s) => s.planId === resolved.planId);
+  return {
+    id: resolved?.planId ?? null,
+    status:
+      source?.kind === "subscription"
+        ? (rows.find((r) => r.stripe_subscription_id === source.id)?.status ?? null)
+        : null,
+    customerId: rows.find((r) => r.stripe_customer_id)?.stripe_customer_id ?? null,
+  };
 }
 
 const WEEK_MS = 7 * 86_400_000;
@@ -261,7 +300,7 @@ export async function sessionsFor(supabase: Admin, child: Child, now: Date) {
 export async function loadChildWeek(child: Child, now: Date = new Date()): Promise<ChildWeek> {
   const supabase = untypedAdmin();
   const since = new Date(now.getTime() - WEEK_MS);
-  const [activity, scores, school, tutorItems, sessions, note, sub] = await Promise.all([
+  const [activity, scores, school, tutorItems, sessions, note, plan] = await Promise.all([
     loadPracticeActivity([child.clerkId], since, supabase),
     loadScoreHistory([child.id], supabase),
     listSchoolHomeworkForStudent({ userId: child.id, clerkId: child.clerkId }, supabase),
@@ -274,11 +313,7 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase
-      .from("subscriptions")
-      .select("tier, status, stripe_customer_id")
-      .eq("user_id", child.clerkId)
-      .maybeSingle(),
+    childPlan(supabase, child),
   ]);
   const act = activity.get(child.clerkId);
   const history = (scores.get(child.id) ?? []).map((s) => ({
@@ -296,7 +331,6 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
     ],
     now
   );
-  const tier = (sub.data?.tier as string | null) ?? null;
   const noteRow = note.data as {
     body: string;
     created_at: string;
@@ -314,14 +348,10 @@ export async function loadChildWeek(child: Child, now: Date = new Date()): Promi
     past: sessions.past,
     glance: buildProgressGlance(act?.answers ?? [], now, act?.stored),
     score: { current: history.at(-1)?.score ?? null, history },
-    guarantee: guaranteeFor(tier, history),
+    guarantee: guaranteeFor(plan.id, history),
     tutorNote: noteRow
       ? { body: noteRow.body, from: noteTutor?.first_name ?? null, at: noteRow.created_at }
       : null,
-    plan: {
-      tier,
-      status: (sub.data?.status as string | null) ?? null,
-      customerId: (sub.data?.stripe_customer_id as string | null) ?? null,
-    },
+    plan,
   };
 }

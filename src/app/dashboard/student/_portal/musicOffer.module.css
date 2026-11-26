@@ -183,12 +183,55 @@
   }
 }
 
-/* a phone: across the top, inside the same gutters as the page */
+/* a phone: one short row across the top, inside the same gutters as the page: the notes, two words,
+   the button and the cross (founder, 2026-11-25: a small banner, not a pop-up) */
 @media (max-width: 599px) {
   .offer {
     right: 12px;
     left: 12px;
     width: auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px 6px 12px;
+    border-radius: 20px;
+  }
+
+  .notes {
+    width: 26px;
+    height: 26px;
+    margin-top: 0;
+  }
+
+  .words {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .words b {
+    font-size: 17px;
+  }
+
+  .words p {
+    display: none;
+  }
+
+  .offer .on {
+    height: 44px;
+    margin-top: 0;
+    padding: 0 16px;
+    font-size: 15px;
+    box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--glass) 55%, var(--paper, #fbf6ee));
+  }
+
+  .offer .close {
+    margin: 0;
+  }
+
+  .rise {
+    right: 16px;
+    bottom: 8px;
   }
 }
 

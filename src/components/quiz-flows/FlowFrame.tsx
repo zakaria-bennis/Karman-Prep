@@ -7,6 +7,7 @@ import { Go } from "./FlowStage";
 import { StageFrame } from "./StageFrame";
 import type { ShellUser } from "./types";
 import f from "./frame.module.css";
+import { Orb } from "@/components/shared/Orb";
 
 /** The way back from every quiz-flow screen: the portal's Library, which every plan has. */
 const LIBRARY = { href: "/dashboard/student?page=library", label: "Library" };
@@ -49,13 +50,7 @@ export function Message({
   return (
     <section className={f.message} aria-busy={busy} aria-live="polite">
       <h2>
-        {busy && !action && (
-          <i className={f.orbs} aria-hidden="true">
-            <b />
-            <b />
-            <b />
-          </i>
-        )}
+        {busy && !action && <Orb />}
         {title}
       </h2>
       <p>{text}</p>

@@ -27,6 +27,7 @@ import { usePortalData } from "./portalData";
 import { hours, hoursText } from "./scheduleData";
 import { Group, Row, Say, Seg } from "./settingsControls";
 import { TesterSwitch } from "./SettingsTester";
+import { TestAccounts } from "./SettingsTestAccounts";
 import type { PaneProps } from "./SettingsPanes";
 import styles from "./settings.module.css";
 import { speedStart } from "@/lib/analytics/speed";
@@ -135,6 +136,9 @@ export function PlanPane({ plan, onGo }: PaneProps) {
   return (
     <>
       {real && state?.testing && <TesterSwitch planId={planId} />}
+      {state?.testAccount !== undefined && (
+        <TestAccounts now={state.testAccount} accounts={state.testAccounts ?? []} />
+      )}
       <Group title="Plan">
         <Row name={PLAN_NAMES[planId]} note={line ?? undefined} />
         {left !== null && (

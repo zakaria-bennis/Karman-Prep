@@ -2,7 +2,10 @@ import SitePage from "@/components/site/SitePage";
 import { litFonts } from "@/components/site/home/fonts";
 import { RESERVE } from "@/lib/marketing/reserve-copy";
 import RegistrationFlight from "@/components/site/reserve/RegistrationFlight";
-import { confirmPaid, findReservation } from "@/lib/reserve/service";
+import { redirect } from "next/navigation";
+import { ROUTES } from "@/components/site/routes";
+import { reserveBuyer } from "@/lib/reserve/buyer";
+import { buyerOf, findReservation } from "@/lib/reserve/service";
 import "@/app/onboarding/intake.css";
 import "@/app/onboarding/landing.css";
 
@@ -16,18 +19,20 @@ const W = RESERVE.welcome;
 export default async function ReserveWelcomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ r?: string; s?: string }>;
+  searchParams: Promise<{ r?: string }>;
 }) {
-  const { r: token = "", s: session = "" } = await searchParams;
-  let seat = await findReservation(token);
-  // back from Stripe: confirm the payment now, without waiting for Stripe's own message
-  if (seat && session && (await confirmPaid(seat, session))) seat = await findReservation(token);
+  const { r: token = "" } = await searchParams;
+  const seat = await findReservation(token);
+  // not paid yet: the payment page is the one place that says where a payment stands
+  if (seat && seat.status === "started") redirect(`/reserve/pay?id=${seat.id}`);
   const paid = seat?.status === "paid" || seat?.status === "placed";
   // Paid: the questions that get the student started come first, as a flight (asked after payment on
-  // purpose). Once they are answered, the page opens on the landing: the student's own account link.
-  if (paid && seat)
+  // purpose). Once they are answered, the page opens on the landing.
+  if (paid && seat) {
+    const buyer = buyerOf(seat);
+    const me = buyer ? await reserveBuyer().catch(() => null) : null;
     return (
-      <SitePage kind="lit" bare drive="steps" className={litFonts}>
+      <SitePage kind="lit" bare noTheme drive="steps" className={litFonts}>
         <RegistrationFlight
           token={token}
           parentToken={seat.parent_token}
@@ -35,19 +40,26 @@ export default async function ReserveWelcomePage({
           filledBy={seat.filled_by}
           claimed={!!seat.clerk_user_id}
           landed={!!seat.registered_at}
+          mine={!!me && me.clerkId === buyer}
+          known={{
+            score: seat.start_score ? String(seat.start_score) : "",
+            goal: typeof seat.details?.goalScore === "number" ? String(seat.details.goalScore) : "",
+          }}
         />
       </SitePage>
     );
+  }
 
   return (
-    <SitePage kind="lit" route={[0.3, 0.42]} className={litFonts}>
+    <SitePage kind="lit" noTheme route={[0.3, 0.42]} className={litFonts}>
       <section className="pg-hero gq rs-page" id="top">
         <div className="mist" aria-hidden="true" />
         <div className="rs gq-card rs-done">
-          {/* payment can take a few seconds to reach us: look again until it has */}
-          {seat ? <meta httpEquiv="refresh" content="4" /> : null}
-          <h1>{seat ? W.waitTitle : W.lostTitle}</h1>
-          <p className="rs-note">{seat ? W.waitText : W.lostText}</p>
+          <h1>{W.lostTitle}</h1>
+          <p className="rs-note">{W.lostText}</p>
+          <a className="btn" href={ROUTES.reserve}>
+            <span className="lb">{W.lostButton}</span>
+          </a>
         </div>
       </section>
     </SitePage>

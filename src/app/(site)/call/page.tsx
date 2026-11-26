@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 export default function CallPage() {
   const today = new Date().toISOString().slice(0, 10);
   return (
-    <SitePage kind="lit" route={[0.5, 0.56]} className={litFonts}>
+    <SitePage kind="lit" noTheme route={[0.5, 0.56]} className={litFonts}>
       <section className="sect pg-sect pg-end pv-close pv-alone" id="top" aria-labelledby="call-h">
         <div className="mist" aria-hidden="true" />
         <div className="pg-in">

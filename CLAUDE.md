@@ -44,6 +44,10 @@ The site is live at karmanprep.com on Cloudflare Workers, with no paying users y
   (`scripts/dev/home-journey-check.mjs`).
 - Every screen works on phone, tablet and desktop with no sideways scroll, and respects reduced motion.
 - Click every button and link in a browser before calling a page done.
+- The founder reviews pages on the review board: run `node scripts/dev/review-board.mjs` beside the dev
+  server and open localhost:4810. His verdict and directions for each page are kept in
+  `prototypes/page-review.json`. Wait on `GET /api/wait` for his next direction and answer with
+  `POST /api/reply`.
 
 ## Branches and the dev server
 
@@ -76,8 +80,8 @@ actions validate their inputs with Zod. Migrations go in `supabase/migrations/<Y
   One Worker serves karmanprep.com, so the last deploy wins.
 - **Merging to `main`.** It applies database migrations to production.
 - **Writing to the live question bank.** Each batch needs his go-ahead.
-- **Changing the calculator** (`src/components/calculator/`, `src/lib/calculator/`, the `/calculator`
-  page) unless he asks.
+- **Changing the calculator** (`src/components/calculator/`, `src/lib/calculator/`) unless he asks. Its
+  public page is down until he reworks it (2026-11-25); the calculator lives inside the quiz.
 - **Spending money** on image or video generation.
 - **Printing or committing a secret.**
 

@@ -6,6 +6,7 @@ import { greetingsFor } from "@/components/auth/greetings";
 import SitePage from "@/components/site/SitePage";
 import { devBypassClerkId, safeAuth } from "@/lib/auth/dev-auth";
 import { safeNext } from "@/lib/auth/portal-home";
+import { NEW_TEST_STUDENT, switchHref } from "@/lib/auth/test-accounts";
 import { redirect } from "next/navigation";
 import { litFonts } from "@/components/site/home/fonts";
 
@@ -15,13 +16,24 @@ export default async function Page({
   searchParams: Promise<{ redirect_url?: string }>;
 }) {
   const { redirect_url } = await searchParams;
-  // On the local test copy, there is no account to make: pick a test account (/dev/sign-in).
-  if (devBypassClerkId()) redirect("/dev/sign-in");
+  // On the local test copy there is no account to make: "Get started" becomes the new test student
+  // and goes on as a new account would (Settings, Test accounts, switches to anyone else).
+  if (devBypassClerkId())
+    redirect(
+      redirect_url
+        ? safeNext(redirect_url)
+        : `${switchHref(NEW_TEST_STUDENT)}&to=${encodeURIComponent("/onboarding?fresh=1")}`
+    );
   // Someone already signed in has no business here: on to where they were going, or their portal.
   // (Not on the dev server's stand-in account, which is always "signed in".)
   if (!devBypassClerkId() && (await safeAuth()).userId) redirect(safeNext(redirect_url));
   return (
-    <SitePage kind="lit" flight={false} className={`${litFonts} ${cabinFont.variable} cb-page`}>
+    <SitePage
+      kind="lit"
+      flight={false}
+      noTheme
+      className={`${litFonts} ${cabinFont.variable} cb-page`}
+    >
       <CabinStage
         mode="sign-up"
         greetings={greetingsFor("sign-up", redirect_url)}

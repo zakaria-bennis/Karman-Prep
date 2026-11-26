@@ -14,6 +14,9 @@ import SettingsCard from "@/components/student-portal/settings/SettingsCard";
 import SoundMotion from "@/components/student-portal/settings/SoundMotion";
 import s from "@/components/student-portal/settings/settings.module.css";
 import "@/components/portal-extras/forms.css";
+import { isDevAuthBypassActive } from "@/lib/auth/dev-auth";
+import { switchHref } from "@/lib/auth/test-accounts";
+import { testAccounts } from "@/lib/auth/test-accounts-list";
 import { safeTimeZone } from "@/lib/daily-ten/day";
 import { parentTimeZone } from "@/lib/parent/daily-report";
 import { readDailyEmailChoice } from "@/lib/parent/daily-email-settings";
@@ -67,6 +70,13 @@ export default async function ParentSettingsPage({
               </div>
               <ManageSignIn />
             </SettingsCard>
+            {isDevAuthBypassActive() ? (
+              <SettingsCard id="test-accounts" title="Test accounts">
+                {(await testAccounts()).map((a) => (
+                  <Row key={a.id} title={a.name} href={switchHref(a.id)} right="Switch" />
+                ))}
+              </SettingsCard>
+            ) : null}
             <SettingsCard id="billing" title="Plan and billing">
               {ctx.children.length ? (
                 ctx.children.map((c) => (

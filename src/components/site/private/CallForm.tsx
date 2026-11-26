@@ -15,6 +15,7 @@ import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
   fmtTime,
+  sayTime,
   longDay,
   openHours,
   useCentralHour,
@@ -31,8 +32,8 @@ export interface CallWords extends SlotWords {
   email: string;
   button: string;
   sending: string;
-  doneTitle: string;
-  doneText: string;
+  /** One sentence, with {time} and {day} in it. */
+  done: string;
   errors: Record<Field | "slot" | "server" | "network", string>;
 }
 
@@ -127,11 +128,13 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   }, [done]);
 
   const timeLabel = (d: Date, h: number) =>
-    local
-      ? centralInstant(d, h)
-          .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-          .toLowerCase()
-      : fmtTime(h);
+    sayTime(
+      local
+        ? centralInstant(d, h)
+            .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+            .toLowerCase()
+        : fmtTime(h)
+    );
   const dayLabel = (d: Date, h: number) =>
     local
       ? centralInstant(d, h).toLocaleDateString([], {
@@ -196,9 +199,11 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       <div className="cf cf-done" id="call" tabIndex={-1} ref={doneBox} role="status">
         <Confetti />
         <FoxCheer />
-        <h3>{w.doneTitle}</h3>
-        <p>{when}</p>
-        <p>{w.doneText}</p>
+        <h3>
+          {hour === null
+            ? ""
+            : w.done.replace("{time}", timeLabel(day, hour)).replace("{day}", dayLabel(day, hour))}
+        </h3>
       </div>
     );
 

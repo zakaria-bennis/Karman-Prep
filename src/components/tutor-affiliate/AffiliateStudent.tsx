@@ -151,7 +151,7 @@ export default async function AffiliateStudent({
                       ? `Due ${shortDate(item.dueOn)}`
                       : item.status === "completed"
                         ? `Done ${shortDate(item.completedAt)}`
-                        : "Cancelled"
+                        : "Canceled"
                   }
                   right={
                     item.status === "assigned" && !readOnly ? (

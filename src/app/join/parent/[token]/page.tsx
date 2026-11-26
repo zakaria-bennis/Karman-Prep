@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, Cta, Panel, PortalShell, SectionHeader } from "@/components/portal";
+import { SwitchAccount } from "@/components/parent/SwitchAccount";
 import { ActionMessage } from "@/components/school/SchoolShell";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { lookupInvite } from "@/lib/parent/invites";
@@ -14,11 +15,7 @@ import "@/components/portal-extras/forms.css";
 export const metadata: Metadata = { title: "Parent invite" };
 export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = {
-  invite: "This link was already used or has expired. Ask for a new one.",
-  role: "This account is set up as a student or tutor. Sign in with a parent account to accept.",
-  self: "You can't link your own account as your parent.",
-};
+const USED = "This link was already used or has expired. Ask for a new one.";
 
 export default async function JoinParentPage({
   params,
@@ -36,6 +33,8 @@ export default async function JoinParentPage({
     supabase.from("users").select("first_name, email").eq("clerk_id", clerkId).maybeSingle(),
     lookupInvite({ token }, supabase),
   ]);
+  // The student opened their own invite: nothing to accept, and their account stays a student's.
+  const own = invite.state === "open" && invite.student.clerkId === clerkId;
 
   return (
     <PortalShell
@@ -47,8 +46,27 @@ export default async function JoinParentPage({
       home="/dashboard/parent"
     >
       <Panel>
-        <ActionMessage error={error ? (ERRORS[error] ?? ERRORS.invite) : undefined} />
-        {invite.state === "open" ? (
+        <ActionMessage error={error === "invite" ? USED : undefined} />
+        {own ? (
+          <Card>
+            <SectionHeader title="This is your own invite" />
+            <p className="kp-meta">
+              Send this link to your parent. They open it signed in to their own account.
+            </p>
+            <Link className="kp-link" href="/dashboard/student">
+              Back to your portal
+            </Link>
+          </Card>
+        ) : invite.state === "open" && error === "role" ? (
+          <Card>
+            <SectionHeader title="Use a parent account" />
+            <p className="kp-meta">
+              This account is already a student or tutor account. A parent needs an account of their
+              own to follow {invite.student.firstName}.
+            </p>
+            <SwitchAccount backTo={`/join/parent/${token}`} />
+          </Card>
+        ) : invite.state === "open" ? (
           <section aria-labelledby="invite-main">
             <h2 className="kp-title" id="invite-main">
               Link your account to {invite.student.firstName}

@@ -7,7 +7,10 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 const SECURITY_HEADERS = [
   { key: "Strict-Transport-Security", value: "max-age=31536000" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  // Left off in development so the page review board (scripts/dev/review-board.mjs) can frame the site.
+  ...(process.env.NODE_ENV === "development"
+    ? []
+    : [{ key: "X-Frame-Options", value: "SAMEORIGIN" }]),
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
@@ -19,6 +22,8 @@ const SECURITY_HEADERS = [
 const nextConfig = {
   // No "x-powered-by: Next.js" on responses.
   poweredByHeader: false,
+  // No Next.js badge in the corner of the page while developing: it sits on top of the design.
+  devIndicators: false,
   // Development only: other names this computer may be opened by (a phone on the same network or
   // cable). Set DEV_ORIGINS to a comma-separated list of hosts; with none, only localhost may.
   allowedDevOrigins: (process.env.DEV_ORIGINS ?? "").split(",").filter(Boolean),
@@ -29,6 +34,9 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/plans", destination: "/pricing", permanent: true },
+      // The public calculator page is down until it is reworked (founder, 2026-11-25). The calculator
+      // itself stays inside the quiz.
+      { source: "/calculator", destination: "/", permanent: false },
       // The student portal is one page now (2026-11-22): the old addresses open the matching tab.
       {
         source: "/dashboard/student/account",
@@ -85,10 +93,11 @@ const nextConfig = {
         destination: "/dashboard/student?page=account&folder=people",
         permanent: false,
       },
-      { source: "/free-diagnostic", destination: "/free-practice-test", permanent: true },
+      { source: "/free-diagnostic", destination: "/auth/sign-up", permanent: false },
+      { source: "/free-practice-test", destination: "/auth/sign-up", permanent: false },
       { source: "/diagnostic", destination: "/learn/diagnostic", permanent: true },
       { source: "/blog", destination: "/", permanent: true },
-      { source: "/questions", destination: "/free-practice-test", permanent: true },
+      { source: "/questions", destination: "/auth/sign-up", permanent: false },
     ];
   },
   // Cloudflare Workers (via OpenNext) needs the Node.js runtime

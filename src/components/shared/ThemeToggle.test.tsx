@@ -68,13 +68,11 @@ describe("floating theme control", () => {
       "/",
       "/program",
       "/private-tutoring",
-      "/free-practice-test",
       "/pricing",
       "/guarantee",
       "/faq",
       "/about",
       "/privacy",
-      "/calculator",
     ]) {
       pathname = route;
       const view = render(<ThemeToggle floating />);
@@ -83,9 +81,13 @@ describe("floating theme control", () => {
     }
   });
 
-  it.each(["/auth/sign-in", "/auth/sign-up"])("keeps the floating control on %s", (route) => {
-    pathname = route;
-    render(<ThemeToggle floating />);
-    expect(screen.getByRole("button", { name: "Toggle light and dark mode" })).toHaveClass("fixed");
-  });
+  // signing up, joining and paying show no light and dark button at all (founder, 2026-11-25)
+  it.each(["/auth/sign-in", "/auth/sign-up", "/onboarding/questionnaire", "/reserve/pay"])(
+    "shows no floating control on %s",
+    (route) => {
+      pathname = route;
+      render(<ThemeToggle floating />);
+      expect(screen.queryByRole("button", { name: "Toggle light and dark mode" })).toBeNull();
+    }
+  );
 });

@@ -164,45 +164,6 @@ export async function createCheckoutSession({
 }
 
 /**
- * Checkout for a visitor who has no account yet (founder, 2026-11-14: pay first, the account comes
- * after). Stripe makes the customer and takes the email; nothing carries a user id, so the webhook
- * leaves the purchase alone until the buyer's account claims it (src/lib/checkout/guest.ts).
- */
-export async function createGuestCheckoutSession({
-  spec,
-  successUrl,
-  cancelUrl,
-}: {
-  spec: StripePriceSpec;
-  successUrl: string;
-  cancelUrl: string;
-}) {
-  const price = await getCheckoutPrice(spec);
-  const metadata = { guest: "1", planId: spec.planId, term: spec.term };
-  const shared: Stripe.Checkout.SessionCreateParams = {
-    line_items: [{ price: price.id, quantity: 1 }],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata,
-    allow_promotion_codes: true,
-  };
-  if (spec.intervalMonths) {
-    return stripe.checkout.sessions.create({
-      ...shared,
-      mode: "subscription",
-      payment_method_types: [...CARD_METHODS],
-      subscription_data: { metadata: { planId: spec.planId, term: spec.term } },
-    });
-  }
-  return stripe.checkout.sessions.create({
-    ...shared,
-    mode: "payment",
-    customer_creation: "always",
-    payment_intent_data: { metadata: { planId: spec.planId } },
-  });
-}
-
-/**
  * Checkout for a cohort seat reserved from the marketing site, before the student has an account
  * (src/lib/reserve). The same prices and payment methods as a signed-in cohort checkout; the metadata
  * carries the reservation instead of a user, and the webhook settles it by that id.
@@ -215,6 +176,7 @@ export async function createReservationCheckoutSession({
   programId,
   payment,
   returnUrl,
+  way,
 }: {
   customerId: string;
   reservationId: string;
@@ -222,20 +184,32 @@ export async function createReservationCheckoutSession({
   payment: CohortPayment;
   /** Where Stripe sends the family once the payment is made. */
   returnUrl: string;
+  /** One way to pay alone: a checkout that offers only that way, for its own group on the payment
+   *  page ("card": the typed card, with none of Link's extra tabs; or a pay-later plan, the bank, a
+   *  wallet, opened when the family picks it). Left out: the one-tap ways (Link, Apple Pay, Google Pay). */
+  way?: PayWay | "card";
 }) {
-  const metadata = { reservationId, planId: "cohort", term: payment, programId };
+  const metadata = {
+    reservationId,
+    planId: "cohort",
+    term: payment,
+    programId,
+    ...(way ? { way } : {}),
+  };
   const shared = {
     customer: customerId,
     ui_mode: "elements" as const,
     return_url: returnUrl,
     metadata,
+    // the typed card's own checkout shows card fields only: Link stays with the one-tap buttons
+    ...(way === "card" ? { wallet_options: { link: { display: "never" as const } } } : {}),
   };
   if (payment === "installments") {
     const deposit = await getCheckoutPrice(cohortInstallmentSpecs().deposit);
     return stripe.checkout.sessions.create({
       ...shared,
       mode: "payment",
-      payment_method_types: [...CARD_METHODS],
+      payment_method_types: way === "card" ? ["card"] : [...CARD_METHODS],
       line_items: [{ price: deposit.id, quantity: 1 }],
       payment_intent_data: { setup_future_usage: "off_session", metadata },
     });
@@ -243,12 +217,56 @@ export async function createReservationCheckoutSession({
   const spec = findStripePrice("cohort");
   if (!spec) throw new Error("The cohort has no Stripe price in prices.ts");
   const price = await getCheckoutPrice(spec);
+  // The payment page draws each group of ways itself (one tap, card, pay later, bank, more), so each
+  // checkout names what it offers: Link with the card behind it (which brings Apple Pay and Google Pay)
+  // for the one-tap buttons, or one way alone. Link is kept out of the typed card's checkout because
+  // it adds tabs of its own there (a bank and a pay-later plan run by Link).
   return stripe.checkout.sessions.create({
     ...shared,
     mode: "payment",
+    payment_method_types: way ? [way] : [...CARD_METHODS],
     line_items: [{ price: price.id, quantity: 1 }],
     payment_intent_data: { metadata },
   });
+}
+
+/** The other ways to pay for a cohort seat in full, in the order the payment page groups them. */
+export const PAY_WAYS = ["klarna", "affirm", "us_bank_account", "cashapp", "amazon_pay"] as const;
+export type PayWay = (typeof PAY_WAYS)[number];
+
+let waysKept: { at: number; ways: PayWay[] } | null = null;
+/**
+ * Which of the other ways this Stripe account can take right now. A way counts when it is switched on
+ * in the Dashboard's payment method settings, or when the account is approved for it (the bank is
+ * approved but not switched on there). Naming a way the account cannot use makes Stripe refuse the
+ * checkout (Affirm was "Ineligible" on the live account on 2026-11-14), so the page only shows these.
+ * Kept for ten minutes. If Stripe cannot be asked, none is offered and the card still works.
+ */
+export async function payWays(): Promise<PayWay[]> {
+  if (waysKept && Date.now() - waysKept.at < 600_000) return waysKept.ways;
+  try {
+    const [configs, account] = await Promise.all([
+      stripe.paymentMethodConfigurations.list({ limit: 20 }),
+      stripe.accounts.retrieveCurrent(),
+    ]);
+    const on = configs.data.find((c) => c.is_default && c.active) ?? configs.data[0];
+    const approved = account.capabilities ?? {};
+    const capability: Record<PayWay, keyof typeof approved> = {
+      klarna: "klarna_payments",
+      affirm: "affirm_payments",
+      us_bank_account: "us_bank_account_ach_payments",
+      cashapp: "cashapp_payments",
+      amazon_pay: "amazon_pay_payments",
+    };
+    const ways = PAY_WAYS.filter(
+      (w) => on?.[w]?.available === true || approved[capability[w]] === "active"
+    );
+    waysKept = { at: Date.now(), ways };
+    return ways;
+  } catch (e) {
+    console.error("[stripe] could not read the ways to pay", e);
+    return [];
+  }
 }
 
 /** The Stripe customer already made for this Clerk user, found by its metadata. */

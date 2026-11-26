@@ -14,8 +14,8 @@ import {
   isPlaceholderCustomer,
   mayCreateTestCustomer,
 } from "@/lib/billing-portal/stripe";
-import { DAILY_EMAIL_TIMES } from "@/lib/parent/daily-email-schedule";
-import { saveDailyEmailChoice } from "@/lib/parent/daily-email-settings";
+import { DAILY_EMAIL_TIMES, isTimeZone } from "@/lib/parent/daily-email-schedule";
+import { saveDailyEmailChoice, saveParentTimeZone } from "@/lib/parent/daily-email-settings";
 import { acceptInvite, LINK_CODE_PATTERN, normalizeLinkCode } from "@/lib/parent/invites";
 import { postFamilyMessage, saveAlertPrefs, saveOfficialScore } from "@/lib/parent/messages";
 import { KIND_LABEL, NEEDS_SESSION, sendMessageInput } from "@/lib/parent/messages-model";
@@ -40,13 +40,15 @@ export async function openFamilyBillingAction(formData: FormData) {
   const child = await requireChild(ctx, parsed.data.studentId);
   const page = `/dashboard/parent/${child.id}/billing`;
   const supabase = createAdminClient();
-  const { data: sub } = await supabase
+  // A family can hold more than one row (an ended plan and a new one): the newest with a customer.
+  const { data: subs } = await supabase
     .from("subscriptions")
     .select("stripe_customer_id")
     .eq("user_id", child.clerkId)
-    .maybeSingle();
-  if (!sub?.stripe_customer_id) back(page, "error", `${child.firstName} has no paid plan yet.`);
-  let customerId = sub.stripe_customer_id as string;
+    .order("created_at", { ascending: false });
+  const sub = (subs ?? []).find((row) => row.stripe_customer_id);
+  if (!sub) back(page, "error", `${child.firstName}'s plan has no card to manage here.`);
+  let customerId = sub.stripe_customer_id;
   if (isPlaceholderCustomer(customerId) && !mayCreateTestCustomer())
     back(page, "error", "Billing is not set up for this account yet.");
   let url: string;
@@ -100,18 +102,24 @@ export async function linkStudentWithCodeAction(formData: FormData) {
 }
 
 const SETTINGS_PAGE = "/dashboard/parent/settings";
-const dailyEmailSchema = z.object({ time: z.union([z.enum(DAILY_EMAIL_TIMES), z.literal("off")]) });
+const dailyEmailSchema = z.object({
+  time: z.union([z.enum(DAILY_EMAIL_TIMES), z.literal("off")]),
+  zone: z.string().refine(isTimeZone),
+});
 
-/** The parent picks when the daily email arrives (their own time zone), or turns it off. */
+/** The parent picks when the daily email arrives and in which time zone, or turns it off. */
 export async function saveDailyEmailTimeAction(formData: FormData) {
   const ctx = await requireParentContext();
-  const parsed = dailyEmailSchema.safeParse({ time: formData.get("time") });
-  if (!parsed.success) back(SETTINGS_PAGE, "error", "Pick a time from the list.");
+  const parsed = dailyEmailSchema.safeParse({
+    time: formData.get("time"),
+    zone: formData.get("zone"),
+  });
+  if (!parsed.success) back(SETTINGS_PAGE, "error", "Pick a time and a time zone from the lists.");
   try {
-    await saveDailyEmailChoice(
-      ctx.viewer.userId,
-      parsed.data.time === "off" ? null : parsed.data.time
-    );
+    await Promise.all([
+      saveDailyEmailChoice(ctx.viewer.userId, parsed.data.time === "off" ? null : parsed.data.time),
+      saveParentTimeZone(ctx.viewer.userId, parsed.data.zone),
+    ]);
   } catch (error) {
     console.error("[parent] daily email time could not be saved", error);
     back(SETTINGS_PAGE, "error", "That didn't save. Try again in a minute.");
