@@ -1,0 +1,377 @@
+/* /checkout/welcome-mock: three mock-ups of the welcome after Pro or Practice is paid. */
+.wm-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.ks .wm {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(720px, 100%);
+  margin: 0 auto;
+  text-align: center;
+  color: #fff8ea;
+}
+.ks .wm-a,
+.ks .wm-c {
+  text-shadow: 0 2px 22px rgb(6 10 34 / 0.75);
+}
+.ks .wm .wm-title {
+  margin: 0;
+  font: 400 clamp(34px, 5.4vw, 62px) / 1.06 var(--font-serif, Georgia, serif);
+  text-wrap: balance;
+}
+.wm-title span {
+  display: inline-block;
+  margin-right: 0.24em;
+  opacity: 0;
+  animation: wm-word 0.6s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+@keyframes wm-word {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.92);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.wm-fox {
+  animation:
+    wm-jump 0.9s cubic-bezier(0.3, 1.6, 0.5, 1) both,
+    wm-bob 2.4s ease-in-out 1s infinite alternate;
+}
+@keyframes wm-jump {
+  0% {
+    opacity: 0;
+    transform: translateY(120px) scale(0.5) rotate(-14deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-26px) scale(1.08) rotate(5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes wm-bob {
+  to {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+.ks .wm-badge {
+  margin: 0;
+  padding: 6px 22px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #f3c94b, #ffe9a8 45%, #e2a23b);
+  color: #2a1a05;
+  text-shadow: none;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: wm-stamp 0.5s cubic-bezier(0.3, 1.8, 0.5, 1) 0.35s both;
+  box-shadow: 0 0 40px rgb(243 201 75 / 0.55);
+}
+@keyframes wm-stamp {
+  from {
+    opacity: 0;
+    transform: scale(2.4) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ks .wm-paid,
+.ks .wm-kicker,
+.ks .wm-later,
+.ks .wm-first,
+.ks .wm .wm-go {
+  opacity: 0;
+  animation: wm-rise 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes wm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ks .wm-paid,
+.ks .wm-kicker {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.ks .wm-paid b {
+  margin-left: 8px;
+  color: #ffd76a;
+}
+.ks .wm .wm-go {
+  margin-top: 10px;
+  min-width: 220px;
+  height: 58px;
+  text-shadow: none;
+}
+
+/* B: the plan's seal stamps in, then what it holds ticks in line by line */
+.ks .wm-b {
+  width: min(600px, 100%);
+  padding: 34px 30px 30px;
+  gap: 16px;
+  overflow: hidden;
+}
+.ks .wm-b .wm-title {
+  font-size: clamp(28px, 3.8vw, 40px);
+}
+.wm-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  animation: wm-stamp 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) 0.55s both;
+}
+.wm-seal svg {
+  position: absolute;
+  inset: 0;
+  fill: none;
+  stroke: #f3c94b;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+}
+.wm-seal circle {
+  stroke-dasharray: 340;
+  stroke-dashoffset: 340;
+  animation: wm-draw 0.7s ease-out 0.1s forwards;
+}
+.wm-seal circle + circle {
+  stroke-width: 1.2;
+  animation-delay: 0.3s;
+}
+@keyframes wm-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.wm-seal b {
+  color: #ffd76a;
+  font: 400 34px/1 var(--font-serif, Georgia, serif);
+}
+.wm-seal i {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #f3c94b;
+  opacity: 0;
+  animation: wm-wave 0.9s ease-out 0.95s;
+}
+@keyframes wm-wave {
+  from {
+    opacity: 0.9;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+.ks .wm-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.ks .wm-list li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0;
+  animation: wm-in 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+@keyframes wm-in {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wm-list svg {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgb(243 201 75 / 0.18);
+  fill: none;
+  stroke: #ffd76a;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wm-list path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: wm-draw 0.3s ease-out forwards;
+}
+
+/* C: the fox flies across trailing sparks, then the first thing to do is handed over */
+.wm-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wm-flyer {
+  position: absolute;
+  top: 58%;
+  left: 0;
+  animation: wm-fly 1.5s cubic-bezier(0.4, 0, 0.3, 1) both;
+}
+@keyframes wm-fly {
+  0% {
+    transform: translate(-160px, 120px) rotate(-18deg) scale(0.8);
+  }
+  55% {
+    transform: translate(52vw, -34vh) rotate(-8deg) scale(1.15);
+  }
+  100% {
+    transform: translate(108vw, -62vh) rotate(-22deg) scale(0.9);
+  }
+}
+.wm-flyer i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffd76a;
+  box-shadow: 0 0 14px 4px rgb(255 215 106 / 0.7);
+  animation: wm-spark 0.9s ease-out infinite;
+}
+.wm-flyer i:nth-child(3n) {
+  width: 6px;
+  height: 6px;
+  background: #fff;
+}
+@keyframes wm-spark {
+  from {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(26px) scale(0.2);
+  }
+}
+.ks .wm-first {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: min(560px, 100%);
+  margin-top: 14px;
+  padding: 16px 16px 16px 18px;
+  border-radius: 28px;
+  background: rgb(18 24 52 / 0.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22);
+  text-align: left;
+  text-shadow: none;
+}
+.wm-first svg {
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: rgb(255 255 255 / 0.2);
+  stroke-width: 6;
+  transform: rotate(-90deg);
+}
+.wm-first .wm-ring {
+  stroke: #ffd76a;
+  stroke-linecap: round;
+  stroke-dasharray: 170;
+  stroke-dashoffset: 170;
+  animation: wm-ring 1.6s ease-in-out 2.8s infinite alternate;
+}
+@keyframes wm-ring {
+  to {
+    stroke-dashoffset: 120;
+  }
+}
+.ks .wm-first p {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.ks .wm-first b {
+  font: 400 22px/1.15 var(--font-serif, Georgia, serif);
+}
+.ks .wm-first small {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.ks .wm .wm-now {
+  min-width: 0;
+  height: 52px;
+  margin: 0;
+  opacity: 1;
+  animation: wm-pulse 1.8s ease-in-out 3.2s infinite;
+}
+@keyframes wm-pulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+.ks .wm-later {
+  color: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 599px) {
+  .ks .wm-first {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .wm-first svg {
+    width: 48px;
+    height: 48px;
+  }
+  .ks .wm .wm-now {
+    grid-column: 1 / -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm *,
+  .wm-trail * {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+  .wm-trail {
+    display: none;
+  }
+}
