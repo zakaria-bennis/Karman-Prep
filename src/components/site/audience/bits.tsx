@@ -1,4 +1,4 @@
-// Small pieces the Schools, For tutors and Free practice test pages share: the tick, a progress ring for the
+// Small pieces the Schools and For tutors pages share: the tick, a progress ring for the
 // drawn portal screens, and a reader for copy rows with three parts ("a = b = c | ...").
 import type { CSSProperties } from "react";
 import { list } from "@/lib/marketing/site-copy";

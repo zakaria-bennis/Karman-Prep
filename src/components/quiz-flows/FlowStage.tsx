@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { portalFontVars } from "@/components/portal/fonts";
 import { QuizWorld } from "@/components/learn/quiz-shell/QuizWorld";
 import s from "./stage.module.css";
+import { Orb } from "@/components/shared/Orb";
 
 export function FlowStage({
   back,
@@ -49,11 +50,7 @@ export function Go({
     <>
       <span>{children}</span>
       {busy ? (
-        <i className={s.orbs} aria-hidden="true">
-          <b />
-          <b />
-          <b />
-        </i>
+        <Orb />
       ) : (
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M5 12h13M12.500 6.500L18 12l-5.500 5.500" />

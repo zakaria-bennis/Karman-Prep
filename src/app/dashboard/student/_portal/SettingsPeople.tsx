@@ -1,7 +1,7 @@
 "use client";
 
 // Settings, Parent, tutor and class: invite a parent (a fresh link, sent from the student's own
-// email), where the student stands with a tutor's group (join with a code, leave, or read that the
+// email, and the code a parent can type in the parent portal instead), where the student stands with a tutor's group (join with a code, leave, or read that the
 // tutor removed them), and a school class code. /join, /join/[code] and /join/class send a student
 // here with the code filled in (?code= for a tutor, ?class= for a class). The design page shows
 // stand-ins.
@@ -13,7 +13,7 @@ import {
   actionPeople,
   type PeopleState,
 } from "@/lib/portal/settings-people-actions";
-import { actionParentInviteLink } from "@/lib/portal/settings-actions";
+import { actionParentInviteCode, actionParentInviteLink } from "@/lib/portal/settings-actions";
 import { redeemMessage } from "@/lib/portal/settings-rules";
 import { usePortalData } from "./portalData";
 import { Group, Row, Say } from "./settingsControls";
@@ -26,6 +26,18 @@ function Parent() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState<Said>(null);
+  /* the open invite's code, read when the folder opens and replaced when a new invite is made */
+  const [code, setCode] = useState<string | null>(null);
+  useEffect(() => {
+    if (!real) return;
+    let live = true;
+    actionParentInviteCode()
+      .then((r) => live && r.ok && setCode((now) => now ?? r.code))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [real]);
   const ok = /^\S+@\S+\.\S+$/.test(email.trim());
   const send = async (e: FormEvent) => {
     e.preventDefault();
@@ -40,7 +52,8 @@ function Parent() {
         tone: "problem",
         text: made?.error ?? "The invite didn't save. Try again.",
       });
-    const body = `Follow my SAT practice on Karman: ${made.link}`;
+    setCode(made.code);
+    const body = `Follow my SAT practice on Karman: ${made.link}\n\nOr type this code in your parent portal: ${made.code}`;
     window.location.href = `mailto:${encodeURIComponent(email.trim())}?subject=${encodeURIComponent(
       "Join me on Karman"
     )}&body=${encodeURIComponent(body)}`;
@@ -67,6 +80,12 @@ function Parent() {
         </button>
       </form>
       {said && <Say tone={said.tone}>{said.text}</Say>}
+      {code && (
+        <label className={styles.field}>
+          <span>Code your parent can type in the parent portal</span>
+          <input value={code} readOnly />
+        </label>
+      )}
     </Group>
   );
 }

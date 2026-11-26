@@ -238,34 +238,6 @@
   cursor: progress;
 }
 
-.orbs {
-  display: inline-flex;
-  gap: 6px;
-}
-
-.orbs i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: orb 0.9s ease-in-out infinite;
-}
-
-.orbs i:nth-child(2) {
-  animation-delay: 0.12s;
-}
-
-.orbs i:nth-child(3) {
-  animation-delay: 0.24s;
-}
-
-@keyframes orb {
-  50% {
-    transform: translateY(-4px);
-    opacity: 0.55;
-  }
-}
-
 /* a phone: the sheet rises from the bottom edge, as wide as the screen, clear of the home line */
 @media (max-width: 640px) {
   .veil {
@@ -295,10 +267,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orbs i {
-    animation: none;
-  }
-
   .buy,
   .sheet .close {
     transition: none;

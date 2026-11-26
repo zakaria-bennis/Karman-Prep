@@ -145,13 +145,7 @@ export default function ResearchSections() {
         </div>
       </section>
 
-      <Close
-        id="start"
-        headline={close.headline}
-        text={close.text}
-        button={close.button}
-        second={{ label: close["second button"], href: ROUTES.test }}
-      />
+      <Close id="start" headline={close.headline} text={close.text} button={close.button} />
     </>
   );
 }

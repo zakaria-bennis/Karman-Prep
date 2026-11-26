@@ -42,7 +42,6 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
     "/plans",
     "/questions",
     "/faq",
-    "/calculator",
     "/blog",
     "/privacy",
     "/terms",
@@ -51,6 +50,8 @@ it("opens marketing pages while protecting parent, tutor, admin and student rout
     "/robots.txt",
     "/auth/sign-in",
     "/auth/sign-up",
+    // a tutor's link: the page itself sends a signed-out student to sign up, then back
+    "/join/TUTR-8KQ2",
   ]) {
     const result = await run(auth, new NextRequest("https://karmanprep.com" + path));
     expect(result.headers.get("x-middleware-rewrite")).toBeNull();
@@ -83,9 +84,6 @@ it("retains an explicit maintenance rollback without hiding the sign-in flow", a
   const run = middleware as unknown as (a: typeof auth, request: NextRequest) => Promise<Response>;
   const root = await run(auth, new NextRequest("https://karmanprep.com/"));
   expect(root.headers.get("x-middleware-rewrite")).toBe("https://karmanprep.com/coming-soon");
-  // The calculator page sits behind the gate like every other marketing page.
-  const calculator = await run(auth, new NextRequest("https://karmanprep.com/calculator"));
-  expect(calculator.headers.get("x-middleware-rewrite")).toBe("https://karmanprep.com/coming-soon");
   const signIn = await run(auth, new NextRequest("https://karmanprep.com/auth/sign-in"));
   expect(signIn.headers.get("x-middleware-rewrite")).toBeNull();
 });

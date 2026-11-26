@@ -22,15 +22,20 @@ export const RESERVE = {
   names: {
     parent: {
       headline: "Who is the seat for?",
-      name: "Your full name",
       student: "Your student's first name",
+      gave: "A seat for {name}. Good choice.",
+      parentHeadline: "What's your name and phone number?",
+      name: "Your full name",
     },
     student: {
       headline: "Who is the seat for?",
-      name: "Parent's full name",
       student: "Your first name",
+      gave: "Nice to meet you, {name}.",
+      parentHeadline: "What's your parent's name and phone number?",
+      name: "Parent's full name",
     },
     phone: "Mobile phone",
+    phoneHeadline: "What's your mobile number?",
   },
   score: {
     headline: "Which SAT is the goal?",
@@ -44,8 +49,11 @@ export const RESERVE = {
     parts: "Deposit, then three payments",
     partsPrice: `${formatPrice(MP.depositAmount)} today`,
     partsNote: `Then ${MP.installments.count} monthly payments of ${formatPrice(MP.installments.amount)}, starting with the first class. The total is the same: ${formatPrice(MP.price)}.`,
-    button: "Continue to payment",
     sending: "Opening payment",
+    /** Which cohort is being paid for, above the two ways to pay. */
+    chosen: "The {month} cohort.",
+    chosenOpen: "SAT date not decided yet.",
+    change: "Change",
     promise: `Covered by the guarantee: up to +${G.bands[0].cohort} points, or your money back.`,
   },
   /** Our own payment page (/reserve/pay). {name} is the student's first name. */
@@ -53,14 +61,59 @@ export const RESERVE = {
     title: "{name}'s seat",
     what: `The ${MP.weeks}-week SAT cohort, {month}`,
     whatOpen: `The ${MP.weeks}-week SAT cohort`,
-    depositNote: "Deposit today. Then {count} monthly payments of {each}.",
-    other: "Pay another way",
+    /** The breakdown. No tax line: none is charged. */
+    deposit: "Deposit",
+    later: "Then {count} monthly payments",
+    each: "{each} each",
+    total: "Total today",
+    subtotal: "Subtotal",
+    /** Between the one-tap buttons and the rest of the form. */
+    or: "Or",
+    contact: "Contact information",
+    email: "Email",
+    method: "Payment method",
+    /** A promotion code, on the bill. {percent} is "50"; {amount} {per} is "$69 a month". */
+    code: {
+      add: "Add promotion code",
+      field: "Promotion code",
+      apply: "Apply",
+      remove: "Remove the code {code}",
+      off: "{percent}% off",
+      bad: "That code didn't work. Check it and try again.",
+      then: "Then {amount} {per}.",
+    },
+    /** The ways whose button says "Continue with ...", because they finish on their own screen. */
+    ways: {
+      klarna: "Klarna",
+      affirm: "Affirm",
+      cashapp: "Cash App Pay",
+      amazon_pay: "Amazon Pay",
+    },
     pay: "Pay {amount}",
+    payBank: "Pay {amount} from your bank",
+    payWith: "Continue with {way}",
     paying: "Paying",
     loading: "Loading payment",
     errors: {
       load: "Payment didn't load. Refresh the page, or email hello@karmanprep.com.",
       pay: "That payment didn't go through. Try again, or pay another way.",
+    },
+    /** The moment the payment is made (Paid.tsx). {name} is the student's first name. */
+    paid: {
+      title: "Paid. {name}'s seat is reserved.",
+      /** A renewing plan paid on the same screen (/checkout/pay). {plan} is its name. */
+      planTitle: "Paid. You're on {plan}.",
+      /** The plan paid from a bank: on from today, while the bank sends the payment. */
+      planClearingTitle: "You're on {plan}.",
+      planClearingText: "Your bank is sending the payment. It takes a few business days to arrive.",
+      amount: "Paid today",
+      reference: "Reference",
+      sent: "The details are on their way to {email}.",
+      button: "Get started",
+      /** A bank payment: accepted, and a few working days from arriving. */
+      clearingTitle: "{name}'s seat is held.",
+      clearingText:
+        "Your bank is sending the payment. It takes a few business days to arrive. We email {email} the moment it does, with the link to get started.",
     },
   },
   errors: {
@@ -68,6 +121,7 @@ export const RESERVE = {
     name: "Enter a name, using letters only.",
     phone: "Enter all 10 digits.",
     closed: "Registration for that date just closed. Choose another SAT date.",
+    role: "This account is a student's, so it can't reserve as a parent. Choose \"I'm the student\", or sign in with your own account.",
     server:
       "That didn't go through. Check your connection and try again, or email hello@karmanprep.com.",
   },
@@ -75,7 +129,9 @@ export const RESERVE = {
    *  over the landscape (RegistrationFlight.tsx). {name} is the student's first name. */
   start: {
     hello:
-      "The seat is reserved. I'm Karman. Five quick questions and {name} is ready for day one.",
+      "The seat is reserved. I'm Karman. {count} quick questions and {name} is ready for day one.",
+    /** How many questions are asked, as a word: fewer when the scores are already known. */
+    counts: { 3: "Three", 4: "Four", 5: "Five" } as Record<number, string>,
     helloButton: "Take off",
     score: {
       say: "Where is {name} taking off from?",
@@ -117,6 +173,7 @@ export const RESERVE = {
       field: "A sport season, a learning difference, a big week",
     },
     next: "Continue",
+    fixScores: "Change the scores",
     finish: "Finish",
     saving: "Saving",
     done: "We've landed at the observatory. Welcome, {name}.",
@@ -133,12 +190,16 @@ export const RESERVE = {
       share: "Send {name} the link",
       copied: "Link copied",
       mine: "Create my account",
+      mineOpen: "Open my portal",
       mineTitle: "Your seat is waiting.",
       mineText: "Your account opens the full platform today, with this seat attached.",
       shareText: "Here's your link to set up your Karman account. It only works once:",
       parentTitle: "Your parent portal",
       parentText:
         "Attendance, homework, practice test scores and where the guarantee stands. You make your own sign-in, and a second parent can be added.",
+      /** The parent reserved with their own account, so there is no sign-in to make. */
+      parentTextMine:
+        "Attendance, homework, practice test scores and where the guarantee stands. A second parent can be added.",
       parentButton: "Open my parent portal",
       then: "What happens after",
       steps: [
@@ -156,10 +217,9 @@ export const RESERVE = {
     },
   },
   welcome: {
-    waitTitle: "Your payment is on its way.",
-    waitText: "This page updates as soon as the payment clears. It usually takes a few seconds.",
     lostTitle: "We can't find that reservation.",
     lostText: "Open the link from your confirmation email, or email hello@karmanprep.com.",
+    lostButton: "Reserve a seat",
     claimed: "The student's account is set up. Sign in to start.",
     signIn: "Sign in",
   },

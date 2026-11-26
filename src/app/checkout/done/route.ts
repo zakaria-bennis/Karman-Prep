@@ -1,10 +1,12 @@
 // ============================================================
 // GET /checkout/done?s=<Stripe checkout session id>
 // Where Stripe sends a visitor who paid before having an account
-// (src/lib/checkout/guest.ts). Signed in: the purchase is given to
-// that account and the portal opens. Signed out: on to Get started
-// (or Sign in, when the email paid with already has an account), and
-// back here afterwards.
+// (src/lib/checkout/guest.ts). No new checkout works that way (an
+// account comes first; founder, 2026-11-25); this stays so a payment
+// made under the old rule can still be opened. Signed in: the purchase
+// is given to that account and the portal opens. Signed out: on to Get
+// started (or Sign in, when the email paid with already has an
+// account), and back here afterwards.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";

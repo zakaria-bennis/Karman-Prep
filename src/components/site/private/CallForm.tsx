@@ -10,11 +10,12 @@ import { track } from "@/lib/analytics/client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
-import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
+import { cleanName, formatPhone, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
 import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
   fmtTime,
+  sayTime,
   longDay,
   openHours,
   useCentralHour,
@@ -31,8 +32,10 @@ export interface CallWords extends SlotWords {
   email: string;
   button: string;
   sending: string;
-  doneTitle: string;
-  doneText: string;
+  /** One sentence, with {time} and {day} in it. */
+  done: string;
+  /** The one way on after a booked call: back to the site. */
+  home: string;
   errors: Record<Field | "slot" | "server" | "network", string>;
 }
 
@@ -72,19 +75,6 @@ const INPUT: Record<Field, Record<string, string | number>> = {
 // first name, last name, email, then the phone with its reason (founder, 2026-11-14)
 const FIELDS: Field[] = ["first", "last", "email", "phone"];
 
-/** A phone number as it is typed: digits only, set out as (512) 555-0142. A number that starts with + is
- *  kept as + and digits, for families abroad. */
-function formatPhone(v: string): string {
-  if (v.trim().startsWith("+")) return `+${v.replace(/\D/g, "").slice(0, 15)}`;
-  const d = v
-    .replace(/\D/g, "")
-    .replace(/^1(?=\d{10})/, "")
-    .slice(0, 10);
-  if (d.length < 4) return d;
-  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-}
-
 /** The moment a Central-Time hour on a date happens, daylight saving included. */
 function centralInstant(d: Date, h: number): Date {
   const noon = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12));
@@ -98,7 +88,23 @@ function centralInstant(d: Date, h: number): Date {
   return new Date(noon.getTime() + (h - central) * 36e5);
 }
 
-export default function CallForm({ w, today }: { w: CallWords; today: string }) {
+/** What a signed-in visitor's account already knows, so the form starts with it filled in. */
+export interface CallMe {
+  first: string;
+  last: string;
+  email: string;
+}
+
+export default function CallForm({
+  w,
+  today,
+  me,
+}: {
+  w: CallWords;
+  today: string;
+  /** Signed in: the name and email are already there (never asked twice). */
+  me?: CallMe | null;
+}) {
   const days = useDays(today);
   const nowHour = useCentralHour();
   // open on tomorrow: today's hours are only known once the page is up, and may all be gone
@@ -127,11 +133,13 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
   }, [done]);
 
   const timeLabel = (d: Date, h: number) =>
-    local
-      ? centralInstant(d, h)
-          .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-          .toLowerCase()
-      : fmtTime(h);
+    sayTime(
+      local
+        ? centralInstant(d, h)
+            .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+            .toLowerCase()
+        : fmtTime(h)
+    );
   const dayLabel = (d: Date, h: number) =>
     local
       ? centralInstant(d, h).toLocaleDateString([], {
@@ -196,9 +204,19 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
       <div className="cf cf-done" id="call" tabIndex={-1} ref={doneBox} role="status">
         <Confetti />
         <FoxCheer />
-        <h3>{w.doneTitle}</h3>
-        <p>{when}</p>
-        <p>{w.doneText}</p>
+        <h3>
+          {hour === null
+            ? ""
+            : w.done.replace("{time}", timeLabel(day, hour)).replace("{day}", dayLabel(day, hour))}
+        </h3>
+        {/* a call is booked, nothing is bought: the way on is back to the site, never into a portal
+            (founder, 2026-11-26) */}
+        <a className="btn" href="/">
+          <span className="lb">{w.home}</span>
+          <span className="go">
+            <Arrow />
+          </span>
+        </a>
       </div>
     );
 
@@ -212,6 +230,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
               <input
                 name={k}
                 placeholder=" "
+                defaultValue={k === "phone" ? undefined : me?.[k] || undefined}
                 aria-invalid={errors[k] ? true : undefined}
                 aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
                 onBlur={(e) => {

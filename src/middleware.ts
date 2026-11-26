@@ -69,15 +69,16 @@ const isMaintenanceExempt = createRouteMatcher([
 /** Routes that don't require auth in normal (post-launch) operation.
  *  Used only when NEXT_PUBLIC_KARMAN_LAUNCHED === "true". */
 const isPublicRoute = createRouteMatcher([
-  "/checkout/start", // pricing plan buttons: straight to Stripe, signed in or not
-  "/checkout/done", // back from Stripe before an account exists: on to Get started, then the portal
+  "/checkout/start", // plan buttons: Stripe when signed in, Get started first when not
+  "/checkout/done", // a payment made before an account existed (the old rule): Get started, then the portal
+  // a tutor's, class's or parent's link: each page sends a signed-out visitor to sign up or in itself
+  "/join(.*)",
   "/reserve(.*)", // reserve a cohort seat: the form, the welcome page and the account link
   "/call", // book a free call, by itself: where the plan-finder sends a private-tutoring plan
   // the marketing site (src/components/site/routes.ts)
   "/",
   "/program",
   "/private-tutoring",
-  "/free-practice-test",
   "/pricing",
   "/guarantee",
   "/faq",
@@ -92,7 +93,6 @@ const isPublicRoute = createRouteMatcher([
   "/plans",
   "/questions",
   "/blog(.*)",
-  "/calculator",
   "/sitemap.xml",
   "/robots.txt",
   "/coming-soon",

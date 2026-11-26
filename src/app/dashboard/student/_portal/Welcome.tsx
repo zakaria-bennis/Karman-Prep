@@ -4,7 +4,10 @@
 // after paying (/checkout/done sends them here with ?welcome=1) or after making a free account. Their
 // character says hello by name, one line says what their plan opens, and, if they have not given it
 // yet, they pick the month of their SAT (founder, 2026-11-14: ask the SAT month, not the day; SAT
-// only). One press and they are in. A paid welcome throws a little confetti; a free one is calmer.
+// only). One press and they are in: tapping a month is that press (founder, 2026-11-25: no Continue
+// after a choice; the month pops, then the portal opens), and "Let's go" shows only when there is nothing
+// to pick. Eight months show, in two rows of four; a phone keeps the first six, in two rows of three. A paid welcome throws a
+// little confetti; a free one is calmer. It makes no sound (founder, 2026-11-25).
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 import { FREE_PLAN } from "@/lib/marketing/offer";
@@ -16,14 +19,23 @@ import { calm } from "./homeworkMotion";
 import { usePortalData } from "./portalData";
 import { confetti } from "./scheduleMotion";
 import { setSetting } from "./settingsStore";
-import { chosen, tick } from "./sound";
 import styles from "./welcome.module.css";
+import { Orb } from "@/components/shared/Orb";
 
-/** "2026-12-05" as its month, with the year when it is not this year's. */
-export function monthOf(day: string, thisYear: number): { month: string; year: string | null } {
+/** "2026-12-05" as its month and its year: every date shows both (founder, 2026-11-25). */
+export function monthOf(day: string): { month: string; year: string } {
   const [y, m] = day.split("-").map(Number);
   const month = new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long" });
-  return { month, year: y === thisYear ? null : String(y) };
+  return { month, year: String(y) };
+}
+
+/** Each month once: two sittings in one month keep the earlier date. */
+export function oneEachMonth(days: readonly string[]): string[] {
+  const seen = new Set<string>();
+  return days.filter((day) => {
+    const month = day.slice(0, 7);
+    return seen.has(month) ? false : !!seen.add(month);
+  });
 }
 
 export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () => void }) {
@@ -35,8 +47,17 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
   const [problem, setProblem] = useState<string | null>(null);
   // the question shows only while the student has no date on file
   const [ask] = useState(() => !real?.testDate);
-  const dates = (real?.satDates ?? []).slice(0, 6);
-  const thisYear = new Date().getFullYear();
+  const dates = oneEachMonth(real?.satDates ?? []).slice(0, 8);
+  const asking = ask && dates.length > 0;
+  // a phone gets a smaller character, drawn at that size (shrinking the big one let it spill onto the words)
+  const [small, setSmall] = useState(false);
+  useEffect(() => {
+    const phone = window.matchMedia("(max-width: 560px)");
+    const fit = () => setSmall(phone.matches);
+    fit();
+    phone.addEventListener("change", fit);
+    return () => phone.removeEventListener("change", fit);
+  }, []);
 
   useEffect(() => {
     const el = root.current;
@@ -58,17 +79,21 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
   }, [paid]);
 
   const pick = (next: string | null) => {
-    tick();
+    if (saving) return;
     setProblem(null);
     setUnsure(next === null);
     setDay(next);
+    // the pick shows for a moment, then they are in
+    window.setTimeout(() => void go(next), 320);
   };
 
-  const go = async () => {
+  const go = async (day: string | null) => {
     if (saving) return;
     setSaving(true);
-    chosen();
-    if (ask && day) {
+    // an admin looking at the student portal has no student account to save a date to, so they go
+    // straight in (the server would answer "Only a student account can change this")
+    const looking = real?.generatedAdmin != null;
+    if (ask && day && !looking) {
       const saved = await actionSaveTest({ testType: "sat", testDate: day }).catch(() => null);
       if (!saved || !saved.ok) {
         setSaving(false);
@@ -96,7 +121,7 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
         aria-labelledby="welcome-title"
       >
         <div className={styles.buddy} data-in>
-          <Buddy size={124} cheer={paid ? 1 : 0} />
+          <Buddy size={small ? 84 : 124} cheer={paid ? 1 : 0} />
         </div>
         <h2 id="welcome-title" data-in>
           {name ? `Welcome, ${name}` : "Welcome to Karman"}
@@ -104,12 +129,12 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
         <p className={styles.line} data-in>
           {line}
         </p>
-        {ask && dates.length > 0 && (
+        {asking && (
           <fieldset className={styles.when} data-in>
             <legend>When is your SAT?</legend>
             <div className={styles.months} role="radiogroup" aria-label="When is your SAT?">
               {dates.map((d) => {
-                const { month, year } = monthOf(d, thisYear);
+                const { month, year } = monthOf(d);
                 return (
                   <button
                     key={d}
@@ -119,7 +144,7 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
                     onClick={() => pick(d)}
                   >
                     <b>{month}</b>
-                    {year && <small>{year}</small>}
+                    <small>{year}</small>
                   </button>
                 );
               })}
@@ -140,24 +165,18 @@ export default function Welcome({ paid, onDone }: { paid: boolean; onDone: () =>
             {problem}
           </p>
         )}
-        <button
-          type="button"
-          className={styles.go}
-          data-in
-          aria-busy={saving || undefined}
-          disabled={saving}
-          onClick={() => void go()}
-        >
-          {saving ? (
-            <span className={styles.orbs} role="img" aria-label="Saving">
-              <i />
-              <i />
-              <i />
-            </span>
-          ) : (
-            "Let's go"
-          )}
-        </button>
+        {!asking && (
+          <button
+            type="button"
+            className={styles.go}
+            data-in
+            aria-busy={saving || undefined}
+            disabled={saving}
+            onClick={() => void go(day)}
+          >
+            {saving ? <Orb label="Saving" /> : "Let's go"}
+          </button>
+        )}
       </section>
     </div>
   );

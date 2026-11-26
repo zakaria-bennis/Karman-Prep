@@ -14,6 +14,7 @@ import {
   type TesterPlanId,
 } from "@/lib/plans";
 import { ownStudent, portalDb, viewedStudent, type Failure } from "./own-student";
+import { isDevAuthBypassActive, safeAuth } from "@/lib/auth/dev-auth";
 import type { PlanState } from "./settings-rules";
 import { emptySchema } from "./settings-schemas";
 
@@ -46,6 +47,10 @@ export async function actionPlanState(
       hasBilling: rows.some((r) => Boolean(r.stripe_customer_id)),
       renewing: rows.some((r) => LIVE.has(r.status)),
       testing: testerSwitchOn(),
+      testAccount: isDevAuthBypassActive() ? ((await safeAuth()).userId ?? null) : undefined,
+      testAccounts: isDevAuthBypassActive()
+        ? await (await import("@/lib/auth/test-accounts-list")).testAccounts()
+        : undefined,
     };
   } catch (e) {
     console.error("[settings] plan read failed:", e instanceof Error ? e.message : e);

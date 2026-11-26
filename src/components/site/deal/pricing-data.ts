@@ -1,6 +1,6 @@
 // What the Pricing page shows, worked out on the server from offer.ts (numbers) and site-copy.ts section 58
 // (words), then handed to PricingPage.tsx.
-// Each plan is written the way the trade writes them (Princeton Review, PrepScholar): how it is taught, its
+// Each plan is written the way the trade writes them (Princeton Review, PrepScholar): its
 // name, the result it promises, the price, the button, then the facts with numbers in them.
 import { ROUTES } from "@/components/site/routes";
 import {
@@ -47,8 +47,6 @@ export interface PriceCohort {
 
 export interface PricePlan {
   id: string;
-  /** How it is taught: "Live class", "One-on-one". Self-study plans carry none. */
-  tag?: string;
   name: string;
   /** The guarantee, shown with a shield at the top of the card. Self-study plans carry none. */
   promise?: string;
@@ -121,7 +119,9 @@ export function pricingData(today: string): PriceProps {
   ]
     .map((c, i) => ({ ...c, sat: SAT_DATES[i] ?? c.starts, award: i === 0 }))
     .filter((c) => c.closesOn >= today)
-    .map(({ sat, starts, closes, award }) => ({ sat, starts, closes, award }));
+    .map(({ sat, starts, closes, award }) => ({ sat, starts, closes, award }))
+    // the card's pill holds four dates at most
+    .slice(0, 4);
 
   return {
     headline: s.headline,
@@ -155,7 +155,6 @@ export function pricingData(today: string): PriceProps {
     tutor: [
       {
         id: "cohort",
-        tag: s["tag class"],
         name: MP.planName,
         promise: s["cohort line"],
         price: $(MP.price),
@@ -181,7 +180,6 @@ export function pricingData(today: string): PriceProps {
       },
       {
         id: P10.id,
-        tag: s["tag one"],
         name: P10.name,
         promise: s["small line"],
         price: $(P10.price),
@@ -192,7 +190,6 @@ export function pricingData(today: string): PriceProps {
       },
       {
         id: P20.id,
-        tag: s["tag one"],
         name: P20.name,
         promise: s["large line"],
         price: $(P20.price),

@@ -174,56 +174,27 @@
   letter-spacing: -0.01em;
 }
 
-/* the main button: fixed in reach of the thumb on a phone */
+/* the main button: inside the glass, centred under the answer */
 .ks .ob-go {
-  position: fixed;
-  inset: auto 0 0 0;
-  z-index: 5;
-  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, rgb(var(--k-night) / 0.82) 40%);
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 0;
 }
 .ks .ob-go .btn {
-  width: 100%;
+  min-width: min(220px, 100%);
   justify-content: center;
   border: 0;
   cursor: pointer;
   font: inherit;
   font-weight: 800;
 }
-@media (max-width: 639px) {
-  /* clear of the round light and dark switch in the corner */
-  .ks .ob-go {
-    padding-right: 76px;
-  }
-}
 .ks .ob-go .btn[disabled] {
   opacity: 0.45;
   cursor: default;
 }
-.ks .ob-go[data-centre] {
-  position: static;
-  padding: 6px 0 0;
-  background: none;
-  display: flex;
-  justify-content: center;
-}
-.ks .ob-go[data-centre] .btn {
-  width: auto;
-  min-width: 180px;
-}
 @media (min-width: 640px) {
   .ks .ob {
     padding-bottom: 60px;
-  }
-  .ks .ob-go {
-    position: static;
-    padding: 6px 0 0;
-    background: none;
-    display: flex;
-    justify-content: flex-end;
-  }
-  .ks .ob-go .btn {
-    width: auto;
   }
 }
 
@@ -287,6 +258,53 @@
     background 0.2s,
     scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
+/* dates: one row of small tiles, the month over its year; a phone shows as many as fit comfortably */
+.ks .ob-opts.ob-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.ks .ob-row button {
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  min-height: 64px;
+  padding: 0 4px;
+  border-radius: 16px;
+  font-size: 15.5px;
+  text-align: center;
+}
+.ks .ob-row button b {
+  font-weight: 800;
+}
+.ks .ob-row button small {
+  font-size: 12.5px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.ks .ob-row button[data-wide] {
+  grid-column: 1 / -1;
+  min-height: 52px;
+}
+@media (max-width: 640px) {
+  .ks .ob-opts.ob-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ks .ob-row button:nth-child(n + 5):not([data-wide]) {
+    display: none;
+  }
+  .ks .ob-row button {
+    font-size: 14px;
+  }
+}
+@media (max-width: 379px) {
+  .ks .ob-opts.ob-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ks .ob-row button:nth-child(n + 4):not([data-wide]) {
+    display: none;
+  }
+}
 .ks .ob-opts button:active {
   scale: 0.98;
 }
@@ -319,100 +337,79 @@
   background: none;
 }
 
-/* a written score (Parts.tsx): the pill's name rises as it fills, and is tall enough that the name and the
-   score never touch; the slider under it sets the same number */
-.ks .ob-score {
-  display: grid;
-  gap: 16px;
+/* a score on a wheel (Parts.tsx ScoreWheel): three scores show, the middle one is the answer and sits in
+   the picked colour's band; the ones above and below fade. Each row is 64px, the same as ROW there. */
+.ks .ob-wheel {
+  position: relative;
+  width: min(100%, 300px);
+  margin-inline: auto;
 }
-.ks .ob-score[data-off] {
-  opacity: 0.45;
+.ks .ob-wheel[data-off] {
+  opacity: 0.4;
+  pointer-events: none;
 }
-.ks .ob .ob-score .rs-pill {
-  min-height: 76px;
+.ks .ob-wheel::before {
+  content: "";
+  position: absolute;
+  inset: 64px 0;
+  border-radius: 22px;
+  background: rgb(var(--k-info) / 0.14);
+  box-shadow: inset 0 0 0 2.5px rgb(var(--k-info));
+  pointer-events: none;
 }
-.ks .ob .ob-score .rs-pill input {
-  height: 76px;
-  padding-top: 28px;
-  font-size: 22px;
-  font-variant-numeric: tabular-nums;
-}
-.ks .ob .ob-score .rs-pill:is([data-filled], :focus-within) span {
-  top: 19px;
-}
-.ks .ob-range {
-  padding: 0 6px;
-}
-.ks .ob-range input {
-  -webkit-appearance: none;
-  appearance: none;
-  display: block;
-  width: 100%;
-  height: 44px;
-  margin: 0;
-  background: none;
-  cursor: grab;
+.ks .ob-wheel > div {
+  position: relative;
+  height: 192px;
+  padding-block: 64px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
   touch-action: pan-y;
+  border-radius: 22px;
+  -webkit-mask-image: linear-gradient(transparent, #000 26%, #000 74%, transparent);
+  mask-image: linear-gradient(transparent, #000 26%, #000 74%, transparent);
 }
-.ks .ob-range input:active {
-  cursor: grabbing;
+.ks .ob-wheel > div::-webkit-scrollbar {
+  display: none;
 }
-.ks .ob-range input::-webkit-slider-runnable-track {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--k-info)) calc(var(--p) * 100%),
-    rgb(var(--k-ivory) / 0.16) calc(var(--p) * 100%)
-  );
-}
-.ks .ob-range input::-moz-range-track {
-  height: 12px;
-  border-radius: 6px;
-  background: rgb(var(--k-ivory) / 0.16);
-}
-.ks .ob-range input::-moz-range-progress {
-  height: 12px;
-  border-radius: 6px;
-  background: rgb(var(--k-info));
-}
-.ks .ob-range input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 32px;
-  height: 32px;
-  margin-top: -10px;
-  border-radius: 50%;
-  background: rgb(var(--k-surface));
-  box-shadow:
-    inset 0 0 0 7px rgb(var(--k-info)),
-    0 8px 16px -6px rgb(20 18 30 / 0.6);
-  transition: scale 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.ks .ob-range input::-moz-range-thumb {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 50%;
-  background: rgb(var(--k-surface));
-  box-shadow:
-    inset 0 0 0 7px rgb(var(--k-info)),
-    0 8px 16px -6px rgb(20 18 30 / 0.6);
-}
-.ks .ob-range input:active::-webkit-slider-thumb {
-  scale: 1.18;
-}
-.ks .ob-range input:focus-visible {
+.ks .ob-wheel > div:focus-visible {
   outline: 3px solid rgb(var(--k-info));
-  outline-offset: 2px;
-  border-radius: 12px;
+  outline-offset: 3px;
 }
-.ks .ob-range div {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.7;
+.ks .ob-wheel button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 64px;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-family: var(--font-hanken), system-ui, sans-serif;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums lining-nums;
+  scroll-snap-align: center;
+  scale: 0.5;
+  opacity: 0.3;
+  transition:
+    scale 0.18s ease-out,
+    opacity 0.18s ease-out;
+}
+.ks .ob-wheel button[data-near="1"] {
+  scale: 0.62;
+  opacity: 0.5;
+}
+.ks .ob-wheel button[data-near="0"] {
+  scale: 1;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ks .ob-wheel button {
+    transition: none;
+  }
 }
 
 /* who is this for: two cards, one picked at a time. The picked one lifts and its ring draws a tick */
@@ -465,36 +462,21 @@
   line-height: 1.35;
   opacity: 0.85;
 }
-.ks .ob-roles svg {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 28px;
-  height: 28px;
-  fill: none;
-  stroke: rgb(var(--k-ivory) / 0.35);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+/* the two drawings from the cohort sign-up (RolePictures.tsx), one on each answer; each stirs when its
+   answer is pointed at or picked, as it does there */
+.ks .ob-roles .rs-pic {
+  justify-self: center;
+  width: min(100%, 170px);
+  margin: -4px 0 4px;
 }
-.ks .ob-roles svg circle {
-  transition:
-    fill 0.25s,
-    stroke 0.25s;
+.ks .ob-roles button:is(:hover, [aria-checked="true"]) .rs-pic-child {
+  transform: rotate(4deg) translateX(2px);
 }
-.ks .ob-roles svg path {
-  stroke: rgb(var(--k-surface));
-  stroke-width: 2.4;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 0.35s 0.08s ease-out;
+.ks .ob-roles button:is(:hover, [aria-checked="true"]) .rs-pic-nuzzle {
+  transform: rotate(-4deg);
 }
-.ks .ob-roles [aria-checked="true"] svg circle {
-  fill: rgb(var(--k-info));
-  stroke: rgb(var(--k-info));
-}
-.ks .ob-roles [aria-checked="true"] svg path {
-  stroke-dashoffset: 0;
+.ks .ob-roles button:is(:hover, [aria-checked="true"]) .rs-pic-wave {
+  animation: rs-wave 1.2s ease-in-out infinite;
 }
 
 /* the plan: its name, its price, a short why, the answers it turned on, and the site's own button */
@@ -514,20 +496,9 @@
   font-weight: 800;
   color: rgb(var(--k-info));
 }
-.ks .ob-plan ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.ks .ob-plan li {
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: rgb(var(--k-info) / 0.12);
-  font-size: 14.5px;
-  font-weight: 700;
+.ks .ob-plan .ob-facts {
+  font-size: 18px;
+  font-weight: 800;
 }
 .ks .ob-plan .btn {
   margin-top: 6px;
@@ -555,4 +526,22 @@
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+/* under the plan: the free way in and every plan, side by side as two quiet links */
+.ks .ob-ways {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 24px;
+}
+.ks button.ob-quiet {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.ks .ob-fix {
+  justify-self: center;
+  margin-top: 4px;
 }

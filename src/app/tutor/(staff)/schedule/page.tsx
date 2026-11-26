@@ -116,7 +116,7 @@ export default async function TutorSchedulePage({
   const { clerkId: userId } = await resolveEffectiveClerkId(realUserId);
 
   const tutorUuid = await getUserUuidByClerkId(userId);
-  if (!tutorUuid) redirect("/onboarding");
+  if (!tutorUuid) redirect("/tutor");
 
   // Read the tutor's preferred timezone — they set it during onboarding.
   // Falls back to America/New_York for any legacy rows without one set

@@ -6,6 +6,8 @@ import {
   effectiveDailyEmailTime,
   isDailyEmailTick,
   isDueNow,
+  isTimeZone,
+  timeZoneLabel,
 } from "./daily-email-schedule";
 
 // 2026-11-13 01:30 UTC is 7:30 PM on Nov 12 in Chicago.
@@ -68,6 +70,15 @@ describe("daily email schedule", () => {
     expect(isDueNow("19:30", AT_730_CT, "America/New_York")).toBe(false);
     expect(isDueNow("20:30", AT_730_CT, "America/New_York")).toBe(true);
     expect(isDueNow(null, AT_730_CT, "America/Chicago")).toBe(false);
+  });
+
+  it("names a zone the everyday way and refuses a made-up one", () => {
+    expect(timeZoneLabel("America/Chicago")).toBe("Central Time");
+    expect(timeZoneLabel("America/Los_Angeles")).toBe("Pacific Time");
+    expect(isTimeZone("America/Denver")).toBe(true);
+    expect(isTimeZone("Mars/Olympus")).toBe(false);
+    expect(isTimeZone("")).toBe(false);
+    expect(isTimeZone(null)).toBe(false);
   });
 
   it("only sends when DAILY_PARENT_EMAIL is exactly on", () => {

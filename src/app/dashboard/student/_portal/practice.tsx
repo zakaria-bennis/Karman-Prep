@@ -24,6 +24,7 @@ import { openEndless, openTrial } from "./endless";
 import { DailyStart } from "./DailyStart";
 import { usePlay } from "./play/usePlay";
 import { useStill } from "@/lib/painting/useStill";
+import { Orb } from "@/components/shared/Orb";
 
 const LOOP =
   "M8 8.300c-2.300 0-4 1.700-4 3.700s1.700 3.700 4 3.700c3.700 0 4.300-7.400 8-7.400 2.300 0 4 1.700 4 3.700s-1.700 3.700-4 3.700c-3.700 0-4.300-7.400-8-7.400z";
@@ -427,11 +428,7 @@ export function GoButton({
       }}
     >
       {loading ? (
-        <span className={styles.orb} role="img" aria-label="Loading">
-          <i />
-          <i />
-          <i />
-        </span>
+        <Orb label="Loading" />
       ) : (
         <>
           <span>{children}</span>

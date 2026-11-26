@@ -148,7 +148,6 @@ const FOOTER: [string, [string, string][]][] = [
       [ROUTES.tutors, "tutors link"],
     ],
   ],
-  ["footer tools", [[ROUTES.test, "free test link"]]],
   [
     "footer company",
     [
@@ -180,12 +179,15 @@ export default function SitePage({
   route,
   flight = true,
   bare = false,
+  noTheme = false,
   drive = "scroll",
   className = "",
 }: {
   /** True for a page that is one task with nothing to wander off to (the guided intake): the logo stays,
    *  the links, the menu and the footer go. */
   bare?: boolean;
+  /** Leave out the light and dark switch (the sign-up questions: nothing there but the question). */
+  noTheme?: boolean;
   /** "steps" when the page flies the landscape itself (SiteFlight). */
   drive?: "scroll" | "steps";
   kind: SiteKind;
@@ -262,7 +264,7 @@ export default function SitePage({
       {lit && flight ? <SiteFlight route={route} drive={drive} /> : null}
       {lit ? <SiteTouches /> : null}
       <main id="main">{children}</main>
-      <ThemeButton />
+      {noTheme ? null : <ThemeButton />}
       {bare ? null : (
         <footer className="ft">
           <div className="ft-in">

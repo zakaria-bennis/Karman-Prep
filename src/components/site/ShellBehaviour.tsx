@@ -170,10 +170,10 @@ export default function ShellBehaviour() {
         if (orbs.has(b) || b.querySelector(".go canvas")) continue;
         const entry: { t: ReturnType<typeof setTimeout>; stop?: () => void } = {
           t: setTimeout(() => {
-            const c = document.createElement("canvas");
+            const c = document.createElement("span");
             c.className = "btn-orb";
             b.append(c);
-            entry.stop = orb(c, { size: 22, dark: true });
+            entry.stop = orb(c);
           }, 400),
         };
         orbs.set(b, entry);

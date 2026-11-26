@@ -43,6 +43,36 @@ export function dailyEmailTimeLabel(time: DailyEmailTime): string {
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 }
 
+/**
+ * The zones a parent can pick for the email, east to west. The choice is saved as the parent's
+ * `users.time_zone`, which the cron and the daily report already read; with none saved it is Central.
+ */
+export const DAILY_EMAIL_ZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Phoenix",
+  "America/Los_Angeles",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+] as const;
+
+/** A real zone name, from the list or one saved elsewhere (a browser's zone at sign-up). */
+export function isTimeZone(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 64 && safeTimeZone(value) === value;
+}
+
+/** The everyday name, the same in summer and winter: "Central Time" for America/Chicago. */
+export function timeZoneLabel(zone: string): string {
+  const part = new Intl.DateTimeFormat("en-US", {
+    timeZone: safeTimeZone(zone),
+    timeZoneName: "longGeneric",
+  })
+    .formatToParts(new Date(0))
+    .find((p) => p.type === "timeZoneName");
+  return part?.value ?? zone;
+}
+
 /** Minutes since local midnight at `now` in `zone`. */
 export function localMinutes(now: Date, zone: string): number {
   const parts = new Intl.DateTimeFormat("en-US", {

@@ -73,6 +73,10 @@ export interface PlanState {
   renewing: boolean;
   /** The testing switch is on (the site lock is on): any plan can be picked for free. */
   testing: boolean;
+  /** On the local test copy only: the test account in use, for Settings' "Test accounts". */
+  testAccount?: string | null;
+  /** The seeded accounts this copy's database has, to switch between. */
+  testAccounts?: { id: string; name: string }[];
 }
 
 /** "December 3, 2026", as the student's own calendar has it. */

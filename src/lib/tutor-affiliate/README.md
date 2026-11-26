@@ -66,5 +66,5 @@ submitted one or an admin's impersonation target.
 - Database: `store.ts`, `homework-store.ts`, `plan-bridge.ts`, `progress.ts`
 - Server actions: `src/app/tutor/affiliate-actions.ts`, `src/app/join/actions.ts`
 - Screens: `src/components/tutor-affiliate/`, routes `/tutor`, `/tutor/[studentId]`,
-  `/tutor/billing`, `/join`, `/join/[code]`, `/tutors/start`, `/tutors/welcome`
+  `/tutor/billing`, `/join`, `/join/[code]`, `/tutors/welcome`
 - Local test data: `supabase/seeds/overnight/tutor-affiliate.sql`

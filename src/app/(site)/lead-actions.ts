@@ -1,7 +1,7 @@
 "use server";
 
-// The marketing site's three forms: the SAT Program application, the private-tutoring strategy call and the
-// free practice test seat. Each is checked with Zod here (the screen's own checks are only a convenience),
+// The marketing site's two forms: the SAT Program application and the private-tutoring strategy call.
+// Each is checked with Zod here (the screen's own checks are only a convenience),
 // recorded in `marketing_leads` with its answers, added to the Resend audience, and sent to the admin inbox
 // so someone follows up. Nothing is charged and no account is made.
 import { z } from "zod";
@@ -18,7 +18,6 @@ import {
   type LeadForm,
 } from "@/lib/marketing/lead-rules";
 import {
-  FREE_PRACTICE_TEST,
   MARCH_PROGRAM,
   CALL_MINUTES,
   NEXT_PROGRAMS,
@@ -82,13 +81,6 @@ const SCHEMAS = {
     zone: z.string().max(60).optional(),
     company: trap,
   }),
-  seat: z.object({
-    email,
-    name: oneLine(SITE["form error name"]),
-    grade: z.enum(options(42, "grade")),
-    date: z.enum(options(42, "date")),
-    company: trap,
-  }),
 } satisfies Record<LeadForm, z.ZodType>;
 
 const COHORTS: Record<string, LeadSource> = {
@@ -99,10 +91,9 @@ const COHORTS: Record<string, LeadSource> = {
 const LABELS: Record<LeadForm, string> = {
   apply: "SAT Program application",
   call: "Private tutoring strategy call",
-  seat: "Free practice test seat",
 };
 
-const FORMS = z.enum(["apply", "call", "seat"]) satisfies z.ZodType<LeadForm>;
+const FORMS = z.enum(["apply", "call"]) satisfies z.ZodType<LeadForm>;
 
 export async function submitLead(
   form: LeadForm,
@@ -124,19 +115,11 @@ export async function submitLead(
     return { ok: false, fields };
   }
   const data = parsed.data as Record<string, string | undefined>;
-  const source: LeadSource =
-    form === "seat"
-      ? FREE_PRACTICE_TEST.id
-      : form === "call"
-        ? "private"
-        : COHORTS[data.date ?? ""];
+  const source: LeadSource = form === "call" ? "private" : COHORTS[data.date ?? ""];
   const details = Object.fromEntries(
-    (["latest", "target", "date", "grade", "phone", "slot", "zone", "plan"] as const)
+    (["latest", "target", "date", "phone", "slot", "zone", "plan"] as const)
       .filter((k) => data[k])
-      .map((k) => [
-        k === "date" ? (form === "apply" ? "startDate" : "satDate") : k,
-        data[k] as string,
-      ])
+      .map((k) => [k === "date" ? "startDate" : k, data[k] as string])
   );
 
   const dbReady = Boolean(
@@ -186,11 +169,11 @@ export async function submitLead(
   return { ok: true };
 }
 
-/** "2026-11-19 5:00 pm" in Central Time, as a moment. Null if it cannot be read. */
+/** "2026-11-19 5:15 pm" in Central Time, as a moment. Null if it cannot be read. */
 function callStart(slot: string): Date | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):00 (am|pm)$/.exec(slot);
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{1,2}):(00|15|30|45) (am|pm)$/.exec(slot);
   if (!m) return null;
-  const hour = (Number(m[4]) % 12) + (m[5] === "pm" ? 12 : 0);
+  const hour = (Number(m[4]) % 12) + (m[6] === "pm" ? 12 : 0) + Number(m[5]) / 60;
   const noon = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12));
   const central = Number(
     new Intl.DateTimeFormat("en-US", {

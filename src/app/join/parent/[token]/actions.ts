@@ -1,10 +1,13 @@
 "use server";
-/* The parent accepts a student's invite link and is linked. A new account becomes a parent. */
+/*
+ * The parent accepts a student's invite link and is linked. A new account becomes a parent. The
+ * student's own account is turned away before anything changes, so it stays a student account.
+ */
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { safeAuth } from "@/lib/auth/dev-auth";
 import { becomeParent } from "@/lib/parent/account";
-import { acceptInvite, INVITE_TOKEN_PATTERN } from "@/lib/parent/invites";
+import { acceptInvite, INVITE_TOKEN_PATTERN, lookupInvite } from "@/lib/parent/invites";
 import { resolveEffectiveClerkId } from "@/lib/supabase/queries/admin";
 
 const tokenSchema = z.string().regex(INVITE_TOKEN_PATTERN);
@@ -16,6 +19,9 @@ export async function acceptParentInviteAction(formData: FormData) {
   const { userId: realUserId } = await safeAuth();
   if (!realUserId) redirect(`/auth/sign-in?redirect_url=/join/parent/${token}`);
   const { clerkId } = await resolveEffectiveClerkId(realUserId);
+  const invite = await lookupInvite({ token });
+  if (invite.state === "open" && invite.student.clerkId === clerkId)
+    redirect(`/join/parent/${token}?error=self`);
   const parent = await becomeParent(clerkId);
   if (!parent.ok) redirect(`/join/parent/${token}?error=role`);
   const result = await acceptInvite({ token }, parent.userId);

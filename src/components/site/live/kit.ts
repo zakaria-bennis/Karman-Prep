@@ -1,5 +1,5 @@
-/* Karman's own loading and feedback kit (ported from the approved mock, 2026-10-25). No libraries: every
-   shape here is drawn by this file. Browser only: call these from effects and event handlers.
+/* Karman's own loading and feedback kit (ported from the approved mock, 2026-10-25). The line and the
+   messages are drawn by this file; the orb is the Thinking Orb library's. Browser only: call these from effects and event handlers.
 
    Which loader for which wait (the rules every page follows):
      under 400 ms .......... nothing. A loader that flashes on and off reads as a glitch (Doherty threshold).
@@ -12,106 +12,42 @@
      the film is late ...... the large orb over the film, from 400 ms, with one line of words after 2.5 s.
      done .................. a message that says what happened, with a check that draws itself. Errors sit
                              next to their field and say what happened, why and what to do.
-   With reduced motion the orb turns slowly instead of stopping (a loader that never moves says nothing). */
+   With reduced motion the orb shows one still frame (the library's own behaviour). */
 import { iconSvg } from "./icons";
 
-const MARIGOLD = [235, 162, 31] as const;
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 /** Fixed messages mount inside the site's root element so its colours and fonts apply. */
 const host = () => document.getElementById("ks") ?? document.body;
 const esc = (v: string) =>
   v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 
-/* ---------- the orb: a marigold sphere with one satellite on a tilted orbit, like the line 100 km up ---------- */
-export function orb(
-  canvas: HTMLCanvasElement,
-  {
-    size = 20,
-    dark = false,
-    state = "working",
-  }: { size?: number; dark?: boolean; state?: string } = {}
-): () => void {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  canvas.width = canvas.height = Math.round(size * dpr);
-  canvas.style.width = canvas.style.height = `${size}px`;
-  canvas.setAttribute("aria-hidden", "true");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return () => {};
-  const [r, g, b] = MARIGOLD;
-  const c = size / 2;
-  const R = size * 0.2; // the sphere
-  const ox = size * 0.42,
-    oy = size * 0.15; // the orbit, an ellipse seen at an angle
-  const tilt = -0.42;
-  const period = state === "waiting" ? 2.6 : 1.35; // seconds per lap
-  const slow = reduced();
-  let raf = 0,
-    alive = true;
-  const t0 = performance.now();
-  const at = (a: number): [number, number] => {
-    const x = Math.cos(a) * ox,
-      y = Math.sin(a) * oy;
-    return [
-      c + x * Math.cos(tilt) - y * Math.sin(tilt),
-      c + x * Math.sin(tilt) + y * Math.cos(tilt),
-    ];
-  };
-  function frame(now: number) {
-    if (!alive || !ctx) return;
-    const t = ((now - t0) / 1000) * (slow ? 0.35 : 1);
-    const a = (t / period) * Math.PI * 2;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, size, size);
-    const behind = Math.sin(a) < 0; // the satellite passes behind the sphere on the far half of its lap
-    const trail = (front: boolean) => {
-      // the lit arc behind the satellite, fading out over a third of a lap
-      for (let i = 0; i < 18; i++) {
-        const aa = a - (i / 18) * 2.1;
-        if (Math.sin(aa) >= 0 !== front) continue;
-        const [x1, y1] = at(aa),
-          [x2, y2] = at(aa - 0.12);
-        ctx.strokeStyle = `rgba(${r},${g},${b},${(1 - i / 18) * 0.9})`;
-        ctx.lineWidth = Math.max(1, size * 0.045);
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-    };
-    // the faint orbit
-    ctx.strokeStyle = dark ? "rgba(255,255,255,.16)" : "rgba(11,11,11,.12)";
-    ctx.lineWidth = Math.max(0.75, size * 0.025);
-    ctx.beginPath();
-    ctx.ellipse(c, c, ox, oy, tilt, 0, Math.PI * 2);
-    ctx.stroke();
-    trail(false);
-    const sat = () => {
-      const [x, y] = at(a);
-      ctx.fillStyle = dark ? "#fff" : "#0b0b0b";
-      ctx.beginPath();
-      ctx.arc(x, y, Math.max(1.2, size * 0.07), 0, Math.PI * 2);
-      ctx.fill();
-    };
-    if (behind) sat();
-    // the sphere, breathing very slightly
-    const br = R * (1 + Math.sin(t * 2.4) * 0.05);
-    const grad = ctx.createRadialGradient(c - br * 0.35, c - br * 0.4, br * 0.1, c, c, br);
-    grad.addColorStop(0, "#ffd88a");
-    grad.addColorStop(0.55, `rgb(${r},${g},${b})`);
-    grad.addColorStop(1, "#b5760b");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(c, c, br, 0, Math.PI * 2);
-    ctx.fill();
-    trail(true);
-    if (!behind) sat();
-    raf = requestAnimationFrame(frame);
-  }
-  raf = requestAnimationFrame(frame);
+/* ---------- the orb: the Thinking Orb, from the thinking-orbs library (MIT, by Jakub Antalik,
+   github.com/Jakubantalik/Libraries.dev), in its small "working" form. Founder, 2026-11-25: the real one,
+   not a drawing of our own. It is fetched only when a wait first lasts long enough to show it, and is
+   drawn in one ink, pale or dark, to match the words beside it. ---------- */
+/** True when a CSS colour ("rgb(13, 36, 28)") is a pale one. */
+const pale = (color: string) => {
+  const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map(Number);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 140;
+};
+/** Puts the orb in `host` (an empty span). Returns the way to take it out again. */
+export function orb(host: HTMLElement, { size = 20 }: { size?: 20 | 32 | 64 } = {}): () => void {
+  let alive = true;
+  let unmount = () => {};
+  host.setAttribute("aria-hidden", "true");
+  host.style.cssText += `;display:inline-grid;flex:none;width:${size}px;height:${size}px`;
+  // pale words mean a dark button, so pale dots
+  const theme = pale(getComputedStyle(host).color) ? "dark" : "light";
+  void Promise.all([import("thinking-orbs"), import("react"), import("react-dom/client")]).then(
+    ([{ ThinkingOrb }, { createElement }, { createRoot }]) => {
+      if (!alive) return;
+      const root = createRoot(host);
+      root.render(createElement(ThinkingOrb, { state: "working", size, theme }));
+      unmount = () => root.unmount();
+    }
+  );
   return () => {
     alive = false;
-    cancelAnimationFrame(raf);
+    unmount();
   };
 }
 
@@ -231,9 +167,9 @@ export function busy(el: HTMLElement, on: boolean, label?: string) {
     button._busyT = setTimeout(() => {
       if (!go) return;
       button._arrow = go.innerHTML;
-      const c = document.createElement("canvas");
+      const c = document.createElement("span");
       go.replaceChildren(c);
-      button._stop = orb(c, { size: 20, dark: true });
+      button._stop = orb(c);
     }, 400);
   } else {
     clearTimeout(button._busyT);

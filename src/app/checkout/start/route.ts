@@ -1,19 +1,18 @@
 // ============================================================
 // GET /checkout/start?plan=practice&term=month
-// The pricing page's plan buttons: a signed-in visitor goes straight to
-// Stripe Checkout for that plan. A visitor without an account pays
-// first too (founder, 2026-11-14) and makes the account afterwards
-// (src/lib/checkout/guest.ts); only plans that need an account first
-// (a tutor's plan) still go through Get started and come back here.
+// The plan buttons: a signed-in visitor goes straight to the payment
+// for that plan (our own page for Practice and Pro, Stripe's for the rest). An account comes before any payment (founder,
+// 2026-11-25), so a visitor without one goes through Get started and
+// comes back here with the same plan.
 // If checkout can't open (already on a plan, a cohort seat not held
-// yet), the visitor lands on Billing with the plan picked.
+// yet), the visitor lands on Billing with the plan picked, or on the
+// page startCheckout names for that refusal.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { visitorOrigin } from "@/lib/checkout/origin";
 import { safeAuth } from "@/lib/auth/dev-auth";
-import { startGuestCheckout } from "@/lib/checkout/guest";
 import { startCheckout } from "@/lib/integrations/stripe/start-checkout";
 
 /** Only these query values pass through; startCheckout validates them again. */
@@ -41,12 +40,6 @@ export async function GET(req: NextRequest) {
 
   const { userId } = await safeAuth();
   if (!userId) {
-    try {
-      const url = await startGuestCheckout(input);
-      if (url) return NextResponse.redirect(url, 303);
-    } catch (error) {
-      console.error("[checkout/start] Guest checkout error:", error);
-    }
     const signUp = new URL("/auth/sign-up", origin);
     signUp.searchParams.set("redirect_url", `${here.pathname}${here.search}`);
     return NextResponse.redirect(signUp, 303);
@@ -54,8 +47,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await startCheckout(userId, input);
-    if (result.ok) return NextResponse.redirect(result.url, 303);
+    // Stripe's page, or our own payment page (a path on this site)
+    if (result.ok) return NextResponse.redirect(new URL(result.url, origin), 303);
     console.warn(`[checkout/start] ${result.status}: ${result.error}`);
+    if (result.redirect) return NextResponse.redirect(new URL(result.redirect, origin), 303);
   } catch (error) {
     console.error("[checkout/start] Error:", error);
   }

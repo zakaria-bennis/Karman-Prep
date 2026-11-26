@@ -4,6 +4,7 @@ import {
   affiliateAccess,
   affiliateCapabilities,
   generateAffiliateCode,
+  mayBuyTutorPlan,
   normalizeAffiliateCode,
   seatSummary,
 } from "./rules";
@@ -93,5 +94,32 @@ describe("seat summary", () => {
 
   it("never reports negative remaining seats", () => {
     expect(seatSummary(52, 50)).toEqual({ used: 52, limit: 50, remaining: 0, full: true });
+  });
+});
+
+describe("who may buy the tutor plan", () => {
+  it("is a new account, a plain student record, or a tutor coming back", () => {
+    expect(mayBuyTutorPlan(null, [])).toBe(true);
+    expect(mayBuyTutorPlan("student", [])).toBe(true);
+    expect(mayBuyTutorPlan("affiliate_tutor", [])).toBe(true);
+  });
+
+  it.each(["parent", "tutor", "admin", "teacher"])("is never a %s account", (role) => {
+    expect(mayBuyTutorPlan(role, [])).toBe(false);
+  });
+
+  it("is not a student who holds a plan of their own", () => {
+    expect(mayBuyTutorPlan("student", [{ kind: "subscription", planId: "practice" }])).toBe(false);
+    expect(mayBuyTutorPlan("student", [{ kind: "purchase", planId: "cohort" }])).toBe(false);
+    expect(mayBuyTutorPlan("student", [{ kind: "tutor-affiliate", planId: "practice" }])).toBe(
+      false
+    );
+  });
+
+  it("ignores the testing switch's pick and a tutor plan just paid for", () => {
+    expect(mayBuyTutorPlan("student", [{ kind: "tester", planId: "pro" }])).toBe(true);
+    expect(mayBuyTutorPlan("student", [{ kind: "subscription", planId: "tutor-affiliate" }])).toBe(
+      true
+    );
   });
 });

@@ -23,7 +23,6 @@ const SITE_PAGES = [
   "/research",
   "/schools",
   "/for-tutors",
-  "/free-practice-test",
   "/terms",
   "/refunds",
   "/privacy",

@@ -1,0 +1,214 @@
+{
+  "pages": {
+    "/calculator": {
+      "status": "remove",
+      "history": [
+        {
+          "at": "2026-11-25T17:40:28.434Z",
+          "from": "you",
+          "text": "This calculator shouldn't be a main page that students can even get onto anymore. The /calculator page is going to be reworked. For right now, it's going to be removed entirely because it does not match the UI for Karman Prep. Also, it's only available to practice and pro members, as well as the cohort and privates."
+        },
+        {
+          "at": "2026-11-25T17:40:52.015Z",
+          "from": "claude",
+          "text": "Got it. I will take this page down right after the button colors you asked for in the chat."
+        },
+        {
+          "at": "2026-11-25T17:47:48.000Z",
+          "from": "claude",
+          "text": "Done. The public calculator page is gone and old links to it open the home page. The calculator inside the quiz is untouched. I did not lock it by plan; tell me if you want that."
+        }
+      ]
+    },
+    "/dev/figure-choices": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-25T17:49:25.336Z",
+          "from": "you",
+          "text": "The main issue with this is that it does not use the carbon prep background and frosted glass effect at all. That needs to be changed, and it needs to be adaptive to both light and dark mode. I really hope these are not vquestions in the question bank, because these are not valid questions."
+        },
+        {
+          "at": "2026-11-25T17:49:46.313Z",
+          "from": "claude",
+          "text": "Got it. This is next, right after the fox on the cookie note. I will also check whether these questions are in the question bank."
+        }
+      ]
+    },
+    "/dev/world": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-25T17:52:56.997Z",
+          "from": "you",
+          "text": "- The camera should never have to jump up to pass an obstacle. It should always just be above the obstacle.\n- There's too much yellow haze in the lighting, so cut down on that a bit.\n- At some points, it looks like there's lava. I don't know if that's intentional or not, but that's what it looks like to me.\n- The cut from lake to river literally looks like a flat line, so that definitely needs to be changed. The water mechanics in general are not suitable.\n- The land rendering goes from white to color. I don't know if that was meant to cut down on load time or something. As long as they don't see it fully and it's covered by the frosted glass, it's okay, but it does not look right.\n- Rocks are just tweaking out, and waves are moving in a kind of weird way. Plants and whatnot look fine, but again, this could definitely be a lot better.\n- I also like that villages and whatnot just don't look good.\nLet's make it all nature, with no people or man-made things."
+        },
+        {
+          "at": "2026-11-25T17:53:42.687Z",
+          "from": "claude",
+          "text": "Saved, all eight points. This is a big job on the landscape itself, so I will not squeeze it in between page fixes. I will raise it in the chat."
+        }
+      ]
+    },
+    "/dev/sign-in": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-25T17:53:37.765Z",
+          "from": "you",
+          "text": "Again, this is not the UI of CurtainClip, and the test sign-in is not organized well. The text is impossible to see because it's literally black on what looks like a dark gray or green. Please fix all of these. This is just not acceptable and not usable. Also, this is not student-facing, or this is a strictly admin thing, and it's only going to exist for a short while while we actually make Karman prep."
+        },
+        {
+          "at": "2026-11-25T17:53:51.018Z",
+          "from": "claude",
+          "text": "Saved. It is in the queue behind the figure page."
+        },
+        {
+          "at": "2026-11-25T18:19:16.934Z",
+          "from": "you",
+          "text": "There is a bug: if I hit \"Student\" or \"Parent,\" it doesn't immediately take me to the next screen. I don't even want to see the whole \"Continue\" thing. You just hit \"I'm a student\" or \"I'm a parent,\" and it just takes you to the next screen.\n\nIf it's a button, good job on changing the years so it shows for every single one. Just make sure that, for that screen, the five SATs that pop up are the five next SATs. After December 6 or whatever, you can't show the December exam because, obviously, they're not taking that exam. Please keep that in mind when you are actually programming this.\n\nThe slider should also start off at 1,200 for the latest SAT score. An answer should not be auto-selected from the answers with or from the questions with buttons, and the Continue button should not be present. Right when you click a button, it automatically continues.\n\nAnother thing I noticed is that the back button should disappear, and the bars should disappear after the user is done. Also, say \"370 points to gain with 39 weeks until your SAT,\" so don't do the comma thing.\n\nFor \"Hours you choose,\" it should be \"with everything in the Pro plan included\" for that text. For \"Schedule a free call,\" there should be 15-minute increments, so it should be like 1 pm, 1:15 pm, 1:30 pm, and 1:45 pm. The hours should be in rows, and the increments should be in columns. I want you to get rid of the whole “When you're on the calendar, and that celebration screen pops up” section. Get rid of the whole date line. In this example, it says, “Wednesday, November 25, 1 pm,” and then it says, “Zakaria will text you to confirm.” Get rid of all that and just say, “You will receive a call at 1 pm on Wednesday, November 25, for example,” right? That's kind of how I want it to appear: one fluid sentence."
+        },
+        {
+          "at": "2026-11-25T18:19:34.653Z",
+          "from": "claude",
+          "text": "Got all of it. Doing the sign-up questions first (no Continue, nothing pre-picked, 1200 start, bars gone at the end, the new wording), then the call booking screen."
+        },
+        {
+          "at": "2026-11-25T18:24:45.062Z",
+          "from": "claude",
+          "text": "Done. No Continue on any tap question, nothing pre-picked, the score starts at 1200, the bars and Back are gone on the plan page, and call times are every 15 minutes in a grid. Details and two questions are in the chat."
+        }
+      ]
+    },
+    "/dev/shell/sheet": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-25T17:54:23.683Z",
+          "from": "you",
+          "text": "If this is important to the website, obviously keep it. Again, I'm looking for more content that faces an audience or user, whether it be a student, parent, admin, school, or tutor. This is not one of the things I would judge."
+        },
+        {
+          "at": "2026-11-25T17:54:38.064Z",
+          "from": "claude",
+          "text": "Understood. This is a builder page, not one a student, parent, tutor, school or admin sees. I moved all nine builder pages out of your list and your count. They sit under the Building tools filter if you ever want them."
+        }
+      ]
+    },
+    "/dev/shell": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-25T17:56:39.344Z",
+          "from": "you",
+          "text": "We should not have to make them hit Continue for everything. Once they select that they're a student, it just moves on to the next problem. If they want to go back, there should be a back button. You're including years for some of them and no years for some of them. You need to make it the same, with the same month and year for all of them, for example, December 2026, May 2027, and June 2027. The case should be the month and year for all these. Maybe we let them pick it out on a scroller or something instead of just a button. I think that would be nice. \nAlso, you need to follow the accent colors properly with the selections:\n- For light mode, it would be that same blue.\n- For dark mode, it would be our orange."
+        },
+        {
+          "at": "2026-11-25T17:56:47.548Z",
+          "from": "claude",
+          "text": "On it now: no Continue after a single choice, a Back button, month and year on every date, and blue or orange for the picked choice."
+        },
+        {
+          "at": "2026-11-25T17:56:57.710Z",
+          "from": "you",
+          "text": "Also, you have some months duplicated, which I don't understand. Can you fix that?"
+        },
+        {
+          "at": "2026-11-25T17:57:28.177Z",
+          "from": "claude",
+          "text": "Yes, I see March twice. Fixing that with the rest."
+        },
+        {
+          "at": "2026-11-25T17:58:45.782Z",
+          "from": "you",
+          "text": "I don't like how this is laid out on the Your Latest SAT Score page. I don't know why the slider goes down to 400, because it's not even a possible score. The lowest is 800.\n\nAlso, the slider doesn't look nice, and it doesn't follow accent colors, which it has to. The same applies to the top progress bar, which needs to follow accent colors.\n\nThe SAT score text box is fine, but this is a very important thing, so I feel like it should be centered and shouldn't really be a text box. It should just look a lot better, and the slider just looks boring and generic. Again, maybe we put this on a scroller instead."
+        },
+        {
+          "at": "2026-11-25T17:59:07.781Z",
+          "from": "claude",
+          "text": "Saved. The progress bar and slider take the accent color now. The score page layout I will show you as options first. One check in the chat: the lowest SAT total is 400, not 800."
+        },
+        {
+          "at": "2026-11-25T17:59:45.586Z",
+          "from": "you",
+          "text": "Same with your goal score, just put it on a scroller. Make sure it bottoms out at the score the student put in previously for their current score. Get rid of the whole “enter a score from 400 to 1,600 that ends in 0” part. The scroller will have increments of 10. Also, get rid of those little things that guide the student on what to do because they are not needed."
+        },
+        {
+          "at": "2026-11-25T18:01:17.232Z",
+          "from": "claude",
+          "text": "On it: both scores on a scroller in steps of 10, the goal starting no lower than the current score, and the 400 to 1,600 line removed."
+        },
+        {
+          "at": "2026-11-25T18:03:17.147Z",
+          "from": "you",
+          "text": "I get rid of it. I can see it from here with Karman, and this doesn't make any sense.\n\nAlso, get rid of the little buttons that say \"540 points to gain\" and \"15 weeks until your SAT.\" You stick to a plan on your own. It should really just say how many points you need to gain and how many weeks until your SAT, and that's it. The button should say \"Book a free placement call.\" Also, in terms of the accent color for all the pages, we're reverting from the orange back to what we had before for dark mode. I just don't like it."
+        },
+        {
+          "at": "2026-11-25T18:03:39.159Z",
+          "from": "claude",
+          "text": "On it: orange goes back to how dark mode was before, on every page. The \"I can see it from here\" moment goes, and the plan page loses the three small tags and gets a \"Book a free placement call\" button."
+        },
+        {
+          "at": "2026-11-25T18:04:28.360Z",
+          "from": "you",
+          "text": "Get rid of whatever that geode crystal-looking cluster is on the bottom left side of the screen, and also I want to go through this entire onboarding once again."
+        },
+        {
+          "at": "2026-11-25T18:06:05.654Z",
+          "from": "claude",
+          "text": "To go through it again from the start: open \"Onboarding\" in the list, under Sign-up and payment. It now starts fresh every time you press Reload. About the crystal cluster: I hid the small red badge in the bottom left corner. If you meant something else, tell me which question it shows on."
+        }
+      ]
+    },
+    "/onboarding": {
+      "status": "none",
+      "history": [],
+      "address": "/onboarding?fresh=1"
+    },
+    "/[...missing]": {
+      "status": "none",
+      "history": [
+        {
+          "at": "2026-11-26T00:17:52.599Z",
+          "from": "you",
+          "text": "I want you to put Karman the Fox in a spacesuit and have him floating out in space, with a dynamic, moving space around him. The text should be, \"Funny, where are we?\" Karman needs to look confused, and underneath, there should be text that says, \"This page does not exist.\" On the top left, there should be a button they can press that just takes them back to the homepage, with our logo. Is that the button?"
+        },
+        {
+          "at": "2026-11-26T00:20:38.333Z",
+          "from": "claude",
+          "text": "Done. Karman floats in a spacesuit, puzzled, with a question mark over his helmet. The stars slide past in three layers, with shooting stars and a planet. The words are \"Funny, where are we?\" and \"This page does not exist.\" Yes: the Karman logo top left is the button, and it takes them to the home page. Press Reload to see it. One check: did you say \"Funny, where are we?\" or \"Fun, where are we?\""
+        },
+        {
+          "at": "2026-11-26T00:25:52.386Z",
+          "from": "you",
+          "text": "Replace the funny with \"Umm...\". Also:\n- Get rid of the tether that's attached to him.\n- Put shooting stars in the background.\n- The Saturn should be more detailed and actually realistic instead of whatever that fake planet is.\n- Just put the word Karman. I don't like this logo at all, and I never want to see it in my life.\n- Just put Karman in our usual TypeScript, not the whole thing plus the logo."
+        },
+        {
+          "at": "2026-11-26T00:31:27.089Z",
+          "from": "claude",
+          "text": "Done. It now says \"Umm... where are we?\". The tether is gone. Four shooting stars cross the sky every few seconds. The planet is a real Saturn: pale gold bands, three rings with a gap, the rings passing behind and in front, and a shadow side. Top left is just the word Karman in our serif type, no logo, and it still takes them home. Press Reload."
+        }
+      ]
+    },
+    "/free-practice-test": {
+      "status": "remove",
+      "history": [
+        {
+          "at": "2026-11-26T00:21:13.020Z",
+          "from": "you",
+          "text": "This page should not exist, and it's not necessary. I don't know where it falls under or what links to it, but students can do their free practice test from their student portal once they create an account. This is not necessary whatsoever."
+        },
+        {
+          "at": "2026-11-26T00:31:27.059Z",
+          "from": "claude",
+          "text": "Removed. The page, its sign-up form and its words are gone. The old address now sends people to the sign-up page. It was linked from the footer (a \"Free tools\" column) and from a second button on About and Research. All three links are removed. The free test inside the student portal is untouched."
+        },
+        {
+          "at": "2026-11-26T00:31:27.076Z",
+          "from": "status",
+          "text": "remove"
+        }
+      ]
+    }
+  }
+}

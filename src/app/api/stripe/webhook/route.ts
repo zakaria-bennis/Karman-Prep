@@ -15,11 +15,8 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/integrations/stripe/client";
 import { scheduleCohortInstallments } from "@/lib/integrations/stripe/installment-schedule";
 import { withWebhookInstrumentation } from "@/lib/observability/webhook";
-import {
-  chargeMetadataSchema,
-  purchaseMetadataSchema,
-  subscriptionMetadataSchema,
-} from "@/lib/integrations/stripe/schemas";
+import { chargeMetadataSchema, purchaseMetadataSchema } from "@/lib/integrations/stripe/schemas";
+import { subscriptionRow } from "@/lib/integrations/stripe/subscription-row";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWelcomeEmail } from "@/lib/integrations/resend/emails";
 import { recordPurchaseGrant } from "@/lib/plans";
@@ -38,43 +35,6 @@ async function parseWebhookEvent(req: Request): Promise<Stripe.Event> {
   // constructEventAsync uses Web Crypto under the hood — required on
   // Cloudflare Workers (no Node crypto module). Works in Node too.
   return stripe.webhooks.constructEventAsync(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
-}
-
-/**
- * The `subscriptions` row for a Stripe subscription, or null when it was not
- * made by our Checkout (no userId) or bills a price we do not sell. The plan
- * and term come from the price first, because a plan switch in the Stripe
- * portal changes the price but not the subscription's own metadata.
- */
-function subscriptionRow(sub: Stripe.Subscription) {
-  const item = sub.items?.data?.[0];
-  const priceMeta = item?.price?.metadata ?? {};
-  const meta = subscriptionMetadataSchema.safeParse({
-    userId: sub.metadata?.userId,
-    planId: priceMeta.plan_id ?? sub.metadata?.planId,
-    term: priceMeta.term ?? sub.metadata?.term,
-  });
-  if (!meta.success) {
-    console.warn(`[webhook] skipped subscription ${sub.id}: bad metadata`, meta.error.issues);
-    return null;
-  }
-  return {
-    userId: meta.data.userId,
-    row: {
-      user_id: meta.data.userId,
-      stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
-      stripe_subscription_id: sub.id,
-      plan_id: meta.data.planId,
-      billing_term: meta.data.term,
-      status: sub.status,
-      current_period_end: item?.current_period_end
-        ? new Date(item.current_period_end * 1000).toISOString()
-        : null,
-      // Stamped when the status flips to canceled, so the Revenue
-      // dashboard can compute real monthly churn.
-      canceled_at: sub.status === "canceled" ? new Date().toISOString() : null,
-    },
-  };
 }
 
 export const POST = withWebhookInstrumentation(
@@ -117,7 +77,12 @@ export const POST = withWebhookInstrumentation(
           if (becameLive && ["active", "trialing"].includes(sub.status))
             await trackServer("paid", parsed.userId, { plan: parsed.row.plan_id });
 
-          if (event.type === "customer.subscription.created") {
+          // A tutor's plan is not a student's: no student welcome for it. The tutor's code and
+          // link are on /tutor, where /tutors/welcome sends them after paying.
+          if (
+            event.type === "customer.subscription.created" &&
+            parsed.row.plan_id !== "tutor-affiliate"
+          ) {
             const { data: user, error: userError } = await supabase
               .from("users")
               .select("email")
@@ -156,8 +121,9 @@ export const POST = withWebhookInstrumentation(
         case "checkout.session.completed":
         case "checkout.session.async_payment_succeeded": {
           const session = event.data.object as Stripe.Checkout.Session;
-          // Paid before having an account (src/lib/checkout/guest.ts): the buyer's account claims
-          // it on /checkout/done. The email carries that link in case the tab was closed.
+          // Paid before having an account, under the old rule (src/lib/checkout/guest.ts): the
+          // buyer's account claims it on /checkout/done. The email carries that link in case the
+          // tab was closed.
           if (session.metadata?.guest === "1") {
             if (session.payment_status !== "unpaid") await sendFinishEmail(session);
             break;

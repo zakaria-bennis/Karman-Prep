@@ -13,17 +13,18 @@ export function ThemeToggle({ floating = false }: { floating?: boolean }) {
   // Server-rendered buttons must not accept clicks before React attaches the handler.
   // This waits for this control to hydrate, independently of Clerk loading.
   useEffect(() => setReady(true), []);
-  // Shells and the marketing pages provide an in-flow control, clear of content. /calculator has
-  // none: its bar stays quiet and the calculator keeps the classic skin in either theme.
+  // Shells and the marketing pages provide an in-flow control, clear of content.
   const portalHasThemeControl =
     ["/dashboard/student", "/dashboard/parent", "/tutor", "/admin", "/learn", "/dev/shell"].some(
       (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
     ) ||
     // the marketing pages draw their own light and dark switch in their header
-    [...SITE_PAGES, "/calculator", "/onboarding"].includes(
-      (pathname ?? "") as (typeof SITE_PAGES)[number]
-    );
-  if (floating && portalHasThemeControl) return null;
+    [...SITE_PAGES, "/onboarding"].includes((pathname ?? "") as (typeof SITE_PAGES)[number]);
+  // signing up, joining and paying show no light and dark button at all (founder, 2026-11-25)
+  const inAFlow = ["/onboarding", "/auth", "/join", "/tutors", "/reserve", "/checkout"].some(
+    (prefix) => pathname === prefix || pathname?.startsWith(prefix + "/")
+  );
+  if (floating && (portalHasThemeControl || inAFlow)) return null;
   return (
     <button
       type="button"

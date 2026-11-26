@@ -1,4 +1,4 @@
-/* The parent types the code from their student's "Invite a parent" page. */
+/* The parent types the code from their student's invite (the email, or the student's Settings). */
 import { Cta } from "@/components/portal";
 import { linkStudentWithCodeAction } from "@/app/dashboard/parent/actions";
 

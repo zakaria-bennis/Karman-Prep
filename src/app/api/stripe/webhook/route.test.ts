@@ -4,6 +4,7 @@ const m = vi.hoisted(() => ({
   error: null as null | Error,
   rows: true,
   clientError: false,
+  email: null as null | string,
   writes: vi.fn(),
   welcome: vi.fn(),
   grant: vi.fn(),
@@ -41,7 +42,7 @@ vi.mock("@/lib/supabase/server", () => ({
             data: m.rows ? { id: "persisted-fixture" } : null,
             error: m.error,
           }),
-          maybeSingle: async () => ({ data: null, error: null }),
+          maybeSingle: async () => ({ data: m.email ? { email: m.email } : null, error: null }),
         };
         return query;
       },
@@ -96,6 +97,7 @@ beforeEach(() => {
   m.error = null;
   m.rows = true;
   m.clientError = false;
+  m.email = null;
   m.grant.mockResolvedValue(undefined);
   setEvent(events[0]);
   vi.stubGlobal("fetch", () => {
@@ -173,6 +175,27 @@ it.each([
   const res = await POST(request());
   expect(res.status).toBe(200);
   expect(m.writes).not.toHaveBeenCalled();
+  expect(m.welcome).not.toHaveBeenCalled();
+});
+it("welcomes a new student plan by email, and never a tutor's plan", async () => {
+  m.email = "mari@example.com";
+  expect((await POST(request())).status).toBe(200);
+  expect(m.welcome).toHaveBeenCalledWith(expect.objectContaining({ to: "mari@example.com" }));
+  m.welcome.mockClear();
+  setEvent(
+    "customer.subscription.created",
+    subscription(
+      { userId: "synthetic", planId: "tutor-affiliate", term: "month" },
+      { plan_id: "tutor-affiliate", term: "month" }
+    )
+  );
+  expect((await POST(request())).status).toBe(200);
+  expect(m.writes).toHaveBeenCalledWith(
+    "subscriptions",
+    "upsert",
+    expect.objectContaining({ plan_id: "tutor-affiliate" }),
+    { onConflict: "stripe_subscription_id" }
+  );
   expect(m.welcome).not.toHaveBeenCalled();
 });
 it("records a purchase grant for a paid one-payment checkout", async () => {

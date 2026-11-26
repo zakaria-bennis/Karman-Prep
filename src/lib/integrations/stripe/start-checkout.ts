@@ -1,30 +1,42 @@
 // ============================================================
 // startCheckout: one Stripe Checkout Session for one plan, for a
-// signed-in user. Used by POST /api/stripe/checkout (the billing page)
+// signed-in user. Practice and Pro are then paid on our own page
+// (/checkout/pay); the tutor plan and the one-payment plans on Stripe's. Used by POST /api/stripe/checkout (the billing page)
 // and by GET /checkout/start (the pricing page's plan buttons, which
 // go straight to checkout; founder, 2026-11-08). Server only.
+//
+// Who is buying is checked before Stripe opens, so nobody pays for
+// something their account cannot hold: the tutor plan is for a tutor's
+// own account, and a parent's account never holds a student's plan.
 // ============================================================
 
 import { currentUser } from "@clerk/nextjs/server";
 import { after } from "next/server";
 import {
   createCheckoutSession,
+  createPlanPaySession,
   findCustomer,
   getCheckoutPrice,
   getOrCreateCustomer,
 } from "./client";
 import { findStripePrice, isSubscriptionPlan } from "./prices";
 import { createCheckoutBodySchema } from "./schemas";
+import { planPayPath, planPayReturnUrl } from "@/lib/checkout/plan-pay";
 import { createAdminClient } from "@/lib/supabase/server";
 import { trackServer } from "@/lib/analytics/server";
+import { settingsHref } from "@/lib/portal/settings-rules";
+import { TUTOR_PLAN_REFUSED, tutorPlanRefused } from "@/lib/tutor-affiliate/buyer";
 
 /** Subscription statuses that still hold a plan. A second renewing plan
  *  would bill twice, so those users change plan in the Stripe portal. */
 const LIVE_STATUSES = new Set(["active", "trialing", "past_due", "incomplete"]);
 
+/** `url`: Stripe's page, or a path on this site (the plan payment page). `redirect`: the page (a path
+ *  on this site) that answers a refusal better than Billing does. GET /checkout/start sends the
+ *  visitor there. */
 export type StartCheckoutResult =
   | { ok: true; url: string }
-  | { ok: false; status: number; error: string; issues?: unknown };
+  | { ok: false; status: number; error: string; issues?: unknown; redirect?: string };
 
 /** The signed-in user's email: Clerk first, then the users table (the dev sign-in bypass has no Clerk session). */
 async function emailFor(userId: string): Promise<string | null> {
@@ -44,10 +56,22 @@ async function emailFor(userId: string): Promise<string | null> {
   return data?.email ?? null;
 }
 
+/** Where leaving Stripe without paying lands: back where the plan was picked. A tutor's own billing
+ *  page or the For tutors page for the tutor plan, a student's Plan and billing in the portal, and
+ *  the Pricing page for everyone else. */
+export function cancelPath(planId: string, role: string | null): string {
+  if (planId === "tutor-affiliate")
+    return role === "affiliate_tutor" ? "/tutor/billing" : "/for-tutors";
+  return role === "student" ? settingsHref("plan") : "/pricing";
+}
+
 /**
  * Validates `input` ({ plan, term?, cohortId? }) with Zod and opens Stripe Checkout for that
  * plan. Cohort seats are sold only to a student Karman already added to that cohort after the
- * call; someone with a live renewing plan is sent to Manage plan instead of paying twice.
+ * call; someone with a live renewing plan is sent to Manage plan instead of paying twice. The tutor
+ * plan is refused for an account that is a parent's or holds a student plan (it would pay and then
+ * be refused), and a parent buying Practice or Pro is sent to the parent portal, where a student is
+ * added.
  */
 export async function startCheckout(userId: string, input: unknown): Promise<StartCheckoutResult> {
   const parsed = createCheckoutBodySchema.safeParse(input);
@@ -70,20 +94,20 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     .select("stripe_customer_id, status")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
-  const [email, { data: subs, error: subsError }] = await Promise.all([
+  // Who is buying. A brand-new account may have no record yet (role null).
+  const meQuery = supabase.from("users").select("id, role").eq("clerk_id", userId).maybeSingle();
+  const [email, { data: subs, error: subsError }, { data: me }] = await Promise.all([
     emailFor(userId),
     subsQuery,
+    meQuery,
   ]);
   if (!email) return { ok: false, status: 400, error: "No email address found" };
+  const role: string | null = me?.role ?? null;
+  const forTutors = spec.planId === "tutor-affiliate";
 
   // Families join a call before any cohort seat. Karman adds the student to a
   // cohort after the call; only then can that seat be paid here.
   if (spec.planId === "cohort") {
-    const { data: me } = await supabase
-      .from("users")
-      .select("id")
-      .eq("clerk_id", userId)
-      .maybeSingle();
     const { data: seat } =
       me && parsed.data.cohortId
         ? await supabase
@@ -106,11 +130,25 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
 
   if (subsError) throw subsError;
 
+  if (forTutors && (await tutorPlanRefused(userId, role))) {
+    return { ok: false, status: 403, error: TUTOR_PLAN_REFUSED, redirect: "/tutors/welcome" };
+  }
+  // A plan bought on a parent's account would reach no student.
+  if (role === "parent" && isSubscriptionPlan(spec.planId) && !forTutors) {
+    return {
+      ok: false,
+      status: 409,
+      error: "A student plan belongs to a student account. Add your student in the parent portal.",
+      redirect: "/dashboard/parent",
+    };
+  }
+
   if (isSubscriptionPlan(spec.planId) && subs?.some((s) => LIVE_STATUSES.has(s.status))) {
     return {
       ok: false,
       status: 409,
       error: "You already have a plan. Change it with Manage plan on the billing page.",
+      ...(forTutors && role === "affiliate_tutor" ? { redirect: "/tutor/billing" } : {}),
     };
   }
 
@@ -119,23 +157,33 @@ export async function startCheckout(userId: string, input: unknown): Promise<Sta
     (await getOrCreateCustomer(userId, email, customerSearch)).id;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const plan = spec.planId;
+  const term = parsed.data.term;
+  // A student's renewing plan is paid on our own page, like a cohort seat (founder, 2026-11-26), not
+  // on Stripe's. The address is a path on this site.
+  if (isSubscriptionPlan(plan) && !forTutors) {
+    const own = await createPlanPaySession({
+      customerId,
+      spec,
+      userId,
+      returnUrl: planPayReturnUrl(appUrl),
+    });
+    after(() => trackServer("checkout_started", userId, { plan, term }));
+    return { ok: true, url: planPayPath(own.id) };
+  }
   const session = await createCheckoutSession({
     customerId,
     spec,
     userId,
     cohortId: parsed.data.cohortId,
     payment: parsed.data.payment,
-    // Tutors land back on billing; students go to their dashboard.
-    successUrl:
-      spec.planId === "tutor-affiliate"
-        ? `${appUrl}/billing`
-        : `${appUrl}/dashboard/student?welcome=1`,
-    cancelUrl: `${appUrl}/pricing`,
+    // A tutor lands on the page that makes the account a tutor's (its code, then the portal);
+    // students go to their dashboard.
+    successUrl: forTutors ? `${appUrl}/tutors/welcome` : `${appUrl}/dashboard/student?welcome=1`,
+    cancelUrl: `${appUrl}${cancelPath(spec.planId, role)}`,
   });
   if (!session.url) return { ok: false, status: 500, error: "Stripe returned no checkout link" };
   // Written after the redirect is sent, so the family does not wait on it.
-  const plan = spec.planId;
-  const term = parsed.data.term;
   after(() => trackServer("checkout_started", userId, { plan, term }));
   return { ok: true, url: session.url };
 }

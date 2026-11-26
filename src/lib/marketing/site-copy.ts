@@ -24,7 +24,6 @@ import {
   COHORT_SCHOLARSHIP as SCH,
   CONTACT,
   FREE_PLAN as FREE,
-  FREE_PRACTICE_TEST as FT,
   FOUNDER,
   GUARANTEE as G,
   type GuaranteeTrack,
@@ -38,7 +37,6 @@ import {
   PRIVATE_PACKAGES,
   PRO_PLAN as PRO,
   QUESTION_BANK as QB,
-  SAT_DATES,
   SCHOOL_PLAN as SCHOOL,
   TRACK_RECORD as TR,
   TUTOR_AFFILIATE_PLAN as TA,
@@ -294,51 +292,8 @@ form last: Last name
 form phone: Phone
 form email: Email
 form button: Schedule my call
-form done title: You're on the calendar.
-form done text: ${FOUNDER.firstName} will text you to confirm.
-
-## 41 Test: opening
-headline: A full-length practice SAT. Free, whenever you're ready.
-text: ${FT.questionCount} questions written by Karman, timed like the real test: two Reading and Writing modules, two Math modules. Then a score report, a breakdown by domain and an optional ${FT.callMinutes}-minute call with a Karman tutor. It comes with the free plan, so start free and it's waiting in the portal.
-button: Start free
-second button: Or email me the link
-facts: Any time = No set date | ${FT.durationLabel} = ${FT.questionCount} questions | Online = No proctor, no drive | ${$(0)} = No card needed
-
-## 42 Test: the form
-headline: Rather have the link by email?
-form email: Your email
-form email help: Your results go here.
-form name: Student's first name
-form grade: Grade
-form grade options: 9th | 10th | 11th | 12th
-form date: Which SAT are they planning to take?
-form date options: ${SAT_DATES.join(" | ")} | Not sure yet
-form button: Send me the link
-form privacy: We use your email for this test, its results and occasional emails from Karman. You can unsubscribe at any time.
-form done title: You're in.
-form done text: We'll email you the link to start the test from ${CONTACT.general}, with a way to book the results call when you're done.
-
-## 43 Test: what you get
-headline: You get more than a number.
-rows: A score report = Where your student stands today | A breakdown by domain = Which of the eight SAT domains cost the most points | A ${FT.callMinutes}-minute call = Optional: a Karman tutor walks you through it and answers questions
-sample: Sample report. A made-up student, the real layout.
-score: Estimated score
-sections: Reading and Writing | Math
-domains: Information and Ideas | Craft and Structure | Expression of Ideas | Standard English Conventions | Algebra | Advanced Math | Problem-Solving and Data Analysis | Geometry and Trigonometry
-weakest: Costing the most points
-call: Book the ${FT.callMinutes}-minute call
-
-## 44 Test: the sitting
-headline: How it runs. The kitchen table works fine.
-rows: Start = Whenever you have the time, from your Karman account | Reading and Writing = Two timed modules | Math = Two timed modules, with a calculator | Done = Your results come with a link to book the call
-module: Module
-total: ${FT.durationLabel}, ${FT.questionCount} questions.
-
-## 45 Test: honest note
-headline: An estimate, not a prophecy.
-text: It's built from our own questions, not the College Board's, so the score is an estimate. We hand it over free so you can judge our questions before you pay us a cent.
-button: Start free
-button note: The test comes with the free plan, along with ${FREE.questionLimit} practice questions. No card.
+form done: You will receive a call at {time} on {day}.
+form home: Back to the home page
 
 ## 51 Guarantee: opening
 headline: ${UP_TO.private}, or your money back.
@@ -374,13 +329,17 @@ proof: What we check, to keep it fair for every family
 headline: Pick how your student preps.
 self: Self-study
 tutor: With a tutor
-tag class: Live class
-tag one: One-on-one
 month: a month
 term three: 3 months
 term one: Monthly
 billed three: billed {total} every 3 months
 billed one: billed every month
+plan now: You're on {plan}, {price}.
+plan renews: It renews on
+plan due: Your last payment did not go through.
+plan manage: Manage plan
+plan trouble: Billing could not open. Email {email} and we will sort it out.
+plan required: Pick a plan to keep going.
 practice bullets: ${QB.practiceCount.toLocaleString("en-US")}+ questions covering every SAT skill | ${W(QB.practiceTests)} full-length practice tests | A written explanation for every question | The Daily 10: ten questions a day from the skills they miss | One predicted SAT score, updated as they practice | The built-in graphing calculator | Progress for parents on their phone
 practice button: Start ${PP.name}
 pro bullets: Everything in ${PP.name} | ${QB.proExtraCount.toLocaleString("en-US")}+ more questions, the hardest included | ${W(QB.proTests)} full-length practice tests | Workshops and live office hours every week
@@ -390,7 +349,7 @@ cohort bullets: Everything in ${PRO.name} | A group of ${w(CLASS)} at your stude
 cohort unit: ${w(MP.weeks)} weeks
 cohort note: or ${SPLIT}
 cohort button: Reserve a seat
-sat: Their SAT
+sat: Select your SAT date
 starts: Classes start
 closes: Enrollment closes
 small line: ${UP_TO.cohort}, or half back / ${PRIVATE_BONUS[P10.id].freeSessions} free sessions.
@@ -439,7 +398,6 @@ note: Catch us breaking one and you can quote this page back at us.
 headline: Start free. Judge us after.
 text: Your student gets ${FREE.questionLimit} practice questions and a full-length practice test. You see exactly how we teach before you spend a dollar. No card. No catch.
 button: Start free
-second button: Or take the free practice test
 
 ## 71 FAQ
 headline: Ask us anything. We text back.
@@ -497,7 +455,6 @@ read link: Read the study
 headline: See it working before you pay.
 text: The free plan runs on the same questions and the same feedback: ${FREE.questionLimit} practice questions and a full-length practice test. No card.
 button: Start free
-second button: Take the free practice test
 
 ## 101 Schools: opening
 headline: Real SAT prep for every student. The first year is on us.
@@ -521,7 +478,7 @@ button: Book a call about your school
 
 ## 111 Tutors: opening
 headline: One code puts up to ${TA.maxStudents} of your students on Karman.
-text: For tutors who sell on marketplaces like Leland, or on their own. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe. You keep teaching, we keep them practicing, and you see every answer.
+text: For tutors who sell on marketplaces like Leland, or on their own. ${$(TA.monthly)} a month. Your students redeem your code and get the ${PP.name} plan free while you subscribe. You keep teaching, we keep them practicing, and you see their progress.
 button: Start as a tutor affiliate
 button note: ${$(TA.monthly)} a month. ${PLAN_RENEWAL}
 second button: See your dashboard
@@ -532,10 +489,10 @@ rows: The ${PP.name} plan = The core question pool across all ${QB.skills} SAT s
 
 ## 113 Tutors: what you get
 headline: You get admin rights. Use them.
-rows: See their progress = Every answer, every skill and every test score | Assign work = Practice for one student or the whole roster | Manage your roster = Up to ${TA.maxStudents} students on your code | Remove a student = The seat opens for someone else
+rows: See their progress = Math and Reading at a glance, then every skill | Assign work = Practice for one student at a time | Manage your roster = Up to ${TA.maxStudents} students on your code | Remove a student = The seat opens for someone else
 
 ## 114 Tutors: close
-headline: Your students practice. You see every answer.
+headline: Your students practice. You see their progress.
 text: ${$(TA.monthly)} a month for up to ${TA.maxStudents} students. When you stop, your students keep their accounts and move to the Free plan.
 button: Start as a tutor affiliate
 
@@ -579,14 +536,14 @@ note: One price, ${$(TA.monthly)} a month, for up to ${TA.maxStudents} students 
 ## 143 Tutors: the dashboard
 headline: Your whole roster, on one screen.
 titles: Your code | Students | Assign | Skills
-captions: Share one code. Everyone who joins lands on your roster. | Everyone on your code, with progress at a glance. | Practice for one student or the whole roster. | Every skill, for every student, as they work.
+captions: Share one code. Everyone who joins lands on your roster. | Everyone on your code, with progress at a glance. | Practice for one student at a time. | Every skill, for every student, as they work.
 code: TUTR-8KQ2
-code help: Students type it when they sign up, or tap your link.
+code help: Students tap your link, or type the code in Settings.
 seats: seats used
 left: left
 roster: Maya = 72 = Today | Diego = 64 = Today | Priya = 58 = Yesterday | Sam = 81 = Monday
 assign title: Sent to
-assign: Comma rules = Everyone | Linear equations = Diego | Inference = Priya | Full practice test = Everyone
+assign: Comma rules = Maya | Linear equations = Diego | Inference = Priya | Full practice test = Sam
 skills student: Diego
 skills: Linear equations = Mastered | Words in context = Strong | Comma rules = Getting there | Ratios and rates = Needs work | Inference = Strong
 tutor: You
@@ -611,7 +568,6 @@ bus alt: A student in a window seat on the bus, earbuds in, working through ques
 
 ## Site
 logo: Karman
-free test link: Free practice test
 start free: Get started
 portal link: Go to your portal
 program link: The SAT Program
@@ -630,7 +586,6 @@ cookies link: Cookie Policy
 refunds link: Refund Policy
 email: ${CONTACT.general}
 footer programs: Programs
-footer tools: Free tools
 footer company: Company
 footer legal: Legal
 footer follow: Follow
@@ -644,8 +599,8 @@ pause: Hold the painting still
 play: Let the painting move
 dark mode: Dark mode
 light mode: Light mode
-not found title: This page isn't here.
-not found text: The address may be mistyped, or the page has moved. These are the pages people look for most.
+not found title: Umm... where are we?
+not found text: This page does not exist.
 not found home: Go to the home page
 error title: Something went wrong on our side.
 error text: The page didn't load. Try again, or come back in a minute.
@@ -654,7 +609,6 @@ form sending: Sending
 form error score: SAT and PSAT scores run from 320 to 1600, in steps of 10.
 form error target: Add the score they're aiming for, between 400 and 1600.
 form error email: That email looks incomplete. It needs an @ and a domain, like name@gmail.com.
-form error name: Add your student's first name, so we know whose test it is.
 form error your name: Add your name, so we know who to ask for.
 form error phone: Add a phone number we can reach you on, with the area code.
 form error slot: Pick a day and a time for the call.

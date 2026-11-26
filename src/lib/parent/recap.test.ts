@@ -30,7 +30,7 @@ function input(overrides: Partial<RecapInput["week"]> = {}): RecapInput {
         met: true,
       },
       tutorNote: null,
-      plan: { tier: "private", status: "active", customerId: null },
+      plan: { id: "private-20", status: null, customerId: null },
       ...overrides,
     },
   };

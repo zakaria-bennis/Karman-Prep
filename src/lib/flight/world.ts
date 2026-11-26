@@ -42,8 +42,6 @@ export interface Land {
   forest: RGB;
   forest2: RGB;
   meadow: number;
-  /** How many villages, 0 to 1. */
-  towns: number;
   rock: RGB;
   /** How much of the level ground is sand (0 to 1), and the sand's colour (also the beaches and the bed). */
   sand: number;
@@ -82,7 +80,6 @@ const BASE: Land = {
   forest: [0.02, 0.07, 0.03],
   forest2: [0.08, 0.15, 0.04],
   meadow: 0,
-  towns: 0.4,
   rock: [0.2, 0.18, 0.16],
   sand: 0,
   sandCol: [0.36, 0.31, 0.22],
@@ -116,7 +113,6 @@ export const LANDS: Land[] = [
     snowLine: 0.82,
     meadow: 0.5,
     flowers: 0.45,
-    towns: 0.6,
   }),
   land("green-hills", {
     river: 1,
@@ -131,7 +127,6 @@ export const LANDS: Land[] = [
     kind: 0.5,
     meadow: 1,
     flowers: 0.3,
-    towns: 0.9,
     grass: [0.11, 0.2, 0.045],
   }),
   land("flower-fields", {
@@ -148,7 +143,6 @@ export const LANDS: Land[] = [
     flowers: 1,
     petalA: [0.9, 0.2, 0.36],
     petalB: [0.95, 0.74, 0.1],
-    towns: 0.5,
     grass: [0.12, 0.21, 0.05],
   }),
   land("pine-forest", {
@@ -161,7 +155,6 @@ export const LANDS: Land[] = [
     snowLine: 1.1,
     trees: 1,
     flowers: 0.1,
-    towns: 0.25,
     mist: 0.35,
   }),
   land("autumn-forest", {
@@ -179,7 +172,6 @@ export const LANDS: Land[] = [
     forest2: [0.5, 0.3, 0.04],
     grass: [0.2, 0.17, 0.05],
     flowers: 0.1,
-    towns: 0.5,
   }),
   land("blossom-grove", {
     river: 0.6,
@@ -199,7 +191,6 @@ export const LANDS: Land[] = [
     flowers: 0.15,
     petalA: [0.9, 0.5, 0.6],
     petalB: [0.9, 0.84, 0.86],
-    towns: 0.7,
   }),
   land("bamboo-forest", {
     river: 0.7,
@@ -217,7 +208,6 @@ export const LANDS: Land[] = [
     forest2: [0.2, 0.36, 0.08],
     grass: [0.09, 0.19, 0.05],
     flowers: 0,
-    towns: 0.35,
     mist: 0.6,
   }),
   land("ocean-islands", {
@@ -233,7 +223,6 @@ export const LANDS: Land[] = [
     trees: 0.6,
     kind: 0.5,
     sand: 0.2,
-    towns: 0.3,
     shallow: [0.04, 0.24, 0.26],
     clear: 0.3,
   }),
@@ -255,7 +244,6 @@ export const LANDS: Land[] = [
     shallow: [0.06, 0.42, 0.38],
     clear: 1,
     flowers: 0.1,
-    towns: 0.3,
   }),
   land("reef", {
     waves: 0.45,
@@ -272,7 +260,6 @@ export const LANDS: Land[] = [
     reef: 1,
     shallow: [0.07, 0.44, 0.42],
     clear: 1,
-    towns: 0,
   }),
   land("sheer-cliffs", {
     waves: 0.9,
@@ -290,7 +277,6 @@ export const LANDS: Land[] = [
     grass: [0.1, 0.21, 0.05],
     flowers: 0.2,
     rock: [0.17, 0.165, 0.16],
-    towns: 0.2,
     shallow: [0.03, 0.17, 0.2],
   }),
   land("karst-bay", {
@@ -309,7 +295,6 @@ export const LANDS: Land[] = [
     rock: [0.18, 0.18, 0.17],
     shallow: [0.05, 0.24, 0.2],
     clear: 0.4,
-    towns: 0.2,
     mist: 0.5,
   }),
   land("desert-dunes", {
@@ -326,7 +311,6 @@ export const LANDS: Land[] = [
     sandCol: [0.6, 0.4, 0.2],
     rock: [0.36, 0.2, 0.11],
     flowers: 0,
-    towns: 0.15,
   }),
   land("canyon", {
     river: 1,
@@ -343,7 +327,6 @@ export const LANDS: Land[] = [
     sand: 0,
     sandCol: [0.5, 0.3, 0.17],
     flowers: 0,
-    towns: 0.1,
     shallow: [0.07, 0.22, 0.17],
   }),
   land("snow-and-ice", {
@@ -358,7 +341,6 @@ export const LANDS: Land[] = [
     snowLine: 0,
     trees: 0.35,
     flowers: 0,
-    towns: 0.3,
     ice: 1,
     rock: [0.16, 0.17, 0.19],
   }),
@@ -379,7 +361,6 @@ export const LANDS: Land[] = [
     forest2: [0.16, 0.22, 0.06],
     flowers: 0,
     rock: [0.26, 0.19, 0.13],
-    towns: 0.15,
   }),
   land("wetlands", {
     river: 1,
@@ -399,7 +380,6 @@ export const LANDS: Land[] = [
     petalA: [0.9, 0.86, 0.8],
     petalB: [0.86, 0.5, 0.66],
     shallow: [0.06, 0.15, 0.1],
-    towns: 0.2,
     mist: 0.8,
   }),
   land("rice-terraces", {
@@ -417,7 +397,6 @@ export const LANDS: Land[] = [
     meadow: 1,
     grass: [0.14, 0.26, 0.05],
     flowers: 0,
-    towns: 0.8,
     mist: 0.4,
   }),
   land("lavender-fields", {
@@ -436,7 +415,6 @@ export const LANDS: Land[] = [
     flowers: 0.9,
     petalA: [0.36, 0.22, 0.62],
     petalB: [0.5, 0.3, 0.72],
-    towns: 0.6,
   }),
   land("glacier-peaks", {
     river: 0.6,
@@ -448,7 +426,6 @@ export const LANDS: Land[] = [
     snowLine: 0.16,
     trees: 0.3,
     flowers: 0,
-    towns: 0.1,
     ice: 0.8,
     shallow: [0.14, 0.32, 0.34],
     clear: 0.5,
@@ -522,7 +499,7 @@ function numbers(l: Land): number[] {
   const rgb = (c: RGB, a: number) => out.push(c[0], c[1], c[2], a);
   rgb(l.grass, l.flowers);
   rgb(l.forest, l.meadow);
-  rgb(l.forest2, l.towns);
+  rgb(l.forest2, 0);
   rgb(l.rock, l.sand);
   rgb(l.sandCol, l.reef);
   rgb(l.shallow, l.clear);

@@ -156,7 +156,7 @@ const LAZY_FILES = new Set([
   "src/components/calculator/KarmanCalculator.ts",
   "src/lib/calculator-transfer/clipboard.ts",
 ]);
-const CALCULATOR_TREES = [...CALCULATOR_DIRS, "src/lib/calculator", "src/app/calculator"];
+const CALCULATOR_TREES = [...CALCULATOR_DIRS, "src/lib/calculator"];
 const SOURCE = /\.(?:ts|tsx|mts|js|mjs|jsx)$/;
 const TEST = /\.test\.[cm]?[jt]sx?$/;
 
@@ -201,7 +201,7 @@ function eagerCalculatorModule(repoRoot, importer, specifier) {
 
 /**
  * The names each eager calculator module is statically imported or re-exported by, from the
- * non-test source files under src/ outside the calculator's own folders and the /calculator page.
+ * non-test source files under src/ outside the calculator's own folders.
  * Type-only imports are skipped; "*" stands for a namespace import or `export *`.
  * @param {string} repoRoot
  * @param {{ path: string; source: string }[]} [files] defaults to the files under src/

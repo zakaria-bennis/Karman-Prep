@@ -35,7 +35,6 @@ export function normalizePath(raw: string): string {
 
 /** Public marketing and sign-in pages are the "site"; everything else is a signed-in portal. */
 const SITE_PREFIXES = [
-  "/free-practice-test",
   "/private-tutoring",
   "/for-tutors",
   "/program",
@@ -49,7 +48,6 @@ const SITE_PREFIXES = [
   "/privacy",
   "/refunds",
   "/cookies",
-  "/calculator",
   "/coming-soon",
   "/auth",
 ];
@@ -86,11 +84,10 @@ const FEATURES: Array<[string, string]> = [
   ["/tutor", "Tutor portal"],
   ["/school", "School portal"],
   ["/admin", "Admin"],
-  ["/calculator", "Calculator page"],
 ];
 
 export function featureOf(path: string): string {
-  if (surfaceOf(path) === "site" && !path.startsWith("/calculator")) return "Public site";
+  if (surfaceOf(path) === "site") return "Public site";
   const hit = FEATURES.find(([p]) => path === p || path.startsWith(p + "/"));
   return hit?.[1] ?? "Other";
 }

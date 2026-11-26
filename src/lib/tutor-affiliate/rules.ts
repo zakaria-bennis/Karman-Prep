@@ -36,6 +36,21 @@ export function affiliateAccess(
   return "lapsed";
 }
 
+/**
+ * Who may pay for the tutor plan. It belongs to an account with no other Karman role and no student
+ * plan of its own: a new account (still a plain student record, or no record yet) or a tutor coming
+ * back. `held` is what the account holds now (getPlan's sources); the testing switch's pick and a
+ * tutor plan of its own do not count. Checked before Stripe opens, so nobody pays and is then refused.
+ */
+export function mayBuyTutorPlan(
+  role: string | null,
+  held: readonly { kind: string; planId: string }[]
+): boolean {
+  if (role === "affiliate_tutor") return true;
+  if (role !== null && role !== "student") return false;
+  return held.every((source) => source.kind === "tester" || source.planId === "tutor-affiliate");
+}
+
 export type AffiliateCapability =
   | "view_roster"
   | "view_progress"

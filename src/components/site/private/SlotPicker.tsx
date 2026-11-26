@@ -8,7 +8,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const DAY = 864e5;
-export const fmtTime = (h: number) => `${h > 12 ? h - 12 : h}:00 ${h >= 12 ? "pm" : "am"}`;
+/** An hour of the day as "1:00 pm"; a quarter past it is 13.25 and reads "1:15 pm". */
+export const fmtTime = (h: number) => {
+  const hour = Math.floor(h);
+  const minutes = String(Math.round((h - hour) * 60)).padStart(2, "0");
+  return `${hour > 12 ? hour - 12 : hour}:${minutes} ${hour >= 12 ? "pm" : "am"}`;
+};
+/** The same, as it is said: "1 pm", "1:15 pm". */
+export const sayTime = (time: string) => time.replace(":00", "");
 export const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 export const longDay = (d: Date) =>
   d.toLocaleDateString("en-US", {
@@ -20,10 +27,11 @@ export const longDay = (d: Date) =>
 
 export type Hours = "sessions" | "calls";
 
-/** The open hours on a date. Sessions: after school, a different mix each day. Calls: 8am to midnight. */
+/** The open times on a date, as hours of the day. Sessions: after school, on the hour, a different mix
+ *  each day. Calls: every quarter hour from 8am to midnight (founder, 2026-11-25). */
 export function openHours(d: Date, kind: Hours): number[] {
-  // calls: the founder's hours, 8am to midnight Central, every day (2026-11-13); the last call starts at 11pm
-  if (kind === "calls") return Array.from({ length: 16 }, (_, i) => 8 + i);
+  // calls: the founder's hours, 8am to midnight Central, every day (2026-11-13); the last starts at 11:45pm
+  if (kind === "calls") return Array.from({ length: 64 }, (_, i) => 8 + i / 4);
   const dow = d.getUTCDay();
   if (dow === 0) return [];
   const seed = d.getUTCDate() * 7 + dow * 3;
@@ -40,20 +48,23 @@ export function useDays(today: string, count = 31) {
   }, [today, count]);
 }
 
-/** The hour it is now in Central Time, where the hours are kept. Null until the page is up. */
+/** The time it is now in Central Time, where the hours are kept, as an hour of the day (1:30 pm is
+ *  13.5). Null until the page is up. */
 export function useCentralHour(): number | null {
   const [hour, setHour] = useState<number | null>(null);
   useEffect(() => {
-    const read = () =>
-      setHour(
-        Number(
-          new Intl.DateTimeFormat("en-US", {
-            timeZone: "America/Chicago",
-            hour: "numeric",
-            hourCycle: "h23",
-          }).format(new Date())
-        )
-      );
+    const read = () => {
+      const [h, m] = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        hour: "numeric",
+        minute: "numeric",
+        hourCycle: "h23",
+      })
+        .format(new Date())
+        .split(":")
+        .map(Number);
+      setHour(h + m / 60);
+    };
     read();
     const t = setInterval(read, 60_000);
     return () => clearInterval(t);
@@ -101,6 +112,15 @@ export default function SlotPicker({
   const strip = useRef<HTMLDivElement>(null);
   const nowHour = useCentralHour();
   const open = hoursLeft(day, kind, days[0], nowHour);
+  // calls sit four to a row, one row an hour: a quarter that has passed leaves its place empty, so
+  // each column stays one quarter (:00, :15, :30, :45)
+  const rows: (number | null)[] =
+    kind === "calls" && open.length
+      ? Array.from({ length: (24 - Math.floor(open[0])) * 4 }, (_, i) => {
+          const h = Math.floor(open[0]) + i / 4;
+          return open.includes(h) ? h : null;
+        })
+      : open;
   const [edge, setEdge] = useState({ start: true, end: false });
   /** The day in the middle of the strip: the month label follows it as the dates are flicked through. */
   const [mid, setMid] = useState<string | null>(null);
@@ -193,21 +213,31 @@ export default function SlotPicker({
           );
         })}
       </div>
-      <div className="sp-times" role="radiogroup" aria-label={w.pickTime} key={dayKey(day)}>
+      <div
+        className="sp-times"
+        role="radiogroup"
+        aria-label={w.pickTime}
+        key={dayKey(day)}
+        data-quarters={kind === "calls" || undefined}
+      >
         {open.length ? (
-          open.map((h, i) => (
-            <button
-              key={h}
-              type="button"
-              role="radio"
-              aria-checked={hour === h}
-              data-tap={(hour === h && tap === "hour") || undefined}
-              style={{ "--i": i } as React.CSSProperties}
-              onClick={() => onHour(h)}
-            >
-              {timeLabel(day, h)}
-            </button>
-          ))
+          rows.map((h, i) =>
+            h === null ? (
+              <span key={`gone-${i}`} aria-hidden="true" />
+            ) : (
+              <button
+                key={h}
+                type="button"
+                role="radio"
+                aria-checked={hour === h}
+                data-tap={(hour === h && tap === "hour") || undefined}
+                style={{ "--i": kind === "calls" ? Math.min(i >> 2, 8) : i } as React.CSSProperties}
+                onClick={() => onHour(h)}
+              >
+                {timeLabel(day, h)}
+              </button>
+            )
+          )
         ) : (
           <p>{w.none}</p>
         )}

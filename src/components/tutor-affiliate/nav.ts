@@ -1,4 +1,5 @@
 import type { PortalNavItem } from "@/components/portal";
+import { TUTOR_AFFILIATE_PLAN, formatPrice } from "@/lib/marketing/offer";
 
 /** Tabs for an affiliate tutor. Staff tutor pages are not shown to them. */
 export const AFFILIATE_TUTOR_NAV: PortalNavItem[] = [
@@ -26,12 +27,8 @@ export function studentName(s: {
   return name || s.email.split("@")[0];
 }
 
-/**
- * The tutor plan's price as shown in the portal. The pricing work moves every
- * price into src/lib/marketing/offer.ts (TUTOR_AFFILIATE_PLAN); read it from
- * there once that is on this branch.
- */
-export const TUTOR_PLAN_PRICE = "$199 a month";
+/** The tutor plan's price as shown in the portal, from offer.ts. */
+export const TUTOR_PLAN_PRICE = `${formatPrice(TUTOR_AFFILIATE_PLAN.monthly)} a month`;
 
 export function billingLine(
   subscription: { status: string; currentPeriodEnd: string | null } | null,

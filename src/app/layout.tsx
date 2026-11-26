@@ -190,8 +190,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         },
       }}
       signInFallbackRedirectUrl="/portal"
-      // a new free account goes straight to the student portal (founder, 2026-11-13)
-      signUpFallbackRedirectUrl="/portal"
+      // a new account is asked the few sign-up questions first (who it is for, which SAT, the goal),
+      // then lands in its portal (founder, 2026-11-25; it used to skip them and open the portal)
+      signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"
     >
       <html lang="en" className="dark" data-theme="observatory" suppressHydrationWarning>

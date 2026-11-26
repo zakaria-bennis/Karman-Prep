@@ -36,6 +36,7 @@ import { loadSchedule } from "./schedule";
 import { between, buildStudent, type ProgressInput } from "./progress";
 import { bridgedLevel, bridgedQuestions } from "./skill-bridge";
 import { loadSkill72Counts } from "@/lib/bank/skills72-read";
+import { knownSatDates } from "@/lib/sat-dates-static";
 
 const NAMES = SECTIONS.flatMap((s) => SKILLS[s].flatMap((d) => d.skills.map((k) => k.name)));
 
@@ -267,7 +268,10 @@ export async function loadPortalData(ctx: StudentContext): Promise<PortalData> {
     planId: ctx.plan.id,
     access,
     email: ctx.email,
-    satDates: [...new Set(satDates.map((d) => d.test_date.slice(0, 10)))],
+    satDates: knownSatDates(
+      satDates.map((d) => d.test_date),
+      today
+    ),
     prefs: settings?.prefs ?? {},
     welcomed: Boolean(settings?.welcomed_at),
     // onboarding found no tutor or cohort for them yet (the admin is told); it clears once placed

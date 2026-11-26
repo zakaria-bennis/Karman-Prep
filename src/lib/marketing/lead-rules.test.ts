@@ -21,6 +21,9 @@ describe("call slots", () => {
   it("accepts only an offered hour on a day from today to about a month ahead", () => {
     expect(slotInWindow("2026-11-15 9:00 am", now)).toBe(true);
     expect(slotInWindow("2026-11-15 11:00 pm", now)).toBe(true);
+    expect(slotInWindow("2026-11-15 1:15 pm", now)).toBe(true);
+    expect(slotInWindow("2026-11-15 11:45 pm", now)).toBe(true);
+    expect(slotInWindow("2026-11-15 1:20 pm", now)).toBe(false);
     expect(slotInWindow("2026-11-15 3:00 am", now)).toBe(false);
     expect(slotInWindow("2026-10-01 9:00 am", now)).toBe(false);
     expect(slotInWindow("2027-03-01 9:00 am", now)).toBe(false);

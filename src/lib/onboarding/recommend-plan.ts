@@ -22,7 +22,6 @@
 // ============================================================
 
 import {
-  CALL_MINUTES,
   INTAKE,
   MARCH_PROGRAM,
   PRACTICE_PLAN,
@@ -128,7 +127,7 @@ export function planSummary(planId: RecommendedPlanId): PlanSummary {
         name: pkg.name,
         price: `${formatPrice(pkg.price)} for ${pkg.hours} hours`,
         href: "/call",
-        action: `Book a free ${CALL_MINUTES}-minute call`,
+        action: "Book a free placement call",
       };
     }
   }
@@ -137,23 +136,14 @@ export function planSummary(planId: RecommendedPlanId): PlanSummary {
 const gapOf = (input: RecommendationInput) =>
   Math.max(0, input.goalScore - (input.baselineScore ?? DEFAULT_BASELINE));
 
-/** The answers worth showing back, most telling first. */
+/** The two facts shown back with the plan, and only these (founder, 2026-11-25): how many points
+ *  there are to gain, and how many weeks until the SAT. */
 function signalsOf(input: RecommendationInput, gap: number): string[] {
   const w = input.weeksToTest;
   return [
     gap > 0 ? `${gap} points to gain` : null,
-    w != null ? `${w} weeks until your SAT` : null,
-    input.priorPrep === "didnt_move" ? "Prep before didn't improve your score" : null,
-    input.pace === "slower" ? "You learn best when someone walks you through it" : null,
-    input.independence === "on_my_own"
-      ? "You stick to a plan on your own"
-      : input.independence === "needs_structure"
-        ? "You work best when someone is expecting you"
-        : "You do best with a teacher and a set time",
-    `About ${input.hoursPerWeek} hours a week to study`,
-  ]
-    .filter((s): s is string => s !== null)
-    .slice(0, 3);
+    w != null ? `${w} ${w === 1 ? "week" : "weeks"} until your SAT` : null,
+  ].filter((s): s is string => s !== null);
 }
 
 export function recommendPlan(input: RecommendationInput): Recommendation {
@@ -244,7 +234,7 @@ function tutoring(
   return {
     planId,
     headline: pkg.name,
-    why: `${reason} ${pkg.hours} hours with a tutor working only with you, at the hours you choose. Everything in ${PRO_PLAN.name} is included.`,
+    why: `${reason} ${pkg.hours} hours with a tutor working only with you, at the hours you choose, with everything in the ${PRO_PLAN.name} plan included.`,
     signals,
     alsoConsidered: {
       planId: "cohort",

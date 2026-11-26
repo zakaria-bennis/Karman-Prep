@@ -19,7 +19,7 @@ const hex = (r: () => number, n: number) =>
 const uuid = (r: () => number) =>
   `${hex(r, 8)}-${hex(r, 4)}-4${hex(r, 3)}-a${hex(r, 3)}-${hex(r, 12)}`;
 
-const SITE = ["/", "/pricing", "/free-practice-test", "/program", "/faq", "/private-tutoring"];
+const SITE = ["/", "/pricing", "/program", "/faq", "/private-tutoring"];
 const PORTAL: Array<[string, number]> = [
   ["/dashboard/student", 3],
   ["/learn/practice/:id", 5],
@@ -82,7 +82,7 @@ export function sampleEvents(days: number, now = new Date()): AnalyticsEvent[] {
         anonId,
         sessionId,
         surface: "site",
-        path: "/free-practice-test",
+        path: "/pricing",
         at: at(d, m),
         name: "cta_click",
         props: { to: "sign_up" },
