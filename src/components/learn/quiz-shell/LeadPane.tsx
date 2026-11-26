@@ -26,7 +26,7 @@ export function LeadPane({
     (math ? (
       <div data-ink-block="lead" className={styles.stem}>
         <MathText
-          text={splitMathStem(q.question_text)?.lead ?? ""}
+          text={splitMathStem(q.question_text, { figure: plan.figure })?.lead ?? ""}
           serializedFunctionLines
           calculator={calculator}
         />

@@ -168,3 +168,26 @@ describe("unwrapMathProse equations", () => {
     expect(unwrapMathProse("where a is a constant\nb = 4")).toBe("where a is a constant\nb = 4");
   });
 });
+
+describe("splitMathStem setup rules", () => {
+  const short =
+    "y > 5x − 4\nFor which of the following tables are all the values of x and their corresponding values of y solutions to the given inequality?";
+  it("keeps an equation-only setup with its question when there is no figure", () => {
+    expect(splitMathStem(short)).toBeNull();
+  });
+  it("moves the setup left with a figure, however short the question", () => {
+    expect(
+      splitMathStem("The table gives the counts. What is the total?", { figure: true })
+    ).toEqual({
+      lead: "The table gives the counts.",
+      ask: "What is the total?",
+    });
+  });
+  it("closes up a run of blank lines", () => {
+    const s =
+      "A study. The table gives the number of gamers.\n\n\nWhich aspect will prevent the results from being generalized?";
+    expect(splitMathStem(s, { figure: true })?.lead).toBe(
+      "A study. The table gives the number of gamers."
+    );
+  });
+});

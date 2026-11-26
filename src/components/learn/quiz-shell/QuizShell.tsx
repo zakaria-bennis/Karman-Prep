@@ -448,6 +448,7 @@ export function QuizShell(props: QuizShellProps) {
                         eliminatorOn={eliminatorOn}
                         figureHere={plan.kind === "single"}
                         stemPart={plan.kind === "lead" && plan.text ? "ask" : "all"}
+                        figureLeft={plan.kind === "lead" && plan.figure}
                         hasCalculator={!!props.hasCalculator}
                         pickOffer={s.pickOffer}
                         explanationAside={explained}
