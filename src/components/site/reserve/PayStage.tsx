@@ -483,6 +483,7 @@ export default function PayStage(p: PayStageProps) {
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
+                required
                 maxLength={17}
                 value={phone}
                 aria-invalid={phoneBad || undefined}

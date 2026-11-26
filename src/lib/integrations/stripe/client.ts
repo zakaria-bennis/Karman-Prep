@@ -184,10 +184,13 @@ export async function createReservationCheckoutSession({
   programId,
   payment,
   returnUrl,
+  receiptEmail,
   tap = false,
 }: {
   customerId: string;
   reservationId: string;
+  /** The email shown on the payment page: Stripe sends the receipt there. */
+  receiptEmail: string;
   programId: string;
   payment: CohortPayment;
   /** Where Stripe sends the family once the payment is made. */
@@ -216,7 +219,11 @@ export async function createReservationCheckoutSession({
       ...shared,
       mode: "payment",
       line_items: [{ price: deposit.id, quantity: 1 }],
-      payment_intent_data: { setup_future_usage: "off_session", metadata },
+      payment_intent_data: {
+        setup_future_usage: "off_session",
+        receipt_email: receiptEmail,
+        metadata,
+      },
     });
   }
   const spec = findStripePrice("cohort");
@@ -227,7 +234,7 @@ export async function createReservationCheckoutSession({
     mode: "payment",
     allow_promotion_codes: true,
     line_items: [{ price: price.id, quantity: 1 }],
-    payment_intent_data: { metadata },
+    payment_intent_data: { receipt_email: receiptEmail, metadata },
   });
 }
 

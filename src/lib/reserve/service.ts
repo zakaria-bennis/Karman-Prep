@@ -205,6 +205,7 @@ export async function checkoutReservation(input: unknown): Promise<ReserveResult
       programId: s.programId,
       payment: s.payment,
       returnUrl: returnTo(r),
+      receiptEmail: r.parent_email,
     });
     if (!session.client_secret) return { ok: false, error: "server" };
     await db
@@ -328,6 +329,7 @@ export async function paymentFor(
             programId: seat.program_id,
             payment: seat.payment_option,
             returnUrl: returnTo(seat),
+            receiptEmail: seat.parent_email,
             tap: true,
           }).catch(() => null)
         : null;

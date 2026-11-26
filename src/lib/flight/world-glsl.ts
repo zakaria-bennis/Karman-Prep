@@ -272,6 +272,7 @@ const float HAZE = .1, FOGK = .7, MISTK = .6, SHAFT = 1., MOTES = 1.2, WARM = .5
    the sun, so it reddens; the air scatters blue overhead and a white glow around the sun. BR is how much
    the air thins each colour, straight up; airm() how much air a ray crosses at that height (Kasten-Young) */
 const vec3 BR = vec3(.040, .094, .229);
+const float GLOW = 1.6;
 float airm(float y) { float h = degrees(asin(clamp(y, -1., 1.))); return 1. / (max(y, 0.) + .50572 * pow(max(h, -2.) + 6.07995, -1.6364)); }
 vec3 atmo(vec3 rd, vec3 L, float E) {
   float mu = dot(rd, L), up = clamp(rd.y, 0., 1.);
@@ -280,7 +281,9 @@ vec3 atmo(vec3 rd, vec3 L, float E) {
      lit again and again by the rest of the sky, is brighter than one bounce would make it */
   vec3 tl = exp(-ext * min(airm(L.y), 36.) * mix(1., .18, sqrt(up)));
   vec3 tv = (1. - exp(-ext * airm(rd.y))) * mix(1., 2.2, sqrt(up));
-  float g = .76, pm = .25 * (1. - g * g) / pow(1. + g * g - 2. * g * mu, 1.5);
+  /* the white glow around the sun is held back: uncapped, a low sun filled the horizon and every river
+     that mirrors it with solid yellow (founder, 2026-11-26: "the sun bloom is way too much") */
+  float g = .76, pm = min(.25 * (1. - g * g) / pow(1. + g * g - 2. * g * mu, 1.5), GLOW);
   vec3 sc = (BR * .75 * (1. + mu * mu) + HAZE * pm) / ext;
   return E * smoothstep(-.18, .0, L.y) * tl * sc * tv;
 }
