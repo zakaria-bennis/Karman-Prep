@@ -9,6 +9,8 @@ import { Explanation } from "./Explanation";
 import { FigureSlot } from "./FigureSlot";
 import { NumericEntry } from "./NumericEntry";
 import { QuestionHeader } from "./QuestionHeader";
+import { StemText } from "./StemText";
+import { splitMathStem, unwrapMathProse } from "@/lib/quiz/stem-layout";
 
 export type QuestionContentProps = {
   q: StudentQuizQuestion;
@@ -20,6 +22,8 @@ export type QuestionContentProps = {
   eliminatorOn: boolean;
   /** Draw the figure in the question pane (math); reading questions draw it with the passage. */
   figureHere: boolean;
+  /** Split across two panes, the question pane shows only the question ("ask"); see pane-plan.ts. */
+  stemPart?: "all" | "ask";
   hasCalculator: boolean;
   pickOffer: string | null;
   /** The explanation is shown beside the question instead (a miss on a wide screen). */
@@ -62,13 +66,23 @@ export function QuestionContent(p: QuestionContentProps) {
         onToggleEliminator={p.onToggleEliminator}
       />
       {p.figureHere && <FigureSlot q={q} calculator={p.hasCalculator} />}
-      <h2 data-ink-block="stem" className={shell.stem}>
-        <MathText
-          text={q.question_text}
-          serializedFunctionLines={q.subject === "math"}
-          calculator={p.hasCalculator && q.subject === "math"}
-        />
-      </h2>
+      {q.subject === "math" ? (
+        <h2 data-ink-block="stem" className={shell.stem}>
+          <MathText
+            text={
+              p.stemPart === "ask"
+                ? (splitMathStem(q.question_text)?.ask ?? unwrapMathProse(q.question_text))
+                : unwrapMathProse(q.question_text)
+            }
+            serializedFunctionLines
+            calculator={p.hasCalculator}
+          />
+        </h2>
+      ) : (
+        <div data-ink-block="stem" className={shell.stemRead}>
+          <StemText text={q.question_text} part={p.stemPart ?? "all"} />
+        </div>
+      )}
       {q.answer_format === "numeric_entry" ? (
         <NumericEntry
           value={choiceState.answer ?? ""}

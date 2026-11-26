@@ -15,7 +15,9 @@ import { FigureSlot } from "./FigureSlot";
 import { ExitIcon } from "./icons";
 import { TEXT_SIZES } from "./MoreMenu";
 import { squaresFor } from "./Navigator";
-import { PassageBlock, hasPassage } from "./PassageBlock";
+import { PassageBlock } from "./PassageBlock";
+import { LeadPane } from "./LeadPane";
+import { panePlan } from "./pane-plan";
 import { PencilContext } from "./pencil-context";
 import { PencilStrip } from "./PencilStrip";
 import { PrimaryAction } from "./PrimaryAction";
@@ -235,6 +237,7 @@ export function QuizShell(props: QuizShellProps) {
 
   if (props.loading || !q) return <ShellSkeleton layout={layout} />;
   const ws = s.ws;
+  const plan = panePlan(q, layout);
   const answer = ws?.answer ?? null;
   const squares = squaresFor(
     total,
@@ -422,12 +425,14 @@ export function QuizShell(props: QuizShellProps) {
                     </CalculatorFrame>
                   )}
                   passage={
-                    hasPassage(q) ? (
+                    plan.kind === "passage" ? (
                       <>
                         {figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
                         <PassageBlock q={q} />
                         {!figureLeadsText(q.subject) && <FigureSlot q={q} calculator={false} />}
                       </>
+                    ) : plan.kind === "lead" ? (
+                      <LeadPane q={q} plan={plan} calculator={!!props.hasCalculator} />
                     ) : null
                   }
                   question={
@@ -441,7 +446,8 @@ export function QuizShell(props: QuizShellProps) {
                         generated={props.generated?.[q.id] === true}
                         bookmarked={!!s.saved[q.id]}
                         eliminatorOn={eliminatorOn}
-                        figureHere={!hasPassage(q)}
+                        figureHere={plan.kind === "single"}
+                        stemPart={plan.kind === "lead" && plan.text ? "ask" : "all"}
                         hasCalculator={!!props.hasCalculator}
                         pickOffer={s.pickOffer}
                         explanationAside={explained}
