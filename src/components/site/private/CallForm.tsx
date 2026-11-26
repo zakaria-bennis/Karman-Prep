@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { submitLead } from "@/app/(site)/lead-actions";
 import { Arrow } from "@/components/site/parts";
 import { cleanName, okEmail, okName, okPhone } from "@/lib/marketing/lead-rules";
+import { RESERVE } from "@/lib/marketing/reserve-copy";
 import FoxCheer, { Confetti } from "./FoxCheer";
 import SlotPicker, {
   dayKey,
@@ -99,7 +100,24 @@ function centralInstant(d: Date, h: number): Date {
   return new Date(noon.getTime() + (h - central) * 36e5);
 }
 
-export default function CallForm({ w, today }: { w: CallWords; today: string }) {
+/** What a signed-in visitor's account already knows, so the form starts with it filled in. */
+export interface CallMe {
+  first: string;
+  last: string;
+  email: string;
+}
+
+export default function CallForm({
+  w,
+  today,
+  me,
+}: {
+  w: CallWords;
+  today: string;
+  /** Signed in: the name and email are already there (never asked twice), and the booked call ends
+   *  with the way into the portal the account already has. */
+  me?: CallMe | null;
+}) {
   const days = useDays(today);
   const nowHour = useCentralHour();
   // open on tomorrow: today's hours are only known once the page is up, and may all be gone
@@ -204,6 +222,14 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
             ? ""
             : w.done.replace("{time}", timeLabel(day, hour)).replace("{day}", dayLabel(day, hour))}
         </h3>
+        {me ? (
+          <a className="btn" href="/portal">
+            <span className="lb">{RESERVE.start.land.mineOpen}</span>
+            <span className="go">
+              <Arrow />
+            </span>
+          </a>
+        ) : null}
       </div>
     );
 
@@ -217,6 +243,7 @@ export default function CallForm({ w, today }: { w: CallWords; today: string }) 
               <input
                 name={k}
                 placeholder=" "
+                defaultValue={k === "phone" ? undefined : me?.[k] || undefined}
                 aria-invalid={errors[k] ? true : undefined}
                 aria-describedby={errors[k] ? `call-${k}-msg` : undefined}
                 onBlur={(e) => {

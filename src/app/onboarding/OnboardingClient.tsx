@@ -114,7 +114,8 @@ export default function OnboardingClient({
   const [dir, setDir] = useState<1 | -1>(1);
   const [bad, setBad] = useState("");
   const [ready, setReady] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  // the plan screen's button that was pressed, by where it leads, while that page opens
+  const [going, setGoing] = useState<string | null>(null);
   const [parentBusy, startParent] = useTransition();
   // a choice was just tapped and the flow is about to move on
   const [picking, setPicking] = useState(false);
@@ -286,7 +287,7 @@ export default function OnboardingClient({
   /** Signed in: opens the plan's next step. Signed out: the answers are already kept, so the visitor
    *  makes an account and comes straight back to this plan. */
   async function continueTo(href: string) {
-    setSubmitting(true);
+    setGoing(href);
     if (!signedIn) {
       track("form_step", { form: "onboarding", step: "plan", kind: "choice", value: "sign_up" });
       window.location.assign("/auth/sign-up?redirect_url=/onboarding");
@@ -501,7 +502,7 @@ export default function OnboardingClient({
                 <RecommendationStep
                   recommendation={recommendation}
                   onContinue={continueTo}
-                  submitting={submitting}
+                  going={going}
                   signedIn={signedIn}
                   parent={role === "parent"}
                 />

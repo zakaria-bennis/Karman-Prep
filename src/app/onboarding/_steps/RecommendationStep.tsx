@@ -10,7 +10,7 @@ const W = FINDER.plan;
 export function RecommendationStep({
   recommendation,
   onContinue,
-  submitting,
+  going,
   signedIn,
   parent = false,
 }: {
@@ -19,13 +19,16 @@ export function RecommendationStep({
   recommendation: Recommendation;
   /** Goes to the plan's real next step: checkout, the reservation or the call booking. */
   onContinue: (href: string) => void | Promise<void>;
-  submitting: boolean;
+  /** Where the pressed button leads, while that page opens: that button alone shows it is working. */
+  going: string | null;
   /** A parent is answering for their student: a renewing plan belongs to the student's account, so
    *  the parent adds the student first. */
   parent?: boolean;
 }) {
   const plan = planSummary(recommendation.planId);
   const other = recommendation.alsoConsidered;
+  const free = going === "/portal";
+  const submitting = going !== null && !free;
   return (
     <div className="ob-plan">
       <h1>{recommendation.headline}</h1>
@@ -39,6 +42,7 @@ export function RecommendationStep({
         className="btn"
         onClick={() => void onContinue(plan.href)}
         data-busy={submitting || undefined}
+        disabled={free}
         suppressHydrationWarning
       >
         <span className="lb">
@@ -59,8 +63,14 @@ export function RecommendationStep({
       <p className="ob-ways">
         {/* an account can always start on the free plan: nobody has to buy to get in */}
         {signedIn ? (
-          <button type="button" className="ob-quiet" onClick={() => void onContinue("/portal")}>
-            {W.free}
+          <button
+            type="button"
+            className="ob-quiet"
+            onClick={() => void onContinue("/portal")}
+            disabled={going !== null}
+            aria-busy={free || undefined}
+          >
+            {free ? W.busy : W.free}
           </button>
         ) : null}
         <a className="ob-quiet" href="/pricing">

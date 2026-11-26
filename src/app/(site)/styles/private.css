@@ -487,6 +487,11 @@
   font-weight: 800;
   animation: pg-rise 0.6s var(--spring) 0.48s both;
 }
+/* signed in: the way into the portal the account already has */
+.ks .cf-done .btn {
+  margin-top: 14px;
+  animation: pg-rise 0.6s var(--spring) 0.6s both;
+}
 .ks .bk-hold {
   width: 120px;
   height: 5px;

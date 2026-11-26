@@ -3,17 +3,43 @@
  * so callers fall back to what they showed before.
  */
 import "server-only";
+import { after } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { countsByName, skillNamesByQuestion, type Skill72Count, type Skill72Tag } from "./skills72";
 
-/** Live questions behind each of the 72, by skill name (the skill72_live_counts view). */
-export async function loadSkill72Counts(db: SupabaseClient): Promise<Map<string, number>> {
+/* The count below reads the whole question table. When the database has not run it for a minute or so
+   it takes five to twelve seconds (measured 2026-11-26), and it was holding up the portal's first page.
+   So the last answer is kept for ten minutes, and a page waits a second and a half at most: after that
+   it gets the last known counts (or none, and the caller shows its own), while the read finishes
+   behind the page and is kept for the next one. */
+const KEEP_MS = 10 * 60_000;
+const WAIT_MS = 1500;
+let kept: { at: number; counts: Map<string, number> } | null = null;
+
+async function readSkill72Counts(db: SupabaseClient): Promise<Map<string, number> | null> {
   try {
     const { data, error } = await db.from("skill72_live_counts").select("skill_id, questions");
-    return error || !data ? new Map() : countsByName(data as Skill72Count[]);
+    if (error || !data) return null;
+    const counts = countsByName(data as Skill72Count[]);
+    kept = { at: Date.now(), counts };
+    return counts;
   } catch {
-    return new Map();
+    return null;
   }
+}
+
+/** Live questions behind each of the 72, by skill name (the skill72_live_counts view). */
+export async function loadSkill72Counts(db: SupabaseClient): Promise<Map<string, number>> {
+  if (kept && Date.now() - kept.at < KEEP_MS) return kept.counts;
+  const reading = readSkill72Counts(db);
+  try {
+    // keeps the request open until the read is in, without the page waiting for it
+    after(() => reading.then(() => undefined));
+  } catch {
+    // not inside a request (a script or a test): the read simply runs on
+  }
+  const late = new Promise<null>((done) => setTimeout(() => done(null), WAIT_MS));
+  return (await Promise.race([reading, late])) ?? kept?.counts ?? new Map();
 }
 
 /** The skill name of each of these questions that has a tag (read 200 at a time). */
