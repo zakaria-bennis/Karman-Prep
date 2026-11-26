@@ -171,7 +171,7 @@ export default function CatalogPractice({
   if (session && !session.completedAt && seen.some(Boolean) && (session.question || feedback))
     return (
       <QuizShell
-        mode={modeFor("catalog", { hasTutor: student.hasTutor })}
+        mode={modeFor("catalog", { hasTutor: student.hasTutor, hints: false })}
         questions={seen as StudentQuizQuestion[]}
         total={session.total}
         attemptKey={session.id}

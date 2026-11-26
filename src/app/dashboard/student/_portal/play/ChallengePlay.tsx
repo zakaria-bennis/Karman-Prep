@@ -38,7 +38,7 @@ export function ChallengePlay({
   const [busy, setBusy] = useState(false);
   return (
     <QuizShell
-      mode={modeFor("skill", { hasTutor: false })}
+      mode={modeFor("skill", { hasTutor: false, hints: false })}
       questions={questions}
       total={questions.length}
       attemptKey={`challenge-${today.day}`}

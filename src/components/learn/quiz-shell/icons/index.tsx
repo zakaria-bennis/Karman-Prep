@@ -216,6 +216,20 @@ export function ReferenceIcon(p: IconProps) {
   );
 }
 
+/** A hint: a small light bulb; lit (filled softly) once the hint is open. */
+export function HintIcon({ state = "off", ...p }: IconProps) {
+  const on = state === "on";
+  return (
+    <Svg {...p}>
+      <path
+        d="M9 17.5h6M10 20.5h4M12 3.5a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.300 1.100 2.200h5c0-.9.4-1.700 1.100-2.200A6 6 0 0 0 12 3.500z"
+        fill="currentColor"
+        fillOpacity={on ? 0.28 : 0}
+      />
+    </Svg>
+  );
+}
+
 export function MoreIcon(p: IconProps) {
   return (
     <Svg {...p}>

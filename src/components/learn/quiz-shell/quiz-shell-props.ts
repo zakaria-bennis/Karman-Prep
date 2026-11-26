@@ -62,6 +62,9 @@ export type QuizShellProps = {
   /** Second chances the student holds. After a miss graded in front of them, the explanation
    *  offers one (one a set); `onUse` resolves true once it is spent. */
   rescue?: { left: number; onUse(questionId: string): Promise<boolean> };
+  /** The student opened a question's hint (practice modes; the answer then does not count toward
+   *  the skill's level). */
+  onHint?(questionId: string): void;
   /** Questions already put right with a second chance (their dots show it). */
   rescued?: Readonly<Record<string, true>>;
 };

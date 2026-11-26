@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import MathText from "../MathText";
 import { raisePowers } from "@/lib/quiz/tidy-math";
+import { ExplanationBody } from "./ExplanationBody";
 import styles from "./pane.module.css";
 
 /** The explanation after grading (instant mode) or in review (locked mode). `action` sits at the
@@ -30,12 +31,7 @@ export function Explanation({
       ) : (
         <h3 className={styles.explanationTitle}>Explanation</h3>
       )}
-      {review.explanation_text && (
-        <MathText
-          text={raisePowers(review.explanation_text)}
-          className="block whitespace-pre-wrap"
-        />
-      )}
+      {review.explanation_text && <ExplanationBody q={q} text={review.explanation_text} />}
       {perChoice &&
         q.answer_format === "multiple_choice" &&
         ["A", "B", "C", "D"].map((letter) =>

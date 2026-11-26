@@ -1,0 +1,153 @@
+/* An explanation in parts (ExplanationBody.tsx). Colours are the shell's --quiz-* roles. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.body p {
+  margin: 0;
+}
+
+/* a part's title: short, quiet, with room above it so the parts read apart */
+.heading {
+  margin: 14px 0 0;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiz-text-muted);
+}
+.body > .heading:first-child {
+  margin-top: 0;
+}
+
+/* what the question asks, said once at the top */
+.asks {
+  font-size: 1.04em;
+  font-weight: 600;
+}
+
+/* a worked line of math, centred; a long one scrolls on its own rather than widening the pane */
+.math {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+  text-align: center;
+}
+
+/* numbered steps: the number in a small ring, the step's words hung beside it */
+.steps {
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 36px;
+}
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  top: 0.1em;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid color-mix(in srgb, var(--quiz-accent) 70%, transparent);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--quiz-accent);
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+/* why each other choice is wrong: its letter (or its words) first, then the reason */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.choices li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+.letter {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-top: 0.05em;
+  border: 1.5px solid var(--quiz-line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.word {
+  font-weight: 700;
+}
+.choices li:has(.word) {
+  display: block;
+}
+.choices li:has(.word) .word::after {
+  content: ": ";
+}
+
+/* a tip, a common slip or a check: a thin rule at the left, its name in bold */
+.note {
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid color-mix(in srgb, var(--quiz-accent) 55%, transparent);
+}
+.note strong {
+  margin-right: 0.4em;
+}
+
+/* the answer, last and plain to see: a soft green wash, the letter and its words */
+.body .answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--quiz-correct-soft);
+}
+.answerLabel {
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiz-correct);
+}
+.answer .letter {
+  border-color: var(--quiz-correct);
+  color: var(--quiz-correct);
+}
+.answerText {
+  font-weight: 650;
+}
+.answerText:empty {
+  display: none;
+}

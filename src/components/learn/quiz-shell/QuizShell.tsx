@@ -21,6 +21,8 @@ import { panePlan } from "./pane-plan";
 import { PencilContext } from "./pencil-context";
 import { PencilStrip } from "./PencilStrip";
 import { PrimaryAction } from "./PrimaryAction";
+import { HintCard, useHint } from "./Hint";
+import { HintIcon } from "./icons";
 import { QuestionArea } from "./QuestionArea";
 import { QuestionContent } from "./QuestionContent";
 import type { QuizShellProps } from "./quiz-shell-props";
@@ -151,7 +153,7 @@ export function QuizShell(props: QuizShellProps) {
     props.onSelectAnswer?.(q.id, own);
   };
   const [saveNotice, setSaveNotice] = useNotice(5000);
-  const [hint, setHint] = useNotice(3200);
+  const [toolTip, setHint] = useNotice(3200);
   const chance = useSecondChance({
     q,
     review,
@@ -173,6 +175,18 @@ export function QuizShell(props: QuizShellProps) {
   });
   const { toggleHighlighter, toggleBookmark, togglePencil, openReference } = tools;
   const [moreOpen, setMoreOpen] = useState(false);
+  const hint = useHint(q, mode, review, props.onHint);
+  // the Hint button sits beside Submit in the bottom bar (founder, 2026-11-26)
+  const hintButton = hint && (
+    <BarButton
+      icon={<HintIcon state={hint.open ? "on" : "off"} />}
+      word="Hint"
+      flow="row"
+      aria-expanded={hint.open}
+      aria-controls="quiz-hint"
+      onClick={hint.toggle}
+    />
+  );
   useEscape({
     active: s.pencilOn || s.highlighterOn || calcOpen,
     calculatorOpen: calcOpen,
@@ -363,20 +377,22 @@ export function QuizShell(props: QuizShellProps) {
                   )
                 }
                 tools={
-                  <ShellTools
-                    s={s}
-                    q={q}
-                    mode={mode}
-                    math={math}
-                    dialog={dialog}
-                    moreOpen={moreOpen}
-                    setMoreOpen={setMoreOpen}
-                    onShortcuts={() => setDialog("shortcuts")}
-                    tools={tools}
-                    onFlagForTutor={props.onFlagForTutor}
-                    onRemoveTutorFlag={props.onRemoveTutorFlag}
-                    onReportProblem={props.onReportProblem}
-                  />
+                  <>
+                    <ShellTools
+                      s={s}
+                      q={q}
+                      mode={mode}
+                      math={math}
+                      dialog={dialog}
+                      moreOpen={moreOpen}
+                      setMoreOpen={setMoreOpen}
+                      onShortcuts={() => setDialog("shortcuts")}
+                      tools={tools}
+                      onFlagForTutor={props.onFlagForTutor}
+                      onRemoveTutorFlag={props.onRemoveTutorFlag}
+                      onReportProblem={props.onReportProblem}
+                    />
+                  </>
                 }
               />
               {s.pencilOn && layout !== "compact" && strip}
@@ -476,11 +492,12 @@ export function QuizShell(props: QuizShellProps) {
                     onDone={() => props.onLevelUpDone?.()}
                   />
                 )}
-                {hint && (
+                {toolTip && (
                   <p role="status" className={styles.saveNotice} data-tone="hint">
-                    {hint}
+                    {toolTip}
                   </p>
                 )}
+                {hint && <HintCard hint={hint} />}
                 {saveNotice && (
                   <p role="alert" className={styles.saveNotice}>
                     {saveNotice}
@@ -505,7 +522,16 @@ export function QuizShell(props: QuizShellProps) {
                   centre={
                     checking ? <span className={styles.counter}>Check your work</span> : progress
                   }
-                  primary={primary}
+                  primary={
+                    hintButton ? (
+                      <>
+                        {hintButton}
+                        {primary}
+                      </>
+                    ) : (
+                      primary
+                    )
+                  }
                 />
               </div>
             </div>

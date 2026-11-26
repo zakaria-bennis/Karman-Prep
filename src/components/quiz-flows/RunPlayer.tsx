@@ -204,6 +204,8 @@ function InstantRun({
   const [after, setAfter] = useState<{ view: RunView; change: Change } | null>(null);
   const [reviewIndex, setReviewIndex] = useState<number | null>(null);
   const startedAt = useRef(Date.now());
+  // questions whose hint was opened: their answers do not count toward a skill's level
+  const hinted = useRef(new Set<string>());
   const questions = shown.sections[0].questions;
   const answeredIndex = questions.findIndex((q) => !shown.reviews[q.id] && !extra[q.id]);
   const currentIndex = answeredIndex === -1 ? questions.length - 1 : answeredIndex;
@@ -217,7 +219,7 @@ function InstantRun({
         questionId,
         answer,
         seconds: Math.min(86400, Math.max(0, Math.round((Date.now() - startedAt.current) / 1000))),
-        usedHint: false,
+        usedHint: hinted.current.has(questionId),
       })
     ).then((saved) => {
       if (!saved) return;
@@ -270,6 +272,7 @@ function InstantRun({
       reviews={reviews}
       saved={student.saved}
       hasCalculator={subject === "math"}
+      onHint={(id) => hinted.current.add(id)}
       onNavigate={(i) => {
         if (i > currentIndex) return void next();
         setReviewIndex(i === currentIndex ? null : i);
