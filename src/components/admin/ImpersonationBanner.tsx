@@ -25,6 +25,7 @@ export default function ImpersonationBanner({
   return (
     <div
       role="status"
+      data-impersonation-banner
       className="fixed left-1/2 top-2 z-[100] inline-flex -translate-x-1/2 items-center gap-2 rounded-full bg-warning px-3 py-1.5 text-xs font-bold text-night shadow-lg ring-1 ring-warning/10"
     >
       <Eye className="h-3.5 w-3.5" />

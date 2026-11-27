@@ -24,6 +24,10 @@ async function countRows(table: string, filter?: [string, string]): Promise<numb
 
 const TOOLS: Array<{ title: string; links: Array<[string, string]> }> = [
   {
+    title: "The site",
+    links: [["/studio", "Page Studio: flip through every page, comment and change the words"]],
+  },
+  {
     title: "People and money",
     links: [
       ["/admin/messages", "Messages from families"],
