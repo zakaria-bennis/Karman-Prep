@@ -37,7 +37,9 @@
 }
 
 /* the ring takes the color it has filled to; room is kept above for a hat */
-.ring {
+.ring,
+.ring > svg {
+  /* the glow reaches past the ring's own box; nothing may cut it */
   overflow: visible;
 }
 

@@ -15,6 +15,8 @@ export type QuizShellProps = {
   section: string;
   topic?: string;
   onNavigate(index: number): void;
+  /** Only ever on to the next question: no going back, no jumping (the daily challenge). */
+  forwardOnly?: boolean;
   onSelectAnswer?(questionId: string, answer: string | null): void;
   /** How a question was answered (time worked, time away, changes of mind and so on), each time
    *  there is more to keep. The host saves it; nothing waits on it. */

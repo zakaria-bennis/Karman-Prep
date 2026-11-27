@@ -30,7 +30,8 @@ import type { RunView } from "@/lib/assembler/run-types";
 import { actionStartReviewSet } from "@/lib/portal/review-set-actions";
 import { usePortalData } from "../portalData";
 import { ActivityEnd } from "./ActivityEnd";
-import { ChallengePlay } from "./ChallengePlay";
+import { ChallengeLook, ChallengePlay } from "./ChallengePlay";
+import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import { endFromRun } from "./end-from-run";
 import type { EndActions, EndView } from "./end-view";
 import { LocalPlay, type LocalQuestion } from "./LocalPlay";
@@ -146,6 +147,14 @@ export function PlayLayer({
   const worked = useRef<Record<string, number>>({});
   /** The finished run's misses, for "Review mistakes". */
   const [missed, setMissed] = useState<string[]>([]);
+  // the challenge, as graded, for its ending's look-only Review; open while `looking`
+  const [graded, setGraded] = useState<{
+    questions: StudentQuizQuestion[];
+    reviews: Record<string, StudentQuizReview>;
+    seed: string;
+    day: string;
+  } | null>(null);
+  const [looking, setLooking] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   // the portal's menu steps away while a quiz has the screen
@@ -262,7 +271,16 @@ export function PlayLayer({
         noWorld={request.kind === "challenge" && request.noWorld}
         onExit={close}
         onError={error}
-        onFinished={({ answers, done }) =>
+        onFinished={({ answers, done, results, reviews }) => {
+          // Review on the challenge's ending looks over both questions, right or not
+          setGraded({
+            questions: opened.today.questions
+              .filter((q) => opened.today.open.includes(q.subject))
+              .map((q) => q.question),
+            reviews,
+            seed: opened.today.seed,
+            day: opened.today.day,
+          });
           finish(opened, {
             activity: "challenge",
             title: "Challenge",
@@ -278,8 +296,9 @@ export function PlayLayer({
               before: opened.today.multiplier,
               after: opened.today.multiplier,
             },
-          })
-        }
+            results,
+          });
+        }}
       />
     );
   else if (opened?.kind === "local")
@@ -359,6 +378,7 @@ export function PlayLayer({
       {end && (
         <ActivityEnd
           view={end}
+          noWorld={request.kind === "challenge" && request.noWorld}
           intro={phase.at === "ending" ? { kind: "singularity", card } : undefined}
           onGone={() => setPhase({ at: "ended", end })}
           actions={endActions(request, {
@@ -366,17 +386,24 @@ export function PlayLayer({
             done: close,
             again: () => setAttempt((n) => n + 1),
             review: () =>
-              setRequest(
-                missed.length
-                  ? { kind: "review", questionIds: missed }
-                  : {
-                      kind: "review",
-                      skillId: request.kind === "set" ? request.skillId : undefined,
-                    }
-              ),
+              graded && request.kind === "challenge"
+                ? setLooking(true)
+                : setRequest(
+                    missed.length
+                      ? { kind: "review", questionIds: missed }
+                      : {
+                          kind: "review",
+                          skillId: request.kind === "set" ? request.skillId : undefined,
+                        }
+                  ),
             practice: (skillId, skill) => setRequest({ kind: "set", skillId, skill }),
           })}
         />
+      )}
+      {looking && graded && (
+        <div className={styles.look}>
+          <ChallengeLook {...graded} onDone={() => setLooking(false)} />
+        </div>
       )}
     </div>
   );
@@ -401,7 +428,7 @@ function endActions(
   const again = ["set", "endless", "trial", "review"].includes(request.kind)
     ? can.again
     : undefined;
-  const review = ["set", "daily", "endless", "trial"].includes(request.kind)
+  const review = ["set", "daily", "endless", "trial", "challenge"].includes(request.kind)
     ? can.review
     : undefined;
   return {

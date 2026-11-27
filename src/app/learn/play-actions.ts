@@ -17,7 +17,12 @@ import type { RunView } from "@/lib/assembler/run-types";
 import { loadDailySlot, reviewDailyAnswer } from "@/lib/daily-challenge/server";
 import { saverOffer, spendStreakSaver, type SaverOffer } from "@/lib/play/server/saver";
 import { utcDayKey } from "@/lib/daily-challenge/selection";
-import { recordChallengeAnswer } from "@/lib/daily-ten/challenge";
+import {
+  challengeAnswersOf,
+  challengeCrowd,
+  recordChallengeAnswer,
+} from "@/lib/daily-ten/challenge";
+import type { Crowd } from "@/lib/daily-challenge/crowd";
 import { coinsFor } from "@/lib/coins/earn";
 import { multiplierOn } from "@/lib/coins/multiplier";
 import { isSkill72Id, skill72 } from "@/lib/skills/ids72";
@@ -274,14 +279,41 @@ const challengeAnswer = z
     day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     questionId: z.string().uuid(),
     answer: z.string().trim().min(1).max(200),
+    activeMs: z.number().int().min(0).max(86_400_000).optional(),
   })
   .strict();
+
+/** One question of today's challenge as the student answered it, beside everyone's. */
+export type ChallengeResult = {
+  subject: "reading" | "math";
+  questionId: string;
+  ok: boolean;
+  answer: string;
+  seconds: number | null;
+  crowd: Crowd | null;
+};
 
 export type ChallengeDone = {
   multiplier: { before: number; after: number };
   streak: { days: number; best: number };
   coins: { total: number; lines: { label: string; coins: number }[]; walletBefore: number };
+  results: ChallengeResult[];
 };
+
+/** Each of today's answers by this student, with how everyone did on the same question. */
+async function challengeResults(id: string, day: string): Promise<ChallengeResult[]> {
+  const mine = await challengeAnswersOf(id, day);
+  return Promise.all(
+    mine.map(async (m) => ({
+      subject: m.subject,
+      questionId: m.question_id,
+      ok: m.is_correct,
+      answer: m.student_answer,
+      seconds: m.active_ms === null ? null : Math.round(m.active_ms / 1000),
+      crowd: await challengeCrowd(day, m.subject, m.question_id),
+    }))
+  );
+}
 
 /** One challenge answer: graded, kept, never counted in Free's 100. When the day's last open
  *  question is answered the challenge's coins are banked with the multiplier as it now stands. */
@@ -306,6 +338,7 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
       questionId: parsed.questionId,
       answer: parsed.answer,
       correct: review.isCorrect,
+      activeMs: parsed.activeMs,
     });
     const left = await challengeSubjectsLeft(id, parsed.day);
     if (left.length) return { review, done: null };
@@ -325,6 +358,7 @@ export async function actionAnswerChallenge(input: z.input<typeof challengeAnswe
       multiplier: { before, after },
       streak: { days: run.current, best: run.longest },
       coins: { total: earned.total, lines: earned.lines, walletBefore },
+      results: await challengeResults(id, parsed.day),
     };
     return { review, done };
   });

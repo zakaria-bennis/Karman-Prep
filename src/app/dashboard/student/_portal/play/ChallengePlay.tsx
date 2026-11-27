@@ -3,15 +3,17 @@
 // one Math question a day, every plan; Free answers one of the two). Real questions, graded on the
 // server as they are answered (actionAnswerChallenge); when the day's last open one is answered the
 // multiplier moves and the coins are banked, and the player carries the quiz into the ending.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QuizShell } from "@/components/learn/quiz-shell/QuizShell";
 import { modeFor } from "@/lib/quiz/mode";
-import type { StudentQuizReview } from "@/types/quiz";
+import type { StudentQuizQuestion, StudentQuizReview } from "@/types/quiz";
 import {
   actionAnswerChallenge,
   type ChallengeDone,
   type ChallengeToday,
 } from "@/app/learn/play-actions";
+import { challengeResultViews } from "./challenge-results";
+import type { ChallengeResultView } from "./end-view";
 
 export function ChallengePlay({
   today,
@@ -26,6 +28,9 @@ export function ChallengePlay({
   onFinished(result: {
     answers: { ok: boolean; skill: string }[];
     done: ChallengeDone | null;
+    results: ChallengeResultView[];
+    /** Each question as graded, for the ending's look-only Review. */
+    reviews: Record<string, StudentQuizReview>;
   }): void;
   onExit(): void;
   onError(text: string): void;
@@ -36,6 +41,28 @@ export function ChallengePlay({
   const [reviews, setReviews] = useState<Record<string, StudentQuizReview>>({});
   const [done, setDone] = useState<ChallengeDone | null>(null);
   const [busy, setBusy] = useState(false);
+  // time on each question while the page is in view, sent with the answer for the ending's
+  // "average" (the shell's own record runs only for saved runs)
+  const shownAt = useRef({ at: Date.now(), away: 0, hiddenAt: 0 });
+  useEffect(() => {
+    shownAt.current = { at: Date.now(), away: 0, hiddenAt: 0 };
+  }, [index]);
+  useEffect(() => {
+    const seen = () => {
+      const t = shownAt.current;
+      if (document.hidden) t.hiddenAt = Date.now();
+      else if (t.hiddenAt) {
+        t.away += Date.now() - t.hiddenAt;
+        t.hiddenAt = 0;
+      }
+    };
+    document.addEventListener("visibilitychange", seen);
+    return () => document.removeEventListener("visibilitychange", seen);
+  }, []);
+  const workedMs = () => {
+    const t = shownAt.current;
+    return Math.max(0, Math.min(86_400_000, Date.now() - t.at - t.away));
+  };
   return (
     <QuizShell
       mode={modeFor("skill", { hasTutor: false, hints: false })}
@@ -48,6 +75,7 @@ export function ChallengePlay({
       hasCalculator={questions[index]?.subject === "math"}
       shuffleSeed={today.seed}
       noWorld={noWorld}
+      forwardOnly
       onNavigate={setIndex}
       onExit={onExit}
       onSubmit={async (id, answer) => {
@@ -60,6 +88,7 @@ export function ChallengePlay({
             day: today.day,
             questionId: id,
             answer,
+            activeMs: workedMs(),
           });
           if (!r.ok) return onError(r.error);
           setReviews((old) => ({ ...old, [id]: r.value.review }));
@@ -77,8 +106,45 @@ export function ChallengePlay({
             skill: p.subject === "math" ? "Math" : "Reading and Writing",
           })),
           done,
+          results: done ? challengeResultViews(done.results, questions, reviews, today.seed) : [],
+          reviews,
         })
       }
+    />
+  );
+}
+
+/** The ending's Review (founder, 2026-11-24: "review = look only"): both questions as they were
+ *  graded, with their explanations, back and forth freely; Finish or Exit returns to the ending. */
+export function ChallengeLook({
+  questions,
+  reviews,
+  seed,
+  day,
+  onDone,
+}: {
+  questions: StudentQuizQuestion[];
+  reviews: Record<string, StudentQuizReview>;
+  seed: string;
+  day: string;
+  onDone(): void;
+}) {
+  const [index, setIndex] = useState(0);
+  return (
+    <QuizShell
+      mode={modeFor("skill", { hasTutor: false })}
+      questions={questions}
+      total={questions.length}
+      attemptKey={`challenge-look-${day}`}
+      index={index}
+      section="Challenge"
+      reviews={reviews}
+      hasCalculator={false}
+      shuffleSeed={seed}
+      noWorld
+      onNavigate={setIndex}
+      onExit={onDone}
+      onFinish={onDone}
     />
   );
 }
