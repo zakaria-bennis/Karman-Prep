@@ -412,6 +412,8 @@
 }
 /* A fraction is shown as one, over the typed text: the top over the bottom, a bar between. */
 .numeric[data-fraction] .numericInput {
+  /* a stacked fraction is taller than a line: the box grows so it sits under "Your answer" */
+  height: 76px;
   color: transparent;
   caret-color: transparent;
 }

@@ -121,7 +121,7 @@ export default function QuizEngine({
     >
       {showShell && (
         <QuizShell
-          mode={modeFor("skill", { hasTutor: student.hasTutor })}
+          mode={modeFor("skill", { hasTutor: student.hasTutor, hints: false })}
           questions={state.selectedQuestions}
           total={state.targetLength || state.selectedQuestions.length}
           attemptKey={attemptKey}

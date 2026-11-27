@@ -68,6 +68,8 @@ function InstantPlay({ view, seed, secondChances = 0, onFinished, onExit, onErro
   const [chances, setChances] = useState(secondChances);
   const busy = useRef(false);
   const startedAt = useRef(Date.now());
+  // questions whose hint was opened: their answers do not count toward a skill's level
+  const hinted = useRef(new Set<string>());
   const section = shown.sections[0];
   const questions = section.questions;
   const reviews = { ...shown.reviews, ...extra };
@@ -88,7 +90,7 @@ function InstantPlay({ view, seed, secondChances = 0, onFinished, onExit, onErro
         questionId,
         answer,
         seconds: Math.min(86400, Math.max(0, Math.round((Date.now() - startedAt.current) / 1000))),
-        usedHint: false,
+        usedHint: hinted.current.has(questionId),
       });
       if (!saved.ok) return onError(saved.error);
       setExtra((old) => ({ ...old, [questionId]: saved.value.review }));
@@ -138,6 +140,7 @@ function InstantPlay({ view, seed, secondChances = 0, onFinished, onExit, onErro
       hasCalculator={(current?.subject ?? section.subject) === "math"}
       shuffleSeed={seed}
       generated={generated}
+      onHint={(id) => hinted.current.add(id)}
       endless={endless ? { hearts: 3, lost: Math.min(3, misses) } : undefined}
       rescued={rescued}
       rescue={

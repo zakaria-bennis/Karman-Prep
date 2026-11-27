@@ -10,6 +10,9 @@ export type QuizMode = {
   /** Only students with a cohort or 1:1 tutor see "Ask my tutor". */
   showTutorFlag: boolean;
   canBookmark: boolean;
+  /** A Hint button before the answer is in (practice only; an answer after a hint does not count
+   *  toward a skill's level). Off in exams, the diagnostic, review and the daily challenge. */
+  hints: boolean;
 };
 
 export type HostKind =
@@ -23,7 +26,7 @@ export type HostKind =
 
 export function modeFor(
   host: HostKind,
-  opts: { baseSeconds?: number; hasTutor: boolean }
+  opts: { baseSeconds?: number; hasTutor: boolean; hints?: boolean }
 ): QuizMode {
   switch (host) {
     case "skill":
@@ -35,6 +38,7 @@ export function modeFor(
         markForReview: false,
         showTutorFlag: opts.hasTutor,
         canBookmark: true,
+        hints: opts.hints ?? host !== "daily",
       };
     case "diagnostic":
     case "timed": {
@@ -46,6 +50,7 @@ export function modeFor(
         markForReview: true,
         showTutorFlag: opts.hasTutor,
         canBookmark: true,
+        hints: false,
       };
     }
     case "review":
@@ -55,6 +60,7 @@ export function modeFor(
         markForReview: false,
         showTutorFlag: opts.hasTutor,
         canBookmark: true,
+        hints: false,
       };
     case "preview":
       return {
@@ -63,6 +69,7 @@ export function modeFor(
         markForReview: false,
         showTutorFlag: false,
         canBookmark: false,
+        hints: false,
       };
   }
 }

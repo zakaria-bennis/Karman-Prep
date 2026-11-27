@@ -9,7 +9,14 @@ describe("modeFor", () => {
       markForReview: false,
       showTutorFlag: false,
       canBookmark: true,
+      hints: true,
     });
+  });
+  it("hints are for practice only: never in an exam, the challenge or the diagnostic", () => {
+    expect(modeFor("timed", { baseSeconds: 60, hasTutor: false }).hints).toBe(false);
+    expect(modeFor("diagnostic", { baseSeconds: 60, hasTutor: false }).hints).toBe(false);
+    expect(modeFor("daily", { hasTutor: false }).hints).toBe(false);
+    expect(modeFor("skill", { hasTutor: false, hints: false }).hints).toBe(false);
   });
   it("the diagnostic grades at the end with a countdown and review marks", () => {
     const mode = modeFor("diagnostic", { baseSeconds: 1920, hasTutor: true });
